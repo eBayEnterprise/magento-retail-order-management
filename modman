@@ -3,9 +3,12 @@
 @import extensions/filetransfer
 @import extensions/mage_log
 
-# TrueAction_Eb2c_Core
+# TrueAction_Eb2cCore
 src/app/etc/modules/*.xml app/etc/modules/
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
+
+# TrueAction_Eb2cJsc
+src/js/trueaction_eb2cjsc/*		js/trueaction_eb2cjsc/
 
 # TrueAction_Eb2c_Address
 src/app/design/frontend/base/default/template/eb2caddress_frontend app/design/frontend/base/default/template/eb2caddress_frontend
