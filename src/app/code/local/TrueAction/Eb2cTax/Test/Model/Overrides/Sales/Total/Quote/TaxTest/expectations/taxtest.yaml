@@ -3,8 +3,26 @@
   base_tax_amount: 0.0
   row_total_incl_tax: 50
   base_row_total_incl_tax: 50
+  hidden_tax_amount: 0
+  base_hidden_tax_amount: 0
 0-7:
   tax_amount: 8.0
   base_tax_amount: 8.0
   row_total_incl_tax: 107.99
   base_row_total_incl_tax: 107.99
+  hidden_tax_amount: 0
+  base_hidden_tax_amount: 0
+1-6:
+  tax_amount: 0.0
+  base_tax_amount: 0.0
+  row_total_incl_tax: 50
+  base_row_total_incl_tax: 50
+  hidden_tax_amount: 0
+  base_hidden_tax_amount: 0
+1-7:
+  tax_amount: 8.0
+  base_tax_amount: 8.0
+  row_total_incl_tax: 107.99
+  base_row_total_incl_tax: 107.99
+  hidden_tax_amount: 3.2
+  base_hidden_tax_amount: 3.2

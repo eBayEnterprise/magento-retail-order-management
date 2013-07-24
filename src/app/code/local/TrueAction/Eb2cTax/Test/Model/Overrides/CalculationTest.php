@@ -57,7 +57,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends EcomDev_PH
 	/**
 	 * @test
 	 */
-	public function testCalcTaxForItem()
+	public function testGetTaxForItem()
 	{
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->response);
@@ -68,7 +68,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends EcomDev_PH
 	/**
 	 * @test
 	 */
-	public function testCalcTaxForItemAmount()
+	public function testGetTaxForItemAmount()
 	{
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->response);
