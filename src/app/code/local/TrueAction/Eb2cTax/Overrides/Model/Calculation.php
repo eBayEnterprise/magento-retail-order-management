@@ -16,6 +16,42 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
+	 * return the total tax amount for any discounts.
+	 * @param  Varien_Object $itemSelector
+	 * @return float
+	 */
+	public function getDiscountTax(Varien_Object $itemSelector)
+	{
+		$tax = 0.0;
+		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
+		if ($itemResponse) {
+			$taxQuotes = $itemResponse->getTaxQuoteDiscounts();
+			foreach ($taxQuotes as $taxQuote) {
+				$tax += $taxQuote->getCalculatedTax();
+			}
+		}
+		return $tax;
+	}
+
+	/**
+	 * return the total tax amount for any discounts.
+	 * @param  Varien_Object $itemSelector
+	 * @return float
+	 */
+	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector)
+	{
+		$tax = 0.0;
+		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
+		if ($itemResponse) {
+			$taxQuotes = $itemResponse->getTaxQuoteDiscounts();
+			foreach ($taxQuotes as $taxQuote) {
+				$tax += ($amount * $taxQuote->getEffectiveRate());
+			}
+		}
+		return $tax;
+	}
+
+	/**
 	 * @codeCoverageIgnore
 	 */
 	public function getRateRequest(
@@ -203,9 +239,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 
 	public function getAppliedRates($itemSelector)
 	{
-		$item    = $itemSelector->getItem();
-		$address =  $itemSelector->getAddress();
-		$result  = array();
+		$item       = $itemSelector->getItem();
+		$address    = $itemSelector->getAddress();
+		$result     = array();
+		$baseAmount = $item->getBaseTaxAmount();
 		$itemResponse = $this->_getItemResponse($item, $address);
 		if ($itemResponse) {
 			$taxQuotes = $itemResponse->getTaxQuotes();
@@ -227,13 +264,12 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$rate['title']       = Mage::helper('tax')->__($code);
 				$rate['amount']      = $taxQuote->getCalculatedTax();
 				$rate['percent']     = $taxRate * 100.0;
-				// TODO: FIND A WAY TO POPULATE THIS
-				$rate['base_amount'] = 0;
+				$rate['base_amount'] = $baseAmount;
 				$rate['position']    = 1;
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
 				$group['amount']     += $rate['amount'];
-				$result[$id]       = $group;
+				$result[$id]         = $group;
 			}
 		}
 		return $result;

@@ -23,6 +23,15 @@
 		</blocks>
 	</global>
 	<frontend>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cAddress>
+					<files>
+						<default>TrueAction_Eb2cAddress.csv</default>
+					</files>
+				</TrueAction_Eb2cAddress>
+			</modules>
+		</translate>
 		<events>
 			<address_validate>
 				<observers>

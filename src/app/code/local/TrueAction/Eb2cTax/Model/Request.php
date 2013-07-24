@@ -370,6 +370,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'merchandise_tax_class' => $item->getTaxClassId(),
 			'shipping_amount' => $address->getShippingAmount(),
 			'shipping_tax_class' => $this->_getShippingTaxClass(),
+			'AdminOrigin' => $this->_extractAdminData(),
+			'ShippingOrigin' => $this->_extractShippingData($item),
 		);
 		$this->_extractItemDiscountData($item, $address, $data);
 		return $data;
@@ -398,7 +400,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _checkSku($item)
 	{
-		$newSku      = $this->_checkLength($item['item_id'], 1, 20);
+		$newSku = $this->_checkLength($item['item_id'], 1, 20);
 		if (is_null($newSku)){
 			$this->invalidate();
 			$message = sprintf(
@@ -619,30 +621,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			->addChild('ItemDesc', $this->_checkLength($item['item_desc'], 0, 12))
 			->addChild('HTSCode', $this->_checkLength($item['hts_code'], 0, 12));
 
-		$adminOrigin = $parent->createChild('AdminOrigin')
-			->addChild('Line1', 1)
-			->addChild('Line2', 2)
-			->addChild('Line3', 3)
-			->addChild('Line4', 4)
-			->addChild('City', 'optional')
-			->addChild('MainDivision', 'optional')
-			->addChild('CountryCode', 'optional')
-			->addChild('PostalCode', 'optional');
-
 		$origins = $parent->createChild('Origins');
-		$origins->appendChild($adminOrigin);
-
-		$shippingOrigin = $parent->createChild('ShippingOrigin')
-			->addChild('Line1', 1)
-			->addChild('Line2', 2)
-			->addChild('Line3', 3)
-			->addChild('Line4', 4)
-			->addChild('City', 'optional')
-			->addChild('MainDivision', 'optional')
-			->addChild('CountryCode', 'optional')
-			->addChild('PostalCode', 'optional');
-
-		$origins->appendChild($shippingOrigin);
+		$origins->appendChild($this->_buildAdminOriginNode($parent, $item['AdminOrigin']));
+		$origins->appendChild($this->_buildShippingOriginNode($parent, $item['ShippingOrigin']));
 
 		$orderItem->appendChild($origins);
 		$orderItem->addChild('Quantity', $item['quantity']);
@@ -711,5 +692,173 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _isDutyCalcNeeded($item, $address)
 	{
 		return false;
+	}
+
+	/**
+	 * extract admin origin data from the Magento store configuration
+	 *
+	 * @return array, the admin origin address data
+	 */
+	protected function _extractAdminData()
+	{
+		$storeAddress = Mage::getStoreConfig('general/store_information/address');
+		$countryCode  = Mage::getStoreConfig('general/store_information/merchant_country');
+
+		$countryCode = (trim($countryCode) !== '')? $countryCode : 'US';
+
+		$addressArr = explode('\r\n', trim($storeAddress));
+
+		$lineAddress = 'Line1';
+		$cityStateArr = array();
+		if (sizeof($addressArr) > 1) {
+			$lineAddress = $addressArr[0];
+			$cityStateArr = explode(',', trim($addressArr[1]));
+		}
+
+		$city = 'city';
+		$stateZipArr = array();
+		if (sizeof($cityStateArr) > 1) {
+			$city = $cityStateArr[0];
+			$stateZipArr = explode(' ', trim($cityStateArr[1]));
+		}
+
+		$state = 'state';
+		$zipCode = 'zipCode';
+
+		if (sizeof($stateZipArr) > 1) {
+			$state = $stateZipArr[0];
+			$zipCode = $stateZipArr[1];
+		}
+		$data = array(
+			'Line1' => $lineAddress,
+			'Line2' => 'Line2',
+			'Line3' => 'Line3',
+			'Line4' => 'Line4',
+			'City' => $city,
+			'MainDivision' => $state,
+			'CountryCode' => $countryCode,
+			'PostalCode' => $zipCode,
+		);
+
+		return $data;
+	}
+
+	/**
+	 * extract shipping origin data from quote item originally setup by inventory details request to eb2c
+	 *
+	 * @param Mage_Sales_Model_Quote_Item $item, the quote item to get inventory detail information from
+	 *
+	 * @return array, the shipping origin address data
+	 */
+	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		$data = array(
+			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '')? $item->getEb2cShipFromAddressLine1() : 'Line1',
+			'Line2' => 'Line2',
+			'Line3' => 'Line3',
+			'Line4' => 'Line4',
+			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '')? $item->getEb2cShipFromAddressCity() : 'city',
+			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '')? $item->getEb2cShipFromAddressMainDivision() : 'State',
+			'CountryCode' =>  (trim($item->getEb2cShipFromAddressCountryCode()) !== '')? $item->getEb2cShipFromAddressCountryCode() : 'US',
+			'PostalCode' =>  (trim($item->getEb2cShipFromAddressPostalCode()) !== '')? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
+		);
+
+		return $data;
+	}
+
+	/**
+	 * build the AdminOrigin node
+	 *
+	 * @param TrueAction_Dom_Element $parent, the dom element parent node
+	 * @param array $adminOrigin, the admin origin address
+	 *
+	 * @return TrueAction_Dom_Element
+	 */
+	protected function _buildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
+	{
+		return $parent->createChild('AdminOrigin')
+			->addChild('Line1', $adminOrigin['Line1'])
+			->addChild('Line2', $adminOrigin['Line2'])
+			->addChild('Line3', $adminOrigin['Line3'])
+			->addChild('Line4', $adminOrigin['Line4'])
+			->addChild('City', $adminOrigin['City'])
+			->addChild('MainDivision', $adminOrigin['MainDivision'])
+			->addChild('CountryCode', $adminOrigin['CountryCode'])
+			->addChild('PostalCode', $adminOrigin['PostalCode']);
+	}
+
+	/**
+	 * build the ShippingOrigin node
+	 *
+	 * @param TrueAction_Dom_Element $parent, the dom element parent node
+	 * @param array $shippingOrigin, the shipping origin address
+	 *
+	 * @return TrueAction_Dom_Element
+	 */
+	protected function _buildShippingOriginNode(TrueAction_Dom_Element $parent, array $shippingOrigin)
+	{
+		return $parent->createChild('ShippingOrigin')
+			->addChild('Line1', $shippingOrigin['Line1'])
+			->addChild('Line2', $shippingOrigin['Line2'])
+			->addChild('Line3', $shippingOrigin['Line3'])
+			->addChild('Line4', $shippingOrigin['Line4'])
+			->addChild('City', $shippingOrigin['City'])
+			->addChild('MainDivision', $shippingOrigin['MainDivision'])
+			->addChild('CountryCode', $shippingOrigin['CountryCode'])
+			->addChild('PostalCode', $shippingOrigin['PostalCode']);
+	}
+
+	/**
+	 * compare the shippingOrigin to be sent in the request with the shippingOrigin
+	 * in the specified quote.
+	 * @param  Mage_Sales_Model_Quote $quote
+	 */
+	public function checkShippingOriginAddresses(Mage_Sales_Model_Quote $quote = null)
+	{
+		if (!($this->isValid() && $quote && $quote->getId())) {
+			// skip it if the request is bad in the first place or if the quote
+			// passed in is null.
+			return;
+		}
+
+		if (is_array($this->_orderItems)) {
+			foreach ($this->_orderItems as $key => $value) {
+				if($item = $quote->getItemById($value['id'])) {
+					$itemData = $this->_extractShippingData($item);
+					$shippingOrigin = $value['ShippingOrigin'];
+					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin);
+				}
+			}
+		}
+
+		if ($this->_hasChanges) {
+			$this->invalidate();
+		}
+	}
+
+	/**
+	 * compare the adminOrigin to be sent in the request with the adminOrigin
+	 * in the specified quote.
+	 * @param  Mage_Sales_Model_Quote $quote
+	 */
+	public function checkAdminOriginAddresses()
+	{
+		if (!$this->isValid()) {
+			// skip it if the request is bad in the first place or if the quote
+			// passed in is null.
+			return;
+		}
+
+		if (is_array($this->_orderItems)) {
+			foreach ($this->_orderItems as $key => $value) {
+				$adminData = $this->_extractAdminData();
+				$adminOrigin = $value['AdminOrigin'];
+				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
+			}
+		}
+
+		if ($this->_hasChanges) {
+			$this->invalidate();
+		}
 	}
 }

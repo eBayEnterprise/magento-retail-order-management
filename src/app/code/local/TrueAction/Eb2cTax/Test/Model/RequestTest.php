@@ -107,6 +107,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 
 	/**
 	 * @test
+	 * @large
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
 	 */
@@ -577,5 +578,250 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 
 		$node = $xpath->query('Email/a:EmailAddress', $parent)->item(0);
 		$this->assertSame('foo@example.com', $node->textContent);
+	}
+
+	/**
+	 * @test
+	 * @loadFixture loadAdminAddressConfig.yaml
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
+	 */
+	public function testExtractAdminData()
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$requestReflector = new ReflectionObject($request);
+		$extractAdminDataMethod = $requestReflector->getMethod('_extractAdminData');
+		$extractAdminDataMethod->setAccessible(true);
+
+		$this->assertSame(
+			array(
+				'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+				'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+			),
+			$extractAdminDataMethod->invoke($request)
+		);
+	}
+
+	public function providerExtractShippingData()
+	{
+		$mockQuoteItem = $this->getModelMock('sales/quote_item',
+			array(
+				'getEb2cShipFromAddressLine1', 'getEb2cShipFromAddressCity', 'getEb2cShipFromAddressMainDivision',
+				'getEb2cShipFromAddressCountryCode', 'getEb2cShipFromAddressPostalCode'
+			)
+		);
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressLine1')
+			->will($this->returnValue('1075 First Avenue'));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressCity')
+			->will($this->returnValue('King Of Prussia'));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressMainDivision')
+			->will($this->returnValue('PA'));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressCountryCode')
+			->will($this->returnValue('US'));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressPostalCode')
+			->will($this->returnValue('19406'));
+
+		return array(
+			array($mockQuoteItem)
+		);
+	}
+
+	/**
+	 * @test
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @dataProvider providerExtractShippingData
+	 * @large
+	 */
+	public function testExtractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$requestReflector = new ReflectionObject($request);
+		$extractShippingDataMethod = $requestReflector->getMethod('_extractShippingData');
+		$extractShippingDataMethod->setAccessible(true);
+
+		$this->assertSame(
+			array(
+				'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+				'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+			),
+			$extractShippingDataMethod->invoke($request, $item)
+		);
+	}
+
+	public function providerBuildAdminOriginNode()
+	{
+		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
+
+		return array(
+			array(
+				$parent,
+				array(
+					'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+				)
+			)
+		);
+	}
+
+	/**
+	 * @test
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @dataProvider providerBuildAdminOriginNode
+	 * @large
+	 */
+	public function testBuildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$requestReflector = new ReflectionObject($request);
+		$buildAdminOriginNodeMethod = $requestReflector->getMethod('_buildAdminOriginNode');
+		$buildAdminOriginNodeMethod->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Dom_Element',
+			$buildAdminOriginNodeMethod->invoke($request, $parent, $adminOrigin)
+		);
+	}
+
+
+	public function providerBuildShippingOriginNode()
+	{
+		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
+
+		return array(
+			array(
+				$parent,
+				array(
+					'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+				)
+			)
+		);
+	}
+
+	/**
+	 * @test
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @dataProvider providerBuildShippingOriginNode
+	 * @large
+	 */
+	public function testBuildShippingOriginNode(TrueAction_Dom_Element $parent, array $shippingOrigin)
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$requestReflector = new ReflectionObject($request);
+		$buildShippingOriginNodeMethod = $requestReflector->getMethod('_buildShippingOriginNode');
+		$buildShippingOriginNodeMethod->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Dom_Element',
+			$buildShippingOriginNodeMethod->invoke($request, $parent, $shippingOrigin)
+		);
+	}
+
+	/**
+	 * @test
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
+	 */
+	public function testCheckShippingOriginAddresses()
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$this->assertNull(
+			$request->checkShippingOriginAddresses($quote)
+		);
+
+		// testing with invalid quote
+		$quoteAMock = $this->getMock('Mage_Sales_Model_Quote', array('getId'));
+		$quoteAMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(0)
+			);
+		$this->assertNull(
+			$request->checkShippingOriginAddresses($quoteAMock)
+		);
+
+		// testing when shippingOrigin has changed.
+		$requestReflector = new ReflectionObject($request);
+		$orderItemsProperty = $requestReflector->getProperty('_orderItems');
+		$orderItemsProperty->setAccessible(true);
+		$orderItemsProperty->setValue(
+			$request, array('1' => array(
+					'id' => 1,
+					'ShippingOrigin' => array(
+
+					'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+				)
+			))
+		);
+		$this->assertNull(
+			$request->checkShippingOriginAddresses($quote)
+		);
+
+	}
+
+	/**
+	 * @test
+	 * @loadFixture base.yaml
+	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
+	 */
+	public function testCheckAdminOriginAddresses()
+	{
+		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+
+		$this->assertNull(
+			$request->checkAdminOriginAddresses()
+		);
+
+		// testing when adminOrigin has changed.
+		$requestReflector = new ReflectionObject($request);
+		$orderItemsProperty = $requestReflector->getProperty('_orderItems');
+		$orderItemsProperty->setAccessible(true);
+		$orderItemsProperty->setValue(
+			$request, array('1' => array(
+					'id' => 1,
+					'AdminOrigin' => array(
+
+					'Line1' => 'This is not a test, it\'s difficulty', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
+					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
+				)
+			))
+		);
+		$this->assertNull(
+			$request->checkAdminOriginAddresses()
+		);
+
+		// Testing the behavior of the checkAdminOriginAddresses method
+		// when the _hasChanged property is set from a previous process
+		$requestReflector = new ReflectionObject($request);
+		$hasChangesProperty = $requestReflector->getProperty('_hasChanges');
+		$hasChangesProperty->setAccessible(true);
+		$hasChangesProperty->setValue($request, true);
+		$this->assertNull(
+			$request->checkAdminOriginAddresses()
+		);
 	}
 }

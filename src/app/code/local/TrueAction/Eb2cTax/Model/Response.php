@@ -124,8 +124,9 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$xpath->registerNamespace('a', $this->_namespaceUri);
 		$idRef = $xpath->evaluate('string(./a:DestinationTarget/@ref)', $shipGroup);
 		$id = null;
-		if ($idRef) {
-			list(, $id) = explode('_', $idRef);
+		$idRefArray = explode('_', $idRef);
+		if (count($idRefArray) > 1) {
+			list(, $id) = $idRefArray;
 		}
 		$address = $this->_loadAddress($id);
 		if (!$address->getId()) {

@@ -1,0 +1,6 @@
+config:
+  default/general/store_information/address: "1075 First Avenue\r\nKing Of Prussia, PA 19406"
+  default/general/store_information/name: "EB2C"
+  default/general/store_information/phone: "1-555-555-5555"
+  default/general/store_information/merchant_country: "US"
+  default/general/store_information/merchant_vat_number: 12341231233

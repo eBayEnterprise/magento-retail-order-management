@@ -82,6 +82,17 @@
                 </observers>
             </salesrule_validator_process>
         </events>
+        <sales>
+            <quote>
+                <totals>
+                    <tax_subtotal>
+                        <class>tax/sales_total_quote_subtotal</class>
+                        <after>freeshipping,discount</after>
+                        <before>tax</before>
+                    </tax_subtotal>
+                </totals>
+            </quote>
+        </sales>
 	</global>
 	<default>
 		<eb2ctax>

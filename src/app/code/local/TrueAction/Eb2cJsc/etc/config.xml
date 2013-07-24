@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+		<TrueAction_Eb2cJsc>
+			<version>0.1.0</version>
+		</TrueAction_Eb2cJsc>
+	</modules>
+	<global>
+		<helpers>
+			<eb2cjsc>
+				<class>TrueAction_Eb2cJsc_Helper</class>
+			</eb2cjsc>
+		</helpers>
+	</global>
+	<phpunit>
+		<suite>
+			<modules>
+				<TrueAction_Eb2cJsc />
+			</modules>
+		</suite>
+	</phpunit>
+</config>
