@@ -70,17 +70,14 @@ class TrueAction_Eb2cJsc_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	public function testBuildHtml() {
 		$this->_helper->getJsc();
 		$scriptTagHtml = $this->_helper->getJscScriptTag();
-echo "\n$scriptTagHtml\n";
 		$scriptTagMatcher = array('tag' => 'script');
 		$this->assertTag( $scriptTagMatcher, $scriptTagHtml, 'Script Tag Error');
 
 		$formFieldHtml = $this->_helper->getJscFormField();
-echo "\n$formFieldHtml\n";
 		$formFieldTagMatcher = array('tag' => 'input');
 		$this->assertTag( $formFieldTagMatcher, $formFieldHtml, 'Form Field Tag Error');
 
 		$jscFunctionCall = $this->_helper->getJscFunctionCall();
-echo "\n$jscFunctionCall\n";
 		$this->assertStringEndsWith(");", $jscFunctionCall);
 	}
 }
