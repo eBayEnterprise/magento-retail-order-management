@@ -497,7 +497,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 			->method('getAppliedRuleIds')
 			->will($this->returnValue(''));
 		$outData = array();
-		$fn->invoke($request, $mockItem, $mockQuoteAddress, &$outData);
+		$fn->invoke($request, $mockItem, $mockQuoteAddress, outData);
 		$keys = array(
 			'merchandise_discount_code',
 			'merchandise_discount_amount',
