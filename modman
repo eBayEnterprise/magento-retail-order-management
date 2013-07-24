@@ -6,6 +6,7 @@
 # TrueAction_Eb2cCore
 src/app/etc/modules/*.xml app/etc/modules/
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
+src/app/locale/en_US/* app/locale/en_US/
 
 # TrueAction_Eb2cJsc
 src/js/trueaction_eb2cjsc/*		js/trueaction_eb2cjsc/
