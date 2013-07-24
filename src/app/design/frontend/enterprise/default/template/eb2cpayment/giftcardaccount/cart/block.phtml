@@ -1,0 +1,59 @@
+<?php
+/**
+ * @category   TrueAction
+ * @package    TrueAction_Eb2c
+ * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ */
+?>
+<?php
+/**
+ * @see Enterprise_GiftCardAccount_Block_Checkout_Cart_Giftcardaccount
+ */
+?>
+<div class="giftcard">
+	<h2><?php echo $this->__('Gift Cards') ?></h2>
+	<div id="giftcard_balance_lookup"></div>
+	<span id="gc-please-wait" class="please-wait" style="display:none;">
+		<img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="" class="v-middle" /> <?php echo $this->__('Please wait, loading...') ?>
+	</span>
+	<form id="giftcard-form" action="<?php echo $this->getUrl('enterprise_giftcardaccount/cart/add') ?>" method="post">
+		<fieldset>
+
+			<ul class="form-list">
+				<li>
+					<label style="text-align:left;" for="giftcard_code" class="required"><em>*</em><?php echo $this->__('Payment Account Numbers (PAN)') ?></label>
+					<input style="width: 280px;" class="required-entry input-text" id="giftcard_code" name="giftcard_code" value="" />
+				</li>
+				<li>
+					<label style="text-align:left;" for="giftcard_pin" class="required"><em>*</em><?php echo $this->__('Personal Identification Number (PIN)') ?></label>
+					<input style="width: 280px;" class="required-entry input-text" id="giftcard_pin" name="giftcard_pin" value="" />
+				</li>
+			</ul>
+			<div class="buttons-set">
+			   <button class="button" onclick="giftcardForm.submit()" type="button" value="<?php echo $this->__('Add Gift Card') ?>"><span><span><?php echo $this->__('Add Gift Card') ?></span></span></button>
+			<button class="button check-gc-status" onclick="checkGiftCardStatus();" type="button" value="<?php echo $this->__('Check Gift Card status and balance') ?>"><span><span><?php echo $this->__('Check Gift Card status and balance') ?></span></span></button>
+			</div>
+		</fieldset>
+	</form>
+
+	<script type="text/javascript">
+	//<![CDATA[
+	var giftcardForm = new VarienForm('giftcard-form');
+	function checkGiftCardStatus()
+	{
+		if (giftcardForm.validator && !giftcardForm.validator.validate()) {
+			return false;
+		}
+		new Ajax.Updater(
+			'giftcard_balance_lookup',
+			'<?php echo Mage::getUrl('enterprise_giftcardaccount/cart/quickCheck') ?>',
+			{
+				onCreate: function() { $('gc-please-wait').show(); },
+				onComplete: function() { $('gc-please-wait').hide(); },
+				parameters : {giftcard_code : $('giftcard_code').value, giftcard_pan : $('giftcard_pan').value}
+			}
+		);
+	}
+	//]]>
+	</script>
+</div>

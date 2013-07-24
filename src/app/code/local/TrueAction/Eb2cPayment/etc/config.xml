@@ -24,7 +24,46 @@
 				<class>TrueAction_Eb2cPayment_Helper</class>
 			</eb2cpayment>
 		</helpers>
+		<blocks>
+			<enterprise_giftcardaccount>
+				<rewrite>
+					<checkout_cart_giftcardaccount>TrueAction_Eb2cPayment_Overrides_Block_Checkout_Cart_Giftcardaccount</checkout_cart_giftcardaccount>
+				</rewrite>
+			</enterprise_giftcardaccount>
+		</blocks>
+		<resources>
+			<eb2cpayment_setup>
+				<setup>
+					<module>TrueAction_Eb2cPayment</module>
+				</setup>
+			</eb2cpayment_setup>
+		</resources>
 	</global>
+	<frontend>
+		<routers>
+            <enterprise_giftcardaccount>
+                <args>
+                    <modules>
+                        <TrueAction_Eb2cPayment before="Enterprise_GiftCardAccount">TrueAction_Eb2cPayment_Overrides_GiftCardAccount</TrueAction_Eb2cPayment>
+                    </modules>
+                </args>
+            </enterprise_giftcardaccount>
+            <eb2cpayment>
+                <use>standard</use>
+                <args>
+                    <module>TrueAction_Eb2cPayment</module>
+                    <frontName>eb2cpayment</frontName>
+                </args>
+            </eb2cpayment>
+        </routers>
+		<layout>
+			<updates>
+				<trueaction_eb2cpayment module="TrueAction_Eb2cPayment">
+					<file>eb2cpayment.xml</file>
+				</trueaction_eb2cpayment>
+			</updates>
+		</layout>
+	</frontend>
 	<default>
 		<eb2c>
 			<payment>
