@@ -173,6 +173,7 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	 * Test the rendering of address objects. Not a huge fan of testing against the
 	 * expected HTML markup...seems overly brittle.
 	 * @test
+	 * @large
 	 */
 	public function testGetRenderedAddress()
 	{

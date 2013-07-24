@@ -8,8 +8,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 
 	const SESSION_KEY = 'address_validation_addresses';
 
-	const SUGGESTIONS_ERROR_MESSAGE = 'The address could not be validated. Please select one of the suggestions.';
-	const NO_SUGGESTIONS_ERROR_MESSAGE = 'The address could not be validated. Please provide a new address.';
+	const SUGGESTIONS_ERROR_MESSAGE = 'TrueAction_Eb2cAddress_Suggestions_Error_Message';
+	const NO_SUGGESTIONS_ERROR_MESSAGE = 'TrueAction_Eb2cAddress_No_Suggestions_Error_Message';
 
 	/**
 	 * Get the session object to use for storing address information.
@@ -243,7 +243,6 @@ class TrueAction_Eb2cAddress_Model_Validator
 			TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
 			TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION)
 		);
-		$api->setUri('http://responses.svanbrug.mage.tandev.net/suggestions.xml');
 		try {
 			$apiResponse = $api->request(
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
