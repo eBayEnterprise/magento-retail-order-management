@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category   TrueAction
+ * @package    TrueAction_Eb2c
+ * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ */
+ -->
+<layout version="0.1.0">
+	<customer_account translate="label">
+		<reference name="customer_account_navigation">
+			<action method="addLink" translate="label" module="eb2cstoredvalue" ifconfig="payment/eb2cstoredvalue/save_account_data"><name>eb2cstoredvalue_data</name><path>eb2cstoredvalue/account/edit</path><label>Stored Value Account Data</label></action>
+		</reference>
+	</customer_account>
+
+	<eb2cstoredvalue_account_edit translate="label">
+		<reference name="head">
+			<action method="addJs"><script>TrueAction/eb2cstoredvalue/svcheck.js</script></action>
+		</reference>
+		<label>Stored Value Account Data</label>
+		<update handle="customer_account"/>
+		<reference name="content">
+			<block type="eb2cstoredvalue/account_data" name="eb2cstoredvalue.account.data" />
+		</reference>
+	</eb2cstoredvalue_account_edit>
+
+	<checkout_onepage_index>
+		<reference name="head">
+			<action method="addJs"><script>TrueAction/eb2cstoredvalue/svcheck.js</script></action>
+			<action method="addJs"><script>TrueAction/eb2cstoredvalue/svVoid.js</script></action>
+		</reference>
+	</checkout_onepage_index>
+
+	<checkout_multishipping_billing>
+		<reference name="head">
+			<action method="addJs"><script>TrueAction/eb2cstoredvalue/svcheck.js</script></action>
+			<action method="addJs"><script>TrueAction/eb2cstoredvalue/svVoid.js</script></action>
+		</reference>
+	</checkout_multishipping_billing>
+</layout>

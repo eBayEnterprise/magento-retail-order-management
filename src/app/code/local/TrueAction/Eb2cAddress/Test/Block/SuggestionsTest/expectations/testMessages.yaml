@@ -1,10 +1,8 @@
 getSuggestedAddressMessage:
-  message: Please choose one of the suggestions below.
+  message: TrueAction_Eb2cAddress_Suggestions_Label
 getSuggestionLabel:
-  message: Use this address
+  message: TrueAction_Eb2cAddress_Suggested_Address_Label
 getOriginalAddressLabel:
-  message: Use original address
-getNewAddressBoxMessage:
-  message: Add a New Address
+  message: TrueAction_Eb2cAddress_Original_Address_Label
 getNewAddressLabel:
-  message: Use new address
+  message: TrueAction_Eb2cAddress_New_Address_Label

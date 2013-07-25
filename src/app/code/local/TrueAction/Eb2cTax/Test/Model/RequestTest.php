@@ -107,6 +107,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 
 	/**
 	 * @test
+	 * @large
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
 	 */
@@ -496,7 +497,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 			->method('getAppliedRuleIds')
 			->will($this->returnValue(''));
 		$outData = array();
-		$fn->invoke($request, $mockItem, $mockQuoteAddress, &$outData);
+		$fn->invoke($request, $mockItem, $mockQuoteAddress, outData);
 		$keys = array(
 			'merchandise_discount_code',
 			'merchandise_discount_amount',
@@ -584,6 +585,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @loadFixture loadAdminAddressConfig.yaml
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
 	 */
 	public function testExtractAdminData()
 	{
@@ -637,6 +639,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
 	 * @dataProvider providerExtractShippingData
+	 * @large
 	 */
 	public function testExtractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
@@ -677,6 +680,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
 	 * @dataProvider providerBuildAdminOriginNode
+	 * @large
 	 */
 	public function testBuildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
 	{
@@ -715,6 +719,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
 	 * @dataProvider providerBuildShippingOriginNode
+	 * @large
 	 */
 	public function testBuildShippingOriginNode(TrueAction_Dom_Element $parent, array $shippingOrigin)
 	{
@@ -735,6 +740,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @test
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
 	 */
 	public function testCheckShippingOriginAddresses()
 	{
@@ -779,6 +785,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends EcomDev_PHPUnit_Test_Cas
 	 * @test
 	 * @loadFixture base.yaml
 	 * @loadFixture singleShippingSameAsBilling.yaml
+	 * @large
 	 */
 	public function testCheckAdminOriginAddresses()
 	{
