@@ -400,7 +400,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'AdminOrigin' => $this->_extractAdminData(),
 			'ShippingOrigin' => $this->_extractShippingData($item),
 		);
-		$this->_extractItemDiscountData($item, $address, $data);
+		$data = $this->_extractItemDiscountData($item, $address, $data);
 		return $data;
 	}
 
@@ -676,14 +676,14 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	/**
      * gather discount information about an item.
-	 * @param  Mage_Sales_Model_Quote_Item_Abstract    $item
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @param  array                          $data
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @param  Mage_Sales_Model_Quote_Address       $address
+	 * @param  array                                $data
 	 */
 	protected function _extractItemDiscountData(
 		Mage_Sales_Model_Quote_Item_Abstract $item,
 		Mage_Sales_Model_Quote_Address $address,
-		array &$outData
+		array $outData
 	) {
 		$this->_appliedDiscountIds[$address->getId() . '_' . $item->getSku()] = $item->getAppliedRuledIds();
 		$discountCode = $this->_getDiscountCode($address);
@@ -700,6 +700,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$outData['shipping_discount_amount']    = $address->getShippingDiscountAmount();
 			$outData['shipping_discount_calc_duty'] = $isDutyCalcNeeded;
 		}
+		return $outData
 	}
 
 	/**
