@@ -223,8 +223,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$quote->getItemById($item->getQuoteItemId());
 				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
 					foreach ($quoteItem->getChildren() as $child) {
-						$isVirtual = $quoteItem->getProduct()->getIsVirtual();
-						$this->_addToDestination($quoteItem, $address, $isVirtual);
+						$isVirtual = $child->getProduct()->getIsVirtual();
+						$this->_addToDestination($child, $address, $isVirtual);
 					}
 				} else {
 					$isVirtual = $quoteItem->getProduct()->getIsVirtual();
