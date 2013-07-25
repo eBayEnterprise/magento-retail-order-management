@@ -234,46 +234,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		}
 	}
 
-	protected function _processMultiShippingQuote($quote)
-	{
-		foreach ($quote->getAllShippingAddresses() as $address) {
-			$items = $address->getAllVisibleItems();
-			foreach ($items as $item) {
-				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-					foreach ($item->getChildren() as $child) {
-						$isVirtual = $item->getProduct()->getIsVirtual();
-						$this->_addToDestination($item, $address, $isVirtual);
-					}
-				} else {
-					$isVirtual = $item->getProduct()->getIsVirtual();
-					$this->_addToDestination($item, $address, $isVirtual);
-				}
-			}
-		}
-	}
-
-	protected function _processSingleShipQuote($quote)
-	{
-		$shipAddress = $quote->getShippingAddress();
-		$shipAddressRef = $this->_getDestinationId($shipAddress);
-		$destData = $this->_extractDestData($shipAddress);
-		$this->_destinations[$shipAddressRef] = $this->_extractDestData(
-			$shipAddress
-		);
-		$items = $quote->getAllVisibleItems();
-		foreach($items as $item) {
-			$isVirtual = $item->getProduct()->isVirtual();
-			$address   = $isVirtual ? $this->getBillingAddress() : $shipAddress;
-			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-				foreach ($item->getChildren() as $child) {
-					$this->_addToDestination($item, $address, $isVirtual);
-				}
-			} else {
-				$this->_addToDestination($item, $address, $isVirtual);
-			}
-		}
-	}
-
 	/**
 	 * get a list of all items for $address
 	 * @param  Mage_Sales_Model_Quote_Address $address
