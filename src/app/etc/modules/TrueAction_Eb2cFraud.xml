@@ -1,8 +1,8 @@
 <config>
 	<modules>
-		<TrueAction_Eb2cJsc>
+		<TrueAction_Eb2cFraud>
 			<active>true</active>
 			<codePool>local</codePool>
-		</TrueAction_Eb2cJsc>
+		</TrueAction_Eb2cFraud>
 	</modules>
 </config>
