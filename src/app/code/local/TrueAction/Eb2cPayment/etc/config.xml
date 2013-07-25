@@ -18,11 +18,21 @@
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Model</class>
 			</eb2cpayment>
+			<enterprise_giftcardaccount>
+				<rewrite>
+					<giftcardaccount>TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount</giftcardaccount>
+				</rewrite>
+			</enterprise_giftcardaccount>
 		</models>
 		<helpers>
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Helper</class>
 			</eb2cpayment>
+			<enterprise_giftcardaccount>
+				<rewrite>
+					<data>TrueAction_Eb2cPayment_Overrides_Helper_Data</data>
+				</rewrite>
+			</enterprise_giftcardaccount>
 		</helpers>
 		<blocks>
 			<enterprise_giftcardaccount>
@@ -63,6 +73,17 @@
 				</trueaction_eb2cpayment>
 			</updates>
 		</layout>
+		<events>
+			<sales_order_payment_place_end>
+				<observers>
+					<TrueAction_Eb2cPayment_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cPayment_Model_Observer</class>
+						<method>redeemGiftCard</method>
+					</TrueAction_Eb2cPayment_observer>
+				</observers>
+			</sales_order_payment_place_end>
+		</events>
 	</frontend>
 	<default>
 		<eb2c>
