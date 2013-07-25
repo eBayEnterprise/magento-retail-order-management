@@ -685,7 +685,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-     * gather discount information about an item.
+     * update the item data in $outData with discount information and return
+     * the newly modified array.
 	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
 	 * @param  Mage_Sales_Model_Quote_Address       $address
 	 * @param  array                                $data
@@ -710,7 +711,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$outData['shipping_discount_amount']    = $address->getShippingDiscountAmount();
 			$outData['shipping_discount_calc_duty'] = $isDutyCalcNeeded;
 		}
-		return $outData
+		return $outData;
 	}
 
 	/**
