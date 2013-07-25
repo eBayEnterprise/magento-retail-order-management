@@ -275,6 +275,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	 * get a list of all items for $address
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 * @return array(Mage_Sales_Model_Quote_Item_Abstract)
+	 */
+	protected function _getItemsForAddress(Mage_Sales_Model_Quote_Address $address)
+	{
+		return $address->getAllNonNominalItems();
+	}
+
+	/**
 	 * return a string to use as the address's destination id
 	 * @param  Mage_Sales_Model_Quote_Address $address
 	 * @param  boolean                        $isVirtual
