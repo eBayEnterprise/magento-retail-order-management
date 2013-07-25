@@ -1,0 +1,2 @@
+config:
+  default/tax/calculation/apply_after_discount: 1
