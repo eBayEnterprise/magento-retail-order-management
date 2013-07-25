@@ -154,14 +154,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 
 		switch ($this->_helper->getCalculationSequence($this->_store)) {
 			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL: // tax the full itemprice
+			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL:
+				// tax the full itemprice
 				$rowTax     = $this->_calculator->getTax($itemSelector);
 				$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
 				break;
 			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_INCL:  // tax only what you pay
-				// prices sent after adding discounts
-				// taxes received are already reduced due to discounted prices sent
+			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_INCL:
+				// tax only what you pay
 				$rowTax             = $this->_calculator->getTax($itemSelector);
 				$discountAmount     = $item->getDiscountAmount();
 				$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
