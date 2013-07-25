@@ -50,10 +50,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	public function setUp()
 	{
-		parent::setUp();
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		$this->_setupBaseUrl();
 	}
 
 	protected function _mockVirtualQuote()
