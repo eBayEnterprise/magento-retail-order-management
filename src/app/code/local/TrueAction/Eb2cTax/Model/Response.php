@@ -138,6 +138,32 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		return $address;
 	}
 
+
+	/**
+	 * get and verify the address id for the shipgroup.
+	 * @param  TrueAction_Dom_Element $shipGroup
+	 * @return int
+	 */
+	protected function _getAddressId(TrueAction_Dom_Element $shipGroup)
+	{
+		$xpath = new DOMXPath($this->_doc);
+		$xpath->registerNamespace('a', $this->_namespaceUri);
+		$idRef = $xpath->evaluate('string(./a:DestinationTarget/@ref)', $shipGroup);
+		$id = null;
+		$idRefArray = explode('_', $idRef);
+		if (count($idRefArray) > 1) {
+			list(, $id) = $idRefArray;
+			$id = (int)$id;
+		}
+		if (!$id) {
+			$this->_isValid = false;
+			$message = "Unable to parse the address ID from the ShipGroup '$idRef'";
+			Mage::log($message, Zend_Log::WARN);
+		}
+		return $id;
+	}
+
+
 	/**
 	 * generate tax quote records with data extracted from the response.
 	 */
@@ -156,11 +182,11 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 			$root
 		);
 		foreach ($shipGroups as $shipGroup) {
-			$address = $this->_getAddress($shipGroup);
+			$addressId = $this->_getAddressId($shipGroup);
 			$responseSkus = array();
 			// foreach item
 			$items = $xpath->query('./a:Items/a:OrderItem', $shipGroup);
-			if ($address) {
+			if ($addressId) {
 				// skip the shipgroup we can't get the address
 				foreach ($items as $item) {
 					$orderItem = Mage::getModel('eb2ctax/response_orderitem', array(
@@ -169,7 +195,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					));
 					if ($orderItem->isValid()) {
 						$itemKey = (string)$orderItem->getSku();
-						$this->_responseItems[$address->getId()][$itemKey] = $orderItem;
+						$this->_responseItems[$addressId][$itemKey] = $orderItem;
 					}
 				}
 			}
