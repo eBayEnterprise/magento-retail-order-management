@@ -68,8 +68,8 @@
                         <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
                         <Imposition impositionType="Random Tax">Random Tax</Imposition>
                         <EffectiveRate>0.02</EffectiveRate>
-                        <TaxableAmount>99.99</TaxableAmount>
-                        <CalculatedTax>2.0</CalculatedTax>
+                        <TaxableAmount>20.0</TaxableAmount>
+                        <CalculatedTax>0.4</CalculatedTax>
                       </Tax>
                     </Taxes>
                   </Discount>

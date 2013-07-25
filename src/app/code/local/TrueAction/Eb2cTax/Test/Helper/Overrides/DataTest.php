@@ -15,6 +15,20 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 		);
 	}
 
+	public function testGetCalculationSequence()
+	{
+		$this->markTestINcomplete();
+		$val = Mage::helper('tax')->getCalculationSequence();
+		$this->assertTrue($val);
+	}
+
+	public function testGetCalculationSequenceFalse()
+	{
+		$this->markTestIncomplete();
+		$val = Mage::helper('tax')->getCalculationSequence();
+		$this->assertFalse($val);
+	}
+
 	/**
 	 * @test
 	 */

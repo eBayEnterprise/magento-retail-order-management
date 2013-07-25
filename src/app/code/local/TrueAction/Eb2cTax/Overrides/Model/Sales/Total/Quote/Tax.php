@@ -37,7 +37,11 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
+		// save the address and clear out the tax total fields
 		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+		// clear out the hiddenTax related fields
+		$this->_resetHiddenTaxes($address);
+
 		$this->_roundingDeltas      = array();
 		$this->_baseRoundingDeltas  = array();
 		$this->_hiddenTaxes         = array();
@@ -137,7 +141,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 * @param   float $rate
 	 * @return  Mage_Tax_Model_Sales_Total_Quote
 	 */
-	protected function _calcTaxForItem($itemSelector, $rate = null)
+	protected function _calcTaxForItem($itemSelector)
 	{
 		$item           = $itemSelector->getItem();
 		$inclTax        = $item->getIsPriceInclTax();
@@ -148,46 +152,32 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$hiddenTax      = null;
 		$baseHiddenTax  = null;
 
-		$calcTaxBefore = Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL;
-		switch ($calcTaxBefore/*$this->_helper->getCalculationSequence($this->_store)*/) {
+		switch ($this->_helper->getCalculationSequence($this->_store)) {
 			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_EXCL:
 			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL:
+				// tax the full itemprice
 				$rowTax     = $this->_calculator->getTax($itemSelector);
 				$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
 				break;
-			// @codeCoverageIgnoreStart
 			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_EXCL:
 			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_INCL:
-				// prices sent after adding discounts
-				// taxes received are already reduced due to discounted prices sent
+				// tax only what you pay
+				$rowTax             = $this->_calculator->getTax($itemSelector);
+				$discountAmount     = $item->getDiscountAmount();
+				$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
 
-				$discountAmount           = $item->getDiscountAmount();
-				$baseDiscountAmount       = $item->getBaseDiscountAmount();
+				$baseRowTax         = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
+                $baseDiscountAmount = $item->getBaseDiscountAmount();
+				$baseRowTaxDiscount = $this->_calculator->getDiscountTaxForAmount($baseDiscountAmount, $itemSelector);
+				$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
 
-				$rowTax                   = $this->_calculator->getTax($itemSelector);
-				$rowTaxDiscount           = 0;//$this->_calculator->getTaxDiscount($itemSelector);
-				$rowTaxBeforeDiscount     = $rowTax + $rowTaxDiscount;
-
-				$baseRowTax               = $this->_calculator->getTaxForItem($baseSubtotal, $itemSelector->getItem(), $itemSelector->getAddress());
-				$baseRowTaxDiscount       = 0;//$this->_calculator->getTaxDiscountAmount($baseDiscountAmount, $itemSelector->getItem(), $itemSelector->getAddress());
-				$baseRowTaxBeforeDiscount = $baseRowTax + $baseRowTaxDiscount;
-
-				$rowTax = $this->_calculator->round($rowTax);
-				$baseRowTax = $this->_calculator->round($baseRowTax);
-				if ($discountAmount > $subtotal) { // case with 100% discount on price incl. tax
-					$hiddenTax      = $discountAmount - $subtotal;
-					$baseHiddenTax  = $baseDiscountAmount - $baseSubtotal;
-					$this->_hiddenTaxes[] = array(
-						'rate_key'   => $rateKey,
-						'qty'        => 1,
-						'item'       => $item,
-						'value'      => $hiddenTax,
-						'base_value' => $baseHiddenTax,
-						'incl_tax'   => $inclTax,
-					);
-				}
+				// adjust the subtotal due to the discount amounts
+				$subtotal     = $subtotal - $discountAmount;
+				$baseSubtotal = $baseSubtotal - $baseDiscountAmount;
+				// adjust the tax amounts due to the discounts.
+				$rowTax       = $rowTax - $rowTaxDiscount;
+				$baseRowTax   = $baseRowTax - $baseRowTaxDiscount;
 				break;
-			// @codeCoverageIgnoreEnd
 		}
 
 		$item->setTaxAmount(max(0, $rowTax));
@@ -203,129 +193,65 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		return $this;
 	}
 
-    /**
-     * Collect applied tax rates information on address level
-     *
-     * @param   Mage_Sales_Model_Quote_Address $address
-     * @param   array $applied
-     * @param   float $amount
-     * @param   float $baseAmount
-     * @param   float $rate
-     */
-    protected function _saveAppliedTaxes(Mage_Sales_Model_Quote_Address $address,
-                                         $applied, $amount, $baseAmount, $rate)
-    {
-        $previouslyAppliedTaxes = $address->getAppliedTaxes();
-        $process = count($previouslyAppliedTaxes);
-
-        foreach ($applied as $row) {
-            if ($row['percent'] == 0) {
-                continue;
-            }
-            if (!isset($previouslyAppliedTaxes[$row['id']])) {
-                $row['process']     = $process;
-                $previouslyAppliedTaxes[$row['id']] = $row;
-            }
-
-            if (!$previouslyAppliedTaxes[$row['id']]['amount']) {
-                unset($previouslyAppliedTaxes[$row['id']]);
-            }
-        }
-        $address->setAppliedTaxes($previouslyAppliedTaxes);
-    }
-
 	/**
-	 * return true if using flat rate shipping to send items to $address; false otherwise.
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @return boolean
-	 */
-	protected function _isFlatShipping(Mage_Sales_Model_Quote_Address $address)
-	{
-		$flatrate = 'flatrate_flatrate';
-		return $address->getShippingMethod() === $flatrate;
-	}
-
-
-
-	/// most of this function can be merged up into the collect function
-	////////////////
-	/**
-	 * Tax caclulation for shipping price
+	 * Collect applied tax rates information on address level
 	 *
 	 * @param   Mage_Sales_Model_Quote_Address $address
-	 * @param   Varien_Object $taxRateRequest
-	 * @return  Mage_Tax_Model_Sales_Total_Quote
+	 * @param   array $applied
+	 * @param   float $amount
+	 * @param   float $baseAmount
+	 * @param   float $rate
 	 */
-	protected function _calculateShippingTax(Mage_Sales_Model_Quote_Address $address, $taxRateRequest = null)
+	protected function _saveAppliedTaxes(Mage_Sales_Model_Quote_Address $address,
+										 $applied, $amount, $baseAmount, $rate)
 	{
-		// this should be moved to the request if needed
-		// $taxRateRequest->setProductClassId($this->_config->getShippingTaxClass($this->_store));
+		$previouslyAppliedTaxes = $address->getAppliedTaxes();
+		$process = count($previouslyAppliedTaxes);
 
-		// dont need
+		foreach ($applied as $row) {
+			if ($row['percent'] == 0) {
+				continue;
+			}
+			if (!isset($previouslyAppliedTaxes[$row['id']])) {
+				$row['process']     = $process++;
+				$previouslyAppliedTaxes[$row['id']] = $row;
+			}
 
-		// $rate           = $this->_calculator->getRate($taxRateRequest);
-
-		//////////////////////////////////////////////////////////////////////////
-		// figure out these as they may need to be moved to the request.
-		$shipping       = $address->getShippingTaxable();
-		$baseShipping   = $address->getBaseShippingTaxable();
-		//////////////////////////////////////////////////////////////////////////
-		//$rateKey        = (string)$rate;
-
-		$hiddenTax      = null;
-		$baseHiddenTax  = null;
-		/// this needs to be moved to before generating the request
-		switch ($this->_helper->getCalculationSequence($this->_store)) {
-			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL:
-				$tax        = $this->_calculator->calcTaxAmount($shipping, $rate, $inclTax, false);
-				$baseTax    = $this->_calculator->calcTaxAmount($baseShipping, $rate, $inclTax, false);
-				break;
-			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_INCL:
-				$discountAmount     = $address->getShippingDiscountAmount();
-				$baseDiscountAmount = $address->getBaseShippingDiscountAmount();
-				$tax = $this->_calculator->calcTaxAmount(
-					$shipping - $discountAmount,
-					$rate,
-					$inclTax,
-					false
-				);
-				$baseTax = $this->_calculator->calcTaxAmount(
-					$baseShipping - $baseDiscountAmount,
-					$rate,
-					$inclTax,
-					false
-				);
-				break;
+			if (!$previouslyAppliedTaxes[$row['id']]['amount']) {
+				unset($previouslyAppliedTaxes[$row['id']]);
+			}
 		}
-
-		//     $tax        = $this->_calculator->round($tax);
-		//     $baseTax    = $this->_calculator->round($baseTax);
-		//     $this->_addAmount(max(0, $tax));
-		//     $this->_addBaseAmount(max(0, $baseTax));
-
-		//////// after taxes so can be removed
-		// if ($inclTax && !empty($discountAmount)) {
-		//     $hiddenTax      = $this->_calculator->calcTaxAmount($discountAmount, $rate, $inclTax, false);
-		//     $baseHiddenTax  = $this->_calculator->calcTaxAmount($baseDiscountAmount, $rate, $inclTax, false);
-		//     $this->_hiddenTaxes[] = array(
-		//         'rate_key'   => $rateKey,
-		//         'value'      => $hiddenTax,
-		//         'base_value' => $baseHiddenTax,
-		//         'incl_tax'   => $inclTax,
-		//     );
-		// }
-
-		// this needs to be the sum of the shipping tax lines
-		$address->setShippingTaxAmount(max(0, $tax));
-		$address->setBaseShippingTaxAmount(max(0, $baseTax));
-		$applied = $this->_calculator->getAppliedRates($taxRateRequest);
-		$this->_saveAppliedTaxes($address, $applied, $tax, $baseTax, $rate);
-
-		return $this;
+		$address->setAppliedTaxes($previouslyAppliedTaxes);
 	}
 
+	/**
+	 * zero out the totalamout, basetotalamount fields for hidden taxes.
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 */
+	protected function _resetHiddenTaxes(Mage_Sales_Model_Quote_Address $address)
+	{
+		$address->setTotalAmount('hidden_tax', 0);
+		$address->setBaseTotalAmount('hidden_tax', 0);
+		$address->setTotalAmount('shipping_hidden_tax', 0);
+		$address->setBaseTotalAmount('shipping_hidden_tax', 0);
+	}
+
+	/**
+	 * Process hidden taxes for items and shippings (in accordance with hidden tax type)
+	 *
+	 * @return void
+	 */
+	protected function _processHiddenTax($amount, $baseAmount, $item)
+	{
+		if ($amount || $baseAmount) {
+			$hiddenTax      = $this->_calculator->round($amount);
+			$baseHiddenTax  = $this->_calculator->round($baseAmount);
+			$item->setHiddenTaxAmount(max(0, $hiddenTax));
+			$item->setBaseHiddenTaxAmount(max(0, $baseHiddenTax));
+			$this->_getAddress()->addTotalAmount('hidden_tax', $item->getHiddenTaxAmount());
+			$this->_getAddress()->addBaseTotalAmount('hidden_tax', $item->getBaseHiddenTaxAmount());
+		}
+	}
 
 	/**
 	 * ensures the taxes are calculated chronologically after the discounts.

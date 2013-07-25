@@ -189,17 +189,12 @@ tables:
       base_subtotal: 149.9900
       subtotal_with_discount: 0.0000
       base_subtotal_with_discount: 0.0000
-      # tax_amount: 8.2500
-      # base_tax_amount: 8.2500
       shipping_amount: 5.0000
       base_shipping_amount: 5.0000
       shipping_tax_amount: 0.0000
       base_shipping_tax_amount: 0.0000
       discount_amount: 0.0000
       base_discount_amount: 0.0000
-      # grand_total: 163.2400
-      # base_grand_total: 163.2400
-      # applied_taxes: 'a:1:{s:14:\"US-CA-*-Rate 1\";a:6:{s:5:\"rates\";a:1:{i:0;a:6:{s:4:\"code\";s:14:\"US-CA-*-Rate 1\";s:5:\"title\";s:14:\"US-CA-*-Rate 1\";s:7:\"percent\";d:8.25;s:8:\"position\";s:1:\"1\";s:8:\"priority\";s:1:\"1\";s:7:\"rule_id\";s:1:\"1\";}}s:7:\"percent\";d:8.25;s:2:\"id\";s:14:\"US-CA-*-Rate 1\";s:7:\"process\";i:0;s:6:\"amount\";d:8.25;s:11:\"base_amount\";d:8.25;}}'
       base_customer_balance_amount: 0.0000
       customer_balance_amount: 0.0000
       gift_cards_amount: 0.0000
@@ -208,12 +203,7 @@ tables:
       used_gift_cards: "a:0:{}"
       shipping_discount_amount: 0.0000
       base_shipping_discount_amount: 0.0000
-      # subtotal_incl_tax: 158.2400
-      # hidden_tax_amount: 0.0000
-      # base_hidden_tax_amount: 0.0000
       shipping_hidden_tax_amount: 0.0000
-      # shipping_incl_tax: 5.0000
-      # base_shipping_incl_tax: 5.0000
       gw_base_price: 0.0000
       gw_price: 0.0000
       gw_items_base_price: 0.0000
@@ -249,9 +239,6 @@ tables:
       discount_percent: 0.0000
       discount_amount: 20.0000
       base_discount_amount: 20.0000
-      # tax_percent: 8.2500
-      # tax_amount: 8.2500
-      # base_tax_amount: 8.2500
       row_total: 99.9900
       base_row_total: 99.9900
       row_total_with_discount: 0.0000
@@ -265,10 +252,6 @@ tables:
       weee_tax_row_disposition: 0.0000
       base_weee_tax_disposition: 0.0000
       base_weee_tax_row_disposition: 0.0000
-      # price_incl_tax: 108.2400
-      # base_price_incl_tax: 108.2400
-      # row_total_incl_tax: 108.2400
-      # base_row_total_incl_tax: 108.2400
     -
       item_id: 6
       quote_id: 4
@@ -288,9 +271,6 @@ tables:
       discount_percent: 0.0000
       discount_amount: 0.0000
       base_discount_amount: 0.0000
-      tax_percent: 0.0000
-      tax_amount: 0.0000
-      base_tax_amount: 0.0000
       row_total: 50.0000
       base_row_total: 50.0000
       row_total_with_discount: 0.0000
