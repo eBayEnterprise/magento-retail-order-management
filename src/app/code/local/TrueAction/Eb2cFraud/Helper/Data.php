@@ -2,9 +2,9 @@
 /**
  * @package Eb2c
  */
-class TrueAction_Eb2cJsc_Helper_Data extends Mage_Core_Helper_Abstract
+class TrueAction_Eb2cFraud_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	const JSC_JS_PATH = 'trueaction_eb2cjsc';
+	const JSC_JS_PATH = 'trueaction_eb2cfraud';
 
 	public $config;
 	public $coreHelper;

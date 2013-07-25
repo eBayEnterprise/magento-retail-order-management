@@ -3,7 +3,7 @@
  *
  *
  */
-class TrueAction_Eb2cJsc_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
 	protected $_jsModuleName;
@@ -13,8 +13,8 @@ class TrueAction_Eb2cJsc_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	 */
 	public function setUp() {
 		parent::setUp();
-		$this->_helper = new TrueAction_Eb2cJsc_Helper_Data();
-		$this->_jsModuleName = TrueAction_Eb2cJsc_Helper_Data::JSC_JS_PATH;
+		$this->_helper = new TrueAction_Eb2cFraud_Helper_Data();
+		$this->_jsModuleName = TrueAction_Eb2cFraud_Helper_Data::JSC_JS_PATH;
 	}
 
 	/**

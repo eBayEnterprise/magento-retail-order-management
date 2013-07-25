@@ -38,7 +38,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  Varien_Object $itemSelector
 	 * @return float
 	 */
-	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector)
+	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector, $round = true)
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
@@ -47,6 +47,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 			foreach ($taxQuotes as $taxQuote) {
 				$tax += ($amount * $taxQuote->getEffectiveRate());
 			}
+		}
+		if ($round) {
+			$tax = $this->round($tax);
 		}
 		return $tax;
 	}
