@@ -210,10 +210,27 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
 			$billAddress
 		);
-		if ($quote->getIsMultiShipping()) {
-			$this->_processMultiShippingQuote($quote);
-		} else {
-			$this->_processSingleShipQuote($quote);
+		// create a virtual destination if the quote only has virtual items
+		if ($quote->isVirtual()) {
+			$id = $this->_getDestinationId($billAddress, true);
+			$this->_destinations[$id] = $this->_extractDestData($billAddress, true);
+		}
+		foreach ($quote->getAllAddresses() as $address) {
+			$items = $this->_getItemsForAddress($address);
+			foreach ($items as $item) {
+				$quoteItem = (is_a($item, 'Mage_Sales_Model_Quote_Item')) ?
+					$item :
+					$quote->getItemById($item->getQuoteItemId());
+				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
+					foreach ($quoteItem->getChildren() as $child) {
+						$isVirtual = $quoteItem->getProduct()->getIsVirtual();
+						$this->_addToDestination($quoteItem, $address, $isVirtual);
+					}
+				} else {
+					$isVirtual = $quoteItem->getProduct()->getIsVirtual();
+					$this->_addToDestination($quoteItem, $address, $isVirtual);
+				}
+			}
 		}
 	}
 
