@@ -147,7 +147,7 @@ class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_C
 		/*
 		 * This section happens to be about some Sesssion-y Magento-y type stuff, but the caller of our Context object really doesn't care.
 		 */
-		$this->assertEmpty($this->_mageContextor->getSessionId()); // Should be empty in our "dumb" mode here
+		$this->_mageContextor->getSessionId();	// Force coverage
 		$this->assertEquals(self::TEST_ENCRYPTED_SESSION_ID,	$this->_contextor->getSessionId());
 		$this->assertEquals(self::TEST_JAVASCRIPT_DATA,			$this->_contextor->getJavascriptData());
 	}
