@@ -43,14 +43,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	{
 		self::$xsdFile = dirname(__FILE__) .
 			'/RequestTest/fixtures/TaxDutyFee-QuoteRequest-1.0.xsd';
-		self::$cls = new ReflectionClass(
-			'TrueAction_Eb2cTax_Model_Request'
-		);
-	}
-
-	public function setUp()
-	{
-		$this->_setupBaseUrl();
 	}
 
 	protected function _mockVirtualQuote()
@@ -60,8 +52,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			->method('isVirtual')
 			->will($this->returnValue(true));
 		$childItem = $this->_buildModelMock('sales/quote_item', array(
-			'getId'                => $this->returnValue(1),
-			'getSku'               => $this->returnValue('child_sku'),
+			'getId'                => $this->returnValue(2),
+			'getSku'               => $this->returnValue('1111'),
 			'getProduct'           => $this->returnValue($product),
 			'getHasChildren'       => $this->returnValue(false),
 		));
@@ -73,87 +65,72 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			'isChildrenCalculated' => $this->returnValue(true),
 			'getChildren'          => $this->returnValue(array($childItem)),
 		));
-		$shipRate = $this->_buildModelMock('sales/quote_address', array(
-			'getMethod' => $this->returnValue('flatrate'),
-		));
 		$address = $this->_buildModelMock('sales/quote_address', array(
-			'getId'                 => $this->returnValue(1),
-			'getEmail'              => $this->returnValue('test@test.com'),
-			'getAllNonNominalItems' => $this->returnValue(array($item)),
+			'getId'                   => $this->returnValue(1),
+			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$mockQuote = $this->_buildModelMock('sales/quote', array(
-			'getId'                      => $this->returnValue(1),
-			'getItemsCount'              => $this->returnValue(1),
-			'isVirtual'                  => $this->returnValue(true),
-			'getIsVirtual'               => $this->returnValue(1),
-			'getBillingAddress'          => $this->returnValue($address),
-			'getAllVisibleItems'         => $this->returnValue(array($item)),
-			'getAllAddresses'            => $this->returnValue(array($address)),
-			'getAddressType'             => $this->returnValue(array('billing' => $shipRate)),
-			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate_flatrate' => $shipRate)),
+			'getId'                 => $this->returnValue(1),
+			'isVirtual'             => $this->returnValue(1),
+			'getStore'              => $this->returnValue(Mage::app()->getStore()),
+			'getBillingAddress'     => $this->returnValue($address),
+			'getAllAddresses'       => $this->returnValue(array($address)),
+			'getAllShippingAddresses' => $this->returnValue(array()),
+			'getItemById'           => $this->returnValueMap(array(
+				array(1, $item),
+				array(2, $childItem)
+			))
 		));
+		$mockQuote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $mockQuote;
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testIsValid()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
 		$quote = $this->_mockVirtualQuote();
-		$req = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$this->assertTrue($req->isValid());
-		$req->invalidate();
-		$this->assertFalse($req->isValid());
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$hasChanges = $this->_reflectProperty($request, '_hasChanges');
+		$this->assertFalse($hasChanges->getValue($request));
+		$this->assertTrue((bool)$request->getQuote());
+		$this->assertTrue((bool)$request->getQuote()->getId());
+		$this->assertTrue((bool)$request->getQuote()->getBillingAddress());
+		$this->assertTrue((bool)$request->getQuote()->getBillingAddress()->getId());
+		$orderItems = $this->_reflectProperty($request, '_orderItems')->getValue($request);
+		$this->assertSame((int)$request->getQuote()->getItemsCount(), count($orderItems));
+		$this->assertTrue($request->isValid());
+		$request->invalidate();
+		$this->assertTrue($hasChanges->getValue($request));
+		$this->assertFalse($request->isValid());
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testValidateWithXsd()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$this->_setupBaseUrl();
+		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 		$doc = $request->getDocument();
+		$doc->formatOutput = true;
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testGetSkus()
 	{
 		// REMINDER: According to mphang this is useless now. Leaving for code review.
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$quote   = $this->_mockVirtualQuote();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$result = $request->getSkus();
+		$result  = $request->getSkus();
 		// the skus in the test are being converted
 		// to numbers
-		$this->assertEquals(array(1111, 1112, 1113), $result);
+		$this->assertEquals(array('1111'), $result);
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testGetItemDataBySku()
 	{
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
-		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->_setupBaseUrl();
+		$quote    = $this->_mockVirtualQuote();
+		$request  = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$itemData = $request->getItemDataBySku('1111');
 		$this->assertNotNull($itemData);
 		$itemData = $request->getItemDataBySku(1111);
@@ -162,17 +139,13 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertNull($itemData);
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testCheckAddresses()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$this->_setupBaseUrl();
+		$this->_mockCookie();
+		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid());
 		// passing in a quote with no changes should not invalidate the request
 		$request->checkAddresses($quote);
 		$this->assertTrue($request->isValid());
@@ -187,17 +160,24 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingNotSameAsBillingVirtual.yaml
-	 */
+	public function testCheckAddressesChangeMultishipState()
+	{
+		$this->_setupBaseUrl();
+		$this->_mockCookie();
+		$quote = $this->_mockSingleShipSameAsBill();
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid());
+		// switching to multishipping will invalidate the quote
+		$quote->setIsMultiShipping(1);
+		$request->checkAddresses($quote);
+		$this->assertFalse($request->isValid());
+	}
+
 	public function testCheckAddressesVirtual()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(4);
+		$quote   = $this->_mockVirtualQuote();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		var_dump($this->_reflectProperty($request, '_shipGroups')->getValue($request));
 		$request->checkAddresses($quote);
 		$this->assertTrue($request->isValid());
 		$quote->getBillingAddress()->setCity('wrongcitybub');
@@ -213,12 +193,19 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	 */
 	public function testCheckAddressMultishipping()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
+		$this->_setupBaseUrl();
 		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(2);
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$request->checkAddresses($quote);
 		$this->assertTrue($request->isValid());
 		$quote->getBillingAddress()->setCity('wrongcitybub');
+		$request->checkAddresses($quote);
+		$this->assertFalse($request->isValid());
+
+		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(2);
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$addresses = $quote->getAllAddresses();
+		$addresses[2]->setCity('wrongcitybub');
 		$request->checkAddresses($quote);
 		$this->assertFalse($request->isValid());
 	}
@@ -231,13 +218,15 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	 */
 	public function testMultishipping()
 	{
+		$this->_setupBaseUrl();
 		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(2);
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$doc = $request->getDocument();
-		$x = new DOMXPath($doc);
+		$doc     = $request->getDocument();
+		$x       = new DOMXPath($doc);
 		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
 		// there should be 3 mailing address nodes;
 		// 1 for the billing address; 2 for the shipping addresses
+		var_dump($this->_reflectProperty($request, '_shipGroups')->getValue($request));
 		$this->assertSame(3, $x->query('//a:Destinations/a:MailingAddress')->length);
 		$this->assertSame(3, $x->query('//a:Destinations/*')->length);
 		// ensure the billing information references a destination
@@ -262,16 +251,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		}
 	}
 
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testVirtualPhysicalMix()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$doc = $request->getDocument();
 
@@ -340,7 +322,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	 */
 	public function testWithNoSku()
 	{
-		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
+		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$items = $quote->getAllVisibleItems();
 		$doc = $request->getDocument();
@@ -414,21 +396,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($request->isValid());
 	}
 
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingNotSameAsBilling.yaml
-	 */
 	public function testAddToDestination()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
-		$fn = new ReflectionMethod('TrueAction_Eb2cTax_Model_Request', '_addToDestination');
-		$fn->setAccessible(true);
-		$d = new ReflectionProperty('TrueAction_Eb2cTax_Model_Request', '_destinations');
-		$d->setAccessible(true);
-		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(3);
+
+		$fn = $this->_reflectMethod('TrueAction_Eb2cTax_Model_Request', '_addToDestination');
+		$d = $this->_reflectProperty('TrueAction_Eb2cTax_Model_Request', '_destinations');
+		$quote = $this->_mockSingleShipSameAsBill();
 		$items = $quote->getAllVisibleItems();
 		$request = Mage::getModel('eb2ctax/request');
 		$request->setQuote($quote);
@@ -444,9 +417,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	public function testBuildDiscountNode()
 	{
-		$request = self::$cls->newInstance();
-		$fn = self::$cls->getMethod('_buildDiscountNode');
-		$fn->setAccessible(true);
+		$this->markTestIncomplete();
+		$request = Mage::getModel('eb2ctax/request');
+		$fn   = $this->_reflectMethod($request, '_buildDiscountNode');
 		$doc  = $request->getDocument();
 		$node = $doc->createElement('root', null, 'http:/www.example.com/foo'); // parent node
 		$doc->appendChild($node);
@@ -475,9 +448,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	public function testExtractItemDiscountData()
 	{
-		$request = self::$cls->newInstance();
-		$fn = self::$cls->getMethod('_extractItemDiscountData');
-		$fn->setAccessible(true);
+		$request = Mage::getModel('eb2ctax/request');
+		$fn = $this->_reflectMethod($request, '_extractItemDiscountData');
 		$mockQuote = $this->getModelMock('sales/quote', array('getAppliedRuleIds'));
 		$request->setQuote($mockQuote);
 		$mockQuoteAddress = $this->getModelMock('sales/quote_address', array('getShippingDiscountAmount', 'getCouponCode'));
@@ -514,11 +486,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertSame(false, $outData['shipping_discount_calc_duty']);
 	}
 
-	/**
-	 * @test
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 */
 	public function testGetRateRequest()
 	{
 		$this->markTestIncomplete('needs to be updated');
@@ -821,4 +788,76 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			$request->checkAdminOriginAddresses()
 		);
 	}
+
+
+	protected function _mockSingleShipSameAsBill()
+	{
+		$store = Mage::app()->getStore();
+		$product = $this->getModelMock('catalog/product', array('isVirtual'));
+		$product->expects($this->any())->method('isVirtual')
+			->will($this->returnValue(false));
+
+		// mock the items
+		$item1 = $this->_buildModelMock('sales/quote_item', array(
+			'getId'          => $this->returnValue(1),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+
+		$item2 = $this->_buildModelMock('sales/quote_item', array(
+			'getId'          => $this->returnValue(2),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1112, 'name' => "Chair", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
+
+		$item3 = $this->_buildModelMock('sales/quote_item', array(
+			'getId'          => $this->returnValue(3),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1113, 'name' => "Couch", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => "simple", 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
+		$items = array($item1, $item2, $item3);
+
+		// mock the billing addresses
+		$address1 = $this->_buildModelMock('sales/quote_address', array(
+			'getId'                      => $this->returnValue(1),
+			'getAllNonNominalItems'      => $this->returnValue(array()),
+			'getGroupedAllShippingRates' => $this->returnValue(array()),
+		));
+		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
+
+		// mock the shipping address
+		$shippingRate = new Varien_Object(array('method' => 'flatrate', 'code' => 'flatrate_flatrate'));
+		$address2 = $this->_buildModelMock('sales/quote_address', array(
+			'getId'                      => $this->returnValue(1),
+			'getAllNonNominalItems'      => $this->returnValue($items),
+			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
+		));
+		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
+
+		// mock the quote
+		$quote = $this->_buildModelMock('sales/quote', array(
+			'getId'              => $this->returnValue(1),
+			'isVirtual'          => $this->returnValue(false),
+			'getStore'           => $this->returnValue($store),
+			'getBillingAddress'  => $this->returnValue($address1),
+			'getShippingAddress' => $this->returnValue($address2),
+			'getAllAddresses'    => $this->returnValue(array($address1, $address2)),
+			'getAllShippingAddresses' => $this->returnValue(array($address2)),
+			'getAllVisibleItems' => $this->returnValue($items),
+			'getItemById'        => $this->returnValueMap(array(
+				array(1, $item1),
+				array(2, $item2),
+				array(3, $item3),
+			))
+		));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => "2013-06-27 17:32:54", 'updated_at' => "2013-06-27 17:36:19", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		return $quote;
+	}
+
 }
