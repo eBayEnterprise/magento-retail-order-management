@@ -330,18 +330,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _getVirtualId($address)
 	{
-		if ($address->getSameAsBilling() and !$address->getQuote()->getIsMultiShipping()) {
-			$email = $address->getQuote()->getBillingAddress()->getEmail();
-		} else {
-			$email = $address->getEmail();
-		}
-		$id = '_' . $address->getId() . '_' . $email;
+		$id = '_' . $address->getId() . '_virtual';
 		return $id;
 	}
 
 	protected function _extractDestData($address, $isVirtual = false)
 	{
-		$id = $address->getId();
+		$id = $this->_getDestinationId($address, $isVirtual);
 		if ($address->getSameAsBilling() && !$this->getIsMultiShipping()) {
 			$address = $this->getBillingAddress();
 		}
@@ -550,7 +545,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	) {
 		$this->_shipAddressRef = $address['id'];
 		$mailingAddress = $parent->createChild('MailingAddress');
-		$mailingAddress->setAttributeNs('', 'id', '_' . $this->_shipAddressRef);
+		$mailingAddress->setAttribute('id', $this->_shipAddressRef);
 		$mailingAddress->setIdAttribute("id", true);
 		$personName = $mailingAddress->createChild('PersonName');
 		$this->_buildPersonName($personName, $address);
