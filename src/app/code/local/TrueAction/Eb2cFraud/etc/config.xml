@@ -1,17 +1,69 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <config>
 	<modules>
-		<TrueAction_Eb2cFraudc>
-			<version>0.1.0</version>
-		</TrueAction_Eb2cFraudc>
+		<TrueAction_Eb2cFraud>
+			<version>1.0.0</version>
+		</TrueAction_Eb2cFraud>
 	</modules>
 	<global>
+		<models>
+			<eb2cfraud>
+				<class>TrueAction_Eb2cFraud_Model</class>
+			</eb2cfraud>
+		</models>
+		<fieldsets>
+			<sales_convert_quote_item>
+				<eb2c_fraud_javascript_data>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_javascript_data>
+				<eb2c_fraud_host_name>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_host_name>
+				<eb2c_fraud_ip_address>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_ip_address>
+				<eb2c_fraud_session_id>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_session_id>
+				<eb2c_fraud_user_agent>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_user_agent>
+				<eb2c_fraud_referrer>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_referrer>
+				<eb2c_fraud_content_types>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_content_types>
+				<eb2c_fraud_encoding>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_encoding>
+				<eb2c_fraud_language>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_language>
+				<eb2c_fraud_char_set>
+					<to_order_item>*</to_order_item>
+				</eb2c_fraud_char_set>
+			</sales_convert_quote_item>
+		</fieldsets>
+		<resources>
+			<eb2cfraud_setup>
+				<setup>
+					<module>TrueAction_Eb2cFraud</module>
+					<class>Mage_Sales_Model_Resource_Setup</class>
+				</setup>
+			</eb2cfraud_setup>
+		</resources>
 		<helpers>
 			<eb2cfraud>
 				<class>TrueAction_Eb2cFraud_Helper</class>
 			</eb2cfraud>
 		</helpers>
 	</global>
+	<default>
+		<eb2cfraud>
+				<developer_mode>1</developer_mode>
+		</eb2cfraud>
+	</default>
 	<phpunit>
 		<suite>
 			<modules>
