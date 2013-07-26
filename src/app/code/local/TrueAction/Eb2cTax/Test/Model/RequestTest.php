@@ -862,4 +862,81 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		return $quote;
 	}
 
+
+	protected function _mockMultiShipNotSameAsBill()
+	{
+		$store = Mage::app()->getStore();
+		$product = $this->getModelMock('catalog/product', array('isVirtual'));
+		$product->expects($this->any())->method('isVirtual')
+			->will($this->returnValue(false));
+
+		// mock the items
+		$item = $this->_buildModelMock('sales/quote_item', array(
+			'getId'          => $this->returnValue(1),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$item->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+
+		$addressItem1 = $this->_buildModelMock('sales/quote_address_item', array(
+			'getId'          => $this->returnValue(1),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$addressItem1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+
+		$addressItem2 = $this->_buildModelMock('sales/quote_address_item', array(
+			'getId'          => $this->returnValue(2),
+			'getProduct'     => $this->returnValue($product),
+			'getHasChildren' => $this->returnValue(false),
+			'getStore'       => $this->returnValue($store),
+		));
+		$addressItem2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1112, 'name' => "Chair", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
+
+		$items = array($item1, $item2);
+
+		// mock the billing addresses
+		$address1 = $this->_buildModelMock('sales/quote_address', array(
+			'getId'                      => $this->returnValue(1),
+			'getAllNonNominalItems'      => $this->returnValue(array()),
+			'getGroupedAllShippingRates' => $this->returnValue(array()),
+		));
+		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
+
+		// mock the shipping address
+		$shippingRate = new Varien_Object(array('method' => 'flatrate', 'code' => 'flatrate_flatrate'));
+		$address2 = $this->_buildModelMock('sales/quote_address', array(
+			'getId'                      => $this->returnValue(1),
+			'getAllNonNominalItems'      => $this->returnValue($items),
+			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
+		));
+		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
+
+		$address3 = $this->_buildModelMock('sales/quote_address', array(
+			'getId'                      => $this->returnValue(1),
+			'getAllNonNominalItems'      => $this->returnValue($items),
+			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
+		));
+		$address3->setData(array('address_id' => 3, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
+
+		// mock the quote
+		$quote = $this->_buildModelMock('sales/quote', array(
+			'getId'              => $this->returnValue(2),
+			'isVirtual'          => $this->returnValue(false),
+			'getStore'           => $this->returnValue($store),
+			'getBillingAddress'  => $this->returnValue($address1),
+			'getShippingAddress' => $this->returnValue($address2),
+			'getAllAddresses'    => $this->returnValue(array($address1, $address2, $address3)),
+			'getAllShippingAddresses' => $this->returnValue(array($address2, $address3)),
+			'getAllVisibleItems' => $this->returnValue($items),
+			'getItemById'        => $this->returnValueMap(array(
+				array(1, $item1),
+				array(2, $item2),
+			))
+		));
+		$quote->setData(array('entity_id' => 2, 'store_id' => 2, 'created_at' => "2013-06-27 17:41:05", 'updated_at' => "2013-06-27 17:45:05", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 1, 'items_count' => 1, 'items_qty' => 2.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 322.3500, 'base_grand_total' => 322.3500, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000052, 'subtotal' => 299.9800, 'base_subtotal' => 299.9800, 'subtotal_with_discount' => 299.9800, 'base_subtotal_with_discount' => 299.9800, 'trigger_recollect' => 0, ));
+		return $quote;
+	}
 }
