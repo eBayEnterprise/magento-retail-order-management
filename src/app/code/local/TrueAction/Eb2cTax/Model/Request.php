@@ -35,16 +35,14 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _construct()
 	{
-		$this->_namespaceUri = Mage::helper('tax')->getNamespaceUri($this->getStore());
-		$quote          = $this->getQuote();
-		$this->_helper  = Mage::helper('tax');
+		$quote         = $this->getQuote();
+		$this->_helper = Mage::helper('tax');
 		$this->setIsMultiShipping(0);
-		if ($quote) {
+		if ($this->_isQuoteUsable($quote)) {
 			$this->_store = $quote->getStore();
+			$this->_namespaceUri = Mage::helper('tax')->getNamespaceUri($this->_store);
 			$this->setBillingAddress($quote->getBillingAddress());
 			$this->setShippingAddress($quote->getShippingAddress());
-		}
-		if ($this->isValid()) {
 			$this->_processQuote();
 		}
 	}
