@@ -65,9 +65,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	public function checkAddresses(Mage_Sales_Model_Quote $quote = null)
 	{
-		if (!($this->isValid() && $quote && $quote->getId())) {
+		if (!($this->isValid() && $this->_isQuoteUsable($quote))) {
 			// skip it if the request is bad in the first place or if the quote
-			// passed in is null.
+			// passed in is unusable.
 			return;
 		}
 		if ($this->getIsMultiShipping() !== $quote->getIsMultiShipping()) {
@@ -131,11 +131,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function isValid()
 	{
 		return !$this->_hasChanges &&
-			$this->getQuote() &&
-			$this->getQuote()->getId() &&
-			$this->getBillingAddress() &&
-			$this->getBillingAddress()->getId() &&
-			$this->getQuote()->getItemsCount();
+			$this->_isQuoteUsable($this->getQuote()) &&
+			(int)$this->getQuote()->getItemsCount() === count($this->_orderItems);
 	}
 
 	/**
@@ -218,9 +215,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		foreach ($quote->getAllAddresses() as $address) {
 			$items = $this->_getItemsForAddress($address);
 			foreach ($items as $item) {
-				$quoteItem = (is_a($item, 'Mage_Sales_Model_Quote_Item')) ?
-					$item :
-					$quote->getItemById($item->getQuoteItemId());
+				$quoteItem = $this->_getQuoteItem($item);
 				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
 					foreach ($quoteItem->getChildren() as $child) {
 						$isVirtual = $child->getProduct()->getIsVirtual();
@@ -233,6 +228,33 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			}
 		}
 	}
+
+	/**
+	 * return a Mage_Sales_Model_Quote_Item for $item
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @return Mage_Sales_Model_Quote_Item
+	 */
+	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		return ($item->hasQuoteItemId()) ?
+			$this->getQuote()->getItemById($item->getQuoteItemId()) :
+			$item;
+	}
+
+	/**
+	 * return true if the quote has enough information to be useful.
+	 * @param  Mage_Sales_Model_Quote  $quote
+	 * @return boolean
+	 */
+	protected function _isQuoteUsable(Mage_Sales_Model_Quote $quote = null)
+	{
+		return $quote &&
+			$quote->getId() &&
+			$quote->getBillingAddress() &&
+			$quote->getBillingAddress()->getId() &&
+			$quote->getItemsCount();
+	}
+
 
 	/**
 	 * get a list of all items for $address
