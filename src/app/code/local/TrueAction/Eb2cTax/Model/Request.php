@@ -146,8 +146,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function getDocument()
 	{
 		if (!$this->_doc) {
-			$doc                 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-			$this->_doc          = $doc;
+			$doc        = new TrueAction_Dom_Document('1.0', 'UTF-8');
+			$this->_doc = $doc;
 			if ($this->isValid()) {
 				$this->_buildTaxDutyRequest();
 			}
@@ -645,13 +645,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		$orderItem->appendChild($origins);
 		$orderItem->addChild('Quantity', $item['quantity']);
 
-		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
-
-		$merchandise = $orderItem->createChild('Pricing')
+		$unitPriceNode = $orderItem->createChild('Pricing')
 			->createChild('Merchandise')
 			->addChild('Amount', $item['merchandise_amount'])
-			->addChild('TaxClass', $taxClass)
-			->addChild('UnitPrice', $item['merchandise_unit_price']);
+			->createChild('UnitPrice', $item['merchandise_unit_price']);
+
+		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
+		if ($taxClass) {
+			$taxClassNode = $parent->ownerDocument->createElement('TaxClass', $taxClass);
+			$unitPriceNode->parentNode->insertBefore($taxClassNode, $unitPriceNode);
+		}
 	}
 
 	/**
