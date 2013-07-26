@@ -118,12 +118,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	public function testGetSkus()
 	{
 		// REMINDER: According to mphang this is useless now. Leaving for code review.
-		$quote   = $this->_mockVirtualQuote();
+		$quote   = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$result  = $request->getSkus();
 		// the skus in the test are being converted
 		// to numbers
-		$this->assertEquals(array('1111'), $result);
+		$this->assertEquals(array(1111, 1112, 1113), $result);
 	}
 
 	public function testGetItemDataBySku()
