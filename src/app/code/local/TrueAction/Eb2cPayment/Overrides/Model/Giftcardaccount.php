@@ -30,10 +30,26 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	protected function _getStoredValueBalance()
 	{
 		if (!$this->_storedValueBalance) {
-	 		$this->_storedValueBalance = Mage::getModel('eb2cpayment/stored_value_balance');
+			$this->_storedValueBalance = Mage::getModel('eb2cpayment/stored_value_balance');
 		}
 
 		return $this->_storedValueBalance;
+	}
+
+	/**
+	 * giftcardaccount helper object
+	 *
+	 * @var Enterprise_GiftCardAccount_Helper_Data
+	 */
+	protected $_helper;
+
+	protected function _getHelper()
+	{
+		if (!$this->_helper) {
+	 		$this->_helper = Mage::helper('enterprise_giftcardaccount');
+		}
+
+		return $this->_helper;
 	}
 
 	/**
@@ -184,7 +200,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		}
 		$website = Mage::app()->getStore($quote->getStoreId())->getWebsite();
 		if ($this->isValid(true, true, $website)) {
-			$cards = Mage::helper('enterprise_giftcardaccount')->getCards($quote);
+			$cards = $this->_getHelper()->getCards($quote);
 			if (!$cards) {
 				$cards = array();
 			} else {
@@ -193,8 +209,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 						Mage::throwException(
 							Mage::helper('enterprise_giftcardaccount')->__('This gift card account is already in the quote.')
 						);
+						// @codeCoverageIgnoreStart
 					}
 				}
+				// @codeCoverageIgnoreEnd
 			}
 			$cards[] = array(
 				// id

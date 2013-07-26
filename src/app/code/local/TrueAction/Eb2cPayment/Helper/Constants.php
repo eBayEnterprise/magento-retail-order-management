@@ -9,5 +9,7 @@ class TrueAction_Eb2cPayment_Helper_Constants extends Mage_Core_Helper_Abstract
 	const XMLNS = 'http://api.gsicommerce.com/schema/checkout/1.0';
 	const SERVICE = 'payments';
 	const OPT_STORED_VALUE_BALANCE = 'storevalue/balance/GS';
+	const OPT_STORED_VALUE_REDEEM = 'storevalue/redeem/GS';
+	const OPT_STORED_VALUE_REDEEM_VOID = 'storevalue/redeemvoid/GS';
 	const RETURN_FORMAT = 'xml';
 }

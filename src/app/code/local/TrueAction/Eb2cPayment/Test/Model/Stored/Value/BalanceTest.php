@@ -99,46 +99,4 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 			$this->_balance->parseResponse($storeValueBalanceReply)
 		);
 	}
-
-
-	public function providerProcessBalance()
-	{
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('setBaseGiftCardsAmount', 'setGiftCardsAmount', 'setGiftCardsTotalCollected', 'save')
-		);
-		$quoteMock->expects($this->any())
-			->method('setBaseGiftCardsAmount')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('setGiftCardsAmount')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('setGiftCardsTotalCollected')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf());
-
-		return array(
-			array(
-				$quoteMock,
-				array('paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success', 'balanceAmount' => '50.00')
-			)
-		);
-	}
-
-	/**
-	 * testing processBalance method
-	 *
-	 * @test
-	 * @dataProvider providerProcessBalance
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessBalance($quote, $balanceData)
-	{
-		$this->assertNull(
-			$this->_balance->processBalance($quote, $balanceData)
-		);
-	}
 }

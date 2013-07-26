@@ -24,6 +24,14 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			'get_gift_card_balance' => array(
 				'pro' => $constantHelper::OPT_STORED_VALUE_BALANCE,
 				'dev' => $this->getConfigModel()->storedValueBalanceApiUri
+			),
+			'get_gift_card_redeem' => array(
+				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM,
+				'dev' => $this->getConfigModel()->storedValueRedeemApiUri
+			),
+			'get_gift_card_redeem_void' => array(
+				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM_VOID,
+				'dev' => $this->getConfigModel()->storedValueRedeemVoidApiUri
 			)
 		);
 	}
@@ -123,5 +131,21 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->apiModel = Mage::getModel('eb2ccore/api');
 		}
 		return $this->apiModel;
+	}
+
+	/**
+	 * Generate eb2c API Universally unique ID used to globally identify to request.
+	 *
+	 * @param int $entityId, the magento sales_flat_quote entity_id
+	 *
+	 * @return string, the request id
+	 */
+	public function getRequestId($entityId)
+	{
+		return implode('-', array(
+			$this->getConfigModel()->clientId,
+			$this->getConfigModel()->storeId,
+			$entityId
+		));
 	}
 }

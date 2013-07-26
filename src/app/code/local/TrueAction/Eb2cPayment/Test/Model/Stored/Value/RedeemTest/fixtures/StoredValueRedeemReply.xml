@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StoredValueRedeemReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+	<PaymentContext>
+		<OrderId>1</OrderId>
+		<PaymentAccountUniqueId isToken="false">4111111ak4idq1111</PaymentAccountUniqueId>
+	</PaymentContext>
+	<ResponseCode>Success</ResponseCode>
+	<AmountRedeemed currencyCode="USD">50.00</AmountRedeemed>
+	<BalanceAmount currencyCode="USD">150.00</BalanceAmount>
+</StoredValueRedeemReply>

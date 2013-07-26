@@ -18,6 +18,9 @@
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Model</class>
 			</eb2cpayment>
+			<eb2cpaymentoverrides>
+				<class>TrueAction_Eb2cPayment_Overrides_Model</class>
+			</eb2cpaymentoverrides>
 			<enterprise_giftcardaccount>
 				<rewrite>
 					<giftcardaccount>TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount</giftcardaccount>
@@ -40,6 +43,11 @@
 					<checkout_cart_giftcardaccount>TrueAction_Eb2cPayment_Overrides_Block_Checkout_Cart_Giftcardaccount</checkout_cart_giftcardaccount>
 				</rewrite>
 			</enterprise_giftcardaccount>
+			<customer>
+				<rewrite>
+					<account_navigation>TrueAction_Eb2cPayment_Overrides_Block_Account_Navigation</account_navigation>
+				</rewrite>
+			</customer>
 		</blocks>
 		<resources>
 			<eb2cpayment_setup>
@@ -51,21 +59,21 @@
 	</global>
 	<frontend>
 		<routers>
-            <enterprise_giftcardaccount>
-                <args>
-                    <modules>
-                        <TrueAction_Eb2cPayment before="Enterprise_GiftCardAccount">TrueAction_Eb2cPayment_Overrides_GiftCardAccount</TrueAction_Eb2cPayment>
-                    </modules>
-                </args>
-            </enterprise_giftcardaccount>
-            <eb2cpayment>
-                <use>standard</use>
-                <args>
-                    <module>TrueAction_Eb2cPayment</module>
-                    <frontName>eb2cpayment</frontName>
-                </args>
-            </eb2cpayment>
-        </routers>
+			<enterprise_giftcardaccount>
+				<args>
+					<modules>
+						<TrueAction_Eb2cPayment before="Enterprise_GiftCardAccount">TrueAction_Eb2cPayment_Overrides_GiftCardAccount</TrueAction_Eb2cPayment>
+					</modules>
+				</args>
+			</enterprise_giftcardaccount>
+			<eb2cpayment>
+				<use>standard</use>
+				<args>
+					<module>TrueAction_Eb2cPayment</module>
+					<frontName>eb2cpayment</frontName>
+				</args>
+			</eb2cpayment>
+		</routers>
 		<layout>
 			<updates>
 				<trueaction_eb2cpayment module="TrueAction_Eb2cPayment">
@@ -74,7 +82,7 @@
 			</updates>
 		</layout>
 		<events>
-			<sales_order_payment_place_end>
+			<eb2c_event_dispatch_after_inventory_allocation>
 				<observers>
 					<TrueAction_Eb2cPayment_observer>
 						<type>singleton</type>
@@ -82,7 +90,7 @@
 						<method>redeemGiftCard</method>
 					</TrueAction_Eb2cPayment_observer>
 				</observers>
-			</sales_order_payment_place_end>
+			</eb2c_event_dispatch_after_inventory_allocation>
 		</events>
 	</frontend>
 	<default>
@@ -90,6 +98,8 @@
 			<payment>
 				<developer_mode>1</developer_mode>
 				<stored_value_balance_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueBalanceReply.xml</stored_value_balance_api_uri>
+				<stored_value_redeem_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemReply.xml</stored_value_redeem_api_uri>
+				<stored_value_redeem_void_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemVoidReply.xml</stored_value_redeem_void_api_uri>
 			</payment>
 		</eb2c>
 	</default>

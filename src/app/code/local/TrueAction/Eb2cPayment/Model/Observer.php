@@ -7,18 +7,27 @@
 class TrueAction_Eb2cPayment_Model_Observer
 {
 	/**
+	 * eb2c stored value redeem object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
+	 */
+	protected $_storedValueRedeem;
+
+	/**
 	 * hold enterprise giftcardaccount instantiated object
 	 *
 	 * @var TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
 	 */
 	protected $_giftCardAccount;
 
-	/**
-	 * hold quote instantiated object
-	 *
-	 * @var Mage_Sales_Model_Quote
-	 */
-	protected $_quote;
+	protected function _getStoredValueRedeem()
+	{
+		if (!$this->_storedValueRedeem) {
+			$this->_storedValueRedeem = Mage::getModel('eb2cpayment/stored_value_redeem');
+		}
+
+		return $this->_storedValueRedeem;
+	}
 
 	/**
 	 * @see $_giftCardAccount
@@ -34,20 +43,7 @@ class TrueAction_Eb2cPayment_Model_Observer
 	}
 
 	/**
-	 * @see $_quote
-	 * @return Mage_Sales_Model_Quote
-	 */
-	protected function _getQuote()
-	{
-		if (!$this->_quote) {
-			$this->_quote = Mage::getModel('sales/quote');
-		}
-
-		return $this->_quote;
-	}
-
-	/**
-	 * redeem any gift card when 'sales_order_payment_place_end' event is dispatched
+	 * redeem any gift card when 'eb2c_event_dispatch_after_inventory_allocation' event is dispatched
 	 *
 	 * @param Varien_Event_Observer $observer
 	 *
@@ -55,20 +51,30 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 */
 	public function redeemGiftCard($observer)
 	{
-		$payment = $observer->getEvent()->getPayment();
-		$order = $payment->getOrder();
-		$quote = $this->_getQuote()->load($order->getQuoteId());
+		$quote = $observer->getEvent()->getQuote();
 		$giftCard = unserialize($quote->getGiftCards());
 
 		if ($giftCard) {
 			foreach ($giftCard as $card) {
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's redeem gift card in eb2c.
-					// TODO: once eb2c stored value redeem is implemented we'll redeem gift card
-					$pan = $card['pan'];
-					$pin = $card['pin'];
-					$balance = $card['ba'];
-					$incrementId = $order->getIncrementId();
+					if ($storeValueRedeemReply = $this->_getStoredValueRedeem()->getRedeem($card['pan'], $card['pin'], $quote->getId(), $card['ba'])) {
+						if ($redeemData = $this->_getStoredValueRedeem()->parseResponse($storeValueRedeemReply)) {
+							// making sure we have the right data
+							if (isset($balanceData['responseCode']) && $balanceData['responseCode'] === 'fail') {
+								// removed gift card from the shopping cart
+								$this->_getGiftCardAccount()->loadByPanPin($card['pan'], $card['pin'])
+				                    ->removeFromCart();
+				                Mage::getSingleton('checkout/session')->addSuccess(
+				                    $this->__('Gift Card "%s" was removed.', Mage::helper('core')->escapeHtml($card['pan']))
+				                );
+
+								Mage::throwException(
+									Mage::helper('enterprise_giftcardaccount')->__('Wrong gift card account.')
+								);
+							}
+						}
+					}
 				}
 			}
 		}
