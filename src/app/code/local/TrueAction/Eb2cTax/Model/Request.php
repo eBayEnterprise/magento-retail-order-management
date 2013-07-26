@@ -35,16 +35,14 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _construct()
 	{
-		$this->_namespaceUri = Mage::helper('tax')->getNamespaceUri($this->getStore());
-		$quote          = $this->getQuote();
-		$this->_helper  = Mage::helper('tax');
+		$quote         = $this->getQuote();
+		$this->_helper = Mage::helper('tax');
 		$this->setIsMultiShipping(0);
-		if ($quote) {
+		if ($this->_isQuoteUsable($quote)) {
 			$this->_store = $quote->getStore();
+			$this->_namespaceUri = Mage::helper('tax')->getNamespaceUri($this->_store);
 			$this->setBillingAddress($quote->getBillingAddress());
 			$this->setShippingAddress($quote->getShippingAddress());
-		}
-		if ($this->isValid()) {
 			$this->_processQuote();
 		}
 	}
@@ -65,43 +63,49 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	public function checkAddresses(Mage_Sales_Model_Quote $quote = null)
 	{
-		if (!($this->isValid() && $quote && $quote->getId())) {
+		if (!($this->isValid() && $this->_isQuoteUsable($quote))) {
 			// skip it if the request is bad in the first place or if the quote
-			// passed in is null.
+			// passed in is unusable.
 			return;
 		}
 		if ($this->getIsMultiShipping() !== $quote->getIsMultiShipping()) {
 			$this->_hasChanges = true;
 		}
-		$quoteBillingAddress = $quote->getBillingAddress();
-		$this->_hasChanges = $this->_billingInfoRef !== $quoteBillingAddress->getId();
-		// first check the billing address
-		$billingDestination = isset($this->_destinations[$quoteBillingAddress->getId()]) ?
-			$this->_destinations[$quoteBillingAddress->getId()] : !($this->_hasChanges = true);
 		if (!$this->_hasChanges) {
+			$quoteBillingAddress = $quote->getBillingAddress();
+			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
+			// check if the billing address has been switched to another address instance
+			$this->_hasChanges = $this->_billingInfoRef !== $quoteBillingDestId;
+			// first check the billing address
+			$billingDestination = isset($this->_destinations[$quoteBillingDestId]) ?
+				$this->_destinations[$quoteBillingDestId] : !($this->_hasChanges = true);
+		}
+		if (!$this->_hasChanges) {
+			// only bother checking the address contents if all matches up to this point
 			$billAddressData = $this->_extractDestData($quoteBillingAddress);
-			$this->_hasChanges = (bool)array_diff_assoc($billingDestination, $billAddressData);
-			if (!$this->getIsMultiShipping() && $quote->hasVirtualItems()) {
-				$virtualId = $this->_getVirtualId($quoteBillingAddress);
+			$this->_hasChanges = (serialize($billingDestination) !== serialize($billAddressData));
+			if (!$this->_hasChanges && $quote->isVirtual()) {
+				// in the case where the quote is virtual, all items are automatically associated
+				// with the billing address. the items will be associated with a virtual destination
+				// for the billing address.
+				$virtualId = $this->_getDestinationId($quoteBillingAddress, true);
 				$virtualDestination = isset($this->_destinations[$virtualId]) ?
 					$this->_destinations[$virtualId] : !($this->_hasChanges = true);
-				$billAddressData = _extractDestData($this->getBillingAddress(), true);
-				$this->_hasChanges = (bool)array_diff_assoc($virtualDestination, $billAddressData);
+				$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
+				$this->_hasChanges = serialize($virtualDestination) !== serialize($billAddressData);
 			}
 			// if everything was good so far then check the shipping addresses for
 			// changes
 			if (!$this->_hasChanges) {
 				// check shipping addresses
 				foreach ($quote->getAllShippingAddresses() as $address) {
+					$destinationId = $this->_getDestinationId($address);
 					$addressData = $this->_extractDestData($address);
-					$destination = isset($this->_destinations[$address->getId()]) ?
-						$this->_destinations[$address->getId()] : !($this->_hasChanges = true);
-					$this->_hasChanges = (bool)array_diff_assoc($addressData, $destination);
+					$destination = isset($this->_destinations[$destinationId]) ?
+						$this->_destinations[$destinationId] : !($this->_hasChanges = true);
+					$this->_hasChanges = serialize($addressData) !== serialize($destination);
 				}
 			}
-		}
-		if ($this->_hasChanges) {
-			$this->invalidate();
 		}
 	}
 
@@ -131,11 +135,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function isValid()
 	{
 		return !$this->_hasChanges &&
-			$this->getQuote() &&
-			$this->getQuote()->getId() &&
-			$this->getBillingAddress() &&
-			$this->getBillingAddress()->getId() &&
-			$this->getQuote()->getItemsCount();
+			$this->_isQuoteUsable($this->getQuote()) &&
+			(int)$this->getQuote()->getItemsCount() === count($this->_orderItems);
 	}
 
 	/**
@@ -145,8 +146,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function getDocument()
 	{
 		if (!$this->_doc) {
-			$doc                 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-			$this->_doc          = $doc;
+			$doc        = new TrueAction_Dom_Document('1.0', 'UTF-8');
+			$this->_doc = $doc;
 			if ($this->isValid()) {
 				$this->_buildTaxDutyRequest();
 			}
@@ -210,69 +211,49 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
 			$billAddress
 		);
-		// create a virtual destination if the quote only has virtual items
-		if ($quote->isVirtual()) {
-			$id = $this->_getDestinationId($billAddress, true);
-			$this->_destinations[$id] = $this->_extractDestData($billAddress, true);
-		}
 		foreach ($quote->getAllAddresses() as $address) {
 			$items = $this->_getItemsForAddress($address);
 			foreach ($items as $item) {
-				$quoteItem = (is_a($item, 'Mage_Sales_Model_Quote_Item')) ?
-					$item :
-					$quote->getItemById($item->getQuoteItemId());
+				$quoteItem = $this->_getQuoteItem($item);
 				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
 					foreach ($quoteItem->getChildren() as $child) {
-						$isVirtual = $quoteItem->getProduct()->getIsVirtual();
-						$this->_addToDestination($quoteItem, $address, $isVirtual);
+						$isVirtual = $child->getProduct()->isVirtual();
+						$this->_addToDestination($child, $address, $isVirtual);
 					}
 				} else {
-					$isVirtual = $quoteItem->getProduct()->getIsVirtual();
+					$isVirtual = $quoteItem->getProduct()->isVirtual();
 					$this->_addToDestination($quoteItem, $address, $isVirtual);
 				}
 			}
 		}
 	}
 
-	protected function _processMultiShippingQuote($quote)
+	/**
+	 * return a Mage_Sales_Model_Quote_Item for $item
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @return Mage_Sales_Model_Quote_Item
+	 */
+	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
-		foreach ($quote->getAllShippingAddresses() as $address) {
-			$items = $address->getAllVisibleItems();
-			foreach ($items as $item) {
-				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-					foreach ($item->getChildren() as $child) {
-						$isVirtual = $item->getProduct()->getIsVirtual();
-						$this->_addToDestination($item, $address, $isVirtual);
-					}
-				} else {
-					$isVirtual = $item->getProduct()->getIsVirtual();
-					$this->_addToDestination($item, $address, $isVirtual);
-				}
-			}
-		}
+		return ($item->hasQuoteItemId()) ?
+			$this->getQuote()->getItemById($item->getQuoteItemId()) :
+			$item;
 	}
 
-	protected function _processSingleShipQuote($quote)
+	/**
+	 * return true if the quote has enough information to be useful.
+	 * @param  Mage_Sales_Model_Quote  $quote
+	 * @return boolean
+	 */
+	protected function _isQuoteUsable(Mage_Sales_Model_Quote $quote = null)
 	{
-		$shipAddress = $quote->getShippingAddress();
-		$shipAddressRef = $this->_getDestinationId($shipAddress);
-		$destData = $this->_extractDestData($shipAddress);
-		$this->_destinations[$shipAddressRef] = $this->_extractDestData(
-			$shipAddress
-		);
-		$items = $quote->getAllVisibleItems();
-		foreach($items as $item) {
-			$isVirtual = $item->getProduct()->isVirtual();
-			$address   = $isVirtual ? $this->getBillingAddress() : $shipAddress;
-			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-				foreach ($item->getChildren() as $child) {
-					$this->_addToDestination($item, $address, $isVirtual);
-				}
-			} else {
-				$this->_addToDestination($item, $address, $isVirtual);
-			}
-		}
+		return $quote &&
+			$quote->getId() &&
+			$quote->getBillingAddress() &&
+			$quote->getBillingAddress()->getId() &&
+			$quote->getItemsCount();
 	}
+
 
 	/**
 	 * get a list of all items for $address
@@ -334,14 +315,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			if ($groupedRates) {
 				foreach ($groupedRates as $rateKey => $shippingRate) {
 					$shippingRate = (is_array($shippingRate)) ? $shippingRate[0] : $shippingRate;
-					$addressKey = $address->getId();
 					if ($address->getShippingMethod() === $shippingRate->getCode()) {
 						$rateKey = strtoupper($shippingRate->getMethod());
 					}
 				}
 			}
 		}
-		$id = "shipGroup_{$addressKey}_{$rateKey}";
+		$id = "shipGroup{$addressKey}_{$rateKey}";
 		if (!isset($this->_shipGroupIds[$addressKey])) {
 			$this->_shipGroupIds[$addressKey] = array('group_id' => $id, 'method' => $rateKey);
 		}
@@ -480,7 +460,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$this->_checkLength($this->getBillingAddress()->getTaxId(), 0, 40)
 				)
 				->createChild('BillingInformation');
-			$billingInformation->setAttribute('ref', '_' . $this->_billingInfoRef);
+			$billingInformation->setAttribute('ref', $this->_billingInfoRef);
 			$shipping = $tdRequest->createChild('Shipping');
 			$this->_tdRequest    = $tdRequest;
 			$shipGroups   = $shipping->createChild('ShipGroups');
@@ -653,7 +633,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$sku = $this->_checkSku($item);
 		$orderItem = $parent->createChild('OrderItem')
-			->addAttribute('lineNumber', $this->_getLineNumber($item))
+			->addAttribute('lineNumber', $item['line_number'])
 			->addChild('ItemId', $sku)
 			->addChild('ItemDesc', $this->_checkLength($item['item_desc'], 0, 12))
 			->addChild('HTSCode', $this->_checkLength($item['hts_code'], 0, 12));
@@ -665,13 +645,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		$orderItem->appendChild($origins);
 		$orderItem->addChild('Quantity', $item['quantity']);
 
-		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
-
-		$merchandise = $orderItem->createChild('Pricing')
+		$unitPriceNode = $orderItem->createChild('Pricing')
 			->createChild('Merchandise')
 			->addChild('Amount', $item['merchandise_amount'])
-			->addChild('TaxClass', $taxClass)
-			->addChild('UnitPrice', $item['merchandise_unit_price']);
+			->createChild('UnitPrice', $item['merchandise_unit_price']);
+
+		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
+		if ($taxClass) {
+			$taxClassNode = $parent->ownerDocument->createElement('TaxClass', $taxClass);
+			$unitPriceNode->parentNode->insertBefore($taxClassNode, $unitPriceNode);
+		}
 	}
 
 	/**
@@ -681,7 +664,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _getLineNumber($item)
 	{
-		return $item['id'];
+		return $item->getId();
 	}
 
 	/**
