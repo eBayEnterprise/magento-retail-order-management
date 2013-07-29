@@ -195,6 +195,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @large
+	 * @test
+	 */
 	public function testCheckAddressMultishipping()
 	{
 		$this->_setupBaseUrl();
