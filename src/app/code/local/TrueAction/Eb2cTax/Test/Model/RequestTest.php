@@ -60,11 +60,11 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	/**
 	 * @dataProvider getItemTaxClassProvider
 	 * @loadExpectation
+	 * NOTE: this test assumes tax_code can be retrieved from the product using
+	 * $product->getTaxCode()
 	 */
 	public function  testGetItemTaxClass($taxCode, $expectation)
 	{
-		// $this->markTestIncomplete("REMINDER: _getItemTaxClass depends on how the product feed's tax_code field is implemented");
-		// for now assume tax_code can be retrieved from the product using $product->getTaxCode()
 		$product = $this->_buildModelMock('catalog/product', array(
 			'isVirtual' => $this->returnValue(false), 
 			'hasTaxCode' => $this->returnValue(true),
@@ -73,6 +73,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$item = $this->_buildModelMock('sales/quote_item', array(
 			'getProduct' => $this->returnValue($product),
 		));
+		$request = Mage::getModel('eb2ctax/request');
 		$val = $this->_reflectMethod($request, '_getItemTaxClass')->invoke($request, $item);
 		$e = $this->expected($expectation);
 		$this->assertSame($e->getTaxCode(), $val);
