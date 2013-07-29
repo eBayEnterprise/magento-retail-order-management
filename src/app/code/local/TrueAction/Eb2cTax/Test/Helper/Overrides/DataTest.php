@@ -3,6 +3,42 @@
  */
 class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_Test_Case
 {
+
+	public function setUp()
+	{
+		parent::setUp();
+		// make sure there's a fresh instance of the tax helper for each test
+		Mage::unregister('_helper/tax');
+	}
+
+	/**
+	 * Mock out the core config registry used to retrieve config values in the helper.
+	 * $config arg will be used as the returnValueMap for the config_registry's
+	 * magic __get method.
+	 * @param array $config
+	 * @return Mock_Eb2cCore_Model_Config_Registry
+	 */
+	protected function _mockConfig($config)
+	{
+		$mock = $this->getModelMockBuilder('eb2ccore/config_registry')
+			->disableOriginalConstructor()
+			->setMethods(array('__get', 'addConfigModel', 'setStore'))
+			->getMock();
+		$mock->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap($config));
+		$mock->expects($this->any())
+			->method('addConfigModel')
+			->will($this->returnSelf());
+		// ensure the config model's "store" gets set before retrieving the value
+		$mock->expects($this->once())
+			->method('setStore')
+			->with($this->equalTo(null))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mock);
+		return $mock;
+	}
+
 	/**
 	 * @test
 	 */
@@ -15,18 +51,18 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 		);
 	}
 
-	public function testGetCalculationSequence()
+	/**
+	 * Test the retrieval of the tax caluculation sequence config value. Expecting true
+	 * @dataProvider dataProvider
+	 * @test
+	 */
+	public function testGetApplyTaxAfterDiscount($configValue)
 	{
-		$this->markTestINcomplete();
-		$val = Mage::helper('tax')->getCalculationSequence();
-		$this->assertTrue($val);
-	}
-
-	public function testGetCalculationSequenceFalse()
-	{
-		$this->markTestIncomplete();
-		$val = Mage::helper('tax')->getCalculationSequence();
-		$this->assertFalse($val);
+		$this->_mockConfig(array(
+			array('taxApplyAfterDiscount', $configValue),
+		));
+		$val = Mage::helper('tax')->getApplyTaxAfterDiscount();
+		$this->assertSame($configValue, $val);
 	}
 
 	/**
@@ -34,6 +70,9 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 	 */
 	public function testNamespaceUri()
 	{
+		$this->_mockConfig(array(
+			array('apiNamespace', 'http://api.gsicommerce.com/schema/checkout/1.0'),
+		));
 		$this->assertSame(
 			'http://api.gsicommerce.com/schema/checkout/1.0',
 			Mage::helper('tax')->getNamespaceUri()
@@ -114,12 +153,14 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 		);
 	}
 
-
 	/**
 	 * @test
 	 */
 	public function testGetVatInclusivePricingFlag()
 	{
+		$this->_mockConfig(array(
+			array('taxVatInclusivePricing', false),
+		));
 		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
 		$this->assertFalse($val);
 	}
@@ -130,6 +171,9 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 	 */
 	public function testGetVatInclusivePricingFlagEnabled()
 	{
+		$this->_mockConfig(array(
+			array('taxVatInclusivePricing', true),
+		));
 		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
 		$this->assertTrue($val);
 	}
