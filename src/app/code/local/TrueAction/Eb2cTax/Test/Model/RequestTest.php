@@ -280,24 +280,24 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			$x->evaluate('string(./a:PersonName/a:FirstName)', $node2)
 		);
 		$this->assertSame(
-			$x->evaluate('string(./a:Adress/a:Line1)', $node1),
-			$x->evaluate('string(./a:Adress/a:Line1)', $node2)
+			$x->evaluate('string(./a:Address/a:Line1)', $node1),
+			$x->evaluate('string(./a:Address/a:Line1)', $node2)
 		);
 		$this->assertSame(
-			$x->evaluate('string(./a:Adress/a:City)', $node1),
-			$x->evaluate('string(./a:Adress/a:City)', $node2)
+			$x->evaluate('string(./a:Address/a:City)', $node1),
+			$x->evaluate('string(./a:Address/a:City)', $node2)
 		);
 		$this->assertSame(
-			$x->evaluate('string(./a:Adress/a:MainDivision)', $node1),
-			$x->evaluate('string(./a:Adress/a:MainDivision)', $node2)
+			$x->evaluate('string(./a:Address/a:MainDivision)', $node1),
+			$x->evaluate('string(./a:Address/a:MainDivision)', $node2)
 		);
 		$this->assertSame(
-			$x->evaluate('string(./a:Adress/a:CountryCode)', $node1),
-			$x->evaluate('string(./a:Adress/a:CountryCode)', $node2)
+			$x->evaluate('string(./a:Address/a:CountryCode)', $node1),
+			$x->evaluate('string(./a:Address/a:CountryCode)', $node2)
 		);
 		$this->assertSame(
-			$x->evaluate('string(./a:Adress/a:PostalCode)', $node1),
-			$x->evaluate('string(./a:Adress/a:PostalCode)', $node2)
+			$x->evaluate('string(./a:Address/a:PostalCode)', $node1),
+			$x->evaluate('string(./a:Address/a:PostalCode)', $node2)
 		);
 	}
 
