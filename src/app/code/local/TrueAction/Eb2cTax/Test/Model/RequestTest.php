@@ -45,6 +45,39 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			'/RequestTest/fixtures/TaxDutyFee-QuoteRequest-1.0.xsd';
 	}
 
+
+	public function getItemTaxClassProvider()
+	{
+		return array(
+			array(null),
+			array(''),
+			array('1'),
+			array('123453434'),
+			array('3333333333333333333333333333333333333333'),
+		);
+	}
+
+	/**
+	 * @dataProvider testGetItemTaxClassProvider
+	 * loadExpectation
+	 */
+	public function  testGetItemTaxClass($taxCode)
+	{
+		$this->markTestIncomplete("REMINDER: _getItemTaxClass depends on how the product feed's tax_code field is implemented");
+		// for now assume tax_code can be retrieved from the product using $product->getTaxCode()
+		$product = $this->_buildModelMock('catalog/product', array(
+			'isVirtual' => $this->returnValue(false), 
+			'hasTaxCode' => $this->returnValue(true),
+			'getTaxCode' => $this->returnValue($taxCode),
+		));
+		$item = $this->_buildModelMock('sales/quote_item', array(
+			'getProduct' => $this->returnValue($product),
+		));
+		$val = $this->_reflectMethod($request, '_getItemTaxClass')->invoke($request, $item);
+		$e = $this->expected("0-{$taxCode}");
+		$this->assertSame($e->getTaxCode(), $val);
+	}
+
 	protected function _mockVirtualQuote()
 	{
 		$product = $this->getModelMock('catalog/product', array('isVirtual'));
