@@ -12,12 +12,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function setUp()
 	{
-        parent::setUp();
-        $_SESSION = array();
-        $_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-        $this->app()->getRequest()->setBaseUrl($_baseUrl);
-        $response = $this->getModelMock('eb2ctax/response');
-        $this->responseMock = $response;
+		parent::setUp();
+		$_SESSION = array();
+		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
+		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		$response = $this->getModelMock('eb2ctax/response');
+		$this->responseMock = $response;
 		$helper = $this->getHelperMock('tax/data', array('sendRequest'));
 		$this->replaceByMock('helper', 'tax', $helper);
 		$helper->expects($this->any())
@@ -44,6 +44,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function getMockQuote()
 	{
+		$quoteAddressAMock = $this->getMock('Mage_Sales_Model_Quote_Address', array());
 		$quoteAMock = $this->getMock('Mage_Sales_Model_Quote', array('collectTotals', 'save', 'deleteItem'));
 		$quoteAMock->expects($this->any())
 			->method('collectTotals')
@@ -87,7 +88,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($quoteAddressAMock))
 			);
 		return $quoteMock;
 	}
@@ -104,7 +105,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemAdded observer method
+	 * Testing salesEventItemAdded observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemAdded
@@ -128,7 +129,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing cartEventProductUpdated observer method
+	 * Testing cartEventProductUpdated observer method
 	 *
 	 * @test
 	 * @dataProvider providerCartEventProductUpdated
@@ -152,7 +153,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemRemoved observer method
+	 * Testing salesEventItemRemoved observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemRemoved
@@ -176,7 +177,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemQtyUpdated observer method
+	 * Testing salesEventItemQtyUpdated observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemQtyUpdated
@@ -190,8 +191,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function providerSalesEventItemQtyUpdatedWithoutQuoteItem()
 	{
-		$quoteMock = $this->getMock('Mage_Sales_Model_Quote', array('getItem'));
-		$quoteMock->expects($this->any())
+		$quoteMock = $this->getMock('Mage_Sales_Model_Quote');
+		$eventMock = $this->getMock('Varien_Event', array('getItem'));
+		$eventMock->expects($this->any())
 			->method('getItem')
 			->will($this->returnValue($quoteMock)
 			);
@@ -199,14 +201,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 		$observerMock = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 		return array(
 			array($observerMock)
 		);
 	}
 
 	/**
-	 * Tesing salesEventItemQtyUpdated observer method - without quote item
+	 * Testing salesEventItemQtyUpdated observer method - without quote item
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemQtyUpdatedWithoutQuoteItem
@@ -230,7 +232,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing quoteCollectTotalsBefore observer method
+	 * Testing quoteCollectTotalsBefore observer method
 	 *
 	 * @test
 	 * @dataProvider providerQuoteCollectTotalsBefore
@@ -244,27 +246,32 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function providerQuoteCollectTotalsBeforeWithInvalidQuoteObject()
 	{
+		$quoteAddressMock = $this->getMock('Mage_Sales_Model_Quote_Address', array());
 		$quoteMock = $this->getMock('Mage_Sales_Model_Quote_Item', array('getQuote', 'getAllAddresses'));
 		$quoteMock->expects($this->any())
 			->method('getQuote')
-			->will($this->returnValue($quoteMock)
+			->will($this->returnSelf()
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($quoteAddressMock))
 			);
+		$eventMock = $this->getMock('Varien_Event', array('getQuote'));
+		$eventMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quoteMock));
 
 		$observerMock = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 		return array(
 			array($observerMock)
 		);
 	}
 
 	/**
-	 * Tesing quoteCollectTotalsBefore observer method - invalid quote class
+	 * Testing quoteCollectTotalsBefore observer method - invalid quote class
 	 *
 	 * @test
 	 * @dataProvider providerQuoteCollectTotalsBeforeWithInvalidQuoteObject
@@ -284,7 +291,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing _fetchTaxDutyInfo observer method
+	 * Testing _fetchTaxDutyInfo observer method
 	 *
 	 * @test
 	 * @dataProvider providerFetchTaxDutyInfo
@@ -330,7 +337,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing _fetchTaxDutyInfo observer method - With exception thrown.
+	 * Testing _fetchTaxDutyInfo observer method - With exception thrown.
 	 *
 	 * @test
 	 * @dataProvider providerFetchTaxDutyInfo
@@ -398,7 +405,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing addTaxPercentToProductCollection observer method
+	 * Testing addTaxPercentToProductCollection observer method
 	 *
 	 * @test
 	 * @dataProvider providerAddTaxPercentToProductCollection
@@ -457,7 +464,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesRuleEventItemProcessed observer method
+	 * Testing salesRuleEventItemProcessed observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesRuleEventItemProcessed
