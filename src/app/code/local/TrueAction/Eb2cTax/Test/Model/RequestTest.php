@@ -49,21 +49,21 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	public function getItemTaxClassProvider()
 	{
 		return array(
-			array(null),
-			array(''),
-			array('1'),
-			array('123453434'),
-			array('3333333333333333333333333333333333333333'),
+			array(null, '0-1'),
+			array('', '0-2'),
+			array('1', '0-3'),
+			array('123453434', '0-4'),
+			array('33333333333333333333333333333333333333331', '0-5'),
 		);
 	}
 
 	/**
-	 * @dataProvider testGetItemTaxClassProvider
-	 * loadExpectation
+	 * @dataProvider getItemTaxClassProvider
+	 * @loadExpectation
 	 */
-	public function  testGetItemTaxClass($taxCode)
+	public function  testGetItemTaxClass($taxCode, $expectation)
 	{
-		$this->markTestIncomplete("REMINDER: _getItemTaxClass depends on how the product feed's tax_code field is implemented");
+		// $this->markTestIncomplete("REMINDER: _getItemTaxClass depends on how the product feed's tax_code field is implemented");
 		// for now assume tax_code can be retrieved from the product using $product->getTaxCode()
 		$product = $this->_buildModelMock('catalog/product', array(
 			'isVirtual' => $this->returnValue(false), 
@@ -74,7 +74,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			'getProduct' => $this->returnValue($product),
 		));
 		$val = $this->_reflectMethod($request, '_getItemTaxClass')->invoke($request, $item);
-		$e = $this->expected("0-{$taxCode}");
+		$e = $this->expected($expectation);
 		$this->assertSame($e->getTaxCode(), $val);
 	}
 
