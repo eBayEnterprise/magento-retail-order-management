@@ -128,7 +128,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing cartEventProductUpdated observer method
+	 * Testing cartEventProductUpdated observer method
 	 *
 	 * @test
 	 * @dataProvider providerCartEventProductUpdated
@@ -152,7 +152,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemRemoved observer method
+	 * Testing salesEventItemRemoved observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemRemoved
@@ -176,7 +176,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemQtyUpdated observer method
+	 * Testing salesEventItemQtyUpdated observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemQtyUpdated
@@ -206,7 +206,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemQtyUpdated observer method - without quote item
+	 * Testing salesEventItemQtyUpdated observer method - without quote item
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemQtyUpdatedWithoutQuoteItem
@@ -230,7 +230,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing quoteCollectTotalsBefore observer method
+	 * Testing quoteCollectTotalsBefore observer method
 	 *
 	 * @test
 	 * @dataProvider providerQuoteCollectTotalsBefore
@@ -264,7 +264,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing quoteCollectTotalsBefore observer method - invalid quote class
+	 * Testing quoteCollectTotalsBefore observer method - invalid quote class
 	 *
 	 * @test
 	 * @dataProvider providerQuoteCollectTotalsBeforeWithInvalidQuoteObject
@@ -284,7 +284,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing _fetchTaxDutyInfo observer method
+	 * Testing _fetchTaxDutyInfo observer method
 	 *
 	 * @test
 	 * @dataProvider providerFetchTaxDutyInfo
@@ -330,7 +330,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing _fetchTaxDutyInfo observer method - With exception thrown.
+	 * Testing _fetchTaxDutyInfo observer method - With exception thrown.
 	 *
 	 * @test
 	 * @dataProvider providerFetchTaxDutyInfo
@@ -398,7 +398,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing addTaxPercentToProductCollection observer method
+	 * Testing addTaxPercentToProductCollection observer method
 	 *
 	 * @test
 	 * @dataProvider providerAddTaxPercentToProductCollection
@@ -457,7 +457,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesRuleEventItemProcessed observer method
+	 * Testing salesRuleEventItemProcessed observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesRuleEventItemProcessed
