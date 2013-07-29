@@ -15,6 +15,12 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	{
 		parent::setUp();
 		$this->_balance = Mage::getModel('eb2cpayment/stored_value_balance');
+
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$balanceReflector = new ReflectionObject($this->_balance);
+		$helper = $balanceReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($this->_balance, $paymentHelper);
 	}
 
 	public function providerGetBalance()

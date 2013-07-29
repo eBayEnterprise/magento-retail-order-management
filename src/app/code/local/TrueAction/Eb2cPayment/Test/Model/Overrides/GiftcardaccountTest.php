@@ -17,6 +17,19 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
 		$this->app()->getRequest()->setBaseUrl($_baseUrl);
 		$this->_giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
+
+		$balance = Mage::getModel('eb2cpayment/stored_value_balance');
+
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$balanceReflector = new ReflectionObject($balance);
+		$helper = $balanceReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($balance, $paymentHelper);
+
+		$giftCardAccountReflector = new ReflectionObject($this->_giftCardAccount);
+		$storedValueBalance = $giftCardAccountReflector->getProperty('_storedValueBalance');
+		$storedValueBalance->setAccessible(true);
+		$storedValueBalance->setValue($this->_giftCardAccount, $balance);
 	}
 
 	public function providerLoadByCode()
