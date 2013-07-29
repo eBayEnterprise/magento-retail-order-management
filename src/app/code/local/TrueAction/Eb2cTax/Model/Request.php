@@ -215,30 +215,17 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		foreach ($quote->getAllAddresses() as $address) {
 			$items = $this->_getItemsForAddress($address);
 			foreach ($items as $item) {
-				$quoteItem = $this->_getQuoteItem($item);
-				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
-					foreach ($quoteItem->getChildren() as $child) {
+				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+					foreach ($item->getChildren() as $child) {
 						$isVirtual = $child->getProduct()->isVirtual();
 						$this->_addToDestination($child, $address, $isVirtual);
 					}
 				} else {
-					$isVirtual = $quoteItem->getProduct()->isVirtual();
-					$this->_addToDestination($quoteItem, $address, $isVirtual);
+					$isVirtual = $item->getProduct()->isVirtual();
+					$this->_addToDestination($item, $address, $isVirtual);
 				}
 			}
 		}
-	}
-
-	/**
-	 * return a Mage_Sales_Model_Quote_Item for $item
-	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
-	 * @return Mage_Sales_Model_Quote_Item
-	 */
-	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
-	{
-		return ($item->hasQuoteItemId()) ?
-			$this->getQuote()->getItemById($item->getQuoteItemId()) :
-			$item;
 	}
 
 	/**
