@@ -48,7 +48,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		if( $this->_helper->getConfig()->developerMode ) {
 			$uri = $this->_helper->getConfig()->developerCreateUri;
 		}
-
 		try {
 			$response = $this->_helper->getApiModel()
 								->setUri($uri)
@@ -399,28 +398,29 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	private function _buildContext(DomElement $context)
 	{
 		$this->_buildBrowserData($context->createChild('BrowserData'));
-		$context->createChild('TdlOrderTimestamp');
-		$context->createChild('SessionInfo');
-		$context->createChild('PayPalPayerInfo');
-		$context->createChild('CustomAttributes');
 		return;
 	}
 
 
 	/**
-	 * Populates the Context/BrowserData element  - TODO: I don't think this is well supported without Fraud stuff??
+	 * Populates the Context/BrowserData element 
 	 *
 	 * @param DomElement context
 	 */
 	private function _buildBrowserData(DomElement $browserData)
 	{
 		$children = array(
-			'HostName', 'IPAddress', 'SessionId', 'UserAgent', 'Connection', 'Cookies', 'UserCookie',
-			'UserAgentOS', 'UserAgentCPU', 'HeaderFrom', 'EmbeddedWebBrowserFrom', 'JavascriptData',
-			'Referrer', 'HTTPAcceptData' );
+			'HostName' => $this->_o->getEb2cHostName(),
+			'IPAddress' => $this->_o->getEb2cIpAddress(),
+			'SessionId' => $this->_o->getEb2cSessionId(),
+			'UserAgent' => $this->_o->getEb2cUserAgent(), 
+			'JavascriptData' => $this->_o->getEb2cJavascriptData(),
+			'Referrer' => $this->_o->getEb2cReferer(),
+			'HTTPAcceptData' => 'HttpAcceptData',
+		);
 
-		foreach( $children as $child ) {
-			$browserData->createChild($child);
+		foreach( $children as $key => $value ) {
+			$browserData->createChild($key, $value);
 		}
 
 		return;
