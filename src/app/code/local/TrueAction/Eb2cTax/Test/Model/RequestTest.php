@@ -190,6 +190,19 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
+		// changing address information should invalidate the request
+		$quote->getBillingAddress()->setCity('wrongcitybub');
+		$request->checkAddresses($quote);
+		$this->assertFalse($request->isValid());
+	}
+
+	public function testCheckAddressesNoChange()
+	{
+		$this->_setupBaseUrl();
+		$this->_mockCookie();
+		$quote = $this->_mockSingleShipSameAsBill();
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid());
 		// passing in a quote with no changes should not invalidate the request
 		$request->checkAddresses($quote);
 		$this->assertTrue($request->isValid());
@@ -198,10 +211,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($request->isValid());
 		$request->checkAddresses(null);
 		$this->assertTrue($request->isValid());
-		// changing address information should invalidate the request
-		$quote->getBillingAddress()->setCity('wrongcitybub');
-		$request->checkAddresses($quote);
-		$this->assertFalse($request->isValid());
 	}
 
 	public function testCheckAddressesChangeMultishipState()
