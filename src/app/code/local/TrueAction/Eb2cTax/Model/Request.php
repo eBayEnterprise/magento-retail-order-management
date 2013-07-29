@@ -296,7 +296,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _addShipGroupId($address, $isVirtual)
 	{
-		$rateKey = 'NONE';
+		$rateKey = '';
 		$addressKey = $this->_getDestinationId($address, $isVirtual);
 		if (!($address->getAddressType() === 'billing' || $isVirtual)) {
 			$groupedRates = $address->getGroupedAllShippingRates();
@@ -309,7 +309,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 		}
-		$id = "shipGroup{$addressKey}_{$rateKey}";
+		$id = $rateKey ? "shipGroup{$addressKey}_{$rateKey}" : "shipGroup{$addressKey}";
 		if (!isset($this->_shipGroupIds[$addressKey])) {
 			$this->_shipGroupIds[$addressKey] = array('group_id' => $id, 'method' => $rateKey);
 		}
@@ -475,7 +475,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$shipGroup->addAttribute('id', $shipGroupId, true)
 				->addAttribute('chargeType', strtoupper($chargeType));
 			$destinationTarget = $shipGroup->createChild('DestinationTarget');
-			$destinationTarget->setAttribute('ref', '_' . $destinationId);
+			$destinationTarget->setAttribute('ref', $destinationId);
 
 			$orderItemsFragment = $this->_doc->createDocumentFragment();
 			$orderItems = $orderItemsFragment->appendChild(
@@ -531,9 +531,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		TrueAction_Dom_Element $parent,
 		array $address
 	) {
-		$this->_shipAddressRef = $address['id'];
+		$destinationId = $address['id'];
 		$mailingAddress = $parent->createChild('MailingAddress');
-		$mailingAddress->setAttribute('id', $this->_shipAddressRef);
+		$mailingAddress->setAttribute('id', $destinationId);
 		$mailingAddress->setIdAttribute("id", true);
 		$personName = $mailingAddress->createChild('PersonName');
 		$this->_buildPersonName($personName, $address);
@@ -548,12 +548,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _buildEmailNode(TrueAction_Dom_Element $parent, array $address)
 	{
-		$this->_emailAddressId = $address['email_address'];
+		$destinationId = $address['id'];
 		// do nothing if the email address doesn't meet size requirements.
-		$emailStr = $this->_checkLength($this->_emailAddressId, 1, self::EMAIL_MAX_LENGTH);
+		$emailStr = $this->_checkLength($address['email_address'], 1, self::EMAIL_MAX_LENGTH);
 		if ($emailStr) {
 			$email = $parent->createChild('Email')
-				->addAttribute('id', $this->_emailAddressId, true);
+				->addAttribute('id', $destinationId, true);
 			$this->_buildPersonName($email->createChild('Customer'), $address);
 			$email->createChild('EmailAddress', $emailStr);
 		}
