@@ -44,6 +44,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function getMockQuote()
 	{
+		$quoteAddressAMock = $this->getMock('Mage_Sales_Model_Quote_Address', array());
 		$quoteAMock = $this->getMock('Mage_Sales_Model_Quote', array('collectTotals', 'save', 'deleteItem'));
 		$quoteAMock->expects($this->any())
 			->method('collectTotals')
@@ -87,7 +88,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($quoteAddressAMock))
 			);
 		return $quoteMock;
 	}
@@ -190,8 +191,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function providerSalesEventItemQtyUpdatedWithoutQuoteItem()
 	{
-		$quoteMock = $this->getMock('Mage_Sales_Model_Quote', array('getItem'));
-		$quoteMock->expects($this->any())
+		$quoteMock = $this->getMock('Mage_Sales_Model_Quote');
+		$eventMock = $this->getMock('Varien_Event', array('getItem'));
+		$eventMock->expects($this->any())
 			->method('getItem')
 			->will($this->returnValue($quoteMock)
 			);
@@ -199,7 +201,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 		$observerMock = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 		return array(
 			array($observerMock)
 		);
@@ -244,20 +246,25 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function providerQuoteCollectTotalsBeforeWithInvalidQuoteObject()
 	{
+		$quoteAddressMock = $this->getMock('Mage_Sales_Model_Quote_Address', array());
 		$quoteMock = $this->getMock('Mage_Sales_Model_Quote_Item', array('getQuote', 'getAllAddresses'));
 		$quoteMock->expects($this->any())
 			->method('getQuote')
-			->will($this->returnValue($quoteMock)
+			->will($this->returnSelf()
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($quoteAddressMock))
 			);
+		$eventMock = $this->getMock('Varien_Event', array('getQuote'));
+		$eventMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quoteMock));
 
 		$observerMock = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 		return array(
 			array($observerMock)
 		);
