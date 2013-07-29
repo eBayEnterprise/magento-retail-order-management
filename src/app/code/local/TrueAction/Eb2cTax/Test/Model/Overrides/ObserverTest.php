@@ -104,7 +104,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Tesing salesEventItemAdded observer method
+	 * Testing salesEventItemAdded observer method
 	 *
 	 * @test
 	 * @dataProvider providerSalesEventItemAdded
