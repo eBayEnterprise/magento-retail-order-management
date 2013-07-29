@@ -47,10 +47,13 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->will($this->returnValue($this->orderItem));
 		$this->response = $response;
 
-		$item = $this->getModelMock('sales/quote_item', array('getSku'));
+		$item = $this->getModelMock('sales/quote_item', array('getSku', 'getBaseTaxAmount'));
 		$item->expects($this->any())
 			->method('getSku')
 			->will($this->returnValue('somesku'));
+		$item->expects($this->any())
+			->method('getBaseTaxAmount')
+			->will($this->returnValue(23.00));
 		$this->item = $item;
 	}
 
@@ -105,7 +108,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetTaxableForItem()
 	{
-		$this->markTestIncomplete('this is erroring out.');
 		$calc = Mage::getModel('tax/calculation');
 		$this->orderItem->expects($this->any())
 			->method('getMerchandiseAmount')
@@ -120,7 +122,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetTaxableForItem2()
 	{
-		$this->markTestIncomplete('this test is failing due to changes');
 		$calc = Mage::getModel('tax/calculation');
 		$this->orderItem->expects($this->any())
 			->method('getMerchandiseAmount')
@@ -136,7 +137,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetAppliedRates()
 	{
-		$this->markTestIncomplete('disabled for emergency push');
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($this->response);
 		$itemSelector = new Varien_Object(

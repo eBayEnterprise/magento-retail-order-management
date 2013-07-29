@@ -13,8 +13,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_namespaceUri       = '';
 	protected $_billingInfoRef     = '';
 	protected $_billingEmailRef    = '';
-	protected $_shipAddressRef     = '';
-	protected $_emailAddressId     = '';
 	protected $_hasChanges         = false;
 	protected $_store              = null;
 	protected $_emailAddresses     = array();
@@ -71,6 +69,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		if ($this->getIsMultiShipping() !== $quote->getIsMultiShipping()) {
 			$this->_hasChanges = true;
 		}
+
 		if (!$this->_hasChanges) {
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
@@ -92,7 +91,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$virtualDestination = isset($this->_destinations[$virtualId]) ?
 					$this->_destinations[$virtualId] : !($this->_hasChanges = true);
 				$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
-				$this->_hasChanges = serialize($virtualDestination) !== serialize($billAddressData);
+				$this->_hasChanges = !$this->_hasChanges &&
+					serialize($virtualDestination) !== serialize($billAddressData);
 			}
 			// if everything was good so far then check the shipping addresses for
 			// changes
@@ -103,7 +103,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$addressData = $this->_extractDestData($address);
 					$destination = isset($this->_destinations[$destinationId]) ?
 						$this->_destinations[$destinationId] : !($this->_hasChanges = true);
-					$this->_hasChanges = serialize($addressData) !== serialize($destination);
+					$this->_hasChanges = !$this->_hasChanges && 
+						serialize($addressData) !== serialize($destination);
 				}
 			}
 		}
@@ -214,30 +215,17 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		foreach ($quote->getAllAddresses() as $address) {
 			$items = $this->_getItemsForAddress($address);
 			foreach ($items as $item) {
-				$quoteItem = $this->_getQuoteItem($item);
-				if ($quoteItem->getHasChildren() && $quoteItem->isChildrenCalculated()) {
-					foreach ($quoteItem->getChildren() as $child) {
+				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+					foreach ($item->getChildren() as $child) {
 						$isVirtual = $child->getProduct()->isVirtual();
 						$this->_addToDestination($child, $address, $isVirtual);
 					}
 				} else {
-					$isVirtual = $quoteItem->getProduct()->isVirtual();
-					$this->_addToDestination($quoteItem, $address, $isVirtual);
+					$isVirtual = $item->getProduct()->isVirtual();
+					$this->_addToDestination($item, $address, $isVirtual);
 				}
 			}
 		}
-	}
-
-	/**
-	 * return a Mage_Sales_Model_Quote_Item for $item
-	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
-	 * @return Mage_Sales_Model_Quote_Item
-	 */
-	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
-	{
-		return ($item->hasQuoteItemId()) ?
-			$this->getQuote()->getItemById($item->getQuoteItemId()) :
-			$item;
 	}
 
 	/**
@@ -308,7 +296,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _addShipGroupId($address, $isVirtual)
 	{
-		$rateKey = 'NONE';
+		$rateKey = '';
 		$addressKey = $this->_getDestinationId($address, $isVirtual);
 		if (!($address->getAddressType() === 'billing' || $isVirtual)) {
 			$groupedRates = $address->getGroupedAllShippingRates();
@@ -321,7 +309,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 		}
-		$id = "shipGroup{$addressKey}_{$rateKey}";
+		$id = $rateKey ? "shipGroup{$addressKey}_{$rateKey}" : "shipGroup{$addressKey}";
 		if (!isset($this->_shipGroupIds[$addressKey])) {
 			$this->_shipGroupIds[$addressKey] = array('group_id' => $id, 'method' => $rateKey);
 		}
@@ -330,18 +318,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _getVirtualId($address)
 	{
-		if ($address->getSameAsBilling() and !$address->getQuote()->getIsMultiShipping()) {
-			$email = $address->getQuote()->getBillingAddress()->getEmail();
-		} else {
-			$email = $address->getEmail();
-		}
-		$id = '_' . $address->getId() . '_' . $email;
+		$id = '_' . $address->getId() . '_virtual';
 		return $id;
 	}
 
 	protected function _extractDestData($address, $isVirtual = false)
 	{
-		$id = $address->getId();
+		$id = $this->_getDestinationId($address, $isVirtual);
 		if ($address->getSameAsBilling() && !$this->getIsMultiShipping()) {
 			$address = $this->getBillingAddress();
 		}
@@ -492,7 +475,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$shipGroup->addAttribute('id', $shipGroupId, true)
 				->addAttribute('chargeType', strtoupper($chargeType));
 			$destinationTarget = $shipGroup->createChild('DestinationTarget');
-			$destinationTarget->setAttribute('ref', '_' . $destinationId);
+			$destinationTarget->setAttribute('ref', $destinationId);
 
 			$orderItemsFragment = $this->_doc->createDocumentFragment();
 			$orderItems = $orderItemsFragment->appendChild(
@@ -548,9 +531,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		TrueAction_Dom_Element $parent,
 		array $address
 	) {
-		$this->_shipAddressRef = $address['id'];
+		$destinationId = $address['id'];
 		$mailingAddress = $parent->createChild('MailingAddress');
-		$mailingAddress->setAttributeNs('', 'id', '_' . $this->_shipAddressRef);
+		$mailingAddress->setAttribute('id', $destinationId);
 		$mailingAddress->setIdAttribute("id", true);
 		$personName = $mailingAddress->createChild('PersonName');
 		$this->_buildPersonName($personName, $address);
@@ -565,12 +548,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _buildEmailNode(TrueAction_Dom_Element $parent, array $address)
 	{
-		$this->_emailAddressId = $address['email_address'];
+		$destinationId = $address['id'];
 		// do nothing if the email address doesn't meet size requirements.
-		$emailStr = $this->_checkLength($this->_emailAddressId, 1, self::EMAIL_MAX_LENGTH);
+		$emailStr = $this->_checkLength($address['email_address'], 1, self::EMAIL_MAX_LENGTH);
 		if ($emailStr) {
 			$email = $parent->createChild('Email')
-				->addAttribute('id', $this->_emailAddressId, true);
+				->addAttribute('id', $destinationId, true);
 			$this->_buildPersonName($email->createChild('Customer'), $address);
 			$email->createChild('EmailAddress', $emailStr);
 		}

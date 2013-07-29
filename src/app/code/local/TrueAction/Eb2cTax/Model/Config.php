@@ -1,0 +1,14 @@
+<?php
+
+/**
+ * Configuration model to be registered with the eb2c core config helper.
+ */
+class TrueAction_Eb2cTax_Model_Config
+	extends TrueAction_Eb2cCore_Model_Config_Abstract
+{
+	protected $_configPaths = array(
+		'api_namespace' => 'eb2ctax/api/namespace_uri',
+		'tax_apply_after_discount' => 'eb2ctax/calculation/apply_after_discount',
+		'tax_vat_inclusive_pricing' => 'eb2ctax/calculation/vat_inclusive_pricing',
+	);
+}

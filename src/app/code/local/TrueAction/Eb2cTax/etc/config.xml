@@ -31,80 +31,82 @@
 					<data>TrueAction_Eb2cTax_Overrides_Helper_Data</data>
 				</rewrite>
 			</tax>
+			<eb2ctax>
+				<class>TrueAction_Eb2cTax_Helper</class>
+			</eb2ctax>
 		</helpers>
 		<events>
-            <eb2ctax_subtotal_collect_before>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>taxEventSendRequest</method>
-                    </tax>
-                </observers>
-            </eb2ctax_subtotal_collect_before>
-            <sales_quote_add_item>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>salesEventItemAdded</method>
-                    </tax>
-                </observers>
-            </sales_quote_add_item>
-            <checkout_cart_product_update_after>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>cartEventProductUpdated</method>
-                    </tax>
-                </observers>
-            </checkout_cart_product_update_after>
-            <sales_quote_remove_item>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>salesEventItemRemoved</method>
-                    </tax>
-                </observers>
-            </sales_quote_remove_item>
-            <sales_quote_item_qty_set_after>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>salesEventItemQtyUpdated</method>
-                    </tax>
-                </observers>
-            </sales_quote_item_qty_set_after>
-            <salesrule_validator_process>
-                <observers>
-                    <tax>
-                        <class>tax/observer</class>
-                        <method>salesRuleEventItemProcessed</method>
-                    </tax>
-                </observers>
-            </salesrule_validator_process>
-        </events>
-        <sales>
-            <quote>
-                <totals>
-                    <tax_subtotal>
-                        <class>tax/sales_total_quote_subtotal</class>
-                        <after>freeshipping,discount</after>
-                        <before>tax</before>
-                    </tax_subtotal>
-                </totals>
-            </quote>
-        </sales>
+			<eb2ctax_subtotal_collect_before>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>taxEventSendRequest</method>
+					</tax>
+				</observers>
+			</eb2ctax_subtotal_collect_before>
+			<sales_quote_add_item>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>salesEventItemAdded</method>
+					</tax>
+				</observers>
+			</sales_quote_add_item>
+			<checkout_cart_product_update_after>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>cartEventProductUpdated</method>
+					</tax>
+				</observers>
+			</checkout_cart_product_update_after>
+			<sales_quote_remove_item>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>salesEventItemRemoved</method>
+					</tax>
+				</observers>
+			</sales_quote_remove_item>
+			<sales_quote_item_qty_set_after>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>salesEventItemQtyUpdated</method>
+					</tax>
+				</observers>
+			</sales_quote_item_qty_set_after>
+			<salesrule_validator_process>
+				<observers>
+					<tax>
+						<class>tax/observer</class>
+						<method>salesRuleEventItemProcessed</method>
+					</tax>
+				</observers>
+			</salesrule_validator_process>
+		</events>
+		<sales>
+			<quote>
+				<totals>
+					<tax_subtotal>
+						<class>tax/sales_total_quote_subtotal</class>
+						<after>freeshipping,discount</after>
+						<before>tax</before>
+					</tax_subtotal>
+				</totals>
+			</quote>
+		</sales>
 	</global>
 	<default>
 		<eb2ctax>
 			<api>
 				<namespace_uri><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></namespace_uri>
 			</api>
-		</eb2ctax>
-		<tax>
 			<calculation>
+				<apply_after_discount>1</apply_after_discount>
 				<vat_inclusive_pricing>0</vat_inclusive_pricing>
 			</calculation>
-		</tax>
+		</eb2ctax>
 	</default>
 	<phpunit>
 		<suite>

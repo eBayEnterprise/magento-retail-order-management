@@ -12,12 +12,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function setUp()
 	{
-        parent::setUp();
-        $_SESSION = array();
-        $_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-        $this->app()->getRequest()->setBaseUrl($_baseUrl);
-        $response = $this->getModelMock('eb2ctax/response');
-        $this->responseMock = $response;
+		parent::setUp();
+		$_SESSION = array();
+		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
+		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		$response = $this->getModelMock('eb2ctax/response');
+		$this->responseMock = $response;
 		$helper = $this->getHelperMock('tax/data', array('sendRequest'));
 		$this->replaceByMock('helper', 'tax', $helper);
 		$helper->expects($this->any())
