@@ -9,12 +9,15 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	protected $_responseFormat      = 'xml';
 
 	protected $_coreHelper          = null;
-	protected $_apiModel			= null;
+	protected $_apiModel            = null;
+	protected $_configRegistry      = null;
 
 	public function __construct()
 	{
 		parent::__construct();
 		$this->_coreHelper = Mage::helper('eb2ccore');
+		$this->_configRegistry = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ctax/config'));
 	}
 
 	/**
@@ -53,7 +56,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	 */
 	public function getNamespaceUri($store = null)
 	{
-		return Mage::getStoreConfig('eb2ctax/api/namespace_uri', $store);
+		return $this->_configRegistry->setStore($store)->apiNamespace;
 	}
 
 
@@ -63,7 +66,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	 */
 	public function getVatInclusivePricingFlag($store = null)
 	{
-		return Mage::getStoreConfigFlag('tax/calculation/vat_inclusive_pricing', $store);
+		return $this->_configRegistry->setStore($store)->taxVatInclusivePricing;
 	}
 
 	/**
@@ -76,4 +79,10 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		}
 		return $this->_apiModel;
 	}
+
+	public function getApplyTaxAfterDiscount($store = null)
+	{
+		return $this->_configRegistry->setStore($store)->taxApplyAfterDiscount;
+	}
+
 }

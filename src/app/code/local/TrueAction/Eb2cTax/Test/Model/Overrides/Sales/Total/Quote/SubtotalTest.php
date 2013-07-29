@@ -55,6 +55,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 	}
 
 	/**
+	 * @large
 	 * @test
 	 */
 	public function testCollectWithBundle()
