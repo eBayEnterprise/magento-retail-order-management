@@ -13,8 +13,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_namespaceUri       = '';
 	protected $_billingInfoRef     = '';
 	protected $_billingEmailRef    = '';
-	protected $_shipAddressRef     = '';
-	protected $_emailAddressId     = '';
 	protected $_hasChanges         = false;
 	protected $_store              = null;
 	protected $_emailAddresses     = array();
@@ -71,6 +69,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		if ($this->getIsMultiShipping() !== $quote->getIsMultiShipping()) {
 			$this->_hasChanges = true;
 		}
+
 		if (!$this->_hasChanges) {
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
@@ -92,7 +91,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$virtualDestination = isset($this->_destinations[$virtualId]) ?
 					$this->_destinations[$virtualId] : !($this->_hasChanges = true);
 				$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
-				$this->_hasChanges = serialize($virtualDestination) !== serialize($billAddressData);
+				$this->_hasChanges = !$this->_hasChanges &&
+					serialize($virtualDestination) !== serialize($billAddressData);
 			}
 			// if everything was good so far then check the shipping addresses for
 			// changes
@@ -103,7 +103,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$addressData = $this->_extractDestData($address);
 					$destination = isset($this->_destinations[$destinationId]) ?
 						$this->_destinations[$destinationId] : !($this->_hasChanges = true);
-					$this->_hasChanges = serialize($addressData) !== serialize($destination);
+					$this->_hasChanges = !$this->_hasChanges && 
+						serialize($addressData) !== serialize($destination);
 				}
 			}
 		}
