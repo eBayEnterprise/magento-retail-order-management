@@ -43,12 +43,24 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 * testing loadByCode method
 	 *
 	 * @test
+	 * @medium
 	 * @dataProvider providerLoadByCode
 	 * @loadFixture loadWebsiteConfig.yaml
 	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
 	 */
 	public function testLoadByCode($code)
 	{
+		// because we are setting the gift card class property in the setup as a reflection some of te code
+		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
+		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
+		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
+		$getStoredValueBalance = $giftCardAccountReflector->getMethod('_getStoredValueBalance');
+		$getStoredValueBalance->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Stored_Value_Balance',
+			$getStoredValueBalance->invoke($giftCardAccount)
+		);
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
@@ -67,6 +79,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 * testing loadByPanPin method - when there's no prior gift card account in the magento enterprrise database.
 	 *
 	 * @test
+	 * @medium
 	 * @dataProvider providerLoadByPanPin
 	 * @loadFixture loadWebsiteConfig.yaml
 	 * @loadFixture emptyEnterpriseGiftCardAccount.yaml
@@ -90,6 +103,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 * testing addToCart method
 	 *
 	 * @test
+	 * @medium
 	 * @dataProvider providerAddToCart
 	 * @loadFixture loadWebsiteConfig.yaml
 	 * @loadFixture loadEnterpriseGiftCardAccount.yaml

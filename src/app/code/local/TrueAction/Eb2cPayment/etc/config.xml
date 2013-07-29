@@ -91,6 +91,15 @@
 					</TrueAction_Eb2cPayment_observer>
 				</observers>
 			</eb2c_event_dispatch_after_inventory_allocation>
+			<eb2corder_order_creation_failure>
+				<observers>
+					<TrueAction_Eb2cPayment_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cPayment_Model_Observer</class>
+						<method>redeemVoidGiftCard</method>
+					</TrueAction_Eb2cPayment_observer>
+				</observers>
+			</eb2corder_order_creation_failure>
 		</events>
 	</frontend>
 	<default>
