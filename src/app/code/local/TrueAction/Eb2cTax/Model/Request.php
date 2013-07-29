@@ -159,28 +159,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get the item data for the sku.
-	 * return null if the sku does not exist.
-	 * @param string $sku
-	 * @return array
-	 */
-	public function getItemDataBySku($sku)
-	{
-		$sku = (string)$sku;
-		$item = isset($this->_orderItems[$sku]) ? $this->_orderItems[$sku] : null;
-		return $item;
-	}
-
-	/**
-	 * return the skus in the request.
-	 * @return array(string)
-	 */
-	public function getSkus()
-	{
-		return array_keys($this->_orderItems);
-	}
-
-	/**
 	 * Make this request invalid, which will force a new request to
 	 * be generated and sent.
 	 */

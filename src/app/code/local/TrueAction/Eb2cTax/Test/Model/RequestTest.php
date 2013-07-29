@@ -158,31 +158,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
-
-	public function testGetSkus()
-	{
-		// REMINDER: According to mphang this is useless now. Leaving for code review.
-		$quote   = $this->_mockSingleShipSameAsBill();
-		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$result  = $request->getSkus();
-		// the skus in the test are being converted
-		// to numbers
-		$this->assertEquals(array(1111, 1112, 1113), $result);
-	}
-
-	public function testGetItemDataBySku()
-	{
-		$this->_setupBaseUrl();
-		$quote    = $this->_mockVirtualQuote();
-		$request  = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$itemData = $request->getItemDataBySku('1111');
-		$this->assertNotNull($itemData);
-		$itemData = $request->getItemDataBySku(1111);
-		$this->assertNotNull($itemData);
-		$itemData = $request->getItemDataBySku('notfound');
-		$this->assertNull($itemData);
-	}
-
 	public function testCheckAddresses()
 	{
 		$this->_setupBaseUrl();
