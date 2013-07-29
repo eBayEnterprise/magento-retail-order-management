@@ -6,7 +6,7 @@
 class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_contextor;			// This has my mocks in it, so it will exercise some return values.
-	protected $_mockHttp;			// Mocked-up Http
+	protected $_mockHttpHelper;			// Mocked-up Http
 	protected $_mockSession;		// Mocked-up Mage Session
 	protected $_mageContextor;		// This is a not-mocked instance, but will return nothing useful. Used to complete code coverage.
 
@@ -25,43 +25,35 @@ class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_C
 
 
 	/**
-	 * Testing grabbing a session, we need a base url
-	 */
-	protected function _setupBaseUrl()
-	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
-	}
-
-	/**
 	 * We mock up a Mage_Core_Helper_Http so we can flex Context objects getters:
 	 */
 	public function setUp()
 	{
-		$this->_setupBaseUrl();
 		$this->_contextor = Mage::getModel('eb2cfraud/context');			// This will exercise with mocks, so we have values
 		$this->_mageContextor = Mage::getModel('eb2cfraud/context');		// This will exercise without mocks, so we have coverage
 
-		// Mock up a session:
-		$sessModel = Mage::getModel('customer/session');
-		$this->_mockSession = $this->getMock( get_class($sessModel),
-			array(
-				'getEncryptedSessionId',
-				'getJavascriptData',
-			)
-		);
+		$this->_mockSession = $this->getModelMockBuilder('customer/session')
+				->disableOriginalConstructor() // Removes session_start and other methods usage
+				->setMethods(
+					array(
+						'getEncryptedSessionId',
+						'getJavascriptData')
+				)
+				->getMock();
+
 		$this->_mockSession->expects($this->any())
-			->method('getEncryptedSessionId')
-			->will($this->returnValue(self::TEST_ENCRYPTED_SESSION_ID));
+				->method('getEncryptedSessionId')
+				->will($this->returnValue(self::TEST_ENCRYPTED_SESSION_ID));
 
 		$this->_mockSession->expects($this->any())
 			->method('getJavascriptData')
 			->will($this->returnValue(self::TEST_JAVASCRIPT_DATA));
 
+		$this->replaceByMock('singleton', 'customer/session', $this->_mockSession);
+
 		// Mock up a helper:
 		$httpHelper = Mage::helper('eb2cfraud/http');
-		$this->_mockHttp = $this->getMock( get_class($httpHelper),
+		$this->_mockHttpHelper = $this->getMock( get_class($httpHelper),
 			array(
 				'getHttpAcceptCharSet',
 				'getHttpAcceptLanguage',
@@ -74,47 +66,43 @@ class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_C
 			)
 		);
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpAcceptCharset')
 			->will($this->returnValue(self::TEST_HTTP_ACCEPT_CHAR_SET));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpAcceptLanguage')
 			->will($this->returnValue(self::TEST_HTTP_ACCEPT_LANGUAGE));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpAcceptEncoding')
 			->will($this->returnValue(self::TEST_HTTP_ACCEPT_ENCODING));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpAccept')
 			->will($this->returnValue(self::TEST_HTTP_ACCEPT));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpReferer')
 			->will($this->returnValue(self::TEST_HTTP_REFERER));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpUserAgent')
 			->will($this->returnValue(self::TEST_HTTP_USER_AGENT));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getRemoteAddr')
 			->will($this->returnValue(self::TEST_REMOTE_ADDR));
 
-		$this->_mockHttp->expects($this->any())
+		$this->_mockHttpHelper->expects($this->any())
 			->method('getHttpHost')
 			->will($this->returnValue(self::TEST_HTTP_HOST));
 
-		// Now install our mock helper and mock session:
+		// Install our mock helper:
         $contextorReflection = new ReflectionObject($this->_contextor);
         $mockMageHttpHelper = $contextorReflection->getProperty('_httpHelper');
 		$mockMageHttpHelper->setAccessible(true);
-        $mockMageHttpHelper->setValue($this->_contextor, $this->_mockHttp);
-
-		$mockMageSession = $contextorReflection->getProperty('_mageSession');
-		$mockMageSession->setAccessible(true);
-        $mockMageSession->setValue($this->_contextor, $this->_mockSession);
+        $mockMageHttpHelper->setValue($this->_contextor, $this->_mockHttpHelper);
 	}
 
 	/**
@@ -132,6 +120,7 @@ class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_C
 		 * out here because developers may find that interesting. (See also the Session-y stuff after these http bits...)
 		 */
 		$this->assertEmpty($this->_mageContextor->getCharSet());	// Just for code coverage, it can't return anything meaningful
+
 		$this->assertEmpty($this->_mageContextor->getContentTypes());	// Forces coverage of http helper; it can't return anything meaningful
 		$this->assertEmpty($this->_mageContextor->getEncoding());		// Forces coverage of http helper; it can't return anything meaningful
 
@@ -147,8 +136,7 @@ class TrueAction_Eb2cFraud_Test_Model_ContextTest extends EcomDev_PHPUnit_Test_C
 		/*
 		 * This section happens to be about some Sesssion-y Magento-y type stuff, but the caller of our Context object really doesn't care.
 		 */
-		$this->_mageContextor->getSessionId();	// Force coverage
-		$this->assertEquals(self::TEST_ENCRYPTED_SESSION_ID,	$this->_contextor->getSessionId());
 		$this->assertEquals(self::TEST_JAVASCRIPT_DATA,			$this->_contextor->getJavascriptData());
+		$this->assertEquals(self::TEST_ENCRYPTED_SESSION_ID,	$this->_contextor->getSessionId());
 	}
 }
