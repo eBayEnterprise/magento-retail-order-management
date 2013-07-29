@@ -835,10 +835,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 		}
-
-		if ($this->_hasChanges) {
-			$this->invalidate();
-		}
 	}
 
 	/**
@@ -860,10 +856,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$adminOrigin = $value['AdminOrigin'];
 				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
 			}
-		}
-
-		if ($this->_hasChanges) {
-			$this->invalidate();
 		}
 	}
 }
