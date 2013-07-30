@@ -21,6 +21,7 @@ $table = $installer->getConnection()
 	), 'Situs')
 	->addColumn('effective_rate', Varien_Db_Ddl_Table::TYPE_DECIMAL, array(20, 6), array(), 'Effective Rate')
 	->addColumn('taxable_amount', Varien_Db_Ddl_Table::TYPE_DECIMAL, array(20, 6), array(), 'Taxable Amount')
-	->addColumn('calculated_tax', Varien_Db_Ddl_Table::TYPE_DECIMAL, array(20, 6), array(), 'Calculated Tax');
+	->addColumn('calculated_tax', Varien_Db_Ddl_Table::TYPE_DECIMAL, array(20, 6), array(), 'Calculated Tax')
+	->addColumn('quote_address_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(), 'Quote Address Item Id');
 
 $installer->getConnection()->createTable($table);
