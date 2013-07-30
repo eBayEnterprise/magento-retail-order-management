@@ -1,2 +1,2 @@
 config:
-  default/tax/calculation/apply_after_discount: 0
+  default/eb2ctax/calculation/apply_after_discount: 0

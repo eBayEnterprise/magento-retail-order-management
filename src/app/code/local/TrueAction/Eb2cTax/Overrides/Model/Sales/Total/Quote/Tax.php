@@ -152,22 +152,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$hiddenTax      = null;
 		$baseHiddenTax  = null;
 
-		switch ($this->_helper->getCalculationSequence($this->_store)) {
-			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_BEFORE_DISCOUNT_ON_INCL:
-				// tax the full itemprice
-				$rowTax     = $this->_calculator->getTax($itemSelector);
-				$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
-				break;
-			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_EXCL:
-			case Mage_Tax_Model_Calculation::CALC_TAX_AFTER_DISCOUNT_ON_INCL:
+		if ($this->_helper->getApplyTaxAfterDiscount($this->_store)) {
 				// tax only what you pay
 				$rowTax             = $this->_calculator->getTax($itemSelector);
 				$discountAmount     = $item->getDiscountAmount();
 				$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
 
 				$baseRowTax         = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
-                $baseDiscountAmount = $item->getBaseDiscountAmount();
+				$baseDiscountAmount = $item->getBaseDiscountAmount();
 				$baseRowTaxDiscount = $this->_calculator->getDiscountTaxForAmount($baseDiscountAmount, $itemSelector);
 				$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
 
@@ -177,7 +169,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 				// adjust the tax amounts due to the discounts.
 				$rowTax       = $rowTax - $rowTaxDiscount;
 				$baseRowTax   = $baseRowTax - $baseRowTaxDiscount;
-				break;
+		} else {
+				// tax the full itemprice
+				$rowTax     = $this->_calculator->getTax($itemSelector);
+				$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
 		}
 
 		$item->setTaxAmount(max(0, $rowTax));
