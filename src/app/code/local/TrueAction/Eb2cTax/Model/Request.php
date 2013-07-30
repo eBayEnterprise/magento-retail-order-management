@@ -331,7 +331,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		}
 		$middleName = $address->getMiddlename();
 		if ($middleName) {
-			$parent->createChild('middle_name', $middleName);
+			$data['middle_name'] = $middleName;
 		}
 		// if this is a virtual destination, then only extract the
 		// email address
