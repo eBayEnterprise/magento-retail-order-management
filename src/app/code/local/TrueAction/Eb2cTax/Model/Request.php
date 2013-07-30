@@ -61,16 +61,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	public function checkAddresses(Mage_Sales_Model_Quote $quote = null)
 	{
-		if (!($this->isValid() && $this->_isQuoteUsable($quote))) {
-			// skip it if the request is bad in the first place or if the quote
-			// passed in is unusable.
-			return;
-		}
-		if ($this->getIsMultiShipping() !== $quote->getIsMultiShipping()) {
-			$this->_hasChanges = true;
-		}
-
+		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
 		if (!$this->_hasChanges) {
+			$this->_hasChanges = $this->_hasChanges || $this->getIsMultiShipping() !== $quote->getIsMultiShipping();
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
 			// check if the billing address has been switched to another address instance
