@@ -108,17 +108,34 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 * is a change.
 	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
 	 */
-	public function checkDiscounts($item)
+	public function checkDiscounts($quote)
 	{
-		if ($item) {
-			if (!$this->_hasChanges && isset($this->_appliedRuleIds[$item->getId()])) {
-				$oldRuleIds = $this->_appliedRuleIds[$item->getId()];
-				$newRuleIds = $item->getAppliedRuleIds();
-				$this->_hasChanges = (bool)array_diff_assoc($oldRuleIds, $newRuleIds);
+		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
+		if (!$this->_hasChanges) {
+			$currentCouponCode = (string)$quote->getCouponCode(); 
+			foreach ($quote->getAllAddresses() as $address) {
+				foreach ($this->_getItemsForAddress($address) as $item) {
+					if ($this->_hasChanges) {
+						// stop as soon as something is found to be different.
+						break;
+					}
+					$orderItemId = $item->getSku();
+					$destinationId = $this->_getDestinationId($address, $item->getProduct()->isVirtual());
+					$orderItemId = $item->getSku();
+					$orderItem = isset($this->_orderItems[$orderItemId]) ?
+						$this->_orderItems[$orderItemId] : !($this->_hasChanges = true);
+					$this->_hasChanges = $this->_hasChanges ||
+						(isset($orderItem['merchandise_discount_amount'])? $orderItem['merchandise_discount_amount']: null) !== $item->getDiscountAmount();
+					$this->_hasChanges = $this->_hasChanges ||
+						(isset($orderItem['merchandise_coupon_code'])? $orderItem['merchandise_coupon_code']: null) !== $item->getDiscountAmount();
+					$this->_hasChanges = $this->_hasChanges ||
+						(isset($orderItem['shipping_discount_amount'])? $orderItem['shipping_discount_amount']: null) !== $item->getDiscountAmount();
+					$this->_hasChanges = $this->_hasChanges ||
+						(isset($orderItem['shipping_coupon_code'])? $orderItem['shipping_coupon_code']: null) !== $item->getDiscountAmount();
+				}
 			}
-			if ($this->_hasChanges) {
-				$this->invalidate();
-			}
+			// TODO: REMOVE ME
+			if ($this->_hasChanges) Mage::log('The discounts have changed');
 		}
 	}
 
@@ -633,7 +650,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		Mage_Sales_Model_Quote_Address $address,
 		array $outData
 	) {
-		$this->_appliedDiscountIds[$address->getId() . '_' . $item->getSku()] = $item->getAppliedRuledIds();
 		$discountCode = $this->_getDiscountCode($address);
 		$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
 		if ($item->getDiscountAmount()) {
