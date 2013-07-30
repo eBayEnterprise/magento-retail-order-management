@@ -71,35 +71,37 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			// first check the billing address
 			$billingDestination = isset($this->_destinations[$quoteBillingDestId]) ?
 				$this->_destinations[$quoteBillingDestId] : !($this->_hasChanges = true);
-		}
-		if (!$this->_hasChanges) {
-			// only bother checking the address contents if all matches up to this point
-			$billAddressData = $this->_extractDestData($quoteBillingAddress);
-			$this->_hasChanges = (serialize($billingDestination) !== serialize($billAddressData));
-			if (!$this->_hasChanges && $quote->isVirtual()) {
-				// in the case where the quote is virtual, all items are automatically associated
-				// with the billing address. the items will be associated with a virtual destination
-				// for the billing address.
-				$virtualId = $this->_getDestinationId($quoteBillingAddress, true);
-				$virtualDestination = isset($this->_destinations[$virtualId]) ?
-					$this->_destinations[$virtualId] : !($this->_hasChanges = true);
-				$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
-				$this->_hasChanges = !$this->_hasChanges &&
-					serialize($virtualDestination) !== serialize($billAddressData);
-			}
-			// if everything was good so far then check the shipping addresses for
-			// changes
 			if (!$this->_hasChanges) {
-				// check shipping addresses
-				foreach ($quote->getAllShippingAddresses() as $address) {
-					$destinationId = $this->_getDestinationId($address);
-					$addressData = $this->_extractDestData($address);
-					$destination = isset($this->_destinations[$destinationId]) ?
-						$this->_destinations[$destinationId] : !($this->_hasChanges = true);
-					$this->_hasChanges = !$this->_hasChanges && 
-						serialize($addressData) !== serialize($destination);
+				// only bother checking the address contents if all matches up to this point
+				$billAddressData = $this->_extractDestData($quoteBillingAddress);
+				$this->_hasChanges = (serialize($billingDestination) !== serialize($billAddressData));
+				if (!$this->_hasChanges && $quote->isVirtual()) {
+					// in the case where the quote is virtual, all items are automatically associated
+					// with the billing address. the items will be associated with a virtual destination
+					// for the billing address.
+					$virtualId = $this->_getDestinationId($quoteBillingAddress, true);
+					$virtualDestination = isset($this->_destinations[$virtualId]) ?
+						$this->_destinations[$virtualId] : !($this->_hasChanges = true);
+					$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
+					$this->_hasChanges = !$this->_hasChanges &&
+						serialize($virtualDestination) !== serialize($billAddressData);
+				}
+				// if everything was good so far then check the shipping addresses for
+				// changes
+				if (!$this->_hasChanges) {
+					// check shipping addresses
+					foreach ($quote->getAllShippingAddresses() as $address) {
+						$destinationId = $this->_getDestinationId($address);
+						$addressData = $this->_extractDestData($address);
+						$destination = isset($this->_destinations[$destinationId]) ?
+							$this->_destinations[$destinationId] : !($this->_hasChanges = true);
+						$this->_hasChanges = !$this->_hasChanges && 
+							serialize($addressData) !== serialize($destination);
+					}
 				}
 			}
+			// TODO: REMOVE ME
+			if ($this->_hasChanges) Mage::log('The address has changed');
 		}
 	}
 
