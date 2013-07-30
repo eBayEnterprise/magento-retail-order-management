@@ -73,7 +73,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 		$storeValueBalanceRequest->createChild(
 			'PaymentAccountUniqueId',
 			$pan,
-			array('isToken' => "false")
+			array('isToken' => 'false')
 		);
 
 		// add Pin

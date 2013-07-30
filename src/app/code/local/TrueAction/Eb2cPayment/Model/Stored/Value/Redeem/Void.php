@@ -90,7 +90,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 		$paymentContext->createChild(
 			'PaymentAccountUniqueId',
 			$pan,
-			array('isToken' => "false")
+			array('isToken' => 'false')
 		);
 
 		// add Pin
@@ -103,7 +103,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 		$storeValueRedeemVoidRequest->createChild(
 			'Amount',
 			$amount,
-			array('currencyCode' => "USD")
+			array('currencyCode' => 'USD')
 		);
 
 		return $domDocument;

@@ -96,7 +96,6 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 	 */
 	public function quickCheckAction()
 	{
-		/* @var $card Enterprise_GiftCardAccount_Model_Giftcardaccount */
 		$card = $this->_getGiftCardAccount()->loadByPanPin(
 			$this->getRequest()->getParam('giftcard_code', ''),
 			$this->getRequest()->getParam('giftcard_pin', '')

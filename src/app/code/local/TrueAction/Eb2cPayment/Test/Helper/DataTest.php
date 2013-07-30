@@ -49,7 +49,6 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		);
 	}
 
-
 	/**
 	 * testing getApiModel method
 	 *

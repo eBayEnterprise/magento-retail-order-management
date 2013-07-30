@@ -48,8 +48,7 @@ class TrueAction_Eb2cPayment_Test_controllers_Overrides_GiftCardAccount_CartCont
 			->will($this->returnValue(array('giftcard_code' => '4111111ak4idq1111', 'giftcard_pin' => '5344')));
 		$requestedRouteMock->expects($this->any())
 			->method('getParam')
-			->will($this->returnCallback(array($this, 'getCallback'))
-		);
+			->will($this->returnCallback(array($this, 'getCallback')));
 
 		return $requestedRouteMock;
 	}

@@ -210,7 +210,6 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 		$storedValueRedeemVoid->setAccessible(true);
 		$storedValueRedeemVoid->setValue($this->_observer, $redeemVoidMock);
 
-
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
 		$giftCardAccountMock = $this->getMock(
 			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
@@ -271,7 +270,6 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 		$storedValueRedeemVoid = $observerReflector->getProperty('_storedValueRedeemVoid');
 		$storedValueRedeemVoid->setAccessible(true);
 		$storedValueRedeemVoid->setValue($this->_observer, $redeemVoidMock);
-
 
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
 		$giftCardAccountMock = $this->getMock(

@@ -46,7 +46,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	protected function _getHelper()
 	{
 		if (!$this->_helper) {
-	 		$this->_helper = Mage::helper('enterprise_giftcardaccount');
+			$this->_helper = Mage::helper('enterprise_giftcardaccount');
 		}
 
 		return $this->_helper;
@@ -171,7 +171,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 */
 	protected function _addGiftCardWithEb2cData(array $balanceData)
 	{
-		$giftCard = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->load(null);;
+		$giftCard = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->load(null);
 		$giftCard->setGiftcardaccountId(null)
 			->setCode($balanceData['paymentAccountUniqueId'])
 			->setEb2cPan($balanceData['paymentAccountUniqueId'])
@@ -193,7 +193,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 * @param bool $saveQuote
 	 * @return Enterprise_GiftCardAccount_Model_Giftcardaccount
 	 */
-	public function addToCart($saveQuote = true, $quote = null)
+	public function addToCart($saveQuote=true, $quote=null)
 	{
 		if (is_null($quote)) {
 			$quote = $this->_getCheckoutSession()->getQuote();
