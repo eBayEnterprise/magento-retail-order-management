@@ -15,6 +15,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_billingEmailRef    = '';
 	protected $_hasChanges         = false;
 	protected $_store              = null;
+	protected $_isMultiShipping    = false;
 	protected $_emailAddresses     = array();
 	protected $_destinations       = array();
 	protected $_orderItems         = array();
@@ -63,7 +64,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
 		if (!$this->_hasChanges) {
-			$this->_hasChanges = $this->_hasChanges || $this->getIsMultiShipping() !== $quote->getIsMultiShipping();
+			$this->_hasChanges = $this->_hasChanges || $this->_isMultiShipping !== (bool)$quote->getIsMultiShipping();
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
 			// check if the billing address has been switched to another address instance
@@ -195,7 +196,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$quote = $this->getQuote();
 		// track if this is a multishipping quote or not.
-		$this->setIsMultiShipping($quote->getIsMultiShipping());
+		$this->_isMultiShipping = (bool)$quote->getIsMultiShipping();
 		// create the billing address destination node(s)
 		$billAddress = $quote->getBillingAddress();
 		$this->_billingInfoRef = $this->_getDestinationId($billAddress);
@@ -315,7 +316,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _extractDestData($address, $isVirtual = false)
 	{
 		$id = $this->_getDestinationId($address, $isVirtual);
-		if ($address->getSameAsBilling() && !$this->getIsMultiShipping()) {
+		if ($address->getSameAsBilling() && !$this->_isMultiShipping) {
 			$address = $this->getBillingAddress();
 		}
 		$data = array(
