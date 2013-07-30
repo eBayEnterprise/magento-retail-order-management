@@ -9,7 +9,16 @@
 		<models>
 			<eb2ctax>
 				<class>TrueAction_Eb2cTax_Model</class>
+				<resourceModel>eb2ctax_resource</resourceModel>
 			</eb2ctax>
+			<eb2ctax_resource>
+				<class>TrueAction_Eb2cTax_Model_Resource</class>
+				<entities>
+					<response_quote>
+						<table>eb2ctax_response_quote</table>
+					</response_quote>
+				</entities>
+			</eb2ctax_resource>
 			<tax>
 				<rewrite>
 					<calculation>TrueAction_Eb2cTax_Overrides_Model_Calculation</calculation>
@@ -35,6 +44,13 @@
 				<class>TrueAction_Eb2cTax_Helper</class>
 			</eb2ctax>
 		</helpers>
+		<resources>
+			<eb2ctax_setup>
+				<setup>
+					<module>TrueAction_Eb2cTax</module>
+				</setup>
+			</eb2ctax_setup>
+		</resources>
 		<events>
 			<eb2ctax_subtotal_collect_before>
 				<observers>
