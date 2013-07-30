@@ -476,4 +476,64 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 			$this->observer->salesRuleEventItemProcessed($observer)
 		);
 	}
+
+	/**
+	 * Test adding of address tax data to the order.
+	 * @dataProvider dataProvider
+	 * @test
+	 */
+	public function testAddAddressTaxToOrder($addressTaxes, $orderTaxes)
+	{
+		$address = $this->getModelMock('customer/address', array('getAppliedTaxes'));
+		$addressAppliedTax = !is_null($addressTaxes) ? explode(',', $addressTaxes) : $addressTaxes;
+
+		$address->expects($this->once())
+			->method('getAppliedTaxes')
+			->will($this->returnValue($addressAppliedTax));
+
+		$order = $this->getModelMock('sales/order', array(
+			'getAppliedTaxes', 'setAppliedTaxes', 'setConvertingFromQuote'
+		));
+		$orderAppliedTax = !is_null($orderTaxes) ? explode(',', $orderTaxes) : $orderTaxes;
+
+		$times = is_null($addressAppliedTax) ? $this->never() : (is_null($orderAppliedTax) ? $this->once() : $this->exactly(2));
+
+		$order->expects($times)
+			->method('getAppliedTaxes')
+			->will($this->returnValue($orderAppliedTax));
+
+		$expectedTax = $this->expected('set-%s-%s', $addressTaxes, $orderTaxes)->getTaxes();
+		$tax = is_null($expectedTax) ? $expectedTax : explode(',', $expectedTax);
+
+		if (!is_null($addressTaxes)) {
+			$order->expects($this->once())
+				->method('setAppliedTaxes')
+				->with($this->equalTo($tax))
+				->will($this->returnSelf());
+			$order->expects($this->once())
+				->method('setConvertingFromQuote')
+				->with($this->equalTo(true))
+				->will($this->returnSelf());
+		} else {
+			$order->expects($this->never())
+				->method('setAppliedTaxes');
+			$order->expects($this->never())
+				->method('setConvertingFromQuote');
+		}
+
+		// mock out the observer
+		$event = $this->getMock('Varien_Event', array('getAddress', 'getOrder'));
+		$event->expects($this->any())
+			->method('getAddress')
+			->will($this->returnValue($address));
+		$event->expects($this->any())
+			->method('getOrder')
+			->will($this->returnValue($order));
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->any())
+			->method('getEvent')
+			->will($this->returnValue($event));
+
+		Mage::getSingleton('tax/observer')->salesEventConvertQuoteAddressToOrder($observer);
+	}
 }
