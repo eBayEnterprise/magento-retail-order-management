@@ -58,6 +58,11 @@
 				<class>TrueAction_Eb2cFraud_Helper</class>
 			</eb2cfraud>
 		</helpers>
+		<blocks>
+			<eb2cfraud>
+				<class>TrueAction_Eb2cFraud_Block</class>
+			</eb2cfraud>
+		</blocks>
 	</global>
 	<default>
 		<eb2cfraud>
