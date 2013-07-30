@@ -68,7 +68,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
 			// check if the billing address has been switched to another address instance
-			$this->_hasChanges = $this->_billingInfoRef !== $quoteBillingDestId;
+			$this->_hasChanges = $this->_hasChanges || $this->_billingInfoRef !== $quoteBillingDestId;
 			// first check the billing address
 			$billingDestination = isset($this->_destinations[$quoteBillingDestId]) ?
 				$this->_destinations[$quoteBillingDestId] : !($this->_hasChanges = true);
