@@ -44,11 +44,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 	 */
 	public function testRewrite()
 	{
-		$hlpr = Mage::helper('tax');
-		$this->assertSame(
-			'TrueAction_Eb2cTax_Overrides_Helper_Data',
-			get_class($hlpr)
-		);
+		$this->assertInstanceOf('TrueAction_Eb2cTax_Overrides_Helper_Data', Mage::helper('tax'));
 	}
 
 	/**
