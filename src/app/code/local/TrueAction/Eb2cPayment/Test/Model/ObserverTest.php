@@ -37,16 +37,21 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 				)))
 			));
 
-		$observerMock = $this->getMock(
+		$eventMock = $this->getMock(
 			'Varien_Event',
-			array('getEvent', 'getQuote')
+			array('getQuote')
+		);
+		$eventMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quoteMock));
+
+		$observerMock = $this->getMock(
+			'Varien_Event_Observer',
+			array('getEvent')
 		);
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnSelf());
-		$observerMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 
 		return array(
 			array($observerMock)
@@ -145,16 +150,21 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 				)))
 			));
 
-		$observerMock = $this->getMock(
+		$eventMock = $this->getMock(
 			'Varien_Event',
-			array('getEvent', 'getQuote')
+			array('getQuote')
+		);
+		$eventMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quoteMock));
+
+		$observerMock = $this->getMock(
+			'Varien_Event_Observer',
+			array('getEvent')
 		);
 		$observerMock->expects($this->any())
 			->method('getEvent')
-			->will($this->returnSelf());
-		$observerMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnValue($eventMock));
 
 		return array(
 			array($observerMock)

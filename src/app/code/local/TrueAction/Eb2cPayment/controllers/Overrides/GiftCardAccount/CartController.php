@@ -29,6 +29,26 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 	}
 
 	/**
+	 * hold enterprise layout instantiated object
+	 *
+	 * @var Mage_Core_Model_Layout
+	 */
+	protected $_layout;
+
+	/**
+	 * @see $_layout
+	 * @return Mage_Core_Model_Layout
+	 */
+	public function getLayout()
+	{
+		if (!$this->_layout) {
+			$this->_layout = Mage::getSingleton('core/layout');
+		}
+
+		return $this->_layout;
+	}
+
+	/**
 	 * Overriding Enterprise add gift card to cart controller
 	 * Add Gift Card to current quote
 	 *
@@ -42,13 +62,17 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 			try {
 				if (strlen($code) > TrueAction_Eb2cPayment_Overrides_Helper_Data::GIFT_CARD_PAN_MAX_LENGTH) {
 					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__('Invalid gift card payment account numbers.'));
+					// @codeCoverageIgnoreStart
 				}
+				// @codeCoverageIgnoreEnd
 
 				if (strlen($pin) > TrueAction_Eb2cPayment_Overrides_Helper_Data::GIFT_CARD_PIN_MAX_LENGTH) {
 					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__('Invalid gift card personal identification numbers.'));
+					// @codeCoverageIgnoreStart
 				}
+				// @codeCoverageIgnoreEnd
 
-				$this->_getGiftCardAccount()->loadByPanPin($code, $pin)  // overrde this method to make eb2c stored value balance check request for actual valid gift card
+				$this->_getGiftCardAccount()->loadByPanPin($code, $pin)  // override this method to make eb2c stored value balance check request for actual valid gift card
 					->addToCart();
 				Mage::getSingleton('checkout/session')->addSuccess(
 					$this->__('Gift Card "%s" was added.', Mage::helper('core')->escapeHtml($code))
@@ -80,8 +104,7 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 		Mage::register('current_giftcardaccount', $card);
 		try {
 			$card->isValid(true, true, true, false);
-		}
-		catch (Mage_Core_Exception $e) {
+		} catch (Mage_Core_Exception $e) {
 			$card->unsetData();
 		}
 
