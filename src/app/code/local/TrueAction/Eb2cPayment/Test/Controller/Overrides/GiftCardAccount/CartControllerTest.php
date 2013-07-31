@@ -5,7 +5,7 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 include(Mage::getBaseDir('app') . DS . 'code/local/TrueAction/Eb2cPayment/controllers/Overrides/GiftCardAccount/CartController.php');
-class TrueAction_Eb2cPayment_Test_controllers_Overrides_GiftCardAccount_CartControllerTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cPayment_Test_Controller_Overrides_GiftCardAccount_CartControllerTest extends EcomDev_PHPUnit_Test_Case_Controller
 {
 	protected $_cartController;
 
