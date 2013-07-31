@@ -44,10 +44,26 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$this->item = $item;
 	}
 
+
 	/**
-	 * @test
+	 * an invalid response should return null
 	 */
-	public function testGetTaxForItem()
+	public function testGetItemResponseInvalidResponse()
+	{
+		$response = $this->_buildModelMock('eb2ctax/response', array(
+			'isValid'            => $this->returnValue(false),
+			'getResponseForItem' => $this->returnValue(new Varien_Object())
+		));
+
+		$calc    = Mage::getModel('tax/calculation');
+		$calc->setTaxResponse($response);
+		$item    = $this->getModelMock('sales/quote_item');
+		$address = $this->getModelMock('sales/quote_address');
+		$fn      = $this->_reflectMethod($calc, '_getItemResponse');
+		$val     = $fn->invoke($calc, $item, $address);
+		$this->assertNull($val);
+	}
+
 	{
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->response);

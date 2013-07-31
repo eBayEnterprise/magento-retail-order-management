@@ -145,7 +145,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		Mage_Sales_Model_Quote_Address $address = null
 	) {
 		$response = $this->getTaxResponse();
-		$itemResponse = $response ?
+		$itemResponse = $response && $response->isValid() ?
 			$response->getResponseForItem($item, $address) :
 			null;
 		return $itemResponse;
