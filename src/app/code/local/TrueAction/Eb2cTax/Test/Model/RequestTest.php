@@ -145,7 +145,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 		$doc = $request->getDocument();
-		$doc->formatOutput = true;
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
