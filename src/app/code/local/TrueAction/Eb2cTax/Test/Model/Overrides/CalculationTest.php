@@ -146,6 +146,64 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$this->assertSame($value1, $value2);
 	}
 
+	public function testGetDiscountTax()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTax($slug);
+		$this->assertSame(0.77, $value);
+	}
+
+	public function testGetDiscountTaxShipping()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTax($slug, 'shipping');
+		$this->assertSame(0.07, $value);
+	}
+
+	public function testGetDiscountTaxForAmount()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', true);
+		$this->assertSame(0.06, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', true);
+		$this->assertSame(0.07, $value);
+		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', false);
+		$this->assertSame(0.0625, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', false);
+		$this->assertSame(0.06875, $value);
+	}
+
+	public function testGetDiscountTaxForAmountShipping()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', true);
+		$this->assertSame(0.01, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', true);
+		$this->assertSame(0.01, $value);
+		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', false);
+		$this->assertSame(0.0133, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', false);
+		$this->assertSame(0.01463, $value);
+	}
+
+	public function testGetDiscountTaxGetDiscountTaxForAmount()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value1 = $calc->getDiscountTax($slug);
+		$value2 = $calc->getDiscountTaxForAmount(12.24, $slug);
+		$this->assertSame($value1, $value2);
+	}
+
 	/**
 	 * @test
 	 */
