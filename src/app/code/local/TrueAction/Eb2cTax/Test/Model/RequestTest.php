@@ -159,6 +159,16 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	public function testValidateWithXsdMultiShip()
+	{
+		$this->_setupBaseUrl();
+		$quote = $this->_mockMultiShipNotSameAsBill();
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid());
+		$doc = $request->getDocument();
+		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
+	}
+
 	public function testCheckAddresses()
 	{
 		$this->_setupBaseUrl();
