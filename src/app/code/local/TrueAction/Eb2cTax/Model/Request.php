@@ -83,9 +83,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	/**
 	 * check the discounts for the item and invalidate the quote if there
 	 * is a change.
-	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @param Mage_Sales_Model_Quote $quote
 	 */
-	public function checkDiscounts($quote)
+	public function checkDiscounts(Mage_Sales_Model_Quote $quote = null)
 	{
 		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
 		if (!$this->_hasChanges) {
