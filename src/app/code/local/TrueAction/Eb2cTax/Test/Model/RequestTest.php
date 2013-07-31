@@ -170,6 +170,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testValidateWithXsdMultiShip()
 	{
 		$this->_setupBaseUrl();
@@ -575,6 +579,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscountShippingAmount()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
