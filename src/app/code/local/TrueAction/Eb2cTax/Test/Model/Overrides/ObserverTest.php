@@ -385,6 +385,48 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		);
 	}
 
+	/**
+	 * Testing _fetchTaxDutyInfo observer method - make sure the case where
+	 * a valid response yeilds an invalid result gets hit.
+	 *
+	 * @test
+	 */
+	public function testFetchTaxDutyInfoInvalidResponse()
+	{
+		$this->_setupBaseUrl();
+		$responseMock = $this->getModelMock('eb2ctax/response', array());
+		$requestMock = $this->getModelMock('eb2ctax/request', array('isValid', 'getQuoteCurrencyCode'));
+		$requestMock->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue(false));
+		$requestMock->expects($this->any())
+			->method('getQuoteCurrencyCode')
+			->will($this->returnValue('USD'));
+
+		$calculatorMock = $this->getModelMock('tax/calculation', array('getTaxRequest', 'setTaxResponse'));
+		$calculatorMock->expects($this->any())
+			->method('getTaxRequest')
+			->will($this->returnValue($requestMock));
+		$calculatorMock->expects($this->any())
+			->method('setTaxResponse')
+			->will($this->returnValue(true));
+
+		$taxMock = $this->getMock('TrueAction_Eb2cTax_Overrides_Helper_Data', array('getCalculator', 'sendRequest'));
+		$taxMock->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculatorMock));
+		$taxMock->expects($this->any())
+			->method('sendRequest')
+			->will($this->returnValue($responseMock));
+
+		$taxProperty = $this->_reflectProperty($this->observer, '_tax');
+		$taxProperty->setValue($this->observer, $taxMock);
+
+		$fetchTaxDutyInfoMethod = $this->_reflectMethod($this->observer, '_fetchTaxDutyInfo');
+		$fetchTaxDutyInfoMethod->invoke($this->observer, Mage::getModel('sales/quote'));
+		// TODO: find a way to actually assert the exception got raised.
+	}
+
 	public function providerFetchTaxDutyInfoEmptyQuote()
 	{
 		$quotMock = $this->getModelMock('sales/quote', array('getId'));
