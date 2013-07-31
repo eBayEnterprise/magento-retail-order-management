@@ -65,16 +65,14 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 		$this->setLineNumber($xpath->evaluate('string(./@lineNumber)', $itemNode));
 		$this->setItemDesc($xpath->evaluate('string(./a:ItemDesc)', $itemNode));
 		$this->setHtsCode($xpath->evaluate('string(./a:HTSCode)', $itemNode));
-		$this->setMerchandiseAmount(
-			$xpath->evaluate('number(a:Pricing/a:Merchandise/a:Amount)', $itemNode)
-		);
-		$this->setUnitPrice(
-			$xpath->evaluate('number(a:Pricing/a:Merchandise/a:UnitPrice)', $itemNode)
-		);
-		$this->setShippingAmount(
-			$xpath->evaluate('number(a:Pricing/a:Shipping/a:Amount)', $itemNode)
-		);
-		$this->setDutyAmount($xpath->evaluate('number(a:Pricing/a:Duty/a:Amount)', $itemNode));
+		$val = $xpath->evaluate('number(a:Pricing/a:Merchandise/a:Amount)', $itemNode);
+		$this->setMerchandiseAmount($val === NAN ? null : $val);
+		$val = $xpath->evaluate('number(a:Pricing/a:Merchandise/a:UnitPrice)', $itemNode);
+		$this->setUnitPrice($val === NAN ? null : $val);
+		$val = $xpath->evaluate('number(a:Pricing/a:Shipping/a:Amount)', $itemNode);
+		$this->setShippingAmount($val === NAN ? null : $val);
+		$val = $xpath->evaluate('number(a:Pricing/a:Duty/a:Amount)', $itemNode);
+		$this->setDutyAmount($val === NAN ? null : $val);
 		$this->_validate();
 		// don't bother reading the tax data since the item is invalid
 		if ($this->_isValid) {
