@@ -170,6 +170,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testValidateWithXsdMultiShip()
 	{
 		$this->_setupBaseUrl();
@@ -432,6 +436,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckSkuWithLongSku()
 	{
 		$quote   = $this->_mockQuoteWithSku("123456789012345678901");
@@ -450,6 +458,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertSame(1, $ls->length);
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscounts()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
@@ -567,6 +579,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscountShippingAmount()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
