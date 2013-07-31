@@ -32,7 +32,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
+			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
 		);
 		$addressMock->expects($this->any())
 			->method('getShippingMethod')
@@ -63,6 +63,12 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			'Mage_Sales_Model_Quote_Item',
 			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save')
 		);
+
+		$addressMock->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array($itemMock))
+			);
+
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)
@@ -112,7 +118,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($addressMock))
 			);
 
 		return $quoteMock;
@@ -219,7 +225,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
+			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
 		);
 		$addressMock->expects($this->any())
 			->method('getShippingMethod')
@@ -250,6 +256,12 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			'Mage_Sales_Model_Quote_Item',
 			array('getQty', 'getId', 'getSku', 'getItemId')
 		);
+
+		$addressMock->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array($itemMock))
+			);
+
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)
@@ -288,7 +300,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($addressMock))
 			);
 
 		return array(
