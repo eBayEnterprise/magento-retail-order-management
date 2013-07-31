@@ -184,11 +184,15 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 					Zend_Log::DEBUG
 				);
 				$response = $helper->sendRequest($request);
+				if (!$response->isValid())
+				{
+					Mage::throwException('valid request recieved an invalid response');
+				}
 				$calc->setTaxResponse($response);
 			}
 		} catch (Exception $e) {
 			Mage::log(
-				'Unable to send TaxDutyQuote request: ' . $e->getMessage(),
+				'Unsuccessful TaxDutyQuote request: ' . $e->getMessage(),
 				Zend_Log::WARN
 			);
 		}
