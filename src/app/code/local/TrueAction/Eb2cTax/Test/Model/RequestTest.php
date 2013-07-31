@@ -1287,9 +1287,11 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	protected function _mockMultiShipNotSameAsBill()
 	{
 		$store = Mage::app()->getStore();
-		$product = $this->getModelMock('catalog/product', array('isVirtual'));
-		$product->expects($this->any())->method('isVirtual')
-			->will($this->returnValue(false));
+		$product = $this->_buildModelMock('catalog/product', array(
+			'isVirtual' => $this->returnValue(false), 
+			'hasTaxCode' => $this->returnValue(true),
+			'getTaxCode' => $this->returnValue('12345'),
+		));
 
 		// mock the items
 		$item = $this->_buildModelMock('sales/quote_item', array(
@@ -1298,7 +1300,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item->setData(array('item_id' => 4, 'quote_id' => 2, 'created_at' => "2013-06-27 17:41:05", 'updated_at' => "2013-06-27 17:41:37", 'product_id' => 16, 'store_id' => 2, 'is_virtual' => 0, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 3.2000, 'qty' => 2.0000, 'price' => 149.9900, 'base_price' => 149.9900, 'discount_percent' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'tax_percent' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_total' => 299.9800, 'base_row_total' => 299.9800, 'row_total_with_discount' => 0.0000, 'row_weight' => 6.4000, 'product_type' => "simple", 'weee_tax_applied' => "a:0:{}", 'weee_tax_applied_amount' => 0.0000, 'weee_tax_applied_row_amount' => 0.0000, 'base_weee_tax_applied_amount' => 0.0000, 'weee_tax_disposition' => 0.0000, 'weee_tax_row_disposition' => 0.0000, 'base_weee_tax_disposition' => 0.0000, 'base_weee_tax_row_disposition' => 0.0000, 'base_cost' => 20.0000, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 299.9800, 'base_row_total_incl_tax' => 299.9800, ));
+		$item->setData(array('item_id' => 4, 'quote_id' => 2, 'created_at' => "2013-06-27 17:41:05", 'updated_at' => "2013-06-27 17:41:37", 'product_id' => 16, 'store_id' => 2, 'is_virtual' => 0, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 3.2000, 'qty' => 3.0000, 'price' => 149.9900, 'base_price' => 149.9900, 'discount_percent' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'tax_percent' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_total' => 299.9800, 'base_row_total' => 299.9800, 'row_total_with_discount' => 0.0000, 'row_weight' => 6.4000, 'product_type' => "simple", 'weee_tax_applied' => "a:0:{}", 'weee_tax_applied_amount' => 0.0000, 'weee_tax_applied_row_amount' => 0.0000, 'base_weee_tax_applied_amount' => 0.0000, 'weee_tax_disposition' => 0.0000, 'weee_tax_row_disposition' => 0.0000, 'base_weee_tax_disposition' => 0.0000, 'base_weee_tax_row_disposition' => 0.0000, 'base_cost' => 20.0000, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 299.9800, 'base_row_total_incl_tax' => 299.9800, ));
 		$items = array($item);
 
 		// mock the address items
@@ -1308,7 +1310,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$addressItem1->setData(array('address_item_id' => 5, 'quote_address_id' => 9, 'quote_item_id' => 4, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'weight' => 3.2000, 'qty' => 1.0000, 'discount_amount' => 0.0000, 'tax_amount' => 0.0000, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 0.0000, 'base_price' => 149.9900, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 149.9900, 'base_row_total_incl_tax' => 149.9900,));
+		$addressItem1->setData(array('address_item_id' => 5, 'quote_address_id' => 9, 'quote_item_id' => 4, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'weight' => 3.2000, 'qty' => 2.0000, 'discount_amount' => 0.0000, 'tax_amount' => 0.0000, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 0.0000, 'base_price' => 149.9900, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 149.9900, 'base_row_total_incl_tax' => 149.9900,));
 
 		$addressItem2 = $this->_buildModelMock('sales/quote_address_item', array(
 			'getId'          => $this->returnValue(6),
