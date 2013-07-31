@@ -198,30 +198,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		}
 	}
 
-	/**
-	 * checking quote item discount
-	 *
-	 * @param Varien_Event_Observer $observer
-	 * @return Mage_Tax_Model_Observer
-	 */
-	public function salesRuleEventItemProcessed(Varien_Event_Observer $observer)
-	{
-		Mage::log('salesrule_validator_process', Zend_Log::DEBUG);
-		/* @var $quote Mage_Sales_Model_Quote_Item_Abstract */
-		$item = $observer->getEvent()->getItem();
-		if (is_a($item, 'Mage_Sales_Model_Quote_Item_Abstract')) {
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkDiscounts($item);
-		} else {
-			Mage::log(
-				'EB2C Tax Error: salesRuleEventItemProcessed: did not receive a Mage_Sales_Model_Quote_Item_Abstract object',
-				Zend_Log::WARN
-			);
-		}
-		return $this;
-	}
-
 // place holder functions
 //
 

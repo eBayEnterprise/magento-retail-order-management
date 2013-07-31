@@ -92,14 +92,6 @@
 					</tax>
 				</observers>
 			</sales_quote_item_qty_set_after>
-			<salesrule_validator_process>
-				<observers>
-					<tax>
-						<class>tax/observer</class>
-						<method>salesRuleEventItemProcessed</method>
-					</tax>
-				</observers>
-			</salesrule_validator_process>
 		</events>
 		<sales>
 			<quote>

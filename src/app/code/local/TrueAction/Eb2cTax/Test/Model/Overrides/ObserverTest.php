@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb2cTax_Test_Base
 {
 	public $className = 'TrueAction_Eb2cTax_Overrides_Model_Observer';
 	public $quoteItem = null;
@@ -12,10 +12,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function setUp()
 	{
-		parent::setUp();
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
 		$response = $this->getModelMock('eb2ctax/response');
 		$this->responseMock = $response;
 		$helper = $this->getHelperMock('tax/data', array('sendRequest'));
@@ -112,6 +108,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testSalesEventItemAdded($observer)
 	{
+		$this->_setupBaseUrl();
 		$this->assertNull(
 			$this->observer->salesEventItemAdded($observer)
 		);
@@ -136,6 +133,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testCartEventProductUpdated($observer)
 	{
+		$this->_setupBaseUrl();
 		$this->assertNull(
 			$this->observer->cartEventProductUpdated($observer)
 		);
@@ -160,6 +158,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testSalesEventItemRemoved($observer)
 	{
+		$this->_setupBaseUrl();
 		$this->assertNull(
 			$this->observer->salesEventItemRemoved($observer)
 		);
@@ -184,6 +183,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testSalesEventItemQtyUpdated($observer)
 	{
+		$this->_setupBaseUrl();
 		$this->assertNull(
 			$this->observer->salesEventItemQtyUpdated($observer)
 		);
@@ -191,6 +191,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 
 	public function providerSalesEventItemQtyUpdatedWithoutQuoteItem()
 	{
+		$this->_setupBaseUrl();
 		$quoteMock = $this->getMock('Mage_Sales_Model_Quote');
 		$eventMock = $this->getMock('Varien_Event', array('getItem'));
 		$eventMock->expects($this->any())
@@ -298,6 +299,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testFetchTaxDutyInfo($quote)
 	{
+		$this->_setupBaseUrl();
 		$responseMock = $this->getModelMock('eb2ctax/response', array());
 		$requestMock = $this->getModelMock('eb2ctax/request', array('isValid', 'getQuoteCurrencyCode'));
 		$requestMock->expects($this->any())
@@ -344,6 +346,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	 */
 	public function testFetchTaxDutyInfoWithExceptionThrown($quote)
 	{
+		$this->_setupBaseUrl();
 		$responseMock = $this->getModelMock('eb2ctax/response', array());
 		$requestMock = $this->getModelMock('eb2ctax/request', array('isValid', 'getQuoteCurrencyCode'));
 		$requestMock->expects($this->any())
@@ -414,66 +417,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	{
 		$this->assertNotNull(
 			$this->observer->addTaxPercentToProductCollection($observer)
-		);
-	}
-
-	public function providerSalesRuleEventItemProcessed()
-	{
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getId')
-		);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
-
-		$observerMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent', 'getItem')
-		);
-		$observerMock->expects($this->any())
-			->method('getEvent')
-			->will($this->returnSelf());
-		$observerMock->expects($this->any())
-			->method('getItem')
-			->will($this->returnValue($itemMock));
-
-		$itemFakeMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getId')
-		);
-		$itemFakeMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
-
-		$observerFakeMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent', 'getItem')
-		);
-		$observerFakeMock->expects($this->any())
-			->method('getEvent')
-			->will($this->returnSelf());
-		$observerFakeMock->expects($this->any())
-			->method('getItem')
-			->will($this->returnValue($itemFakeMock));
-
-		return array(
-			array($observerMock),
-			array($observerFakeMock)
-		);
-	}
-
-	/**
-	 * Testing salesRuleEventItemProcessed observer method
-	 *
-	 * @test
-	 * @dataProvider providerSalesRuleEventItemProcessed
-	 */
-	public function testSalesRuleEventItemProcessed($observer)
-	{
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cTax_Overrides_Model_Observer',
-			$this->observer->salesRuleEventItemProcessed($observer)
 		);
 	}
 
