@@ -64,6 +64,19 @@
 			</eb2cfraud>
 		</blocks>
 	</global>
+	<frontend>
+		<events>
+			<eb2c_onepage_save_order_before>
+				<observers>
+					<TrueAction_Eb2cFraud_Observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cFraud_Model_Observer</class>
+						<method>captureOrderContext</method>
+					</TrueAction_Eb2cFraud_Observer>
+				</observers>
+			</eb2c_onepage_save_order_before>
+		</events>
+	</frontend>
 	<default>
 		<eb2cfraud>
 				<developer_mode>1</developer_mode>

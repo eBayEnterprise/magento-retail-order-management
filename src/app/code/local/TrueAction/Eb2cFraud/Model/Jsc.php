@@ -21,10 +21,35 @@ class TrueAction_Eb2cFraud_Model_Jsc extends Mage_Core_Model_Abstract
 	 */
 	public function getJscHtml()
 	{
-		return '<form name="trueaction-opc-eb2c-jsc">' . $this->getJscFormField() . "\n"
-				. '<script type="text/javascript" src="' . $this->_getJscSet()->_url . "\"></script>\n" 
-				. "<script type=\"text/javascript\">\n//<![CDATA[\n\t" . $this->getJscFunctionCall() . "\n//]]>\n</script>\n"
-				. "</form>\n";
+		return '<script type="text/javascript" src="' . $this->_getJscSet()->_url . '"></script>
+<script type="text/javascript">
+//<![CDATA[
+document.observe("dom:loaded", function() {
+	$(\'co-payment-form\').insert(\''. $this->getJscFormField().'\');
+	Review.prototype.save = function() {
+		' . $this->getJscFunctionCall() . '
+		if (checkout.loadWaiting!=false) return;
+		checkout.setLoadWaiting(\'review\');
+		Form.enable(payment.form);
+		var params = Form.serialize(payment.form);
+		if (this.agreementsForm) {
+			params += \'&\'+Form.serialize(this.agreementsForm);
+		}
+		params.save = true;
+		var request = new Ajax.Request(
+		this.saveUrl,
+		{
+			method:\'post\',
+			parameters:params,
+			onComplete: this.onComplete,
+			onSuccess: this.onSave,
+			onFailure: checkout.ajaxFailure.bind(checkout)
+		}
+		);
+	}
+});
+//]]
+</script>';
 	}
 
 	/**
@@ -46,7 +71,7 @@ class TrueAction_Eb2cFraud_Model_Jsc extends Mage_Core_Model_Abstract
 	 */
 	public function getJscFormField()
 	{
-		return '<input type="hidden" name="' . $this->_getJscSet()->_formfield . '" id="' . $this->_getJscSet()->_formfield . '">';
+		return '<input type="hidden" name="' . $this->_getJscSet()->_formfield . '" id="' . $this->_getJscSet()->_formfield . '" />';
 	}
 
 
