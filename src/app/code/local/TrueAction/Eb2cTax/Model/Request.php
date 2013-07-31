@@ -646,7 +646,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
 		if ($taxClass) {
-			$taxClassNode = $parent->ownerDocument->createElement('TaxClass', $taxClass);
+			$taxClassNode = $parent->ownerDocument->createElementNs($parent->namespaceURI, 'TaxClass', $taxClass);
 			$unitPriceNode->parentNode->insertBefore($taxClassNode, $unitPriceNode);
 		}
 	}
