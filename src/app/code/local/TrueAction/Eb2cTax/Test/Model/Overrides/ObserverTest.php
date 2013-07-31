@@ -684,9 +684,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
-	 * Mock out the observer and event to pass to the
-	 * @param  [type] $order [description]
-	 * @return [type]        [description]
+	 * Mock out the observer and event objects to pass to the observer method
+	 * @param  Mock_Mage_Sales_Model_Order $order Order object to return from the event object
+	 * @return Mock_Varien_Event_Obeserver
 	 */
 	protected function _orderSaveObserverMock($order)
 	{
@@ -702,10 +702,61 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 	}
 
 	/**
+	 * Replce the checkout/session with a mock.
+	 * @param  Mock_TrueAction_Eb2cTax_Model_Response $response The response object stored in the session.
+	 * @return Mock_Mage_Checkout_Model_Session
+	 */
+	protected function _orderSaveSetResponseInSession($response)
+	{
+		$checkout = $this->getModelMockBuilder('checkout/session')
+			->disableOriginalConstructor()
+			->setMethods(array('hasEb2cTaxResponse', 'getEb2cTaxResponse'))
+			->getMock();
+		$checkout->expects($this->any())
+			->method('hasEb2cTaxResponse')
+			->will($this->returnValue(true));
+		$checkout->expects($this->any())
+			->method('getEb2cTaxResponse')
+			->will($this->returnValue($response));
+		$this->replaceByMock('singleton', 'checkout/session', $checkout);
+		return $checkout;
+	}
+
+	/**
+	 * Mock out a tax calculation model which will return the given eb2c tax response.
+	 * @param  Mock_TrueAction_Eb2cTax_Model_Response $response Mock response object for the calculation model to return
+	 * @return Mock_TrueAction_Eb2cTax_Overrides_Model_Tax_Calculation
+	 */
+	protected function _orderSaveCalculatorMock($response)
+	{
+		$calc = $this->getModelMock('tax/calculation', array('getTaxResponse'));
+		$calc->expects($this->any())
+			->method('getTaxResponse')
+			->will($this->returnValue($response));
+		return $calc;
+	}
+
+	/**
+	 * Mock out a tax helper which will return the given calculation model
+	 * @param  Mock_TrueAction_Eb2cTax_Overrides_Model_Calculation $calculator Mock calculation model
+	 * @return Mock_TrueAction_Eb2cTax_Overrides_Helper_Data
+	 */
+	protected function _orderSaveHelperMock($calculator)
+	{
+		$helper = $this->getHelperMock('tax/data', array('getCalculator'));
+		$helper->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculator));
+		return $helper;
+	}
+
+	/**
 	 * Test the observer that gets triggered when an order is saved.
 	 */
 	public function testSalesEventOrderAfterSave()
 	{
+		// remove any dirty tax helpers Magento already has sitting around
+		Mage::unregister('_helper/tax');
 		$quoteItemIds = array(1,2);
 		$addressId = 2;
 		$quoteItems = $this->_orderSaveQuoteItemsMock($quoteItemIds);
@@ -751,12 +802,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends EcomDev_PHPUn
 			->will($this->returnSelf());
 
 		$responseItem = $this->_orderSaveResponseItemMock($taxQuote, $taxQuoteDiscount);
-		$this->markTestIncomplete('this is not yet being replaced/mocked out properly as the response->getResponseForItem call isn\'t returing the proper request quote item yet');
 		$response = $this->_orderSaveResponseMock($responseItem, $quoteItems, $address);
-		$this->replaceByMock('singleton', 'eb2ctax/response', $response);
+		$response->hasThisBeenReplacedByMyMock = "yes this has been";
+		$calculator = $this->_orderSaveCalculatorMock($response);
+		$helper = $this->_orderSaveHelperMock($calculator);
+		$this->replaceByMock('helper', 'tax', $helper);
 		$order = $this->_orderSaveOrderMock($quote);
 		$observer = $this->_orderSaveObserverMock($order);
 
 		Mage::getSingleton('tax/observer')->salesEventOrderAfterSave($observer);
+
+		Mage::unregister('_helper/tax');
 	}
+
 }
