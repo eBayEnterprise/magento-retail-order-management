@@ -22,6 +22,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_shipGroups         = array();
 	protected $_appliedDiscountIds = array();
 	protected $_shipGroupIds       = array();
+	protected $_addresses          = array();
 
 	/**
 	 * map skus to a quote item
@@ -64,42 +65,15 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
 		if (!$this->_hasChanges) {
+			// check if the billing address has been switched to another address instance
 			$this->_hasChanges = $this->_hasChanges || $this->_isMultiShipping !== (bool)$quote->getIsMultiShipping();
 			$quoteBillingAddress = $quote->getBillingAddress();
 			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
-			// check if the billing address has been switched to another address instance
 			$this->_hasChanges = $this->_hasChanges || $this->_billingInfoRef !== $quoteBillingDestId;
-			// first check the billing address
-			$billingDestination = isset($this->_destinations[$quoteBillingDestId]) ?
-				$this->_destinations[$quoteBillingDestId] : !($this->_hasChanges = true);
-			if (!$this->_hasChanges) {
-				// only bother checking the address contents if all matches up to this point
-				$billAddressData = $this->_extractDestData($quoteBillingAddress);
-				$this->_hasChanges = (serialize($billingDestination) !== serialize($billAddressData));
-				if (!$this->_hasChanges && $quote->isVirtual()) {
-					// in the case where the quote is virtual, all items are automatically associated
-					// with the billing address. the items will be associated with a virtual destination
-					// for the billing address.
-					$virtualId = $this->_getDestinationId($quoteBillingAddress, true);
-					$virtualDestination = isset($this->_destinations[$virtualId]) ?
-						$this->_destinations[$virtualId] : !($this->_hasChanges = true);
-					$billAddressData = $this->_extractDestData($quoteBillingAddress, true);
-					$this->_hasChanges = !$this->_hasChanges &&
-						serialize($virtualDestination) !== serialize($billAddressData);
-				}
-				// if everything was good so far then check the shipping addresses for
-				// changes
-				if (!$this->_hasChanges) {
-					// check shipping addresses
-					foreach ($quote->getAllShippingAddresses() as $address) {
-						$destinationId = $this->_getDestinationId($address);
-						$addressData = $this->_extractDestData($address);
-						$destination = isset($this->_destinations[$destinationId]) ?
-							$this->_destinations[$destinationId] : !($this->_hasChanges = true);
-						$this->_hasChanges = !$this->_hasChanges && 
-							serialize($addressData) !== serialize($destination);
-					}
-				}
+			// check all the addresses.
+			foreach ($quote->getAllAddresses() as $address) {
+				$this->_hasChanges = $this->_hasChanges || $this->_isAddressDifferent($address);
+				$this->_hasChanges = $this->_hasChanges || $this->_isAddressItemsDifferent($address);
 			}
 			// TODO: REMOVE ME
 			if ($this->_hasChanges) Mage::log('The address has changed');
@@ -204,6 +178,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$billAddress
 		);
 		foreach ($quote->getAllAddresses() as $address) {
+			// keep a serialized copy of each address for use when looking for changes.
+			$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
 			$items = $this->_getItemsForAddress($address);
 			foreach ($items as $item) {
 				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
@@ -217,6 +193,50 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 		}
+	}
+
+	protected function _isAddressDifferent(Mage_Sales_Model_Quote_Address $address)
+	{
+		$id = $address->getId();
+		$result = isset($this->_addresses[$id]) ?
+			$this->_addresses[$id] : false;
+		if (is_string($result)) {
+			$oldData = $result;
+			$newData = $this->_extractDestData($address);
+			$result  = $oldData !== serialize($newData); 
+		}
+		return $result;
+	}
+
+	protected function _isAddressItemsDifferent(Mage_Sales_Model_Quote_Address $address)
+	{
+		$skuList = array();
+		$destinationId = $this->_getDestinationId($address, false);
+		$result = isset($this->_shipGroups[$destinationId]) ?
+			$this->_shipGroups[$destinationId] : false;
+		if ($result !== false) {
+			$skuList = $result;
+		}
+		if ($address->getAddressType() === 'billing') {
+			$destinationId = $this->_getDestinationId($address, true);
+			$result = isset($this->_shipGroups[$destinationId]) ?
+				$this->_shipGroups[$destinationId] : false;
+			if ($result !== false) {
+				$skuList = array_unique(array_merge($skuList, $result));
+			}
+		}	
+		$newSkus = array();
+		foreach ($this->_getItemsForAddress($address) as $item) {
+			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+				foreach ($item->getChildren() as $child) {
+					$newSkus[] = $child->getSku();
+				}
+			} else {
+				$newSkus[] = $item->getSku();
+			}
+		}
+		$result = (bool)array_diff($newSkus, $skuList) || (bool)array_diff($skuList, $newSkus);
+		return $result;
 	}
 
 	/**
