@@ -322,7 +322,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		}
 		$id = $rateKey ? "shipGroup{$addressKey}_{$rateKey}" : "shipGroup{$addressKey}";
 		if (!isset($this->_shipGroupIds[$addressKey])) {
-			$this->_shipGroupIds[$addressKey] = array('group_id' => $id, 'method' => $rateKey);
+			$this->_shipGroupIds[$addressKey] = array('group_id' => $id, 'method' => $rateKey, 'method_code' => $address->getShippingMethod());
 		}
 		return $id;
 	}
