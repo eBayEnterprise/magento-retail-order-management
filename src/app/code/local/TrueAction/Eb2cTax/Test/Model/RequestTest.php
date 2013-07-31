@@ -170,10 +170,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
-	/**
-	 * @test
-	 * @large
-	 */
 	public function testValidateWithXsdMultiShip()
 	{
 		$this->_setupBaseUrl();
@@ -184,6 +180,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddresses()
 	{
 		$this->_setupBaseUrl();
@@ -1348,7 +1348,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	{
 		$store = Mage::app()->getStore();
 		$product = $this->_buildModelMock('catalog/product', array(
-			'isVirtual' => $this->returnValue(false), 
+			'isVirtual' => $this->returnValue(false),
 			'hasTaxCode' => $this->returnValue(true),
 			'getTaxCode' => $this->returnValue('12345'),
 		));
