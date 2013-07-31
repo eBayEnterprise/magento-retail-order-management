@@ -66,7 +66,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	public function  testGetItemTaxClass($taxCode, $expectation)
 	{
 		$product = $this->_buildModelMock('catalog/product', array(
-			'isVirtual' => $this->returnValue(false), 
+			'isVirtual' => $this->returnValue(false),
 			'hasTaxCode' => $this->returnValue(true),
 			'getTaxCode' => $this->returnValue($taxCode),
 		));
@@ -120,6 +120,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		return $mockQuote;
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testIsValid()
 	{
 		$quote = $this->_mockVirtualQuote();
@@ -138,6 +142,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testValidateWithXsd()
 	{
 		$this->_setupBaseUrl();
@@ -149,6 +157,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testValidateWithXsdVirtual()
 	{
 		$this->_setupBaseUrl();
@@ -159,6 +171,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddresses()
 	{
 		$this->_setupBaseUrl();
@@ -172,6 +188,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddressesNoChanges()
 	{
 		$this->_setupBaseUrl();
@@ -184,6 +204,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddressesEmptyQuote()
 	{
 		$this->_setupBaseUrl();
@@ -196,6 +220,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddressesNullQuote()
 	{
 		$this->_setupBaseUrl();
@@ -208,6 +236,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddressesChangeMultishipState()
 	{
 		$this->_setupBaseUrl();
@@ -221,6 +253,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckAddressesVirtual()
 	{
 		$quote   = $this->_mockVirtualQuote();
@@ -256,6 +292,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testMultishipping()
 	{
 		$this->_setupBaseUrl();
@@ -292,6 +332,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		}
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testVirtualPhysicalMix()
 	{
 		$quote   = $this->_mockSingleShipSameAsBillVirtualMix();
@@ -362,6 +406,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testWithNoSku()
 	{
 		$quote = $this->_mockQuoteWithSku(null);
@@ -449,6 +497,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscountsCouponCode()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
@@ -591,6 +643,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertTrue($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscountsNullQuote()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
@@ -744,6 +800,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertSame(false, $outData['shipping_discount_calc_duty']);
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testGetRateRequest()
 	{
 		$quote = $this->_mockSingleShipSameAsBillVirtualMix();
@@ -956,6 +1016,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 	/**
 	 * @test
 	 * @loadFixture base.yaml
+	 * @large
 	 */
 	public function testCheckShippingOriginAddresses()
 	{

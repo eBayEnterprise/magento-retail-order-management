@@ -141,6 +141,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	/**
 	 * @test
+	 * @large
 	 */
 	public function testCalcTaxForAddress()
 	{
