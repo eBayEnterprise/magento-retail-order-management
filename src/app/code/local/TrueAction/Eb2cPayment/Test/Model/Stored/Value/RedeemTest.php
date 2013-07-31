@@ -87,7 +87,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 	public function providerParseResponse()
 	{
 		return array(
-			array(file_get_contents(dirname(__FILE__) . '/RedeemTest/fixtures/StoredValueRedeemReply.xml', true))
+			array(file_get_contents(__DIR__ . '/RedeemTest/fixtures/StoredValueRedeemReply.xml', true))
 		);
 	}
 

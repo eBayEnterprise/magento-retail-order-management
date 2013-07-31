@@ -87,7 +87,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	public function providerParseResponse()
 	{
 		return array(
-			array(file_get_contents(dirname(__FILE__) . '/BalanceTest/fixtures/StoredValueBalanceReply.xml', true))
+			array(file_get_contents(__DIR__ . '/BalanceTest/fixtures/StoredValueBalanceReply.xml', true))
 		);
 	}
 

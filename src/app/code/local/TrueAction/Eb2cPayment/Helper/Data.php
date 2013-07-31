@@ -32,6 +32,26 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			'get_gift_card_redeem_void' => array(
 				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM_VOID,
 				'dev' => $this->getConfigModel()->storedValueRedeemVoidApiUri
+			),
+			'get_paypal_set_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_SET_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalSetExpressCheckoutApiUri
+			),
+			'get_paypal_get_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_GET_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalGetExpressCheckoutApiUri
+			),
+			'get_paypal_do_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalDoExpressCheckoutApiUri
+			),
+			'get_paypal_do_authorization' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_AUTHORIZATION,
+				'dev' => $this->getConfigModel()->paypalDoAuthorizationApiUri
+			),
+			'get_paypal_do_void' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_VOID,
+				'dev' => $this->getConfigModel()->paypalDoVoidApiUri
 			)
 		);
 	}
@@ -97,6 +117,17 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		$constantHelper = $this->getConstantHelper();
 		return $constantHelper::XMLNS;
+	}
+
+	/**
+	 * Getting the Payment NS constant value
+	 *
+	 * @return string, the ns value
+	 */
+	public function getPaymentXmlNs()
+	{
+		$constantHelper = $this->getConstantHelper();
+		return $constantHelper::PAYMENT_XMLNS;
 	}
 
 	/**

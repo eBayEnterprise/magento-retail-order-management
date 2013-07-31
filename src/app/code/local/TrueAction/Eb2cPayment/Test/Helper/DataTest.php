@@ -31,6 +31,19 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
+	 * testing getPaymentXmlNs method
+	 *
+	 * @test
+	 */
+	public function testGetPaymentXmlNs()
+	{
+		$this->assertSame(
+			'http://api.gsicommerce.com/schema/payment/1.0',
+			$this->_helper->getPaymentXmlNs()
+		);
+	}
+
+	/**
 	 * testing getOperationUri method
 	 *
 	 * @test

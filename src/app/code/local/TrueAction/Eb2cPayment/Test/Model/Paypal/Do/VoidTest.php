@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUnit_Test_Case_Controller
 {
 	protected $_void;
 
@@ -13,25 +13,49 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 	 */
 	public function setUp()
 	{
-		parent::setUp();
-		$this->_void = Mage::getModel('eb2cpayment/stored_value_redeem_void');
+		$_SESSION = array();
+		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
+		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		$this->_void = Mage::getModel('eb2cpayment/paypal_do_void');
 	}
 
-	public function providerGetRedeemVoid()
+	public function buildQuoteMock()
+	{
+		$quoteMock = $this->getMock(
+			'Mage_Sales_Model_Quote',
+			array('getEntityId', 'getQuoteCurrencyCode', 'getBaseGrandTotal')
+		);
+		$quoteMock->expects($this->any())
+			->method('getEntityId')
+			->will($this->returnValue(1234567)
+			);
+		$quoteMock->expects($this->any())
+			->method('getBaseGrandTotal')
+			->will($this->returnValue(50.00)
+			);
+		$quoteMock->expects($this->any())
+			->method('getQuoteCurrencyCode')
+			->will($this->returnValue('USD')
+			);
+
+		return $quoteMock;
+	}
+
+	public function providerDoVoid()
 	{
 		return array(
-			array('4111111ak4idq1111', '1234', 1, 50.00)
+			array($this->buildQuoteMock())
 		);
 	}
 
 	/**
-	 * testing getRedeemVoid method
+	 * testing doVoid method
 	 *
 	 * @test
-	 * @dataProvider providerGetRedeemVoid
+	 * @dataProvider providerDoVoid
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testGetRedeemVoid($pan, $pin, $incrementId, $amount)
+	public function testDoVoid($quote)
 	{
 		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
 		$voidReflector = new ReflectionObject($this->_void);
@@ -40,18 +64,18 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 		$helper->setValue($this->_void, $paymentHelper);
 
 		$this->assertNotEmpty(
-			$this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount)
+			$this->_void->doVoid($quote)
 		);
 	}
 
 	/**
-	 * testing when getRedeemVoid API call throw an exception
+	 * testing when doVoid API call throw an exception
 	 *
 	 * @test
-	 * @dataProvider providerGetRedeemVoid
+	 * @dataProvider providerDoVoid
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testGetRedeemVoidWithException($pan, $pin, $incrementId, $amount)
+	public function testDoVoidWithException($quote)
 	{
 		$apiModelMock = $this->getMock(
 			'TrueAction_Eb2cCore_Model_Api',
@@ -80,14 +104,22 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 
 		$this->assertSame(
 			'',
-			trim($this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount))
+			trim($this->_void->doVoid($quote))
 		);
 	}
 
 	public function providerParseResponse()
 	{
 		return array(
-			array(file_get_contents(__DIR__ . '/VoidTest/fixtures/StoredValueRedeemVoidReply.xml', true))
+			array(file_get_contents(__DIR__ . '/VoidTest/fixtures/PayPalDoVoidReply.xml', true))
+		);
+	}
+
+	public function expectedParseResponse()
+	{
+		return array (
+			'orderId' => 1,
+			'responseCode' => 'Success'
 		);
 	}
 
@@ -98,11 +130,11 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 	 * @dataProvider providerParseResponse
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testParseResponse($storeValueRedeemVoidReply)
+	public function testParseResponse($payPalDoVoidReply)
 	{
 		$this->assertSame(
-			array('orderId' => 1, 'paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success'),
-			$this->_void->parseResponse($storeValueRedeemVoidReply)
+			$this->expectedParseResponse(),
+			$this->_void->parseResponse($payPalDoVoidReply)
 		);
 	}
 }
