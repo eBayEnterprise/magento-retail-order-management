@@ -613,6 +613,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testCheckDiscountsNoChanges()
 	{
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
