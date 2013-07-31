@@ -92,10 +92,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$currentCouponCode = (string)$quote->getCouponCode(); 
 			foreach ($quote->getAllAddresses() as $address) {
 				foreach ($this->_getItemsForAddress($address) as $item) {
-					if ($this->_hasChanges) {
-						// stop as soon as something is found to be different.
-						break;
-					}
 					$orderItemId = $item->getSku();
 					$destinationId = $this->_getDestinationId($address, $item->getProduct()->isVirtual());
 					$orderItemId = $item->getSku();
@@ -109,6 +105,10 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 						(isset($orderItem['shipping_discount_amount'])? $orderItem['shipping_discount_amount']: null) !== $item->getDiscountAmount();
 					$this->_hasChanges = $this->_hasChanges ||
 						(isset($orderItem['shipping_coupon_code'])? $orderItem['shipping_coupon_code']: null) !== $item->getDiscountAmount();
+					if ($this->_hasChanges) {
+						// stop as soon as something is found to be different.
+						break;
+					}
 				}
 			}
 			// TODO: REMOVE ME
