@@ -6,10 +6,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 {
 	public function setUp()
 	{
-		parent::setUp();
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		$this->_setupBaseUrl();
 
 		$this->addressMock = $this->getModelMock('sales/quote_address');
 		$this->addressMock->expects($this->any())
@@ -20,20 +17,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$taxQuote2 = $this->_mockTaxQuote(0.01, 10.60, 'PENNSYLVANIA-Random Tax', 5);
 		$taxQuotes = array($taxQuote, $taxQuote2);
 
-		$discTaxQuoteMethods = array('getRateKey', 'getEffectiveRate', 'getCalculatedTax', 'getTaxableAmount');
-		$quoteDiscountMock   = $this->getModelMock('eb2ctax/response_quote_discount', $discTaxQuoteMethods);
-		$quoteDiscountMock->expects($this->any())
-			->method('getRateKey')
-			->will($this->returnValue('14_vc_virtual1'));
-		$quoteDiscountMock->expects($this->any())
-			->method('getEffectiveRate')
-			->will($this->returnValue(.2));
-		$quoteDiscountMock->expects($this->any())
-			->method('getCalculatedTax')
-			->will($this->returnValue(0.38));
-		$quoteDiscountMock->expects($this->any())
-			->method('getTaxableAmount')
-			->will($this->returnValue(10));
+		$quoteDiscountMock   = $this->_buildModelMock('eb2ctax/response_quote_discount', array(
+			'getRateKey' => $this->returnValue('14_vc_virtual1'),
+			'getEffectiveRate' => $this->returnValue(.2),
+			'getCalculatedTax' => $this->returnValue(0.38),
+			'getTaxableAmount' => $this->returnValue(10),
+		));
 
 		$methods = array('getTaxQuotes', 'getMerchandiseAmount');
 		$this->orderItem = $this->getModelMock('eb2ctax/response_orderitem', $methods);
@@ -41,19 +30,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->method('getTaxQuotes')
 			->will($this->returnValue($taxQuotes));
 		$orderItems = array($this->orderItem);
+
 		$response = $this->getModelMock('eb2ctax/response', array('getResponseForItem'));
 		$response->expects($this->any())
 			->method('getResponseForItem')
 			->will($this->returnValue($this->orderItem));
 		$this->response = $response;
 
-		$item = $this->getModelMock('sales/quote_item', array('getSku', 'getBaseTaxAmount'));
-		$item->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('somesku'));
-		$item->expects($this->any())
-			->method('getBaseTaxAmount')
-			->will($this->returnValue(23.00));
+		$item = $this->_buildModelMock('sales/quote_item', array(
+			'getSku' => $this->returnValue('somesku'),
+			'getBaseTaxAmount' => $this->returnValue(23.00),
+		));
 		$this->item = $item;
 	}
 
