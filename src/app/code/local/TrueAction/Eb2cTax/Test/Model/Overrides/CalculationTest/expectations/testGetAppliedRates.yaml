@@ -1,12 +1,36 @@
-0-0:
-  id: PENNSYLVANIA-Seller And Use Tax-0.5
-  code: PENNSYLVANIA-Seller And Use Tax
-  percent: 50.0
-  amount: .38
-  base_amount: 23.00
-0-1:
-  id: PENNSYLVANIA-Random Tax-0.01
-  code: PENNSYLVANIA-Random Tax
-  percent: 1.0
+beforediscount-merchandise:
+  id: state tax foo-0.0625
+  code: state tax foo
+  percent: 6.25
+  amount: 6.25
+  base_amount: 6.25
+beforediscount-shipping:
+  id: shipping tax-0.0133
+  code: shipping tax
+  percent: 1.33
+  amount: 0.20
+  base_amount: 0.20
+beforediscount-duty:
+  id: duty tax-0.0625
+  code: duty tax
+  percent: 2.62
+  amount: 0.22
+  base_amount: 0.22
+afterdiscount-merchandise:
+  id: state tax foo-0.0625
+  code: state tax foo
+  percent: 6.25
+  amount: 5.48
+  base_amount: 5.48
+afterdiscount-shipping:
+  id: shipping tax-0.0133
+  code: shipping tax
+  percent: 1.33
   amount: 10.60
-  base_amount: 23.00
+  base_amount: 10.60
+afterdiscount-duty:
+  id: duty tax-0.0625
+  code: duty tax
+  percent: 2.62
+  amount: 0.22
+  base_amount: 0.22

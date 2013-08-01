@@ -261,12 +261,23 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 	/**
 	 * @test
-	 * @loadExpectation
+	 * @loadExpectation testGetAppliedRates.yaml
 	 */
-	public function testGetAppliedRates()
+	public function testGetAppliedRatesBeforeDiscount()
 	{
-		$this->_reflectProperty($this->response, '_isValid')->setValue($this->response, true);
-		$this->markTestIncomplete('temporarily disabled.');
+		$this->markTestIncomplete('calculation model needs to be modified to pass the test');
+		$response = $this->_mockResponseWithAll();
+
+		Mage::unregister('_helper/tax');
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', false))));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($this->response);
 		$itemSelector = new Varien_Object(
@@ -274,9 +285,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		);
 		$a = $calc->getAppliedRates($itemSelector);
 		$this->assertNotEmpty($a);
-		$i = 0;
-		foreach ($a as $group) {
-			$e = $this->expected('0-' . $i);
+		$scenario = 'beforediscount';
+		foreach (array('merchandise', 'shipping', 'duty') as $type) {
+			$e = $this->expected("{$scenario}-{$type}");
+			$this->assertArrayHasKey($e->getId(), $a);
+			$group = $a[$e->getId()];
 			$this->assertNotEmpty($group);
 			$this->assertSame($e->getId(), $group['id']);
 			$this->assertArrayHasKey('percent', $group);
@@ -289,7 +302,52 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			$this->assertSame($e->getCode(), $rate['title']);
 			$this->assertSame((float)$e->getAmount(), $rate['amount']);
 			$this->assertSame((float)$e->getBaseAmount(), $rate['base_amount']);
-			++$i;
+		}
+	}
+
+	/**
+	 * @test
+	 * @loadExpectation testGetAppliedRates.yaml
+	 */
+	public function testGetAppliedRatesAfterDiscount()
+	{
+		$this->markTestIncomplete('calculation model needs to be modified to pass the test');
+		$response = $this->_mockResponseWithAll();
+
+		Mage::unregister('_helper/tax');
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', false))));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
+		$calc = Mage::getModel('tax/calculation');
+		$calc->setTaxResponse($this->response);
+		$itemSelector = new Varien_Object(
+			array('item' => $this->item, 'address' => $this->addressMock)
+		);
+		$a = $calc->getAppliedRates($itemSelector);
+		$this->assertNotEmpty($a);
+		$scenario = 'beforediscount';
+		foreach (array('merchandise', 'shipping', 'duty') as $type) {
+			$e = $this->expected("{$scenario}-{$type}");
+			$this->assertArrayHasKey($e->getId(), $a);
+			$group = $a[$e->getId()];
+			$this->assertNotEmpty($group);
+			$this->assertSame($e->getId(), $group['id']);
+			$this->assertArrayHasKey('percent', $group);
+			$this->assertSame((float)$e->getPercent(), $group['percent']);
+			$this->assertArrayHasKey('rates', $group);
+			$this->assertNotEmpty($group['rates']);
+			$this->assertSame(1, count($group['rates']));
+			$rate = $group['rates'][0];
+			$this->assertSame($e->getCode(), $rate['code']);
+			$this->assertSame($e->getCode(), $rate['title']);
+			$this->assertSame((float)$e->getAmount(), $rate['amount']);
+			$this->assertSame((float)$e->getBaseAmount(), $rate['base_amount']);
 		}
 	}
 
