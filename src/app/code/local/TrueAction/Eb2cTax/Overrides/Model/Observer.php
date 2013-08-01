@@ -117,6 +117,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	 */
 	public function quoteCollectTotalsBefore(Varien_Event_Observer $observer)
 	{
+		// TODO: THIS CAN BE REMOVE THE PARENT'S VERSION DOES NOT NEED AN OVERRIDE.
 		Mage::log('send tax request event');
 		/* @var $quote Mage_Sales_Model_Quote */
 		$quote = $observer->getEvent()->getQuote();
@@ -212,7 +213,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	/**
 	 * @codeCoverageIgnore
 	 */
-	public function prepareCatalogIndexPriceSelect($observer)
+	public function prepareCatalogIndexPriceSelect(Varien_Event_Observer $observer)
 	{
 		return $this;
 	}
