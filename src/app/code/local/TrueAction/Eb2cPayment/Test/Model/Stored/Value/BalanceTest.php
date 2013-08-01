@@ -15,6 +15,12 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	{
 		parent::setUp();
 		$this->_balance = Mage::getModel('eb2cpayment/stored_value_balance');
+
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$balanceReflector = new ReflectionObject($this->_balance);
+		$helper = $balanceReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($this->_balance, $paymentHelper);
 	}
 
 	public function providerGetBalance()
@@ -33,7 +39,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	 */
 	public function testGetBalance($pan, $pin)
 	{
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_balance->getBalance($pan, $pin)
 		);
 	}
@@ -81,7 +87,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	public function providerParseResponse()
 	{
 		return array(
-			array(file_get_contents(dirname(__FILE__) . '/BalanceTest/fixtures/StoredValueBalanceReply.xml', true))
+			array(file_get_contents(__DIR__ . '/BalanceTest/fixtures/StoredValueBalanceReply.xml', true))
 		);
 	}
 
@@ -97,48 +103,6 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 		$this->assertSame(
 			array('paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success', 'balanceAmount' => '50.00'),
 			$this->_balance->parseResponse($storeValueBalanceReply)
-		);
-	}
-
-
-	public function providerProcessBalance()
-	{
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('setBaseGiftCardsAmount', 'setGiftCardsAmount', 'setGiftCardsTotalCollected', 'save')
-		);
-		$quoteMock->expects($this->any())
-			->method('setBaseGiftCardsAmount')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('setGiftCardsAmount')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('setGiftCardsTotalCollected')
-			->will($this->returnSelf());
-		$quoteMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf());
-
-		return array(
-			array(
-				$quoteMock,
-				array('paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success', 'balanceAmount' => '50.00')
-			)
-		);
-	}
-
-	/**
-	 * testing processBalance method
-	 *
-	 * @test
-	 * @dataProvider providerProcessBalance
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessBalance($quote, $balanceData)
-	{
-		$this->assertNull(
-			$this->_balance->processBalance($quote, $balanceData)
 		);
 	}
 }

@@ -205,5 +205,8 @@ class TrueAction_Eb2cInventory_Model_Observer
 			}
 			// @codeCoverageIgnoreEnd
 		}
+
+		// if we get to this point therefore, allocation was successful, then let dispatch an event for stored value gift card processing
+		Mage::dispatchEvent('eb2c_event_dispatch_after_inventory_allocation', array('quote' => $quote));
 	}
 }
