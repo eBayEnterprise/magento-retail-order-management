@@ -286,7 +286,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$a = $calc->getAppliedRates($itemSelector);
 		$this->assertNotEmpty($a);
 		$scenario = 'beforediscount';
-		foreach (array('merchandise', 'shipping', 'duty') as $type) {
+		foreach (array('merchandise', 'shipping', 'duty', 'dutyamount') as $type) {
 			$e = $this->expected("{$scenario}-{$type}");
 			$this->assertArrayHasKey($e->getId(), $a);
 			$group = $a[$e->getId()];
@@ -332,7 +332,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$a = $calc->getAppliedRates($itemSelector);
 		$this->assertNotEmpty($a);
 		$scenario = 'beforediscount';
-		foreach (array('merchandise', 'shipping', 'duty') as $type) {
+		foreach (array('merchandise', 'shipping', 'duty', 'dutyamount') as $type) {
 			$e = $this->expected("{$scenario}-{$type}");
 			$this->assertArrayHasKey($e->getId(), $a);
 			$group = $a[$e->getId()];
