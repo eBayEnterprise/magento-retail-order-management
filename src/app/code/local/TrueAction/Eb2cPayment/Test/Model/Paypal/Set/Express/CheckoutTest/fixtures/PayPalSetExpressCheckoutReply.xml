@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PayPalSetExpressCheckoutReply xmlns="http://api.gsicommerce.com/schema/payment/1.0">
+	<OrderId>1</OrderId>
+	<ResponseCode>Success</ResponseCode>
+	<Token>EC-5YE59312K56892714</Token>
+</PayPalSetExpressCheckoutReply>

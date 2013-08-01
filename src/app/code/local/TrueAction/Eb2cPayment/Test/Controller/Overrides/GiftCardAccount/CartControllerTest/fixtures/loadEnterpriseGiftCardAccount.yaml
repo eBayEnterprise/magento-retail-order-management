@@ -1,0 +1,14 @@
+tables:
+  enterprise_giftcardaccount/giftcardaccount:
+tables:
+  enterprise_giftcardaccount/giftcardaccount:
+    - giftcardaccount_id: 1
+      code: "4111111ak4idq1111"
+      status: 1
+      date_created: "2013-07-25"
+      website_id: 1
+      balance: 100.00
+      state: 1
+      is_redeemable: 1
+      eb2c_pan: "4111111ak4idq1111"
+      eb2c_pin: "5344"

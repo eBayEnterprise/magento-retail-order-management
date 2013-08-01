@@ -24,6 +24,34 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			'get_gift_card_balance' => array(
 				'pro' => $constantHelper::OPT_STORED_VALUE_BALANCE,
 				'dev' => $this->getConfigModel()->storedValueBalanceApiUri
+			),
+			'get_gift_card_redeem' => array(
+				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM,
+				'dev' => $this->getConfigModel()->storedValueRedeemApiUri
+			),
+			'get_gift_card_redeem_void' => array(
+				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM_VOID,
+				'dev' => $this->getConfigModel()->storedValueRedeemVoidApiUri
+			),
+			'get_paypal_set_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_SET_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalSetExpressCheckoutApiUri
+			),
+			'get_paypal_get_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_GET_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalGetExpressCheckoutApiUri
+			),
+			'get_paypal_do_express_checkout' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_EXPRESS_CHECKOUT,
+				'dev' => $this->getConfigModel()->paypalDoExpressCheckoutApiUri
+			),
+			'get_paypal_do_authorization' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_AUTHORIZATION,
+				'dev' => $this->getConfigModel()->paypalDoAuthorizationApiUri
+			),
+			'get_paypal_do_void' => array(
+				'pro' => $constantHelper::OPT_PAYPAL_DO_VOID,
+				'dev' => $this->getConfigModel()->paypalDoVoidApiUri
 			)
 		);
 	}
@@ -92,6 +120,17 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Getting the Payment NS constant value
+	 *
+	 * @return string, the ns value
+	 */
+	public function getPaymentXmlNs()
+	{
+		$constantHelper = $this->getConstantHelper();
+		return $constantHelper::PAYMENT_XMLNS;
+	}
+
+	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
 	 *
@@ -123,5 +162,21 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->apiModel = Mage::getModel('eb2ccore/api');
 		}
 		return $this->apiModel;
+	}
+
+	/**
+	 * Generate eb2c API Universally unique ID used to globally identify to request.
+	 *
+	 * @param int $entityId, the magento sales_flat_quote entity_id
+	 *
+	 * @return string, the request id
+	 */
+	public function getRequestId($entityId)
+	{
+		return implode('-', array(
+			$this->getConfigModel()->clientId,
+			$this->getConfigModel()->storeId,
+			$entityId
+		));
 	}
 }

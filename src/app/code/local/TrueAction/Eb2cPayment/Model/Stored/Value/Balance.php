@@ -73,7 +73,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 		$storeValueBalanceRequest->createChild(
 			'PaymentAccountUniqueId',
 			$pan,
-			array('isToken' => "false")
+			array('isToken' => 'false')
 		);
 
 		// add Pin
@@ -124,27 +124,5 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 		}
 
 		return $balanceData;
-	}
-
-	/**
-	 * update quote with gift card balance response data.
-	 *
-	 * @param Mage_Sales_Model_Quote $quote the quote we use to get gift card balance from eb2c
-	 * @param array $paymentData, a parse associative array of eb2c response
-	 *
-	 * @return void
-	 */
-	public function processBalance($quote, $balanceData)
-	{
-		if (isset($balanceData['balanceAmount']) && $quote) {
-			$quote->setBaseGiftCardsAmount($balanceData['balanceAmount']);
-            $quote->setGiftCardsAmount($balanceData['balanceAmount']);
-
-            $quote->setGiftCardsTotalCollected(true);
-
-            $quote->save();
-		}
-
-		return;
 	}
 }

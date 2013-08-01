@@ -13,21 +13,27 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				parent::setTaxResponse($checkout->getEb2cTaxResponse());
 			}
 		}
+		$this->_eConfig = Mage::getModel('eb2ctax/config');
 	}
+
+
+	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
 
 	/**
 	 * return the total tax amount for any discounts.
 	 * @param  Varien_Object $itemSelector
 	 * @return float
 	 */
-	public function getDiscountTax(Varien_Object $itemSelector)
+	public function getDiscountTax(Varien_Object $itemSelector, $type = 'merchandise')
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		if ($itemResponse) {
 			$taxQuotes = $itemResponse->getTaxQuoteDiscounts();
 			foreach ($taxQuotes as $taxQuote) {
-				$tax += $taxQuote->getCalculatedTax();
+				if ($type === self::$_typeMap[$taxQuote->getType()]) {
+					$tax += $taxQuote->getCalculatedTax();
+				}
 			}
 		}
 		return $tax;
@@ -38,43 +44,25 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  Varien_Object $itemSelector
 	 * @return float
 	 */
-	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector, $round = true)
-	{
-		$tax = 0.0;
-		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
-		if ($itemResponse) {
-			$taxQuotes = $itemResponse->getTaxQuoteDiscounts();
-			foreach ($taxQuotes as $taxQuote) {
-				$tax += ($amount * $taxQuote->getEffectiveRate());
-			}
-		}
-		if ($round) {
-			$tax = $this->round($tax);
-		}
-		return $tax;
-	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function getRateRequest(
-		$shippingAddress = null,
-		$billingAddress = null,
-		$customerTaxClass = '',
-		$store = null
+	public function getDiscountTaxForAmount(
+		$amount,
+		Varien_Object $itemSelector,
+		$type = 'merchandise',
+		$round = true
 	) {
-		$quote = $billingAddress ? $billingAddress->getQuote() : null;
-		return $this->getTaxRequest($quote);
+		$tax = 0.0;
+		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
+		if ($itemResponse) {
+			$taxQuotes = $itemResponse->getTaxQuoteDiscounts();
+			foreach ($taxQuotes as $taxQuote) {
+				if ($type === self::$_typeMap[$taxQuote->getType()]) {
+					$tax += ($amount * $taxQuote->getEffectiveRate());
+				}
+			}
+		}
+		$tax = $round ? $this->round($tax) : $tax;
+		return $tax;
 	}
-
-	/**
-	 * @codeCoverageIgnore
-	 */
-	public function getRate($request)
-	{
-		return 0.0;
-	}
-
 
 	/**
 	 * get a request object for the quote.
@@ -104,34 +92,62 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
-	 * calculate tax amount for an item with the values from the response.
-	 * @param  Mage_Sales_Model_Quote_Item $item
+	 * calculate tax amount for an item filtered by $type.
+	 * @param  Mage_Sales_Model_Quote_Item    $item
 	 * @param  Mage_Sales_Model_Quote_Address $address
+	 * @param  string                         $type
 	 * @return float
 	 */
 	public function getTaxforItem(
 		Mage_Sales_Model_Quote_Item    $item    = null,
-		Mage_Sales_Model_Quote_Address $address = null
+		Mage_Sales_Model_Quote_Address $address = null,
+		$type = 'merchandise'
 	) {
-		$itemResponse = $this->_getItemResponse($item, $address);
+		$itemSelector = new Varien_Object(array('item' => $item, 'address' => $address));
+		return $this->getTax($itemSelector, $type);
+	}
+
+	/**
+	 * calculate tax amount for an item filtered by $type.
+	 * @param  Varien_Object $itemSelector
+	 * @param  string        $type
+	 * @return float
+	 */
+	public function getTax(Varien_Object $itemSelector, $type = 'merchandise')
+	{
+		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		$tax = 0.0;
 		if ($itemResponse) {
 			$taxQuotes = $itemResponse->getTaxQuotes();
 			foreach ($taxQuotes as $taxQuote) {
-				$tax += $taxQuote->getCalculatedTax();
+				if ($type === self::$_typeMap[$taxQuote->getType()]) {
+					$tax += $taxQuote->getCalculatedTax();
+				}
+			}
+			if ($type === 'duty') {
+				$tax += $itemResponse->getDutyAmount();
 			}
 		}
 		return $tax;
 	}
 
-	public function getTax(Varien_Object $itemSelector)
+	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type = 'merchandise', $round = true)
 	{
-		return $this->getTaxforItem($itemSelector->getItem(), $itemSelector->getAddress());
-	}
-
-	public function getTaxForAmount($amount, Varien_Object $itemSelector, $round = true)
-	{
-		return $this->getTaxforItemAmount($amount, $itemSelector->getItem(), $itemSelector->getAddress(), $round);
+		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
+		$tax = 0.0;
+		if ($itemResponse) {
+			$taxQuotes = $itemResponse->getTaxQuotes();
+			foreach ($taxQuotes as $taxQuote) {
+				if ($type === self::$_typeMap[$taxQuote->getType()]) {
+					$tax += $amount * $taxQuote->getEffectiveRate();
+				}
+			}
+			if ($type === 'duty') {
+				$tax += $itemResponse->getDutyAmount();
+			}
+		}
+		$tax = $round ? $this->round($tax) : $tax;
+		return $tax;
 	}
 
 	/**
@@ -145,7 +161,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		Mage_Sales_Model_Quote_Address $address = null
 	) {
 		$response = $this->getTaxResponse();
-		$itemResponse = $response ?
+		$itemResponse = $response && $response->isValid() ?
 			$response->getResponseForItem($item, $address) :
 			null;
 		return $itemResponse;
@@ -187,57 +203,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		$amount,
 		Mage_Sales_Model_Quote_Item $item,
 		Mage_Sales_Model_Quote_Address $address,
+		$type = 'merchandise',
 		$round = true
 	) {
-		$itemResponse = $this->_getItemResponse($item, $address);
-		$tax          = 0.0;
-		if ($itemResponse) {
-			$taxQuotes = $itemResponse->getTaxQuotes();
-			foreach ($taxQuotes as $taxQuote) {
-				$tax += $this->_calcTaxAmount(
-					$amount,
-					$taxQuote->getEffectiveRate(),
-					false
-				);
-			}
-		}
-		if ($round) {
-			$tax = $this->round($tax);
-		}
-		return $tax;
-	}
-
-	/**
-	 * Calculate rated tax abount based on price and tax rate.
-	 * If you are using price including tax $priceIncludeTax should be true.
-	 *
-	 * @param   float $price
-	 * @param   float $taxRate
-	 * @param   boolean $round
-	 * @return  float
-	 */
-	protected function _calcTaxAmount($price, $taxRate, $round = true)
-	{
-		$amount = $price * $taxRate;
-		if ($round) {
-			return $this->round($amount);
-		}
-		return $amount;
-	}
-
-	/**
-	 * Get information about tax rates applied
-	 *
-	 * @param   Varien_Object $request
-	 * @param   $item $request
-	 * @return  array
-	 */
-	public function getAppliedRatesForItem($item, $address)
-	{
-		$appliedRates = $this->getAppliedRates(
-			new Varien_Object(array('item' => $item, 'address' => $address))
+		return $this->getTaxForAmount($amount,
+			new Varien_Object(array('item' => $item, 'address' => $address)),
+			$type,
+			$round
 		);
-		return $appliedRates;
 	}
 
 	public function getAppliedRates($itemSelector)
@@ -276,5 +249,26 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * @codeCoverageIgnore
+	 */
+	public function getRateRequest(
+		$shippingAddress = null,
+		$billingAddress = null,
+		$customerTaxClass = '',
+		$store = null
+	) {
+		$quote = $billingAddress ? $billingAddress->getQuote() : null;
+		return $this->getTaxRequest($quote);
+	}
+
+	/**
+	 * @codeCoverageIgnore
+	 */
+	public function getRate($request)
+	{
+		return 0.0;
 	}
 }
