@@ -68,11 +68,11 @@
 		<events>
 			<eb2c_onepage_save_order_before>
 				<observers>
-					<TrueAction_Eb2cFraud_Observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cFraud_Model_Observer</class>
+					<capture_order_context>
+						<type>model</type>
+						<class>eb2cfraud/observer</class>
 						<method>captureOrderContext</method>
-					</TrueAction_Eb2cFraud_Observer>
+					</capture_order_context>
 				</observers>
 			</eb2c_onepage_save_order_before>
 		</events>
@@ -82,6 +82,19 @@
 				<developer_mode>1</developer_mode>
 		</eb2cfraud>
 	</default>
+	<test>
+		<events>
+			<eb2c_onepage_save_order_before>
+				<observers>
+					<capture_order_context>
+						<type>model</type>
+						<class>eb2cfraud/observer</class>
+						<method>captureOrderContext</method>
+					</capture_order_context>
+				</observers>
+			</eb2c_onepage_save_order_before>
+		</events>
+	</test>
 	<phpunit>
 		<suite>
 			<modules>
