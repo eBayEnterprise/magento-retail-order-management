@@ -57,9 +57,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 
 		$items = $this->_getAddressItems($address);
 		if (!$items) {
-			// @codeCovergeIgnoreStart
 			return $this;
-			// @codeCovergeIgnoreEnd
 		}
 		foreach ($items as $item) {
 			if ($item->getParentItem()) {
