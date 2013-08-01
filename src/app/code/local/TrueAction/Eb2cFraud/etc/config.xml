@@ -12,38 +12,38 @@
 			</eb2cfraud>
 		</models>
 		<fieldsets>
-			<sales_convert_quote_item>
+			<sales_convert_quote>
 				<eb2c_fraud_javascript_data>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_javascript_data>
 				<eb2c_fraud_host_name>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_host_name>
 				<eb2c_fraud_ip_address>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_ip_address>
 				<eb2c_fraud_session_id>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_session_id>
 				<eb2c_fraud_user_agent>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_user_agent>
 				<eb2c_fraud_referrer>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_referrer>
 				<eb2c_fraud_content_types>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_content_types>
 				<eb2c_fraud_encoding>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_encoding>
 				<eb2c_fraud_language>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_language>
 				<eb2c_fraud_char_set>
-					<to_order_item>*</to_order_item>
+					<to_order>*</to_order>
 				</eb2c_fraud_char_set>
-			</sales_convert_quote_item>
+			</sales_convert_quote>
 		</fieldsets>
 		<resources>
 			<eb2cfraud_setup>

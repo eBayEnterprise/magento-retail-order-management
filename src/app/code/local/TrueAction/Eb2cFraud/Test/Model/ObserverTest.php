@@ -4,28 +4,22 @@
  */
 class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case_Config
 {
-	const TEST_HOST_NAME = 'Ebc2TestHost';
 	/**
 	 * Is this observer first of all defined?
 	 * @test
 	 */
 	public function testEventObserverDefined()
 	{
-		$this->assertEventObserverDefined(
-			'frontend',
-			'eb2c_onepage_save_order_before',
-			'eb2cfraud/observer',
-			'captureOrderContext',
-			'capture_order_context'
-		);
-
-		$this->assertEventObserverDefined(
-			'test',
-			'eb2c_onepage_save_order_before',
-			'eb2cfraud/observer',
-			'captureOrderContext',
-			'capture_order_context'
-		);
+		$areas = array( 'frontend', 'test' );	// Testing that it's in frontend so it will actually do something live.
+		foreach( $areas as $area ) {			// Testing that it's in test so it will actually get called.
+			$this->assertEventObserverDefined(
+				$area,
+				'eb2c_onepage_save_order_before',
+				'eb2cfraud/observer',
+				'captureOrderContext',
+				'capture_order_context'
+			);
+		}
 	}
 
 	/**

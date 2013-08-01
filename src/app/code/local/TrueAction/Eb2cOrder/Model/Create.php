@@ -36,6 +36,34 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_config = $this->_helper->getConfig();
 	}
 
+
+	/**
+	 * TODO: This is not well defined. We are supposed to try a couple times to get the order to eb2c. At some point, though,
+	 * 			the order needs to be considered as Finally Failed. This function is called when that happens.
+	 */
+	private function _finallyFailed()
+	{
+		Mage::dispatchEvent('eb2c_order_create_fail', array('order' => $this->_o));
+		// TODO: Presumably set a certain status
+		return;
+	}	
+
+	/**
+	 * The event observer version of transmit order
+	 */
+	public function observerCreate($event)
+	{
+		$this->buildRequest($event->getEvent()->getOrder()->getIncrementId());
+		try {
+			$this->sendRequest();
+		}
+		catch( Exception $e ) {
+			// TODO: Right here (or when we get a false return) we need to queue for another order create call attempt.
+			Mage::logException($e);	// Fail quietly!
+		}
+		return;
+	}
+
 	/**
 	 * Transmit Order
 	 *
@@ -62,7 +90,11 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			Mage::throwException('Send Web Service Request Failed: ' . $e->getMessage());
 		}
 
-		return strcmp($status,'Success') ? false : true;
+		$rc = strcmp($status,'Success') ? false : true;
+		if( $rc === true ) {
+			Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
+		}
+		return $rc;
 	}
 
 
@@ -137,9 +169,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	 */
 	private function _buildCustomer(DomElement $customer)
 	{
-		if( $this->_o->getCustomerId() ) {
-			$customer->setAttribute('customerId', $this->_o->getCustomerId());
-		}
+		$customer->setAttribute('customerId', $this->_o->getCustomerId());
 
 		$name = $customer->createChild('Name');
 		$name->createChild('Honorific', $this->_o->getCustomerPrefix() );
