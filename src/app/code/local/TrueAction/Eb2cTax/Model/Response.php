@@ -110,7 +110,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 */
 	public function isValid()
 	{
-		return $this->_isValid;
+		return $this->_isValid && $this->getRequest() && $this->getRequest()->isValid();
 	}
 
 	/**

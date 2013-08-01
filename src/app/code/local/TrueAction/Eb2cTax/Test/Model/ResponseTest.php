@@ -103,11 +103,46 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	 */
 	public function testIsValid()
 	{
+		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
+		$request->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue(true));
+		$request->expects($this->any())
+			->method('getDocument')
+			->will($this->returnValue($this->request->getDocument()));
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
-			'request' => $this->request
+			'request' => $request
 		));
 		$this->assertTrue($response->isValid());
+	}
+
+	/**
+	 * invalid request should invalidate the response
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture base.yaml
+	 * @loadFixture testItemSplitAcrossShipGroups.yaml
+	 */
+	public function testIsValidBadRequest()
+	{
+		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
+		$request->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue(true));
+		$request->expects($this->any())
+			->method('getDocument')
+			->will($this->returnValue($this->request->getDocument()));
+		$response = Mage::getModel('eb2ctax/response', array(
+			'xml' => self::$respXml,
+			'request' => $request
+		));
+		$this->assertTrue($response->isValid());
+		$request = Mage::getModel('eb2ctax/request');
+		$this->assertFalse($request->isValid());
+		$response->setRequest($request);
+		$this->assertFalse($response->isValid());
 	}
 
 	/**
