@@ -67,6 +67,34 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	 */
 	public function testRedeemGiftCard($observer)
 	{
+		$redeemMock = $this->getMock(
+			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem',
+			array('getRedeem', 'parseResponse')
+		);
+		$redeemMock->expects($this->any())
+			->method('getRedeem')
+			->will($this->returnValue('<foo></foo>')
+			);
+		$redeemMock->expects($this->any())
+			->method('parseResponse')
+			->will($this->returnValue(array('responseCode' => 'Success', 'pan' => '4111111ak4idq1111', 'pin' => '5344'))
+			);
+
+		$observerReflector = new ReflectionObject($this->_observer);
+
+		// before we mock stored value redeem class in the observer let check it's object just to cover the code.
+		$getStoredValueRedeem = $observerReflector->getMethod('_getStoredValueRedeem');
+		$getStoredValueRedeem->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem',
+			$getStoredValueRedeem->invoke($this->_observer)
+		);
+
+		$storedValueRedeem = $observerReflector->getProperty('_storedValueRedeem');
+		$storedValueRedeem->setAccessible(true);
+		$storedValueRedeem->setValue($this->_observer, $redeemMock);
+
 		$this->assertNull(
 			$this->_observer->redeemGiftCard($observer)
 		);
