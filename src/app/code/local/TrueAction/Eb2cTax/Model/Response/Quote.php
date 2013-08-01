@@ -1,6 +1,6 @@
 <?php
 /**
- * represents an OrderItem.
+ * represents a tax quote from the response.
  * requires the following data to be passed to the constructor
  * @param  int                            type
  * @param  TrueAction_Dom_Element         node
@@ -13,6 +13,7 @@ class TrueAction_Eb2cTax_Model_Response_Quote extends Mage_Core_Model_Abstract
 
 	protected function _construct()
 	{
+		$this->_init('eb2ctax/response_quote');
 		$tax = $this->getNode();
 		if ($tax) {
 			$xpath = new DOMXPath($tax->ownerDocument);

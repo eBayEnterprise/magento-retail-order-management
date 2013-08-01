@@ -1,5 +1,6 @@
 <?php
 class TrueAction_Eb2cTax_Overrides_Model_Observer
+	extends Mage_Tax_Model_Observer
 {
 	protected $_tax;
 
@@ -16,147 +17,55 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		return $this->_tax;
 	}
 
-    /**
-     * Put quote address tax information into order
-     *
-     * @param Varien_Event_Observer $observer
-     */
-    public function salesEventConvertQuoteAddressToOrder(Varien_Event_Observer $observer)
-    {
-        $address = $observer->getEvent()->getAddress();
-        $order = $observer->getEvent()->getOrder();
+	/**
+	 * Put quote address tax information into order
+	 *
+	 * @param Varien_Event_Observer $observer
+	 */
+	public function salesEventConvertQuoteAddressToOrder(Varien_Event_Observer $observer)
+	{
+		$address = $observer->getEvent()->getAddress();
+		$order = $observer->getEvent()->getOrder();
 
-        $taxes = $address->getAppliedTaxes();
-        if (is_array($taxes)) {
-            if (is_array($order->getAppliedTaxes())) {
-                $taxes = array_merge($order->getAppliedTaxes(), $taxes);
-            }
-            $order->setAppliedTaxes($taxes);
-            $order->setConvertingFromQuote(true);
-        }
-    }
+		$taxes = $address->getAppliedTaxes();
+		if (is_array($taxes)) {
+			if (is_array($order->getAppliedTaxes())) {
+				$taxes = array_merge($order->getAppliedTaxes(), $taxes);
+			}
+			$order->setAppliedTaxes($taxes);
+			$order->setConvertingFromQuote(true);
+		}
+	}
 
-    /**
-     * Save order tax information
-     *
-     * @param Varien_Event_Observer $observer
-     */
-    public function salesEventOrderAfterSave(Varien_Event_Observer $observer)
-    {
-        $order = $observer->getEvent()->getOrder();
-
-        if (!$order->getConvertingFromQuote() || $order->getAppliedTaxIsSaved()) {
-            return;
-        }
-
-        $getTaxesForItems   = $order->getQuote()->getTaxesForItems();
-        $taxes              = $order->getAppliedTaxes();
-
-        $ratesIdQuoteItemId = array();
-        if (!is_array($getTaxesForItems)) {
-            $getTaxesForItems = array();
-        }
-        foreach ($getTaxesForItems as $quoteItemId => $taxesArray) {
-            foreach ($taxesArray as $group) {
-                if (count($group['rates']) == 1) {
-                    $ratesIdQuoteItemId[$group['id']][] = array(
-                        'id'        => $quoteItemId,
-                        'percent'   => $group['percent'],
-                        'code'      => $group['rates'][0]['code']
-                    );
-                } else {
-                    $percentDelta   = $group['percent'];
-                    $percentSum     = 0;
-                    foreach ($group['rates'] as $rate) {
-                        $ratesIdQuoteItemId[$group['id']][] = array(
-                            'id'        => $quoteItemId,
-                            'percent'   => $rate['percent'],
-                            'code'      => $rate['code']
-                        );
-                        $percentSum += $rate['percent'];
-                    }
-
-                    if ($percentDelta != $percentSum) {
-                        $delta = $percentDelta - $percentSum;
-                        foreach ($ratesIdQuoteItemId[$group['id']] as &$rateTax) {
-                            if ($rateTax['id'] == $quoteItemId) {
-                                $rateTax['percent'] = (($rateTax['percent'] / $percentSum) * $delta)
-                                        + $rateTax['percent'];
-                            }
-                        }
-                    }
-                }
-            }
-            // scratch notes
-			// 	$a = array('group_id'=>array( // if the number of rates in a group is 1
-			// 		array(
-			// 			'id'      => 'quote_item_id',
-			// 			'percent' => 'group_percent',
-			// 			'code'    => 'group_rate_code',
-			// 		)
-			// 	));
-
-			// 	$a = array('group_id'=>array( // if the number of rates in a group is 1
-			// 		array(
-			// 			'id'      => 'quote_item_id',
-			// 			'percent' => 'group_rate_percent',
-			// 			'code'    => 'group_rate_code',
-			// 		),
-			// 	));
-			// 	$percentSum += 'group_rate_percent';
-			// }
-        }
-
-
-
-        foreach ($taxes as $id => $row) {
-            foreach ($row['rates'] as $tax) {
-                if (is_null($row['percent'])) {
-                    $baseRealAmount = $row['base_amount'];
-                } else {
-                    if ($row['percent'] == 0 || $tax['percent'] == 0) {
-                        continue;
-                    }
-                    $baseRealAmount = $row['base_amount'] / $row['percent'] * $tax['percent'];
-                }
-                $hidden = (isset($row['hidden']) ? $row['hidden'] : 0);
-                $data = array(
-                    'order_id'          => $order->getId(),
-                    'code'              => $tax['code'],
-                    'title'             => $tax['title'],
-                    'hidden'            => $hidden,
-                    'percent'           => $tax['percent'],
-                    'priority'          => $tax['priority'],
-                    'position'          => $tax['position'],
-                    'amount'            => $row['amount'],
-                    'base_amount'       => $row['base_amount'],
-                    'process'           => $row['process'],
-                    'base_real_amount'  => $baseRealAmount,
-                );
-
-                $result = Mage::getModel('tax/sales_order_tax')->setData($data)->save();
-
-                if (isset($ratesIdQuoteItemId[$id])) {
-                    foreach ($ratesIdQuoteItemId[$id] as $quoteItemId) {
-                        if ($quoteItemId['code'] == $tax['code']) {
-                            $item = $order->getItemByQuoteItemId($quoteItemId['id']);
-                            if ($item) {
-                                $data = array(
-                                    'item_id'       => $item->getId(),
-                                    'tax_id'        => $result->getTaxId(),
-                                    'tax_percent'   => $quoteItemId['percent']
-                                );
-                                Mage::getModel('tax/sales_order_tax_item')->setData($data)->save();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        $order->setAppliedTaxIsSaved(true);
-    }
-
-
+	/**
+	 * Save order tax information
+	 *
+	 * @param Varien_Event_Observer $observer
+	 */
+	public function salesEventOrderAfterSave(Varien_Event_Observer $observer)
+	{
+		parent::salesEventOrderAfterSave($observer);
+		$order = $observer->getEvent()->getOrder();
+		// save all of the response quote and response quote discount objects
+		if ($response = $this->_getTaxHelper()->getCalculator()->getTaxResponse()) {
+			foreach ($order->getQuote()->getAllAddresses() as $address) {
+				foreach ($address->getAllItems() as $item) {
+					if ($responseItem = $response->getResponseForItem($item, $address)) {
+						foreach ($responseItem->getTaxQuotes() as $taxQuote) {
+							$taxQuote->setQuoteItemId($item->getId())
+								->setQuoteAddressId($address->getId())
+								->save();
+						}
+						foreach ($responseItem->getTaxQuoteDiscounts() as $taxDiscount) {
+							$taxDiscount->setQuoteItemId($item->getId())
+								->setQuoteAddressId($address->getId())
+								->save();
+						}
+					}
+				}
+			}
+		}
+	}
 
 	// TODO: ADD SHIPPING METHOD EVENT
 	// TODO: EACH OF THESE EVENTS SHOULD BOIL DOWN TO 3 CASES: 1 ITEM CHANGED FORCE RESEND; 2 ITEM CHANGED CHECKED RESEND; ADDRESS CHECK
@@ -208,6 +117,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	 */
 	public function quoteCollectTotalsBefore(Varien_Event_Observer $observer)
 	{
+		// TODO: THIS CAN BE REMOVE THE PARENT'S VERSION DOES NOT NEED AN OVERRIDE.
 		Mage::log('send tax request event');
 		/* @var $quote Mage_Sales_Model_Quote */
 		$quote = $observer->getEvent()->getQuote();
@@ -216,18 +126,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 				$address->setExtraTaxAmount(0);
 				$address->setBaseExtraTaxAmount(0);
 			}
-			// checking address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkAddresses($quote);
-			// checking ShippingOrigin Address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkShippingOriginAddresses($quote);
-			// checking AdminOrigin Address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkAdminOriginAddresses();
 		} else {
 			Mage::log(
 				'EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote object',
@@ -249,6 +147,18 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		/* @var $quote Mage_Sales_Model_Quote */
 		$quote = $observer->getEvent()->getQuote();
 		if (is_a($quote, 'Mage_Sales_Model_Quote')) {
+			// checking address
+			$this->_getTaxHelper()->getCalculator()
+				->getTaxRequest()
+				->checkAddresses($quote);
+			// checking ShippingOrigin Address
+			$this->_getTaxHelper()->getCalculator()
+				->getTaxRequest()
+				->checkShippingOriginAddresses($quote);
+			// checking AdminOrigin Address
+			$this->_getTaxHelper()->getCalculator()
+				->getTaxRequest()
+				->checkAdminOriginAddresses();
 			$this->_fetchTaxDutyInfo($quote);
 		} else {
 			Mage::log(
@@ -275,38 +185,18 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 					Zend_Log::DEBUG
 				);
 				$response = $helper->sendRequest($request);
+				if (!$response->isValid())
+				{
+					Mage::throwException('valid request recieved an invalid response');
+				}
 				$calc->setTaxResponse($response);
 			}
 		} catch (Exception $e) {
 			Mage::log(
-				'Unable to send TaxDutyQuote request: ' . $e->getMessage(),
+				'Unsuccessful TaxDutyQuote request: ' . $e->getMessage(),
 				Zend_Log::WARN
 			);
 		}
-	}
-
-	/**
-	 * checking quote item discount
-	 *
-	 * @param Varien_Event_Observer $observer
-	 * @return Mage_Tax_Model_Observer
-	 */
-	public function salesRuleEventItemProcessed(Varien_Event_Observer $observer)
-	{
-		Mage::log('salesrule_validator_process', Zend_Log::DEBUG);
-		/* @var $quote Mage_Sales_Model_Quote_Item_Abstract */
-		$item = $observer->getEvent()->getItem();
-		if (is_a($item, 'Mage_Sales_Model_Quote_Item_Abstract')) {
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkDiscounts($item);
-		} else {
-			Mage::log(
-				'EB2C Tax Error: salesRuleEventItemProcessed: did not receive a Mage_Sales_Model_Quote_Item_Abstract object',
-				Zend_Log::WARN
-			);
-		}
-		return $this;
 	}
 
 // place holder functions
@@ -323,7 +213,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	/**
 	 * @codeCoverageIgnore
 	 */
-	public function prepareCatalogIndexPriceSelect($observer)
+	public function prepareCatalogIndexPriceSelect(Varien_Event_Observer $observer)
 	{
 		return $this;
 	}

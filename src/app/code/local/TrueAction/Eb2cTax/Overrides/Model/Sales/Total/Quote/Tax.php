@@ -1,28 +1,4 @@
 <?php
-/**
- * Magento Enterprise Edition
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Magento Enterprise Edition License
- * that is bundled with this package in the file LICENSE_EE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://www.magentocommerce.com/license/enterprise-edition
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@magentocommerce.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade Magento to newer
- * versions in the future. If you wish to customize Magento for your
- * needs please refer to http://www.magentocommerce.com for more information.
- *
- * @category    Mage
- * @package     Mage_Tax
- * @copyright   Copyright (c) 2013 Magento Inc. (http://www.magentocommerce.com)
- * @license     http://www.magentocommerce.com/license/enterprise-edition
- */
 
 /**
  * Tax totals calculation model
@@ -153,26 +129,26 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$baseHiddenTax  = null;
 
 		if ($this->_helper->getApplyTaxAfterDiscount($this->_store)) {
-				// tax only what you pay
-				$rowTax             = $this->_calculator->getTax($itemSelector);
-				$discountAmount     = $item->getDiscountAmount();
-				$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
+			// tax only what you pay
+			$rowTax             = $this->_calculator->getTax($itemSelector);
+			$discountAmount     = $item->getDiscountAmount();
+			$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
 
-				$baseRowTax         = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
-				$baseDiscountAmount = $item->getBaseDiscountAmount();
-				$baseRowTaxDiscount = $this->_calculator->getDiscountTaxForAmount($baseDiscountAmount, $itemSelector);
-				$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
+			$baseRowTax         = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
+			$baseDiscountAmount = $item->getBaseDiscountAmount();
+			$baseRowTaxDiscount = $this->_calculator->getDiscountTaxForAmount($baseDiscountAmount, $itemSelector);
+			$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
 
-				// adjust the subtotal due to the discount amounts
-				$subtotal     = $subtotal - $discountAmount;
-				$baseSubtotal = $baseSubtotal - $baseDiscountAmount;
-				// adjust the tax amounts due to the discounts.
-				$rowTax       = $rowTax - $rowTaxDiscount;
-				$baseRowTax   = $baseRowTax - $baseRowTaxDiscount;
+			// adjust the subtotal due to the discount amounts
+			$subtotal     = $subtotal - $discountAmount;
+			$baseSubtotal = $baseSubtotal - $baseDiscountAmount;
+			// adjust the tax amounts due to the discounts.
+			$rowTax       = $rowTax - $rowTaxDiscount;
+			$baseRowTax   = $baseRowTax - $baseRowTaxDiscount;
 		} else {
-				// tax the full itemprice
-				$rowTax     = $this->_calculator->getTax($itemSelector);
-				$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
+			// tax the full itemprice
+			$rowTax     = $this->_calculator->getTax($itemSelector);
+			$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
 		}
 
 		$item->setTaxAmount(max(0, $rowTax));

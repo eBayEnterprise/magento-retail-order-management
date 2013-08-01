@@ -103,11 +103,46 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	 */
 	public function testIsValid()
 	{
+		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
+		$request->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue(true));
+		$request->expects($this->any())
+			->method('getDocument')
+			->will($this->returnValue($this->request->getDocument()));
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
-			'request' => $this->request
+			'request' => $request
 		));
 		$this->assertTrue($response->isValid());
+	}
+
+	/**
+	 * invalid request should invalidate the response
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture base.yaml
+	 * @loadFixture testItemSplitAcrossShipGroups.yaml
+	 */
+	public function testIsValidBadRequest()
+	{
+		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
+		$request->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue(true));
+		$request->expects($this->any())
+			->method('getDocument')
+			->will($this->returnValue($this->request->getDocument()));
+		$response = Mage::getModel('eb2ctax/response', array(
+			'xml' => self::$respXml,
+			'request' => $request
+		));
+		$this->assertTrue($response->isValid());
+		$request = Mage::getModel('eb2ctax/request');
+		$this->assertFalse($request->isValid());
+		$response->setRequest($request);
+		$this->assertFalse($response->isValid());
 	}
 
 	/**
@@ -373,7 +408,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	public function testResponseQuote()
 	{
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>
- 			<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+			<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 				<Tax taxType="SELLER_USE" taxability="TAXABLE">
 					<Situs>DESTINATION</Situs>
 					<Jurisdiction jurisdictionLevel="STATE" jurisdictionId="31152">PENNSYLVANIA</Jurisdiction>
@@ -397,5 +432,78 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		);
 		$obj = Mage::getModel('eb2ctax/response_quote', array('node' => $node));
 		$this->assertSame($a, $obj->getData());
+	}
+
+	/**
+	 * verify the orderitem model will return null instead of NAN
+	 */
+	public function testResponseOrderItemNan()
+	{
+		$xml = '<OrderItem lineNumber="7"  xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<ItemId><![CDATA[classic-jeans]]></ItemId>
+					<ItemDesc><![CDATA[Classic Jean]]></ItemDesc>
+					<HTSCode/>
+					<Quantity><![CDATA[1]]></Quantity>
+					<Pricing>
+					  <Merchandise>
+					    <UnitPrice><![CDATA[foo]]></UnitPrice>
+						<Amount><![CDATA[]]></Amount>
+						<TaxData>
+						  <TaxClass>89000</TaxClass>
+						  <Taxes>
+							<Tax taxType="SELLER_USE" taxability="TAXABLE">
+							  <Situs>DESTINATION</Situs>
+							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+							  <Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+							  <EffectiveRate>0.06</EffectiveRate>
+							  <TaxableAmount>99.99</TaxableAmount>
+							  <CalculatedTax>6.0</CalculatedTax>
+							</Tax>
+							<Tax taxType="SELLER_USE" taxability="TAXABLE">
+							  <Situs>DESTINATION</Situs>
+							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+							  <Imposition impositionType="Random Tax">Random Tax</Imposition>
+							  <EffectiveRate>0.02</EffectiveRate>
+							  <TaxableAmount>99.99</TaxableAmount>
+							  <CalculatedTax>2.0</CalculatedTax>
+							</Tax>
+						  </Taxes>
+						</TaxData>
+						<PromotionalDiscounts>
+						  <Discount calculateDuty="false" id="334">
+							<Amount>20.00</Amount>
+							<Taxes>
+							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
+								<Situs>DESTINATION</Situs>
+								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+								<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+								<EffectiveRate>0.06</EffectiveRate>
+								<TaxableAmount>20.0</TaxableAmount>
+								<CalculatedTax>1.2</CalculatedTax>
+							  </Tax>
+							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
+								<Situs>DESTINATION</Situs>
+								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+								<Imposition impositionType="Random Tax">Random Tax</Imposition>
+								<EffectiveRate>0.02</EffectiveRate>
+								<TaxableAmount>20.0</TaxableAmount>
+								<CalculatedTax>0.4</CalculatedTax>
+							  </Tax>
+							</Taxes>
+						  </Discount>
+						</PromotionalDiscounts>
+					  </Merchandise>
+					</Pricing>
+				  </OrderItem>
+		';
+		$doc = new TrueAction_Dom_Document();
+		$doc->preserveWhiteSpace = false;
+		$doc->loadXML($xml);
+		$node = $doc->documentElement->firstChild;
+		$obj  = Mage::getModel('eb2ctax/response_quote', array('node' => $node));
+		$this->assertNull($obj->getMerchandiseAmount());
+		$this->assertNull($obj->getUnitPrice());
+		$this->assertNull($obj->getShippingAmount());
+		$this->assertNull($obj->getDutyAmount());
 	}
 }
