@@ -39,7 +39,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 		$helper->setAccessible(true);
 		$helper->setValue($this->_redeem, $paymentHelper);
 
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_redeem->getRedeem($pan, $pin, $entityId, $amount)
 		);
 	}

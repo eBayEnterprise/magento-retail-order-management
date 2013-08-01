@@ -63,7 +63,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 		$helper->setAccessible(true);
 		$helper->setValue($this->_checkout, $paymentHelper);
 
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_checkout->getExpressCheckout($quote)
 		);
 	}

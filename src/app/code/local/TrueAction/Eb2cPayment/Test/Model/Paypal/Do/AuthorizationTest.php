@@ -63,7 +63,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_AuthorizationTest extends Ecom
 		$helper->setAccessible(true);
 		$helper->setValue($this->_authorization, $paymentHelper);
 
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_authorization->doAuthorization($quote)
 		);
 	}

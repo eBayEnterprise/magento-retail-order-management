@@ -39,7 +39,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 		$helper->setAccessible(true);
 		$helper->setValue($this->_void, $paymentHelper);
 
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount)
 		);
 	}

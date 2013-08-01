@@ -39,7 +39,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	 */
 	public function testGetBalance($pan, $pin)
 	{
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_balance->getBalance($pan, $pin)
 		);
 	}

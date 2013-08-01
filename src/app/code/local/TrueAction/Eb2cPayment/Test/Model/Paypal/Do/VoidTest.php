@@ -63,7 +63,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 		$helper->setAccessible(true);
 		$helper->setValue($this->_void, $paymentHelper);
 
-		$this->assertNotEmpty(
+		$this->assertNotNull(
 			$this->_void->doVoid($quote)
 		);
 	}
