@@ -35,6 +35,20 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	protected $_paypalDoExpressCheckout;
 
 	/**
+	 * eb2c paypal Do Authorization object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization
+	 */
+	protected $_paypalDoAuthorization;
+
+	/**
+	 * eb2c paypal Do Void object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal_Do_Void
+	 */
+	protected $_paypalDoVoid;
+
+	/**
 	 * Get helper instantiated object.
 	 *
 	 * @return TrueAction_Eb2cPayment_Helper_Data
@@ -87,6 +101,34 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		return $this->_paypalDoExpressCheckout;
+	}
+
+	/**
+	 * Get paypal Do Authorization instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization
+	 */
+	protected function _getPaypalDoAuthorization()
+	{
+		if (!$this->_paypalDoAuthorization) {
+			$this->_paypalDoAuthorization = Mage::getModel('eb2cpayment/paypal_do_authorization');
+		}
+
+		return $this->_paypalDoAuthorization;
+	}
+
+	/**
+	 * Get paypal Do Void instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal_Do_Void
+	 */
+	protected function _getPaypalDoVoid()
+	{
+		if (!$this->_paypalDoVoid) {
+			$this->_paypalDoVoid = Mage::getModel('eb2cpayment/paypal_do_void');
+		}
+
+		return $this->_paypalDoVoid;
 	}
 
 	/**
@@ -269,6 +311,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 				}
 			}
 		} else {
+			// Eb2c PaypalDoExpressCheckout is disabled, continue as normal with direct call to the paypal api
 			$response = $this->call(self::DO_EXPRESS_CHECKOUT_PAYMENT, $request);
 		}
 
@@ -279,5 +322,97 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
 		$this->_importFromResponse($this->_doExpressCheckoutPaymentResponse, $response);
 		$this->_importFromResponse($this->_createBillingAgreementResponse, $response);
+	}
+
+	/**
+	 * Override to make eb2c PayPalDoAuthorization call
+	 *
+	 * DoAuthorization call
+	 *
+	 * @link https://cms.paypal.com/us/cgi-bin/?&cmd=_render-content&content_ID=developer/e_howto_api_nvp_r_DoAuthorization
+	 * @return Mage_Paypal_Model_Api_Nvp
+	 */
+	public function callDoAuthorization()
+	{
+		$request = $this->_exportToRequest($this->_doAuthorizationRequest);
+
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cPaypalDoAuthorization) {
+			// Eb2c PaypalDoAuthorization is enabled
+			// Removing direct call to PayPal, Make Eb2c PayPalDoAuthorization call here.
+			$quote = $this->_getCart()->getSalesEntity();
+
+			$response = array();
+
+			if ($quote) {
+				// We have a valid quote, let's Do PayPal Authorization it through eb2c.
+				if ($payPalDoAuthorizationReply = $this->_getPaypalDoAuthorization()->doAuthorization($quote)) {
+					if ($payPalDoAuthorizationData = $this->_getPaypalDoAuthorization()->parseResponse($payPalDoAuthorizationReply)) {
+						// making sure we have the right data
+						$quoteShippingAddress = $quote->getShippingAddress();
+						if (isset($payPalDoAuthorizationData['responseCode']) && strtoupper(trim($payPalDoAuthorizationData['responseCode'])) === 'SUCCESS') {
+							$response = array(
+								'ACK' => $payPalDoAuthorizationData['responseCode'],
+								'PAYMENTSTATUS' => $payPalDoAuthorizationData['authorizationInfo']['paymentStatus'],
+								'PENDINGREASON' => $payPalDoAuthorizationData['authorizationInfo']['pendingReason'],
+								'REASONCODE' => $payPalDoAuthorizationData['authorizationInfo']['reasonCode'],
+							);
+						}
+					}
+				}
+			}
+		} else {
+			// Eb2c PaypalDoAuthorization is disabled, continue as normal with direct call to the paypal api
+			$response = $this->call(self::DO_AUTHORIZATION, $request);
+		}
+
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
+			Mage::log("\n\rDEDUG:\n\r________________________\n\callDoAuthorization:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+		}
+
+		$this->_importFromResponse($this->_paymentInformationResponse, $response);
+		$this->_importFromResponse($this->_doAuthorizationResponse, $response);
+
+		return $this;
+	}
+
+	/**
+	 * Override to make eb2c PayPalDoVoid call
+	 *
+	 * DoVoid call
+	 * @link https://cms.paypal.com/us/cgi-bin/?&cmd=_render-content&content_ID=developer/e_howto_api_nvp_r_DoVoid
+	 */
+	public function callDoVoid()
+	{
+		$request = $this->_exportToRequest($this->_doVoidRequest);
+
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cPaypalDoVoid) {
+			// Eb2c PaypalDoVoid is enabled
+			// Removing direct call to PayPal, Make Eb2c PayPalDoVoid call here.
+			$quote = $this->_getCart()->getSalesEntity();
+
+			$response = array();
+
+			if ($quote) {
+				// We have a valid quote, let's Do PayPal Void it through eb2c.
+				if ($payPalDoVoidReply = $this->_getPaypalDoVoid()->doVoid($quote)) {
+					if ($payPalDoVoidData = $this->_getPaypalDoVoid()->parseResponse($payPalDoVoidReply)) {
+						// making sure we have the right data
+						$quoteShippingAddress = $quote->getShippingAddress();
+						if (isset($payPalDoVoidData['responseCode']) && strtoupper(trim($payPalDoVoidData['responseCode'])) === 'SUCCESS') {
+							$response = array(
+								'ACK' => $payPalDoVoidData['responseCode'],
+							);
+						}
+					}
+				}
+			}
+		} else {
+			// Eb2c PaypalDoVoid is disabled, continue as normal with direct call to the paypal api
+			$response = $this->call(self::DO_VOID, $request);
+		}
+
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
+			Mage::log("\n\rDEDUG:\n\r________________________\n\callDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+		}
 	}
 }

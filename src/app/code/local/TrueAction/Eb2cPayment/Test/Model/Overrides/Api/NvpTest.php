@@ -367,4 +367,174 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 
 		$this->assertNull($this->_nvp->callDoExpressCheckoutPayment());
 	}
+
+	/**
+	 * testing callDoAuthorization method
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCallDoAuthorization()
+	{
+		// because we are getting the paypal Do Authorization class property in the setup as a reflection some of te code
+		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
+		$nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
+		$nvpReflector = new ReflectionObject($nvp);
+		$getPaypalDoAuthorization = $nvpReflector->getMethod('_getPaypalDoAuthorization');
+		$getPaypalDoAuthorization->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization',
+			$getPaypalDoAuthorization->invoke($nvp)
+		);
+
+		$doAuthorization = Mage::getModel('eb2cpayment/paypal_do_authorization');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doAuthorizationReflector = new ReflectionObject($doAuthorization);
+		$helper = $doAuthorizationReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doAuthorization, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoAuthorization = $nvpReflector->getProperty('_paypalDoAuthorization');
+		$paypalDoAuthorization->setAccessible(true);
+		$paypalDoAuthorization->setValue($this->_nvp, $doAuthorization);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp',
+			$this->_nvp->callDoAuthorization()
+		);
+	}
+
+	/**
+	 * testing callDoAuthorization method - when eb2c PayPalDoAuthorization is disabled
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfigWithPaypalDoAuthorizationDisabled.yaml
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCallDoAuthorizationDisabled()
+	{
+		$doAuthorization = Mage::getModel('eb2cpayment/paypal_do_authorization');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doAuthorizationReflector = new ReflectionObject($doAuthorization);
+		$helper = $doAuthorizationReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doAuthorization, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoAuthorization = $nvpReflector->getProperty('_paypalDoAuthorization');
+		$paypalDoAuthorization->setAccessible(true);
+		$paypalDoAuthorization->setValue($this->_nvp, $doAuthorization);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp',
+			$this->_nvp->callDoAuthorization()
+		);
+	}
+
+	/**
+	 * testing callDoVoid method
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCallDoVoid()
+	{
+		// because we are getting the paypal Do Void class property in the setup as a reflection some of te code
+		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
+		$nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
+		$nvpReflector = new ReflectionObject($nvp);
+		$getPaypalDoVoid = $nvpReflector->getMethod('_getPaypalDoVoid');
+		$getPaypalDoVoid->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal_Do_Void',
+			$getPaypalDoVoid->invoke($nvp)
+		);
+
+		$doVoid = Mage::getModel('eb2cpayment/paypal_do_void');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doVoidReflector = new ReflectionObject($doVoid);
+		$helper = $doVoidReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doVoid, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoVoid = $nvpReflector->getProperty('_paypalDoVoid');
+		$paypalDoVoid->setAccessible(true);
+		$paypalDoVoid->setValue($this->_nvp, $doVoid);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->assertNull($this->_nvp->callDoVoid());
+	}
+
+	/**
+	 * testing callDoVoid method - when eb2c PayPalDoVoid is disabled
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfigWithPaypalDoVoidDisabled.yaml
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCallDoVoidDisabled()
+	{
+		$doVoid = Mage::getModel('eb2cpayment/paypal_do_void');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doVoidReflector = new ReflectionObject($doVoid);
+		$helper = $doVoidReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doVoid, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoVoid = $nvpReflector->getProperty('_paypalDoVoid');
+		$paypalDoVoid->setAccessible(true);
+		$paypalDoVoid->setValue($this->_nvp, $doVoid);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->assertNull($this->_nvp->callDoVoid());
+	}
 }
