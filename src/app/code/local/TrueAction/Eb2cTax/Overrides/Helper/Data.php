@@ -85,4 +85,17 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		return $this->_configRegistry->setStore($store)->taxApplyAfterDiscount;
 	}
 
+	/**
+	 * use magento's built in currency handling to convert an amount from $store's currency to
+	 * the currency of $store's website.
+	 * @param  double $amount amount to convert
+	 * @param  Mage_Core_Model_Store $store  store to convert from
+	 * @return double
+	 */
+	public function convertToBaseCurrency($amount, Mage_Core_Model_Store $store = null)
+	{
+		$store = $store ? $store : Mage::app()->getStore();
+		$value = $store->getCurrentCurrency()->convert($price, $store->getBaseCurrency());
+		return $value;
+	}
 }
