@@ -1,28 +1,60 @@
-0-6:
-  tax_amount: 0.0
-  base_tax_amount: 0.0
-  row_total_incl_tax: 50
-  base_row_total_incl_tax: 50
+beforediscount-6:
+  tax_amount: 6.25
+  row_total_incl_tax: 106.24
   hidden_tax_amount: 0
+  # base amounts
+  base_tax_amount: 6.25
+  base_row_total_incl_tax: 106.24
   base_hidden_tax_amount: 0
-0-7:
+beforediscount-7:
   tax_amount: 8.0
-  base_tax_amount: 8.0
   row_total_incl_tax: 107.99
+  hidden_tax_amount: 0
+  # base amounts
+  base_tax_amount: 8.0
   base_row_total_incl_tax: 107.99
-  hidden_tax_amount: 0
   base_hidden_tax_amount: 0
-1-6:
-  tax_amount: 0.0
-  base_tax_amount: 0.0
-  row_total_incl_tax: 50
-  base_row_total_incl_tax: 50
-  hidden_tax_amount: 0
-  base_hidden_tax_amount: 0
-1-7:
+beforediscount-address:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  total_amount_hidden_tax: 0
+  total_amount_shipping_hidden_tax: 0
+  total_amount_shipping: 14.95
+  shipping_including_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  shipping_tax_amount: 8.92
+  # website currency amounts
+  base_total_amount_hidden_tax: 0
+  base_total_amount_shipping_hidden_tax: 0
+  base_total_amount_shipping: 14.95
+  base_shipping_including_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  base_shipping_tax_amount: 8.92
+afterdiscount-6:
+  tax_amount: 5.48
+  row_total_incl_tax: 105.47
+  hidden_tax_amount: 0.77
+  # base amounts
+  base_tax_amount: 5.48
+  base_row_total_incl_tax: 105.47
+  base_hidden_tax_amount: 0.77
+afterdiscount-7:
   tax_amount: 6.4
-  base_tax_amount: 6.4
   row_total_incl_tax: 86.39
-  base_row_total_incl_tax: 86.39
   hidden_tax_amount: 1.6
+  # base amounts
+  base_tax_amount: 6.4
+  base_row_total_incl_tax: 86.39
   base_hidden_tax_amount: 1.6
+afterdiscount-address:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  total_amount_hidden_tax: 0
+  total_amount_shipping_hidden_tax: 0
+  total_amount_shipping: 14.95
+  shipping_including_tax: 23.80 # shipping amount + shipping tax + duty tax + duty amount
+  shipping_tax_amount: 8.85
+  # website currency amounts
+  base_total_amount_hidden_tax: 0
+  base_total_amount_shipping_hidden_tax: 0
+  base_total_amount_shipping: 14.95
+  base_shipping_including_tax: 23.80 # shipping amount + shipping tax + duty tax + duty amount
+  base_shipping_tax_amount: 8.85
