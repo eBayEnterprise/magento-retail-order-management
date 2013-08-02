@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PayPalDoExpressCheckoutReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+	<OrderId>1</OrderId>
+	<ResponseCode>Success</ResponseCode>
+	<TransactionID>O-3A919253XG323924A</TransactionID>
+	<PaymentInfo>
+		<PaymentStatus>Pending</PaymentStatus>
+		<PendingReason>order</PendingReason>
+		<ReasonCode>none</ReasonCode>
+	</PaymentInfo>
+</PayPalDoExpressCheckoutReply>

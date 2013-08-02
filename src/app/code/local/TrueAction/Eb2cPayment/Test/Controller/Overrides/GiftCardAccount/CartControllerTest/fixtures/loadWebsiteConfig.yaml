@@ -1,0 +1,19 @@
+scope:
+  website:
+    - website_id: 1
+      code: main
+      name: Main Website
+      default_group_id: 1
+  group:
+    - group_id: 1
+      website_id: 1
+      name: Main Website Store
+      root_category_id: 8
+      default_store_id: 1
+  store:
+    - store_id: 1
+      code: default
+      website_id: 1
+      group_id: 1
+      name: Default Store View
+      is_active: 1
