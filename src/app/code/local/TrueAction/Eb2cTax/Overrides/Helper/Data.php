@@ -95,7 +95,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	public function convertToBaseCurrency($amount, Mage_Core_Model_Store $store = null)
 	{
 		$store = $store ? $store : Mage::app()->getStore();
-		$value = $store->getCurrentCurrency()->convert($price, $store->getBaseCurrency());
+		$value = $store->getCurrentCurrency()->convert($amount, $store->getBaseCurrency());
 		return $value;
 	}
 }
