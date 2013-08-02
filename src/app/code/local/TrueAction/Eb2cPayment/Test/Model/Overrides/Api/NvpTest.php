@@ -283,4 +283,88 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 
 		$this->assertNull($this->_nvp->callGetExpressCheckoutDetails());
 	}
+
+	/**
+	 * testing callDoExpressCheckoutPayment method
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCallDoExpressCheckoutPayment()
+	{
+		// because we are getting the paypal Do express checkout class property in the setup as a reflection some of te code
+		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
+		$nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
+		$nvpReflector = new ReflectionObject($nvp);
+		$getPaypalDoExpressCheckout = $nvpReflector->getMethod('_getPaypalDoExpressCheckout');
+		$getPaypalDoExpressCheckout->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout',
+			$getPaypalDoExpressCheckout->invoke($nvp)
+		);
+
+		$doExpressCheckout = Mage::getModel('eb2cpayment/paypal_do_express_checkout');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doExpressCheckoutReflector = new ReflectionObject($doExpressCheckout);
+		$helper = $doExpressCheckoutReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doExpressCheckout, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoExpressCheckout = $nvpReflector->getProperty('_paypalDoExpressCheckout');
+		$paypalDoExpressCheckout->setAccessible(true);
+		$paypalDoExpressCheckout->setValue($this->_nvp, $doExpressCheckout);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->_nvp->setAddress(new Varien_Object());
+
+		$this->assertNull($this->_nvp->callDoExpressCheckoutPayment());
+	}
+
+	/**
+	 * testing callDoExpressCheckoutPayment method - when eb2c PayPalDoExpressCheckout is disabled
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture loadConfigWithPaypalDoExpressCheckoutDisabled.yaml
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCallDoExpressCheckoutPaymentDisabled()
+	{
+		$doExpressCheckout = Mage::getModel('eb2cpayment/paypal_do_express_checkout');
+		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
+		$doExpressCheckoutReflector = new ReflectionObject($doExpressCheckout);
+		$helper = $doExpressCheckoutReflector->getProperty('_helper');
+		$helper->setAccessible(true);
+		$helper->setValue($doExpressCheckout, $paymentHelper);
+
+		$nvpReflector = new ReflectionObject($this->_nvp);
+		$paypalDoExpressCheckout = $nvpReflector->getProperty('_paypalDoExpressCheckout');
+		$paypalDoExpressCheckout->setAccessible(true);
+		$paypalDoExpressCheckout->setValue($this->_nvp, $doExpressCheckout);
+
+		$configObject = new Mage_Paypal_Model_Config();
+		$config = $nvpReflector->getProperty('_config');
+		$config->setAccessible(true);
+		$config->setValue($this->_nvp, $configObject);
+
+		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
+		$cart = $nvpReflector->getProperty('_cart');
+		$cart->setAccessible(true);
+		$cart->setValue($this->_nvp, $cartObject);
+
+		$this->assertNull($this->_nvp->callDoExpressCheckoutPayment());
+	}
 }

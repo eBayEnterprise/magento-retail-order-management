@@ -28,6 +28,13 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	protected $_paypalGetExpressCheckout;
 
 	/**
+	 * eb2c paypal Do express checkout object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
+	 */
+	protected $_paypalDoExpressCheckout;
+
+	/**
 	 * Get helper instantiated object.
 	 *
 	 * @return TrueAction_Eb2cPayment_Helper_Data
@@ -66,6 +73,20 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		return $this->_paypalGetExpressCheckout;
+	}
+
+	/**
+	 * Get paypal Do Express Checkout instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
+	 */
+	protected function _getPaypalDoExpressCheckout()
+	{
+		if (!$this->_paypalDoExpressCheckout) {
+			$this->_paypalDoExpressCheckout = Mage::getModel('eb2cpayment/paypal_do_express_checkout');
+		}
+
+		return $this->_paypalDoExpressCheckout;
 	}
 
 	/**
@@ -141,6 +162,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::SET_EXPRESS_CHECKOUT, $request);
 		}
 
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
+			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+		}
+
 		$this->_importFromResponse($this->_setExpressCheckoutResponse, $response);
 	}
 
@@ -194,7 +219,65 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::GET_EXPRESS_CHECKOUT_DETAILS, $request);
 		}
 
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
+			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+		}
+
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
 		$this->_exportAddressses($response);
+	}
+
+	/**
+	 * Override to make eb2c PayPalDoExpressCheckout call
+	 *
+	 * DoExpressCheckout call
+	 * @link https://cms.paypal.com/us/cgi-bin/?&cmd=_render-content&content_ID=developer/e_howto_api_nvp_r_DoExpressCheckoutPayment
+	 */
+	public function callDoExpressCheckoutPayment()
+	{
+		$this->_prepareExpressCheckoutCallRequest($this->_doExpressCheckoutPaymentRequest);
+		$request = $this->_exportToRequest($this->_doExpressCheckoutPaymentRequest);
+		$this->_exportLineItems($request);
+
+		if ($this->getAddress()) {
+			$request = $this->_importAddresses($request);
+			$request['ADDROVERRIDE'] = 1;
+		}
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cPaypalDoExpressCheckout) {
+			// Eb2c PaypalDoExpressCheckout is enabled
+			// Removing direct call to PayPal, Make Eb2c PayPalDoExpressCheckout call here.
+			$quote = $this->_getCart()->getSalesEntity();
+
+			$response = array();
+
+			if ($quote) {
+				// We have a valid quote, let's Do PayPal Express checkout it through eb2c.
+				if ($payPalDoExpressCheckoutReply = $this->_getPaypalDoExpressCheckout()->doExpressCheckout($quote)) {
+					if ($payPalDoExpressCheckoutData = $this->_getPaypalDoExpressCheckout()->parseResponse($payPalDoExpressCheckoutReply)) {
+						// making sure we have the right data
+						$quoteShippingAddress = $quote->getShippingAddress();
+						if (isset($payPalDoExpressCheckoutData['responseCode']) && strtoupper(trim($payPalDoExpressCheckoutData['responseCode'])) === 'SUCCESS') {
+							$response = array(
+								'ACK' => $payPalDoExpressCheckoutData['responseCode'],
+								'TRANSACTIONID' => $payPalDoExpressCheckoutData['transactionID'],
+								'PAYMENTSTATUS' => $payPalDoExpressCheckoutData['paymentInfo']['paymentStatus'],
+								'PENDINGREASON' => $payPalDoExpressCheckoutData['paymentInfo']['pendingReason'],
+								'REASONCODE' => $payPalDoExpressCheckoutData['paymentInfo']['reasonCode'],
+							);
+						}
+					}
+				}
+			}
+		} else {
+			$response = $this->call(self::DO_EXPRESS_CHECKOUT_PAYMENT, $request);
+		}
+
+		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
+			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+		}
+
+		$this->_importFromResponse($this->_paymentInformationResponse, $response);
+		$this->_importFromResponse($this->_doExpressCheckoutPaymentResponse, $response);
+		$this->_importFromResponse($this->_createBillingAgreementResponse, $response);
 	}
 }

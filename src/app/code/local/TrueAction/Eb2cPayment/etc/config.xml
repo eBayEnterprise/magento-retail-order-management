@@ -124,6 +124,7 @@
 				<enabled_eb2c_paypal_do_express_checkout>1</enabled_eb2c_paypal_do_express_checkout>
 				<enabled_eb2c_paypal_do_authorization>1</enabled_eb2c_paypal_do_authorization>
 				<enabled_eb2c_paypal_do_void>1</enabled_eb2c_paypal_do_void>
+				<enabled_eb2c_debug>1</enabled_eb2c_debug>
 			</payment>
 		</eb2c>
 	</default>
