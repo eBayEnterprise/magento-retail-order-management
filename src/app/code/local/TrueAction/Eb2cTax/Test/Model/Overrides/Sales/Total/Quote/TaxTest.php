@@ -22,6 +22,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	 */
 	public function testCalcTaxForItemSingleItem($scenario)
 	{
+		$this->markTestIncomplete('changes need implementing');
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
 		Mage::unregister('_helper/tax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
@@ -33,10 +34,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
 
-
-		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
-		$this->replaceByMock('model', 'tax/calculation', $calcMock);
-
 		$address = $this->getModelMock('sales/quote_address', array('getId', 'setTotalAmount'));
 		$address->expects($this->any())
 			->method('getId')
@@ -44,20 +41,36 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$items = $this->_mockSingleItemForCalcTaxForItem(true);
 		$itemSelector = new Varien_Object(array('address' => $address));
 
+		// setup the calculator
 		$calcMock = $this->getModelMock('tax/calculation', array('getTax', 'getTaxForAmount', 'getAppliedRates'));
 		$calcMock->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
 			array($this->anything(), 'merchandise', 6.25),
 			array($this->anything(), 'shipping', 0.20),
-			array($this->anything(), 'duty', 8.72), 
+			array($this->anything(), 'duty', 8.72),
 		)));
 		$calcMock->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
 			array($this->anything(), 'merchandise', 0.77),
 			array($this->anything(), 'shipping', 0.07),
-			array($this->anything(), 'duty', 0), 
+			array($this->anything(), 'duty', 0),
+		)));
+		$calcMock->expects($this->any())->method('getTaxForAmount')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 6.25),
+			array($this->anything(), 'shipping', 0.20),
+			array($this->anything(), 'duty', 8.72),
+		)));
+		$calcMock->expects($this->any())->method('getDiscountTaxForAmount')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 0.77),
+			array($this->anything(), 'shipping', 0.07),
+			array($this->anything(), 'duty', 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
-			$scenario === 'afterdiscount' ? self::$classicJeansAppliedRatesAfter2 : self::$classicJeansAppliedRatesBefore2;
+			$scenario === 'afterdiscount' ?
+				self::$classicJeansAppliedRatesAfter2 :
+				self::$classicJeansAppliedRatesBefore2
 		));
+		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
+		$this->replaceByMock('model', 'tax/calculation', $calcMock);
+
 		// set up the SUT
 		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
 		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcTaxForItem');
@@ -114,10 +127,146 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 				->with($this->equalTo('shipping_hidden_tax'), $this->equalTo($e->getBaseTotalAmountShippingHiddenTax()))
 				->will($this->returnSelf());
 
+			$address->expects($this->any())
+				->method('setTotalAmount')
+				->with($this->equalTo('shipping'), $this->equalTo($e->getTotalAmountShipping()))
+				->will($this->returnSelf());
+			$address->expects($this->any())
+				->method('setShippingIncludingTax')
+				->with($this->equalTo('shipping'), $this->equalTo($e->getShippingIncludingTax()))
+				->will($this->returnSelf());
+
 			$itemSelector->setItem($item);
 			$calcTaxForItemMethod->invoke($taxModel, $itemSelector);
 		}
 	}
+
+	/**
+	 * @loadExpectation taxtest.yaml
+	 * @dataProvider providerTestCalcTaxForItemBeforeDiscount
+	 */
+	public function testCalcShippingTaxSingleItem($scenario)
+	{
+		$this->markTestIncomplete('changes need implementing');
+		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
+		Mage::unregister('_helper/tax');
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', $scenario === 'afterdiscount'))));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
+		// setup the calculator
+		$calcMock = $this->getModelMock('tax/calculation', array('getTax', 'getTaxForAmount', 'getAppliedRates'));
+		$calcMock->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 6.25),
+			array($this->anything(), 'shipping', 0.20),
+			array($this->anything(), 'duty', 8.72),
+		)));
+		$calcMock->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 0.77),
+			array($this->anything(), 'shipping', 0.07),
+			array($this->anything(), 'duty', 0),
+		)));
+		$calcMock->expects($this->any())->method('getTaxForAmount')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 6.25),
+			array($this->anything(), 'shipping', 0.20),
+			array($this->anything(), 'duty', 8.72),
+		)));
+		$calcMock->expects($this->any())->method('getDiscountTaxForAmount')->will($this->returnValueMap(array(
+			array($this->anything(), 'merchandise', 0.77),
+			array($this->anything(), 'shipping', 0.07),
+			array($this->anything(), 'duty', 0),
+		)));
+		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
+			$scenario === 'afterdiscount' ?
+				self::$classicJeansAppliedRatesAfter2 :
+				self::$classicJeansAppliedRatesBefore2
+		));
+		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
+		$this->replaceByMock('model', 'tax/calculation', $calcMock);
+
+		// setup the address
+		$address = $this->getModelMock('sales/quote_address', array(
+			'getId', 'getShippingAmount', 'getBaseShippingAmount', 'getShippingDiscountAmount', 'getBaseShippingDiscountAmount',
+			'setTotalAmount', 'setShippingIncludingTax', 'setShippingTaxAmount', // store amounts
+			'setBaseTotalAmount', 'setBaseShippingIncludingTax', 'setBaseShippingTaxAmount', // website amounts
+			'setIsShippingInclTax', 'setIsShippingInclVat', // flags
+		));
+		$address->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(15));
+		$address->expects($this->any())
+			->method('getShippingAmount')
+			->will($this->returnValue(14.95));
+		$address->expects($this->any())
+			->method('getBaseShippingAmount')
+			->will($this->returnValue(14.95));
+		$address->expects($this->any())
+			->method('getShippingDiscountAmount')
+			->will($this->returnValue(5));
+		$address->expects($this->any())
+			->method('getBaseShippingDiscountAmount')
+			->will($this->returnValue(5));
+
+		$e = $this->expected("{$scenario}-address");
+		// check flags
+		$address->expects($this->any())
+			->method('setIsShippingInclTax')
+			->with($this->equalTo($e->setIsShippingInclTax()))
+			->will($this->returnSelf());
+		$address->expects($this->any())
+			->method('setIsShippingInclVat')
+			->with($this->equalTo($e->setIsShippingInclVat()))
+			->will($this->returnSelf());
+
+		// store currency amounts
+		$address->expects($this->any())
+			->method('setTotalAmount')
+			->with($this->equalTo('shipping'), $this->equalTo($e->getTotalAmountShipping()))
+			->will($this->returnSelf());
+		$address->expects($this->any())
+			->method('setShippingIncludingTax')
+			->with($this->equalTo($e->getShippingIncludingTax()))
+			->will($this->returnSelf());
+		$address->expects($this->any())
+			->method('setShippingTaxAmount')
+			->with($this->equalTo($e->getShippingIncludingTax()))
+			->will($this->returnSelf());
+
+		// website currency amounts
+		$address->expects($this->any())
+			->method('setBaseTotalAmount')
+			->with($this->equalTo('shipping'), $this->equalTo($e->getTotalAmountShipping()))
+			->will($this->returnSelf());
+		$address->expects($this->any())
+			->method('setBaseShippingIncludingTax')
+			->with($this->equalTo($e->getShippingIncludingTax()))
+			->will($this->returnSelf());
+		$address->expects($this->any())
+			->method('setBaseShippingTaxAmount')
+			->with($this->equalTo($e->getShippingIncludingTax()))
+			->will($this->returnSelf());
+
+		$items = $this->_mockSingleItemForCalcTaxForItem(true);
+		$itemSelector = new Varien_Object(array('address' => $address));
+		$itemSelector->setItem($item);
+		// set up the SUT
+		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
+		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
+		$itemSelector = new Varien_Object(array('item' => $itemMock, 'address' => $address));
+		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
+
+		// precondition check
+		$this->assertSame(1, count($items), 'number of items (' . count($items) . ') is not 1');
+		$e = $this->expected($scenario . '-' . $item->getId());
+
+		$calcTaxForItemMethod->invoke($taxModel, $itemSelector);
+	}
+
 
 	public static $classicJeansAppliedRatesBefore2 = array(
 		'state sales tax-0.06' => array(
@@ -150,13 +299,27 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		),
 		'duty tax-0.0262' => array(
 			'percent'     => 2.62,
-			'id'          => 'duty-1',
+			'id'          => 'duty tax-0.0262',
 			'amount'      => 0.51,
 			'base_amount' => 0.51,
 			'rates' => array(
 				0 => array(
-					'code'     => 'duty',
-					'title'    => 'duty',
+					'code'     => 'duty tax',
+					'title'    => 'duty tax',
+					'position' => '1',
+					'priority' => '1',
+				),
+			),
+		),
+		'eb2c-duty-amount' => array(
+			'percent'     => null,
+			'id'          => 'eb2c-duty-amount',
+			'amount'      => 8.21,
+			'base_amount' => 8.21,
+			'rates' => array(
+				0 => array(
+					'code'     => 'eb2c-duty-amount',
+					'title'    => 'Duty',
 					'position' => '1',
 					'priority' => '1',
 				),
@@ -168,8 +331,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		'state sales tax-0.06' => array(
 			'percent'     => 6.25,
 			'id'          => 'state sales tax-0.06',
-			'amount'      => 6.25,
-			'base_amount' => 6.25,
+			'amount'      => 5.48,
+			'base_amount' => 5.48,
 			'rates' => array(
 				0 => array(
 					'code'     => 'state sales tax',
@@ -182,8 +345,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		'shipping tax-0.06' => array(
 			'percent'     => 1.33,
 			'id'          => 'shipping tax-0.06',
-			'amount'      => 0.20,
-			'base_amount' => 0.20,
+			'amount'      => 0.13,
+			'base_amount' => 0.13,
 			'rates' => array(
 				0 => array(
 					'code'     => 'shipping tax',
@@ -195,19 +358,36 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		),
 		'duty tax-0.0262' => array(
 			'percent'     => 2.62,
-			'id'          => 'duty-1',
+			'id'          => 'duty tax-0.0262',
 			'amount'      => 0.51,
 			'base_amount' => 0.51,
 			'rates' => array(
 				0 => array(
-					'code'     => 'duty',
-					'title'    => 'duty',
+					'code'     => 'duty tax',
+					'title'    => 'duty tax',
+					'position' => '1',
+					'priority' => '1',
+				),
+			),
+		),
+		'eb2c-duty-amount' => array(
+			'percent'     => null,
+			'id'          => 'eb2c-duty-amount',
+			'amount'      => 8.21,
+			'base_amount' => 8.21,
+			'rates' => array(
+				0 => array(
+					'code'     => 'eb2c-duty-amount',
+					'title'    => 'Duty',
 					'position' => '1',
 					'priority' => '1',
 				),
 			),
 		),
 	);
+
+
+
 
 
 	protected function _mockSingleItemForCalcTaxForItem($after = false)
@@ -218,7 +398,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$itemMock = $this->getModelMock('sales/quote_item', $methods);
 		$itemMock->expects($this->any())
 			->method('getId')
-			->will($this->returnValue(7));
+			->will($this->returnValue(6));
 		$itemMock->expects($this->any())
 			->method('getSku')
 			->will($this->returnValue('classic-jeans'));
