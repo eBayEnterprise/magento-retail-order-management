@@ -129,7 +129,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 						// making sure we have the right data
 						if (isset($payPalSetExpressCheckoutData['responseCode']) && strtoupper(trim($payPalSetExpressCheckoutData['responseCode'])) === 'SUCCESS') {
 							$response = array(
-								'TOKEN' => 'EC-4TJ32438CM668953D', //$payPalSetExpressCheckoutData['token'],
+								'TOKEN' => $payPalSetExpressCheckoutData['token'],
 								'ACK' => $payPalSetExpressCheckoutData['responseCode'],
 							);
 						}
