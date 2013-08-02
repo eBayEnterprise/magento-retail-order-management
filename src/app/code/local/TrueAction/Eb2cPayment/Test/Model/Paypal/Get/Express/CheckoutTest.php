@@ -119,7 +119,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 	{
 		return array (
 			'orderId' => 1,
-			'responseCode' => 'ResponseCode0',
+			'responseCode' => 'Success',
 			'payerEmail' => 'PayerEmail0',
 			'payerId' => 'PayerId0',
 			'payerStatus' => 'PayerStatus0',
