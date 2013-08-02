@@ -1,85 +1,227 @@
 <?php
-class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
+	extends TrueAction_Eb2cTAx_Test_Base
 {
-	protected function setUp()
-	{
-		parent::setUp();
-		$cookieMock = $this->getModelMockBuilder('core/cookie')
-			->disableOriginalConstructor() // This one removes session_start and other methods usage
-			->setMethods(array('set')) // Enables original methods usage, because by default it overrides all methods
-			->getMock();
-		$cookieMock->expects($this->any())
-			->method('set')
-			->will($this->returnSelf());
-		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
-
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
-
-		$this->subtotal = Mage::getModel('tax/sales_total_quote_subtotal');
-
-		$taxQuote  = $this->getModelMock('eb2ctax/response_quote',
-			array('getEffectiveRate', 'getCalculatedTax', 'getTaxableAmount'));
-		$taxQuote->expects($this->any())
-			->method('getEffectiveRate')
-			->will($this->returnValue(1.5));
-		$taxQuote->expects($this->any())
-			->method('getCalculatedTax')
-			->will($this->returnValue(0.38));
-		$taxQuote->expects($this->any())
-			->method('getTaxableAmount')
-			->will($this->returnValue(10));
-		$taxQuotes = array($taxQuote);
-		$orderItem = $this->getModelMock(
-			'eb2ctax/response_orderitem',
-			array('getTaxQuotes', 'getMerchandiseAmount')
-		);
-		$orderItem->expects($this->any())
-			->method('getTaxQuotes')
-			->will($this->returnValue($taxQuotes));
-		$orderItem->expects($this->any())
-			->method('getMerchandiseAmount')
-			->will($this->returnValue(299.99));
-		$orderItems = array($orderItem);
-		$response = $this->getModelMock(
-			'eb2ctax/response',
-			array('getResponseForItem')
-		);
-		$response->expects($this->any())
-			->method('getResponseForItem')
-			->will($this->returnValue($orderItem));
-		Mage::helper('tax')->getCalculator()
-			->setTaxResponse($response);
-	}
 
 	/**
-	 * @test
+	 * Test the application of taxes to an item.
 	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture singleShippingSameAsBilling.yaml
-	 * @loadExpectation testApplyTaxes.yaml
+	 * @dataProvider dataProvider
+	 * @test
 	 */
-	public function testApplyTaxes()
+	public function testApplyTaxes($qty, $price, $subtotal, $basePrice, $baseSubtotal)
 	{
-		$this->markTestIncomplete('expectation needs to be updated');
+		$address = $this->getModelMock('sales/quote_address');
+		$store = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$quote = $this->getModelMock('sales/quote', array('getStore'));
+		$quote->expects($this->any())
+			->method('getStore')
+			->will($this->returnValue($store));
 
-		$applyTaxes = new ReflectionMethod($this->subtotal, '_applyTaxes');
-		$applyTaxes->setAccessible(true);
+		$helper = $this->getHelperMock('tax/data', array('convertToBaseCurrency'));
+		$helper->expects($this->any())
+			->method('convertToBaseCurrency')
+			->with($this->anything(), $this->identicalTo($store))
+			->will($this->returnCallback(function ($val, $store) { return $val * 2; }));
 
-		$calc    = Mage::helper('tax')->getCalculator();
-		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(1);
-		$address = $quote->getShippingAddress();
-		$items   = $address->getAllNonNominalItems();
-		foreach ($items as $item) {
-			$applyTaxes->invoke($this->subtotal, $item, $address);
-			$exp = $this->expected('1-' . $item->getSku());
-			$this->assertSame($exp->getTaxPercent(), $item->getTaxPercent());
-			$this->assertSame($exp->getPriceInclTax(), $item->getPriceInclTax());
-			$this->assertSame($exp->getRowTotalInclTax(), $item->getRowTotalInclTax());
-			$this->assertSame($exp->getTaxableAmount(), $item->getTaxableAmount());
-			$this->assertSame($exp->getIsPriceInclTax(), $item->getIsPriceInclTax());
-		}
+		$item = $this->getModelMock('sales/quote_item', array(
+			'getQuote',
+			'getTotalQty',
+			'getCalculationPriceOriginal',
+			'getRowTotal',
+			'setTaxPercent',
+			'hasCustomPrice',
+			'getOriginalPrice',
+			'setCustomPrice',
+			'setBaseCustomPrice',
+			'setPrice',
+			'setBasePrice',
+			'setRowTotal',
+			'setBaseRowTotal',
+			'setPriceInclTax',
+			'setBasePriceInclTax',
+			'setRowTotalInclTax',
+			'setBaseRowTotalInclTax',
+			'setTaxableAmount',
+			'setBaseTaxableAmount',
+			'setIsPriceInclTax',
+			'setDiscountCalculationPrice',
+			'setBaseDiscountCalculationPrice',
+		));
+
+		// make sure all of the float values from the dataProvider are actually floats
+		$price = (float) $price;
+		$subtotal = (float) $subtotal;
+		$basePrice = (float) $basePrice;
+		$baseSubtotal = (float) $baseSubtotal;
+
+		// pull the expectations for this set of inputs
+		$e = $this->expected('%s-%.2f-%.2f-%.2f-%.2f', $qty, $price, $subtotal, $basePrice, $baseSubtotal);
+
+		$rate = 0;
+
+		// make sure all of the expectation values are actually floats
+		$tax = (float) $e->getTax();
+		$taxPrice = (float) $e->getTaxPrice();
+		$taxSubtotal = (float) $e->getTaxSubtotal();
+		$taxable = (float) $e->getTaxable();
+
+		$baseTax = (float) $e->getBaseTax();;
+		$baseTaxPrice = (float) $e->getBaseTaxPrice();;
+		$baseTaxSubtotal = (float) $e->getBaseTaxSubtotal();;
+		$baseTaxable = (float) $e->getBaseTaxable();;
+
+		$item->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+		// item getters, should mainly return the inputs to this test, tax calculations
+		// will start with these numbers
+		$item->expects($this->once())
+			->method('getTotalQty')
+			->will($this->returnValue($qty));
+		$item->expects($this->once())
+			->method('getCalculationPriceOriginal')
+			->will($this->returnValue($price));
+		$item->expects($this->once())
+			->method('getRowTotal')
+			->will($this->returnValue($subtotal));
+		$item->expects($this->once())
+			->method('hasCustomPrice')
+			->will($this->returnValue(true));
+		$item->expects($this->once())
+			->method('getOriginalPrice')
+			->will($this->returnValue(null));
+
+		// this may not be very useful as the item isn't the authority on the tax rate
+		$item->expects($this->once())
+			->method('setTaxPercent')
+			->with($this->identicalTo($rate))
+			->will($this->returnSelf());
+
+		//////////////////////////////////////////////////////////////////////////
+		// The following assertions ensure the calculations are done properly //
+		//////////////////////////////////////////////////////////////////////////
+
+		// these will only be hit when the item has a custom price, which this item does
+		$item->expects($this->once())
+			->method('setCustomPrice')
+			->with($this->identicalTo($price))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBaseCustomPrice')
+			->with($this->identicalTo($basePrice))
+			->will($this->returnSelf());
+
+		$item->expects($this->once())
+			->method('setPrice')
+			->with($this->equalTo($price))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBasePrice')
+			->with($this->identicalTo($basePrice))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setRowTotal')
+			->with($this->identicalTo($subtotal))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBaseRowTotal')
+			->with($this->identicalTo($baseSubtotal))
+			->will($this->returnSelf());
+
+		// the following should all get set according to the tax calculations
+		$item->expects($this->once())
+			->method('setPriceInclTax')
+			->with($this->identicalTo($taxPrice))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBasePriceInclTax')
+			->with($this->identicalTo($baseTaxPrice))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setRowTotalInclTax')
+			->with($this->identicalTo($taxSubtotal))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBaseRowTotalInclTax')
+			->with($this->identicalTo($baseTaxSubtotal))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setTaxableAmount')
+			->with($this->identicalTo($taxable))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBaseTaxableAmount')
+			->with($this->identicalTo($baseTaxable))
+			->will($this->returnSelf());
+
+		// this will always be false
+		$item->expects($this->once())
+			->method('setIsPriceInclTax')
+			->with($this->identicalTo(false))
+			->will($this->returnSelf());
+
+		// should only be hit when the discountTax config is true, will be in this case
+		$item->expects($this->once())
+			->method('setDiscountCalculationPrice')
+			->with($this->identicalTo($taxPrice))
+			->will($this->returnSelf());
+		$item->expects($this->once())
+			->method('setBaseDiscountCalculationPrice')
+			->with($this->identicalTo($baseTaxPrice))
+			->will($this->returnSelf());
+
+		// the calculation model returns the amount of tax to apply to each item
+		$calculator = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('getTax', 'round'))
+			->getMock();
+		$calculator->expects($this->any())
+			->method('getTax')
+			->with(
+				$this->logicalAnd(
+					$this->attribute($this->arrayHasKey('item'), '_data'),
+					$this->attribute($this->contains($item), '_data'),
+					$this->attribute($this->arrayHasKey('address'), '_data'),
+					$this->attribute($this->contains($address), '_data'),
+					$this->isInstanceOf('Varien_Object')
+				)
+			)
+			->will($this->returnValue($tax));
+		$calculator->expects($this->any())
+			->method('round')
+			->will($this->returnArgument(0));
+
+		// mock out the config used within the _applyTaxes method
+		// have the discountTax method return true to hit the inside of the conditional
+		// @todo - should probably have a separate test where this is false to make sure
+		// only hit methods according to the store configuration
+		$config = $this->getModelMock('tax/config', array('discountTax'));
+		$config->expects($this->any())
+			->method('discountTax')
+			->will($this->returnValue(true));
+
+		// mock the subtotal model (that we are testing) to prevent the constructor
+		// from funning and hitting the session
+		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		// inject the mocks into the subtotal model properties
+		$this->_reflectProperty($subtotal, '_calculator')->setValue($subtotal, $calculator);
+		$this->_reflectProperty($subtotal, '_config')->setValue($subtotal, $config);
+		$this->_reflectProperty($subtotal, '_store')->setValue($subtotal, null);
+		$this->_reflectProperty($subtotal, '_helper')->setValue($subtotal, $helper);
+		$applyTaxes = $this->_reflectMethod($subtotal, '_applyTaxes');
+
+		// make sure the method returns itself for chainability
+		$this->assertSame(
+			$subtotal,
+			$applyTaxes->invoke($subtotal, $item, $address)
+		);
 	}
 
 	/**
@@ -174,17 +316,23 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 		$address->expects($this->once())
 			->method('setBaseSubtotalInclTax')
 			->will($this->returnSelf());
+		// grandparent::collect will call this with param $subtotal->_code and 0
+		// when constructor is disabled (as in this case) $subtotal->_code will be null
+		// subtotal model will call it with subtotal and 0
 		$address->expects($this->exactly(2))
 			->method('setTotalAmount')
 			->with(
-				$this->logicalOr($this->equalTo('subtotal'), $this->equalTo('tax_subtotal')),
+				$this->logicalOr($this->equalTo('subtotal'), $this->equalTo(null)),
 				$this->equalTo(0)
 			)
 			->will($this->returnSelf());
+		// grandparent::collect will call this with param $subtotal->_code and 0
+		// when constructor is disabled (as in this case) $subtotal->_code will be null
+		// subtotal model will call it with subtotal and 0
 		$address->expects($this->exactly(2))
 			->method('setBaseTotalAmount')
 			->with(
-				$this->logicalOr($this->equalTo('subtotal'), $this->equalTo('tax_subtotal')),
+				$this->logicalOr($this->equalTo('subtotal'), $this->equalTo(null)),
 				$this->equalTo(0)
 			)
 			->will($this->returnSelf());
@@ -192,12 +340,15 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 			->method('setRoundingDeltas')
 			->will($this->returnSelf());
 
-		$subtotal = $this->getModelMock('tax/sales_total_quote_subtotal', array(
-			'_getAddressItems',
-			'_applyTaxes',
-			'_recalculateParent',
-			'_addSubtotalAmount',
-		));
+		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'_getAddressItems',
+				'_applyTaxes',
+				'_recalculateParent',
+				'_addSubtotalAmount',
+			))
+			->getMock();
 		$subtotal->expects($this->once())
 			->method('_getAddressItems')
 			->will($this->returnValue($items));
@@ -278,7 +429,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 		$mockQuoteAddress->expects($this->once())
 			->method('setRoundingDeltas')
 			->will($this->returnSelf());
-		$this->subtotal->collect($mockQuoteAddress);
+
+		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$subtotal->collect($mockQuoteAddress);
 
 		$this->assertEventDispatched('eb2ctax_subtotal_collect_before');
 	}
@@ -312,13 +468,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 			'getAllNonNominalItems',
 			'setRoundingDeltas',
 		));
+		// grandparent::collect will call this with param $subtotal->_code and 0
+		// when constructor is disabled (as in this case) $subtotal->_code will be null
 		$address->expects($this->at(0))
 			->method('setTotalAmount')
-			->with($this->equalTo('tax_subtotal'), $this->equalTo(0))
+			->with($this->equalTo(null), $this->equalTo(0))
 			->will($this->returnSelf());
+		// grandparent::collect will call this with param $subtotal->_code and 0
+		// when constructor is disabled (as in this case) $subtotal->_code will be null
 		$address->expects($this->at(1))
 			->method('setBaseTotalAmount')
-			->with($this->equalTo('tax_subtotal'), $this->equalTo(0))
+			->with($this->equalTo(null), $this->equalTo(0))
 			->will($this->returnSelf());
 		$address->expects($this->any())
 			->method('getQuote')
@@ -343,7 +503,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest ext
 			->method('getAllNonNominalItems')
 			->will($this->returnValue(null));
 
-		$this->subtotal->collect($address);
+		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$subtotal->collect($address);
 
 		$this->assertEventDispatched('eb2ctax_subtotal_collect_before');
 	}
