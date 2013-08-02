@@ -94,14 +94,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 		$subtotal       = $taxSubtotal      = $item->getRowTotal();
 		$baseSubtotal   = $baseTaxSubtotal  = $item->getBaseRowTotal();
 		$item->setTaxPercent($rate);
-		$tax             = $this->_calculator->getTaxForItem($item, $address);
-		$baseTax         = $this->_calculator->getTaxForItemAmount($basePrice, $item, $address);
+		$tax             = $this->_calculator->getTax($item, $address);
+		$baseTax         = $this->_calculator->getTaxForAmount($basePrice, $item, $address);
 		$taxPrice        = $price + $tax;
 		$baseTaxPrice    = $basePrice + $baseTax;
 		$taxSubtotal     = $taxPrice * $qty;
 		$baseTaxSubtotal = $baseTaxPrice * $qty;
-		$taxable         = $this->_calculator->getTaxableForItem($item, $address);
-		$baseTaxable     = $taxable;
+		$taxable         = $subtotal;
+		$baseTaxable     = $baseSubtotal;
 		if ($item->hasCustomPrice()) {
 			/**
 			 * Initialize item original price before declaring custom price

@@ -4,6 +4,8 @@
  */
 class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calculation
 {
+	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -15,9 +17,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		}
 		$this->_eConfig = Mage::getModel('eb2ctax/config');
 	}
-
-
-	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
 
 	/**
 	 * return the total tax amount for any discounts.
@@ -93,22 +92,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 
 	/**
 	 * calculate tax amount for an item filtered by $type.
-	 * @param  Mage_Sales_Model_Quote_Item    $item
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @param  string                         $type
-	 * @return float
-	 */
-	public function getTaxforItem(
-		Mage_Sales_Model_Quote_Item    $item    = null,
-		Mage_Sales_Model_Quote_Address $address = null,
-		$type = 'merchandise'
-	) {
-		$itemSelector = new Varien_Object(array('item' => $item, 'address' => $address));
-		return $this->getTax($itemSelector, $type);
-	}
-
-	/**
-	 * calculate tax amount for an item filtered by $type.
 	 * @param  Varien_Object $itemSelector
 	 * @param  string        $type
 	 * @return float
@@ -165,52 +148,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 			$response->getResponseForItem($item, $address) :
 			null;
 		return $itemResponse;
-	}
-
-	/**
-	 * return the total taxable amount.
-	 * @param  Mage_Sales_Model_Quote_Item  $item
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @return float
-	 */
-	public function getTaxableForItem(
-		Mage_Sales_Model_Quote_Item  $item,
-		Mage_Sales_Model_Quote_Address $address
-	) {
-		$itemResponse      = $this->_getItemResponse($item, $address);
-		$taxQuotes         = array();
-		$merchandiseAmount = 0;
-		$amount = 0;
-		if ($itemResponse) {
-			$taxQuotes         = $itemResponse->getTaxQuotes();
-			$merchandiseAmount = $itemResponse->getMerchandiseAmount();
-			foreach($taxQuotes as $taxQuote) {
-				$amount += $taxQuote->getTaxableAmount();
-			}
-		}
-		return min($amount, $merchandiseAmount);
-	}
-
-	/**
-	 * calculate tax for an amount with the rates from the response for the item.
-	 * @param  float                       $amount
-	 * @param  Mage_Sales_Model_Quote_Item $item
-	 * @param  boolean                     $amountInlcudesTax
-	 * @param  boolean                     $round
-	 * @return float
-	 */
-	public function getTaxforItemAmount(
-		$amount,
-		Mage_Sales_Model_Quote_Item $item,
-		Mage_Sales_Model_Quote_Address $address,
-		$type = 'merchandise',
-		$round = true
-	) {
-		return $this->getTaxForAmount($amount,
-			new Varien_Object(array('item' => $item, 'address' => $address)),
-			$type,
-			$round
-		);
 	}
 
 	public function getAppliedRates($itemSelector)
