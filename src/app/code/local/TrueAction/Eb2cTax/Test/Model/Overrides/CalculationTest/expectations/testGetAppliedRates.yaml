@@ -14,12 +14,12 @@ beforediscount-duty:
   id: duty tax-0.0625
   code: duty tax
   percent: 2.62
-  amount: 0.22
-  base_amount: 0.22
+  amount: 0.51
+  base_amount: 0.51
 beforediscount-dutyamount:
   id: eb2c-duty-amount
   code: Duty Amount
-  percent: 1
+  percent: 
   amount: 8.21
   base_amount: 8.21
 afterdiscount-merchandise:
@@ -38,11 +38,11 @@ afterdiscount-duty:
   id: duty tax-0.0625
   code: duty tax
   percent: 2.62
-  amount: 0.22
-  base_amount: 0.22
+  amount: 0.51
+  base_amount: 0.51
 afterdiscount-dutyamount:
   id: eb2c-duty-amount
-  code: Duty Amount
-  percent: 1
+  code: Duty
+  percent:
   amount: 8.21
   base_amount: 8.21
