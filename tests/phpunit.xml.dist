@@ -27,7 +27,7 @@
 			<group>TrueAction_Eb2cPayment</group>
 			<group>TrueAction_Eb2cProduct</group>
 			<group>TrueAction_Eb2cTax</group>
-			<group>TrueAction_Eb2cJsc</group>
+			<group>TrueAction_Eb2cFraud</group>
 		</include>
 	</groups>
 	<filter>
