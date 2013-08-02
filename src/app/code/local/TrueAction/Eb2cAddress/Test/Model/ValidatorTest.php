@@ -1044,6 +1044,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * used in checkout.
 	 * @dataProvider dataProvider
 	 * @test
+	 * @long
 	 */
 	public function testAddressBookAddressShouldNotBeValidated($id, $customerId, $customerAddressId)
 	{
