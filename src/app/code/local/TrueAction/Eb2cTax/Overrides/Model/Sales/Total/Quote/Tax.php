@@ -13,8 +13,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
-		// save the address and clear out the tax total fields
-		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+		$this->_initBeforeCollect($address);
 		// clear out the hiddenTax related fields
 		$this->_resetHiddenTaxes($address);
 
@@ -162,6 +161,16 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		}
 
 		return $this;
+	}
+
+	/**
+	 * initialize totals data before collecting the totals.
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 */
+	protected function _initBeforeCollect($address)
+	{
+		// save the address and clear out the tax total fields
+		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
 	}
 
 	/**
