@@ -10,5 +10,6 @@ class TrueAction_Eb2cTax_Model_Config
 		'api_namespace' => 'eb2ctax/api/namespace_uri',
 		'tax_apply_after_discount' => 'eb2ctax/calculation/apply_after_discount',
 		'tax_vat_inclusive_pricing' => 'eb2ctax/calculation/vat_inclusive_pricing',
+		'tax_duty_rate_code' => 'eb2ctax/defaults/duty_amount_code',
 	);
 }

@@ -163,7 +163,6 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 
 	/**
 	 * @test
-	 * @loadFixture vatInclusivePricingEnabled.yaml
 	 */
 	public function testGetVatInclusivePricingFlagEnabled()
 	{
@@ -172,5 +171,18 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 		));
 		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
 		$this->assertTrue($val);
+	}
+
+	/**
+	 * @test
+	 */
+	public function testTaxDutyRateCode()
+	{
+		$code = 'eb2c-duty-amount';
+		$this->_mockConfig(array(
+			array('taxDutyRateCode', $code),
+		));
+		$val = Mage::helper('tax')->taxDutyAmountRateCode();
+		$this->assertSame($code, $val);
 	}
 }

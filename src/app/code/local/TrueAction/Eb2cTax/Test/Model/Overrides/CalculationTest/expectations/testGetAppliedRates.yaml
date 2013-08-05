@@ -4,45 +4,159 @@ beforediscount-merchandise:
   percent: 6.25
   amount: 6.25
   base_amount: 6.25
+  rates:
+    0:
+      code: state tax foo
+      title: state tax foo
+      amount: 6.25
+      percent: 6.25
+      base_amount: 6.25
 beforediscount-shipping:
   id: shipping tax-0.0133
   code: shipping tax
   percent: 1.33
   amount: 0.20
   base_amount: 0.20
+  rates:
+    0:
+      code: shipping tax
+      title: shipping tax
+      amount: 0.20
+      percent: 1.33
+      base_amount: 0.20
 beforediscount-duty:
-  id: duty tax-0.0625
+  id: duty tax-0.0262
   code: duty tax
   percent: 2.62
   amount: 0.51
   base_amount: 0.51
+  rates:
+    0:
+      code: duty tax
+      title: duty tax
+      amount: 0.51
+      percent: 2.62
+      base_amount: 0.51
 beforediscount-dutyamount:
   id: eb2c-duty-amount
-  code: Duty Amount
-  percent:
+  code: Duty
+  percent: null
   amount: 8.21
   base_amount: 8.21
+  rates:
+    0:
+      code: eb2c-duty-amount
+      title: eb2c-duty-amount
+      amount: 8.21
+      percent: null
+      base_amount: 8.21
 afterdiscount-merchandise:
   id: state tax foo-0.0625
   code: state tax foo
   percent: 6.25
   amount: 5.48
   base_amount: 5.48
+  rates:
+    0:
+      code: state tax foo
+      title: state tax foo
+      amount: 5.48
+      percent: 6.25
+      base_amount: 5.48
 afterdiscount-shipping:
   id: shipping tax-0.0133
   code: shipping tax
   percent: 1.33
   amount: 0.13
   base_amount: 0.13
+  rates:
+    0:
+      code: shipping tax
+      title: shipping tax
+      amount: 0.13
+      percent: 1.33
+      base_amount: 0.13
 afterdiscount-duty:
-  id: duty tax-0.0625
+  id: duty tax-0.0262
   code: duty tax
   percent: 2.62
   amount: 0.51
   base_amount: 0.51
+  rates:
+    0:
+      code: duty tax
+      title: duty tax
+      amount: 0.51
+      percent: 2.62
+      base_amount: 0.51
 afterdiscount-dutyamount:
   id: eb2c-duty-amount
-  code: Duty
-  percent:
+  code: Duty Amount
+  percent: null
   amount: 8.21
   base_amount: 8.21
+  rates:
+    0:
+      code: eb2c-duty-amount
+      title: eb2c-duty-amount
+      amount: 8.21
+      percent: null
+      base_amount: 8.21
+duplicate-after-merchandise:
+  id: state tax foo-0.0625
+  code: state tax foo
+  percent: 6.25
+  amount: 10.96
+  base_amount: 10.96
+  rates:
+    0:
+      code: state tax foo
+      title: state tax foo
+      amount: 4.71
+      percent: 6.25
+      base_amount: 4.71
+    1:
+      code: state tax foo
+      title: state tax foo
+      amount: 6.25
+      percent: 6.25
+      base_amount: 6.25
+duplicate-after-duty:
+  id: duty tax-0.0262
+  code: duty tax
+  percent: 2.62
+  amount: 0.51
+  base_amount: 0.51
+  rates:
+    0:
+      code: duty tax
+      title: duty tax
+      amount: 0.51
+      percent: 2.62
+      base_amount: 0.51
+duplicate-after-double-duty:
+  id: duty tax-0.0262
+  code: duty tax
+  percent: 0.00
+  amount: 0.00
+  base_amount: 0.00
+  rates:
+    0:
+      code: duty tax
+      title: duty tax
+      amount: 0.00
+      percent: 0.00
+      base_amount: 0.00
+duplicate-after-dutyamount:
+  id: eb2c-duty-amount
+  code: Duty Amount
+  percent: null
+  amount: 8.21
+  base_amount: 8.21
+  rates:
+    0:
+      code: eb2c-duty-amount
+      title: eb2c-duty-amount
+      amount: 8.21
+      percent: null
+      base_amount: 8.21
