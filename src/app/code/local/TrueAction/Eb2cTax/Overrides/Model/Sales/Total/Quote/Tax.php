@@ -163,6 +163,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		return $this;
 	}
 
+		$isPriceInclTax  = $this->_isShippingPriceTaxInclusive();
 	/**
 	 * initialize totals data before collecting the totals.
 	 * @param  Mage_Sales_Model_Quote_Address $address
@@ -171,6 +172,16 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	{
 		// save the address and clear out the tax total fields
 		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+	}
+
+	/**
+	 * return true if the shipping price includes VAT.
+	 * return false otherwise.
+	 * @return boolean
+	 */
+	protected function _isShippingPriceTaxInclusive()
+	{
+		return false;
 	}
 
 	/**
