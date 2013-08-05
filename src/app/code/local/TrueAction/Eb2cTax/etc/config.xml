@@ -114,6 +114,9 @@
 				<apply_after_discount>1</apply_after_discount>
 				<vat_inclusive_pricing>0</vat_inclusive_pricing>
 			</calculation>
+			<defaults>
+				<duty_amount_code>eb2c-duty-amount</duty_amount_code>
+			</defaults>
 		</eb2ctax>
 	</default>
 	<phpunit>

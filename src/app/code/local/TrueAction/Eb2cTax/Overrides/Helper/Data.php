@@ -98,4 +98,9 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		$value = $store->getCurrentCurrency()->convert($amount, $store->getBaseCurrency());
 		return $value;
 	}
+
+	public function taxDutyAmountRateCode($store = null)
+	{
+		return $this->_configRegistry->setStore($store)->taxDutyRateCode;
+	}
 }
