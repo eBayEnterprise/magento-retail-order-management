@@ -508,16 +508,18 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	/**
 	 * @loadExpectation taxtest.yaml
+	 * @dataProvider discountTaxCalculationSequence
 	 */
-	public function testCalcTaxForItemAfterDiscount()
+	public function testCalcTaxForItem($scenario)
 	{
 		$this->markTestIncomplete('temporarily disabling');
+		$isTaxAppliedAfter = $scenario  === 'afterdiscount';
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
 		Mage::unregister('_helper/tax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
-			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', true))));
+			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', $isTaxAppliedAfter))));
 		$configRegistry->expects($this->any())
 			->method('setStore')
 			->will($this->returnSelf());
@@ -537,8 +539,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$this->_reflectProperty($taxModel, '_address')
 			->setValue($taxModel, $address);
 
-		$items = $this->_mockItemsCalcTaxForItem(false);
 		$itemSelector = new Varien_Object(array('address' => $address));
+		$items = $this->_mockItemsCalcTaxForItem($isTaxAppliedAfter);
 
 		// precondition check
 		$this->assertSame(2, count($items), 'number of items (' . count($items) . ') is not 2');
@@ -581,7 +583,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 				"$expectationPath: base_hidden_tax_amount didn't match expectation"
 			);
 		}
-		$e = $this->expected('1-address');
+		$e = $this->expected("{$scenario}-address");
 		$this->assertSame(
 			$e->getTotalAmountHiddenTax(),
 			$address->getTotalAmount('hidden_tax')
