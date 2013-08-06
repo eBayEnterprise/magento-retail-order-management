@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
-	extends TrueAction_Eb2cTAx_Test_Base
+	extends TrueAction_Eb2cTax_Test_Base
 {
 
 	/**
