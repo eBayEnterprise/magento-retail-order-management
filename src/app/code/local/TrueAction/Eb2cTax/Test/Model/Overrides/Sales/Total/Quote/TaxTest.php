@@ -500,64 +500,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		),
 	);
 
-	protected function _mockItemsCalcTaxForItem($after = false)
-	{
-		$items = array();
-		$methods = array('getDiscountAmount', 'getBaseDiscountAmount', 'getSku', 'getTaxableAmount', 'getBaseTaxableAmount', 'getIsPriceInclVat', 'getId', 'setTaxRates');
-		$itemMock = $this->getModelMock('sales/quote_item', $methods);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(6));
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('gc_virtual1'));
-		$itemMock->expects($this->any())
-			->method('getTaxableAmount')
-			->will($this->returnValue(50.0));
-		$itemMock->expects($this->any())
-			->method('getBaseTaxableAmount')
-			->will($this->returnValue(50.0));
-		$itemMock->expects($this->any())
-			->method('getDiscountAmount')
-			->will($this->returnValue(0));
-		$itemMock->expects($this->any())
-			->method('getBaseDiscountAmount')
-			->will($this->returnValue(0));
-		$itemMock->expects($this->any())
-			->method('setTaxRates')
-			->with($this->equalTo(($after) ? $this->classicJeansAppliedRatesAfter : $this->classicJeansAppliedRatesBefore))
-			->will($this->returnSelf());
-		$items[] = $itemMock;
-
-		$itemMock = $this->getModelMock('sales/quote_item', $methods);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(7));
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('classic-jeans'));
-		$itemMock->expects($this->any())
-			->method('getTaxableAmount')
-			->will($this->returnValue(99.99));
-		$itemMock->expects($this->any())
-			->method('getBaseTaxableAmount')
-			->will($this->returnValue(99.99));
-		$itemMock->expects($this->any())
-			->method('getDiscountAmount')
-			->will($this->returnValue(20));
-		$itemMock->expects($this->any())
-			->method('getBaseDiscountAmount')
-			->will($this->returnValue(20));
-		$itemMock->expects($this->any())
-			->method('setTaxRates')
-			->with($this->equalTo(
-				($after) ? $this->classicJeansAppliedRatesAfter : $this->classicJeansAppliedRatesBefore
-			))
-			->will($this->returnSelf());
-		$items[] = $itemMock;
-		return $items;
-	}
-
 	/**
 	 * @loadExpectation taxtest.yaml
 	 */
@@ -651,6 +593,64 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			$e->getBaseTotalAmountShippingHiddenTax(),
 			$address->getBaseTotalAmount('shipping_hidden_tax')
 		);
+	}
+
+	protected function _mockItemsCalcTaxForItem($after = false)
+	{
+		$items = array();
+		$methods = array('getDiscountAmount', 'getBaseDiscountAmount', 'getSku', 'getTaxableAmount', 'getBaseTaxableAmount', 'getIsPriceInclVat', 'getId', 'setTaxRates');
+		$itemMock = $this->getModelMock('sales/quote_item', $methods);
+		$itemMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(6));
+		$itemMock->expects($this->any())
+			->method('getSku')
+			->will($this->returnValue('gc_virtual1'));
+		$itemMock->expects($this->any())
+			->method('getTaxableAmount')
+			->will($this->returnValue(50.0));
+		$itemMock->expects($this->any())
+			->method('getBaseTaxableAmount')
+			->will($this->returnValue(50.0));
+		$itemMock->expects($this->any())
+			->method('getDiscountAmount')
+			->will($this->returnValue(0));
+		$itemMock->expects($this->any())
+			->method('getBaseDiscountAmount')
+			->will($this->returnValue(0));
+		$itemMock->expects($this->any())
+			->method('setTaxRates')
+			->with($this->equalTo(($after) ? $this->classicJeansAppliedRatesAfter : $this->classicJeansAppliedRatesBefore))
+			->will($this->returnSelf());
+		$items[] = $itemMock;
+
+		$itemMock = $this->getModelMock('sales/quote_item', $methods);
+		$itemMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(7));
+		$itemMock->expects($this->any())
+			->method('getSku')
+			->will($this->returnValue('classic-jeans'));
+		$itemMock->expects($this->any())
+			->method('getTaxableAmount')
+			->will($this->returnValue(99.99));
+		$itemMock->expects($this->any())
+			->method('getBaseTaxableAmount')
+			->will($this->returnValue(99.99));
+		$itemMock->expects($this->any())
+			->method('getDiscountAmount')
+			->will($this->returnValue(20));
+		$itemMock->expects($this->any())
+			->method('getBaseDiscountAmount')
+			->will($this->returnValue(20));
+		$itemMock->expects($this->any())
+			->method('setTaxRates')
+			->with($this->equalTo(
+				($after) ? $this->classicJeansAppliedRatesAfter : $this->classicJeansAppliedRatesBefore
+			))
+			->will($this->returnSelf());
+		$items[] = $itemMock;
+		return $items;
 	}
 
 	/**
