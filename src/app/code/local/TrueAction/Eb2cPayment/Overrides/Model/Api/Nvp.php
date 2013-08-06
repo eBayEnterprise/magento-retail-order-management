@@ -171,7 +171,6 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	 *
 	 * SetExpressCheckout call
 	 * @link https://cms.paypal.com/us/cgi-bin/?&cmd=_render-content&content_ID=developer/e_howto_api_nvp_r_SetExpressCheckout
-	 * TODO: put together style and giropay settings
 	 */
 	public function callSetExpressCheckout()
 	{

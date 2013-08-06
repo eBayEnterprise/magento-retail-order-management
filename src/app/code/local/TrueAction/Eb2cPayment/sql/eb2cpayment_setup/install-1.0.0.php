@@ -30,20 +30,20 @@ try{
 			'unsigned'  => true,
 			'nullable'  => false,
 			'primary'   => true,
-			), 'paypal Id')
+		), 'paypal Id')
 		->addColumn('quote_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(
 			'unsigned'  => true,
 			'nullable'  => false,
 			'default'   => '0',
-			), 'Quote Id')
+		), 'Quote Id')
 		->addColumn('eb2c_paypal_token', Varien_Db_Ddl_Table::TYPE_TEXT, 255, array(
-			), 'eb2c paypal token')
+		), 'eb2c paypal token')
 		->addColumn('eb2c_paypal_transaction_id', Varien_Db_Ddl_Table::TYPE_TEXT, 255, array(
-			), 'eb2c paypal transaction id')
+		), 'eb2c paypal transaction id')
 		->addColumn('eb2c_paypal_payer_id', Varien_Db_Ddl_Table::TYPE_TEXT, 255, array(
-			), 'eb2c paypal payer id')
+		), 'eb2c paypal payer id')
 		->addIndex($installer->getIdxName('eb2cpayment/paypal', array('quote_id')),
-			array('quote_id'));
+		array('quote_id'));
 	$installer->getConnection()->createTable($table);
 
 } catch (Exception $e) {

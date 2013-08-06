@@ -21,7 +21,7 @@ class TrueAction_Eb2cPayment_Model_Mysql4_Paypal extends Mage_Core_Model_Mysql4_
 	 * @param bool $testOnly
 	 * @return TrueAction_Eb2cPayment_Model_Mysql4_Paypal
 	 */
-	public function loadByQuoteId(TrueAction_Eb2cPayment_Model_Paypal $paypal, $quoteId, $testOnly = false)
+	public function loadByQuoteId(TrueAction_Eb2cPayment_Model_Paypal $paypal, $quoteId, $testOnly=false)
 	{
 		$adapter = $this->_getReadAdapter();
 		$select  = $adapter->select()
