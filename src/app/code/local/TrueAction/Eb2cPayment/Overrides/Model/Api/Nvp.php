@@ -49,6 +49,13 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	protected $_paypalDoVoid;
 
 	/**
+	 * instantiate paypal payment model object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected $_paypal;
+
+	/**
 	 * Get helper instantiated object.
 	 *
 	 * @return TrueAction_Eb2cPayment_Helper_Data
@@ -132,6 +139,19 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	}
 
 	/**
+	 * Get model paypal instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected function _getPaypal()
+	{
+		if (!$this->_paypal) {
+			$this->_paypal = Mage::getModel('eb2cpayment/paypal');
+		}
+		return $this->_paypal;
+	}
+
+	/**
 	 * Get paypal cart instantiated object.
 	 *
 	 * @return Mage_Paypal_Model_Cart
@@ -139,7 +159,8 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 	protected function _getCart()
 	{
 		if (!$this->_cart) {
-			$this->_cart = Mage::getModel('paypal/cart', array(Mage::getSingleton('checkout/session')->getQuote()));
+			$sessionQuoteId = Mage::getSingleton('checkout/session')->getQuoteId();
+			$this->_cart = Mage::getModel('paypal/cart', array(Mage::getModel('sales/quote')->load($sessionQuoteId)));
 		}
 
 		return $this->_cart;
@@ -188,12 +209,12 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			if ($quote) {
 				// We have a valid quote, let's set PayPal Express checkout it through eb2c.
 				if ($payPalSetExpressCheckoutReply = $this->_getPaypalSetExpressCheckout()->setExpressCheckout($quote)) {
-					if ($payPalSetExpressCheckoutData = $this->_getPaypalSetExpressCheckout()->parseResponse($payPalSetExpressCheckoutReply)) {
+					if ($payPalSetExpressCheckoutObject = $this->_getPaypalSetExpressCheckout()->parseResponse($payPalSetExpressCheckoutReply)) {
 						// making sure we have the right data
-						if (isset($payPalSetExpressCheckoutData['responseCode']) && strtoupper(trim($payPalSetExpressCheckoutData['responseCode'])) === 'SUCCESS') {
+						if (strtoupper(trim($payPalSetExpressCheckoutObject->getResponseCode())) === 'SUCCESS') {
 							$response = array(
-								'TOKEN' => $payPalSetExpressCheckoutData['token'],
-								'ACK' => $payPalSetExpressCheckoutData['responseCode'],
+								'TOKEN' => $payPalSetExpressCheckoutObject->getToken(),
+								'ACK' => $payPalSetExpressCheckoutObject->getResponseCode(),
 							);
 						}
 					}
@@ -231,26 +252,28 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			if ($quote) {
 				// We have a valid quote, let's Get PayPal Express checkout it through eb2c.
 				if ($payPalGetExpressCheckoutReply = $this->_getPaypalGetExpressCheckout()->getExpressCheckout($quote)) {
-					if ($payPalGetExpressCheckoutData = $this->_getPaypalGetExpressCheckout()->parseResponse($payPalGetExpressCheckoutReply)) {
+					if ($payPalGetExpressCheckoutObject = $this->_getPaypalGetExpressCheckout()->parseResponse($payPalGetExpressCheckoutReply)) {
 						// making sure we have the right data
 						$quoteShippingAddress = $quote->getShippingAddress();
-						if (isset($payPalGetExpressCheckoutData['responseCode']) && strtoupper(trim($payPalGetExpressCheckoutData['responseCode'])) === 'SUCCESS') {
+						if (strtoupper(trim($payPalGetExpressCheckoutObject->getResponseCode())) === 'SUCCESS') {
+							$paypal = $this->_getPaypal()->loadByQuoteId($quote->getEntityId());
 							$response = array(
-								'ACK' => $payPalGetExpressCheckoutData['responseCode'],
-								'EMAIL' => $payPalGetExpressCheckoutData['payerEmail'],
-								'PAYERID' => $payPalGetExpressCheckoutData['payerId'],
-								'PAYERSTATUS' => $payPalGetExpressCheckoutData['payerStatus'],
-								'FIRSTNAME' => $payPalGetExpressCheckoutData['payerName']['firstName'],
-								'LASTNAME' => $payPalGetExpressCheckoutData['payerName']['lastName'],
-								'COUNTRYCODE' => $payPalGetExpressCheckoutData['payerCountry'],
+								'TOKEN' => $paypal->getEb2cPaypalToken(),
+								'ACK' => $payPalGetExpressCheckoutObject->getResponseCode(),
+								'EMAIL' => $payPalGetExpressCheckoutObject->getPayerEmail(),
+								'PAYERID' => $payPalGetExpressCheckoutObject->getPayerId(),
+								'PAYERSTATUS' => $payPalGetExpressCheckoutObject->getPayerStatus(),
+								'FIRSTNAME' => $payPalGetExpressCheckoutObject->getPayerNameFirstName(),
+								'LASTNAME' => $payPalGetExpressCheckoutObject->getPayerNameLastName(),
+								'COUNTRYCODE' => $payPalGetExpressCheckoutObject->getPayerCountry(),
 								'SHIPTONAME' => $quoteShippingAddress->getName(),
-								'SHIPTOSTREET' => $payPalGetExpressCheckoutData['shippingAddress']['line1'],
-								'SHIPTOCITY' => $payPalGetExpressCheckoutData['shippingAddress']['city'],
-								'SHIPTOSTATE' => $payPalGetExpressCheckoutData['shippingAddress']['mainDivision'],
-								'SHIPTOZIP' => $payPalGetExpressCheckoutData['shippingAddress']['postalCode'],
-								'SHIPTOCOUNTRYCODE' => $payPalGetExpressCheckoutData['shippingAddress']['countryCode'],
-								'SHIPTOPHONENUM' => $payPalGetExpressCheckoutData['payerPhone'],
-								'ADDRESSSTATUS' => $payPalGetExpressCheckoutData['shippingAddress']['addressStatus'],
+								'SHIPTOSTREET' => $payPalGetExpressCheckoutObject->getShippingAddressLine1(),
+								'SHIPTOCITY' => $payPalGetExpressCheckoutObject->getShippingAddressCity(),
+								'SHIPTOSTATE' => $payPalGetExpressCheckoutObject->getShippingAddressMainDivision(),
+								'SHIPTOZIP' => $payPalGetExpressCheckoutObject->getShippingAddressPostalCode(),
+								'SHIPTOCOUNTRYCODE' => $payPalGetExpressCheckoutObject->getShippingAddressCountryCode(),
+								'SHIPTOPHONENUM' => $payPalGetExpressCheckoutObject->getPayerPhone(),
+								'ADDRESSSTATUS' => $payPalGetExpressCheckoutObject->getShippingAddressStatus(),
 							);
 						}
 					}
@@ -288,23 +311,27 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cPaypalDoExpressCheckout) {
 			// Eb2c PaypalDoExpressCheckout is enabled
 			// Removing direct call to PayPal, Make Eb2c PayPalDoExpressCheckout call here.
-			$quote = $this->_getCart()->getSalesEntity();
+			$sessionQuoteId = Mage::getSingleton('checkout/session')->getQuoteId();
+			$quote = Mage::getModel('sales/quote')->load($sessionQuoteId);
+			$this->_cart = Mage::getModel('paypal/cart', array($quote));
 
 			$response = array();
 
 			if ($quote) {
 				// We have a valid quote, let's Do PayPal Express checkout it through eb2c.
 				if ($payPalDoExpressCheckoutReply = $this->_getPaypalDoExpressCheckout()->doExpressCheckout($quote)) {
-					if ($payPalDoExpressCheckoutData = $this->_getPaypalDoExpressCheckout()->parseResponse($payPalDoExpressCheckoutReply)) {
+					if ($payPalDoExpressCheckoutObject = $this->_getPaypalDoExpressCheckout()->parseResponse($payPalDoExpressCheckoutReply)) {
 						// making sure we have the right data
 						$quoteShippingAddress = $quote->getShippingAddress();
-						if (isset($payPalDoExpressCheckoutData['responseCode']) && strtoupper(trim($payPalDoExpressCheckoutData['responseCode'])) === 'SUCCESS') {
+						if (strtoupper(trim($payPalDoExpressCheckoutObject->getResponseCode())) === 'SUCCESS') {
+							$paypal = $this->_getPaypal()->loadByQuoteId($quote->getEntityId());
 							$response = array(
-								'ACK' => $payPalDoExpressCheckoutData['responseCode'],
-								'TRANSACTIONID' => $payPalDoExpressCheckoutData['transactionID'],
-								'PAYMENTSTATUS' => $payPalDoExpressCheckoutData['paymentInfo']['paymentStatus'],
-								'PENDINGREASON' => $payPalDoExpressCheckoutData['paymentInfo']['pendingReason'],
-								'REASONCODE' => $payPalDoExpressCheckoutData['paymentInfo']['reasonCode'],
+								'TOKEN' => $paypal->getEb2cPaypalToken(),
+								'ACK' => $payPalDoExpressCheckoutObject->getResponseCode(),
+								'TRANSACTIONID' => $payPalDoExpressCheckoutObject->getTransactionId(),
+								'PAYMENTSTATUS' => $payPalDoExpressCheckoutObject->getPaymentStatus(),
+								'PENDINGREASON' => $payPalDoExpressCheckoutObject->getPendingReason(),
+								'REASONCODE' => $payPalDoExpressCheckoutObject->getReasonCode(),
 							);
 						}
 					}
@@ -346,15 +373,14 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			if ($quote) {
 				// We have a valid quote, let's Do PayPal Authorization it through eb2c.
 				if ($payPalDoAuthorizationReply = $this->_getPaypalDoAuthorization()->doAuthorization($quote)) {
-					if ($payPalDoAuthorizationData = $this->_getPaypalDoAuthorization()->parseResponse($payPalDoAuthorizationReply)) {
-						// making sure we have the right data
-						$quoteShippingAddress = $quote->getShippingAddress();
-						if (isset($payPalDoAuthorizationData['responseCode']) && strtoupper(trim($payPalDoAuthorizationData['responseCode'])) === 'SUCCESS') {
+					if ($payPalDoAuthorizationCheckoutObject = $this->_getPaypalDoAuthorization()->parseResponse($payPalDoAuthorizationReply)) {
+						if (strtoupper(trim($payPalDoAuthorizationCheckoutObject->getResponseCode())) === 'SUCCESS') {
 							$response = array(
-								'ACK' => $payPalDoAuthorizationData['responseCode'],
-								'PAYMENTSTATUS' => $payPalDoAuthorizationData['authorizationInfo']['paymentStatus'],
-								'PENDINGREASON' => $payPalDoAuthorizationData['authorizationInfo']['pendingReason'],
-								'REASONCODE' => $payPalDoAuthorizationData['authorizationInfo']['reasonCode'],
+								'TRANSACTIONID' => uniqid(),
+								'ACK' => $payPalDoAuthorizationCheckoutObject->getResponseCode(),
+								'PAYMENTSTATUS' => $payPalDoAuthorizationCheckoutObject->getPaymentStatus(),
+								'PENDINGREASON' => $payPalDoAuthorizationCheckoutObject->getPendingReason(),
+								'REASONCODE' => $payPalDoAuthorizationCheckoutObject->getReasonCode(),
 							);
 						}
 					}
@@ -366,7 +392,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\callDoAuthorization:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoAuthorization:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
@@ -395,12 +421,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			if ($quote) {
 				// We have a valid quote, let's Do PayPal Void it through eb2c.
 				if ($payPalDoVoidReply = $this->_getPaypalDoVoid()->doVoid($quote)) {
-					if ($payPalDoVoidData = $this->_getPaypalDoVoid()->parseResponse($payPalDoVoidReply)) {
-						// making sure we have the right data
-						$quoteShippingAddress = $quote->getShippingAddress();
-						if (isset($payPalDoVoidData['responseCode']) && strtoupper(trim($payPalDoVoidData['responseCode'])) === 'SUCCESS') {
+					if ($payPalDoVoidCheckoutObject = $this->_getPaypalDoVoid()->parseResponse($payPalDoVoidReply)) {
+						if (strtoupper(trim($payPalDoVoidCheckoutObject->getResponseCode())) === 'SUCCESS') {
 							$response = array(
-								'ACK' => $payPalDoVoidData['responseCode'],
+								'ACK' => $payPalDoVoidCheckoutObject->getResponseCode(),
 							);
 						}
 					}
@@ -412,7 +436,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\callDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 	}
 }

@@ -6,11 +6,24 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core_Model_Abstract
 {
+	/**
+	 * instantiate payment helper object
+	 *
+	 * @var TrueAction_Eb2cPayment_Helper_Data
+	 */
 	protected $_helper;
+
+	/**
+	 * instantiate paypal payment model object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected $_paypal;
 
 	public function __construct()
 	{
 		$this->_helper = $this->_getHelper();
+		$this->_paypal = $this->_getPaypal();
 	}
 
 	/**
@@ -24,6 +37,19 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			$this->_helper = Mage::helper('eb2cpayment');
 		}
 		return $this->_helper;
+	}
+
+	/**
+	 * Get model paypal instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected function _getPaypal()
+	{
+		if (!$this->_paypal) {
+			$this->_paypal = Mage::getModel('eb2cpayment/paypal');
+		}
+		return $this->_paypal;
 	}
 
 	/**
@@ -49,6 +75,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			Mage::logException($e);
 		}
 
+		// Save payment data
+		$this->_savePaymentData($this->parseResponse($paypalGetExpressCheckoutResponseMessage), $quote);
+
 		return $paypalGetExpressCheckoutResponseMessage;
 	}
 
@@ -67,9 +96,12 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			'OrderId',
 			(string) $quote->getEntityId()
 		);
+
+		$paypal = $this->_getPaypal()->loadByQuoteId($quote->getEntityId());
+
 		$payPalGetExpressCheckoutRequest->createChild(
 			'Token',
-			(string) $quote->getEb2cPaypalExpressCheckoutToken()
+			(string) $paypal->getEb2cPaypalToken()
 		);
 		$payPalGetExpressCheckoutRequest->createChild(
 			'currencyCode',
@@ -84,11 +116,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	 *
 	 * @param string $payPalGetExpressCheckoutReply the xml response from eb2c
 	 *
-	 * @return array, an associative array of response data
+	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalGetExpressCheckoutReply)
 	{
-		$checkoutData = array();
+		$checkoutObject = new Varien_Object();
 		if (trim($payPalGetExpressCheckoutReply) !== '') {
 			$doc = $this->_getHelper()->getDomDocument();
 			$doc->loadXML($payPalGetExpressCheckoutReply);
@@ -97,153 +129,172 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 
 			$orderId = $checkoutXpath->query('//a:OrderId');
 			if ($orderId->length) {
-				$checkoutData['orderId'] = (int) $orderId->item(0)->nodeValue;
+				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
 			}
 
 			$responseCode = $checkoutXpath->query('//a:ResponseCode');
 			if ($responseCode->length) {
-				$checkoutData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
+				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
 			}
 
 			$payerEmail = $checkoutXpath->query('//a:PayerEmail');
 			if ($payerEmail->length) {
-				$checkoutData['payerEmail'] = (string) $payerEmail->item(0)->nodeValue;
+				$checkoutObject->setPayerEmail((string) $payerEmail->item(0)->nodeValue);
 			}
 
 			$payerId = $checkoutXpath->query('//a:PayerId');
 			if ($payerId->length) {
-				$checkoutData['payerId'] = (string) $payerId->item(0)->nodeValue;
+				$checkoutObject->setPayerId((string) $payerId->item(0)->nodeValue);
 			}
 
 			$payerStatus = $checkoutXpath->query('//a:PayerStatus');
 			if ($payerStatus->length) {
-				$checkoutData['payerStatus'] = (string) $payerStatus->item(0)->nodeValue;
+				$checkoutObject->setPayerStatus((string) $payerStatus->item(0)->nodeValue);
 			}
 
 			$payerName = $checkoutXpath->query('//a:PayerName');
 			if ($payerName->length) {
 				$honorific = $checkoutXpath->query('//a:PayerName/a:Honorific');
 				if ($honorific->length) {
-					$checkoutData['payerName']['honorific'] = (string) $honorific->item(0)->nodeValue;
+					$checkoutObject->setPayerNameHonorific((string) $honorific->item(0)->nodeValue);
 				}
 
 				$lastName = $checkoutXpath->query('//a:PayerName/a:LastName');
 				if ($lastName->length) {
-					$checkoutData['payerName']['lastName'] = (string) $lastName->item(0)->nodeValue;
+					$checkoutObject->setPayerNameLastName((string) $lastName->item(0)->nodeValue);
 				}
 
 				$middleName = $checkoutXpath->query('//a:PayerName/a:MiddleName');
 				if ($middleName->length) {
-					$checkoutData['payerName']['middleName'] = (string) $middleName->item(0)->nodeValue;
+					$checkoutObject->setPayerNameMiddleName((string) $middleName->item(0)->nodeValue);
 				}
 
 				$firstName = $checkoutXpath->query('//a:PayerName/a:FirstName');
 				if ($firstName->length) {
-					$checkoutData['payerName']['firstName'] = (string) $firstName->item(0)->nodeValue;
+					$checkoutObject->setPayerNameFirstName((string) $firstName->item(0)->nodeValue);
 				}
 			}
 
 			$payerCountry = $checkoutXpath->query('//a:PayerCountry');
 			if ($payerCountry->length) {
-				$checkoutData['payerCountry'] = (string) $payerCountry->item(0)->nodeValue;
+				$checkoutObject->setPayerCountry((string) $payerCountry->item(0)->nodeValue);
 			}
 
 			$billingAddress = $checkoutXpath->query('//a:BillingAddress');
 			if ($billingAddress->length) {
 				$lineA = $checkoutXpath->query('//a:BillingAddress/a:Line1');
 				if ($lineA->length) {
-					$checkoutData['billingAddress']['line1'] = (string) $lineA->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressLine1((string) $lineA->item(0)->nodeValue);
 				}
 				$lineB = $checkoutXpath->query('//a:BillingAddress/a:Line2');
 				if ($lineB->length) {
-					$checkoutData['billingAddress']['line2'] = (string) $lineB->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressLine2((string) $lineB->item(0)->nodeValue);
 				}
 				$lineC = $checkoutXpath->query('//a:BillingAddress/a:Line3');
 				if ($lineC->length) {
-					$checkoutData['billingAddress']['line3'] = (string) $lineC->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressLine3((string) $lineC->item(0)->nodeValue);
 				}
 				$lineD = $checkoutXpath->query('//a:BillingAddress/a:Line4');
 				if ($lineD->length) {
-					$checkoutData['billingAddress']['line4'] = (string) $lineD->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressLine4((string) $lineD->item(0)->nodeValue);
 				}
 
 				$city = $checkoutXpath->query('//a:BillingAddress/a:City');
 				if ($city->length) {
-					$checkoutData['billingAddress']['city'] = (string) $city->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressCity((string) $city->item(0)->nodeValue);
 				}
 
 				$mainDivision = $checkoutXpath->query('//a:BillingAddress/a:MainDivision');
 				if ($mainDivision->length) {
-					$checkoutData['billingAddress']['mainDivision'] = (string) $mainDivision->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressMainDivision((string) $mainDivision->item(0)->nodeValue);
 				}
 
 				$countryCode = $checkoutXpath->query('//a:BillingAddress/a:CountryCode');
 				if ($countryCode->length) {
-					$checkoutData['billingAddress']['countryCode'] = (string) $countryCode->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressCountryCode((string) $countryCode->item(0)->nodeValue);
 				}
 
 				$postalCode = $checkoutXpath->query('//a:BillingAddress/a:PostalCode');
 				if ($postalCode->length) {
-					$checkoutData['billingAddress']['postalCode'] = (string) $postalCode->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressPostalCode((string) $postalCode->item(0)->nodeValue);
 				}
 
 				$addressStatus = $checkoutXpath->query('//a:BillingAddress/a:AddressStatus');
 				if ($addressStatus->length) {
-					$checkoutData['billingAddress']['addressStatus'] = (string) $addressStatus->item(0)->nodeValue;
+					$checkoutObject->setBillingAddressStatus((string) $addressStatus->item(0)->nodeValue);
 				}
 			}
 
 			$payerPhone = $checkoutXpath->query('//a:PayerPhone');
 			if ($payerPhone->length) {
-				$checkoutData['payerPhone'] = (string) $payerPhone->item(0)->nodeValue;
+				$checkoutObject->setPayerPhone((string) $payerPhone->item(0)->nodeValue);
 			}
 
 			$shippingAddress = $checkoutXpath->query('//a:ShippingAddress');
 			if ($shippingAddress->length) {
 				$shpLineA = $checkoutXpath->query('//a:ShippingAddress/a:Line1');
 				if ($shpLineA->length) {
-					$checkoutData['shippingAddress']['line1'] = (string) $shpLineA->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressLine1((string) $shpLineA->item(0)->nodeValue);
 				}
 				$shpLineB = $checkoutXpath->query('//a:ShippingAddress/a:Line2');
 				if ($shpLineB->length) {
-					$checkoutData['shippingAddress']['line2'] = (string) $shpLineB->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressLine2((string) $shpLineB->item(0)->nodeValue);
 				}
 				$shpLineC = $checkoutXpath->query('//a:ShippingAddress/a:Line3');
 				if ($shpLineC->length) {
-					$checkoutData['shippingAddress']['line3'] = (string) $shpLineC->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressLine3((string) $shpLineC->item(0)->nodeValue);
 				}
 				$shpLineD = $checkoutXpath->query('//a:ShippingAddress/a:Line4');
 				if ($shpLineD->length) {
-					$checkoutData['shippingAddress']['line4'] = (string) $shpLineD->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressLine4((string) $shpLineD->item(0)->nodeValue);
 				}
 
 				$shpCity = $checkoutXpath->query('//a:ShippingAddress/a:City');
 				if ($shpCity->length) {
-					$checkoutData['shippingAddress']['city'] = (string) $shpCity->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressCity((string) $shpCity->item(0)->nodeValue);
 				}
 
 				$shpMainDivision = $checkoutXpath->query('//a:ShippingAddress/a:MainDivision');
 				if ($shpMainDivision->length) {
-					$checkoutData['shippingAddress']['mainDivision'] = (string) $shpMainDivision->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressMainDivision((string) $shpMainDivision->item(0)->nodeValue);
 				}
 
 				$shpCountryCode = $checkoutXpath->query('//a:ShippingAddress/a:CountryCode');
 				if ($shpCountryCode->length) {
-					$checkoutData['shippingAddress']['countryCode'] = (string) $shpCountryCode->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressCountryCode((string) $shpCountryCode->item(0)->nodeValue);
 				}
 
 				$shpPostalCode = $checkoutXpath->query('//a:ShippingAddress/a:PostalCode');
 				if ($shpPostalCode->length) {
-					$checkoutData['shippingAddress']['postalCode'] = (string) $shpPostalCode->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressPostalCode((string) $shpPostalCode->item(0)->nodeValue);
 				}
 
 				$shpAddressStatus = $checkoutXpath->query('//a:ShippingAddress/a:AddressStatus');
 				if ($shpAddressStatus->length) {
-					$checkoutData['shippingAddress']['addressStatus'] = (string) $shpAddressStatus->item(0)->nodeValue;
+					$checkoutObject->setShippingAddressStatus((string) $shpAddressStatus->item(0)->nodeValue);
 				}
 			}
 		}
 
-		return $checkoutData;
+		return $checkoutObject;
+	}
+
+	/**
+	 * save payment data to quote_payment.
+	 *
+	 * @param array $checkoutObject, an associative array of response data
+	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
+	 *
+	 * @return void
+	 */
+	protected function _savePaymentData($checkoutObject, $quote)
+	{
+		if (trim($checkoutObject->getPayerId()) !== '') {
+			$this->_getPaypal()->loadByQuoteId($quote->getEntityId());
+			$this->_getPaypal()->setQuoteId($quote->getEntityId())
+				->setEb2cPaypalPayerId($checkoutObject->getPayerId())
+				->save();
+		}
+		return ;
 	}
 }

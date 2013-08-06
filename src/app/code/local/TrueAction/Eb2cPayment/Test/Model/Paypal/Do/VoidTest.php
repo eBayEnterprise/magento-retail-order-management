@@ -115,14 +115,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 		);
 	}
 
-	public function expectedParseResponse()
-	{
-		return array (
-			'orderId' => 1,
-			'responseCode' => 'Success'
-		);
-	}
-
 	/**
 	 * testing parseResponse method
 	 *
@@ -132,8 +124,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 	 */
 	public function testParseResponse($payPalDoVoidReply)
 	{
-		$this->assertSame(
-			$this->expectedParseResponse(),
+		$this->assertInstanceOf(
+			'Varien_Object',
 			$this->_void->parseResponse($payPalDoVoidReply)
 		);
 	}

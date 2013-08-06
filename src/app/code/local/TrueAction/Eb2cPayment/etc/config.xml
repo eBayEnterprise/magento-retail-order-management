@@ -17,7 +17,16 @@
 		<models>
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Model</class>
+				<resourceModel>eb2cpayment_mysql4</resourceModel>
 			</eb2cpayment>
+			<eb2cpayment_mysql4>
+				<class>TrueAction_Eb2cPayment_Model_Mysql4</class>
+				<entities>
+					<paypal>
+						<table>eb2c_payments_paypal</table>
+					</paypal>
+				</entities>
+			</eb2cpayment_mysql4>
 			<eb2cpaymentoverrides>
 				<class>TrueAction_Eb2cPayment_Overrides_Model</class>
 			</eb2cpaymentoverrides>
@@ -59,6 +68,9 @@
 				<setup>
 					<module>TrueAction_Eb2cPayment</module>
 				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
 			</eb2cpayment_setup>
 		</resources>
 	</global>
