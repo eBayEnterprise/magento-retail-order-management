@@ -905,8 +905,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 				'getAppliedRates' => $this->returnValue($this->classicJeansAppliedRatesBefore)
 			)
 		);
-		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
-		$this->replaceByMock('model', 'tax/calculation', $calcMock);
+		return $calcMock;
 	}
 
 	protected function _mockCalculator()
