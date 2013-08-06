@@ -160,7 +160,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 			$baseRowTaxDiscount = $this->_helper->convertToBaseCurrency($rowTaxDiscount);
 
 			// record the hidden tax amounts
-			$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
+			$this->_processItemHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
 
 			// adjust the subtotal due to the discount amounts
 			$subtotal     = $subtotal - $discountAmount;
@@ -220,6 +220,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		// process final shipping tax data
 		if ($this->_helper->getApplyTaxAfterDiscount()) {
 			$taxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'shipping');
+			$this->_processShippingHiddenTax($taxDiscount, $this->_helper->convertToBaseCurrency($taxDiscount), $address);
 			$tax -= $taxDiscount;
 			$baseTax = $this->_helper->convertToBaseCurrency($tax);
 			$address->setShippingAmountForDiscount($shipping + $tax);
@@ -299,19 +300,30 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	}
 
 	/**
-	 * Process hidden taxes for items and shippings (in accordance with hidden tax type)
+	 * Process hidden taxes for items (in accordance with hidden tax type)
 	 *
 	 * @return void
 	 */
-	protected function _processHiddenTax($amount, $baseAmount, $item)
+	protected function _processItemHiddenTax($amount, $baseAmount, $item)
 	{
 		if ($amount || $baseAmount) {
-			$hiddenTax      = $this->_calculator->round($amount);
-			$baseHiddenTax  = $this->_calculator->round($baseAmount);
-			$item->setHiddenTaxAmount(max(0, $hiddenTax));
-			$item->setBaseHiddenTaxAmount(max(0, $baseHiddenTax));
+			$item->setHiddenTaxAmount(max(0.0, $amount));
+			$item->setBaseHiddenTaxAmount(max(0.0, $baseAmount));
 			$this->_getAddress()->addTotalAmount('hidden_tax', $item->getHiddenTaxAmount());
 			$this->_getAddress()->addBaseTotalAmount('hidden_tax', $item->getBaseHiddenTaxAmount());
+		}
+	}
+
+	/**
+	 * Process hidden taxes for shipping (in accordance with hidden tax type)
+	 *
+	 * @return void
+	 */
+	protected function _processShippingHiddenTax($amount, $baseAmount, $address)
+	{
+		if ($amount || $baseAmount) {
+			$address->addTotalAmount('shipping_hidden_tax', $amount);
+			$address->addBaseTotalAmount('shipping_hidden_tax', $baseAmount);
 		}
 	}
 
