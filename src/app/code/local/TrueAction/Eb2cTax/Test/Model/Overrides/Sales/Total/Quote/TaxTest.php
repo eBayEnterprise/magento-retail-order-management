@@ -214,7 +214,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// store currency amounts
 		$address->expects($this->any())
 			->method('setTotalAmount')
-			->with($this->equalTo('shipping'), $this->equalTo($e->getTotalAmountShipping()))
+			->with($this->logicalOr(
+				$this->equalTo('shipping', $e->getTotalAmountShipping()),
+				$this->equalTo('shipping_hidden_tax', $e->getTotalAmountShippingHiddenTax())
+			))
 			->will($this->returnSelf());
 		$address->expects($this->any())
 			->method('setShippingIncludingTax')
@@ -228,7 +231,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// website currency amounts
 		$address->expects($this->any())
 			->method('setBaseTotalAmount')
-			->with($this->equalTo('shipping'), $this->equalTo($e->getTotalAmountShipping()))
+			->with($this->logicalOr(
+				$this->equalTo('shipping', $e->getBaseTotalAmountShipping()),
+				$this->equalTo('shipping_hidden_tax', $e->getBaseTotalAmountShippingHiddenTax())
+			))
 			->will($this->returnSelf());
 		$address->expects($this->any())
 			->method('setBaseShippingIncludingTax')
