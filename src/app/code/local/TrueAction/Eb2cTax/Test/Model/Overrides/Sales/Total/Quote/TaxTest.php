@@ -687,7 +687,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	 */
 	public function testCalcTaxForAddress()
 	{
-		$this->markTestIncomplete('temporary disable');
+		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
+		Mage::unregister('_helper/tax');
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', false))));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
 		$items = $this->_mockItemsCalcTaxForItem();
 		$quote = $this->getModelMock('sales/quote', array('getTaxesForItems', 'setTaxesForItems'));
 		$quote->expects($this->any())
@@ -708,16 +718,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 				'getQuote'              => $this->returnValue($quote)
 			)
 		);
-		$this->_mockCalculator2();
+		$calc = $this->_mockCalculator2();
+
+		// precondition check
+		$this->assertSame($quote, $address->getQuote());
 
 		// create the tax model after mocking the calculator
 		// so that it gets initialized with the mock
 		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
+		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calc);
+		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
 		$calcTaxForAddressMethod = $this->_reflectMethod($taxModel, '_calcTaxForAddress');
-
-		$this->assertSame($quote, $address->getQuote());
-		$this->_reflectProperty($taxModel, '_address')
-			->setValue($taxModel, $address);
 		$calcTaxForAddressMethod->invoke($taxModel, $address);
 
 		$this->assertSame(2, count($address->getAppliedTaxes()));
