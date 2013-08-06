@@ -605,20 +605,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		}
 		$e = $this->expected("{$scenario}-address");
 		$this->assertSame(
-			$e->getTotalAmountHiddenTax(),
+			(float)$e->getTotalAmountHiddenTax(),
 			$address->getTotalAmount('hidden_tax')
 		);
 		$this->assertSame(
-			$e->getTotalAmountShippingHiddenTax(),
+			(float)$e->getTotalAmountShippingHiddenTax(),
 			$address->getTotalAmount('shipping_hidden_tax')
 		);
 		// base amounts
 		$this->assertSame(
-			$e->getBaseTotalAmountHiddenTax(),
+			(float)$e->getBaseTotalAmountHiddenTax(),
 			$address->getBaseTotalAmount('hidden_tax')
 		);
 		$this->assertSame(
-			$e->getBaseTotalAmountShippingHiddenTax(),
+			(float)$e->getBaseTotalAmountShippingHiddenTax(),
 			$address->getBaseTotalAmount('shipping_hidden_tax')
 		);
 	}
