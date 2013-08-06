@@ -132,7 +132,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	}
 
 	/**
-	 * @loadExpectation taxtest.yaml
+	 * @loadExpectation taxtest1.yaml
 	 * @dataProvider discountTaxCalculationSequence
 	 */
 	public function testCalcShippingTaxesSingleItem($scenario)
