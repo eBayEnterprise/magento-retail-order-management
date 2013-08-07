@@ -525,6 +525,35 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		$this->assertNull($obj->getDutyAmount());
 	}
 
+	/**
+	 * Test the isSameNodelistElement method. Ensures that each node list has at least one item
+	 * and the first item in each list are case-insensitive equal
+	 * @param  string $responseValue
+	 * @param  string $requestValue
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testCompareNodelistElements($responseValue, $requestValue)
+	{
+		$dom = new TrueAction_Dom_Document();
+		$dom->loadXML('<root>'
+			. '<response>'
+			. (!is_null($responseValue) ? '<item>' . $responseValue . '</item>' : '')
+			. '</response>'
+			. '<request>'
+			. (!is_null($requestValue) ? '<item>' . $requestValue . '</item>' : '')
+			. '</request>'
+			. '</root>');
+
+		$responseNodelist = $dom->getElementsByTagName('response')->item(0)->childNodes;
+		$requestNodelist  = $dom->getElementsByTagName('request')->item(0)->childNodes;
+
+		$this->assertSame(
+			$this->expected('set-%s-%s', $responseValue, $requestValue)->getSame(),
+			Mage::getModel('eb2ctax/response')->isSameNodelistElement($responseNodelist, $requestNodelist)
+		);
+	}
+
 	public function shipGroupXmlProvider()
 	{
 		return array(
