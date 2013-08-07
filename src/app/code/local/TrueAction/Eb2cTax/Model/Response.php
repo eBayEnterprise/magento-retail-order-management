@@ -56,11 +56,15 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$this->_doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_doc->preserveWhiteSpace = false;
 		if ($this->hasXml()) {
-			$this->_doc->loadXML($this->getXml());
-			$this->_namespaceUri = $this->_doc->documentElement->namespaceURI;
-			$this->_extractResults();
-			// validate response
-			$this->_isValid = $this->_validateDestinations();
+			$xml = $this->getXml();
+			$isDocOk = $this->_loadDocument($xml);
+			if ($isDocOk) {
+				$this->_doc->loadXML($xml);
+				$this->_namespaceUri = $this->_doc->documentElement->namespaceURI;
+				$this->_extractResults();
+				// validate response
+				$this->_isValid = $this->_validateDestinations();
+			}
 		}
 	}
 
@@ -121,7 +125,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		}
 		return $id;
 	}
-
 
 	/**
 	 * generate tax quote records with data extracted from the response.
@@ -277,5 +280,39 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 			$isSame = false;
 		}
 		return $isSame;
+	}
+
+	/**
+	 * attempt to load the response text into a domdocument.
+	 * return true if the document is ok to process; false otherwise
+	 */
+	protected function _loadDocument($xml)
+	{
+		$result = true;
+		$doc = $this->_doc;
+		try {
+			$doc->loadXML($xml);
+			if ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
+				$result = false;
+				$message = 'Eb2cTax: received document is not a TaxDutyQuoteResponse';
+				if ($doc->documentElement->nodeName === 'Fault') {
+					$x = new DOMXPath($doc);
+					$x->registerNamespace('a', $doc->documentElement->namespaceURI);
+					$desc    = $x->evaluate('string(/a:Fault/a:Description)');
+					$code    = $x->evaluate('string(/a:Fault/a:Code)');
+					$tStamp  = $x->evaluate('string(/a:Fault/a:CreateTimestamp)');
+					$message = "Eb2cTax: Fault Message received: " .
+						"Code: {$code} Description: {$desc} CreateTimestamp: {$tStamp}";
+				}
+				Mage::log($message, Zend_Log::WARN);
+			}
+		} catch (Exception $e) {
+			$result = false;
+			Mage::log(
+				'Error while attempting to read the TaxDutyQuoteResponse: ' . $e->getMessage(),
+				Zend_Log::WARN
+			);
+		}
+		return $result;
 	}
 }

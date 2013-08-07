@@ -489,4 +489,32 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cTax_Test
 		);
 	}
 
+	public function xmlProviderForLoadDocument()
+	{
+		return array(
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<TaxDutyQuoteResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+				</TaxDutyQuoteResponse>', true),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<Fault xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+				<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
+				<Code>INVALID_XML</Code>
+				<Description>The xml submitted for quote request was invalid.</Description>
+				</Fault>', false),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<someotherdocument>
+				</someotherdocument>', false),
+			array('sfslfjslfjlsfdlkfjlsfjl', false),
+		);
+	}
+
+	/**
+	 * @dataProvider xmlProviderForLoadDocument
+	 */
+	public function testLoadDocument($xml, $expected)
+	{
+		$response = Mage::getModel('eb2ctax/response');
+		$val = $this->_reflectMethod($response, '_loadDocument')->invoke($response, $xml);
+		$this->assertSame($expected, $val);
+	}
 }
