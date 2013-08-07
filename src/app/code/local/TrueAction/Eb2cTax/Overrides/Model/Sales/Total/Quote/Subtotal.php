@@ -87,42 +87,52 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	protected function _applyTaxes($item, $address)
 	{
 		$helper         = $this->_helper;
-		$store          = $item->getQuote()->getStore();
-		$rate           = 0; // this is no longer useful.
 		$qty            = $item->getTotalQty();
 
-		$price          = $taxPrice         = $this->_calculator->round($item->getCalculationPriceOriginal());
-		$subtotal       = $taxSubtotal      = $item->getRowTotal();
-		$item->setTaxPercent($rate);
-		$tax             = $this->_calculator->getTax(
-			new Varien_Object(array('item' => $item, 'address' => $address))
-		);
-		$taxPrice        = $price + $tax;
-		$taxSubtotal     = $taxPrice * $qty;
-		$taxable         = $subtotal;
+		$basePrice      = $baseTaxPrice     = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
+		$baseSubtotal   = $baseTaxSubtotal  = $item->getBaseRowTotal();
+		$itemSelector   = new Varien_Object(array('item' => $item, 'address' => $address));
+		$baseTax        = $this->_calculator->getTaxForAmount($basePrice, $itemSelector);
+		$baseTaxPrice   = $basePrice + $baseTax;
+		$baseRowTax     = $this->_calculator->getTax($itemSelector);
+		$baseTaxSubtotal= $baseSubtotal + $baseRowTax;
+		$baseTaxable    = $baseSubtotal;
 		if ($item->hasCustomPrice()) {
 			/**
 			 * Initialize item original price before declaring custom price
 			 */
 			$item->getOriginalPrice();
-			$item->setCustomPrice($price);
-			$item->setBaseCustomPrice($helper->convertToBaseCurrency($price, $store));
+			$item->setCustomPrice($this->_convertAmount($basePrice));
+			$item->setBaseCustomPrice($basePrice);
 		}
-		$item->setPrice($price);
-		$item->setBasePrice($helper->convertToBaseCurrency($price, $store));
-		$item->setRowTotal($subtotal);
-		$item->setBaseRowTotal($helper->convertToBaseCurrency($subtotal, $store));
-		$item->setPriceInclTax($taxPrice);
-		$item->setBasePriceInclTax($helper->convertToBaseCurrency($taxPrice, $store));
-		$item->setRowTotalInclTax($taxSubtotal);
-		$item->setBaseRowTotalInclTax($helper->convertToBaseCurrency($taxSubtotal, $store));
-		$item->setTaxableAmount($taxable);
-		$item->setBaseTaxableAmount($helper->convertToBaseCurrency($taxable, $store));
+		$item->setTaxPercent(0);
+		$item->setPrice($this->_convertAmount($basePrice));
+		$item->setBasePrice($basePrice);
+		$item->setRowTotal($this->_convertAmount($baseSubtotal));
+		$item->setBaseRowTotal($baseSubtotal);
+		$item->setPriceInclTax($this->_convertAmount($baseTaxPrice));
+		$item->setBasePriceInclTax($baseTaxPrice);
+		$item->setRowTotalInclTax($this->_convertAmount($baseTaxSubtotal));
+		$item->setBaseRowTotalInclTax($baseTaxSubtotal);
+		$item->setTaxableAmount($this->_convertAmount($baseTaxable));
+		$item->setBaseTaxableAmount($baseTaxable);
 		$item->setIsPriceInclTax(false);
 		if ($this->_config->discountTax($this->_store)) {
-			$item->setDiscountCalculationPrice($taxPrice);
-			$item->setBaseDiscountCalculationPrice($helper->convertToBaseCurrency($taxPrice, $store));
+			$item->setDiscountCalculationPrice($this->_convertAmount($baseTaxPrice));
+			$item->setBaseDiscountCalculationPrice($baseTaxPrice);
 		}
 		return $this;
+	}
+
+	/**
+	 * convert an amount to the quote's store currency
+	 * @param  float $amount
+	 * @return float
+	 */
+	protected function _convertAmount($amount)
+	{
+		$amount = $this->_store->convertPrice($amount);
+		$amount = $this->_calculator->round($amount);
+		return $amount;
 	}
 }
