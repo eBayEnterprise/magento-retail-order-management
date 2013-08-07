@@ -7,7 +7,7 @@
 /**
  * tests the tax calculation class.
  */
-class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cTax_Test_Base
 {
 	public static $respXml = '';
 	public static $cls;
@@ -240,68 +240,6 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		);
 	}
 
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
-	 */
-	public function testLoadAddress()
-	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$loadAddress = $rf->getMethod('_loadAddress');
-		$loadAddress->setAccessible(true);
-		$loadAddress->invoke($response, 1);
-
-		$address = $rf->getProperty('_address');
-		$address->setAccessible(true);
-		$a = $address->getValue($response);
-		$this->assertInstanceOf('Mage_Sales_Model_Quote_Address', $a);
-		$this->assertSame('1', $a->getId());
-	}
-
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
-	 */
-	public function testGetAddress()
-	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$docRf = $rf->getProperty('_doc');
-		$docRf->setAccessible(true);
-		$doc = $docRf->getValue($response);
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$shipGroups = $x->query('//a:ShipGroup');
-		// NOTE: THIS IS DEPENDENT ON THE ORDER OF THE SHIPGROUPS IN THE XML
-		foreach ($shipGroups as $index => $shipGroup) {
-			$this->assertNotNull($shipGroup);
-			$getAddress = $rf->getMethod('_getAddress');
-			$getAddress->setAccessible(true);
-			$a = $getAddress->invoke($response, $shipGroup);
-			$this->assertInstanceOf('Mage_Sales_Model_Quote_Address', $a);
-			$this->assertSame((string)($index + 1), $a->getId());
-		}
-	}
-
 	/**
 	 * @dataProvider shipGroupXmlProvider
 	 */
@@ -318,35 +256,6 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		$fn->setAccessible(true);
 		$val = $fn->invoke($response, $doc->documentElement);
 		$this->assertSame($expected, $val);
-	}
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
-	 */
-	public function testGetAddressFail()
-	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$getAddress = $rf->getMethod('_getAddress');
-		$getAddress->setAccessible(true);
-		$docRf = $rf->getProperty('_doc');
-		$docRf->setAccessible(true);
-		$doc = $docRf->getValue($response);
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$shipGroups = $x->query('//a:ShipGroup');
-		$shipGroup = $shipGroups->item(0)->parentNode->createChild('ShipGroup');
-		$getAddress->invoke($response, $shipGroup);
-		$this->assertFalse($response->isValid());
 	}
 
 	/**

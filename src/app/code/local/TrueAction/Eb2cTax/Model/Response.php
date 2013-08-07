@@ -65,21 +65,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * loading sales/quoate_address object
-	 *
-	 * @param int $addressId, the address id to load the object data.
-	 *
-	 * @return Mage_Sales_Quote_Address
-	 */
-	protected function _loadAddress($addressId)
-	{
-		if (!($this->_address && $addressId)) {
-			$this->_address = Mage::getModel('sales/quote_address');
-		}
-		return $this->_address->load($addressId);
-	}
-
-	/**
 	 * get the response for the specified sku and address id.
 	 * return null if there is no valid response to retrieve.
 	 * @param  string $sku
@@ -112,32 +97,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	{
 		return $this->_isValid && $this->getRequest() && $this->getRequest()->isValid();
 	}
-
-	/**
-	 * get the address using the value from the ref attribute.
-	 * @param  TrueAction_Dom_Element $shipGroup
-	 * @return Mage_Sales_Model_Quote_Address
-	 */
-	protected function _getAddress(TrueAction_Dom_Element $shipGroup)
-	{
-		$xpath = new DOMXPath($this->_doc);
-		$xpath->registerNamespace('a', $this->_namespaceUri);
-		$idRef = $xpath->evaluate('string(./a:DestinationTarget/@ref)', $shipGroup);
-		$id = null;
-		$idRefArray = explode('_', $idRef);
-		if (count($idRefArray) > 1) {
-			list(, $id) = $idRefArray;
-		}
-		$address = $this->_loadAddress($id);
-		if (!$address->getId()) {
-			$this->_isValid = false;
-			$message = "Address referenced by '$idRef' could not be loaded from the quote";
-			Mage::log($message, Zend_Log::WARN);
-			$address = null;
-		}
-		return $address;
-	}
-
 
 	/**
 	 * get and verify the address id for the shipgroup.
