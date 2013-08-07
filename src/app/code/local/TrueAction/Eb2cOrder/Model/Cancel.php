@@ -15,6 +15,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	private $_domResponse = null;
 	private $_helper;
 	private $_config;
+	private $_orderId;
 
 	public function _construct()
 	{
@@ -35,7 +36,8 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 		$cancelRequest = $this->_domRequest->addElement($consts::CANCEL_DOM_ROOT_NODE_NAME, null, $consts::DOM_ROOT_NS)->firstChild;
 		$cancelRequest->addAttribute('orderType', $args['order_type']);
 
-		$cancelRequest->createChild('CustomerOrderId', $args['order_id']);
+		$this->_orderId = $args['order_id'];
+		$cancelRequest->createChild('CustomerOrderId', $this->_orderId);
 		$cancelRequest->createChild('ReasonCode', $args['reason_code']);
 		$cancelRequest->createChild('Reason', $args['reason']);;
 
@@ -68,11 +70,19 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 			$this->_domResponse = $this->_helper->getDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
+			$rc = strcmp($status,'CANCELLED') ? false : true;
 		}
 		catch(Exception $e) {
-			Mage::throwException('Cancel request failed: ' . $e->getMessage());
+			Mage::logException('Cancel request failed: ' . $e->getMessage());
+			$rc = false;
 		}
 
-		return strcmp($status,'CANCELLED') ? false : true;
+		if( $rc === true ) {
+			Mage::dispatchEvent('eb2c_order_cancel_succeeded', array('order_id' => $this->_orderId));
+		}
+		else {
+			Mage::dispatchEvent('eb2c_order_cancel_failed', array('order_id' => $this->_orderId));
+		}
+		return $rc;
 	}
 }

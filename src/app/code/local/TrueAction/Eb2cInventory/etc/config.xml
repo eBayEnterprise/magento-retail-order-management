@@ -110,11 +110,11 @@
 				</args>
 			</trueaction_eb2cinventory>
 			<checkout>
-			<args>
-				<modules>
-					<TrueAction_Eb2cInventory before="Mage_Checkout">TrueAction_Eb2cInventory_Override_Checkout</TrueAction_Eb2cInventory>
-				</modules>
-			</args>
+				<args>
+					<modules>
+						<TrueAction_Eb2cInventory before="Mage_Checkout">TrueAction_Eb2cInventory_Override_Checkout</TrueAction_Eb2cInventory>
+					</modules>
+				</args>
 			</checkout>
 		</routers>
 		<events>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<widgets>
+    <eb2cfraud_jsc type="eb2cfraud/jsc">
+        <name>Ebc2Fraud: JSC Widget</name>
+        <description type="desc">Required for Eb2c Fraud 41st Parameter</description>
+    </eb2cfraud_jsc>
+</widgets>
