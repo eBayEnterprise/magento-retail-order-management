@@ -103,4 +103,66 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 		}
 		$this->assertSame($status, false);
 	}
+
+	/**
+	 * @test
+	 * TODO: Heck knows how this will be fully implemented but at some point under some set of circumstances
+	 *	we will have 'finally failed' to create an eb2c order
+	 */
+	public function testFinallyFailed()
+	{
+		$orderCreateClass = get_class(Mage::getModel('eb2corder/create'));
+
+        $privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
+		$privateFinallyFailedMethod->setAccessible(true);
+		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
+
+		$this->assertEventDispatched('eb2c_order_create_fail');
+	}
+
+
+	/**
+	 * @test
+	 * @loadFixture testOrderCreateScenarios.yaml
+	 */
+	public function testObserverCreate()
+	{
+		$dummyOrder = Mage::getModel('sales/order')->getCollection()->getLastItem();
+		$this->_creator = Mage::getModel('eb2corder/create');
+
+		// Now mock up the event
+		$mockEvent = $this->getModelMockBuilder('varien/event')
+				->disableOriginalConstructor()
+				->setMethods(
+					array(
+						'getOrder',
+					)
+				)
+				->getMock();
+
+		// Make the event return the mock quote:
+		$mockEvent->expects($this->any())
+				->method('getOrder')
+				->will($this->returnValue($dummyOrder));
+
+		// Now make the fake observer arg return the fake event ... confusingly, this arg is called "an event observer"
+		//	thus an event observer is called with an event observer
+		$mockEventObserverArgThingy = $this->getModelMockBuilder('varien/event_observer')
+				->disableOriginalConstructor()
+				->setMethods(
+					array(
+						'getEvent',
+					)
+				)
+				->getMock();
+
+		// Finally set up event observer to return our fakey event
+		$mockEventObserverArgThingy->expects($this->any())
+				->method('getEvent')
+				->will($this->returnValue($mockEvent));
+
+		// TODO: This should be a Mage::dispatchEvent based on config.xml, sell also Eb2cFraud where it's done better. 
+		// still, it covers the code 'good enough' for now.
+		$this->_creator->observerCreate($mockEventObserverArgThingy);
+	}
 }

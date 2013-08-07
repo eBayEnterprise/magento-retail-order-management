@@ -110,6 +110,23 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 		$helper->setAccessible(true);
 		$helper->setValue($this->_checkout, $paymentHelper);
 
+		$paypalMock = $this->getMock(
+			'TrueAction_Eb2cPayment_Model_Paypal',
+			array('setEb2cPaypalToken', 'save')
+		);
+		$paypalMock->expects($this->any())
+			->method('setEb2cPaypalToken')
+			->will($this->returnSelf()
+			);
+		$paypalMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf()
+			);
+
+		$paypal = $checkoutReflector->getProperty('_paypal');
+		$paypal->setAccessible(true);
+		$paypal->setValue($this->_checkout, $paypalMock);
+
 		$this->assertNotNull(
 			$this->_checkout->setExpressCheckout($quote)
 		);
@@ -149,6 +166,23 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 		$helper->setAccessible(true);
 		$helper->setValue($this->_checkout, $paymentHelper);
 
+		$paypalMock = $this->getMock(
+			'TrueAction_Eb2cPayment_Model_Paypal',
+			array('setEb2cPaypalToken', 'save')
+		);
+		$paypalMock->expects($this->any())
+			->method('setEb2cPaypalToken')
+			->will($this->returnSelf()
+			);
+		$paypalMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf()
+			);
+
+		$paypal = $checkoutReflector->getProperty('_paypal');
+		$paypal->setAccessible(true);
+		$paypal->setValue($this->_checkout, $paypalMock);
+
 		$this->assertSame(
 			'',
 			trim($this->_checkout->setExpressCheckout($quote))
@@ -171,8 +205,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 	 */
 	public function testParseResponse($payPalSetExpressCheckoutReply)
 	{
-		$this->assertSame(
-			array('orderId' => 1, 'responseCode' => 'Success', 'token' => 'EC-5YE59312K56892714'),
+		$this->assertInstanceOf(
+			'Varien_Object',
 			$this->_checkout->parseResponse($payPalSetExpressCheckoutReply)
 		);
 	}

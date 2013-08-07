@@ -115,19 +115,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_AuthorizationTest extends Ecom
 		);
 	}
 
-	public function expectedParseResponse()
-	{
-		return array (
-			'orderId' => 1,
-			'responseCode' => 'Success',
-			'authorizationInfo' => array (
-				'paymentStatus' => 'Pending',
-				'pendingReason' => 'authorization',
-				'reasonCode' => 'none',
-			)
-		);
-	}
-
 	/**
 	 * testing parseResponse method
 	 *
@@ -137,8 +124,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_AuthorizationTest extends Ecom
 	 */
 	public function testParseResponse($payPalDoAuthorizationReply)
 	{
-		$this->assertSame(
-			$this->expectedParseResponse(),
+		$this->assertInstanceOf(
+			'Varien_Object',
 			$this->_authorization->parseResponse($payPalDoAuthorizationReply)
 		);
 	}

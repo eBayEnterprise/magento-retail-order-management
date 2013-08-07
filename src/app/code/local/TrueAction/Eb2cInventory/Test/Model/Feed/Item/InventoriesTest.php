@@ -48,7 +48,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		);
 
 		// Adding xml to feed directory in other to get the feed
-		$sampleFeed = dirname(__FILE__) . '/InventoriesTest/fixtures/sample-feed.xml';
+		$sampleFeed = __DIR__ . '/InventoriesTest/fixtures/sample-feed.xml';
 		$destination = $localPath . 'sample-feed.xml';
 		if (!is_dir($localPath)) {
 			umask(0);

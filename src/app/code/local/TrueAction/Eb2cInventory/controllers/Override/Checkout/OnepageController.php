@@ -52,6 +52,12 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 					Mage_Payment_Model_Method_Abstract::CHECK_ZERO_TOTAL;
 				$this->getOnepage()->getQuote()->getPayment()->importData($data);
 			}
+			// Begin eb2c pre order create:
+			Mage::dispatchEvent(
+				'eb2c_onepage_save_order_before',
+				array('quote' => $this->getOnepage()->getQuote(), 'request' => $this->getRequest())
+			);
+			// End eb2c pre order create;
 
 			$this->getOnepage()->saveOrder();
 

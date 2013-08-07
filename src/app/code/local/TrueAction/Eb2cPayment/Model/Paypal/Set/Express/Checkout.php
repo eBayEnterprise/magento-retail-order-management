@@ -6,11 +6,24 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core_Model_Abstract
 {
+	/**
+	 * instantiate payment helper object
+	 *
+	 * @var TrueAction_Eb2cPayment_Helper_Data
+	 */
 	protected $_helper;
+
+	/**
+	 * instantiate paypal payment model object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected $_paypal;
 
 	public function __construct()
 	{
 		$this->_helper = $this->_getHelper();
+		$this->_paypal = $this->_getPaypal();
 	}
 
 	/**
@@ -24,6 +37,19 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 			$this->_helper = Mage::helper('eb2cpayment');
 		}
 		return $this->_helper;
+	}
+
+	/**
+	 * Get model paypal instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected function _getPaypal()
+	{
+		if (!$this->_paypal) {
+			$this->_paypal = Mage::getModel('eb2cpayment/paypal');
+		}
+		return $this->_paypal;
 	}
 
 	/**
@@ -48,6 +74,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 		}catch(Exception $e){
 			Mage::logException($e);
 		}
+
+		// Save payment data
+		$this->_savePaymentData($this->parseResponse($paypalSetExpressCheckoutResponseMessage), $quote);
 
 		return $paypalSetExpressCheckoutResponseMessage;
 	}
@@ -150,11 +179,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 	 *
 	 * @param string $payPalSetExpressCheckoutReply the xml response from eb2c
 	 *
-	 * @return array, an associative array of response data
+	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalSetExpressCheckoutReply)
 	{
-		$checkoutData = array();
+		$checkoutObject = new Varien_Object();
 		if (trim($payPalSetExpressCheckoutReply) !== '') {
 			$doc = $this->_getHelper()->getDomDocument();
 			$doc->loadXML($payPalSetExpressCheckoutReply);
@@ -163,20 +192,39 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 
 			$orderId = $checkoutXpath->query('//a:OrderId');
 			if ($orderId->length) {
-				$checkoutData['orderId'] = (int) $orderId->item(0)->nodeValue;
+				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
 			}
 
 			$responseCode = $checkoutXpath->query('//a:ResponseCode');
 			if ($responseCode->length) {
-				$checkoutData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
+				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
 			}
 
 			$token = $checkoutXpath->query('//a:Token');
 			if ($token->length) {
-				$checkoutData['token'] = (string) $token->item(0)->nodeValue;
+				$checkoutObject->setToken((string) $token->item(0)->nodeValue);
 			}
 		}
 
-		return $checkoutData;
+		return $checkoutObject;
+	}
+
+	/**
+	 * save payment data to quote_payment.
+	 *
+	 * @param array $checkoutObject, an associative array of response data
+	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
+	 *
+	 * @return void
+	 */
+	protected function _savePaymentData($checkoutObject, $quote)
+	{
+		if (trim($checkoutObject->getToken()) !== '') {
+			$this->_getPaypal()->loadByQuoteId($quote->getEntityId());
+			$this->_getPaypal()->setQuoteId($quote->getEntityId())
+				->setEb2cPaypalToken($checkoutObject->getToken())
+				->save();
+		}
+		return ;
 	}
 }
