@@ -104,7 +104,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 		$configPath =  $this->_getHelper()->getConfigModel()->configPath;
 
 		// downloading feed from eb2c server down to local server
-		$this->_getHelper()->getFileTransferHelper()->getFile($this->getFeedModel()->getInboundFolder(), $remoteFile, $configPath, null);
+		$this->_getHelper()->getFileTransferHelper()->getFile($this->_getFeedModel()->getInboundFolder(), $remoteFile, $configPath, null);
 	}
 
 	/**

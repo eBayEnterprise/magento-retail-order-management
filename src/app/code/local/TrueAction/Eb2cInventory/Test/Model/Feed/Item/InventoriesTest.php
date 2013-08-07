@@ -41,7 +41,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		$feedModel->setBaseFolder( Mage::getStoreConfig('eb2c/inventory/feed_local_path') );
 		$localPath = $feedModel->getInboundFolder();
 		if (is_dir($localPath)) {
-			foreach(glob($localPath . '*') as $file) {
+			foreach(glob($localPath . DS . '*') as $file) {
 				unlink($file);
 			}
 			rmdir($localPath);
