@@ -62,6 +62,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Io_File
 		$this->_setCheckAndCreateFolder($this->_errorFolder,	$this->_baseFolder . $this->dirsep() . self::ERROR_FOLDER_NAME);
 		$this->_setCheckAndCreateFolder($this->_tmpFolder,		$this->_baseFolder . $this->dirsep() . self::TMP_FOLDER_NAME);
 		$this->cd($this->_baseFolder);
+		return $this;
 	}
 
 	/**
