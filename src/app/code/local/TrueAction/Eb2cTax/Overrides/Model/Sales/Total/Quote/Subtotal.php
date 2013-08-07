@@ -57,9 +57,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 
 		$items = $this->_getAddressItems($address);
 		if (!$items) {
-			// @codeCovergeIgnoreStart
 			return $this;
-			// @codeCovergeIgnoreEnd
 		}
 		foreach ($items as $item) {
 			if ($item->getParentItem()) {
@@ -88,44 +86,42 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	 */
 	protected function _applyTaxes($item, $address)
 	{
+		$helper         = $this->_helper;
+		$store          = $item->getQuote()->getStore();
 		$rate           = 0; // this is no longer useful.
 		$qty            = $item->getTotalQty();
 
 		$price          = $taxPrice         = $this->_calculator->round($item->getCalculationPriceOriginal());
-		$basePrice      = $baseTaxPrice     = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
 		$subtotal       = $taxSubtotal      = $item->getRowTotal();
-		$baseSubtotal   = $baseTaxSubtotal  = $item->getBaseRowTotal();
 		$item->setTaxPercent($rate);
-		$tax             = $this->_calculator->getTaxForItem($item, $address);
-		$baseTax         = $this->_calculator->getTaxForItemAmount($basePrice, $item, $address);
+		$tax             = $this->_calculator->getTax(
+			new Varien_Object(array('item' => $item, 'address' => $address))
+		);
 		$taxPrice        = $price + $tax;
-		$baseTaxPrice    = $basePrice + $baseTax;
 		$taxSubtotal     = $taxPrice * $qty;
-		$baseTaxSubtotal = $baseTaxPrice * $qty;
-		$taxable         = $this->_calculator->getTaxableForItem($item, $address);
-		$baseTaxable     = $taxable;
+		$taxable         = $subtotal;
 		if ($item->hasCustomPrice()) {
 			/**
 			 * Initialize item original price before declaring custom price
 			 */
 			$item->getOriginalPrice();
 			$item->setCustomPrice($price);
-			$item->setBaseCustomPrice($basePrice);
+			$item->setBaseCustomPrice($helper->convertToBaseCurrency($price, $store));
 		}
 		$item->setPrice($price);
-		$item->setBasePrice($basePrice);
+		$item->setBasePrice($helper->convertToBaseCurrency($price, $store));
 		$item->setRowTotal($subtotal);
-		$item->setBaseRowTotal($baseSubtotal);
+		$item->setBaseRowTotal($helper->convertToBaseCurrency($subtotal, $store));
 		$item->setPriceInclTax($taxPrice);
-		$item->setBasePriceInclTax($baseTaxPrice);
+		$item->setBasePriceInclTax($helper->convertToBaseCurrency($taxPrice, $store));
 		$item->setRowTotalInclTax($taxSubtotal);
-		$item->setBaseRowTotalInclTax($baseTaxSubtotal);
+		$item->setBaseRowTotalInclTax($helper->convertToBaseCurrency($taxSubtotal, $store));
 		$item->setTaxableAmount($taxable);
-		$item->setBaseTaxableAmount($baseTaxable);
+		$item->setBaseTaxableAmount($helper->convertToBaseCurrency($taxable, $store));
 		$item->setIsPriceInclTax(false);
 		if ($this->_config->discountTax($this->_store)) {
 			$item->setDiscountCalculationPrice($taxPrice);
-			$item->setBaseDiscountCalculationPrice($baseTaxPrice);
+			$item->setBaseDiscountCalculationPrice($helper->convertToBaseCurrency($taxPrice, $store));
 		}
 		return $this;
 	}

@@ -5,6 +5,28 @@
  */
 class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_Model_Sales_Total_Quote_Tax
 {
+
+	/**
+	 * running total of tax amount for the address.
+	 */
+	protected $_shippingTaxSubTotals = array();
+
+	/**
+	 * running total of tax amount for the address.
+	 */
+	protected $_shippingTaxTotals = array();
+
+	/**
+	 * Class constructor
+	 */
+	public function __construct()
+	{
+		$this->setCode('tax');
+		$this->_helper         = Mage::helper('tax');
+		$this->_calculator     = Mage::getSingleton('tax/calculation');
+		$this->_config         = Mage::getSingleton('tax/config');
+	}
+
 	/**
 	 * Collect tax totals for quote address
 	 *
@@ -13,11 +35,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
-		// save the address and clear out the tax total fields
-		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
-		// clear out the hiddenTax related fields
-		$this->_resetHiddenTaxes($address);
-
+		$this->_initBeforeCollect($address);
 		$this->_roundingDeltas      = array();
 		$this->_baseRoundingDeltas  = array();
 		$this->_hiddenTaxes         = array();
@@ -128,16 +146,18 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$hiddenTax      = null;
 		$baseHiddenTax  = null;
 
-		if ($this->_helper->getApplyTaxAfterDiscount($this->_store)) {
+		if ($this->_helper->getApplyTaxAfterDiscount()) {
 			// tax only what you pay
-			$rowTax             = $this->_calculator->getTax($itemSelector);
 			$discountAmount     = $item->getDiscountAmount();
-			$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector);
+			$rowTax             = $this->_calculator->getTax($itemSelector, 'merchandise');
+			$rowTaxDiscount     = $this->_calculator->getDiscountTax($itemSelector, 'merchandise');
 
-			$baseRowTax         = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
 			$baseDiscountAmount = $item->getBaseDiscountAmount();
-			$baseRowTaxDiscount = $this->_calculator->getDiscountTaxForAmount($baseDiscountAmount, $itemSelector);
-			$this->_processHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
+			$baseRowTax         = $this->_helper->convertToBaseCurrency($rowTax);
+			$baseRowTaxDiscount = $this->_helper->convertToBaseCurrency($rowTaxDiscount);
+
+			// record the hidden tax amounts
+			$this->_processItemHiddenTax($rowTaxDiscount, $baseRowTaxDiscount, $item);
 
 			// adjust the subtotal due to the discount amounts
 			$subtotal     = $subtotal - $discountAmount;
@@ -147,8 +167,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 			$baseRowTax   = $baseRowTax - $baseRowTaxDiscount;
 		} else {
 			// tax the full itemprice
-			$rowTax     = $this->_calculator->getTax($itemSelector);
-			$baseRowTax = $this->_calculator->getTaxForAmount($baseSubtotal, $itemSelector);
+			$rowTax     = $this->_calculator->getTax($itemSelector, 'merchandise');
+			$baseRowTax = $this->_helper->convertToBaseCurrency($rowTax);
 		}
 
 		$item->setTaxAmount(max(0, $rowTax));
@@ -162,6 +182,78 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		}
 
 		return $this;
+	}
+
+	protected function _calcShippingTaxes($itemSelector)
+	{
+		$address = $itemSelector->getAddress();
+		$isPriceInclTax  = $this->_isShippingPriceTaxInclusive();
+		$address->setIsShippingInclTax($isPriceInclTax || $address->getIsShippingInclTax());
+
+		$shipping        = $taxShipping     = $address->getShippingAmount();
+		$baseShipping    = $baseTaxShipping = $address->getBaseShippingAmount();
+		$rate            = 0;
+
+		$taxable         = $shipping;
+		$duty            = $this->_calculator->getTax($itemSelector, 'duty');
+		$tax             = $this->_calculator->getTax($itemSelector, 'shipping') + $duty;
+		$this->_shippingTaxSubTotals[$address->getId()] += $tax;
+		$taxShipping     = $shipping + $this->_shippingTaxSubTotals[$address->getId()];
+
+		// process base currency
+		$baseTaxable     = $baseShipping;
+		$baseTax         = $this->_helper->convertToBaseCurrency($tax);
+		$baseTaxShipping = $this->_helper->convertToBaseCurrency($taxShipping);
+
+		// process shipping subtotal data
+		$address->setTotalAmount('shipping', $shipping);
+		$address->setShippingInclTax($taxShipping);
+		$address->setShippingTaxable($taxable);
+
+		$address->setBaseTotalAmount('shipping', $baseShipping);
+		$address->setBaseShippingInclTax($baseTaxShipping);
+		$address->setBaseShippingTaxable($baseTaxable);
+
+		// process final shipping tax data
+		if ($this->_helper->getApplyTaxAfterDiscount()) {
+			$taxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'shipping');
+			$this->_processShippingHiddenTax($taxDiscount, $this->_helper->convertToBaseCurrency($taxDiscount), $address);
+			$tax -= $taxDiscount;
+			$baseTax = $this->_helper->convertToBaseCurrency($tax);
+			$baseTax = $this->_calculator->round($baseTax);
+			$address->setShippingAmountForDiscount($shipping + $tax);
+			$address->setBaseShippingAmountForDiscount($baseShipping + $baseTax);
+		}
+		$this->_shippingTaxTotals[$address->getId()] += $tax;
+		$taxes     = $this->_shippingTaxTotals[$address->getId()];
+		$baseTaxes = $this->_calculator->round($this->_helper->convertToBaseCurrency($taxes));
+		$address->setShippingTaxAmount(max(0, $taxes));
+		$address->setBaseShippingTaxAmount(max(0, $baseTaxes));
+		return $this;
+	}
+
+	/**
+	 * initialize totals data before collecting the totals.
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 */
+	protected function _initBeforeCollect($address)
+	{
+		// save the address and clear out the tax total fields
+		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+		$this->_shippingTaxTotals[$address->getId()] = 0.0;
+		$this->_shippingTaxSubTotals[$address->getId()] = 0.0;
+		// clear out the hiddenTax related fields
+		$this->_resetHiddenTaxes($address);
+	}
+
+	/**
+	 * return true if the shipping price includes VAT.
+	 * return false otherwise.
+	 * @return boolean
+	 */
+	protected function _isShippingPriceTaxInclusive()
+	{
+		return false;
 	}
 
 	/**
@@ -201,26 +293,37 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	protected function _resetHiddenTaxes(Mage_Sales_Model_Quote_Address $address)
 	{
-		$address->setTotalAmount('hidden_tax', 0);
-		$address->setBaseTotalAmount('hidden_tax', 0);
-		$address->setTotalAmount('shipping_hidden_tax', 0);
-		$address->setBaseTotalAmount('shipping_hidden_tax', 0);
+		$address->setTotalAmount('hidden_tax', 0.0);
+		$address->setBaseTotalAmount('hidden_tax', 0.0);
+		$address->setTotalAmount('shipping_hidden_tax', 0.0);
+		$address->setBaseTotalAmount('shipping_hidden_tax', 0.0);
 	}
 
 	/**
-	 * Process hidden taxes for items and shippings (in accordance with hidden tax type)
+	 * Process hidden taxes for items (in accordance with hidden tax type)
 	 *
 	 * @return void
 	 */
-	protected function _processHiddenTax($amount, $baseAmount, $item)
+	protected function _processItemHiddenTax($amount, $baseAmount, $item)
 	{
 		if ($amount || $baseAmount) {
-			$hiddenTax      = $this->_calculator->round($amount);
-			$baseHiddenTax  = $this->_calculator->round($baseAmount);
-			$item->setHiddenTaxAmount(max(0, $hiddenTax));
-			$item->setBaseHiddenTaxAmount(max(0, $baseHiddenTax));
+			$item->setHiddenTaxAmount(max(0.0, $amount));
+			$item->setBaseHiddenTaxAmount(max(0.0, $baseAmount));
 			$this->_getAddress()->addTotalAmount('hidden_tax', $item->getHiddenTaxAmount());
 			$this->_getAddress()->addBaseTotalAmount('hidden_tax', $item->getBaseHiddenTaxAmount());
+		}
+	}
+
+	/**
+	 * Process hidden taxes for shipping (in accordance with hidden tax type)
+	 *
+	 * @return void
+	 */
+	protected function _processShippingHiddenTax($amount, $baseAmount, $address)
+	{
+		if ($amount || $baseAmount) {
+			$address->addTotalAmount('shipping_hidden_tax', $amount);
+			$address->addBaseTotalAmount('shipping_hidden_tax', $baseAmount);
 		}
 	}
 

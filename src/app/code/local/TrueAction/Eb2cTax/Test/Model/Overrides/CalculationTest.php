@@ -8,10 +8,17 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	{
 		$this->_setupBaseUrl();
 
-		$this->addressMock = $this->getModelMock('sales/quote_address');
+		$this->quoteMock = $this->getModelMock('sales/quote', array('getStore'));
+		$this->quoteMock->expects($this->any())
+			->method('getStore')
+			->will($this->returnValue(Mage::app()->getStore()));
+		$this->addressMock = $this->getModelMock('sales/quote_address', array('getId', 'getQuote'));
 		$this->addressMock->expects($this->any())
 			->method('getId')
 			->will($this->returnValue(1));
+		$this->addressMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($this->quoteMock));
 
 		$taxQuote = $this->_mockTaxQuote(0.5, 0.38, 'PENNSYLVANIA-Seller And Use Tax', 10);
 		$taxQuote2 = $this->_mockTaxQuote(0.01, 10.60, 'PENNSYLVANIA-Random Tax', 5);
@@ -229,68 +236,136 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 	/**
 	 * @test
+	 * @dataProvider dataProvider
+	 * @loadExpectation testGetAppliedRates.yaml
 	 */
-	public function testGetTaxableForItem()
+	public function testGetAppliedRates($isAfterDiscounts)
 	{
-		$this->markTestIncomplete('temporarily disabled.');
-		$this->_reflectProperty($this->response, '_isValid')->setValue($this->response, true);
-		$calc = Mage::getModel('tax/calculation');
-		$this->orderItem->expects($this->any())
-			->method('getMerchandiseAmount')
-			->will($this->returnValue(50));
-		$calc->setTaxResponse($this->response);
-		$amount = $calc->getTaxableForItem($this->item, $this->addressMock);
-		$this->assertSame(15, $amount);
-	}
+		$response = $this->_mockResponseWithAll();
 
-	/**
-	 * @testl
-	 */
-	public function testGetTaxableForItem2()
-	{
-		$this->markTestIncomplete('temporarily disabled.');
-		$this->_reflectProperty($this->response, '_isValid')->setValue($this->response, true);
-		$calc = Mage::getModel('tax/calculation');
-		$this->orderItem->expects($this->any())
-			->method('getMerchandiseAmount')
-			->will($this->returnValue(7));
-		$calc->setTaxResponse($this->response);
-		$amount = $calc->getTaxableForItem($this->item, $this->addressMock);
-		$this->assertSame(7, $amount);
-	}
+		Mage::unregister('_helper/tax');
 
-	/**
-	 * @test
-	 * @loadExpectation
-	 */
-	public function testGetAppliedRates()
-	{
-		$this->_reflectProperty($this->response, '_isValid')->setValue($this->response, true);
-		$this->markTestIncomplete('temporarily disabled.');
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(
+				array('taxApplyAfterDiscount', $isAfterDiscounts),
+				array('taxDutyRateCode', 'eb2c-duty-amount'),
+			)));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
 		$calc = Mage::getModel('tax/calculation');
-		$calc->setTaxResponse($this->response);
+		$calc->setTaxResponse($response);
+
 		$itemSelector = new Varien_Object(
 			array('item' => $this->item, 'address' => $this->addressMock)
 		);
-		$a = $calc->getAppliedRates($itemSelector);
-		$this->assertNotEmpty($a);
-		$i = 0;
-		foreach ($a as $group) {
-			$e = $this->expected('0-' . $i);
-			$this->assertNotEmpty($group);
-			$this->assertSame($e->getId(), $group['id']);
-			$this->assertArrayHasKey('percent', $group);
-			$this->assertSame((float)$e->getPercent(), $group['percent']);
-			$this->assertArrayHasKey('rates', $group);
-			$this->assertNotEmpty($group['rates']);
-			$this->assertSame(1, count($group['rates']));
-			$rate = $group['rates'][0];
-			$this->assertSame($e->getCode(), $rate['code']);
-			$this->assertSame($e->getCode(), $rate['title']);
-			$this->assertSame((float)$e->getAmount(), $rate['amount']);
-			$this->assertSame((float)$e->getBaseAmount(), $rate['base_amount']);
-			++$i;
+
+		$appliedRates = $calc->getAppliedRates($itemSelector);
+		$this->assertNotEmpty($appliedRates);
+
+		$scenario = $isAfterDiscounts ? 'afterdiscount' : 'beforediscount';
+
+		foreach (array('merchandise', 'shipping', 'duty', 'dutyamount') as $type) {
+			$expectationKey = "{$scenario}-{$type}";
+			$e = $this->expected($expectationKey);
+			$this->assertArrayHasKey(
+				$e->getId(),
+				$appliedRates,
+				"$expectationKey: rates does not contain a key for id"
+			);
+			$group = $appliedRates[$e->getId()];
+			$this->assertNotEmpty($group, "$expectationKey: applied groups is empty");
+			$this->assertSame($e->getId(), $group['id'], "$expectationKey: applied group id mismatch");
+			$this->assertArrayHasKey('percent', $group, "$expectationKey: applied group missing 'percent' key");
+			$this->assertSame(
+				is_null($e->getPercent()) ? null : (float) $e->getPercent(),
+				$group['percent'],
+				"$expectationKey: applied groups percent mismatch"
+			);
+			$this->assertArrayHasKey('rates', $group, "$expectationKey: applied group missing rates");
+			$this->assertNotEmpty($group['rates'], "$expectationKey: applied group rates is empty");
+			$r = $e->getRates();
+			$this->assertSame(count($r), count($group['rates']), "$expectationKey: applied group does not include the correct number of rates");
+			foreach ($group['rates'] as $idx => $rate) {
+				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
+				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
+				$this->assertSame((float)$r[$idx]['amount'], $rate['amount'], "$expectationKey: applied group rate amount mismatch");
+				$this->assertSame((float)$r[$idx]['base_amount'], $rate['base_amount'], "$expectationKey: applied group rate base amount mismatch");
+			}
 		}
+	}
+
+	/**
+	 * @atest
+	 * @loadExpectation testGetAppliedRates.yaml
+	 */
+	public function testGetAppliedRatesDuplicateRatesExtraDiscountRates()
+	{
+		$response = $this->_mockResponseWithDuplicates();
+
+		Mage::unregister('_helper/tax');
+
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(
+				array('taxApplyAfterDiscount', true),
+				array('taxDutyRateCode', 'eb2c-duty-amount'),
+			)));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+
+		$calc = Mage::getModel('tax/calculation');
+		$calc->setTaxResponse($response);
+
+		$itemSelector = new Varien_Object(
+			array('item' => $this->item, 'address' => $this->addressMock)
+		);
+
+		$appliedRates = $calc->getAppliedRates($itemSelector);
+		$this->assertNotEmpty($appliedRates);
+
+		$scenario = 'duplicate-after';
+
+		foreach (array('merchandise', 'dutyamount') as $type) {
+			$expectationKey = "{$scenario}-{$type}";
+			$e = $this->expected($expectationKey);
+			$this->assertArrayHasKey(
+				$e->getId(),
+				$appliedRates,
+				"$expectationKey: rates does not contain a key for id"
+			);
+			$group = $appliedRates[$e->getId()];
+			$this->assertNotEmpty($group, "$expectationKey: applied groups is empty");
+			$this->assertSame($e->getId(), $group['id'], "$expectationKey: applied group id mismatch");
+			$this->assertArrayHasKey('percent', $group, "$expectationKey: applied group missing 'percent' key");
+			$this->assertSame(
+				is_null($e->getPercent()) ? null : (float) $e->getPercent(),
+				$group['percent'],
+				"$expectationKey: applied groups percent mismatch"
+			);
+			$this->assertArrayHasKey('rates', $group, "$expectationKey: applied group missing rates");
+			$this->assertNotEmpty($group['rates'], "$expectationKey: applied group rates is empty");
+			$r = $e->getRates();
+			$this->assertSame(count($r), count($group['rates']), "$expectationKey: applied group does not include the correct number of rates");
+			foreach ($group['rates'] as $idx => $rate) {
+				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
+				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
+				$this->assertSame((float)$r[$idx]['amount'], $rate['amount'], "$expectationKey: applied group rate amount mismatch");
+				$this->assertSame((float)$r[$idx]['base_amount'], $rate['base_amount'], "$expectationKey: applied group rate base amount mismatch");
+			}
+		}
+
+		// One of the tax quote discounts should not have matched any of the tax quote
+		// codes. The discount should not have been included in the applied rates.
+		$this->assertArrayNotHasKey('additional tax-0.0625', $appliedRates);
+
 	}
 
 	protected function _mockTaxQuote($percent, $tax, $rateKey = '', $taxable = 0)
@@ -419,6 +494,71 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		));
 		$taxQuotes    = array($taxQuote, $shipQuote, $shipQuote2, $dutyQuote);
 		$taxDiscounts = array($discountQuote, $shipDiscountQuote);
+		$orderItem    = Mage::getModel('eb2ctax/response_orderitem');
+		$orderItem->setData(array('duty_amount' => 8.21));
+		$this->_reflectProperty($orderItem, '_taxQuotes')->setValue($orderItem, $taxQuotes);
+		$this->_reflectProperty($orderItem, '_taxQuoteDiscounts')->setValue($orderItem, $taxDiscounts);
+		$response = $this->_buildModelMock('eb2ctax/response', array(
+			'getResponseForItem' => $this->returnValue($orderItem),
+			'isValid'            => $this->returnValue(true),
+		));
+		return $response;
+	}
+
+	protected function _mockResponseWithDuplicates()
+	{
+		$taxQuoteOne = $this->_buildModelMock('eb2ctax/response_quote', array(
+			'getCode'          => $this->returnValue('state tax foo'),
+			'getType'          => $this->returnValue(0),
+			'getTaxableAmount' => $this->returnValue(99.99),
+			'getEffectiveRate' => $this->returnValue(0.0625),
+			'getCalculatedTax' => $this->returnValue(6.25),
+		));
+		$discountQuoteOne = $this->_buildModelMock('eb2ctax/response_quote_discount', array(
+			'getCode'          => $this->returnValue('state tax foo'),
+			'getType'          => $this->returnValue(0),
+			'getTaxableAmount' => $this->returnValue(12.24),
+			'getEffectiveRate' => $this->returnValue(0.0625),
+			'getCalculatedTax' => $this->returnValue(0.77),
+		));
+		$taxQuoteTwo = $this->_buildModelMock('eb2ctax/response_quote', array(
+			'getCode'          => $this->returnValue('state tax foo'),
+			'getType'          => $this->returnValue(0),
+			'getTaxableAmount' => $this->returnValue(99.99),
+			'getEffectiveRate' => $this->returnValue(0.0625),
+			'getCalculatedTax' => $this->returnValue(6.25),
+		));
+		$discountQuoteTwo = $this->_buildModelMock('eb2ctax/response_quote_discount', array(
+			'getCode'          => $this->returnValue('state tax foo'),
+			'getType'          => $this->returnValue(0),
+			'getTaxableAmount' => $this->returnValue(12.24),
+			'getEffectiveRate' => $this->returnValue(0.0625),
+			'getCalculatedTax' => $this->returnValue(0.77),
+		));
+		$unknownDiscountQuote = $this->_buildModelMock('eb2ctax/response_quote_discount', array(
+			'getCode'          => $this->returnValue('additional tax'),
+			'getType'          => $this->returnValue(0),
+			'getTaxableAmount' => $this->returnValue(12.24),
+			'getEffectiveRate' => $this->returnValue(0.0625),
+			'getCalculatedTax' => $this->returnValue(0.77),
+		));
+		$dutyQuote = $this->_buildModelMock('eb2ctax/response_quote', array(
+			'getCode'          => $this->returnValue('duty tax'),
+			'getType'          => $this->returnValue(2),
+			'getTaxableAmount' => $this->returnValue(8.21),
+			'getEffectiveRate' => $this->returnValue(0.0262),
+			'getCalculatedTax' => $this->returnValue(0.51),
+		));
+		$doubleDutyQuote = $this->_buildModelMock('eb2ctax/response_quote', array(
+			'getCode'          => $this->returnValue('double duty tax'),
+			'getType'          => $this->returnValue(2),
+			'getTaxableAmount' => $this->returnValue(8.21),
+			'getEffectiveRate' => $this->returnValue(0.00),
+			'getCalculatedTax' => $this->returnValue(0.00),
+		));
+
+		$taxQuotes    = array($taxQuoteOne, $taxQuoteTwo, $dutyQuote, $doubleDutyQuote);
+		$taxDiscounts = array($discountQuoteOne, $discountQuoteTwo, $unknownDiscountQuote);
 		$orderItem    = Mage::getModel('eb2ctax/response_orderitem');
 		$orderItem->setData(array('duty_amount' => 8.21));
 		$this->_reflectProperty($orderItem, '_taxQuotes')->setValue($orderItem, $taxQuotes);
