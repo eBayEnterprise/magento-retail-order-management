@@ -82,11 +82,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	 *
 	 * @param string $payPalDoVoidReply the xml response from eb2c
 	 *
-	 * @return array, an associative array of response data
+	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalDoVoidReply)
 	{
-		$checkoutData = array();
+		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoVoidReply) !== '') {
 			$doc = $this->_getHelper()->getDomDocument();
 			$doc->loadXML($payPalDoVoidReply);
@@ -95,15 +95,15 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 
 			$orderId = $checkoutXpath->query('//a:OrderId');
 			if ($orderId->length) {
-				$checkoutData['orderId'] = (int) $orderId->item(0)->nodeValue;
+				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
 			}
 
 			$responseCode = $checkoutXpath->query('//a:ResponseCode');
 			if ($responseCode->length) {
-				$checkoutData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
+				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
 			}
 		}
 
-		return $checkoutData;
+		return $checkoutObject;
 	}
 }

@@ -6,11 +6,24 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_Model_Abstract
 {
+	/**
+	 * instantiate payment helper object
+	 *
+	 * @var TrueAction_Eb2cPayment_Helper_Data
+	 */
 	protected $_helper;
+
+	/**
+	 * instantiate paypal payment model object
+	 *
+	 * @var TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected $_paypal;
 
 	public function __construct()
 	{
 		$this->_helper = $this->_getHelper();
+		$this->_paypal = $this->_getPaypal();
 	}
 
 	/**
@@ -24,6 +37,19 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 			$this->_helper = Mage::helper('eb2cpayment');
 		}
 		return $this->_helper;
+	}
+
+	/**
+	 * Get model paypal instantiated object.
+	 *
+	 * @return TrueAction_Eb2cPayment_Model_Paypal
+	 */
+	protected function _getPaypal()
+	{
+		if (!$this->_paypal) {
+			$this->_paypal = Mage::getModel('eb2cpayment/paypal');
+		}
+		return $this->_paypal;
 	}
 
 	/**
@@ -49,6 +75,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 			Mage::logException($e);
 		}
 
+		// Save payment data
+		$this->_savePaymentData($this->parseResponse($paypalDoExpressCheckoutResponseMessage), $quote);
+
 		return $paypalDoExpressCheckoutResponseMessage;
 	}
 
@@ -67,13 +96,16 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 			'OrderId',
 			(string) $quote->getEntityId()
 		);
+
+		$paypal = $this->_getPaypal()->loadByQuoteId($quote->getEntityId());
+
 		$payPalDoExpressCheckoutRequest->createChild(
 			'Token',
-			(string) $quote->getEb2cPaypalExpressCheckoutToken()
+			(string) $paypal->getEb2cPaypalToken()
 		);
 		$payPalDoExpressCheckoutRequest->createChild(
 			'PayerId',
-			(string) $quote->getEb2cPaypalExpressCheckoutPayerId()
+			(string) $paypal->getEb2cPaypalPayerId()
 		);
 
 		$payPalDoExpressCheckoutRequest->createChild(
@@ -209,11 +241,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	 *
 	 * @param string $payPalDoExpressCheckoutReply the xml response from eb2c
 	 *
-	 * @return array, an associative array of response data
+	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalDoExpressCheckoutReply)
 	{
-		$checkoutData = array();
+		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoExpressCheckoutReply) !== '') {
 			$doc = $this->_getHelper()->getDomDocument();
 			$doc->loadXML($payPalDoExpressCheckoutReply);
@@ -222,38 +254,57 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 
 			$orderId = $checkoutXpath->query('//a:OrderId');
 			if ($orderId->length) {
-				$checkoutData['orderId'] = (int) $orderId->item(0)->nodeValue;
+				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
 			}
 
 			$responseCode = $checkoutXpath->query('//a:ResponseCode');
 			if ($responseCode->length) {
-				$checkoutData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
+				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
 			}
 
 			$transactionID = $checkoutXpath->query('//a:TransactionID');
 			if ($transactionID->length) {
-				$checkoutData['transactionID'] = (string) $transactionID->item(0)->nodeValue;
+				$checkoutObject->setTransactionId((string) $transactionID->item(0)->nodeValue);
 			}
 
 			$paymentInfo = $checkoutXpath->query('//a:PaymentInfo');
 			if ($paymentInfo->length) {
 				$paymentStatus = $checkoutXpath->query('//a:PaymentInfo/a:PaymentStatus');
 				if ($paymentStatus->length) {
-					$checkoutData['paymentInfo']['paymentStatus'] = (string) $paymentStatus->item(0)->nodeValue;
+					$checkoutObject->setPaymentStatus((string) $paymentStatus->item(0)->nodeValue);
 				}
 
 				$pendingReason = $checkoutXpath->query('//a:PaymentInfo/a:PendingReason');
 				if ($pendingReason->length) {
-					$checkoutData['paymentInfo']['pendingReason'] = (string) $pendingReason->item(0)->nodeValue;
+					$checkoutObject->setPendingReason((string) $pendingReason->item(0)->nodeValue);
 				}
 
 				$reasonCode = $checkoutXpath->query('//a:PaymentInfo/a:ReasonCode');
 				if ($reasonCode->length) {
-					$checkoutData['paymentInfo']['reasonCode'] = (string) $reasonCode->item(0)->nodeValue;
+					$checkoutObject->setReasonCode((string) $reasonCode->item(0)->nodeValue);
 				}
 			}
 		}
 
-		return $checkoutData;
+		return $checkoutObject;
+	}
+
+	/**
+	 * save payment data to quote_payment.
+	 *
+	 * @param array $checkoutObject, an associative array of response data
+	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
+	 *
+	 * @return void
+	 */
+	protected function _savePaymentData($checkoutObject, $quote)
+	{
+		if (trim($checkoutObject->getTransactionId()) !== '') {
+			$this->_getPaypal()->loadByQuoteId($quote->getEntityId());
+			$this->_getPaypal()->setQuoteId($quote->getEntityId())
+				->setEb2cPaypalTransactionId($checkoutObject->getTransactionId())
+				->save();
+		}
+		return ;
 	}
 }

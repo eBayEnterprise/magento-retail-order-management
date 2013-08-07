@@ -17,7 +17,16 @@
 		<models>
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Model</class>
+				<resourceModel>eb2cpayment_mysql4</resourceModel>
 			</eb2cpayment>
+			<eb2cpayment_mysql4>
+				<class>TrueAction_Eb2cPayment_Model_Mysql4</class>
+				<entities>
+					<paypal>
+						<table>eb2c_payments_paypal</table>
+					</paypal>
+				</entities>
+			</eb2cpayment_mysql4>
 			<eb2cpaymentoverrides>
 				<class>TrueAction_Eb2cPayment_Overrides_Model</class>
 			</eb2cpaymentoverrides>
@@ -26,6 +35,11 @@
 					<giftcardaccount>TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount</giftcardaccount>
 				</rewrite>
 			</enterprise_giftcardaccount>
+			<paypal>
+				<rewrite>
+					<api_nvp>TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp</api_nvp>
+				</rewrite>
+			</paypal>
 		</models>
 		<helpers>
 			<eb2cpayment>
@@ -54,6 +68,9 @@
 				<setup>
 					<module>TrueAction_Eb2cPayment</module>
 				</setup>
+				<connection>
+					<use>core_setup</use>
+				</connection>
 			</eb2cpayment_setup>
 		</resources>
 	</global>
@@ -113,6 +130,13 @@
 				<paypal_get_express_checkout_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalGetExpressCheckoutReply.xml</paypal_get_express_checkout_api_uri>
 				<paypal_do_express_checkout_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoExpressCheckoutReply.xml</paypal_do_express_checkout_api_uri>
 				<paypal_do_authorization_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoAuthorizationReply.xml</paypal_do_authorization_api_uri>
+				<paypal_do_void_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoVoidReply.xml</paypal_do_void_api_uri>
+				<enabled_eb2c_paypal_set_express_checkout>1</enabled_eb2c_paypal_set_express_checkout>
+				<enabled_eb2c_paypal_get_express_checkout>1</enabled_eb2c_paypal_get_express_checkout>
+				<enabled_eb2c_paypal_do_express_checkout>1</enabled_eb2c_paypal_do_express_checkout>
+				<enabled_eb2c_paypal_do_authorization>1</enabled_eb2c_paypal_do_authorization>
+				<enabled_eb2c_paypal_do_void>1</enabled_eb2c_paypal_do_void>
+				<enabled_eb2c_debug>1</enabled_eb2c_debug>
 			</payment>
 		</eb2c>
 	</default>
