@@ -67,11 +67,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 				self::$classicJeansAppliedRatesAfter2 :
 				self::$classicJeansAppliedRatesBefore2
 		));
-		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
-		$this->replaceByMock('model', 'tax/calculation', $calcMock);
 
 		// set up the SUT
 		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
+		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
 		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcTaxForItem');
 		$this->_reflectProperty($taxModel, '_address')
 			->setValue($taxModel, $address);
@@ -197,6 +197,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$calcShippingTaxesMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
 		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
 		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
 		$this->_reflectProperty($taxModel, '_shippingTaxTotals')->setValue($taxModel, array(15 => 0.0));
 		$this->_reflectProperty($taxModel, '_shippingTaxSubTotals')->setValue($taxModel, array(15 => 0.0));
 
@@ -327,6 +328,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
 		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
 		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
 		$this->_reflectProperty($taxModel, '_shippingTaxTotals')->setValue($taxModel, array(15 => 0.0));
 		$this->_reflectProperty($taxModel, '_shippingTaxSubTotals')->setValue($taxModel, array(15 => 0.0));
 
@@ -555,6 +557,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
 		$this->_reflectMethod($taxModel, '_initBeforeCollect')->invoke($taxModel, $address);
 		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calc);
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
 		$this->_reflectProperty($taxModel, '_shippingTaxTotals')->setValue($taxModel, array(15 => 0.0));
 		$this->_reflectProperty($taxModel, '_shippingTaxSubTotals')->setValue($taxModel, array(15 => 0.0));
 		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcTaxForItem');
@@ -727,6 +730,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// so that it gets initialized with the mock
 		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
 		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calc);
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
 		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
 		$calcTaxForAddressMethod = $this->_reflectMethod($taxModel, '_calcTaxForAddress');
 		$calcTaxForAddressMethod->invoke($taxModel, $address);

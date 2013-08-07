@@ -303,6 +303,24 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	}
 
 	/**
+	 * @dataProvider shipGroupXmlProvider
+	 */
+	public function testGetAddressId($xml, $expected)
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->preserveWhiteSpace = false;
+		$doc->loadXML($xml);
+		$response = Mage::getModel('eb2ctax/response');
+		$responseDoc = new ReflectionProperty($response, '_doc');
+		$responseDoc->setAccessible(true);
+		$responseDoc->setValue($response, $doc);
+		$fn       = new ReflectionMethod($response, '_getAddressId');
+		$fn->setAccessible(true);
+		$val = $fn->invoke($response, $doc->documentElement);
+		$this->assertSame($expected, $val);
+	}
+
+	/**
 	 * @test
 	 * @large
 	 * @loadFixture base.yaml
@@ -533,6 +551,32 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		$this->assertSame(
 			$this->expected('set-%s-%s', $responseValue, $requestValue)->getSame(),
 			Mage::getModel('eb2ctax/response')->isSameNodelistElement($responseNodelist, $requestNodelist)
+		);
+	}
+
+	public function shipGroupXmlProvider()
+	{
+		return array(
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_1"/>
+				</ShipGroup>', 1),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_256_virtual"/>
+				</ShipGroup>', 256),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_"/>
+				</ShipGroup>', null),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref=""/>
+				</ShipGroup>', null),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_a"/>
+				</ShipGroup>', null),
 		);
 	}
 
