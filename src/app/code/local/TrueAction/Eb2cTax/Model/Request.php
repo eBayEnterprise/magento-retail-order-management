@@ -89,7 +89,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
 		if (!$this->_hasChanges) {
-			$currentCouponCode = (string)$quote->getCouponCode(); 
+			$currentCouponCode = (string)$quote->getCouponCode();
 			foreach ($quote->getAllAddresses() as $address) {
 				foreach ($this->_getItemsForAddress($address) as $item) {
 					$orderItemId = $item->getSku();
@@ -203,7 +203,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		if (is_string($result)) {
 			$oldData = $result;
 			$newData = $this->_extractDestData($address);
-			$result  = $oldData !== serialize($newData); 
+			$result  = $oldData !== serialize($newData);
 		}
 		return $result;
 	}
@@ -224,7 +224,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			if ($result !== false) {
 				$skuList = array_unique(array_merge($skuList, $result));
 			}
-		}	
+		}
 		$newSkus = array();
 		foreach ($this->_getItemsForAddress($address) as $item) {
 			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
@@ -377,7 +377,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'hts_code' => $item->getHtsCode(),
 			'quantity' => $item->getQty(),
 			'merchandise_amount' => $item->getRowTotal(),
-			'merchandise_unit_price' => $item->getBasePrice(),
+			'merchandise_unit_price' => $this->_getItemOriginalPrice($item),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
 			'shipping_amount' => $address->getShippingAmount(),
 			'shipping_tax_class' => $this->_getShippingTaxClass(),
@@ -386,6 +386,25 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		);
 		$data = $this->_extractItemDiscountData($item, $address, $data);
 		return $data;
+	}
+
+	/**
+	 * Get the unit price for the item, taking into consideration the
+	 * original_custom_price, custom_price, original_price and base_price
+	 * @param  Mage_Sales_Model_Quote_item $item The quote item to get the price of.
+	 * @return float       The original price of the item.
+	 */
+	protected function _getItemOriginalPrice($item)
+	{
+		if ($item->hasOriginalCustomPrice()) {
+			return $item->getOriginalCustomPrice();
+		} else if ($item->hasCustomPrice()) {
+			return $item->getCustomPrice();
+		} else if ($item->hasOriginalPrice()) {
+			return $item->getOriginalPrice();
+		} else {
+			return $item->getBasePrice();
+		}
 	}
 
 	/**

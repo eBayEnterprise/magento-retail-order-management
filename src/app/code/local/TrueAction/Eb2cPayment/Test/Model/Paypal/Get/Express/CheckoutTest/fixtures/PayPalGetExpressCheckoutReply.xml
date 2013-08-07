@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PayPalGetExpressCheckoutReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 	<OrderId>1</OrderId>
-	<ResponseCode>ResponseCode0</ResponseCode>
+	<ResponseCode>Success</ResponseCode>
 	<PayerEmail>PayerEmail0</PayerEmail>
 	<PayerId>PayerId0</PayerId>
 	<PayerStatus>PayerStatus0</PayerStatus>

@@ -4,6 +4,8 @@
  */
 class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calculation
 {
+	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
+
 	public function __construct()
 	{
 		parent::__construct();
@@ -15,9 +17,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		}
 		$this->_eConfig = Mage::getModel('eb2ctax/config');
 	}
-
-
-	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
 
 	/**
 	 * return the total tax amount for any discounts.
@@ -93,22 +92,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 
 	/**
 	 * calculate tax amount for an item filtered by $type.
-	 * @param  Mage_Sales_Model_Quote_Item    $item
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @param  string                         $type
-	 * @return float
-	 */
-	public function getTaxforItem(
-		Mage_Sales_Model_Quote_Item    $item    = null,
-		Mage_Sales_Model_Quote_Address $address = null,
-		$type = 'merchandise'
-	) {
-		$itemSelector = new Varien_Object(array('item' => $item, 'address' => $address));
-		return $this->getTax($itemSelector, $type);
-	}
-
-	/**
-	 * calculate tax amount for an item filtered by $type.
 	 * @param  Varien_Object $itemSelector
 	 * @param  string        $type
 	 * @return float
@@ -131,6 +114,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		return $tax;
 	}
 
+	/**
+	 * calculate the tax for $amount using the effective rates in the response.
+	 * @param  float        $amount
+	 * @param  Varien_Object $itemSelector
+	 * @param  string        $type
+	 * @param  boolean       $round
+	 * @return float
+	 */
 	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type = 'merchandise', $round = true)
 	{
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
@@ -168,84 +159,94 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
-	 * return the total taxable amount.
-	 * @param  Mage_Sales_Model_Quote_Item  $item
-	 * @param  Mage_Sales_Model_Quote_Address $address
-	 * @return float
+	 * Get the tax rates that have been applied for the item.
+	 *
+	 * @param  Varien_Object $itemSelector A wrapper object for an item and address
+	 * @return array               The tax rates that have been applied to the item.
 	 */
-	public function getTaxableForItem(
-		Mage_Sales_Model_Quote_Item  $item,
-		Mage_Sales_Model_Quote_Address $address
-	) {
-		$itemResponse      = $this->_getItemResponse($item, $address);
-		$taxQuotes         = array();
-		$merchandiseAmount = 0;
-		$amount = 0;
-		if ($itemResponse) {
-			$taxQuotes         = $itemResponse->getTaxQuotes();
-			$merchandiseAmount = $itemResponse->getMerchandiseAmount();
-			foreach($taxQuotes as $taxQuote) {
-				$amount += $taxQuote->getTaxableAmount();
-			}
-		}
-		return min($amount, $merchandiseAmount);
-	}
-
-	/**
-	 * calculate tax for an amount with the rates from the response for the item.
-	 * @param  float                       $amount
-	 * @param  Mage_Sales_Model_Quote_Item $item
-	 * @param  boolean                     $amountInlcudesTax
-	 * @param  boolean                     $round
-	 * @return float
-	 */
-	public function getTaxforItemAmount(
-		$amount,
-		Mage_Sales_Model_Quote_Item $item,
-		Mage_Sales_Model_Quote_Address $address,
-		$type = 'merchandise',
-		$round = true
-	) {
-		return $this->getTaxForAmount($amount,
-			new Varien_Object(array('item' => $item, 'address' => $address)),
-			$type,
-			$round
-		);
-	}
-
 	public function getAppliedRates($itemSelector)
 	{
-		$item       = $itemSelector->getItem();
-		$address    = $itemSelector->getAddress();
-		$result     = array();
-		$baseAmount = $item->getBaseTaxAmount();
+		$helper       = Mage::helper('tax');
+		$item         = $itemSelector->getItem();
+		$address      = $itemSelector->getAddress();
+		$store        = $address->getQuote()->getStore();
+		$result       = array();
+		$baseAmount   = $item->getBaseTaxAmount();
 		$itemResponse = $this->_getItemResponse($item, $address);
+
 		if ($itemResponse) {
-			$taxQuotes = $itemResponse->getTaxQuotes();
-			$nextId = 1;
-			foreach ($taxQuotes as $index => $taxQuote) {
-				$taxRate              = $taxQuote->getEffectiveRate();
-				$code                 = $taxQuote->getCode();
-				$id = $code . '-' . $taxRate;
+			foreach ($itemResponse->getTaxQuotes() as $index => $taxQuote) {
+				$taxRate = $taxQuote->getEffectiveRate();
+				$code    = $taxQuote->getCode();
+				$id      = $code . '-' . $taxRate;
 				if (isset($result[$id])) {
 					$group = $result[$id];
 				} else {
-					$group                = array();
-					$group['id']          = $id;
-					$group['percent']     = $taxRate * 100.0;
-					$group['amount']      = 0;
+					$group = array();
+					$group['id']      = $id;
+					$group['percent'] = $taxRate * 100.0;
+					$group['amount']  = 0;
+					$group['rates']   = array();
 				}
-				$rate                = array();
+				$rate = array();
 				$rate['code']        = $code;
-				$rate['title']       = Mage::helper('tax')->__($code);
-				$rate['amount']      = $taxQuote->getCalculatedTax();
+				$rate['title']       = $helper->__($code);
 				$rate['percent']     = $taxRate * 100.0;
-				$rate['base_amount'] = $baseAmount;
+				$rate['base_amount'] = $taxQuote->getCalculatedTax();
+				$rate['amount']      = $store->convertPrice($rate['base_amount']);
 				$rate['position']    = 1;
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
 				$group['amount']     += $rate['amount'];
 				$result[$id]         = $group;
+
+			}
+
+			// add rate for any duty amounts
+			if ($itemResponse->getDutyAmount()) {
+				$id = $helper->taxDutyAmountRateCode($store);
+				$group = array();
+				$group['id']      = $id;
+				$group['percent'] = null;
+				$group['amount']  = 0;
+				$rate = array();
+				$rate['code']        = $id;
+				$rate['title']       = $helper->__($id);
+				$rate['percent']     = null;
+				$rate['base_amount'] = $itemResponse->getDutyAmount();
+				$rate['amount']      = $store->convertPrice($rate['base_amount']);
+				$rate['position']    = 1;
+				$rate['priority']    = 1;
+				$group['rates'][]    = $rate;
+				$group['amount']     += $rate['amount'];
+				$result[$id]         = $group;
+			}
+
+			if ($helper->getApplyTaxAfterDiscount($store)) {
+				foreach($itemResponse->getTaxQuoteDiscounts() as $index => $discountQuote) {
+					$taxRate = $discountQuote->getEffectiveRate();
+					$code    = $discountQuote->getCode();
+					$id      = $code . '-' . $taxRate;
+					if (isset($result[$id])) {
+						$group = $result[$id];
+					} else {
+						Mage::log(
+							sprintf(
+								'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
+								$code, $taxRate
+							),
+							Zend_Log::WARN
+						);
+						continue;
+					}
+
+					$rate                = $group['rates'][0];
+					$rate['base_amount'] = $discountQuote->getCalculatedTax();
+					$rate['amount']      -= $store->convertPrice($rate['base_amount']);
+					$group['amount']     = $rate['amount'];
+					$group['rates'][0]   = $rate;
+					$result[$id]         = $group;
+				}
 			}
 		}
 		return $result;

@@ -83,11 +83,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	 *
 	 * @param string $payPalDoAuthorizationReply the xml response from eb2c
 	 *
-	 * @return array, an associative array of response data
+	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalDoAuthorizationReply)
 	{
-		$checkoutData = array();
+		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoAuthorizationReply) !== '') {
 			$doc = $this->_getHelper()->getDomDocument();
 			$doc->loadXML($payPalDoAuthorizationReply);
@@ -96,33 +96,33 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 
 			$orderId = $checkoutXpath->query('//a:OrderId');
 			if ($orderId->length) {
-				$checkoutData['orderId'] = (int) $orderId->item(0)->nodeValue;
+				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
 			}
 
 			$responseCode = $checkoutXpath->query('//a:ResponseCode');
 			if ($responseCode->length) {
-				$checkoutData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
+				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
 			}
 
 			$authorizationInfo = $checkoutXpath->query('//a:AuthorizationInfo');
 			if ($authorizationInfo->length) {
 				$paymentStatus = $checkoutXpath->query('//a:AuthorizationInfo/a:PaymentStatus');
 				if ($paymentStatus->length) {
-					$checkoutData['authorizationInfo']['paymentStatus'] = (string) $paymentStatus->item(0)->nodeValue;
+					$checkoutObject->setPaymentStatus((string) $paymentStatus->item(0)->nodeValue);
 				}
 
 				$pendingReason = $checkoutXpath->query('//a:AuthorizationInfo/a:PendingReason');
 				if ($pendingReason->length) {
-					$checkoutData['authorizationInfo']['pendingReason'] = (string) $pendingReason->item(0)->nodeValue;
+					$checkoutObject->setPendingReason((string) $pendingReason->item(0)->nodeValue);
 				}
 
 				$reasonCode = $checkoutXpath->query('//a:AuthorizationInfo/a:ReasonCode');
 				if ($reasonCode->length) {
-					$checkoutData['authorizationInfo']['reasonCode'] = (string) $reasonCode->item(0)->nodeValue;
+					$checkoutObject->setReasonCode((string) $reasonCode->item(0)->nodeValue);
 				}
 			}
 		}
 
-		return $checkoutData;
+		return $checkoutObject;
 	}
 }

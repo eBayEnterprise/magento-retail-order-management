@@ -1,0 +1,32 @@
+beforediscount-0:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  shipping_incl_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  shipping_tax_amount: 8.92
+  # website currency amounts
+  base_shipping_incl_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  base_shipping_tax_amount: 8.92
+beforediscount-1:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  shipping_incl_tax: 27.97
+  shipping_tax_amount: 13.02
+  # website currency amounts
+  base_shipping_incl_tax: 27.97
+  base_shipping_tax_amount: 13.02
+afterdiscount-0:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  shipping_incl_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  shipping_tax_amount: 8.85
+  # website currency amounts
+  base_shipping_incl_tax: 23.87 # shipping amount + shipping tax + duty tax + duty amount
+  base_shipping_tax_amount: 8.85
+afterdiscount-1:
+  is_shipping_incl_vat: false
+  # store currency amounts
+  shipping_incl_tax: 27.97
+  shipping_tax_amount: 12.93
+  # website currency amounts
+  base_shipping_incl_tax: 27.97
+  base_shipping_tax_amount: 12.93

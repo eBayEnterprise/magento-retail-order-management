@@ -85,4 +85,8 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		return $this->_configRegistry->setStore($store)->taxApplyAfterDiscount;
 	}
 
+	public function taxDutyAmountRateCode($store = null)
+	{
+		return $this->_configRegistry->setStore($store)->taxDutyRateCode;
+	}
 }

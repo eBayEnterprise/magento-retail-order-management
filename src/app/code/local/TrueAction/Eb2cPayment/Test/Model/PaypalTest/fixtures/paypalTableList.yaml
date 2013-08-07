@@ -1,0 +1,12 @@
+tables:
+  eb2cpayment/paypal:
+    - paypal_id: 1
+      quote_id: 51
+      eb2c_paypal_token: "test-00000-023939"
+      eb2c_paypal_transaction_id: "1234"
+      eb2c_paypal_payer_id: "9"
+    - paypal_id: 2
+      quote_id: 32
+      eb2c_paypal_token: "test-383890-4848"
+      eb2c_paypal_transaction_id: "4321"
+      eb2c_paypal_payer_id: "5"

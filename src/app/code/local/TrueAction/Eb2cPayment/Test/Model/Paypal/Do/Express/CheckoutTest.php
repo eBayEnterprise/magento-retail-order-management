@@ -21,6 +21,27 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 
 	public function buildQuoteMock()
 	{
+		$paymentMock = $this->getMock(
+			'Mage_Sales_Model_Quote_Payment',
+			array('getEb2cPaypalToken', 'getEb2cPaypalPayerId', 'setEb2cPaypalTransactionID', 'save')
+		);
+		$paymentMock->expects($this->any())
+			->method('getEb2cPaypalToken')
+			->will($this->returnValue('EC-5YE59312K56892714')
+			);
+		$paymentMock->expects($this->any())
+			->method('getEb2cPaypalPayerId')
+			->will($this->returnValue('1234')
+			);
+		$paymentMock->expects($this->any())
+			->method('setEb2cPaypalTransactionID')
+			->will($this->returnSelf()
+			);
+		$paymentMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf()
+			);
+
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
 			array('getName', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
@@ -82,21 +103,13 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array(
-				'getEntityId', 'getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId', 'getQuoteCurrencyCode',
-				'getBaseGrandTotal', 'getSubTotal', 'getShippingAmount', 'getTaxAmount', 'getAllAddresses'
+				'getEntityId', 'getQuoteCurrencyCode',
+				'getBaseGrandTotal', 'getSubTotal', 'getShippingAmount', 'getTaxAmount', 'getAllAddresses', 'getPayment'
 			)
 		);
 		$quoteMock->expects($this->any())
 			->method('getEntityId')
 			->will($this->returnValue(1234567)
-			);
-		$quoteMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutToken')
-			->will($this->returnValue('EC-5YE59312K56892714')
-			);
-		$quoteMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutPayerId')
-			->will($this->returnValue('PayerId0')
 			);
 		$quoteMock->expects($this->any())
 			->method('getBaseGrandTotal')
@@ -121,6 +134,10 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
 			->will($this->returnValue(array($addressMock))
+			);
+		$quoteMock->expects($this->any())
+			->method('getPayment')
+			->will($this->returnValue($paymentMock)
 			);
 
 		return $quoteMock;
@@ -147,6 +164,23 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		$helper = $checkoutReflector->getProperty('_helper');
 		$helper->setAccessible(true);
 		$helper->setValue($this->_checkout, $paymentHelper);
+
+		$paypalMock = $this->getMock(
+			'TrueAction_Eb2cPayment_Model_Paypal',
+			array('getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId')
+		);
+		$paypalMock->expects($this->any())
+			->method('getEb2cPaypalExpressCheckoutToken')
+			->will($this->returnValue('EC-5YE59312K56892714')
+			);
+		$paypalMock->expects($this->any())
+			->method('getEb2cPaypalExpressCheckoutPayerId')
+			->will($this->returnValue('PayerId0')
+			);
+
+		$paypal = $checkoutReflector->getProperty('_paypal');
+		$paypal->setAccessible(true);
+		$paypal->setValue($this->_checkout, $paypalMock);
 
 		$this->assertNotNull(
 			$this->_checkout->doExpressCheckout($quote)
@@ -187,6 +221,23 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		$helper->setAccessible(true);
 		$helper->setValue($this->_checkout, $paymentHelper);
 
+		$paypalMock = $this->getMock(
+			'TrueAction_Eb2cPayment_Model_Paypal',
+			array('getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId')
+		);
+		$paypalMock->expects($this->any())
+			->method('getEb2cPaypalExpressCheckoutToken')
+			->will($this->returnValue('EC-5YE59312K56892714')
+			);
+		$paypalMock->expects($this->any())
+			->method('getEb2cPaypalExpressCheckoutPayerId')
+			->will($this->returnValue('PayerId0')
+			);
+
+		$paypal = $checkoutReflector->getProperty('_paypal');
+		$paypal->setAccessible(true);
+		$paypal->setValue($this->_checkout, $paypalMock);
+
 		$this->assertSame(
 			'',
 			trim($this->_checkout->doExpressCheckout($quote))
@@ -200,20 +251,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		);
 	}
 
-	public function expectedParseResponse()
-	{
-		return array (
-			'orderId' => 1,
-			'responseCode' => 'Success',
-			'transactionID' => 'O-3A919253XG323924A',
-			'paymentInfo' => array (
-				'paymentStatus' => 'Pending',
-				'pendingReason' => 'order',
-				'reasonCode' => 'none',
-			)
-		);
-	}
-
 	/**
 	 * testing parseResponse method
 	 *
@@ -223,8 +260,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 	 */
 	public function testParseResponse($payPalDoExpressCheckoutReply)
 	{
-		$this->assertSame(
-			$this->expectedParseResponse(),
+		$this->assertInstanceOf(
+			'Varien_Object',
 			$this->_checkout->parseResponse($payPalDoExpressCheckoutReply)
 		);
 	}

@@ -1442,6 +1442,51 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		return $quote;
 	}
 
+	/**
+	 * Test getting the "original price" for an item.
+	 * Provider will give different combinations of prices, correct price should always be 12.34.
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testGettingOriginalPriceForItem($originalCustomPrice, $customPrice, $originalPrice, $basePrice)
+	{
+		$item = $this->getModelMock('sales/quote_item', array(
+			'hasOriginalCustomPrice',
+			'getOriginalCustomPrice',
+			'hasCustomPrice',
+			'getCustomPrice',
+			'hasOriginalPrice',
+			'getOriginalPrice',
+			'getBasePrice',
+		));
 
+		$item->expects($this->any())
+			->method('hasOriginalCustomPrice')
+			->will($this->returnValue(!is_null($originalCustomPrice)));
+		$item->expects($this->any())
+			->method('getOriginalCustomPrice')
+			->will($this->returnValue($originalCustomPrice));
+		$item->expects($this->any())
+			->method('hasCustomPrice')
+			->will($this->returnValue(!is_null($customPrice)));
+		$item->expects($this->any())
+			->method('getCustomPrice')
+			->will($this->returnValue($customPrice));
+		$item->expects($this->any())
+			->method('hasOriginalPrice')
+			->will($this->returnValue(!is_null($originalPrice)));
+		$item->expects($this->any())
+			->method('getOriginalPrice')
+			->will($this->returnValue($originalPrice));
+		$item->expects($this->any())
+			->method('getBasePrice')
+			->will($this->returnValue($basePrice));
+
+		$request = Mage::getModel('eb2ctax/request');
+		$getItemOriginalPrice = $this->_reflectMethod($request, '_getItemOriginalPrice');
+
+		$price = $getItemOriginalPrice->invoke($request, $item);
+		$this->assertSame(12.34, $price);
+	}
 
 }

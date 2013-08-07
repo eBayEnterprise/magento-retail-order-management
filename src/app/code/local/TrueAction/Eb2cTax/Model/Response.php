@@ -147,13 +147,13 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	protected function _getAddressId(TrueAction_Dom_Element $shipGroup)
 	{
 		$xpath = new DOMXPath($this->_doc);
-		$xpath->registerNamespace('a', $this->_namespaceUri);
+		$xpath->registerNamespace('a', $this->_doc->documentElement->namespaceURI);
 		$idRef = $xpath->evaluate('string(./a:DestinationTarget/@ref)', $shipGroup);
 		$id = null;
 		$idRefArray = explode('_', $idRef);
 		if (count($idRefArray) > 1) {
 			list(, $id) = $idRefArray;
-			$id = (int)$id;
+			$id = is_numeric($id) ? (int)$id : null;
 		}
 		if (!$id) {
 			$this->_isValid = false;
