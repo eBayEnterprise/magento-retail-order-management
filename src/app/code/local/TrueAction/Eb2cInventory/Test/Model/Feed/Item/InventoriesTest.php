@@ -20,7 +20,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 	public function providerProcessFeeds()
 	{
 		return array(
-			array(array(Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_received_path') . 'sample-feed.xml'))
+			array(array(Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_path') . DS . 'inbound/sample-feed.xml'))
 		);
 	}
 
@@ -35,8 +35,9 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 	public function testProcessFeeds($feeds=array())
 	{
 		$inventoriesReflector = new ReflectionObject($this->_inventories);
-
-		$localPath = Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_received_path');
+		$feedModel = Mage::getModel('eb2ccore/feed');
+		$feedModel->setBaseFolder( Mage::getStoreConfig('eb2c/inventory/feed_local_path') );
+		$localPath = $feedModel->getInboundFolder();
 		if (is_dir($localPath)) {
 			foreach(glob($localPath . '*') as $file) {
 				unlink($file);
