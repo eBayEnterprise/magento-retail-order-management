@@ -745,6 +745,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	public function testCollect()
 	{
+		Mage::unregister('_helper/tax');
 		$items = array(
 			$this->_mockItem(),
 		);
@@ -777,6 +778,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	public function testCollectChildItem()
 	{
+		Mage::unregister('_helper/tax');
 		$items = array(
 			$this->_mockChildItem(),
 			$this->_mockItem(),
