@@ -20,7 +20,9 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 	public function providerProcessFeeds()
 	{
 		return array(
-			array(array(Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_path') . DS . 'inbound/sample-feed.xml'))
+			array(array(Mage::getModel('eb2ccore/feed')
+							->setBaseFolder(Mage::getStoreConfig('eb2c/inventory/feed_local_path'))
+							->getInboundFolder() . DS . 'sample-feed.xml'))
 		);
 	}
 
