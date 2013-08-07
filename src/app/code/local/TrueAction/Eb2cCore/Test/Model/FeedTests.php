@@ -52,7 +52,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 
 		$fileset = array();
 		for( $i = 0; $i < 4; $i++ ) {
-			$fileset[$i] = tempnam($feed->getInboundFolder(), self::TEST_FILE_PFX );
+			$fileset[$i] = $feed->getInboundFolder() . $feed->dirsep() .  self::TEST_FILE_PFX  . $i . '.xml';
 			file_put_contents($fileset[$i],self::TEST_XML_DATA);
 		}
 

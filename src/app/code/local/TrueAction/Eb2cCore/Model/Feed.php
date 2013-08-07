@@ -67,14 +67,17 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Io_File
 	/**
 	 * Lists contents of the Inbound Folder
 	 */
-	public function lsInboundFolder()
+	public function lsInboundFolder($filetype='xml')
 	{
 		$dirContents = array();
 
 		$this->cd($this->_inboundFolder);
 		foreach( $this->ls() as $file ) {
-			$dirContents[] = $this->_cwd . $this->dirsep() . $file['text'];
+			if( !strcasecmp($filetype, $file['filetype']) ) {
+				$dirContents[] = $this->_cwd . $this->dirsep() . $file['text'];
+			}
 		}
+		asort($dirContents);
 		return $dirContents;
 	}
 
