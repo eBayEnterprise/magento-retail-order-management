@@ -20,7 +20,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 	 */
 	public function testApplyTaxes($qty, $price, $subtotal, $basePrice, $baseSubtotal)
 	{
-		$this->markTestIncomplete('temporary disable');
 		$address = $this->getModelMock('sales/quote_address');
 		$store = $this->getModelMockBuilder('core/store')
 			->disableOriginalConstructor()
@@ -84,8 +83,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 
 		$baseTax = (float) $e->getBaseTax();;
 		$baseTaxPrice = (float) $e->getBaseTaxPrice();;
+		$baseRowTax = (float) $e->getBaseRowTax();
 		$baseTaxSubtotal = (float) $e->getBaseTaxSubtotal();;
 		$baseTaxable = (float) $e->getBaseTaxable();;
+
 
 		$item->expects($this->any())
 			->method('getQuote')
@@ -95,9 +96,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 		$item->expects($this->once())
 			->method('getTotalQty')
 			->will($this->returnValue($qty));
-		$item->expects($this->once())
-			->method('getCalculationPriceOriginal')
-			->will($this->returnValue($price));
 		$item->expects($this->once())
 			->method('getBaseCalculationPriceOriginal')
 			->will($this->returnValue($basePrice));
@@ -206,10 +204,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 					$this->isInstanceOf('Varien_Object')
 				)
 			)
-			->will($this->returnValue($tax));
+			->will($this->returnValue($baseRowTax));
 		$calculator->expects($this->any())
-			->method('getTax')
+			->method('getTaxForAmount')
 			->with(
+				$this->identicalTo($basePrice),
 				$this->logicalAnd(
 					$this->attribute($this->arrayHasKey('item'), '_data'),
 					$this->attribute($this->contains($item), '_data'),
@@ -218,7 +217,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 					$this->isInstanceOf('Varien_Object')
 				)
 			)
-			->will($this->returnValue($tax));
+			->will($this->returnValue($baseTax));
 		$calculator->expects($this->any())
 			->method('round')
 			->will($this->returnArgument(0));

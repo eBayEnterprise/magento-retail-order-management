@@ -3,6 +3,7 @@
   base_tax: 1.00
   tax_price: 3.00
   base_tax_price: 3.00
+  base_row_tax: 2.00
   tax_subtotal: 6.00
   base_tax_subtotal: 6.00
   taxable: 4.00
