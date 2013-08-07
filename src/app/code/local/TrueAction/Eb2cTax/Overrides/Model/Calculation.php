@@ -114,6 +114,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		return $tax;
 	}
 
+	/**
+	 * calculate the tax for $amount using the effective rates in the response.
+	 * @param  float        $amount
+	 * @param  Varien_Object $itemSelector
+	 * @param  string        $type
+	 * @param  boolean       $round
+	 * @return float
+	 */
 	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type = 'merchandise', $round = true)
 	{
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
@@ -183,9 +191,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$rate = array();
 				$rate['code']        = $code;
 				$rate['title']       = $helper->__($code);
-				$rate['amount']      = $taxQuote->getCalculatedTax();
 				$rate['percent']     = $taxRate * 100.0;
-				$rate['base_amount'] = $helper->convertToBaseCurrency($rate['amount'], $store);
+				$rate['base_amount'] = $taxQuote->getCalculatedTax();
+				$rate['amount']      = $store->convertPrice($rate['base_amount']);
 				$rate['position']    = 1;
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
@@ -204,9 +212,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$rate = array();
 				$rate['code']        = $id;
 				$rate['title']       = $helper->__($id);
-				$rate['amount']      = $itemResponse->getDutyAmount();
 				$rate['percent']     = null;
-				$rate['base_amount'] = $helper->convertToBaseCurrency($rate['amount'], $store);
+				$rate['base_amount'] = $itemResponse->getDutyAmount();
+				$rate['amount']      = $store->convertPrice($rate['base_amount']);
 				$rate['position']    = 1;
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
@@ -233,8 +241,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					}
 
 					$rate                = $group['rates'][0];
-					$rate['amount']      -= $discountQuote->getCalculatedTax();
-					$rate['base_amount'] = $helper->convertToBaseCurrency($rate['amount'], $store);
+					$rate['base_amount'] = $discountQuote->getCalculatedTax();
+					$rate['amount']      -= $store->convertPrice($rate['base_amount']);
 					$group['amount']     = $rate['amount'];
 					$group['rates'][0]   = $rate;
 					$result[$id]         = $group;
