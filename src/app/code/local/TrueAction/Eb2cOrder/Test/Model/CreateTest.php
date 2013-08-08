@@ -68,19 +68,14 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 
 	/**
 	 * @test
+	 * @todo expectedException ???
 	 * Don't want to find this order, handle exception correctly.
 	 */
 	public function testOrderNotFound()
 	{
 		$status = null;
 		$incrementId = 'NO_CHANCE';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			$status = false;
-		}
-		$this->assertSame($status, false);
+		$this->_creator->buildRequest($incrementId);
 	}
 
 	/**
@@ -112,8 +107,7 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 	public function testFinallyFailed()
 	{
 		$orderCreateClass = get_class(Mage::getModel('eb2corder/create'));
-
-        $privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
+		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
 		$privateFinallyFailedMethod->setAccessible(true);
 		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
 
@@ -161,7 +155,7 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 				->method('getEvent')
 				->will($this->returnValue($mockEvent));
 
-		// TODO: This should be a Mage::dispatchEvent based on config.xml, sell also Eb2cFraud where it's done better. 
+		// TODO: This should be a Mage::dispatchEvent based on config.xml, sell also Eb2cFraud where it's done better.
 		// still, it covers the code 'good enough' for now.
 		$this->_creator->observerCreate($mockEventObserverArgThingy);
 	}

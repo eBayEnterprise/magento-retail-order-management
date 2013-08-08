@@ -10,13 +10,14 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 
 	public function __construct()
 	{
-		$this->_helper = $this->_getHelper();
+		$this->_getHelper();
 	}
 
 	/**
 	 * Get helper instantiated object.
 	 *
 	 * @return TrueAction_Eb2cInventory_Helper_Data
+	 * @todo Use magic.
 	 */
 	protected function _getHelper()
 	{
