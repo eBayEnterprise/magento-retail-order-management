@@ -38,12 +38,8 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 	{
 		$status = null;
 		$testId = Mage::getModel('sales/order')->getCollection()->getLastItem()->getIncrementId();
-		try {
-			$this->_creator->buildRequest($testId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			echo $e->getMessage();
-		}
+		$this->_creator->buildRequest($testId);
+		$status = $this->_creator->sendRequest();
 		$this->assertSame($status, true);
 	}
 
@@ -56,19 +52,15 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 	{
 		$status = null;
 		$incrementId = '100000002';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			echo $e->getMessage();
-			$status = false;
-		}
+		$this->_creator->buildRequest($incrementId);
+		$status = $this->_creator->sendRequest();
 		$this->assertSame($status, true);
 	}
 
 	/**
 	 * @test
-	 * @todo expectedException ???
+	 * @expectedException Mage_Core_Exception
+	 * @todo: Is that the best exception we can have? "not found" is even better.
 	 * Don't want to find this order, handle exception correctly.
 	 */
 	public function testOrderNotFound()
@@ -81,6 +73,8 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 	/**
 	 * @test
 	 * @loadFixture
+	 * @expectedException Mage_Core_Exception
+	 * @todo: Is that the best exception we can have? "some kind of http error" is even better, I think
 	 * This fixture was setup to fail with a syntactically correct URL that couldn't really answer us in any sensible way.
 	 */
 	public function testWithEb2cPaymentsEnabled()
@@ -89,14 +83,8 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Ca
 
 		$this->_creator = Mage::getModel('eb2corder/create');
 		$incrementId = '100000003';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		}
-		catch(Exception $e) {
-			$status = false;
-		}
-		$this->assertSame($status, false);
+		$this->_creator->buildRequest($incrementId);
+		$status = $this->_creator->sendRequest();
 	}
 
 	/**
