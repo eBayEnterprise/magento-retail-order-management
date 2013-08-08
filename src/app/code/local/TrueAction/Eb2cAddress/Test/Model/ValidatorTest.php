@@ -233,6 +233,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		$this->_setupSessionWithSuggestions($originalAddress, $suggestions);
 
 		// set the submitted value in the request post data
+		// @todo stop doing this
 		$_POST[TrueAction_Eb2cAddress_Block_Suggestions::SUGGESTION_INPUT_NAME] = $postValue;
 
 		// create an address object to act as the address submitted by the user

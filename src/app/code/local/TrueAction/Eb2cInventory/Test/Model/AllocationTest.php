@@ -16,13 +16,14 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 		parent::setUp();
 		$this->_allocation = Mage::getModel('eb2cinventory/allocation');
 
+		// @fixme can this be a mock helper?
 		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-
 		$allocationReflector = new ReflectionObject($this->_allocation);
 		$helper = $allocationReflector->getProperty('_helper');
 		$helper->setAccessible(true);
 		$helper->setValue($this->_allocation, $newHelper);
 
+		// @fixme avoid setupBaseUrl.
 		$_SESSION = array();
 		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
 		$this->app()->getRequest()->setBaseUrl($_baseUrl);
@@ -332,7 +333,6 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 				'reservation_expires' => '2013-06-20 15:02:20',
 				'qty' => 0
 			)
-
 		);
 
 		return array(
