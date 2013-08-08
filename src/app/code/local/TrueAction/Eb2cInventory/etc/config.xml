@@ -175,7 +175,7 @@
 				<allocation_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml</allocation_uri>
 				<rollback_allocation_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/RollbackAllocationResponseMessage.xml</rollback_allocation_uri>
 				<allocation_expired>60</allocation_expired>
-				<feed_local_path>TrueAction/Eb2c/Feed/Item/Inventories/</feed_local_path>
+				<feed_local_path>var/TrueAction/Eb2c/Feed/Item/Inventories/</feed_local_path>
 				<feed_remote_received_path>/Item/Inventories/</feed_remote_received_path>
 				<config_path>eb2ccore/general</config_path>
 				<feed_event_type>ItemInventories</feed_event_type>
