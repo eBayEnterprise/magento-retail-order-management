@@ -1131,6 +1131,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	protected function _mockQuoteWithSku($sku)
 	{
+		$store = $this->_mockStore();
+
+
 		$product = $this->getModelMock('catalog/product', array('isVirtual'));
 		$product->expects($this->any())
 			->method('isVirtual')
@@ -1149,7 +1152,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		$mockQuote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'isVirtual'             => $this->returnValue(1),
-			'getStore'              => $this->returnValue(Mage::app()->getStore()),
+			'getStore'              => $this->returnValue($store),
 			'getBillingAddress'     => $this->returnValue($address),
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getAllShippingAddresses' => $this->returnValue(array()),
@@ -1163,7 +1166,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	protected function _mockSingleShipSameAsBill()
 	{
-		$store = Mage::app()->getStore();
+		$store = $this->_mockStore();
+
 		$product = $this->getModelMock('catalog/product', array('isVirtual'));
 		$product->expects($this->any())->method('isVirtual')
 			->will($this->returnValue(false));
@@ -1233,7 +1237,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	protected function _mockSingleShipVirtual()
 	{
-		$store = Mage::app()->getStore();
+		$store = $this->_mockStore();
+
 		$product = $this->getModelMock('catalog/product', array('isVirtual'));
 		$product->expects($this->any())->method('isVirtual')
 			->will($this->returnValue(true));
@@ -1293,7 +1298,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 
 	protected function _mockSingleShipSameAsBillVirtualMix()
 	{
-		$store = Mage::app()->getStore();
+		$store = $this->_mockStore();
+
 		$vProduct = $this->getModelMock('catalog/product', array('isVirtual'));
 		$vProduct->expects($this->any())->method('isVirtual')
 			->will($this->returnValue(true));
@@ -1364,9 +1370,24 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cTax_Test_
 		return $quote;
 	}
 
+	protected function _mockStore($code = 'usa', $id = 2)
+	{
+		$store = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(array('getStoreCode', 'getId'))
+			->getMock();
+		$store->expects($this->any())
+			->method('getStoreCode')
+			->will($this->returnValue($code));
+		$store->expects($this->any())
+			->method('getId')
+			->will($this->returnValue($id));
+	}
+
 	protected function _mockMultiShipNotSameAsBill()
 	{
-		$store = Mage::app()->getStore();
+		$store = $this->_mockStore();
+
 		$product = $this->_buildModelMock('catalog/product', array(
 			'isVirtual' => $this->returnValue(false),
 			'hasTaxCode' => $this->returnValue(true),
