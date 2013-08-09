@@ -186,9 +186,9 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 */
 	protected function _validateResponseItems($requestDoc, $responseDoc)
 	{
-		if (!($requestDoc || $requestDoc->documentElement || $responseDoc || $responseDoc->documentElement)) {
-			$this->_isValid = false;
-			return $this;
+		if (!($requestDoc && $requestDoc->documentElement && $responseDoc && $responseDoc->documentElement)) {
+			$isValid = false;
+			return $isValid;
 		}
 		$isValid = true;
 		$requestXpath = new DOMXPath($requestDoc);
@@ -320,44 +320,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 			}
 		}
 		return $isValid;
-	}
-
-	/**
-	 * compare the value of an element in the response document to an element in the
-	 * request document.
-	 * @param  string  $path
-	 * @param  DOMXPath  $xpath
-	 * @param  TrueAction_Dom_Element  $itemNode
-	 * @param  DOMXPath  $reqXpath
-	 * @param  TrueAction_Dom_Element  $reqNode
-	 * @param  boolean $isRequired
-	 */
-	protected function _checkPathValues(
-		$path,
-		$xpath,
-		$itemNode,
-		$reqXpath,
-		$reqNode,
-		$isRequired = false
-	) {
-		$resValue = $xpath->evaluate($path . '/text()', $itemNode);
-		$reqValue = $reqXpath->evaluate($path . '/text()', $reqNode);
-		$isMatching = true;
-		if ($resValue !== $reqValue) {
-			$isMatching = false;
-			$message = sprintf(
-				'TaxDutyQuoteResponse: %s "%s" does not match request "%s"',
-				$path,
-				$resValue,
-				$reqValue
-			);
-			if ($isRequired) {
-				Mage::log($message, Zend_Log::WARN);
-			} else {
-				Mage::log($message, Zend_Log::DEBUG);
-			}
-		}
-		return $isMatching;
 	}
 
 	/**
