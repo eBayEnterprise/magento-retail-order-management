@@ -460,6 +460,20 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cTax_Test
 		$this->assertSame($expected, $val);
 	}
 
+	public function testValidateResponseItemsWithEmptyDocs()
+	{
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc1->preserveWhiteSpace = false;
+		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc2->preserveWhiteSpace = false;
+		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $doc1, $doc2);
+		$this->assertSame(false, $val);
+	}
+
+
 	public function xmlProviderForCheckXml()
 	{
 		return array(
@@ -489,6 +503,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cTax_Test
 			array("{$basePath}/req4.xml", "{$basePath}/res4.xml", true),
 			array("{$basePath}/req5.xml", "{$basePath}/res5.xml", false),
 			array("{$basePath}/req6.xml", "{$basePath}/res6.xml", false),
+			array("{$basePath}/req7.xml", "{$basePath}/res7.xml", false),
 		);
 	}
 
