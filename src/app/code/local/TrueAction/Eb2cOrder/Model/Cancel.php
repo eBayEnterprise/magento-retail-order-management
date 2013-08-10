@@ -73,7 +73,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 			$rc = strcmp($status,'CANCELLED') ? false : true;
 		}
 		catch(Exception $e) {
-			Mage::logException('Cancel request failed: ' . $e->getMessage());
+			Mage::logException($e);
 			$rc = false;
 		}
 

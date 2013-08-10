@@ -53,7 +53,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	 */
 	public function observerCreate($event)
 	{
-		$this->buildRequest($event->getEvent()->getOrder()->getIncrementId());
+		$this->buildRequest($event->getEvent()->getOrder());
 		try {
 			$this->sendRequest();
 		}
@@ -101,16 +101,11 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	/**
 	 * Build DOM for a complete order
 	 *
-	 * @param $orderId sting increment_id for the order we're building
+	 * @param $orderObject a Mage_Sales_Model_Order
 	 */
-	public function buildRequest($orderId)
+	public function buildRequest($orderObject)
 	{
-		$this->_o = Mage::getModel('sales/order')->loadByIncrementId($orderId);
-		if( !$this->_o->getId() ) {
-			Mage::throwException('Order ' . $orderId . ' not found.' );
-		// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
+		$this->_o = $orderObject;
 
 		$consts = $this->_helper->getConstHelper();
 

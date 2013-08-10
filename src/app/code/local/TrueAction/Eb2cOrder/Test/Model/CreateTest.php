@@ -4,369 +4,50 @@
  */
 abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_Case
 {
-	private function _getFullMocker($classAlias, $mockedMethodSet)
-	{
-		$justMethodNames = array();
-		foreach( $mockedMethodSet as $method => $returnValue ) {
-			$justMethodNames[] = $method;
-		}
-
-		$mock = $this->_getMock($classAlias, $justMethodNames);
-		reset($mockedMethodSet);
-		foreach($mockedMethodSet as $method => $returnValue ) {
-			$this->_setMethod($mock, $method, $returnValue);
-		}
-		return $mock;
-	}
-
 	/**
-	 * A wrapper to getModelMockBuilder to make mocks the way we really want them.
+	 * Mocks a Sales Order
 	 */
-	private function _getMock($classAlias, array $mockedMethodNames)
-	{
-		return $this->getModelMockBuilder($classAlias)
-			->disableOriginalConstructor()
-			->setMethods($mockedMethodNames)
-			->getMock();
-	}
-
-	/**
-	 * A setter for methods and their return values
-	 */
-	private function _setMethod( $mock, $method, $returnValue )
-	{
-		$mock
-			->expects($this->any())
-			->method($method)
-			->will($this->returnValue($returnValue));
-	}
-
-	// $this->_config = $this->_helper->getConfig();
-	// $this->buildRequest($event->getEvent()->getOrder()->getIncrementId()); Tested by observer
-	//$consts = $this->_helper->getConstHelper();
-	//$uri = $this->_helper->getOperationUri($consts::CREATE_OPERATION);
-	//if( $this->_helper->getConfig()->developerMode )
-	/*
-	$uri = $this->_helper->getConfig()->developerCreateUri;
-	$response = $this->_helper->getApiModel()
-		->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
-	$this->_domResponse = $this->_helper->getDomDocument();
-	$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-	Mage::throwException('Send Web Service Request Failed: ' . $e->getMessage());
-	Mage::app()->getStore($this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . // TROUBLE
-	 */
-
 	protected function getMockSalesOrder()
 	{
-		$mockOrderMethodNames = array(
-			'getId',
-			'getIncrementId',
-			'getCreatedAt',
-			'getOrderCurrencyCode',
-			'getEntityId',
-			'getGrandTotal',
-			'getCustomerId',
-			'getCustomerPrefix',
-			'getCustomerLastname',
-			'getCustomerSuffix',
-			'getCustomerMiddlename',
-			'getCustomerFirstname',
-			'getCustomerGender',
-			'getCustomerDob',
-			'getCustomerEmail',
-			'getCustomerTaxvat',
-			'getBillingAddress',
-			'getShippingAddress',
-			'getGrandTotal',
-			'getEb2cHostName',
-			'getEb2cIpAddress',
-			'getEb2cSessionId',
-			'getEb2cUserAgent',
-			'getEb2cJavascriptData',
-			'getEb2cReferer',
+		return $this->_getFullMocker(
+			'sales/order',
+			array(
+				'getAllItems'				=> array($this->_getMockSalesOrderItem()),
+				'getAllPayments'			=> array($this->_getMockSalesOrderPayment()),
+				'getBillingAddress'			=> $this->_getMockSalesOrderAddress(),
+				'getCreatedAt'				=> '2013-08-09',
+				'getCustomerDob'			=> '1890-10-02',
+				'getCustomerEmail'			=> 'groucho@westwideweb.com',
+				'getCustomerFirstname'		=> 'Hugo',
+				'getCustomerGender'			=> 'M',
+				'getCustomerId'				=> '77',
+				'getCustomerLastname'		=> 'Hackenbush',
+				'getCustomerMiddlename'		=> 'Z.',
+				'getCustomerPrefix'			=> 'Dr.',
+				'getCustomerSuffix'			=> 'MD',
+				'getCustomerTaxvat'			=> '--',
+				'getEb2cHostName'			=> 'mwest.mage-tandev.net',
+				'getEb2cIpAddress'			=> '208.247.73.130',
+				'getEb2cJavascriptData'		=> 'TF1;015;;;;;;;;;;;;;;;;;;;;;;Mozilla;Netscape;5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_8_4%29%20AppleWebKit/536.30.1%20%28KHTML%2C%20like%20Gecko%29%20Version/6.0.5%20Safari/536.30.1;20030107;undefined;true;;true;MacIntel;undefined;Mozilla/5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_8_4%29%20AppleWebKit/536.30.1%20%28KHTML%2C%20like%20Gecko%29%20Version/6.0.5%20Safari/536.30.1;en-us;iso-8859-1;;undefined;undefined;undefined;undefined;true;true;1376075038705;-5;June%207%2C%202005%209%3A33%3A44%20PM%20EDT;1920;1080;;11.8;7.7.1;;;;2;300;240;August%209%2C%202013%203%3A03%3A58%20PM%20EDT;24;1920;1054;0;22;;;;;;Shockwave%20Flash%7CShockwave%20Flash%2011.8%20r800;;;;QuickTime%20Plug-in%207.7.1%7CThe%20QuickTime%20Plugin%20allows%20you%20to%20view%20a%20wide%20variety%20of%20multimedia%20content%20in%20web%20pages.%20For%20more%20information%2C%20visit%20the%20%3CA%20HREF%3Dhttp%3A//www.apple.com/quicktime%3EQuickTime%3C/A%3E%20Web%20site.;;;;;Silverlight%20Plug-In%7C5.1.20125.0;;;;18;',
+				'getEb2cReferer'			=> 'https://www.google.com/',
+				'getEb2cSessionId'			=> '5nqm2sczfncsggzdqylueb2h',
+				'getEb2cUserAgent'			=> 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36',
+				'getEntityId'				=> '711',
+				'getGrandTotal'				=> '1776',
+				'getGrandTotal'				=> '1776',
+				'getId'						=> '666',
+				'getIncrementId'			=> '8675309',
+				'getOrderCurrencyCode'		=> 'USD',
+				'getShippingAddress'		=> $this->_getMockSalesOrderAddress(),
+			)
 		);
-
-		$this->_order
-			->expects($this->any())
-			->method('getId')
-			->will($this->returnValue('666'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getIncrementId')
-			->will($this->returnValue('8675309'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCreatedAt')
-			->will($this->returnValue('2013-08-09'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getOrderCurrencyCode')
-			->will($this->returnValue('USD'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEntityId')
-			->will($this->returnValue('711'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getGrandTotal')
-			->will($this->returnValue('1776'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerId')
-			->will($this->returnValue('77'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerPrefix')
-			->will($this->returnValue('Dr.'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerLastname')
-			->will($this->returnValue('Mangrove'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerSuffix')
-			->will($this->returnValue('Sr'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerMiddlename')
-			->will($this->returnValue('Warbler'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerFirstname')
-			->will($this->returnValue('Throat'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerGender')
-			->will($this->returnValue('M'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerDob')
-			->will($this->returnValue('1977-08-16'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerEmail')
-			->will($this->returnValue('westm@trueaction.com'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getCustomerTaxvat')
-			->will($this->returnValue('1'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getBillingAddress')
-			->will($this->returnValue(true));
-
-		$this->_order
-			->expects($this->any())
-			->method('getShippingAddress')
-			->will($this->returnValue(true));
-
-		$this->_order
-			->expects($this->any())
-			->method('getGrandTotal')
-			->will($this->returnValue('1776'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cHostName')
-			->will($this->returnValue('mwest-VirtualBox'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cIpAddress')
-			->will($this->returnValue('208.247.73.130'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cSessionId')
-			->will($this->returnValue('5nqm2sczfncsggzdqylueb2h'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cUserAgent')
-			->will($this->returnValue('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cJavascriptData')
-			->will($this->returnValue('TF1;015;;;;;;;;;;;;;;;;;;;;;;Mozilla;Netscape;5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_8_4%29%20AppleWebKit/536.30.1%20%28KHTML%2C%20like%20Gecko%29%20Version/6.0.5%20Safari/536.30.1;20030107;undefined;true;;true;MacIntel;undefined;Mozilla/5.0%20%28Macintosh%3B%20Intel%20Mac%20OS%20X%2010_8_4%29%20AppleWebKit/536.30.1%20%28KHTML%2C%20like%20Gecko%29%20Version/6.0.5%20Safari/536.30.1;en-us;iso-8859-1;;undefined;undefined;undefined;undefined;true;true;1376075038705;-5;June%207%2C%202005%209%3A33%3A44%20PM%20EDT;1920;1080;;11.8;7.7.1;;;;2;300;240;August%209%2C%202013%203%3A03%3A58%20PM%20EDT;24;1920;1054;0;22;;;;;;Shockwave%20Flash%7CShockwave%20Flash%2011.8%20r800;;;;QuickTime%20Plug-in%207.7.1%7CThe%20QuickTime%20Plugin%20allows%20you%20to%20view%20a%20wide%20variety%20of%20multimedia%20content%20in%20web%20pages.%20For%20more%20information%2C%20visit%20the%20%3CA%20HREF%3Dhttp%3A//www.apple.com/quicktime%3EQuickTime%3C/A%3E%20Web%20site.;;;;;Silverlight%20Plug-In%7C5.1.20125.0;;;;18;'));
-
-		$this->_order
-			->expects($this->any())
-			->method('getEb2cReferer')
-			->will($this->returnValue('https://www.google.com/'));
-
-		/*
-		These need to return arrays:
-		getAllItems() // Mage_Sales_Order_Item mock needed
-		getAllPayments()
-		 */
 	}
 
-	/** 
- 	 * Let us mock a Mage_Sales_Model_Order_Payment
+	/**
+	 * Mocks the Mage_Sales_Model_Order_Address
 	 *
 	 */
-	protected function getMockSalesOrderPayment()
-	{
-		$mockPaymentMethodNames = array(
-			'getMethod',
-			'getCcStatus',
-			'getCcApproval',
-			'getCcCidStatus',
-			'getCcAvsStatus',
-			'getAmountAuthorized',
-			'getCcExpYear',
-			'getCcExpMonth',
-		);
-
-		$this->_payment
-			->expects($this->any())
-			->method('getMethod')
-			->will($this->returnValue('eb2c-faker'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcStatus')
-			->will($this->returnValue('true'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcApproval')
-			->will($this->returnValue('APP123456'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcCidStatus')
-			->will($this->returnValue('Y'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcAvsStatus')
-			->will($this->returnValue('X'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getAmountAuthorized')
-			->will($this->returnValue('1776'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcExpYear')
-			->will($this->returnValue('07'));
-
-		$this->_payment
-			->expects($this->any())
-			->method('getCcExpMonth')
-			->will($this->returnValue('23'));
-	}
-
-	protected function getMockSalesOrderItem()
-	{
-		$mockItemMethods = array (
-			'getId',
-			'getDiscountAmount',
-			'getEb2cDeliveryWindowFrom',
-			'getEb2cDeliveryWindowTo',
-			'getEb2cMessageType',
-			'getEb2cReservationId',
-			'getEb2cShippingWindowFrom',
-			'getEb2cShippingWindowTo',
-			'getName',
-			'getPrice',
-			'getQtyOrdered',
-			'getSku',
-			'getTaxAmount',
-			'getTaxPercent',
-		);
-
-		$this->_item
-			->expects($this->any())
-			->method('getId')
-			->will($this->returnValue('FreshPrince'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getDiscountAmount')
-			->will($this->returnValue('0'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cDeliveryWindowFrom')
-			->will($this->returnValue('2013-08-09'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cDeliveryWindowTo')
-			->will($this->returnValue('2013-08-13'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cMessageType')
-			->will($this->returnValue('Whatever The Message Type is'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cReservationId')
-			->will($this->returnValue('Eb2C Reservation Id'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cShippingWindowFrom')
-			->will($this->returnValue('2013-08-11'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getEb2cShippingWindowTo')
-			->will($this->returnValue('2013-08-14'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getName')
-			->will($this->returnValue('Some Item Name'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getPrice')
-			->will($this->returnValue('1776'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getQtyOrdered')
-			->will($this->returnValue('1'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('SKUZappa'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getTaxAmount')
-			->will($this->returnValue('0'));
-
-		$this->_item
-			->expects($this->any())
-			->method('getTaxPercent')
-			->will($this->returnValue('0'));
-	}
-
-	protected function getMockSalesOrderAddress()
+	private function _getMockSalesOrderAddress()
 	{
 		return $this->_getFullMocker(
 			'sales/order_address',
@@ -385,6 +66,82 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 			)
 		);
 	}
+
+	/**
+	 * Mocks the Mage_Sales_Model_Order_Item
+	 *
+	 */
+	private function _getMockSalesOrderItem()
+	{
+		return $this->_getFullMocker(
+			'sales/order_item',
+			array (
+				'getId'							=> '48',
+				'getDiscountAmount'				=> '0',
+				'getEb2cDeliveryWindowFrom'		=> '2013-08-09',
+				'getEb2cDeliveryWindowTo'		=> '2013-08-13',
+				'getEb2cMessageType'			=> 'MessageType',
+				'getEb2cReservationId'			=> '0123456789',
+				'getEb2cShippingWindowFrom'		=> '2013-08-09',
+				'getEb2cShippingWindowTo'		=> '2013-08-13',
+				'getName'						=> 'An Item Name',
+				'getPrice'						=> '1776',
+				'getQtyOrdered'					=> '1',
+				'getSku'						=> 'SKU123456',
+				'getTaxAmount'					=> '0',
+				'getTaxPercent'					=> '0',
+			)
+		);
+	}
+
+	/** 
+ 	 * Let us mock a Mage_Sales_Model_Order_Payment
+	 *
+	 */
+	private function _getMockSalesOrderPayment()
+	{
+		return $this->_getFullMocker(
+			'sales/order_payment',
+			array (
+				'getAmountAuthorized'	=> '1776',
+				'getCcApproval' 		=> 'APP123456',
+				'getCcAvsStatus' 		=> 'Z',
+				'getCcCidStatus' 		=> 'Y',
+				'getCcExpMonth'			=> '12',
+				'getCcExpYear' 			=> '2015',
+				'getCcStatus' 			=> true,
+				'getMethod' 			=> 'eb2cfakepay',
+			)
+		);
+	}
+
+	/**
+	 * Returns a mocked object
+	 * @param a Magento Class Alias
+	 * @param array of key / value pairs; key is the method name, value is value returned by that method
+	 *
+	 * @return mocked-object
+	 */
+	private function _getFullMocker($classAlias, $mockedMethodSet)
+	{
+		$justMethodNames = array();
+		foreach( $mockedMethodSet as $method => $returnValue ) {
+			$justMethodNames[] = $method;
+		}
+
+		$mock = $this->getModelMockBuilder($classAlias)
+			->disableOriginalConstructor()
+			->setMethods($justMethodNames)
+			->getMock();
+
+		reset($mockedMethodSet);
+		foreach($mockedMethodSet as $method => $returnValue ) {
+			$mock->expects($this->any())
+				->method($method)
+				->will($this->returnValue($returnValue));
+		}
+		return $mock;
+	}
 }
 
 class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Test_Abstract
@@ -400,6 +157,17 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 		$this->_creator->expects($this->any())
 			->method('sendRequest')
 			->will($this->returnValue(true));
+		/*
+		$x = $this->getMockSalesOrder();
+		foreach( get_class_methods($x) as $method ) {
+			if( !strncmp($method, 'get', 3) ) {
+				$foo = $x->$method();
+				echo "$method yields ";
+				echo $foo;
+				echo "\n";
+			}
+		}
+		 */
 	}
 
 	/**
@@ -410,83 +178,19 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 	{
 		$testFactoryCreator = Mage::getModel('eb2corder/create');
 		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $testFactoryCreator );
-
-		/*
-		$x = $this->getMockSalesOrderAddress();
-		foreach( get_class_methods($x) as $method ) {
-			if( !strncmp($method, 'get', 3) ) {
-				$foo = $x->$method();
-				echo "$method yields ";
-				if( is_array($foo) ) {
-					print_r($foo);
-				}
-				else {
-					echo $foo;
-				}
-				echo "\n";
-			}
-		}
-		 */
-	}
-
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture testOrderCreateScenarios.yaml
-	 * Get a collection; try creating order for last one
-	 */
-	public function testOrderCreateFromCollection()
-	{
-		$status = null;
-		$testId = Mage::getModel('sales/order')->getCollection()->getLastItem()->getIncrementId();
-		$this->_creator->buildRequest($testId);
-		$status = $this->_creator->sendRequest();
-		$this->assertSame($status, true);
 	}
 
 	/**
+	 * Create the Order
 	 * @test
 	 * @loadFixture testOrderCreateScenarios.yaml
-	 * One known order is create by increment Id value
 	 */
-	public function testOrderCreateOneOff()
+	public function testOrderCreate()
 	{
-		$status = null;
-		$incrementId = '100000002';
-		$this->_creator->buildRequest($incrementId);
-		$status = $this->_creator->sendRequest();
+		$creator = Mage::getModel('eb2corder/create');
+		$creator->buildRequest($this->getMockSalesOrder());
+		$status = $creator->sendRequest();
 		$this->assertSame($status, true);
-	}
-
-	/**
-	 * @test
-	 * @expectedException Mage_Core_Exception
-	 * @todo: Is that the best exception we can have? "not found" is even better.
-	 * Don't want to find this order, handle exception correctly.
-	 */
-	public function testOrderNotFound()
-	{
-		$status = null;
-		$incrementId = 'NO_CHANCE';
-		$this->_creator->buildRequest($incrementId);
-	}
-
-	/**
-	 * @test
-	 * @loadFixture
-	 * @expectedException Mage_Core_Exception
-	 * @todo: Is that the best exception we can have? "some kind of http error" is even better, I think
-	 * This fixture was setup to fail with a syntactically correct URL that couldn't really answer us in any sensible way.
-	 */
-	public function testWithEb2cPaymentsEnabled()
-	{
-		$status = null;
-
-		$this->_creator = Mage::getModel('eb2corder/create');
-		$incrementId = '100000003';
-		$this->_creator->buildRequest($incrementId);
-		$status = $this->_creator->sendRequest();
 	}
 
 	/**
@@ -500,7 +204,6 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
 		$privateFinallyFailedMethod->setAccessible(true);
 		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
-
 		$this->assertEventDispatched('eb2c_order_create_fail');
 	}
 
@@ -511,9 +214,6 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 	 */
 	public function testObserverCreate()
 	{
-		$dummyOrder = Mage::getModel('sales/order')->getCollection()->getLastItem();
-		$this->_creator = Mage::getModel('eb2corder/create');
-
 		// Now mock up the event
 		$mockEvent = $this->getModelMockBuilder('varien/event')
 				->disableOriginalConstructor()
@@ -527,7 +227,7 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 		// Make the event return the mock quote:
 		$mockEvent->expects($this->any())
 				->method('getOrder')
-				->will($this->returnValue($dummyOrder));
+				->will($this->returnValue($this->getMockSalesOrder()));
 
 		// Now make the fake observer arg return the fake event ... confusingly, this arg is called "an event observer"
 		//	thus an event observer is called with an event observer
@@ -545,22 +245,8 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 				->method('getEvent')
 				->will($this->returnValue($mockEvent));
 
-		// TODO: This should be a Mage::dispatchEvent based on config.xml, sell also Eb2cFraud where it's done better.
+		// TODO: This should be a Mage::dispatchEvent based on config.xml, see also Eb2cFraud where it's done better.
 		// still, it covers the code 'good enough' for now.
 		$this->_creator->observerCreate($mockEventObserverArgThingy);
-	}
-
-
-	private function _makeMockOrder()
-	{
-		// Now mock up the event
-		$this->_mockOrder = $this->getModelMockBuilder('varien/event')
-				->disableOriginalConstructor()
-				->setMethods(
-					array(
-						'getOrder',
-					)
-				)
-				->getMock();
 	}
 }
