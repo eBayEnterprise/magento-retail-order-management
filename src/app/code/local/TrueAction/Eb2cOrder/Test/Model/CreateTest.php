@@ -183,6 +183,7 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 	/**
 	 * Create the Order
 	 * @test
+	 * @large
 	 * @loadFixture testOrderCreateScenarios.yaml
 	 */
 	public function testOrderCreate()
@@ -210,6 +211,7 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 
 	/**
 	 * @test
+	 * @large
 	 * @loadFixture testOrderCreateScenarios.yaml
 	 */
 	public function testObserverCreate()
