@@ -24,6 +24,23 @@
 				<class>TrueAction_Eb2cProduct_Helper</class>
 			</eb2cproduct>
 		</helpers>
+		<eb2cproduct_attributes>
+			<default>
+				<tax_code>
+					<scope>Website</scope>
+					<label>Tax Code</label>
+					<group>Price</group>
+					<frontend_type>text</frontend_type>
+					<unique>N</unique>                       <!-- optional -->
+					<product_types>
+						<!CDATA[["simple","configurable","virtual","bundle","downloadable","giftcard"]]>
+					</product_types>
+					<default>
+						<!CDATA[[]]>
+					</default>
+				</tax_code>
+			</default>
+		</eb2cproduct_attributes>
 	</global>
 	<crontab>
 		<jobs>
