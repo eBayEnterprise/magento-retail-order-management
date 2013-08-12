@@ -154,7 +154,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_buildContext($orderCreateRequest->createChild('Context'));
 
 		$this->_xmlRequest = $this->_domRequest->saveXML();
-		return;
+		return true;
 	}
 
 	/**

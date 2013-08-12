@@ -57,7 +57,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	public function processFile($xmlFile)
 	{
 		$dom = $this->_helper->getDomDocument();
-		// Presumably load and run? $dom->load($xmlFile);
+		$dom->load($xmlFile);
 		$dom = null;
 		// Archive or move to Error here
 		return;

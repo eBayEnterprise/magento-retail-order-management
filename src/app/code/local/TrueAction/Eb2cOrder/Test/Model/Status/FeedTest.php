@@ -1,39 +1,127 @@
 <?php
+require_once 'vfsStream/vfsStream.php';
 /**
  *
  */
-class TrueAction_Eb2cOrder_Test_Model_Feed_StatusTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cOrder_Test_Model_Feed_StatusTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
-	/**
-	 * @test
-	 * @TODO: Mock up configuration such that it returns an ftp-type config. @TODO this soon, too.
-	 */
-	public function testProcessFeeds()
-	{
-		// The transport protocol is mocked - just pretend you got files
-		$mockReceiver = $this->getMock( get_class(Mage::getModel('filetransfer/protocol_types_ftp')), array('getFile',));
-		$mockReceiver->expects($this->any())
-			->method('getFile')
-			->will($this->returnValue(true));
+	const SAMPLE_XML = <<<END_SAMPLE_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderStatusUpdate fileType="Magento Order Status Update" fileStartTime="2013-08-09 19:32:39.0" fileEndTime="2013-08-12 13:43:24.0" recordCount="791">
+  <MessageHeader>
+    <Standard>eBay_Enterprise</Standard>
+    <HeaderVersion>EWS_eb2c_1.0</HeaderVersion>
+    <VersionReleaseNumber>EWS_eb2c_1.0</VersionReleaseNumber>
+    <SourceData>
+      <SourceId>OMS</SourceId>
+      <SourceType>OrderManagementSystem</SourceType>
+    </SourceData>
+    <DestinationData>
+      <DestinationId>EE_OrderRTStatusXML</DestinationId>
+      <DestinationType>MAILBOX</DestinationType>
+    </DestinationData>
+    <EventType>OrderStatus</EventType>
+    <MessageData>
+      <MessageId>20130812010825</MessageId>
+      <CorrelationId>0</CorrelationId>
+    </MessageData>
+    <CreateDateAndTime>2013-08-12T13:43:24.171Z</CreateDateAndTime>
+  </MessageHeader>
+  <OrderStatusEvents>
+    <OrderStatusEvent>
+      <OrderStatusEventTimeStamp>2013-08-10T02:37:48000Z</OrderStatusEventTimeStamp>
+      <StoreCode>TMS_US</StoreCode>
+      <OrderId>200001483664</OrderId>
+      <StatusId>1100.60</StatusId>
+      <ProcessTypeKey>ORDER_FULFILLMENT</ProcessTypeKey>
+      <StatusName>Created</StatusName>
+      <OrderEventDetail>
+        <OrderLineId>1</OrderLineId>
+        <ItemId>21-885641003920</ItemId>
+        <Qty>0</Qty>
+      </OrderEventDetail>
+    </OrderStatusEvent>
+    <OrderStatusEvent>
+      <OrderStatusEventTimeStamp>2013-08-10T02:37:49000Z</OrderStatusEventTimeStamp>
+      <StoreCode>TMS_US</StoreCode>
+      <OrderId>200001483663</OrderId>
+      <StatusId>1100.60</StatusId>
+      <ProcessTypeKey>ORDER_FULFILLMENT</ProcessTypeKey>
+      <StatusName>Created</StatusName>
+      <OrderEventDetail>
+        <OrderLineId>1</OrderLineId>
+        <ItemId>21-885641003920</ItemId>
+        <Qty>0</Qty>
+      </OrderEventDetail>
+    </OrderStatusEvent>
+    <OrderStatusEvent>
+      <OrderStatusEventTimeStamp>2013-08-10T02:39:41000Z</OrderStatusEventTimeStamp>
+      <StoreCode>TMS_US</StoreCode>
+      <OrderId>200001483665</OrderId>
+      <StatusId>1100.60</StatusId>
+      <ProcessTypeKey>ORDER_FULFILLMENT</ProcessTypeKey>
+      <StatusName>Created</StatusName>
+      <OrderEventDetail>
+        <OrderLineId>1</OrderLineId>
+        <ItemId>21-885641003920</ItemId>
+        <Qty>0</Qty>
+      </OrderEventDetail>
+    </OrderStatusEvent>
+  </OrderStatusEvents>
+</OrderStatusUpdate>
+END_SAMPLE_XML;
 
-		// Feed IO Core is mocked to simply return a couple of file names
-		$mockFeedIo = $this->getMock( get_class(Mage::getModel('eb2ccore/feed')), array('setBaseFolder','lsInboundFolder'));
-		$mockFeedIo->expects($this->any())
-			->method('setBaseFolder')
-			->will($this->returnValue($mockFeedIo));
-		$mockFeedIo->expects($this->any())
-			->method('lsInboundFolder')
-			->will($this->returnValue(
-					array(
-						'someFile.xml',
-						'someOtherFile.xml',
+	const FAKE_ROOT_DIR = 'root';
+
+	const FAKE_XML_FILE = 'fakeXmlFile.xml';
+
+    public function setUp() {
+		// Set up a virtual file system and create the necessary mock inbound folder.
+		$feedModel = Mage::getModel('eb2ccore/feed');
+		vfsStreamWrapper::register();
+		vfsStream::setup(self::FAKE_ROOT_DIR);
+		$vfsInboundFolder = vfsStream::newDirectory($feedModel::INBOUND_FOLDER_NAME)->at(vfsStreamWrapper::getRoot());
+
+		// Now, let's create a virtual XML file with some sample xml data:
+		$vfsXmlFile = vfsStream::newFile(self::FAKE_XML_FILE)
+						->setContent(self::SAMPLE_XML)
+						->at($vfsInboundFolder);
+
+		// Mock a few eb2ccore/feed methods. The methods I'm mocking are already tested by core, so no harm done.
+		$mockCoreFeedMethods = array(
+			'cd'					=> true,
+			'checkAndCreateFolder'	=> true,
+			'getInboundFolder'		=> $feedModel::INBOUND_FOLDER_NAME,
+			'lsInboundFolder'		=> array (vfsStream::url(self::FAKE_ROOT_DIR . DS . $feedModel::INBOUND_FOLDER_NAME . DS . self::FAKE_XML_FILE)),
+		);
+		$this->replaceModel('eb2ccore/feed',$mockCoreFeedMethods);
+
+		// The transport protocol is mocked - we just pretend we got files
+		$this->replaceModel('filetransfer/protocol_types_ftp', array('getFile'=>true,));
+
+		// Since I'm returning a value map here, so I call getModelMock directly
+		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
+        $mockConfig->expects($this->any())
+            ->method('__get')
+            ->will($this->returnValueMap(
+					array (
+						array(
+							'statusFeedLocalPath', $vfsInboundFolder->getName()
+						),
 					)
 				)
 			);
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+    }
 
-		$this->replaceByMock('model', 'eb2ccore/feed', $mockFeedIo);
-		$this->replaceByMock('model', 'filetransfer/protocol_types_ftp', $mockReceiver);
-
+	/**
+	 * Tests the order status feed processor. Should cover everything! SetUp does all the hard work to make it 'look like' processFeeds
+	 *	has received some remote files and that they are in the inbound folder, ready for processing.
+	 * @test
+	 *
+	 */
+	public function testProcessFeeds()
+	{
 		$feedIo = Mage::getModel('eb2corder/status_feed');
 		$rc = $feedIo->processFeeds();
 		$this->assertSame(true, $rc);
