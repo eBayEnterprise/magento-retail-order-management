@@ -32,7 +32,7 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Get Dom instantiated object.
-	 * TODO: Why isn't this just a generice core helper? Seems to make sense acutally.
+	 * TODO: Why isn't this just a generic core helper?
 	 * @return TrueAction_Dom_Document
 	 */
 	public function getDomDocument()
@@ -56,9 +56,8 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			array('lineId' => 2, 'itemId' => 'SKU-4321')
 		);
 		return array(
-			array(
-				$domDocument, 'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd'
-			)
+			array($domDocument, 'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd'),
+			array($domDocument, 'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd'),
 		);
 	}
 
@@ -70,75 +69,63 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 	 */
 	public function testRequest($request, $apiUri)
 	{
-		$api = Mage::getModel('eb2ccore/api');
-		$this->assertNotEmpty(
-			$api->setUri($apiUri)->request($request)
-		);
-	}
+		$strType = gettype('');
 
-	/**
-	 * testing the setApiTimeout method standalone here
-	 * @test
-	 */
-	public function testSetTimeout()
-	{
-		$api = Mage::getModel('eb2ccore/api');
-		$testTimeout = 16;
+		$configConstraint = new PHPUnit_Framework_Constraint_And();
+		$configConstraint->setConstraints(array(
+			$this->arrayHasKey('adapter'),
+			$this->arrayHasKey('timeout')
+		));
 
-		$api->setTimeout($testTimeout);
-		$this->assertSame($api->getTimeout(), $testTimeout );
-	}
+		$httpResponse = $this->getMock('Zend_Http_Response', array('isSuccessful', 'getBody'), array(200, array()));
+		$httpResponse->expects($this->once())
+			->method('isSuccessful')
+			->will($this->returnValue(true));
+		$httpResponse->expects($this->once())
+			->method('getBody')
+			->will($this->returnValue('abc'));
 
-	/**
-	 * testing request() method
-	 *
-	 * @test
-	 * @dataProvider providerApiCall
-	 */
-	public function testApiRequestWithSetTimeout($request, $apiUri)
-	{
-		$api = Mage::getModel('eb2ccore/api');
-		$testTimeout = 8;
-		$result = $api->setUri($apiUri)->setTimeout($testTimeout)->request($request);
-		$this->assertNotEmpty($result);
-		$this->assertSame($api->getTimeout(), $testTimeout);
-		$this->assertSame($api->getUri(), $apiUri);
-	}
+		$httpClient = $this->getMock('Varien_Http_Client', array('setHeaders', 'setUri', 'setConfig', 'setRawData', 'setEncType', 'request'));
+		$httpClient->expects($this->once())
+			->method('setHeaders')
+			->with($this->identicalTo('apiKey'), $this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setUri')
+			->with($this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setConfig')
+			->with($configConstraint)
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setRawData')
+			->with($this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setEncType')
+			->with($this->identicalTo('text/xml'))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('request')
+			->with($this->identicalTo('POST'))
+			->will($this->returnValue($httpResponse));
 
-	/**
-	 * Test setting http client to something valid
-	 */
-	public function testValidSetHttpClient()
-	{
-		$status = true;
-		$zendHttpClient = new Zend_Http_Client();
-		$api = Mage::getModel('eb2ccore/api');
-		try {
-			$api->setHttpClient($zendHttpClient);
-		}
-		catch( Exception $e ) {
-			$status = false; // Shouldn't get here with a valid http client class
-		}
-		$this->assertInstanceOf('Zend_Http_Client', $api->getHttpClient());
-		$this->assertSame($status, true);
-
-		$this->assertSame($api->getAdapter(), $api::DEFAULT_ADAPTER);
+		$api = Mage::getModel('eb2ccore/api')
+			->setHttpClient($httpClient)
+			->setUri($apiUri);
+		$this->assertNotEmpty($api->request($request));
 	}
 
 	/**
 	 * Test setting http client to something silly
+	 * @expectedException Exception
 	 */
 	public function testInvalidSetHttpClientThrowsException()
 	{
 		$status = false;
 		$api = Mage::getModel('eb2ccore/api');
-		try {
-			$api->setHttpClient($api);
-		}
-		catch( Exception $e ) {
-			$status = true; // True: you *should* throw an exception!
-		}
-		$this->assertSame($status, true);
+		$api->setHttpClient($api);
 	}
 
 	/**

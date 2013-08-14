@@ -34,15 +34,15 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server
 		// by default, curl will be used as the default adapter
 		$client = $this->getHttpClient();
-		$client->setHeaders('apiKey', $this->getConfig()->apiKey);
-		$client->setUri($this->getUri());
-		$client->setConfig(array(
-			'adapter' => $this->getAdapter(),
-			'timeout' => $this->getTimeout()
-		));
 		$client
+			->setHeaders('apiKey', $this->getConfig()->apiKey)
+			->setUri($this->getUri())
 			->setRawData($doc->saveXML())
-			->setEncType('text/xml');
+			->setEncType('text/xml')
+			->setConfig(array(
+				'adapter' => $this->getAdapter(),
+				'timeout' => $this->getTimeout()
+			));
 		$response = $client->request(self::DEFAULT_METHOD);
 		return $response->isSuccessful() ?
 			$response->getBody() :
