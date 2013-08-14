@@ -7,6 +7,48 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abstract
 {
 	/**
+	 * hold magento collection of product type id
+	 *
+	 * @var array
+	 */
+	protected $_productTypeId;
+
+	/**
+	 * hold magento default store id
+	 *
+	 * @var int
+	 */
+	protected $_defaultStoreId;
+
+	/**
+	 * hold magento collection of website ids
+	 *
+	 * @var array
+	 */
+	protected $_websiteIds;
+
+	/**
+	 * hold a collection of data to be added
+	 *
+	 * @var array
+	 */
+	protected $_addQueue;
+
+	/**
+	 * hold a collection of data to be updated
+	 *
+	 * @var array
+	 */
+	protected $_updateQueue;
+
+	/**
+	 * hold a collection of data to be deleted
+	 *
+	 * @var array
+	 */
+	protected $_deleteQueue;
+
+	/**
 	 * Initialize model
 	 */
 	protected function _construct()
@@ -16,8 +58,59 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$this->setProduct(Mage::getModel('catalog/product'));
 		$this->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'));
 		$this->setFeedModel(Mage::getModel('eb2ccore/feed'));
+		$this->setFastImport(Mage::getModel('fastsimpleimport/import'));
+
+		// Magento product type ids
+		$this->_productTypeId = array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle');
+
+		// set the default store id
+		$this->_defaultStoreId = Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId();
+
+		// set array of website ids
+		$this->_websiteIds = Mage::getModel('core/website')->getCollection()->getAllIds();
+
+		$this->_addQueue = array();
+		$this->_updateQueue = array();
+		$this->_deleteQueue = array();
 
 		return $this;
+	}
+
+	/**
+	 * validating the product type
+	 *
+	 * @param string $type, the product type to validated
+	 *
+	 * @return bool, true the inputed type match what's in magento else doesn't match
+	 */
+	protected function _isValidProductType($type)
+	{
+		return in_array($type, $this->_productTypeId);
+	}
+
+	/**
+	 * generating friendly url from a given string
+	 *
+	 * @param string $url, the string to be converted to a friendly url
+	 *
+	 * @return string, the friendly url
+	 */
+	protected function _friendlyUrl($url)
+	{
+		$friendlyUrl = '';
+		$urlArr = explode(' ',  $url);
+		$index = 0;
+		foreach ($urlArr as $key) {
+			$index++;
+			if (trim($key) !== '') {
+				$friendlyUrl .= $key;
+				if ($index < sizeof($urlArr)) {
+					$friendlyUrl .= '-';
+				}
+			}
+		}
+		$friendlyUrl = strtolower(str_replace("'", '-', $friendlyUrl));
+		return $friendlyUrl;
 	}
 
 	/**
@@ -53,7 +146,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 			// validate feed header
 			if ($this->getHelper()->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
-				// run item master updates
+				// run adding item to their respective queue
 				$this->_itemMasterActions($domDocument);
 			}
 
@@ -64,8 +157,95 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			}
 		}
 
+		// let process adding product to the Magento database using fast import
+		$this->processAddQueue();
+
+		// let process updating product to the Magento database using fast import
+		$this->processUpdateQueue();
+
+		// let process deleting product to the Magento database using fast import
+		$this->processDeleteQueue();
+
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
+	}
+
+	/**
+	 * processing importing add queue.
+	 *
+	 * @return void
+	 */
+	public function processAddQueue()
+	{
+		if (!empty($this->_addQueue)) {
+			try {
+				// before we begin, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+				$this->getFastImport()->setPartialIndexing(true)
+					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_APPEND)
+					->processProductImport($this->_addQueue);
+
+				// after we finish mass import, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+
+				// let's reset the add queue
+				$this->_addQueue = array();
+			} catch (Exception $e) {
+				Mage::log('The following error occurred while processing Add Queue for Item Master (' . $this->getFastImport()->getErrorMessages() . ')', Zend_Log::ERR);
+			}
+		}
+	}
+
+	/**
+	 * processing importing update queue.
+	 *
+	 * @return void
+	 */
+	public function processUpdateQueue()
+	{
+		if (!empty($this->_updateQueue)) {
+			try {
+				// before we begin, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+				$this->getFastImport()->setPartialIndexing(true)
+					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_REPLACE)
+					->processProductImport($this->_updateQueue);
+
+				// after we finish mass import, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+
+				// let's reset the update queue
+				$this->_updateQueue = array();
+			} catch (Exception $e) {
+				Mage::log('The following error occurred while processing update Queue for Item Master (' . $this->getFastImport()->getErrorMessages() . ')', Zend_Log::ERR);
+			}
+		}
+	}
+
+	/**
+	 * processing importing delete queue.
+	 *
+	 * @return void
+	 */
+	public function processDeleteQueue()
+	{
+		if (!empty($this->_deleteQueue)) {
+			try {
+				// before we begin, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+				$this->getFastImport()->setPartialIndexing(true)
+					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_DELETE)
+					->processProductImport($this->_deleteQueue);
+
+				// after we finish mass import, let's clean the import database
+				$this->getFastImport()->cleanBunches();
+
+				// let's reset the delete queue
+				$this->_deleteQueue = array();
+			} catch (Exception $e) {
+				Mage::log('The following error occurred while processing delete Queue for Item Master (' . $this->getFastImport()->getErrorMessages() . ')', Zend_Log::ERR);
+			}
+		}
 	}
 
 	/**
@@ -139,13 +319,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			// Identifies the type of item.
 			$itemType = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemType');
 			if ($itemType->length) {
-				$dataObject->setItemType(trim($itemType->item(0)->nodeValue));
+				// This will be mapped by the product hub to Magento product types.
+				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
+				$feedItemType = trim($itemType->item(0)->nodeValue);
+				if (!$this->_isValidProductType($feedItemType)) {
+					Mage::log(
+						"Item Master Feed item_type (${feedItemType}), doesn't match Magento available Item Types (" .
+						implode(',', $this->_productTypeId) . ")",
+						Zend_Log::WARN
+					);
+					continue;
+				}
+				$dataObject->setItemType($feedItemType);
 			}
 
 			// Indicates whether an item is active, inactive or other various states.
 			$itemStatus = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemStatus');
 			if ($itemStatus->length) {
-				$dataObject->setItemStatus(trim($itemStatus->item(0)->nodeValue));
+				$dataObject->setItemStatus( (strtoupper(trim($itemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0 );
 			}
 
 			// Tax group the item belongs to.
@@ -319,7 +510,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 					$sizeData = array();
 					foreach ($sizeAttributes as $sizeRecord) {
 						// Language code for the natural language of the size data.
-						$sizeLang = $sizeRecord->getAttribute('lang');
+						$sizeLang = $sizeRecord->getAttribute('xml:lang');
 
 						// Size code.
 						$sizeCode = '';
@@ -363,7 +554,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 					$attributeOperationType = $attributeRecord->getAttribute('operation_type');
 
 					// Language code for the natural language or the <Value /> element.
-					$attributeLang = $attributeRecord->getAttribute('lang');
+					$attributeLang = $attributeRecord->getAttribute('xml:lang');
 
 					// Value of the attribute.
 					$attributeValue = '';
@@ -386,50 +577,68 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 			switch (trim(strtoupper($operationType))) {
 				case 'ADD':
-					$this->_addItem($dataObject);
+					$this->_queueAdd($dataObject);
 					break;
 				case 'CHANGE':
-					$this->_updateItem($dataObject);
+					$this->_queueUpdate($dataObject);
 					break;
 				case 'DELETE':
-					$this->_deleteItem($dataObject);
+					$this->_queueDelete($dataObject);
 					break;
 			}
 		}
 	}
 
 	/**
-	 * add product.
+	 * form data into an importable for format.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to add the product
+	 *
+	 * @return array
+	 */
+	protected function _importDataFormat($dataObject)
+	{
+		return array(
+			'sku' => $dataObject->getClientItemId(),
+			'_type' => $dataObject->getItemType(),
+			'_attribute_set' => 'Default',
+			'_product_websites' => 'base',
+			'price' => $dataObject->getExtendedAttributes()->getPrice(),
+			'description' => $dataObject->getItemDescription(),
+			'short_description' => $dataObject->getItemDescription(),
+			'meta_title' => $dataObject->getClientItemId() . ' | ' . $dataObject->getItemDescription(),
+			'meta_description' => $dataObject->getItemDescription(),
+			'meta_keywords' => $dataObject->getClientItemId(),
+			'weight' => $dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight(),
+			'status' => $dataObject->getItemStatus(),
+			'visibility' => 4,
+			'tax_class_id' => 0,
+			'qty' => 1,
+			'is_in_stock' => 9999,
+			'enable_googlecheckout' => '1',
+			'gift_message_available' => '0',
+			'url_key' => _friendlyUrl($dataObject->getClientItemId() . ' ' . $dataObject->getItemDescription()),
+		);
+	}
+
+	/**
+	 * add product to quote to queue to be imported.
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add the product
 	 *
 	 * @return void
 	 */
-	protected function _addItem($dataObject)
+	protected function _queueAdd($dataObject)
 	{
-		/*print_r(
-			array(
-				'dataObject' => $dataObject
-			)
-		);*/
-
 		if ($dataObject) {
 			if ($dataObject->getClientItemId() !== '') {
 				// we have a valid item, let's check if this product already exists in Magento
 				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
 
 				if (!$this->getProduct()->getId()) {
-					try{
-						// this product doesn't currently exists in Magento let's added
-						/*$this->getProduct()->setSku($dataObject->getClientItemId())
-							->setCreatedAt(strtotime('now'))
-							->save();*/
-					} catch (Exception $e) {
-						Mage::logException($e);
-					}
+					$this->_addQueue[] = $this->_importDataFormat($dataObject);
 				} else {
-					// this item currently exists in magento let simply log it and just updated
-					//this->_updateItem($dataObject);
+					// this item currently exists in magento let simply log it
 					Mage::log("Item Master Feed Add Operation for SKU (" . $dataObject->getClientItemId() . "), already exists in Magento", Zend_Log::WARN);
 				}
 			}
@@ -445,10 +654,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 *
 	 * @return void
 	 */
-	protected function _updateItem($dataObject)
+	protected function _queueUpdate($dataObject)
 	{
-		if (!empty($data)) {
+		if ($dataObject) {
+			if ($dataObject->getClientItemId() !== '') {
+				// we have a valid item, let's check if this product already exists in Magento
+				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
 
+				if ($this->getProduct()->getId()) {
+					$this->_updateQueue[] = $this->_importDataFormat($dataObject);
+				} else {
+					// this item doesn't exists in magento let simply log it
+					Mage::log("Item Master Feed Update Operation for SKU (" . $dataObject->getClientItemId() . "), does not exists in Magento", Zend_Log::WARN);
+				}
+			}
 		}
 
 		return ;
@@ -461,10 +680,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 *
 	 * @return void
 	 */
-	protected function _deleteItem($dataObject)
+	protected function _queueDelete($dataObject)
 	{
-		if (!empty($data)) {
+		if ($dataObject) {
+			if ($dataObject->getClientItemId() !== '') {
+				// we have a valid item, let's check if this product already exists in Magento
+				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
 
+				if ($this->getProduct()->getId()) {
+					$this->_deleteQueue[] = $this->_importDataFormat($dataObject);
+				} else {
+					// this item doesn't exists in magento let simply log it
+					Mage::log("Item Master Feed Delete Operation for SKU (" . $dataObject->getClientItemId() . "), does not exists in Magento", Zend_Log::WARN);
+				}
+			}
 		}
 
 		return ;
