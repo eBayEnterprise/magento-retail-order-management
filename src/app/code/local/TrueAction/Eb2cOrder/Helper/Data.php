@@ -5,9 +5,6 @@
 class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $apiModel;
-	public $coreHelper;
-	public $coreFeedHelper;
-	public $constHelper;
 
 
 	/**
@@ -29,10 +26,7 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConstHelper()
 	{
-		if (!$this->constHelper) {
-			$this->constHelper = Mage::helper('eb2corder/constants');
-		}
-		return $this->constHelper;
+		return Mage::helper('eb2corder/constants');
 	}
 
 	/**
@@ -42,10 +36,7 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreHelper()
 	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
-		return $this->coreHelper;
+		return Mage::helper('eb2ccore');
 	}
 
 	/**
@@ -55,10 +46,7 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreFeedHelper()
 	{
-		if (!$this->coreFeedHelper) {
-			$this->coreFeedHelper = Mage::helper('eb2ccore/feed');
-		}
-		return $this->coreFeedHelper;
+		return Mage::helper('eb2ccore/feed');
 	}
 
 	/**
@@ -69,8 +57,7 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getOperationUri($operation)
 	{
 		$consts = $this->getConstHelper();
-		$apiUri = $this->getCoreHelper()->getApiUri($consts::SERVICE, $operation);
-		return $apiUri;
+		return $this->getCoreHelper()->getApiUri($consts::SERVICE, $operation);
 	}
 
 	/**
@@ -89,9 +76,6 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getApiModel()
 	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->apiModel;
+		return Mage::getModel('eb2ccore/api');
 	}
 }

@@ -1,23 +1,23 @@
 <?php
-require_once 'vfsStream/vfsStream.php';
 /**
  *
  */
+use org\bovigo\vfs;
 class TrueAction_Eb2cOrder_Test_Model_Feed_StatusTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
-	const SAMPLE_XML = <<<END_SAMPLE_XML
+	const SAMPLE_GOOD_XML = <<<END_SAMPLE_GOOD_XML
 <?xml version="1.0" encoding="UTF-8"?>
 <OrderStatusUpdate fileType="Magento Order Status Update" fileStartTime="2013-08-09 19:32:39.0" fileEndTime="2013-08-12 13:43:24.0" recordCount="791">
   <MessageHeader>
     <Standard>eBay_Enterprise</Standard>
-    <HeaderVersion>EWS_eb2c_1.0</HeaderVersion>
-    <VersionReleaseNumber>EWS_eb2c_1.0</VersionReleaseNumber>
+    <HeaderVersion>2.3</HeaderVersion>
+    <VersionReleaseNumber>4</VersionReleaseNumber>
     <SourceData>
       <SourceId>OMS</SourceId>
       <SourceType>OrderManagementSystem</SourceType>
     </SourceData>
     <DestinationData>
-      <DestinationId>EE_OrderRTStatusXML</DestinationId>
+      <DestinationId>TAN-OS-CLI</DestinationId>
       <DestinationType>MAILBOX</DestinationType>
     </DestinationData>
     <EventType>OrderStatus</EventType>
@@ -69,31 +69,68 @@ class TrueAction_Eb2cOrder_Test_Model_Feed_StatusTest extends TrueAction_Eb2cOrd
     </OrderStatusEvent>
   </OrderStatusEvents>
 </OrderStatusUpdate>
-END_SAMPLE_XML;
+END_SAMPLE_GOOD_XML;
 
-	const FAKE_ROOT_DIR = 'root';
+	const SAMPLE_INVALID_EB2C_XML = <<<END_SAMPLE_INVALID_EB2C_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderStatusUpdate>
+  <MessageHeader>
+    <Standard>eBay_Enterprise</Standard>
+    <HeaderVersion>2.3</HeaderVersion>
+    <VersionReleaseNumber>5</VersionReleaseNumber>
+  </MessageHeader>
+</OrderStatusUpdate>
+END_SAMPLE_INVALID_EB2C_XML;
 
-	const FAKE_XML_FILE = 'fakeXmlFile.xml';
+	const SAMPLE_INVALID_XML = <<<END_SAMPLE_INVALID_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderStatusUpdate>
+  <MessageHeader>
+END_SAMPLE_INVALID_XML;
+
+	const FAKE_ROOT_DIR			= 'root';
+	const GOOD_XML_FILE			= 'goodXmlFile.xml';
+	const INVALID_EB2C_XML_FILE	= 'notEb2cFile.xml';
+	const INVALID_XML_FILE		= 'badXmlFile.xml';
 
     public function setUp() {
 		// Set up a virtual file system and create the necessary mock inbound folder.
-		$feedModel = Mage::getModel('eb2ccore/feed');
-		vfsStreamWrapper::register();
-		vfsStream::setup(self::FAKE_ROOT_DIR);
-		$vfsInboundFolder = vfsStream::newDirectory($feedModel::INBOUND_FOLDER_NAME)->at(vfsStreamWrapper::getRoot());
+		$this->getFixture()->getVfs();
+		vfs\vfsStreamWrapper::register();
+		vfs\vfsStream::setup(self::FAKE_ROOT_DIR);
 
-		// Now, let's create a virtual XML file with some sample xml data:
-		$vfsXmlFile = vfsStream::newFile(self::FAKE_XML_FILE)
-						->setContent(self::SAMPLE_XML)
+		$feedModel = Mage::getModel('eb2ccore/feed');
+		$vfsInboundFolder = vfs\vfsStream::newDirectory($feedModel::INBOUND_FOLDER_NAME)
+												->at(vfs\vfsStreamWrapper::getRoot());
+		$vfsXmlPathname = self::FAKE_ROOT_DIR . DS . $feedModel::INBOUND_FOLDER_NAME . DS;
+
+		// Create virtual XML files: 1 good file, 1 that fails eb2c validation, and 1 bad XML
+		vfs\vfsStream::newFile(self::GOOD_XML_FILE)
+						->setContent(self::SAMPLE_GOOD_XML)
 						->at($vfsInboundFolder);
-		$vfsXmlFullPath = vfsStream::url(self::FAKE_ROOT_DIR . DS . $feedModel::INBOUND_FOLDER_NAME . DS . self::FAKE_XML_FILE);
+		$vfsGoodXmlFile = vfs\vfsStream::url($vfsXmlPathname . self::GOOD_XML_FILE); 
+
+		vfs\vfsStream::newFile(self::INVALID_EB2C_XML_FILE)
+						->setContent(self::SAMPLE_INVALID_EB2C_XML)
+						->at($vfsInboundFolder);
+		$vfsInvalidEb2cXmlFile = vfs\vfsStream::url($vfsXmlPathname . self::INVALID_EB2C_XML_FILE);
+
+		vfs\vfsStream::newFile(self::INVALID_XML_FILE)
+						->setContent(self::SAMPLE_INVALID_XML)
+						->at($vfsInboundFolder);
+		$vfsInvalidXmlFile = vfs\vfsStream::url($vfsXmlPathname . self::INVALID_XML_FILE);
+
 
 		// Mock a few eb2ccore/feed methods. The methods I'm mocking are already tested by core, so no harm done.
 		$mockCoreFeedMethods = array(
 			'cd'					=> true,
 			'checkAndCreateFolder'	=> true,
 			'getInboundFolder'		=> $feedModel::INBOUND_FOLDER_NAME,
-			'lsInboundFolder'		=> array ($vfsXmlFullPath),
+			'lsInboundFolder'		=> array (
+											$vfsGoodXmlFile,
+											$vfsInvalidEb2cXmlFile,
+											$vfsInvalidXmlFile,
+										),
 		);
 		$this->replaceModel('eb2ccore/feed',$mockCoreFeedMethods);
 
@@ -106,8 +143,6 @@ END_SAMPLE_XML;
 				'statusFeedLocalPath' => $vfsInboundFolder->getName(),
 			)
 		);
-
-		// $headerVersionNode = $xpath->query('//*/MessageHeader/HeaderVersion'); // Leaving this comment to help me fix problem in Core/Helper/Feed
     }
 
 	/**

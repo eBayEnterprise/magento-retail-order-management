@@ -14,6 +14,5 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'file_transfer_config_path'				=> 'eb2c/order/status_feed/file_transfer_config_path',
 		'status_feed_event_type'				=> 'eb2c/order/status_feed/event_type',
 		'status_feed_header_version'			=> 'eb2c/order/status_feed/header_version',
-		'status_feed_version_release_number'	=> 'eb2c/order/status_feed/version_release_number',
 	);
 }

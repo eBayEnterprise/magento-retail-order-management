@@ -5,6 +5,26 @@
  */
 class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
+	const SAMPLE_SUCCESS_XML = <<<SUCCESS_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+  <ResponseStatus>Success</ResponseStatus>
+</OrderCreateResponse>
+SUCCESS_XML;
+
+	const SAMPLE_FAILED_XML = <<<FAILED_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+  <ResponseStatus>Failed</ResponseStatus>
+</OrderCreateResponse>
+FAILED_XML;
+
+	const SAMPLE_INVALID_XML = <<<INVALID_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse>
+This is a fine mess ollie.
+INVALID_XML;
+
 	/**
 	 * Create an Order
 	 * 
@@ -13,10 +33,16 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 	public function testOrderCreate()
 	{
 		$this->replaceCoreConfigRegistry();
-		$creator = $this->replaceModel('eb2corder/create', array('sendRequest'=>true,),false);
-		$creator->buildRequest($this->getMockSalesOrder());
-		$status = $creator->sendRequest();
-		$this->assertSame($status, true);
+		$this->replaceModel( 'eb2ccore/api',
+			array (
+				'request'				=> self::SAMPLE_SUCCESS_XML
+			),
+			false
+		);
+		$status = Mage::getModel('eb2corder/create')
+					->buildRequest($this->getMockSalesOrder())
+					->sendRequest();
+		$this->assertSame(true, $status);
 	}
 
 	/**
@@ -32,9 +58,37 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 				'eb2cPaymentsEnabled' => false,
 			)
 		);
-		$creator = Mage::getModel('eb2corder/create');
-		$rc = $creator->buildRequest($this->getMockSalesOrder());
-		$this->assertSame(true, $rc);
+
+		$this->replaceModel( 'eb2ccore/api',
+			array (
+				'request'				=> self::SAMPLE_FAILED_XML
+			),
+			false
+		);
+
+		$status = Mage::getModel('eb2corder/create')
+					->buildRequest($this->getMockSalesOrder())
+					->sendRequest();
+		$this->assertSame(false, $status);
+	}
+
+	/**
+	 * Should throw an exception because an invalid xml response was received
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testInvalidResponseReceived()
+	{
+		$this->replaceModel( 'eb2ccore/api',
+			array (
+				'request'				=> self::SAMPLE_INVALID_XML
+			),
+			false
+		);
+
+		Mage::getModel('eb2corder/create')
+			->buildRequest($this->getMockSalesOrder())
+			->sendRequest();
 	}
 
 

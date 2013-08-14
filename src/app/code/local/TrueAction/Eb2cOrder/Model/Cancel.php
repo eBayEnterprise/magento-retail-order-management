@@ -42,7 +42,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 		$cancelRequest->createChild('Reason', $args['reason']);;
 
 		$this->_domRequest->formatOutput = true;
-		return;
+		return $this;
 	}
 
 
@@ -66,7 +66,6 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 								->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
 								->request($this->_domRequest);
 
-			$status='';
 			$this->_domResponse = $this->_helper->getDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;

@@ -121,6 +121,11 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 	protected function replaceCoreConfigRegistry($userConfigValuePairs=array())
 	{
 		$configValuePairs = array (
+			// Core Values:
+			'clientId'							=> 'TAN-OS-CLI',
+			'feedDestinationType'				=> 'MAILBOX',
+
+			// Eb2cOrder-specific Values:
 			'developerMode'						=> true,
 			'developerCreateUri' 				=> 'valid-url-here',
 			'developerCancelUri'				=> 'valid-url-here',
@@ -129,8 +134,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 			'statusFeedRemotePath'				=> 'doesnt_matter_just_some_path',
 			'fileTransferConfigPath'			=> 'eb2ccore/general',
 			'statusFeedEventType'				=> 'OrderStatus',
-			'statusFeedHeaderVersion'			=> 'EWS_eb2c_1.0',
-			'statusFeedVersionReleaseNumber'	=> 'EWS_eb2c_1.0',
+			'statusFeedHeaderVersion'			=> '2.3.4',
 		);
 
 		// Replace and/ or add to the default configValuePairs if the user has supplied some config values

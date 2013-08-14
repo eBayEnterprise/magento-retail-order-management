@@ -76,12 +76,12 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		if( $this->_config->developerMode ) {
 			$uri = $this->_config->developerCreateUri;
 		}
+
 		try {
 			$response = $this->_helper->getApiModel()
 								->setUri($uri)
 								->setTimeout($this->_config->serviceOrderTimeout)
 								->request($this->_domRequest);
-			$status = null;
 			$this->_domResponse = $this->_helper->getDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
@@ -154,7 +154,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_buildContext($orderCreateRequest->createChild('Context'));
 
 		$this->_xmlRequest = $this->_domRequest->saveXML();
-		return true;
+		return $this;
 	}
 
 	/**
