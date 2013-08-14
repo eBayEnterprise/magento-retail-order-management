@@ -26,7 +26,7 @@
 					<show_in_store>1</show_in_store>
 					<fields>
 						<catalog_id translate="label comment">
-							<label>Catalog ID</label>
+							<label>Catalog Id</label>
 							<comment></comment>
 							<sort_order>10</sort_order>
 							<frontend_type>text</frontend_type>
@@ -36,7 +36,7 @@
 							<show_in_store>0</show_in_store>
 						</catalog_id>
 						<client_id>
-							<label>Client ID</label>
+							<label>Client Id</label>
 							<comment></comment>
 							<sort_order>20</sort_order>
 							<frontend_type>text</frontend_type>
@@ -46,7 +46,7 @@
 							<show_in_store>0</show_in_store>
 						</client_id>
 						<store_id>
-							<label>Store ID</label>
+							<label>Store Id</label>
 							<comment></comment>
 							<sort_order>30</sort_order>
 							<frontend_type>text</frontend_type>
@@ -87,7 +87,7 @@
 							<show_in_store>0</show_in_store>
 						</sftp_location>
 						<api_key>
-							<label>Catalog ID</label>
+							<label>API Key</label>
 							<comment></comment>
 							<sort_order>70</sort_order>
 							<frontend_type>obscure</frontend_type>
