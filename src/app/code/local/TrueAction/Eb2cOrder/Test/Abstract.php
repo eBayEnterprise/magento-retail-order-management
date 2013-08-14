@@ -113,6 +113,46 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
+	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for 
+	 *	Eb2cOrder Testing. 
+	 *
+	 * @param statusFeedLocalPath	A testable path containing Status Feed XML - prefer that this be vfs
+	 */
+	protected function replaceCoreConfigRegistry($userConfigValuePairs=array())
+	{
+		$configValuePairs = array (
+			'developerMode'						=> true,
+			'developerCreateUri' 				=> 'valid-url-here',
+			'developerCancelUri'				=> 'valid-url-here',
+			'eb2cPaymentsEnabled'				=> true,
+			'statusFeedLocalPath'				=> 'some_local_path_for_files',
+			'statusFeedRemotePath'				=> 'doesnt_matter_just_some_path',
+			'fileTransferConfigPath'			=> 'eb2ccore/general',
+			'statusFeedEventType'				=> 'OrderStatus',
+			'statusFeedHeaderVersion'			=> 'EWS_eb2c_1.0',
+			'statusFeedVersionReleaseNumber'	=> 'EWS_eb2c_1.0',
+		);
+
+		// Replace and/ or add to the default configValuePairs if the user has supplied some config values
+		foreach( $userConfigValuePairs as $configPath => $configValue ) {
+			$configValuePairs[$configPath] = $configValue;
+		}
+
+		// Build the array in the format returnValueMap wants
+		$valueMap = array();
+		foreach( $configValuePairs as $configPath => $configValue ) {
+			$valueMap[] = array($configPath, $configValue);
+		}
+
+		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
+        $mockConfig->expects($this->any())
+            ->method('__get')
+            ->will($this->returnValueMap($valueMap));
+
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+	}
+
+	/**
 	 * Returns a mocked object
 	 * @param a Magento Class Alias
 	 * @param array of key / value pairs; key is the method name, value is value returned by that method

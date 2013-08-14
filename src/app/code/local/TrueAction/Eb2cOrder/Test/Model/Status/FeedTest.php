@@ -86,44 +86,39 @@ END_SAMPLE_XML;
 		$vfsXmlFile = vfsStream::newFile(self::FAKE_XML_FILE)
 						->setContent(self::SAMPLE_XML)
 						->at($vfsInboundFolder);
+		$vfsXmlFullPath = vfsStream::url(self::FAKE_ROOT_DIR . DS . $feedModel::INBOUND_FOLDER_NAME . DS . self::FAKE_XML_FILE);
 
 		// Mock a few eb2ccore/feed methods. The methods I'm mocking are already tested by core, so no harm done.
 		$mockCoreFeedMethods = array(
 			'cd'					=> true,
 			'checkAndCreateFolder'	=> true,
 			'getInboundFolder'		=> $feedModel::INBOUND_FOLDER_NAME,
-			'lsInboundFolder'		=> array (vfsStream::url(self::FAKE_ROOT_DIR . DS . $feedModel::INBOUND_FOLDER_NAME . DS . self::FAKE_XML_FILE)),
+			'lsInboundFolder'		=> array ($vfsXmlFullPath),
 		);
 		$this->replaceModel('eb2ccore/feed',$mockCoreFeedMethods);
 
 		// The transport protocol is mocked - we just pretend we got files
 		$this->replaceModel('filetransfer/protocol_types_ftp', array('getFile'=>true,));
 
-		// Since I'm returning a value map here, so I call getModelMock directly
-		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
-        $mockConfig->expects($this->any())
-            ->method('__get')
-            ->will($this->returnValueMap(
-					array (
-						array(
-							'statusFeedLocalPath', $vfsInboundFolder->getName()
-						),
-					)
-				)
-			);
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+		// Mock the core config registry, only value passed is the vfs filename
+		$this->replaceCoreConfigRegistry(
+			array (
+				'statusFeedLocalPath' => $vfsInboundFolder->getName(),
+			)
+		);
+
+		// $headerVersionNode = $xpath->query('//*/MessageHeader/HeaderVersion'); // Leaving this comment to help me fix problem in Core/Helper/Feed
     }
 
 	/**
-	 * Tests the order status feed processor. Should cover everything! SetUp does all the hard work to make it 'look like' processFeeds
-	 *	has received some remote files and that they are in the inbound folder, ready for processing.
+	 * Tests the order status feed processor. Should cover everything. SetUp does all the hard work to make it 'look like' processFeeds
+	 * has received some remote files and that they are in the inbound folder, ready for processing.
 	 * @test
-	 *
+	 * @large
 	 */
 	public function testProcessFeeds()
 	{
-		$feedIo = Mage::getModel('eb2corder/status_feed');
-		$rc = $feedIo->processFeeds();
+		$rc = Mage::getModel('eb2corder/status_feed')->processFeeds();
 		$this->assertSame(true, $rc);
 	}
 }

@@ -4,9 +4,9 @@
  */
 class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $config;
 	public $apiModel;
 	public $coreHelper;
+	public $coreFeedHelper;
 	public $constHelper;
 
 
@@ -17,12 +17,9 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfig()
 	{
-		if( !$this->config ) {
-			$this->config = Mage::getModel('eb2ccore/config_registry')
-							->addConfigModel(Mage::getModel('eb2corder/config'))
-							->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
-		return $this->config;
+		return Mage::getModel('eb2ccore/config_registry')
+						->addConfigModel(Mage::getModel('eb2corder/config'))
+						->addConfigModel(Mage::getModel('eb2ccore/config'));
 	}
 
 	/**
@@ -49,6 +46,19 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->coreHelper = Mage::helper('eb2ccore');
 		}
 		return $this->coreHelper;
+	}
+
+	/**
+	 * Helper for feed processing, as from eb2c core
+	 *
+	 * @return TrueAction_Eb2cCore_Helper_Feed
+	 */
+	public function getCoreFeedHelper()
+	{
+		if (!$this->coreFeedHelper) {
+			$this->coreFeedHelper = Mage::helper('eb2ccore/feed');
+		}
+		return $this->coreFeedHelper;
 	}
 
 	/**

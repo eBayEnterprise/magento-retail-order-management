@@ -10,15 +10,19 @@
  */
 class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 {
-	private $_helper;
 	private $_config;
+	private $_coreFeedHelper;
+	private $_coreHelper;
 	private $_feedIo;
+	private $_helper;
 	private $_remoteIo;
 
 	public function _construct()
 	{
 		$this->_helper = Mage::helper('eb2corder');
 		$this->_config = $this->_helper->getConfig();
+		$this->_coreFeedHelper = $this->_helper->getCoreFeedHelper();
+		$this->_coreHelper = $this->_helper->getCoreHelper();
 
 		// Set up local folders for receiving, processing, etc:
 		$this->_localIo = Mage::getModel('eb2ccore/feed')->setBaseFolder($this->_config->statusFeedLocalPath);
@@ -56,10 +60,21 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	public function processFile($xmlFile)
 	{
-		$dom = $this->_helper->getDomDocument();
-		$dom->load($xmlFile);
-		$dom = null;
+		$dom = new TrueAction_Dom_Document();
+		try {
+			$dom->load($xmlFile);
+		}
+		catch(Exception $e) {
+			Mage::logException($e);
+			return false;
+		}
+		if (!$this->_coreFeedHelper->validateHeader($dom,
+				$this->_config->statusFeedEventType,
+				$this->_config->statusFeedHeaderVersion))
+		{
+			return false;
+		}
 		// Archive or move to Error here
-		return;
+		return true;
 	}
 }

@@ -1,50 +1,48 @@
 <?php
 /**
  * Test Suite for the Order_Create
+ * TODO: Need to mock up getApiModel()->request() to provide 100% sendRequest coverage
  */
 class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
-	private $_creator;
-
 	/**
-	 * Setup gets a TrueAction_Eb2cOrder_Model_Create, and mocks the send method
-	 */
-	public function setUp()
-	{
-		// TODO: This needs to be done better in order to provide sendRequest() coverage
-		$this->_creator = $this->replaceModel('eb2corder/create', array('sendRequest'=>true,),false);
-	}
-
-	/**
-	 * Create the Order
+	 * Create an Order
+	 * 
 	 * @test
-	 * @large
-	 * @loadFixture testOrderCreateScenarios.yaml
 	 */
 	public function testOrderCreate()
 	{
-		$this->_creator->buildRequest($this->getMockSalesOrder());
-		$status = $this->_creator->sendRequest();
+		$this->replaceCoreConfigRegistry();
+		$creator = $this->replaceModel('eb2corder/create', array('sendRequest'=>true,),false);
+		$creator->buildRequest($this->getMockSalesOrder());
+		$status = $creator->sendRequest();
 		$this->assertSame($status, true);
 	}
 
 	/**
 	 * Create the Order with eb2c payments disabled in configuration
+	 *
 	 * @test
-	 * @large
-	 * @loadFixture testWithEb2cPaymentsDisabled.yaml
 	 */
 	public function testWithEb2cPaymentsDisabled()
 	{
-		$rc = $this->_creator->buildRequest($this->getMockSalesOrder());
-		$this->assertSame($rc, true);
+		// Mock the core config registry, only value passed is the vfs filename
+		$this->replaceCoreConfigRegistry(
+			array (
+				'eb2cPaymentsEnabled' => false,
+			)
+		);
+		$creator = Mage::getModel('eb2corder/create');
+		$rc = $creator->buildRequest($this->getMockSalesOrder());
+		$this->assertSame(true, $rc);
 	}
 
 
 	/**
-	 * @test
 	 * TODO: Heck knows how this will be fully implemented but at some point under some set of circumstances
 	 *	we will have 'finally failed' to create an eb2c order
+	 *
+	 * @test
 	 */
 	public function testFinallyFailed()
 	{
@@ -57,12 +55,13 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 
 
 	/**
+	 * Call the observerCreate method, which is meant to be called by a dispatched event
+	 * 
 	 * @test
-	 * @large
-	 * @loadFixture testOrderCreateScenarios.yaml
 	 */
 	public function testObserverCreate()
 	{
+		$creator = Mage::getModel('eb2corder/create');
 		// Now mock up the event
 		$mockEvent = $this->getModelMockBuilder('varien/event')
 				->disableOriginalConstructor()
@@ -96,6 +95,6 @@ class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Te
 
 		// TODO: This should be a Mage::dispatchEvent based on config.xml, see also Eb2cFraud where it's done better.
 		// still, it covers the code 'good enough' for now.
-		$this->_creator->observerCreate($mockEventObserverArgThingy);
+		$creator->observerCreate($mockEventObserverArgThingy);
 	}
 }
