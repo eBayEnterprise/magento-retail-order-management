@@ -43,6 +43,35 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	 * get the attribute set collection.
+	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Set_Collection
+	 */
+	protected function _getAttributeSetCollection()
+	{
+		$collection = Mage::getModel('eav/entity_attribute_set')
+			->getCollection();
+		return $collection;
+	}
+
+	/**
+	 * get an attribute group model.
+	 * return null if the group does not exist.
+	 * @param  string $groupName
+	 * @param  string $setId
+	 * @return Mage_Catalog_Model_Product_Attribute_Group
+	 */
+	protected function _getAttributeGroup($groupName, $setId)
+	{
+		$model = Mage::getModel('eav/entity_attribute_group')
+			->getResourceCollection()
+			->AddFieldToFilter('attribute_group_name', array('eq' => $groupName))
+			->setAttributeSetFilter($setId)
+			->load()
+			->getFirstItem();
+		$group = $model->getId() ? $model : null;
+		return $group;
+	}
+
 	 * return an array of the default attribute codes.
 	 * optionally, the list can be filtered to only include codes whose group is $groupFilter.
 	 * @param string $groupFilter
