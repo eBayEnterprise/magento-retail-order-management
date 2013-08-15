@@ -13,6 +13,31 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
+	 * mapping of config field name to model field name
+	 * @var array
+	 */
+	protected $_fieldNameMap = array(
+		'scope'         => 'is_global',
+		'unique'        => 'is_unique',
+		'input_type'    => 'frontend_input',
+		'product_types' => 'apply_to',
+		'label'         => 'frontend_label',
+	);
+
+	protected $_valueFunctionMap = array(
+		'is_global' => '_formatScope',
+		'apply_to'  => '_formatArray',
+		'default_value_yesno' => '_formatBoolean',
+		'is_unique' => '_formatBoolean',
+		'default_value_date' => '_formatDate',
+	);
+
+	protected static $_scopeMap = array(
+		'website' => 1,
+		'store' => 0,
+	);
+
+	/**
 	 * apply default attributes to $attributeSet
 	 * @param  mixed $attributeSet
 	 * @return $this
@@ -72,6 +97,128 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		return $group;
 	}
 
+	/**
+	 * get a prototype array to use to initialize an attribute model with config data.
+	 * @param  Varien_SimpleXml_Element $fieldCfg
+	 * @return Mage_Catalog_Model_Eav_Entity_Attribute
+	 */
+	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
+	{
+		// attribute code = fieldcfg->getName()
+		// if attribute code in cache
+			// clone cached model
+		// else
+			$baseData = $this->_getInitialData();
+			// foreach fieldcfg->children() as cfgField => data
+				// fieldName = getMappedFieldName(cfgfield)
+				// value     = getMappedFieldValue($fieldName, $data);
+				// baseData[fieldname] = value
+			$model = Mage::getModel('catalog/eav_entity_attribute', $baseData);
+		return $model;
+	}
+
+	/**
+	 * get the attribute model field name for the config field name.
+	 * @param  string $fieldName
+	 * @return string
+	 */
+	protected function _getMappedFieldName($fieldName)
+	{
+		$fieldName = isset($this->_fieldNameMap[$fieldName]) ?
+			$this->_fieldNameMap[$fieldName] :
+			$fieldName;
+		return $fieldName;
+	}
+
+	/**
+	 * convert the scope string to the integer value
+	 * @param  Varien_SimpleXml_Element $data
+	 * @return int
+	 */
+	protected function _formatScope($data)
+	{
+		$scopeStr = strtolower((string) $data);
+		$key = strtolower($scopeStr);
+		if (!isset(self::$_scopeMap[$scopeStr])) {
+			Mage::throwException('Invalid scope value "' . $scopeStr . '"');
+		}
+		$val = self::$_scopeMap[$scopeStr];
+		return $val;
+	}
+
+	/**
+	 * convert the ',' delimited list into an array.
+	 * @param  Varien_SimpleXml_Element $data
+	 * @return int
+	 */
+	protected function _formatArray($data)
+	{
+		$str = (string) $data;
+		$val = explode(',', $str);
+		return $val;
+	}
+
+	/**
+	 * convert a string into a boolean value.
+	 * @see  http://php.net/manual/en/function.is-bool.php
+	 * @param Varien_SimpleXml_Element
+	 * @return  bool
+	 */
+	protected function _formatBoolean($data)
+	{
+		$str = strtolower((string) $data);
+		switch ($str) {
+			case $str === true:
+			case $str == 1:
+			// case $str == '1': // no need for this, because we used
+								 // $val == 1 not $str === 1
+			case $str == 'true':
+			case $str == 'on':
+			case $str == 'yes':
+			case $str == 'y':
+				$out = true;
+				break;
+			default: $out = false;
+		}
+		return $out;
+	}
+
+
+	/**
+	 * convert data from the config to a form that can be set to the specified
+	 * field on the attribute model.
+	 * @param  string                   $fieldName
+	 * @param  Varien_SimpleXml_Element $data
+	 * @return string
+	 */
+	protected function _getMappedFieldValue($fieldName, Varien_SimpleXml_Element $data)
+	{
+		$value = (string) $data;
+		if (isset($this->_valueFunctionMap[$fieldName])) {
+			$funcName = $this->_valueFunctionMap[$fieldName];
+			if (!method_exists($this, $funcName)) {
+				Mage::throwException(
+					"invalid value-function map. $funcName is not a member of " . get_class($this)
+				);
+			}
+			$value = $this->$funcName($data);
+		}
+		return $value;
+	}
+
+	/**
+	 * convert data from the config to a form that can be set to the specified
+	 * field on the attribute model.
+	 * @param  string                   $fieldName
+	 * @param  Varien_SimpleXml_Element $data
+	 * @return string
+	 */
+	protected function _getModelKeyValue($fieldName, Varien_SimpleXml_Element $data)
+	{
+
+	}
+
+	/**
 	 * return an array of the default attribute codes.
 	 * optionally, the list can be filtered to only include codes whose group is $groupFilter.
 	 * @param string $groupFilter
