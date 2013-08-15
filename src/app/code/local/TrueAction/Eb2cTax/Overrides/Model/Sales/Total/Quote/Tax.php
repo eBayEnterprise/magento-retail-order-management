@@ -25,6 +25,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$this->_helper         = Mage::helper('tax');
 		$this->_calculator     = Mage::getSingleton('tax/calculation');
 		$this->_config         = Mage::getSingleton('tax/config');
+		$this->_weeeHelper     = Mage::helper('weee');
 	}
 
 	/**
