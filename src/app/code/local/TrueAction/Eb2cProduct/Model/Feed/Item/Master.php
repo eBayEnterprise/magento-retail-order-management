@@ -7,27 +7,6 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abstract
 {
 	/**
-	 * hold magento collection of product type id
-	 *
-	 * @var array
-	 */
-	protected $_productTypeId;
-
-	/**
-	 * hold magento default store id
-	 *
-	 * @var int
-	 */
-	protected $_defaultStoreId;
-
-	/**
-	 * hold magento collection of website ids
-	 *
-	 * @var array
-	 */
-	protected $_websiteIds;
-
-	/**
 	 * hold a collection of data to be added
 	 *
 	 * @var array
@@ -60,20 +39,40 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$this->setFeedModel(Mage::getModel('eb2ccore/feed'));
 		$this->setFastImport(Mage::getModel('fastsimpleimport/import'));
 
+		$this->setImportExportResource(Mage::getModel('importexport/resource_import_data'));
+
 		// Magento product type ids
-		$this->_productTypeId = array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle');
+		$this->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'));
 
 		// set the default store id
-		$this->_defaultStoreId = Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId();
+		$this->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId());
 
 		// set array of website ids
-		$this->_websiteIds = Mage::getModel('core/website')->getCollection()->getAllIds();
+		$this->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
 		$this->_addQueue = array();
 		$this->_updateQueue = array();
 		$this->_deleteQueue = array();
 
 		return $this;
+	}
+
+	/**
+	 * load product by sku
+	 *
+	 * @param string $sku, the product sku to filter the product table
+	 *
+	 * @return catalog/product
+	 */
+	protected function _loadProductBySku($sku)
+	{
+		$products = Mage::getResourceModel('catalog/product_collection');
+		$products->getSelect()
+			->where('e.sku = ?', $sku);
+
+		$products->load();
+
+		return $products->getFirstItem();
 	}
 
 	/**
@@ -85,7 +84,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _isValidProductType($type)
 	{
-		return in_array($type, $this->_productTypeId);
+		return in_array($type, $this->getProductTypeId());
 	}
 
 	/**
@@ -180,18 +179,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if (!empty($this->_addQueue)) {
 			try {
 				// before we begin, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 				$this->getFastImport()->setPartialIndexing(true)
 					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_APPEND)
 					->processProductImport($this->_addQueue);
 
 				// after we finish mass import, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 
 				// let's reset the add queue
 				$this->_addQueue = array();
 			} catch (Exception $e) {
-				Mage::log('The following error occurred while processing Add Queue for Item Master (' . $this->getFastImport()->getErrorMessages() . ')', Zend_Log::ERR);
+				Mage::log('The following error occurred while processing Add Queue for Item Master (' . $e->getMessage() . ')', Zend_Log::ERR);
 			}
 		}
 	}
@@ -206,13 +205,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if (!empty($this->_updateQueue)) {
 			try {
 				// before we begin, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 				$this->getFastImport()->setPartialIndexing(true)
 					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_REPLACE)
 					->processProductImport($this->_updateQueue);
 
 				// after we finish mass import, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 
 				// let's reset the update queue
 				$this->_updateQueue = array();
@@ -232,13 +231,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if (!empty($this->_deleteQueue)) {
 			try {
 				// before we begin, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 				$this->getFastImport()->setPartialIndexing(true)
 					->setBehavior(Mage_ImportExport_Model_Import::BEHAVIOR_DELETE)
 					->processProductImport($this->_deleteQueue);
 
 				// after we finish mass import, let's clean the import database
-				$this->getFastImport()->cleanBunches();
+				$this->getImportExportResource()->cleanBunches();
 
 				// let's reset the delete queue
 				$this->_deleteQueue = array();
@@ -261,6 +260,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 		$master = $feedXpath->query('//Item');
 		foreach ($master as $item) {
+			// Create a new empty dom document
+			$newDomDocument = $this->getHelper()->getDomDocument();
+
+			// let's import the curent item node to this new empty document so that we can work only with this item node
+			$newNode = $newDomDocument->importNode($item, true);
+			$newDomDocument->addElement('ItemMaster')->firstChild->appendChild($newNode);
+
+			$itemXpath = new DOMXPath($newDomDocument);
+
 			$catalogId = $item->getAttribute('catalog_id');
 			// Ensure this matches the catalog id set in the Magento admin configuration.
 			// If different, do not update the item and log at WARN level.
@@ -292,40 +300,45 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			$dataObject = new Varien_Object();
 
 			// SKU used to identify this item from the client system.
-			$clientItemId = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ItemId/ClientItemId');
+			$dataObject->setClientItemId(null);
+			$clientItemId = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ItemId/ClientItemId');
 			if ($clientItemId->length) {
 				$dataObject->setClientItemId(trim($clientItemId->item(0)->nodeValue));
 			}
 
 			// Allows for control of the web store display.
-			$catalogClass = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/CatalogClass');
+			$dataObject->setCatalogClass(null);
+			$catalogClass = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/CatalogClass');
 			if ($catalogClass->length) {
 				$dataObject->setCatalogClass(trim($catalogClass->item(0)->nodeValue));
 			}
 
 			// Indicates the item if fulfilled by a drop shipper.
 			// New attribute.
-			$isDropShipped = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/IsDropShipped');
+			$dataObject->setDropShipped(null);
+			$isDropShipped = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/IsDropShipped');
 			if ($isDropShipped->length) {
 				$dataObject->setDropShipped(trim($isDropShipped->item(0)->nodeValue));
 			}
 
 			// Short description in the catalog's base language.
-			$itemDescription = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemDescription');
+			$dataObject->setItemDescription(null);
+			$itemDescription = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemDescription');
 			if ($itemDescription->length) {
 				$dataObject->setItemDescription(trim($itemDescription->item(0)->nodeValue));
 			}
 
 			// Identifies the type of item.
-			$itemType = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemType');
+			$dataObject->setItemType(null);
+			$itemType = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemType');
 			if ($itemType->length) {
 				// This will be mapped by the product hub to Magento product types.
 				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-				$feedItemType = trim($itemType->item(0)->nodeValue);
+				$feedItemType = strtolower(trim($itemType->item(0)->nodeValue));
 				if (!$this->_isValidProductType($feedItemType)) {
 					Mage::log(
 						"Item Master Feed item_type (${feedItemType}), doesn't match Magento available Item Types (" .
-						implode(',', $this->_productTypeId) . ")",
+						implode(',', $this->getProductTypeId()) . ")",
 						Zend_Log::WARN
 					);
 					continue;
@@ -334,20 +347,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			}
 
 			// Indicates whether an item is active, inactive or other various states.
-			$itemStatus = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemStatus');
+			$dataObject->setItemStatus(0);
+			$itemStatus = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/ItemStatus');
 			if ($itemStatus->length) {
 				$dataObject->setItemStatus( (strtoupper(trim($itemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0 );
 			}
 
 			// Tax group the item belongs to.
-			$taxCode = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/TaxCode');
+			$dataObject->setTaxCode(null);
+			$taxCode = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BaseAttributes/TaxCode');
 			if ($taxCode->length) {
 				$dataObject->setTaxCode(trim($taxCode->item(0)->nodeValue));
 			}
 
 			$bundleDataObject = null;
 			// Items included if this item is a bundle product.
-			$bundleContents = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents');
+			$bundleContents = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents');
 			if ($bundleContents->length) {
 				// Since we have bundle product let save these to a Varien_Object
 				$bundleDataObject = new Varien_Object();
@@ -356,7 +371,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				$bundleDataObject->setShipTogether((bool) $bundle->getAttribute('ship_together'));
 
 				// Child item of this item
-				$bundleItems = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems');
+				$bundleItems = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems');
 				if ($bundleItems->length) {
 					foreach ($bundleItems as $bundleItem) {
 						$bundleDataObject->setOperationType((string) $bundleItem->getAttribute('operation_type'));
@@ -364,13 +379,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						$bundleDataObject->setCatalogId($bundleCatalogId);
 
 						// Client or vendor id (SKU) for the item to be included in the bundle.
-						$itemID = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/ItemID');
+						$itemID = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/ItemID');
 						if ($itemID->length) {
 							$bundleDataObject->setItemID(trim($itemID->item(0)->nodeValue));
 						}
 
 						// How many of the child item come in the bundle.
-						$quantity = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/Quantity');
+						$quantity = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/Quantity');
 						if ($quantity->length) {
 							$bundleDataObject->setQuantity((int)$quantity->item(0)->nodeValue);
 						}
@@ -380,69 +395,92 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 			$dataObject->setBundleContents($bundleDataObject);
 
-			$dropShipDataObject = null;
-			// Encapsulates data for drop shipper fulfillment. If the item is fulfilled by a drop shipper, these values are required.
-			$dropShipSupplierInformation = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation');
-			if ($dropShipSupplierInformation->length) {
-				// let save drop Ship Supplier Information to a Varien_Object
-				$dropShipDataObject = new Varien_Object();
+			// let save drop Ship Supplier Information to a Varien_Object
+			$dropShipDataObject = new Varien_Object();
+			$dropShipDataObject->setSupplierName(null);
+			$dropShipDataObject->setSupplierNumber(null);
+			$dropShipDataObject->setSupplierPartNumber(null);
 
+			// Encapsulates data for drop shipper fulfillment. If the item is fulfilled by a drop shipper, these values are required.
+			$dropShipSupplierInformation = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation');
+			if ($dropShipSupplierInformation->length) {
 				// Name of the Drop Ship Supplier fulfilling the item
-				$supplierName = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierName');
+				$supplierName = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierName');
 				if ($supplierName->length) {
 					$dropShipDataObject->setSupplierName(trim($supplierName->item(0)->nodeValue));
 				}
 
 				// Unique code assigned to this supplier.
-				$supplierNumber = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierNumber');
+				$supplierNumber = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierNumber');
 				if ($supplierNumber->length) {
 					$dropShipDataObject->setSupplierNumber(trim($supplierNumber->item(0)->nodeValue));
 				}
 
 				// Id or SKU used by the drop shipper to identify this item.
-				$supplierPartNumber = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierPartNumber');
+				$supplierPartNumber = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/DropShipSupplierInformation/SupplierPartNumber');
 				if ($supplierPartNumber->length) {
 					$dropShipDataObject->setSupplierPartNumber(trim($supplierPartNumber->item(0)->nodeValue));
 				}
-
 			}
+
 			$dataObject->setDropShipSupplierInformation($dropShipDataObject);
 
-			$extendedAttributesObject = null;
-			// Additional named attributes. None are required.
-			$extendedAttributes = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes');
-			if ($extendedAttributes->length) {
-				// let save drop Extended Attributes to a Varien_Object
-				$extendedAttributesObject = new Varien_Object();
+			// let save drop Extended Attributes to a Varien_Object
+			$extendedAttributesObject = new Varien_Object();
+			$extendedAttributesObject->setAllowGiftMessage(false);
+			$extendedAttributesObject->setBackOrderable(null);
 
+			// let save drop color Attributes to a Varien_Object
+			$colorAttributesObject = new Varien_Object();
+			$colorAttributesObject->setColorCode(null);
+			$colorAttributesObject->setColorDescription(null);
+
+			$extendedAttributesObject->setColorAttributes($colorAttributesObject);
+			$extendedAttributesObject->setCountryOfOrigin(null);
+			$extendedAttributesObject->setGiftCartTenderCode(null);
+
+			// let save ItemDimensions/Shipping to a Varien_Object
+			$itemDimensionsShippingObject = new Varien_Object();
+			$itemDimensionsShippingObject->setMassUnitOfMeasure(null);
+			$itemDimensionsShippingObject->setWeight(0);
+
+			$extendedAttributesObject->setItemDimensionsShipping($itemDimensionsShippingObject);
+			$extendedAttributesObject->setMsrp(null);
+			$extendedAttributesObject->setPrice(0);
+
+			// let save ItemDimensions/Shipping to a Varien_Object
+			$sizeAttributesObject = new Varien_Object();
+			$sizeAttributesObject->setSize(array(array('lang' => null, 'code' => null, 'description' => null)));
+			$extendedAttributesObject->setSizeAttributes($sizeAttributesObject);
+
+
+			// Additional named attributes. None are required.
+			$extendedAttributes = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes');
+			if ($extendedAttributes->length) {
 				// If false, customer cannot add a gift message to the item.
-				$allowGiftMessage = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/AllowGiftMessage');
+				$allowGiftMessage = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/AllowGiftMessage');
 				if ($allowGiftMessage->length) {
 					$extendedAttributesObject->setAllowGiftMessage((bool) $allowGiftMessage->item(0)->nodeValue);
 				}
 
 				// Item is able to be back ordered.
-				$backOrderable = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/BackOrderable');
+				$backOrderable = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/BackOrderable');
 				if ($backOrderable->length) {
 					$extendedAttributesObject->setBackOrderable(trim($backOrderable->item(0)->nodeValue));
 				}
 
-				$colorAttributesObject = null;
 				// Item color
-				$colorAttributes = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes');
+				$colorAttributes = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes');
 				if ($colorAttributes->length) {
-					// let save drop color Attributes to a Varien_Object
-					$colorAttributesObject = new Varien_Object();
-
 					// Color value/name with a locale specific description.
 					// Name of the color used as the default and in the admin.
-					$colorCode = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes/Color/Code');
+					$colorCode = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes/Color/Code');
 					if ($colorCode->length) {
 						$colorAttributesObject->setColorCode((string) $colorCode->item(0)->nodeValue);
 					}
 
 					// Description of the color used for specific store views/languages.
-					$colorDescription = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes/Color/Description');
+					$colorDescription = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ColorAttributes/Color/Description');
 					if ($colorDescription->length) {
 						$colorAttributesObject->setColorDescription(trim($colorDescription->item(0)->nodeValue));
 					}
@@ -450,7 +488,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				$extendedAttributesObject->setColorAttributes($colorAttributesObject);
 
 				// Country in which goods were completely derived or manufactured.
-				$countryOfOrigin = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/CountryOfOrigin');
+				$countryOfOrigin = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/CountryOfOrigin');
 				if ($countryOfOrigin->length) {
 					$extendedAttributesObject->setCountryOfOrigin(trim($countryOfOrigin->item(0)->nodeValue));
 				}
@@ -463,25 +501,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				 *		SV - SVS Virtual Gift Card
 				 *		SX - SmartClixx Gift Card
 				 */
-				$giftCartTenderCode = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/GiftCartTenderCode');
+				$giftCartTenderCode = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/GiftCartTenderCode');
 				if ($giftCartTenderCode->length) {
 					$extendedAttributesObject->setGiftCartTenderCode(trim($giftCartTenderCode->item(0)->nodeValue));
 				}
 
-				$itemDimensionsShippingObject = null;
 				// Dimensions used for shipping the item.
-				$itemDimensionsShipping = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping');
+				$itemDimensionsShipping = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping');
 				if ($itemDimensionsShipping->length) {
-					// let save ItemDimensions/Shipping to a Varien_Object
-					$itemDimensionsShippingObject = new Varien_Object();
-
 					// Shipping weight of the item.
-					$mass = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping/Mass');
+					$mass = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping/Mass');
 					if ($mass->length) {
 						$itemDimensionsShippingObject->setMassUnitOfMeasure((string) $mass->getAttribute('unit_of_measure'));
 
 						// Shipping weight of the item.
-						$weight = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping/Mass/Weight');
+						$weight = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/ItemDimensions/Shipping/Mass/Weight');
 						if ($weight->length) {
 							$itemDimensionsShippingObject->setWeight((float) $weight->item(0)->nodeValue);
 						}
@@ -490,23 +524,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				$extendedAttributesObject->setItemDimensionsShipping($itemDimensionsShippingObject);
 
 				// Manufacturers suggested retail price. Not used for actual price calculations.
-				$msrp = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/MSRP');
+				$msrp = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/MSRP');
 				if ($msrp->length) {
 					$extendedAttributesObject->setMsrp((string) $msrp->item(0)->nodeValue);
 				}
 
 				// Default price item is sold at. Required only if the item is new.
-				$price = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/Price');
+				$price = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/Price');
 				if ($price->length) {
 					$extendedAttributesObject->setPrice((float) $price->item(0)->nodeValue);
 				}
 
-				$sizeAttributesObject = null;
 				// Dimensions used for shipping the item.
-				$sizeAttributes = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size');
+				$sizeAttributes = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size');
 				if ($sizeAttributes->length) {
-					// let save ItemDimensions/Shipping to a Varien_Object
-					$sizeAttributesObject = new Varien_Object();
 					$sizeData = array();
 					foreach ($sizeAttributes as $sizeRecord) {
 						// Language code for the natural language of the size data.
@@ -514,14 +545,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 						// Size code.
 						$sizeCode = '';
-						$sizeCodeElement = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size/Code');
+						$sizeCodeElement = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size/Code');
 						if ($sizeCodeElement->length) {
 							$sizeCode = (string) $sizeCodeElement->item(0)->nodeValue;
 						}
 
 						// Size Description.
 						$sizeDescription = '';
-						$sizeDescriptionElement = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size/Description');
+						$sizeDescriptionElement = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/ExtendedAttributes/SizeAttributes/Size/Description');
 						if ($sizeDescriptionElement->length) {
 							$sizeDescription = (string) $sizeDescriptionElement->item(0)->nodeValue;
 						}
@@ -539,12 +570,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			}
 			$dataObject->setExtendedAttributes($extendedAttributesObject);
 
-			$customAttributesObject = null;
+			// let save CustomAttributes/Attribute to a Varien_Object
+			$customAttributesObject = new Varien_Object();
+			$customAttributesObject->setAttributes(array(array('name' => null, 'operationType' => null, 'lang' => null, 'value' => null)));
+
 			// Name value paris of additional attributes for the product.
-			$customAttributes = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/CustomAttributes/Attribute');
+			$customAttributes = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/CustomAttributes/Attribute');
 			if ($customAttributes->length) {
-				// let save CustomAttributes/Attribute to a Varien_Object
-				$customAttributesObject = new Varien_Object();
 				$attributeData = array();
 				foreach ($customAttributes as $attributeRecord) {
 					// The name of the attribute.
@@ -558,7 +590,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 					// Value of the attribute.
 					$attributeValue = '';
-					$attributeValueElement = $feedXpath->query('//Item[@catalog_id="' . $catalogId . '"]/CustomAttributes/Attribute/Value');
+					$attributeValueElement = $itemXpath->query('//Item[@catalog_id="' . $catalogId . '"]/CustomAttributes/Attribute/Value');
 					if ($attributeValueElement->length) {
 						$attributeValue = (string) $attributeValueElement->item(0)->nodeValue;
 					}
@@ -603,21 +635,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			'_type' => $dataObject->getItemType(),
 			'_attribute_set' => 'Default',
 			'_product_websites' => 'base',
-			'price' => $dataObject->getExtendedAttributes()->getPrice(),
-			'description' => $dataObject->getItemDescription(),
 			'short_description' => $dataObject->getItemDescription(),
-			'meta_title' => $dataObject->getClientItemId() . ' | ' . $dataObject->getItemDescription(),
-			'meta_description' => $dataObject->getItemDescription(),
-			'meta_keywords' => $dataObject->getClientItemId(),
-			'weight' => $dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight(),
 			'status' => $dataObject->getItemStatus(),
 			'visibility' => 4,
+
+			// required field
+			'name' => 'Item Master',
+			'price' => $dataObject->getExtendedAttributes()->getPrice(),
+			'description' => 'Item Master',
+			'weight' => $dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight(),
 			'tax_class_id' => 0,
-			'qty' => 1,
-			'is_in_stock' => 9999,
-			'enable_googlecheckout' => '1',
-			'gift_message_available' => '0',
-			'url_key' => _friendlyUrl($dataObject->getClientItemId() . ' ' . $dataObject->getItemDescription()),
 		);
 	}
 
@@ -633,7 +660,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if ($dataObject) {
 			if ($dataObject->getClientItemId() !== '') {
 				// we have a valid item, let's check if this product already exists in Magento
-				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
+				$this->setProduct($this->_loadProductBySku($dataObject->getClientItemId()));
 
 				if (!$this->getProduct()->getId()) {
 					$this->_addQueue[] = $this->_importDataFormat($dataObject);
@@ -659,7 +686,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if ($dataObject) {
 			if ($dataObject->getClientItemId() !== '') {
 				// we have a valid item, let's check if this product already exists in Magento
-				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
+				$this->setProduct($this->_loadProductBySku($dataObject->getClientItemId()));
 
 				if ($this->getProduct()->getId()) {
 					$this->_updateQueue[] = $this->_importDataFormat($dataObject);
@@ -685,7 +712,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		if ($dataObject) {
 			if ($dataObject->getClientItemId() !== '') {
 				// we have a valid item, let's check if this product already exists in Magento
-				$this->getProduct()->loadByAttribute('sku', $dataObject->getClientItemId());
+				$this->setProduct($this->_loadProductBySku($dataObject->getClientItemId()));
 
 				if ($this->getProduct()->getId()) {
 					$this->_deleteQueue[] = $this->_importDataFormat($dataObject);
