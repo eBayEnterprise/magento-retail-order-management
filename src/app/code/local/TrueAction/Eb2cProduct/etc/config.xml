@@ -37,7 +37,7 @@
 					<scope>Website</scope>
 					<label>Tax Code</label>
 					<group>Price</group>
-					<frontend_type>text</frontend_type>
+					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
@@ -46,7 +46,7 @@
 					<scope>Website</scope>
 					<label>Is Drop Shipped</label>
 					<group></group>
-					<frontend_type>boolean</frontend_type>
+					<input_type>boolean</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default>N</default>
@@ -55,7 +55,7 @@
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Name</label>
 					<group></group>
-					<frontend_type>text</frontend_type>
+					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default></default>
@@ -64,7 +64,7 @@
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Number</label>
 					<group></group>
-					<frontend_type>text</frontend_type>
+					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default></default>
@@ -73,7 +73,7 @@
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Part Number</label>
 					<group></group>
-					<frontend_type>text</frontend_type>
+					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default></default>
@@ -82,7 +82,7 @@
 					<scope>Store</scope>
 					<label>Price is VAT Inclusive</label>
 					<group>Prices</group>
-					<frontend_type>boolean</frontend_type>
+					<input_type>boolean</input_type>
 					<unique>N</unique>
 					<product_types></product_types>
 					<default>N</default>
