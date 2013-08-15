@@ -1,0 +1,18 @@
+base_config:
+  tax_code:
+    scope: Website
+    label: Tax Code
+    group: Price
+    frontend_type: text
+    unique: "N"
+    product_types: "simple,configurable,virtual,bundle,downloadable,giftcard"
+    default:
+overridden_config:
+  tax_code:
+    scope: Store
+    label: Tax Code2
+    group: Prices
+    frontend_type: boolean
+    unique: 'Y'
+    product_types: "simple,configurable,virtual,bundle,downloadable"
+    default: refridgerator
