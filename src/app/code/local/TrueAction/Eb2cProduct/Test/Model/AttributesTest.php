@@ -84,8 +84,24 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$map   = array('field_in_map' => 'model_field_name');
 		$model = Mage::getModel('eb2cproduct/attributes');
 		$this->_reflectProperty($model, '_fieldNameMap')->setValue($model, $map);
-		$modelFieldName = $this->_reflectMethod($model, '_getMappedFieldName')->invoke($model, $fieldName);
+		$modelFieldName = $this->_reflectMethod($model, '_getMappedFieldName')
+			->invoke($model, $fieldName);
 		$this->assertSame($expected, $modelFieldName);
+	}
+
+	/**
+	 * verify a the function returns a value in the correct format for the field as
+	 * per the mapping
+	 * @dataProvider dataProvider
+	 */
+	public function testGetMappedFieldValue($fieldName, $data, $expected)
+	{
+		$xml      = "<?xml version='1.0'?>\n<{$fieldName}>{$data}</{$fieldName}>";
+		$dataNode = new Varien_SimpleXml_Element($xml);
+		$model    = Mage::getModel('eb2cproduct/attributes');
+		$value    = $this->_reflectMethod($model, '_getMappedFieldValue')
+			->invoke($model, $fieldName, $dataNode);
+		$this->assertSame($expected, $value);
 	}
 
 	/**
@@ -115,9 +131,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testLoadDefaultAttributesConfig($expectation, $vfsStructure)
 	{
-		$vfs = $this->getFixture()->getVfs();
-		$vfs->apply($vfsStructure);
-
 		$model  = Mage::getModel('eb2cproduct/attributes');
 		$config = $this->_reflectMethod($model, '_loadDefaultAttributesConfig')->invoke($model);
 		$this->assertInstanceOf('Mage_Core_Model_Config', $config);

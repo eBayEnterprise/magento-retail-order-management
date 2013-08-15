@@ -1,0 +1,53 @@
+-  # website yeilds 1
+  - is_global
+  - Website
+  - 1
+-  # store yields 0
+  - is_global
+  - Store
+  - 0
+-  # case shouldnt matter
+  - is_global
+  - weBsite
+  - 1
+-
+  - apply_to
+  - 'simple,configurable,virtual,bundle,downloadable'
+  -
+    simple
+    configurable
+    virtual
+    bundle
+    downloadable
+-
+  - frontend_input
+  - text
+  - text
+-
+  - is_unique
+  - 'N'
+  - false
+-
+  - is_unique
+  - 'n'
+  - false
+-
+  - is_unique
+  - 'y'
+  - true
+-
+  - default_value_text
+  - sometext
+  - sometext
+-
+  - default_value_yesno
+  - 'N'
+  - false
+-
+  - default_value_yesno
+  - 'n'
+  - false
+-
+  - default_value_yesno
+  - 'y'
+  - true
