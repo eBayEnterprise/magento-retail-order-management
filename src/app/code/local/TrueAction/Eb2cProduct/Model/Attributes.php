@@ -204,16 +204,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * return the config model for the default attributes configuration.
-	 * @return [type] [description]
-	 */
-	protected function _getBaseConfig()
-	{
-		$config = Mage::getConfig(self::DEFAULT_ATTRIBUTES_CONFIG);
-		return $config;
-	}
-
-	/**
 	 * load attribute configuration files into a mage config object.
 	 * satisfies requirements:
 	 * 	- attributes stored in config file
@@ -222,11 +212,11 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _loadDefaultAttributesConfig()
 	{
-		$config = $this->_getBaseConfig();
+		$config = Mage::getModel('core/config')
+			->setXml(Mage::getConfig()->getNode(self::ATTRIBUTES_CONFIG));
 		// load config from an xml file and merge it with the base config.
-		$config = Mage::getSingleton('core/config')->loadModulesConfiguration(
-			self::$_attributeConfigFilename
-			null,
+		Mage::getConfig()->loadModulesConfiguration(
+			self::$_attributeConfigOverrideFilename,
 			$config
 		);
 		return $config;
