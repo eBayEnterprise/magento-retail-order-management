@@ -29,6 +29,7 @@ INVALID_XML;
 	 * Create an Order
 	 * 
 	 * @test
+	 * @large
 	 */
 	public function testOrderCreate()
 	{
@@ -49,6 +50,7 @@ INVALID_XML;
 	 * Create the Order with eb2c payments disabled in configuration
 	 *
 	 * @test
+	 * @large
 	 */
 	public function testWithEb2cPaymentsDisabled()
 	{
@@ -75,6 +77,7 @@ INVALID_XML;
 	/**
 	 * Should throw an exception because an invalid xml response was received
 	 * @test
+	 * @large
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testInvalidResponseReceived()
@@ -97,6 +100,7 @@ INVALID_XML;
 	 *	we will have 'finally failed' to create an eb2c order
 	 *
 	 * @test
+	 * @large
 	 */
 	public function testFinallyFailed()
 	{
@@ -112,6 +116,7 @@ INVALID_XML;
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
 	 * 
 	 * @test
+	 * @large
 	 */
 	public function testObserverCreate()
 	{

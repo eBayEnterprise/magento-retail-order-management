@@ -26,6 +26,7 @@ INVALID_XML;
 
 	/**
 	 * @test
+	 * @large
 	 */
 	public function testCancel()
 	{
