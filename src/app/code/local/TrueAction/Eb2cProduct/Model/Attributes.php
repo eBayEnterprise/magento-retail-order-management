@@ -11,6 +11,26 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	public function applyDefaultAttributes($attributeSet = null)
 	{
+		// take either an id or a model.
+		// load the attribute set
+		// if entity type id not a product entitry type id
+			// log a debug message
+			// return
+		// foreach attribute
+			// if in a group
+				// $this->_getAttributeGroup($groupName, $attributeSetId);
+				// select the attribute for the group and entitytypeid
+			// if not in a group
+				// use entitytype id and attribute_code to select attribute
+			// if not exist
+				// create empty attribute model
+				// update model
+					// get default data
+					// update the data array
+						// for each field/value pair in attribute config
+							// map field to data array key
+							// apply value to array element by key
+				// save the model
 		return $this;
 	}
 
