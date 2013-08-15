@@ -1,8 +1,16 @@
 <?php
 class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 {
-	const DEFAULT_ATTRIBUTES_CONFIG = 'global/eb2cproduct_attributes/default';
-	protected static $_attributeConfigFilename = 'eb2cproduct_attributes.xml';
+	/**
+	 * @var string path of the attributes configuration in the global config.
+	 */
+	const ATTRIBUTES_CONFIG                            = 'global/eb2cproduct_attributes';
+
+	/**
+	 * name of the file containing overriding configuration.
+	 * @var string
+	 */
+	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
 	 * apply default attributes to $attributeSet
