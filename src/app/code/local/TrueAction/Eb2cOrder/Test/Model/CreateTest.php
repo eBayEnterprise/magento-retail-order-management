@@ -34,44 +34,12 @@ INVALID_XML;
 	public function testOrderCreate()
 	{
 		$this->replaceCoreConfigRegistry();
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request'				=> self::SAMPLE_SUCCESS_XML
-			),
-			false
-		);
+		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
+
 		$status = Mage::getModel('eb2corder/create')
 					->buildRequest($this->getMockSalesOrder())
 					->sendRequest();
 		$this->assertSame(true, $status);
-	}
-
-	/**
-	 * Create the Order with eb2c payments disabled in configuration
-	 *
-	 * @test
-	 * @large
-	 */
-	public function testWithEb2cPaymentsDisabled()
-	{
-		// Mock the core config registry, only value passed is the vfs filename
-		$this->replaceCoreConfigRegistry(
-			array (
-				'eb2cPaymentsEnabled' => false,
-			)
-		);
-
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request'				=> self::SAMPLE_FAILED_XML
-			),
-			false
-		);
-
-		$status = Mage::getModel('eb2corder/create')
-					->buildRequest($this->getMockSalesOrder())
-					->sendRequest();
-		$this->assertSame(false, $status);
 	}
 
 	/**
@@ -82,22 +50,14 @@ INVALID_XML;
 	 */
 	public function testInvalidResponseReceived()
 	{
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request'				=> self::SAMPLE_INVALID_XML
-			),
-			false
-		);
-
-		Mage::getModel('eb2corder/create')
-			->buildRequest($this->getMockSalesOrder())
-			->sendRequest();
+		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_INVALID_XML), false );
+		Mage::getModel('eb2corder/create')->sendRequest();
 	}
 
 
 	/**
-	 * TODO: Heck knows how this will be fully implemented but at some point under some set of circumstances
-	 *	we will have 'finally failed' to create an eb2c order
+	 * FIXME: I don't know if we really need this if we're not queued? Check what happens
+	 * 	if Inventory etc has to be rolled back.
 	 *
 	 * @test
 	 * @large
@@ -114,46 +74,30 @@ INVALID_XML;
 
 	/**
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
+	 * Also covers the eb2c payments not enabled case
 	 * 
 	 * @test
 	 * @large
 	 */
 	public function testObserverCreate()
 	{
-		$creator = Mage::getModel('eb2corder/create');
-		// Now mock up the event
-		$mockEvent = $this->getModelMockBuilder('varien/event')
-				->disableOriginalConstructor()
-				->setMethods(
-					array(
-						'getOrder',
+		// Mock the core config registry, only value passed is the vfs filename
+		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_FAILED_XML), false );
+		$this->replaceCoreConfigRegistry( array('eb2cPaymentsEnabled' => false)); // Serves dual purpose, cover payments not enabled case.
+
+		Mage::getModel('eb2corder/create')->observerCreate(
+			$this->replaceModel(
+				'varien/event_observer',
+				array(
+					'getEvent' =>
+						$this->replaceModel(
+							'varien/event',
+							array(
+								'getOrder' => $this->getMockSalesOrder()
+							)
+						)
 					)
 				)
-				->getMock();
-
-		// Make the event return the mock order:
-		$mockEvent->expects($this->any())
-				->method('getOrder')
-				->will($this->returnValue($this->getMockSalesOrder()));
-
-		// Now make the fake observer arg return the fake event ... confusingly, this arg is called "an event observer"
-		//	thus an event observer is called with an event observer
-		$mockEventObserverArgThingy = $this->getModelMockBuilder('varien/event_observer')
-				->disableOriginalConstructor()
-				->setMethods(
-					array(
-						'getEvent',
-					)
-				)
-				->getMock();
-
-		// Finally set up event observer to return our fakey event
-		$mockEventObserverArgThingy->expects($this->any())
-				->method('getEvent')
-				->will($this->returnValue($mockEvent));
-
-		// TODO: This should be a Mage::dispatchEvent based on config.xml, see also Eb2cFraud where it's done better.
-		// still, it covers the code 'good enough' for now.
-		$creator->observerCreate($mockEventObserverArgThingy);
+			);
 	}
 }
