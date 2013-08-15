@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cProduct_Overrides_Block_Catalog_Product_Attribute_Set_Main
-	extends Mage_Adminhtml_Block_Template
+	extends Mage_Adminhtml_Block_Catalog_Product_Attribute_Set_Main
 {
 	/**
 	 * Retrieve Attribute Set Group Tree as JSON format
