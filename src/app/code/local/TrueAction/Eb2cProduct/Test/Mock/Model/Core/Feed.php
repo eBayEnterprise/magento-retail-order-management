@@ -36,6 +36,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 				array(
 					__DIR__ . '/Xml/sample-feed-invalid-catalog-id.xml',
 					__DIR__ . '/Xml/sample-feed-invalid-client-id.xml',
+					__DIR__ . '/Xml/sample-feed-invalid-item-type.xml',
 					__DIR__ . '/Xml/sample-feed.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())

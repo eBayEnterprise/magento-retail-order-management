@@ -31,7 +31,7 @@
 			<CatalogClass>regular</CatalogClass>
 			<IsDropShipped>false</IsDropShipped>
 			<ItemDescription>SW799 DANCING DOTS</ItemDescription>
-			<ItemType>simple</ItemType>
+			<ItemType>MERCH</ItemType>
 			<ItemStatus>Active</ItemStatus>
 			<TaxCode>02000</TaxCode>
 			<Hierarchy>
@@ -45,12 +45,7 @@
 			</Hierarchy>
 		</BaseAttributes>
 		<ExtendedAttributes>
-			<Price>99.99</Price>
-			<MSRP>0.00</MSRP>
-			<CountryOfOrigin>US</CountryOfOrigin>
-			<GiftCartTenderCode>SP</GiftCartTenderCode>
 			<AllowGiftMessage>false</AllowGiftMessage>
-			<BackOrderable>true</BackOrderable>
 			<Brand>
 				<Description xml:lang="en-GB"/>
 			</Brand>
@@ -60,7 +55,7 @@
 					<Description xml:lang="en-GB">WHITE</Description>
 				</Color>
 			</ColorAttributes>
-			<ItemDimensions>
+			<ItemDimension>
 				<Display>
 					<Mass unit_of_measure="kg">
 						<Weight>1</Weight>
@@ -91,7 +86,7 @@
 						<Height>1</Height>
 					</Packaging>
 				</Carton>
-			</ItemDimensions>
+			</ItemDimension>
 			<SalesClass>stock</SalesClass>
 			<SizeAttributes>
 				<Size xml:lang="en-GB">
@@ -127,20 +122,5 @@
 				<Value>20319000</Value>
 			</Attribute>
 		</CustomAttributes>
-		<BundleContents ship_together="true">
-			<BundleItems operation_type="Add" catalog_id="70">
-				<ItemID>20984752345</ItemID>
-				<Quantity>1</Quantity>
-			</BundleItems>
-			<BundleItems operation_type="Delete">
-				<ItemID>129238248248</ItemID>
-				<Quantity>3</Quantity>
-			</BundleItems>
-		</BundleContents>
-		<DropShipSupplierInformation>
-    		<SupplierName>Mass Merchants, Intl</SupplierName>
-    		<SupplierNumber>9876</SupplierNumber>
-    		<SupplierPartNumber>9843333A</SupplierPartNumber>
-		</DropShipSupplierInformation>
 	</Item>
 </ItemMaster>

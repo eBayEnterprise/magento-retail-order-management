@@ -121,6 +121,53 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 	}
 
 	/**
+	 * return a mock of the Mage_Catalog_Model_Resource_Product_Collection class
+	 *
+	 * @return Mock_Mage_Catalog_Model_Resource_Product_Collection
+	 */
+	public function buildCatalogModelResourceProductCollection()
+	{
+		$catalogModelResourceProductCollectionMock = $this->getMock(
+			'Mage_Catalog_Model_Resource_Product_Collection',
+			array(
+				'__construct', 'getTable', 'getResource', 'getCatalogPreparedSelect', '_preparePriceExpressionParameters', 'getPriceExpression',
+				'getAdditionalPriceExpression', 'getCurrencyRate', 'getFlatHelper'
+			)
+		);
+
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('__construct')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getTable')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getResource')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getCatalogPreparedSelect')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('_preparePriceExpressionParameters')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getPriceExpression')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getAdditionalPriceExpression')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getCurrencyRate')
+			->will($this->returnSelf());
+		$catalogModelResourceProductCollectionMock->expects($this->any())
+			->method('getFlatHelper')
+			->will($this->returnSelf());
+
+		return $catalogModelResourceProductCollectionMock;
+	}
+
+
+	/**
 	 * return a mock of the Mage_Catalog_Model_Product_Media_Config class
 	 *
 	 * @return Mock_Mage_Catalog_Model_Product_Media_Config
@@ -181,7 +228,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setDataUsingMethod', 'getDataUsingMethod', 'getDataSetDefault', 'hasData', '__toArray',
 				'toXml', 'toJson', 'toString', '__call', '__get', '__set', 'isEmpty', 'serialize', 'getOrigData',
 				'dataHasChangedFor', 'setDataChanges', 'debug', 'offsetSet', 'offsetExists',
-				'offsetUnset', 'offsetGet', 'isDirty', 'flagDirty'
+				'offsetUnset', 'offsetGet', 'isDirty', 'flagDirty', 'setWeight', 'setVisibility', 'setAttributeSetId',
+				'setShortDescription'
 			)
 		);
 		$catalogModelProductMock->expects($this->any())
@@ -378,7 +426,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('isSuper')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getVisibleInCatalogStatuses',
+			->method('getVisibleInCatalogStatuses')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getVisibleStatuses')
 			->will($this->returnSelf());
@@ -389,7 +438,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getVisibleInSiteVisibilities')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('isVisibleInSiteVisibility',
+			->method('isVisibleInSiteVisibility')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('isDuplicable')
 			->will($this->returnSelf());
@@ -403,7 +453,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('isAvailable')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getIsSalable',
+			->method('getIsSalable')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('isVirtual')
 			->will($this->returnSelf());
@@ -420,7 +471,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getAttributeText')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getCustomDesignDate',
+			->method('getCustomDesignDate')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getProductUrl')
 			->will($this->returnSelf());
@@ -434,7 +486,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getUrlPath')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('addAttributeUpdate',
+			->method('addAttributeUpdate')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('toArray')
 			->will($this->returnSelf());
@@ -451,7 +504,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getRequestPath')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getGiftMessageAvailable',
+			->method('getGiftMessageAvailable')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getRatingSummary')
 			->will($this->returnSelf());
@@ -468,7 +522,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getWeight')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getOptionInstance',
+			->method('getOptionInstance')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getProductOptionsCollection')
 			->will($this->returnSelf());
@@ -485,7 +540,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getIsVirtual')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('addCustomOption',
+			->method('addCustomOption')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setCustomOptions')
 			->will($this->returnSelf());
@@ -496,7 +552,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getCustomOption')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('hasCustomOptions',
+			->method('hasCustomOptions')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('canBeShowInCategory')
 			->will($this->returnSelf());
@@ -510,7 +567,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getImageUrl')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getSmallImageUrl',
+			->method('getSmallImageUrl')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getThumbnailUrl')
 			->will($this->returnSelf());
@@ -521,7 +579,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('isReservedAttribute')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('setOrigData',
+			->method('setOrigData')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('reset')
 			->will($this->returnSelf());
@@ -535,7 +594,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('processBuyRequest')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getPreconfiguredValues',
+			->method('getPreconfiguredValues')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('prepareCustomOptions')
 			->will($this->returnSelf());
@@ -549,7 +609,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('lockAttribute')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('unlockAttribute',
+			->method('unlockAttribute')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('unlockAttributes')
 			->will($this->returnSelf());
@@ -563,7 +624,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('isLockedAttribute')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('setData',
+			->method('setData')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('unsetData')
 			->will($this->returnSelf());
@@ -577,7 +639,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getWebsiteStoreIds')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('setAttributeDefaultValue',
+			->method('setAttributeDefaultValue')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getAttributeDefaultValue')
 			->will($this->returnSelf());
@@ -588,7 +651,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getExistsStoreValueFlag')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('isDeleteable',
+			->method('isDeleteable')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setIsDeleteable')
 			->will($this->returnSelf());
@@ -602,7 +666,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getIdFieldName')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getId',
+			->method('getId')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setId')
 			->will($this->returnSelf());
@@ -611,7 +676,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('getCollection')
-			->will($this->returnSelf());
+			->will($this->returnValue($this->buildCatalogModelResourceProductCollection()));
 		$catalogModelProductMock->expects($this->any())
 			->method('load')
 			->will($this->returnSelf());
@@ -622,7 +687,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('save')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('afterCommitCallback',
+			->method('afterCommitCallback')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('isObjectNew')
 			->will($this->returnSelf());
@@ -639,7 +705,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getEntityId')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('clearInstance',
+			->method('clearInstance')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('__construct')
 			->will($this->returnSelf());
@@ -659,7 +726,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('unsetOldData')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getData',
+			->method('getData')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setDataUsingMethod')
 			->will($this->returnSelf());
@@ -673,7 +741,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('hasData')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('__toArray',
+			->method('__toArray')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('toXml')
 			->will($this->returnSelf());
@@ -699,7 +768,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('serialize')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('getOrigData',
+			->method('getOrigData')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('dataHasChangedFor')
 			->will($this->returnSelf());
@@ -713,7 +783,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('offsetSet')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
-			->method('offsetExists',
+			->method('offsetExists')
+			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('offsetUnset')
 			->will($this->returnSelf());
@@ -728,12 +799,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 
 
-
 		$catalogModelProductMock->expects($this->any())
 			->method('setSku')
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setCreatedAt')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setWeight')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setVisibility')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setAttributeSetId')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setShortDescription')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
