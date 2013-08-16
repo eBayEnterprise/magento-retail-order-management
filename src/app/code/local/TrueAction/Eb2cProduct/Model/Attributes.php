@@ -39,8 +39,8 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	);
 
 	protected static $_scopeMap = array(
-		'website' => 1,
-		'store' => 0,
+		'website' => '1',
+		'store' => '0',
 	);
 
 	/**
@@ -192,9 +192,9 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			case $str == 'on':
 			case $str == 'yes':
 			case $str == 'y':
-				$out = true;
+				$out = '1';
 				break;
-			default: $out = false;
+			default: $out = '0';
 		}
 		return $out;
 	}
