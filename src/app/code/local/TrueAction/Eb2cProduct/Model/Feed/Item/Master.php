@@ -7,6 +7,14 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abstract
 {
 	/**
+	 *
+	 * hold a collection of bundle operation data
+	 *
+	 * @var array
+	 */
+	protected $_bundleQueue;
+
+	/**
 	 * Initialize model
 	 */
 	protected function _construct()
@@ -27,7 +35,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		// set array of website ids
 		$this->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
+		// initalialize bundle queue with an empty array
+		$this->_bundleQueue = array();
+
 		return $this;
+	}
+
+	/**
+	 * add bundle product to a queue to be process later.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to process bundle products
+	 *
+	 * @return void
+	 */
+	protected function _queueBundleData($bundleDataObject)
+	{
+		if ($bundleDataObject) {
+			$this->_bundleQueue[] = $bundleDataObject;
+		}
+		return ;
 	}
 
 	/**
@@ -103,6 +129,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				$this->getFeedModel()->mvToArchiveFolder($feed);
 			}
 		}
+
+		// let's process any bundle product that were added to the queue
+		$this->processBundleQueue();
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
@@ -225,30 +254,47 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				// Child item of this item
 				$bundleItems = $feedXpath->query('//Item[' . $itemIndex . '][@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems');
 				if ($bundleItems->length) {
+					$bundleItemCollection = array();
+					$bundleItemIndex = 1;
 					foreach ($bundleItems as $bundleItem) {
+						$bundleItemObject = new Varien_Object();
 						// All items in the bundle must ship together.
-						$bundleDataObject->setShipTogether((bool) $bundleItem->getAttribute('ship_together'));
+						$bundleItemObject->setShipTogether((bool) $bundleItem->getAttribute('ship_together'));
 
-						$bundleDataObject->setOperationType((string) $bundleItem->getAttribute('operation_type'));
+						$bundleItemObject->setOperationType((string) $bundleItem->getAttribute('operation_type'));
 						$bundleCatalogId = (string) $bundleItem->getAttribute('catalog_id');
-						$bundleDataObject->setCatalogId($bundleCatalogId);
+						$bundleItemObject->setCatalogId($bundleCatalogId);
 
 						// Client or vendor id (SKU) for the item to be included in the bundle.
-						$itemID = $feedXpath->query('//Item[' . $itemIndex . '][@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/ItemID');
+						$bundleItemObject->setItemID(null);
+						$itemID = $feedXpath->query('//Item[' . $itemIndex . '][@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[' . $bundleItemIndex . ']/ItemID');
 						if ($itemID->length) {
-							$bundleDataObject->setItemID(trim($itemID->item(0)->nodeValue));
+							$bundleItemObject->setItemID(trim($itemID->item(0)->nodeValue));
 						}
 
 						// How many of the child item come in the bundle.
-						$quantity = $feedXpath->query('//Item[' . $itemIndex . '][@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[@catalog_id="' . $bundleCatalogId . '"]/Quantity');
+						$bundleItemObject->setQuantity(null);
+						$quantity = $feedXpath->query('//Item[' . $itemIndex . '][@catalog_id="' . $catalogId . '"]/BundleContents/BundleItems[' . $bundleItemIndex . ']/Quantity');
 						if ($quantity->length) {
-							$bundleDataObject->setQuantity((int)$quantity->item(0)->nodeValue);
+							$bundleItemObject->setQuantity((int)$quantity->item(0)->nodeValue);
 						}
+						$bundleItemCollection[] = $bundleItemObject;
+						$bundleItemIndex++;
 					}
+
+					$bundleDataObject->setBundleItems($bundleItemCollection);
 				}
 			}
 
 			$dataObject->setBundleContents($bundleDataObject);
+
+			// if this item has bundle data let's queue it, so that we can process later.
+			if (!is_null($bundleDataObject)) {
+				$queueBundleObject = new Varien_Object();
+				$queueBundleObject->setBundleData($bundleDataObject);
+				$queueBundleObject->setParentSku($dataObject->getClientItemId());
+				$this->_queueBundleData($queueBundleObject);
+			}
 
 			// let save drop Ship Supplier Information to a Varien_Object
 			$dropShipDataObject = new Varien_Object();
@@ -491,7 +537,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			if (trim($dataObject->getClientItemId()) !== '') {
 				// we have a valid item, let's check if this product already exists in Magento
 				$this->setProduct($this->_loadProductBySku($dataObject->getClientItemId()));
-
 				if (!$this->getProduct()->getId()) {
 					try {
 						// adding new product to magento
@@ -584,6 +629,77 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		}
 
 		return ;
+	}
+
+	/**
+	 * processing bundle queue.
+	 *
+	 * @return void
+	 */
+	public function processBundleQueue()
+	{
+		// process bundle only when the queue has actual data
+		if (!empty($this->_bundleQueue)) {
+			// loop through all queued items
+			foreach ($this->_bundleQueue as $bundleObject) {
+				// only process when there's a parent sku related to the bundle object
+				if (trim($bundleObject->getParentSku()) !== '') {
+					// we have a valid item, let's check if this parent product already exists in Magento
+					$parentProductObject = $this->_loadProductBySku($bundleObject->getParentSku());
+
+					if ($parentProductObject->getId()) {
+						// we have a valid parent product
+						try {
+							// get all the bundle object and set them as bundle product for the parent product.
+							if ($bundleItemCollection = $bundleObject->getBundleData()->getBundleItems()) {
+								// registering the product to Mage registry
+								Mage::register('product', $parentProductObject);
+								Mage::register('current_product', $parentProductObject);
+
+								// we have our collection of bundle items
+								$optionRawData = array();
+								$optionRawData[0] = array(
+									'required' => 0,
+									'position' => 0,
+									'type' => 'radio',
+									'title' => 'Eb2c Bundle',
+									'delete' => ''
+								);
+								$selectionRawData = array();
+								$bundlePositionIndex = 0;
+								foreach ($bundleItemCollection as $bundleItemObject) {
+									// we have a valid item, let's check if this child bundle product already exists in Magento
+									$bundleProductobject = $this->_loadProductBySku($bundleItemObject->getItemId());
+									if ($bundleProductobject->getId()) {
+										$selectionRawData[0][] = array(
+											'product_id' => $bundleProductobject->getId(),
+											'position' => $bundlePositionIndex,
+											'is_default' => 0,
+											'selection_price_type' => '',
+											'selection_price_value' => '',
+											'selection_qty' => $bundleItemObject->getQuantity(),
+											'selection_can_change_qty' => 1,
+											'delete' => (trim(strtoupper($bundleItemObject->getOperationType())) === 'DELETE')? 'delete' : ''
+										);
+									}
+									$bundlePositionIndex++;
+								}
+
+								$parentProductObject->setBundleOptionsData($optionRawData);
+								$parentProductObject->setBundleSelectionsData($selectionRawData);
+
+								$parentProductObject->save();
+							}
+						} catch (Exception $e) {
+							Mage::log('The following error has occurred while processing the bundle queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+						}
+					}
+				}
+			}
+
+			// after looping through the queue, let's reset the bundle queue
+			$this->_bundleQueue = array();
+		}
 	}
 
 	/**
