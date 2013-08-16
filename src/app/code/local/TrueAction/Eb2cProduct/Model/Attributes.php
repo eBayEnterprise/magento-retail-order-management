@@ -13,6 +13,12 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
+	 * the attributes configuration
+	 * @var [type]
+	 */
+	protected $_defaultAttributesConfig = null;
+
+	/**
 	 * prototype attribute model cache.
 	 * @var array
 	 */
@@ -371,14 +377,17 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _loadDefaultAttributesConfig()
 	{
-		$config = Mage::getModel('core/config')
-			->setXml(Mage::getConfig()->getNode(self::ATTRIBUTES_CONFIG));
-		// load config from an xml file and merge it with the base config.
-		Mage::getConfig()->loadModulesConfiguration(
-			self::$_attributeConfigOverrideFilename,
-			$config
-		);
-		return $config;
+		if (!$this->_defaultAttributesConfig) {
+			$config = Mage::getModel('core/config')
+				->setXml(Mage::getConfig()->getNode(self::ATTRIBUTES_CONFIG));
+			// load config from an xml file and merge it with the base config.
+			Mage::getConfig()->loadModulesConfiguration(
+				self::$_attributeConfigOverrideFilename,
+				$config
+			);
+			$this->_defaultAttributesConfig = $config;
+		}
+		return $$this->_defaultAttributesConfig;
 	}
 
 	/**
