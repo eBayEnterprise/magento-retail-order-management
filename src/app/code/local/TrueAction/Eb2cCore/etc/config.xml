@@ -37,7 +37,7 @@
 				<minor_version>10</minor_version>
 			</api>
 			<feed>
-				<destination_type />
+				<destination_type>MAILBOX</destination_type>
 			</feed>
 			<service>
 				<order>
