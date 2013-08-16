@@ -140,10 +140,10 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _getMappedFieldName($fieldName)
 	{
-		$fieldName = isset($this->_fieldNameMap[$fieldName]) ?
+		$result = array_key_exists($fieldName, $this->_fieldNameMap) ?
 			$this->_fieldNameMap[$fieldName] :
 			$fieldName;
-		return $fieldName;
+		return $result;
 	}
 
 	/**

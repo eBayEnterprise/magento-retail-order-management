@@ -234,10 +234,10 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 					<scope>Store</scope>
 					<label>Tax Code2</label>
 					<group>Prices</group>
-					<frontend_type>boolean</frontend_type>
+					<input_type>boolean</input_type>
 					<unique>Y</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable]]></product_types>
-					<default><![CDATA[refridgerator]]></default>
+					<default><![CDATA[N]]></default>
 				</tax_code>
 			</default>
 		</eb2cproduct_attributes>';
