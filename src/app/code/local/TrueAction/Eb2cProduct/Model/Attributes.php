@@ -37,16 +37,16 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	);
 
 	protected $_valueFunctionMap = array(
-		'is_global' => '_formatScope',
-		'apply_to'  => '_formatArray',
+		'is_global'           => '_formatScope',
+		'apply_to'            => '_formatArray',
 		'default_value_yesno' => '_formatBoolean',
-		'is_unique' => '_formatBoolean',
-		'default_value_date' => '_formatDate',
+		'is_unique'           => '_formatBoolean',
+		'default_value_date'  => '_formatDate',
 	);
 
 	protected static $_scopeMap = array(
 		'website' => '1',
-		'store' => '0',
+		'store'   => '0',
 	);
 
 	/**
