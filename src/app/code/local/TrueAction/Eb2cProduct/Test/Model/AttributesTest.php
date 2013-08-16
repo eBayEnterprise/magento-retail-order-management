@@ -68,12 +68,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		}
 	}
 
-	public function _testGetModelPrototype()
-	{
-		$config = Mage::getModel('core/config');
-		$config->loadString(self::$configXml);
-	}
-
 	/**
 	 * verify a the model field name is returned when it is defined in the map
 	 * and the input field name is returned if not in the map.
