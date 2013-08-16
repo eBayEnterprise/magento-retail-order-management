@@ -219,15 +219,33 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * convert data from the config to a form that can be set to the specified
-	 * field on the attribute model.
-	 * @param  string                   $fieldName
-	 * @param  Varien_SimpleXml_Element $data
-	 * @return string
+	 * get the name of the default value field for based on the frontend type.
+	 * @param   string $frontendType
+	 * @return  string default value field name.
 	 */
-	protected function _getModelKeyValue($fieldName, Varien_SimpleXml_Element $data)
+	protected function _getDefaultValueFieldName($frontendType)
 	{
-
+		$frontendType = strtolower($frontendType);
+		$fieldName    = 'default_value_';
+		$suffix       = '';
+		switch ($frontendType) {
+			case $frontendType === 'boolean':
+				$suffix = 'yesno';
+			break;
+			case $frontendType === 'date':
+				$suffix = 'date';
+			break;
+			case $frontendType === 'select';
+			case $frontendType === 'multiselect';
+				$fieldName = 'option';
+				$suffix    = '';
+			break;
+			default:
+				$suffix = 'text';
+			break;
+		}
+		$fieldName .= $suffix;
+		return $fieldName;
 	}
 
 	/**
