@@ -8,17 +8,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 {
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
-	public function testGetAttributeSetCollection()
-	{
-		$mock  = $this->getResourceModelMockBuilder('eav/entity_attribute_set_collection')
-			->disableOriginalConstructor()
-			->getMock();
-		$this->replaceByMock('resource_model' ,'eav/entity_attribute_set_collection', $mock);
-		$model = Mage::getModel('eb2cproduct/attributes');
-		$val   = $this->_reflectMethod($model, '_getAttributeSetCollection')->invoke($model);
-		$this->assertInstanceOf('Mage_Eav_Model_Resource_Entity_Attribute_Set_Collection', $val);
-	}
-
 	/**
 	 * verify a group is returned when successful and null when unsuccessful.
 	 * @loadExpectation
@@ -197,6 +186,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
+	 * verify the list of codes can be filtered by group.
 	 * @loadExpectation testGetDefaultAttributesCodeList.yaml
 	 */
 	public function testGetDefaultAttributesCodeListFilterByGroup()
