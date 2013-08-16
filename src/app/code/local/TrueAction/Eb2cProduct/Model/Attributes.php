@@ -117,7 +117,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 					} else {
 						$fieldName = getMappedFieldName($cfgField);
 					}
-					$value     = getMappedFieldValue($fieldName, $data);
+					$value                = getMappedFieldValue($fieldName, $data);
 					$baseData[$fieldName] = $value;
 				}
 			}
