@@ -20,6 +20,17 @@ class TrueAction_Eb2cProduct_Model_Resource_Setup extends Mage_Core_Model_Resour
 	}
 
 	/**
+	 * get the attribute set collection.
+	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Set_Collection
+	 */
+	protected function _getAttributeSetCollection()
+	{
+		$collection = Mage::getModel('eav/entity_attribute_set')
+			->getCollection();
+		return $collection;
+	}
+
+	/**
 	 * log an error message
 	 * @param  string $message
 	 */

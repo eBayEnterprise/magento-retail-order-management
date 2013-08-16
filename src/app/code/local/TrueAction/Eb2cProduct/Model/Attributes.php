@@ -74,17 +74,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get the attribute set collection.
-	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Set_Collection
-	 */
-	protected function _getAttributeSetCollection()
-	{
-		$collection = Mage::getModel('eav/entity_attribute_set')
-			->getCollection();
-		return $collection;
-	}
-
-	/**
 	 * get an attribute group model.
 	 * return null if the group does not exist.
 	 * @param  string $groupName
