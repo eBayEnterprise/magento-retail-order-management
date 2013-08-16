@@ -104,16 +104,28 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
 	{
-		// attribute code = fieldcfg->getName()
-		// if attribute code in cache
-			// clone cached model
-		// else
+		$attributeCode = $fieldCfg->getName();
+		if (!isset($_prototypeCache[$attributeCode])) {
 			$baseData = $this->_getInitialData();
-			// foreach fieldcfg->children() as cfgField => data
-				// fieldName = getMappedFieldName(cfgfield)
-				// value     = getMappedFieldValue($fieldName, $data);
-				// baseData[fieldname] = value
+			foreach ($fieldCfg->children() as $cfgField => $data) {
+				if ($cfgField !== 'group') {
+					// attempt to load the group model.
+				} else {
+					if ($cfgField === 'default') {
+						$input_type = (string) $fieldCfg->input_type;
+						$fieldName  = $this->_getDefaultValueFieldName($input_type);
+					} else {
+						$fieldName = getMappedFieldName($cfgField);
+					}
+					$value     = getMappedFieldValue($fieldName, $data);
+					$baseData[$fieldName] = $value;
+				}
+			}
 			$model = Mage::getModel('catalog/eav_entity_attribute', $baseData);
+		} else {
+			// clone cached model
+			$model = clone $_prototypeCache[$attributeCode];
+		}
 		return $model;
 	}
 
