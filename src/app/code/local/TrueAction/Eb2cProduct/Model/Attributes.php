@@ -278,26 +278,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * apply default attributes to all existing attribute sets.
-	 * @return $this
-	 */
-	public function installDefaultAttributes()
-	{
-		/*
-		use list of default attributes to load models for the default attributes.
-		// load attribute sets
-		// TODO: LOW_PRIORITY figure out filter to not load sets that already have defaults defined
-		//$attrSets = Mage::getModel('eav/entity_attribute_set')->getCollection();
-		// spin through each attribute set and associate the attributes to the attribute set
-		foreach attributeset
-			foreach default attribute
-				get attribute instance for attribute set
-					if attribute doesn't exist, create it.
-		*/
-		return $this;
-	}
-
-	/**
 	 * Create an attribute.
 	 * For reference, see Mage_Adminhtml_Catalog_Product_AttributeController::saveAction().
 	 * @see http://www.magentocommerce.com/wiki/5_-_modules_and_development/catalog/programmatically_adding_attributes_and_attribute_sets
