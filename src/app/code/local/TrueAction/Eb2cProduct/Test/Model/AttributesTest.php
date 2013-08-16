@@ -105,6 +105,18 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
+	 * verify a the correct field name for the frontend type is returned.
+	 * @dataProvider dataProvider
+	 */
+	public function testGetDefaultValueFieldName($frontendType, $expected)
+	{
+		$model    = Mage::getModel('eb2cproduct/attributes');
+		$value    = $this->_reflectMethod($model, '_getDefaultValueFieldName')
+			->invoke($model, $frontendType);
+		$this->assertSame($expected, $value);
+	}
+
+	/**
 	 * ensure the _getOrCreateFunction returns a model we expect.
 	 */
 	public function testGetOrCreateAttribute()
