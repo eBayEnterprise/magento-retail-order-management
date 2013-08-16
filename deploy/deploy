@@ -1,0 +1,163 @@
+#!/bin/bash
+
+##
+# Deploy a new release.
+#
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=deploy
+
+##
+# Deploy
+main() {
+	local phase           # Phase: test, uat, stage or prod
+	local release         # The version of the release, such as '1.2.3'
+
+	# Create files with permissions conducive to web service by apache and deployment by Jenkins.
+	umask 002
+
+	processOpts "$@"
+	checkPaths
+
+	cd -P "$basePath/$phase/$siteName"
+
+	# If local.xml fails to symlink the site will show the installation page, so make sure it works!
+	linkStatics || die $? "Failed to symlink static files. Aborting."
+
+	linkHtml
+}
+
+##
+# Symlink the local.xml file.
+linkStatics() (
+	local path
+	local name
+	# Iterate over directories in the staticRelPath and
+	# link them into the Magento base directory.
+	cd "$basePath/$phase/$siteName/${shortName}-${release}"
+	for path in "$staticRelPath"/*; do
+		(
+			name="${path##*/}"
+
+			if [[ $name = *.xml ]]; then
+				cd app/etc
+				path="../../$path"
+			fi
+			rm -rf "$name"
+			ln -s "$path"
+		)
+	done
+)
+
+##
+# Swap the symlinks between the old and new releases.
+# This is the actual deploy step.
+linkHtml() {
+	cd "$basePath/$phase/$siteName"
+	rm -f "${htmlRelPath}.old"
+	[[ -e "$htmlRelPath" ]] && mv "$htmlRelPath" "${htmlRelPath}.old"
+	ln -s "${shortName}-${release}" "$htmlRelPath"
+}
+
+##
+# Check that the given arguments are sound.
+checkPaths() {
+	[[ -d "$basePath" ]] || die $? "Base path not found: '$basePath'."
+	cd "$basePath"
+
+	[[ -d "$phase" ]] || die $? "Phase path not found: '$basePath/$phase'."
+	cd "$phase"
+
+	[[ -d "$siteName" ]] || die $? "site path not found: '$basePath/$phase/$siteName'."
+	cd "$siteName"
+
+	[[ -e "$htmlRelPath" && ! -h "$htmlRelPath" ]] &&
+		die 1 "Public html path '$basePath/$phase/$siteName/$htmlRelPath' exists and is not a symlink."
+
+	[[ -d "${shortName}-${release}" ]] ||
+		die $? "Release path not found: '$basePath/$phase/$siteName/${shortName}-${release}'."
+	cd "${shortName}-${release}"
+
+	[[ -d "$staticRelPath" ]] ||
+		die $? "static path not found: '$basePath/$phase/$siteName/${shortName}-${release}/$staticRelPath'."
+}
+
+##
+# Print the help for this script.
+printHelp() {
+	cat <<- 'EOF'
+		usage: deploy [options]
+
+		See the config file for other options.
+
+		options:
+	EOF
+	column -ts: <<- 'EOF'
+		  -h|--help:(this information)
+		  -p|--phase=:(Deployment phase: test, uat, stage or prod)
+		  -r|--release=:(Release version, like '1.2.3')
+		  -s|--slot=:(Slotted pre-production numbers, like schiff02.test.mage.tandev.net)
+	EOF
+	echo
+}
+
+##
+# Process the commandline options in whatever order
+processOpts() {
+	while [[ $1 ]]; do
+		case $1 in
+			-h|--help)
+				printHelp
+				exit 0
+				;;
+			-p|--phase)
+				phase="$2"
+				shift
+				;;
+			-p=*|--phase=*)
+				phase="${1#*=}"
+				;;
+			-r|--release)
+				release="$2"
+				shift
+				;;
+			-r=*|--release=*)
+				release="${1#*=}"
+				;;
+			-s|--slot)
+				slot="$2"
+				shift
+				;;
+			-s=*|--slot=*)
+				slot="${1#*=}"
+				;;
+			*)
+				printHelp
+				exit 1
+				;;
+		esac
+		shift
+	done
+
+	if ! has "$phase" 'test' 'uat' 'stage' 'prod'; then
+		printHelp
+		exit 1
+	elif [[ $phase = 'prod' ]]; then
+		phase='.' # No phase directory for production
+		slot='' # No slot for production
+	else
+		# Ensure slot is entirely numeric or not defined.
+		case $slot in
+			*[^[:digit:]]*)
+				printHelp
+				exit 1
+				;;
+			*)
+				siteName="${shortName}${slot}"
+				;;
+		esac
+	fi
+}
+
+# Sourcing utils runs main() if SCRIPTNAME is set properly.
+. utils

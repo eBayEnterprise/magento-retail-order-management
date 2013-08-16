@@ -1,0 +1,21 @@
+#!/bin/sh
+
+##
+# Sourced before deploy scripts to set up configuration.
+# If you want to customize the configuration for your store,
+# create a file named {store}Config and the deploy scripts
+# will source it right after sourcing this file.
+#
+
+basePath='/var/www' # The directory we never go below
+
+# The directory where the public html goes relative to baseDir/siteName
+htmlRelPath='public_html'
+
+# The directory where static files go that
+# shouldn't get overwritten during deploys.
+staticRelPath='../static'
+
+# This should be set in your per-store config, but for defaults:
+shortName='eb2c'
+siteName='eb2c.tandev.net'

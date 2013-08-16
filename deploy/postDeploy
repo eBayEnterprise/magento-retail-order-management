@@ -1,0 +1,100 @@
+#!/bin/bash
+
+##
+# Run post-deploy tasks
+#
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=postDeploy
+
+main() {
+	local phase           # Phase: test, uat, stage or prod
+
+	# Create files with permissions conducive to web service by apache and deployment by Jenkins.
+	umask 002
+
+	processOpts "$@"
+
+	cd "$basePath/$phase/$shortName/$htmlRelPath/shell"
+
+	# Run the minifier
+	php minifier.php
+
+	# Rebuild indices
+	php indexer.php reindexall
+
+	# Clean caches
+	php cacheclean.php
+}
+
+##
+# Print the help for this script.
+printHelp() {
+	cat <<- 'EOF'
+		usage: deploy [options]
+
+		See the config file for other options.
+
+		options:
+	EOF
+	column -ts: <<- 'EOF'
+		  -h|--help:(this information)
+		  -p|--phase=:(Deployment phase: test, uat, stage or prod)
+		  -s|--slot=:(Slotted pre-production numbers, like schiff02.test.mage.tandev.net)
+	EOF
+	echo
+}
+
+##
+# Process the commandline options in whatever order
+processOpts() {
+	while [[ $1 ]]; do
+		case $1 in
+			-h|--help)
+				printHelp
+				exit 0
+				;;
+			-p|--phase)
+				phase="$2"
+				shift
+				;;
+			-p=*|--phase=*)
+				phase="${1#*=}"
+				;;
+			-s|--slot)
+				slot="$2"
+				shift
+				;;
+			-s=*|--slot=*)
+				slot="${1#*=}"
+				;;
+			*)
+				printHelp
+				exit 1
+				;;
+		esac
+		shift
+	done
+
+	if ! has "$phase" 'test' 'uat' 'stage' 'prod'; then
+		printHelp
+		exit 1
+	elif [[ $phase = 'prod' ]]; then
+		phase='.' # No phase directory for production
+		slot='' # No slot for production
+	else
+		# Ensure slot is entirely numeric or not defined.
+		case $slot in
+			*[^[:digit:]]*)
+				printHelp
+				exit 1
+				;;
+			*)
+				siteName="${shortName}${slot}"
+				;;
+		esac
+	fi
+}
+
+# Sourcing utils runs main() if SCRIPTNAME is set properly.
+. utils
