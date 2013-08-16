@@ -254,12 +254,21 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 * @param string $groupFilter
 	 * @return array
 	 */
-	public function getDefaultAttributesCodeList($groupFilter = null)
+	public function getDefaultAttributesCodeList($groupFilter = null, $onlyUngrouped = false)
 	{
 		Mage::log('getDefaultAttributesCodeList called with' . $groupFilter);
-		$result = array();
+		$result  = array();
 		// load the attributes from the config.
+		$config  = $this->_loadDefaultAttributesConfig();
 		// loop through the attributes and return the list of attribute names as an array.
+		$default = $config->getNode('default');
+		foreach ($default->children() as $code => $node) {
+			if (!$groupFilter) {
+				$result[] = $code;
+			} elseif ($node->group && $groupFilter === (string)$node->group) {
+				$result[] = $code;
+			}
+		}
 		// TODO: perhaps store it in a cache?
 		return $result;
 	}
