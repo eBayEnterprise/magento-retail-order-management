@@ -50,6 +50,38 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	);
 
 	/**
+	 * return an attributeset for the product entity type or null
+	 * @param  mixed $attributeSet
+	 * @return Mage_Eav_Model_Entity_Attribute_Set
+	 * @throws Mage_Core_Exception If $attributeSet references an invalid attribute set
+	 */
+	protected function _getAttributeSet($attributeSet = null)
+	{
+		// take either an id or a model.
+		if (!$attributeSet instanceof Mage_Eav_Model_Entity_Attribute_Set) {
+			if (is_int($attributeSet)) {
+				$attributeSet = Mage::getModel('eav/entity_attribute_set')->load($attributeSet);
+			} else {
+				$errorMessage = 'unable to retrieve attribute set "' .
+					(string) $attributeSet .'"';
+			}
+		}
+		if (
+			!$errorMessage &&
+			$attributeSet->getEntityTypeId() !== $this->_getDefaultEntityTypeId()
+		) {
+			$errorMessage = 'attribute set is unexpected entity type: typeId(' .
+				$attributeSet->getEntityTypeId() . ')';
+		}
+		if ($errorMessage) {
+			$attributeSet = null;
+			Mage::throwException($errorMessage);
+		}
+		return $attributeSet;
+	}
+
+
+	/**
 	 * apply default attributes to $attributeSet
 	 * @param  mixed $attributeSet
 	 * @return $this
