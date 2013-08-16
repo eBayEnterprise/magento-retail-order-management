@@ -117,16 +117,54 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
-	 * ensure the _getOrCreateFunction returns a model we expect.
+	 * verify a new model is returned and contains the correct data for each field
+	 * @loadExpectation
 	 */
-	public function testGetOrCreateAttribute()
+	public function testGetModelPrototype()
 	{
-		$this->markTestIncomplete();
-		$code = 'tax_code';
+		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
+		$taxCode = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		$this->assertSame(1, count($taxCode));
+		list($taxCode) = $taxCode;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCode);
+		$this->assertSame('tax_code', $taxCode->getName());
 		$model = Mage::getModel('eb2cproduct/attributes');
-		$getOrCreateAttribute = $this->_reflectMethod($model, '_getOrCreateAttribute');
-		$attrModel = $getOrCreateAttribute->invoke($model, $code);
-		$this->assertInstanceOf(self::$modelClass, $attrModel);
+ 		$attrModel = $this->_reflectMethod($model, '_getModelPrototype')
+ 			->invoke($model, $taxCode);
+		$this->assertInstanceOf('Mage_Catalog_Model_Resource_Eav_Attribute', $attrModel);
+		$e = $this->expected('tax_code');
+		$this->assertEquals($e->getData(), $attrModel->getData());
+	}
+
+	/**
+	 * verify the cache is used to get the new model without reprocessing the
+	 * config.
+	 * verify the new model will not be the the instance in the cache.
+	 */
+	public function _getModelPrototypeCache()
+	{
+		// setup input data
+		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
+		$taxCode = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		$this->assertSame(1, count($taxCode));
+		list($taxCode) = $taxCode;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCode);
+		$this->assertSame('tax_code', $taxCode->getName());
+
+		// mock functions to make sure they're not called
+		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
+		$model->expects($this->never())->method('_getDefaultValueFieldName');
+		$model->expects($this->never())->method('_getMappedFieldName');
+		$model->expects($this->never())->method('_getMappedFieldValue');
+
+		// mock up the cache
+		$dummyObject = new Varien_Object();
+		$this->_reflectProperty($model, '_prototypeCache')
+			->setValue(array('tax_code' => $dummyObject));
+ 		$attrModel = $this->_reflectMethod($model, '_getModelPrototype')
+ 			->invoke($model, $taxCode);
+		$this->assertInstanceOf('Varien_Object', $attrModel);
+		$this->assertNotSame($dummyObject, $attrModel);
 	}
 
 	public function callbackGetModuleDir($dir, $module)

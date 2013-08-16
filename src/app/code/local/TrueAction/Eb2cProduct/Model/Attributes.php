@@ -13,6 +13,12 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
+	 * prototype attribute model cache.
+	 * @var array
+	 */
+	protected $_prototypeCache = array();
+
+	/**
 	 * mapping of config field name to model field name
 	 * @var array
 	 */
@@ -105,27 +111,25 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
 	{
 		$attributeCode = $fieldCfg->getName();
-		if (!isset($_prototypeCache[$attributeCode])) {
+		if (!isset($this->_prototypeCache[$attributeCode])) {
 			$baseData = $this->_getInitialData();
 			foreach ($fieldCfg->children() as $cfgField => $data) {
-				if ($cfgField !== 'group') {
-					// attempt to load the group model.
+				$fieldName = '';
+				if ($cfgField === 'default') {
+					$input_type = (string) $fieldCfg->input_type;
+					$fieldName  = $this->_getDefaultValueFieldName($input_type);
 				} else {
-					if ($cfgField === 'default') {
-						$input_type = (string) $fieldCfg->input_type;
-						$fieldName  = $this->_getDefaultValueFieldName($input_type);
-					} else {
-						$fieldName = getMappedFieldName($cfgField);
-					}
-					$value                = getMappedFieldValue($fieldName, $data);
-					$baseData[$fieldName] = $value;
+					$fieldName = $this->_getMappedFieldName($cfgField);
 				}
+				$value                = $this->_getMappedFieldValue($fieldName, $data);
+				$baseData[$fieldName] = $value;
 			}
-			$model = Mage::getModel('catalog/eav_entity_attribute', $baseData);
-		} else {
-			// clone cached model
-			$model = clone $_prototypeCache[$attributeCode];
+			$model = Mage::getResourceModel('catalog/eav_attribute');
+			$model->addData($baseData);
+			$this->_prototypeCache[$attributeCode] = $model;
 		}
+		// clone cached model
+		$model = clone $this->_prototypeCache[$attributeCode];
 		return $model;
 	}
 
