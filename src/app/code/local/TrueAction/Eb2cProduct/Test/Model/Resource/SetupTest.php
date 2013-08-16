@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Model_Resource_Setup
+class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 
