@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
+class TrueAction_Eb2cCore_Test_Base extends EcomDev_PHPUnit_Test_Case {
 	protected function _reflectProperty($object, $propName, $accessible = true)
 	{
 		$p = new ReflectionProperty($object, $propName);

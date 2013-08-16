@@ -7,7 +7,7 @@
 /**
  * tests the tax calculation class.
  */
-class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public static $respXml = '';
 	public static $cls;
