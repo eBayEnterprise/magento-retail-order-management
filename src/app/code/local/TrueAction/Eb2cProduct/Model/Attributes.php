@@ -60,7 +60,8 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		// take either an id or a model.
 		if (!$attributeSet instanceof Mage_Eav_Model_Entity_Attribute_Set) {
 			if (is_int($attributeSet)) {
-				$attributeSet = Mage::getModel('eav/entity_attribute_set')->load($attributeSet);
+				$attributeSet = Mage::getModel('eav/entity_attribute_set')
+					->load($attributeSet);
 			} else {
 				$errorMessage = 'unable to retrieve attribute set "' .
 					(string) $attributeSet .'"';
