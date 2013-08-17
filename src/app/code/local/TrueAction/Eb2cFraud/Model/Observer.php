@@ -1,7 +1,6 @@
 <?php
 class TrueAction_Eb2cFraud_Model_Observer
 {
-	const JS_FIELD_NAME = 'eb2cszyvl';
 	/**
 	 * Handler called before order save.
 	 * Updates quote with 41st Parameter anti-fraud JS.
@@ -18,10 +17,10 @@ class TrueAction_Eb2cFraud_Model_Observer
 			'eb2c_fraud_host_name'       => $http->getHttpHost(),
 			'eb2c_fraud_referrer'        => $http->getHttpReferer(),
 			'eb2c_fraud_user_agent'      => $http->getHttpUserAgent(),
-			'eb2c_fraud_language'        => $http->getLanguage(),
+			'eb2c_fraud_language'        => $http->getHttpAcceptLanguage(),
 			'eb2c_fraud_ip_address'      => $http->getRemoteAddr(),
 			'eb2c_fraud_session_id'      => $sess->getEncryptedSessionId(),
-			'eb2c_fraud_javascript_data' => $rqst->getPost(self::JS_FIELD_NAME, array()),
-		)->save();
+			'eb2c_fraud_javascript_data' => $rqst->getPost(TrueAction_Eb2cFraud_Helper_Data::JSC_FIELD_NAME, array()),
+		))->save();
 	}
 }
