@@ -38,6 +38,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 
 	protected $_valueFunctionMap = array(
 		'is_global'           => '_formatScope',
+		'frontend_label'      => '_formatFrontendLabel',
 		'apply_to'            => '_formatArray',
 		'default_value_yesno' => '_formatBoolean',
 		'is_unique'           => '_formatBoolean',
@@ -120,6 +121,15 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	 * convert the fronend label into an an array.
+	 * @param  Varien_SimpleXml_Element $data
+	 * @return array
+	 */
+	protected function _formatFrontendLabel($data)
+	{
+		return array((string) $data, '', '', '', '');
+	}
+
 	/**
 	 * lookup an attribute by code and entity id.
 	 * @param  string $attributeCode
