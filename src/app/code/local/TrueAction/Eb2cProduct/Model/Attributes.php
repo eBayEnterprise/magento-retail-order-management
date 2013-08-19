@@ -463,7 +463,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			);
 			$this->_defaultAttributesConfig = $config;
 		}
-		return $$this->_defaultAttributesConfig;
+		return $this->_defaultAttributesConfig;
 	}
 
 	/**
