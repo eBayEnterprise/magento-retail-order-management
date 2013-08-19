@@ -17,39 +17,33 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		$this->_inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
 	}
 
-	public function providerProcessFeeds()
-	{
-		return array(
-			array(array(Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_received_path') . 'sample-feed.xml'))
-		);
-	}
-
 	/**
 	 * testing processFeeds method
 	 *
 	 * @test
 	 * @medium
-	 * @dataProvider providerProcessFeeds
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeeds($feeds=array())
+	public function testProcessFeeds()
 	{
 		$inventoriesReflector = new ReflectionObject($this->_inventories);
+		$feedModel = Mage::getModel('eb2ccore/feed');
+		$feedModel->setBaseFolder( Mage::getStoreConfig('eb2c/inventory/feed_local_path') );
+		$localPath = Mage::getBaseDir('base') . DS . $feedModel->getInboundFolder();
 
-		$localPath = Mage::getBaseDir('var') . DS . Mage::getStoreConfig('eb2c/inventory/feed_local_received_path');
 		if (is_dir($localPath)) {
-			foreach(glob($localPath . '*') as $file) {
+			foreach(glob($localPath . DS . '*') as $file) {
 				unlink($file);
 			}
 			rmdir($localPath);
 		}
 		$this->assertEmpty(
-			$this->_inventories->processFeeds($feeds)
+			$this->_inventories->processFeeds()
 		);
 
 		// Adding xml to feed directory in other to get the feed
 		$sampleFeed = __DIR__ . '/InventoriesTest/fixtures/sample-feed.xml';
-		$destination = $localPath . 'sample-feed.xml';
+		$destination = $localPath . DS . 'sample-feed.xml';
 		if (!is_dir($localPath)) {
 			umask(0);
 			@mkdir($localPath, 0777, true);
@@ -78,12 +72,12 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		$helper->setValue($this->_inventories, $inventoryHelperMock);
 
 		$this->assertNull(
-			$this->_inventories->processFeeds($feeds)
+			$this->_inventories->processFeeds()
 		);
 
 		copy($sampleFeed, $destination);
 		$this->assertNull(
-			$this->_inventories->processFeeds($feeds)
+			$this->_inventories->processFeeds()
 		);
 
 		// test with mock product and stock item
@@ -122,7 +116,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 
 		copy($sampleFeed, $destination);
 		$this->assertNull(
-			$this->_inventories->processFeeds($feeds)
+			$this->_inventories->processFeeds()
 		);
 	}
 

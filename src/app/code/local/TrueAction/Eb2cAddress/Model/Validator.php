@@ -205,24 +205,24 @@ class TrueAction_Eb2cAddress_Model_Validator
 		Mage_Customer_Model_Address_Abstract $address
 	) {
 		if ($this->_hasAddressBeenValidated($address)) {
-			Mage::log('EB2C Address Validation: No validation - already validated', Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - already validated', Zend_Log::DEBUG);
 			return false;
 		}
 		if ($this->_isCheckoutAddress($address)) {
 			if ($this->_isAddressFromAddressBook($address)) {
-				Mage::log('EB2C Address Validation: No validation - from address book', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - from address book', Zend_Log::DEBUG);
 				return false;
 			}
 			if ($this->_isAddressBeingSaved($address)) {
-				Mage::log('EB2C Address Validation: Require validation - saving address in address book', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: Require validation - saving address in address book', Zend_Log::DEBUG);
 				return true;
 			}
 			if ($this->_isVirtualOrder()) {
-				Mage::log('EB2C Address Validation: No validation - virtual order', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - virtual order', Zend_Log::DEBUG);
 				return false;
 			}
 			if ($this->_isAddressBillingOnly($address)) {
-				Mage::log('EB2C Address Validation: No validation - billing only', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - billing only', Zend_Log::DEBUG);
 				return false;
 			}
 		}
@@ -248,10 +248,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
 			);
 		} catch (Exception $e) {
-			Mage::log('EB2C Address: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
 		}
 		if (empty($apiResponse)) {
-			Mage::log('EB2C Address: Empty reponse returned from address validation service.', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address: Empty reponse returned from address validation service.', Zend_Log::WARN);
 			return null;
 		} else {
 			return Mage::getModel('eb2caddress/validation_response')

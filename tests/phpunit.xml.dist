@@ -21,14 +21,14 @@
 	</testsuite>
 	<groups>
 		<include>
-			<group>TrueAction_Eb2cCore</group>
 			<group>TrueAction_Eb2cAddress</group>
+			<group>TrueAction_Eb2cCore</group>
+			<group>TrueAction_Eb2cFraud</group>
 			<group>TrueAction_Eb2cInventory</group>
 			<group>TrueAction_Eb2cOrder</group>
 			<group>TrueAction_Eb2cPayment</group>
 			<group>TrueAction_Eb2cProduct</group>
 			<group>TrueAction_Eb2cTax</group>
-			<group>TrueAction_Eb2cFraud</group>
 		</include>
 	</groups>
 	<filter>

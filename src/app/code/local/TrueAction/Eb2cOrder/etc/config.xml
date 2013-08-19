@@ -42,6 +42,15 @@
 				<developer_create_uri>http://virtbox.net/~mwest/fakeb2c/orderCreateRequest.php</developer_create_uri>
 				<developer_cancel_uri>http://virtbox.net/~mwest/fakeb2c/orderCancelRequest.php</developer_cancel_uri>
 				<payments_enabled>false</payments_enabled>
+				<status_feed>
+					<local_path>var/TrueAction/Eb2c/Feeds/Order/Status/</local_path>
+					<remote_path>/Some/Remote/Place/To/Find/Files/</remote_path>
+					<file_transfer_config_path>eb2ccore/general</file_transfer_config_path>
+					<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
+					<event_type>OrderStatus</event_type>
+					<header_version>EWS_eb2c_1.0</header_version>
+					<version_release_number>EWS_eb2c_1.0</version_release_number>
+				</status_feed>
 			</order>
 		</eb2c>
 	</default>

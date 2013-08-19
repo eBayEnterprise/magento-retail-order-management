@@ -1,10 +1,11 @@
 <?php
-class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public static $isDiscountTest = false;
 
 	public function setUp()
 	{
+		parent::setUp();
 		$this->_setupBaseUrl();
 	}
 
@@ -23,6 +24,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	public function testCalcTaxForItemSingleItem($scenario)
 	{
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
+		// @hack
 		Mage::unregister('_helper/tax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())

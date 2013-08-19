@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
+abstract class TrueAction_Eb2cCore_Test_Base extends EcomDev_PHPUnit_Test_Case {
 	protected function _reflectProperty($object, $propName, $accessible = true)
 	{
 		$p = new ReflectionProperty($object, $propName);
@@ -27,6 +27,9 @@ class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
 		return $mock;
 	}
 
+	/**
+	 * @todo Replace this with mocking the store/session/etc.
+	 */
 	protected function _setupBaseUrl()
 	{
 		parent::setUp();
@@ -45,5 +48,11 @@ class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
 			->method('set')
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
+	}
+	public function setUp() {
+		EcomDev_PHPUnit_Test_Case_Util::setUp();
+	}
+	public function tearDown() {
+		EcomDev_PHPUnit_Test_Case_Util::tearDown();
 	}
 }

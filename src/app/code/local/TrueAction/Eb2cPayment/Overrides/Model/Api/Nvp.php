@@ -225,7 +225,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 
 		$this->_importFromResponse($this->_setExpressCheckoutResponse, $response);
@@ -284,7 +284,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
@@ -342,7 +342,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
@@ -391,7 +391,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoAuthorization:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallDoAuthorization:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
@@ -435,7 +435,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if ((bool) $this->_getHelper()->getConfigModel()->enabledEb2cDebug){
-			Mage::log("\n\rDEDUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 	}
 }

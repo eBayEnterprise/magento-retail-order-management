@@ -10,6 +10,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	protected $_stockItem;
 	protected $_product;
 	protected $_stockStatus;
+	protected $_feedModel;
 
 	/**
 	 * Initialize model
@@ -20,6 +21,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 		$this->_stockItem = $this->_getStockItem();
 		$this->_product = $this->_getProduct();
 		$this->_stockStatus = $this->_getStockStatus();
+		$this->_feedModel = $this->_getFeedModel();
 
 		return $this;
 	}
@@ -36,6 +38,20 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 		}
 		return $this->_helper;
 	}
+
+	/**
+	 * Get Feed Model object.
+	 *
+	 * @return TrueAction_Eb2cCore_Model_Feed
+	 */
+	protected function _getFeedModel()
+	{
+		if (!$this->_feedModel) {
+			$this->_feedModel = Mage::getModel('eb2ccore/feed');
+		}
+		return $this->_feedModel;
+	}
+
 
 	/**
 	 * Get cataloginventory/stock_item instantiated object.
@@ -83,21 +99,12 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	 */
 	protected function _getItemInventoriesFeeds()
 	{
-		$feeds = array();
-		$localPath = Mage::getBaseDir('var') . DS . $this->_getHelper()->getConfigModel()->feedLocalReceivedPath;
-		if (!is_dir($localPath)) {
-			umask(0);
-			@mkdir($localPath, 0777, true);
-		}
+		$this->_getFeedModel()->setBaseFolder( $this->_getHelper()->getConfigModel()->feedLocalPath );
 		$remoteFile = $this->_getHelper()->getConfigModel()->feedRemoteReceivedPath;
 		$configPath =  $this->_getHelper()->getConfigModel()->configPath;
+
 		// downloading feed from eb2c server down to local server
-		if ($this->_getHelper()->getFileTransferHelper()->getFile($localPath, $remoteFile, $configPath, null)) {
-			$feeds = glob($localPath . '*.xml');
-			// sort downloaded feeds by file names
-			asort($feeds);
-		}
-		return $feeds;
+		$this->_getHelper()->getFileTransferHelper()->getFile($this->_getFeedModel()->getInboundFolder(), $remoteFile, $configPath, null);
 	}
 
 	/**
@@ -107,9 +114,9 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	 */
 	public function processFeeds()
 	{
-		$feeds = $this->_getItemInventoriesFeeds();
+		$this->_getItemInventoriesFeeds();
 		$domDocument = $this->_getHelper()->getDomDocument();
-		foreach ($feeds as $feed) {
+		foreach ($this->_getFeedModel()->lsInboundFolder() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
@@ -124,9 +131,10 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
-				unlink($feed);
+				// This assumes that we have process all ok
+				$this->_getFeedModel()->mvToArchiveFolder($feed);
 			}
-
+			// If this had failed, we could do this: $this->_getFeedModel()->mvToErrorFolder($feed);
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
@@ -171,7 +179,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 						->save();
 				} else {
 					// This item doesn't exists in the Magento App, just logged it as a warning
-					Mage::log("Item Inventories Feed SKU (${sku}), doesn't exists in Magento", Zend_Log::WARN);
+					Mage::log('[' . __CLASS__ . '] ' . "Item Inventories Feed SKU (${sku}), doesn't exists in Magento", Zend_Log::WARN);
 				}
 			}
 		}
@@ -191,7 +199,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 			// CLEAN CACHE
 			Mage::app()->cleanCache();
 		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
 		}
 
 		return;

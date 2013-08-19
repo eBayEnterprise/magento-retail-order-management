@@ -1,8 +1,4 @@
 <?php
-/**
- *
- *
- */
 class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
@@ -25,18 +21,8 @@ class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	public function testGetConfig( )
 	{
 		$config = $this->_helper->getConfig();
-		$this->assertSame($config->clientId, 'TAN-EB2CJS');
-		$this->assertSame($config->developerMode, '1');
-	}
-
-	/**
-	 * Make sure we get back an instance of TrueAction_Eb2cCore_Helper_Data
-	 * @test
-	 */
-	public function testGetCoreHelper()
-	{
-		$coreHelper = $this->_helper->getCoreHelper();
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', $coreHelper);
+		$this->assertSame('TAN-EB2CJS', $config->clientId);
+		$this->assertSame(null, $config->developerMode);
 	}
 
 	/**
