@@ -20,7 +20,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			'Mage_Catalog_Model_Product',
 			array(
 				'getId', 'setTypeId', 'setId', 'setSku', 'setStatus', 'setWeight', 'setVisibility', 'setAttributeSetId',
-				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData'
+				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData', 'setMass',
+				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
+				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
+				'setCountryOfManufacture'
 			)
 		);
 
@@ -62,6 +65,42 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setBundleSelectionsData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMass')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMsrp')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setPrice')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setIsDropShipped')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setTaxCode')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierName')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierNumber')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierPart')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setUseConfigGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setStockData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setCountryOfManufacture')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -78,7 +117,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			'Mage_Catalog_Model_Product',
 			array(
 				'getId', 'setTypeId', 'setId', 'setSku', 'setStatus', 'setWeight', 'setVisibility', 'setAttributeSetId',
-				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData'
+				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData', 'setMass',
+				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
+				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
+				'setCountryOfManufacture'
 			)
 		);
 
@@ -120,6 +162,42 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setBundleSelectionsData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMass')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMsrp')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setPrice')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setIsDropShipped')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setTaxCode')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierName')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierNumber')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierPart')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setUseConfigGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setStockData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setCountryOfManufacture')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -136,7 +214,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			'Mage_Catalog_Model_Product',
 			array(
 				'getId', 'setTypeId', 'setId', 'setSku', 'setStatus', 'setWeight', 'setVisibility', 'setAttributeSetId',
-				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData'
+				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData', 'setMass',
+				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
+				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
+				'setCountryOfManufacture'
 			)
 		);
 
@@ -179,6 +260,42 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 		$catalogModelProductMock->expects($this->any())
 			->method('setBundleSelectionsData')
 			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMass')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMsrp')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setPrice')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setIsDropShipped')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setTaxCode')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierName')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierNumber')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierPart')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setUseConfigGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setStockData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setCountryOfManufacture')
+			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
 	}
@@ -194,7 +311,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			'Mage_Catalog_Model_Product',
 			array(
 				'getId', 'setTypeId', 'setId', 'setSku', 'setStatus', 'setWeight', 'setVisibility', 'setAttributeSetId',
-				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData'
+				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData', 'setMass',
+				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
+				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
+				'setCountryOfManufacture'
 			)
 		);
 
@@ -236,6 +356,42 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setBundleSelectionsData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMass')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMsrp')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setPrice')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setIsDropShipped')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setTaxCode')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierName')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierNumber')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierPart')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setUseConfigGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setStockData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setCountryOfManufacture')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -252,7 +408,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			'Mage_Catalog_Model_Product',
 			array(
 				'getId', 'setTypeId', 'setId', 'setSku', 'setStatus', 'setWeight', 'setVisibility', 'setAttributeSetId',
-				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData'
+				'setShortDescription', 'save', 'delete', 'setBundleOptionsData', 'setBundleSelectionsData', 'setMass',
+				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
+				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
+				'setCountryOfManufacture'
 			)
 		);
 
@@ -294,6 +453,42 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setBundleSelectionsData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMass')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setMsrp')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setPrice')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setIsDropShipped')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setTaxCode')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierName')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierNumber')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setDropShipSupplierPart')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setUseConfigGiftMessageAvailable')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setStockData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setCountryOfManufacture')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
