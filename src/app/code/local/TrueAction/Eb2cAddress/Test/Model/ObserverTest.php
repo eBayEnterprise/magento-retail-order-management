@@ -18,6 +18,63 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 		TestUtil::tearDown();
 	}
 
+	protected function _mockConfig($enabled)
+	{
+		$config = $this->getModelMockBuilder('eb2ccore/config_registry')
+			->disableOriginalConstructor()
+			->setMethods(array('__get', 'addConfigModel'))
+			->getMock();
+		$config->expects($this->once())
+			->method('addConfigModel')
+			->with($this->equalTo(Mage::getSingleton('eb2caddress/config')))
+			->will($this->returnSelf());
+		$config->expects($this->once())
+			->method('__get')
+			->with($this->identicalTo('isValidationEnabled'))
+			->will($this->returnValue($enabled));
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $config);
+		return $config;
+	}
+
+	/**
+	 * When disabled, observer method should do nothing.
+	 * @test
+	 */
+	public function testValidationValidationDisabled()
+	{
+		$config = $this->_mockConfig(0);
+
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->never())
+			->method('getEvent');
+		$validator = $this->getModelMock('eb2caddress/validator', array('validateAddress'));
+		$validator->expects($this->never())
+			->method('validateAddress');
+
+		Mage::getSingleton('eb2caddress/observer')->validateAddress($observer);
+	}
+
+	/**
+	 * When disabled, observer method should do nothing.
+	 * @test
+	 */
+	public function testAddSuggestionsValidationDisabled()
+	{
+		$config = $this->_mockConfig(0);
+
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->never())
+			->method('getEvent');
+		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
+		$validator->expects($this->never())
+			->method('hasSuggestions');
+		$addressObserver = $this->getModelMock('eb2caddress/observer', array('_getAddressBlockHtml'));
+		$addressObserver->expects($this->never())
+			->method('_getAddressBlockHtml');
+
+		$addressObserver->addSuggestionsToResponse($observer);
+	}
+
 	/**
 	 * When the event already has errors in it, nothing should happen.
 	 * @test
@@ -53,6 +110,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testValidateAddressValidationErrors()
 	{
+		$this->_mockConfig(1);
+
 		$expectedError = 'Error from validation';
 		$address = $this->getModelMock('customer/address', array('addError'));
 		$address->expects($this->once())
@@ -85,6 +144,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testValidateAddressSuccess()
 	{
+		$this->_mockConfig(1);
+
 		$address = $this->getModelMock('customer/address', array('addError'));
 		$address->expects($this->never())
 			->method('addError');
@@ -179,6 +240,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testResponseSuggestionsNoSuggestions()
 	{
+		$this->_mockConfig(1);
+
 		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
 		// when there aren't errors in the response, this shouldn't get called
 		$validator->expects($this->once())
@@ -245,6 +308,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testResponseSuggestionsErrorsAndSuggestions()
 	{
+		$this->_mockConfig(1);
+
 		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
 		// when there aren't errors in the response, this shouldn't get called
 		$validator->expects($this->once())

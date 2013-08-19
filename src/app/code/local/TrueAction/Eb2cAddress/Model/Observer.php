@@ -3,6 +3,13 @@
 class TrueAction_Eb2cAddress_Model_Observer
 {
 
+	protected function _isEnabled()
+	{
+		return Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2caddress/config'))
+			->isValidationEnabled;
+	}
+
 	/**
 	 * Observe address validation events and perform EB2C address validation.
 	 * Event data is expected to include the address object to be validated.
@@ -10,6 +17,9 @@ class TrueAction_Eb2cAddress_Model_Observer
 	 */
 	public function validateAddress($observer)
 	{
+		if (!$this->_isEnabled()) {
+			return;
+		}
 		$address = $observer->getEvent()->getAddress();
 		$validationError = Mage::getModel('eb2caddress/validator')->validateAddress($address);
 		if ($validationError) {
@@ -40,6 +50,9 @@ class TrueAction_Eb2cAddress_Model_Observer
 	 */
 	public function addSuggestionsToResponse($observer)
 	{
+		if (!$this->_isEnabled()) {
+			return;
+		}
 		$validator = Mage::getModel('eb2caddress/validator');
 		$controller = $observer->getEvent()->getControllerAction();
 		$body = Mage::helper('core')->jsonDecode($controller->getResponse()->getBody());
