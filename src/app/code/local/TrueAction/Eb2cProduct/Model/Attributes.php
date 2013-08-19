@@ -120,6 +120,23 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	/**
+	 * lookup an attribute by code and entity id.
+	 * @param  string $attributeCode
+	 * @param  int $entityTypeId
+	 * @return Mage_Catalog_Model_Resource_Eav_Attribute
+	 */
+	protected function _lookupAttribute($attributeCode, $entityTypeId)
+	{
+		$collection = Mage::getResourceModel('catalog/eav_attribute_collection');
+		$attr = $collection->AddFieldToFilter('entity_type_id', array('eq' => $entityTypeId))
+			->AddFieldToFilter('attribute_code', array('eq' => $attributeCode))
+			->load()
+			->getFirstItem();
+		return $attr;
+	}
+
+	/**
 	 * get an attribute group model.
 	 * return null if the group does not exist.
 	 * @param  string $groupName
