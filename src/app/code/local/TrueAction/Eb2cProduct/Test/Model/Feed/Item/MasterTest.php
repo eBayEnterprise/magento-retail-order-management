@@ -10,7 +10,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing loadProductBySku method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testLoadProductBySku()
@@ -31,7 +31,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - invalid product id
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithInvalidProductId()
@@ -58,7 +58,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - valid product id
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithValidProductId()
@@ -81,7 +81,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - invalid product throw an exception
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithInvalidProductException()
@@ -104,7 +104,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - valid product throwing exception
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithValidProductException()
@@ -127,7 +127,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - where delete a product will throw an exception
 	 *
 	 * @test
-	 * @large
+	 * @medium
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWhereDeleteThrowException()
