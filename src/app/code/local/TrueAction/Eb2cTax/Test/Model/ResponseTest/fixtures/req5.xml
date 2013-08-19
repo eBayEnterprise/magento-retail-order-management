@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TaxDutyQuoteRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+  <Currency><![CDATA[USD]]></Currency>
+  <VATInclusivePricing><![CDATA[0]]></VATInclusivePricing>
+  <CustomerTaxId/>
+  <BillingInformation ref="_14"/>
+  <Shipping>
+    <ShipGroups>
+      <ShipGroup id="_15_virtual" chargeType="NONE">
+        <DestinationTarget ref="_15"/>
+        <Items>
+          <OrderItem lineNumber="6">
+            <ItemId><![CDATA[gc_virtual1]]></ItemId>
+            <ItemDesc><![CDATA[Visdfsdfl Gift]]></ItemDesc>
+            <HTSCode/>
+            <Quantity><![CDATA[1]]></Quantity>l
+            <Pricing>
+              <Merchandise>
+                <Amount><![CDATA[50.0000]]></Amount>
+                <TaxClass><![CDATA[2]]></TaxClass>
+                <UnitPrice><![CDATA[50.0000]]></UnitPrice>
+              </Merchandise>
+            </Pricing>
+          </OrderItem>
+          <OrderItem lineNumber="7">
+            <ItemId><![CDATA[sdfsdfsfdsf]]></ItemId>
+            <ItemDesc><![CDATA[Visdfsdfl Gift]]></ItemDesc>
+            <HTSCode/>
+            <Quantity><![CDATA[1]]></Quantity>l
+            <Pricing>
+              <Merchandise>
+                <Amount><![CDATA[50.0000]]></Amount>
+                <TaxClass><![CDATA[2]]></TaxClass>
+                <UnitPrice><![CDATA[50.0000]]></UnitPrice>
+              </Merchandise>
+            </Pricing>
+          </OrderItem>
+        </Items>
+      </ShipGroup>
+    </ShipGroups>
+    <Destinations>
+      <MailingAddress id="_14">
+        <PersonName>
+          <LastName><![CDATA[guy]]></LastName>
+          <FirstName><![CDATA[extra]]></FirstName>
+        </PersonName>
+        <Address>
+          <Line1><![CDATA[1 Shields]]></Line1>
+          <City><![CDATA[davis]]></City>
+          <MainDivision><![CDATA[CA]]></MainDivision>
+          <CountryCode><![CDATA[US]]></CountryCode>
+          <PostalCode><![CDATA[90210]]></PostalCode>
+        </Address>
+      </MailingAddress>
+      <MailingAddress id="_15">
+        <PersonName>
+          <LastName><![CDATA[guy]]></LastName>
+          <FirstName><![CDATA[extra]]></FirstName>
+        </PersonName>
+        <Address>
+          <Line1><![CDATA[1 Shields]]></Line1>
+          <City><![CDATA[davis]]></City>
+          <MainDivision><![CDATA[CA]]></MainDivision>
+          <CountryCode><![CDATA[US]]></CountryCode>
+          <PostalCode><![CDATA[90210]]></PostalCode>
+        </Address>
+      </MailingAddress>
+    </Destinations>
+  </Shipping>
+</TaxDutyQuoteRequest>

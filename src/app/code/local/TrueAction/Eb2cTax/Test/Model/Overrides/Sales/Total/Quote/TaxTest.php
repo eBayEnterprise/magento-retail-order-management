@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public static $isDiscountTest = false;
 

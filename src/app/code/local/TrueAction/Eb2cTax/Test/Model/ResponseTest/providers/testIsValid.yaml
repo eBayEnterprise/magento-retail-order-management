@@ -1,0 +1,40 @@
+-
+  - false # hasxml
+  - false # isDocOk
+  - false # validate destinations
+  - false # validate items
+-
+  - false  # hasxml
+  - true # isDocOk
+  - true # validate destinations
+  - true # validate items
+-
+  - true  # hasxml
+  - false # isDocOk
+  - false # validate destinations
+  - false # validate items
+-
+  - true  # hasxml
+  - false # isDocOk
+  - true  # validate destinations
+  - true  # validate items
+-
+  - true  # hasxml
+  - true  # isDocOk
+  - false # validate destinations
+  - false # validate items
+-
+  - true  # hasxml
+  - true  # isDocOk
+  - false # validate destinations
+  - true  # validate items
+-
+  - true  # hasxml
+  - true  # isDocOk
+  - true  # validate destinations
+  - false # validate items
+-
+  - true  # hasxml
+  - true # isDocOk
+  - true # validate destinations
+  - true # validate items

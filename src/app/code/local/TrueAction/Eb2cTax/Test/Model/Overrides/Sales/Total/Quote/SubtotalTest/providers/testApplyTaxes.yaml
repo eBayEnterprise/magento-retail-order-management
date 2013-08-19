@@ -1,6 +1,6 @@
 -
-  - 2
-  - 2.00
-  - 4.00
-  - 2.00
-  - 4.00
+  - 2    # qty
+  - 2.00 # price
+  - 4.00 # subtotal
+  - 2.00 # baseprice
+  - 4.00 # basesubtotal
