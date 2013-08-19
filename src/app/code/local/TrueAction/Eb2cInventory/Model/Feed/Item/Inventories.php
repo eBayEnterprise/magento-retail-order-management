@@ -179,7 +179,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 						->save();
 				} else {
 					// This item doesn't exists in the Magento App, just logged it as a warning
-					Mage::log("Item Inventories Feed SKU (${sku}), doesn't exists in Magento", Zend_Log::WARN);
+					Mage::log('[' . __CLASS__ . '] ' . "Item Inventories Feed SKU (${sku}), doesn't exists in Magento", Zend_Log::WARN);
 				}
 			}
 		}
@@ -199,7 +199,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 			// CLEAN CACHE
 			Mage::app()->cleanCache();
 		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
 		}
 
 		return;
