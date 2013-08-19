@@ -1,9 +1,5 @@
 <?php
-/**
- * @todo Move to core
- */
-abstract class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
-
+abstract class TrueAction_Eb2cCore_Test_Base extends EcomDev_PHPUnit_Test_Case {
 	protected function _reflectProperty($object, $propName, $accessible = true)
 	{
 		$p = new ReflectionProperty($object, $propName);
@@ -53,7 +49,6 @@ abstract class TrueAction_Eb2cTax_Test_Base extends EcomDev_PHPUnit_Test_Case {
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
 	}
-
 	public function setUp() {
 		EcomDev_PHPUnit_Test_Case_Util::setUp();
 	}

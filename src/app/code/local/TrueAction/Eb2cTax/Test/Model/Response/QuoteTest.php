@@ -7,7 +7,7 @@
 /**
  * tests the tax response quote class.
  */
-class TrueAction_Eb2cTax_Test_Model_Response_QuoteTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_Response_QuoteTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public static function setUpBeforeClass()
 	{
