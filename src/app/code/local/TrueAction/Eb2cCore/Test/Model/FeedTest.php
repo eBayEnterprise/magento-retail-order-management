@@ -1,11 +1,8 @@
 <?php
-/**
- * This class tests the 
- */
 class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 {
 	const	TEST_FILE_PFX	=	'TestFeed';
-	const	TEST_XML_DATA = 
+	const	TEST_XML_DATA =
 '<MessageHeader>
 	<Standard>GSI</Standard>
 	<HeaderVersion>2.3</HeaderVersion>
@@ -29,9 +26,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 
 	public function setUp()
 	{
-		$mktempOutput = array();
-		exec('mktemp -d', $mktempOutput);
-		$this->_tmpDirName = $mktempOutput[0];
+		$this->_tmpDirName = tempnam(Mage::getBaseDir('tmp'), __CLASS__);
 	}
 
 	public function tearDown()
@@ -73,12 +68,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$this->assertFileExists($feed->getArchiveFolder().$feed->dirsep().basename($fileset[1]));
 
 		// Test moving a file to error
-		$feed->mvToErrorFolder($fileset[2]);	
+		$feed->mvToErrorFolder($fileset[2]);
 		$this->assertFileNotExists($fileset[2]);
 		$this->assertFileExists($feed->getErrorFolder().$feed->dirsep().basename($fileset[2]));
 
 		// Test moving a file to tmp; we save to a var name because we're going to test moving it back.
-		$feed->mvToTmpFolder($fileset[3]);	
+		$feed->mvToTmpFolder($fileset[3]);
 		$this->assertFileNotExists($fileset[3]);
 		$targetTempFile = $feed->getTmpFolder().$feed->dirsep().basename($fileset[3]);
 		$this->assertFileExists($targetTempFile);
