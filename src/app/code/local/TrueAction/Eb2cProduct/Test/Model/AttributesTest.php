@@ -9,6 +9,92 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
 	/**
+	 * verify attributes are applied on the specified attributeset.
+	 * attributeset is a valid attribute set model
+	 * attribute to add is tax_code
+	 * attribute doesnt exist
+	 * attribute not already applied to attribute set
+	 * group is testgroup
+	 * group already exists
+	 */
+	public function testApplyDefaultAttributes()
+	{
+		$attrCode     = 'tax_code';
+		$hasGroup     = true;
+		$attrSetId    = 1;
+		$groupId      = 2;
+		$entityTypeId = 9;
+		$groupName    = 'testgroup';
+		$attrSet      = $this->_buildModelMock('eav/entity_attribute_set', array(
+			'load' => $this->returnSelf(),
+			'getEntityTypeId' => $this->returnValue($entityTypeId),
+			'getId' => $this->returnValue($attrSetId),
+		));
+		$methods = array('hasGroup', 'getGroup', 'setAttributeGroupId', 'setAttributeSetId', 'save');
+		$newAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
+		$newAttr->expects($this->once())
+			->method('hasGroup')
+			->will($this->returnValue($hasGroup));
+		$newAttr->expects($this->once())
+			->method('getGroup')
+			->will($this->returnValue($groupName));
+		$newAttr->expects($this->once())
+			->method('setAttributeGroupId')
+			->with($this->identicalTo($groupId))
+			->will($this->returnSelf());
+		$newAttr->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$methods = array('getAttributeGroupId', 'setAttributeGroupId', 'save');
+		$lookupAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
+		$lookupAttr->expects($this->never())
+			->method('getAttributeGroupId')
+			->will($this->returnSelf($groupId));
+		$lookupAttr->expects($this->never())
+			->method('setAttributeGroupId')
+			->with($this->identicalTo($groupId))
+			->will($this->returnSelf());
+		$lookupAttr->expects($this->never())
+			->method('save')
+			->will($this->returnSelf());
+
+		$attrGroup = $this->_buildModelMock('eav/entity_attribute_group', array(
+			'getId' => $this->returnValue($groupId),
+		));
+
+		$methods = array('_loadDefaultAttributesConfig', '_lookupAttribute', '_getModelPrototype', '_getAttributeGroup', '_getAttributeSet');
+		$model = $this->getModelMock('eb2cproduct/attributes', $methods);
+
+		$configNode = new Varien_SimpleXml_Element(self::$configXml);
+		list($defaultNode) = $configNode->xpath('default');
+		$attrConfig  = $this->getModelMock('core/config', array('getNode'));
+		$attrConfig->expects($this->any())
+			->method('getNode')
+			->with($this->identicalTo('default'))
+			->will($this->returnValue($defaultNode));
+		$model->expects($this->atLeastOnce())
+			->method('_loadDefaultAttributesConfig')->will($this->returnValue($attrConfig));
+
+		$model->expects($this->once())
+			->method('_lookupAttribute')->will($this->returnValue($lookupAttr));
+
+		$model->expects($this->once())
+			->method('_getModelPrototype')
+			->will($this->returnValue($newAttr));
+		$model->expects($this->once())
+			->method('_getAttributeSet')
+			->with($this->identicalTo($attrSet))
+			->will($this->returnValue($attrSet));
+		$model->expects($this->once())
+			->method('_getAttributeGroup')
+			->with($this->identicalTo($groupName), $this->identicalTo($attrSetId))
+			->will($this->returnValue($attrGroup));
+
+		$model->applyDefaultAttributes($attrSet);
+	}
+
+	/**
 	 * verify a group is returned when successful and null when unsuccessful.
 	 * @loadExpectation
 	 * @dataProvider dataProvider

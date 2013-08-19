@@ -94,28 +94,37 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		$config         = $this->_loadDefaultAttributesConfig();
 		$defaults       = $config->getNode('default');
 		$attributeSetId = $attributeSet->getId();
+		$entityTypeId   = $attributeSet->getEntityTypeId();
 		foreach ($defaults->children() as $attrCode => $attrConfig) {
-			$model = $this->_getModelPrototype($attrConfig);
+			$newAttr = $this->_getModelPrototype($attrConfig);
+			$attr = $this->_lookupAttribute($attrCode, $entityTypeId);
 			$group = null;
-			if ($model->hasGroup()) {
+			if ($newAttr->hasGroup()) {
 				// attribute is in a group
-				$groupName = $model->getGroup();
+				$groupName = $newAttr->getGroup(); // note: group field
 				$group = $this->_getAttributeGroup($groupName, $attributeSetId);
 				if (!$group) {
 					$message = 'unable to get model for group (%s)';
 					Mage::throwException(sprintf($message, $groupName));
 				}
-				$model->setAttributeGroupId($group->getId());
 			}
-				// if not exist
-					// create empty attribute model
-					// update model
-						// get default data
-						// update the data array
-							// for each field/value pair in attribute config
-								// map field to data array key
-								// apply value to array element by key
-					// save the model
+			if ($attr->getId()) {
+				// check if the groupid !== $group->getAttributeGroupId
+				if ($attr->getAttributeGroupId() !== $group->getId()) {
+					// log a warning cuz the attribute already exists with another group.
+					$message = 'replacing attribute group (%s) with (%s)';
+					$this->_logWarn(sprintf($message, $group->getAttributeGroupName(), $newAttr->getGroup()));
+					// update attr with new group.
+					$attr->setAttributeGroupId($group->getId());
+					// attr->save
+					$attr->save();
+				}
+				// the groups match so nothing to do.
+			} else {
+				// the attribute doesn't exist, so use the prototype to add it.
+				$newAttr->setAttributeGroupId($group->getId());
+				$newAttr->save();
+			}
 		}
 		return $this;
 	}
