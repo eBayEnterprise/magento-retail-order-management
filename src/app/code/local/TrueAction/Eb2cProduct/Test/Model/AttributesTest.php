@@ -124,7 +124,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 * config.
 	 * verify the new model will not be the the instance in the cache.
 	 */
-	public function _getModelPrototypeCache()
+	public function testGetModelPrototypeCache()
 	{
 		// setup input data
 		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
@@ -143,7 +143,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		// mock up the cache
 		$dummyObject = new Varien_Object();
 		$this->_reflectProperty($model, '_prototypeCache')
-			->setValue(array('tax_code' => $dummyObject));
+			->setValue($model, array('tax_code' => $dummyObject));
  		$attrModel = $this->_reflectMethod($model, '_getModelPrototype')
  			->invoke($model, $taxCode);
 		$this->assertInstanceOf('Varien_Object', $attrModel);
