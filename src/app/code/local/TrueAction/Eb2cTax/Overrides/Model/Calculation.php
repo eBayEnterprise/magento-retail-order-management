@@ -15,7 +15,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				parent::setTaxResponse($checkout->getEb2cTaxResponse());
 			}
 		}
-		$this->_eConfig = Mage::getModel('eb2ctax/config');
 	}
 
 	/**
@@ -241,8 +240,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					}
 
 					$rate                = $group['rates'][0];
-					$rate['base_amount'] = $discountQuote->getCalculatedTax();
-					$rate['amount']      -= $store->convertPrice($rate['base_amount']);
+					$rate['base_amount'] -= $discountQuote->getCalculatedTax();
+					$rate['amount']      = $store->convertPrice($rate['base_amount']);
 					$group['amount']     = $rate['amount'];
 					$group['rates'][0]   = $rate;
 					$result[$id]         = $group;

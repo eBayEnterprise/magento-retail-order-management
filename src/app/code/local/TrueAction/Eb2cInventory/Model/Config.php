@@ -14,7 +14,7 @@ class TrueAction_Eb2cInventory_Model_Config extends TrueAction_Eb2cCore_Model_Co
 		'inventory_detail_uri' => 'eb2c/inventory/inventory_detail_uri',
 		'allocation_uri' => 'eb2c/inventory/allocation_uri',
 		'rollback_allocation_uri' => 'eb2c/inventory/rollback_allocation_uri',
-		'feed_local_received_path' => 'eb2c/inventory/feed_local_received_path',
+		'feed_local_path' => 'eb2c/inventory/feed_local_path',
 		'feed_remote_received_path' => 'eb2c/inventory/feed_remote_received_path',
 		'config_path' => 'eb2c/inventory/config_path',
 		'feed_event_type' => 'eb2c/inventory/feed_event_type',

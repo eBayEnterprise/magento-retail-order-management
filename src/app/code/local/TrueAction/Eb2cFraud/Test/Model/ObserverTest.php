@@ -27,32 +27,30 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 	 */
 	public function testObserverMethod()
 	{
-		$orderContext = Mage::getModel('eb2cfraud/context');
-		$mockOrderContext = $this->getMock(get_class($orderContext),
-			array( 'getCharSet', 'getContentTypes', 'getEncoding', 'getHostName',
-					'getIpAddress', 'getLanguage', 'getReferrer', 'getSessionId', 'getUserAgent',)
-		);
-		$this->replaceByMock('model', 'eb2cfraud/context', $mockOrderContext);
-
 		// Get a phony quote ...
 		$mockQuote = $this->getModelMockBuilder('sales/quote')
-				->disableOriginalConstructor()
-				->getMock();
+			->disableOriginalConstructor()
+			->setMethods(array('addData', 'save'))
+			->getMock();
+
+		$mockQuote->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+
+		$mockQuote->expects($this->any())
+			->method('save')
+			->will($this->returnSelf());
 
 		// Get a phony request ...
 		$mockRequest = $this->getModelMockBuilder('varien/object')
-				->disableOriginalConstructor()
-				->setMethods(
-					array(
-						'getPost',
-					)
-				)
-				->getMock();
+			->disableOriginalConstructor()
+			->setMethods(array('getPost'))
+			->getMock();
 
 		// From request, we'll need a getPost Method:
 		$mockRequest->expects($this->any())
-				->method('getPost')
-				->will($this->returnValue('sample_js_data'));
+			->method('getPost')
+			->will($this->returnValue('sample_js_data'));
 
 		Mage::dispatchEvent(
 			'eb2c_onepage_save_order_before',

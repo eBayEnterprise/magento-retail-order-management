@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# Shared functions for deploy
+
+##
+# Safely change directories
+# Usage: cd 'somewhere'
+cd() {
+	command cd "$@" && return $?
+	die $? "Failed to change directories to '$@'."
+}
+
+##
+# True if the first argument is one of the remaining arguments.
+has() {
+	local needle=$1
+	local testcase=$2
+	shift 2
+	[[ $needle = $testcase ]] && return 0
+	[[ $1 ]] || return 1
+	has $needle "$@"
+	return $?
+}
+
+##
+# Print a message to stderr.
+# Usage: warn 'some message'
+warn() {
+	printf '%s\n' "$@" >&2
+}
+
+##
+# Print a message to stderr and then exit with a given status code.
+# Usage: die 1 'something failed'
+die() {
+	local exitStatus="$1"
+	shift
+	warn "$@"
+	exit "$exitStatus"
+}
+
+# Don't execute main directly if this script is sourced.
+if [[ ${0##*/} = $SCRIPTNAME ]]; then
+
+	for configFile in config *Config; do
+		[[ -f "$configFile" ]] && . "$configFile"
+	done
+
+	main "$@"
+fi

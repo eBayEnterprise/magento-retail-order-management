@@ -77,11 +77,6 @@
 			</eb2c_onepage_save_order_before>
 		</events>
 	</frontend>
-	<default>
-		<eb2cfraud>
-				<developer_mode>1</developer_mode>
-		</eb2cfraud>
-	</default>
 	<test>
 		<events>
 			<eb2c_onepage_save_order_before>

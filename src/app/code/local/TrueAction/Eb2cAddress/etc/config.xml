@@ -65,6 +65,7 @@
 	<default>
 		<eb2caddress>
 			<general>
+				<enabled>1</enabled>
 				<max_suggestions>3</max_suggestions>
 			</general>
 			<api>

@@ -26,7 +26,7 @@
 					<show_in_store>1</show_in_store>
 					<fields>
 						<catalog_id translate="label comment">
-							<label>Catalog ID</label>
+							<label>Catalog Id</label>
 							<comment></comment>
 							<sort_order>10</sort_order>
 							<frontend_type>text</frontend_type>
@@ -36,7 +36,7 @@
 							<show_in_store>0</show_in_store>
 						</catalog_id>
 						<client_id>
-							<label>Client ID</label>
+							<label>Client Id</label>
 							<comment></comment>
 							<sort_order>20</sort_order>
 							<frontend_type>text</frontend_type>
@@ -46,7 +46,7 @@
 							<show_in_store>0</show_in_store>
 						</client_id>
 						<store_id>
-							<label>Store ID</label>
+							<label>Store Id</label>
 							<comment></comment>
 							<sort_order>30</sort_order>
 							<frontend_type>text</frontend_type>
@@ -87,7 +87,7 @@
 							<show_in_store>0</show_in_store>
 						</sftp_location>
 						<api_key>
-							<label>Catalog ID</label>
+							<label>API Key</label>
 							<comment></comment>
 							<sort_order>70</sort_order>
 							<frontend_type>obscure</frontend_type>
@@ -119,26 +119,6 @@
 						</test_mode>
 					</fields>
 				</general>
-				<feed translate="label">
-					<label>Feed</label>
-					<frontend_type>text</frontend_type>
-					<sort_order>6</sort_order>
-					<show_in_default>1</show_in_default>
-					<show_in_website>1</show_in_website>
-					<show_in_store>1</show_in_store>
-					<fields>
-						<destination_type translate="label comment">
-							<label>Catalog ID</label>
-							<comment>Destination Type Settings for all feeds</comment>
-							<sort_order>1</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-alphanum</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</destination_type>
-					</fields>
-				</feed>
 			</groups>
 		</eb2ccore>
 	</sections>
