@@ -383,6 +383,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						try {
 							// get all the bundle object and set them as bundle product for the parent product.
 							if ($bundleItemCollection = $bundleObject->getBundleData()->getBundleItems()) {
+								// before reistering product to Mage registry let's unregister first
+								Mage::unregister('product');
+								Mage::unregister('current_product');
+
 								// registering the product to Mage registry
 								Mage::register('product', $parentProductObject);
 								Mage::register('current_product', $parentProductObject);
