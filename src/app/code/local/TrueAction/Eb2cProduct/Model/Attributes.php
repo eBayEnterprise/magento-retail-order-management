@@ -57,6 +57,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _getAttributeSet($attributeSet = null)
 	{
+		$errorMessage = '';
 		// take either an id or a model.
 		if (!$attributeSet instanceof Mage_Eav_Model_Entity_Attribute_Set) {
 			if (is_int($attributeSet)) {
@@ -80,7 +81,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		}
 		return $attributeSet;
 	}
-
 
 	/**
 	 * apply default attributes to $attributeSet
