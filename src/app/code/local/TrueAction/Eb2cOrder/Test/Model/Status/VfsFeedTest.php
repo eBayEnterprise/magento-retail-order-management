@@ -15,14 +15,15 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 		$vfs = $this->getFixture()->getVfs();
 		// Mock a few eb2ccore/feed methods so we can get our way through receiving/ listing files
 		$this->replaceModel(
-			'eb2ccore/feed',		// Class alias to replace ... 
-			array(					// Array of methods => return values for mocks
-				'cd'					=> true,
-				'checkAndCreateFolder'	=> true,
-				'getInboundFolder'		=> 'inbound',
-				'lsInboundFolder'		=> array (
+			'eb2ccore/feed',        // Class alias to replace
+			array(                  // Array of methods => return values for mocks
+				'cd'                    => true,
+				'checkAndCreateFolder'  => true,
+				'getInboundFolder'      => 'inbound',
+				'lsInboundFolder'       => array (
 												$vfs->url('inbound/invalidXml.xml'),
 												$vfs->url('inbound/badEb2cSample.xml'),
+												$vfs->url('inbound/oneBadEb2cRecordSample.xml'),
 												$vfs->url('inbound/goodEb2cSample.xml'),
 											),
 			)

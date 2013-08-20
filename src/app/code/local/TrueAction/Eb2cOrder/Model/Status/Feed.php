@@ -12,23 +12,19 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 {
 	private $_config;
 	private $_coreFeedHelper;
-	private $_coreHelper;
-	private $_feedIo;
-	private $_helper;
+	private $_localIo;
 	private $_remoteIo;
 
 	private $_fileInfo;
 	private $_event;
-	private $_flatEvent;
 
 	public function _construct()
 	{
-		$this->_helper = Mage::helper('eb2corder');
-		$this->_config = $this->_helper->getConfig();
-		$this->_coreFeedHelper = $this->_helper->getCoreFeedHelper();
-		$this->_coreHelper = $this->_helper->getCoreHelper();
+		$helper = Mage::helper('eb2corder');
+		$this->_config = $helper->getConfig();
+		$this->_coreFeedHelper = $helper->getCoreFeedHelper();
 
-		// Set up local folders for receiving, processing, etc:
+		// Set up local folders for receiving, processing
 		$this->_localIo = Mage::getModel('eb2ccore/feed')->setBaseFolder($this->_config->statusFeedLocalPath);
 
 		// Set up remote conduit:
@@ -41,10 +37,10 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	private function _fetchFeedsFromRemote()
 	{
 		$this->_remoteIo->getFile(
-					$this->_localIo->getInboundFolder(),
-					$this->_config->statusFeedRemotePath,
-					$this->_config->fileTransferConfigPath
-			);	// Gets the files. 
+			$this->_localIo->getInboundFolder(),
+			$this->_config->statusFeedRemotePath,
+			$this->_config->fileTransferConfigPath
+		);	// Gets the files. 
 	}
 
 	/**
@@ -75,10 +71,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 
 		// Validate Eb2c Header Information:
-		if (!$this->_coreFeedHelper->validateHeader($dom,
-				$this->_config->statusFeedEventType,
-				$this->_config->statusFeedHeaderVersion))
-		{
+		if (!$this->_coreFeedHelper->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return false;
 		}
@@ -95,7 +88,18 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			}
 		}
 
-		// Archive or move to Error here
+		Mage::log('File ' . $xmlFile
+			. sprintf(': Processed %d of %d, %d errors',
+				$this->_fileInfo['recordsProcessed'],
+				$this->_fileInfo['recordCount'],
+				$this->_fileInfo['recordsWithErrors']) );
+
+		if( $this->_fileInfo['recordsWithErrors'] ) {
+			$this->_localIo->mvToErrorFolder($xmlFile);
+		}
+		else {
+			$this->_localIo->mvToArchiveFolder($xmlFile);
+		}
 		return true;
 	}
 
@@ -107,7 +111,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _processOneEvent($eventNode)
 	{
-		$this->_event = array();			// We aim to flatten an event into an array
+		$this->_event = array();	// The Plan: flatten the event into an array.
 
 		$this->_loadNodes( 
 			$eventNode,
@@ -129,7 +133,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 				'Qty',
 			)
 		);
-		$this->_runEventProcessor();				// The name of the method to process an event is based on ProcessTypeKey
+		$this->_runEventProcessor();			// The name of the method to process an event is based on ProcessTypeKey
 		$this->_fileInfo['recordsProcessed']++;
 	}
 
@@ -154,13 +158,13 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _runEventProcessor()
 	{
-		$funcName =  '_process' . str_replace(' ','',ucwords(str_replace('_',' ',strtolower($this->_event['ProcessTypeKey']))));
+		$funcName = '_process' . str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['ProcessTypeKey']))));
 		if (method_exists($this, $funcName) ) {
 			return $this->$funcName();
 		}
 		else {
 			Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event, true));
-			$this->_fileInfo['recordsError']++;
+			$this->_fileInfo['recordsWithErrors']++;
 			return false;
 		}
 	}
@@ -181,7 +185,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 		$this->_fileInfo['recordsProcessed'] = 0;
 		$this->_fileInfo['recordsOk'] = 0;
-		$this->_fileInfo['recordsError'] = 0;
+		$this->_fileInfo['recordsWithErrors'] = 0;
 	}
 
 	/**
