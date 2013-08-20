@@ -147,11 +147,13 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _lookupAttribute($attributeCode, $entityTypeId)
 	{
-		$collection = Mage::getResourceModel('catalog/eav_attribute_collection');
+		$collection = Mage::getResourceModel('eav/entity_attribute_collection');
 		$attr = $collection->AddFieldToFilter('entity_type_id', array('eq' => $entityTypeId))
 			->AddFieldToFilter('attribute_code', array('eq' => $attributeCode))
 			->load()
 			->getFirstItem();
+		$attrId = $attr->getId();
+		$attr = Mage::getResourceModel('catalog/eav_attribute')->load($attrId);
 		return $attr;
 	}
 
