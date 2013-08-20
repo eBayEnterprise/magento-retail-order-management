@@ -355,11 +355,11 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		// Now, overlay the incoming values on to the defaults.
 		foreach($values as $key => $newValue) {
 			if(isset($data[$key]) == false) {
-	 			$this->logError("Attribute feature [$key] is not valid.");
-	 			return false;
-	 		} else {
-	 			$data[$key] = $newValue;
-	 		}
+				$this->logError("Attribute feature [$key] is not valid.");
+				return false;
+			} else {
+				$data[$key] = $newValue;
+			}
 		}
 		// Valid product types: simple, grouped, configurable, virtual, bundle, downloadable, giftcard
 		$data['apply_to']       = $productTypes;
