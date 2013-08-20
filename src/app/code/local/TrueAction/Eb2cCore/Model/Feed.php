@@ -1,81 +1,82 @@
 <?php
 /**
  * This class is intended to simplify file movements during feed processing, and make sure
- * 	all folders exists. Intended usage:
+ * 	all dirs exists. Intended usage:
  *
  * $feed = Mage::getModel('eb2corder/feed');
- * $feed->setBaseFolder('/path/to/your/config/base/folder');	// intended to come from your config
- * $fileTransferRecevier($feed->getInboundFolder(), $remoteLocation); // Run your file receiver 'into' getInboundFolder()
- * foreach( $feed->lsInboundFolder() as $file ) {
+ * $feed->setBaseDir('/path/to/your/config/base/dir');	// intended to come from your config
+ * $fileTransferRecevier($feed->getInboundDir(), $remoteLocation); // Run your file receiver 'into' getInboundDir()
+ * foreach( $feed->lsInboundDir() as $file ) {
  *		// Do feed things ...
  * 		if( ok ) {
- *			$feed->mvToArchiveFolder($file);
- *		}
- *		else {
- *			$feed->mvToErrorFolder($file);
+ *			$feed->mvToArchiveDir($file);
+ *		} else {
+ *			$feed->mvToErrorDir($file);
  * 		}
  * }
  *
  */
-class TrueAction_Eb2cCore_Model_Feed extends Varien_Io_File
+class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 {
-	const INBOUND_FOLDER_NAME 	=	'inbound';
-	const OUTBOUND_FOLDER_NAME	=	'outbound';
-	const ARCHIVE_FOLDER_NAME	=	'archive';
-	const ERROR_FOLDER_NAME		=	'error';
-	const TMP_FOLDER_NAME		=	'tmp';
-
-	private $_baseFolder;
-	private $_inboundFolder;
-	private $_outboundFolder;
-	private $_archiveFolder;
-	private $_errorFolder;
-	private $_tmpFolder;
+	const INBOUND_DIR_NAME  = 'inbound';
+	const OUTBOUND_DIR_NAME = 'outbound';
+	const ARCHIVE_DIR_NAME  = 'archive';
+	const ERROR_DIR_NAME    = 'error';
+	const TMP_DIR_NAME      = 'tmp';
 
 	/**
 	 * Turn on allow create folders; it's off by default in the base Varien_Io_File
 	 */
-	public function __construct()
+	public function _construct()
 	{
-		parent::setAllowCreateFolders(true);
+		if (!$this->hasFsTool()) {
+			$this->setFsTool(new Varien_Io_File());
+		}
+		$this->getFsTool()->setAllowCreateFolders(true);
+		if ($this->hasBaseDir()) {
+			$this->setUpDirs();
+		}
 	}
 
 	/**
 	 * Assigns our folder variable and does the recursive creation
-	 * 
+	 * @param string $path the full path to the directory to set up.
 	 */
-	private function _setCheckAndCreateFolder(&$folderName, $folderPath)
+	private function _setCheckAndCreateDir($path)
 	{
-		$folderName = $folderPath;
-		return $this->checkAndCreateFolder($folderName);
+		return $this->getFsTool()->checkAndCreateFolder($path);
 	}
 
 	/**
 	 * For feeds, just configure a base folder, and you'll get the rest.
 	 */
-	public function setBaseFolder($userFolder)
+	public function setUpDirs()
 	{
-		$this->_setCheckAndCreateFolder($this->_baseFolder,		$userFolder);	// $userFolder should come from module's config
-		$this->_setCheckAndCreateFolder($this->_inboundFolder,	$this->_baseFolder . $this->dirsep() . self::INBOUND_FOLDER_NAME);
-		$this->_setCheckAndCreateFolder($this->_outboundFolder,	$this->_baseFolder . $this->dirsep() . self::OUTBOUND_FOLDER_NAME);
-		$this->_setCheckAndCreateFolder($this->_archiveFolder,	$this->_baseFolder . $this->dirsep() . self::ARCHIVE_FOLDER_NAME);
-		$this->_setCheckAndCreateFolder($this->_errorFolder,	$this->_baseFolder . $this->dirsep() . self::ERROR_FOLDER_NAME);
-		$this->_setCheckAndCreateFolder($this->_tmpFolder,		$this->_baseFolder . $this->dirsep() . self::TMP_FOLDER_NAME);
-		$this->cd($this->_baseFolder);
-		return $this;
+		$base = $this->getBaseDir();
+		if (!$base) {
+			// @fixme This could be written better
+			Mage::throwException('Need to set up base directory before calling this.');
+		}
+		return $this->addData(array(
+			'inbound_path'  => $this->_setCheckAndCreateDir($base . DS . self::INBOUND_DIR_NAME),
+			'outbound_path' => $this->_setCheckAndCreateDir($base . DS . self::OUTBOUND_DIR_NAME),
+			'archive_path'  => $this->_setCheckAndCreateDir($base . DS . self::ARCHIVE_DIR_NAME),
+			'error_path'    => $this->_setCheckAndCreateDir($base . DS . self::ERROR_DIR_NAME),
+			'tmp_path'      => $this->_setCheckAndCreateDir($base . DS . self::INBOUND_DIR_NAME),
+		));
 	}
 
 	/**
-	 * Lists contents of the Inbound Folder
+	 * Lists contents of the Inbound Dir
 	 */
-	public function lsInboundFolder($filetype='xml')
+	public function lsInboundDir($filetype='xml')
 	{
 		$dirContents = array();
 
-		$this->cd($this->_inboundFolder);
-		foreach( $this->ls() as $file ) {
-			if( !strcasecmp($filetype, $file['filetype']) ) {
-				$dirContents[] = $this->_cwd . $this->dirsep() . $file['text'];
+		$this->getFsTool()->cd($this->_inboundDir);
+		foreach ($this->getFsTool()->ls() as $file) {
+			if (!strcasecmp($filetype, $file['filetype'])) {
+				$dirContents[] = $this->getFsTool()->pwd() . DS . $file['text'];
 			}
 		}
 		asort($dirContents);
@@ -83,86 +84,46 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Io_File
 	}
 
 	/**
-	 * Get the full path to the inbound folder
+	 * mv a source file to a directory
 	 */
-	public function getInboundFolder()
+	private function _mvToDir($srcFile, $targetDir)
 	{
-		return $this->_inboundFolder;
+		$dest = $targetDir . DS . basename($srcFile);
+		$this->getFsTool()->mv($srcFile, $dest);
 	}
 
 	/**
-	 * Get the full path to the Outbound folder
+	 * mv file to Inbound Dir
 	 */
-	public function getOutboundFolder()
-	{
-		return $this->_outboundFolder;
+	public function mvToInboundDir($filePath) {
+		return $this->_mvToDir($filePath, $this->_inboundDir);
 	}
 
 	/**
-	 * Get the full path to the Archive folder
+	 * mv file to Outbound Dir
 	 */
-	public function getArchiveFolder()
-	{
-		return $this->_archiveFolder;
+	public function mvToOutboundDir($filePath) {
+		return $this->_mvToDir($filePath, $this->_outboundDir);
 	}
 
 	/**
-	 * Get the full path to the Error folder
+	 * mv file to Archive Dir
 	 */
-	public function getErrorFolder()
-	{
-		return $this->_errorFolder;
+	public function mvToArchiveDir($filePath) {
+		return $this->_mvToDir($filePath, $this->_archiveDir);
 	}
 
 	/**
-	 * Get the full path to the tmp folder
+	 * mv file to Error Dir
 	 */
-	public function getTmpFolder()
-	{
-		return $this->_tmpFolder;
+	public function mvToErrorDir($filePath) {
+		return $this->_mvToDir($filePath, $this->_errorDir);
 	}
 
 	/**
-	 * mv a source file to a folder
+	 * mv file to Tmp Dir
 	 */
-	private function _mvToFolder($srcFile,$targetDir)
-	{
-		$dest = $targetDir . $this->dirsep() . basename($srcFile);
-		return @rename($srcFile,$dest);
-	}
-
-	/**
-	 * mv file to Inbound Folder
-	 */
-	public function mvToInboundFolder($filePath) {
-		return $this->_mvToFolder($filePath, $this->_inboundFolder);
-	}
-
-	/**
-	 * mv file to Outbound Folder
-	 */
-	public function mvToOutboundFolder($filePath) {
-		return $this->_mvToFolder($filePath, $this->_outboundFolder);
-	}
-
-	/**
-	 * mv file to Archive Folder
-	 */
-	public function mvToArchiveFolder($filePath) {
-		return $this->_mvToFolder($filePath, $this->_archiveFolder);
-	}
-
-	/**
-	 * mv file to Error Folder
-	 */
-	public function mvToErrorFolder($filePath) {
-		return $this->_mvToFolder($filePath, $this->_errorFolder);
-	}
-
-	/**
-	 * mv file to Tmp Folder
-	 */
-	public function mvToTmpFolder($filePath) {
-		return $this->_mvToFolder($filePath, $this->_tmpFolder);
+	public function mvToTmpDir($filePath) {
+		return $this->_mvToDir($filePath, $this->_tmpDir);
 	}
 }
