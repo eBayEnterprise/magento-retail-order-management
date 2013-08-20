@@ -175,36 +175,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get a prototype array to use to initialize an attribute model with config data.
-	 * @param  Varien_SimpleXml_Element $fieldCfg
-	 * @return Mage_Catalog_Model_Eav_Entity_Attribute
-	 */
-	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
-	{
-		$attributeCode = $fieldCfg->getName();
-		if (!isset($this->_prototypeCache[$attributeCode])) {
-			$baseData = $this->_getInitialData();
-			foreach ($fieldCfg->children() as $cfgField => $data) {
-				$fieldName = '';
-				if ($cfgField === 'default') {
-					$input_type = (string) $fieldCfg->input_type;
-					$fieldName  = $this->_getDefaultValueFieldName($input_type);
-				} else {
-					$fieldName = $this->_getMappedFieldName($cfgField);
-				}
-				$value                = $this->_getMappedFieldValue($fieldName, $data);
-				$baseData[$fieldName] = $value;
-			}
-			$model = Mage::getResourceModel('catalog/eav_attribute');
-			$model->addData($baseData);
-			$this->_prototypeCache[$attributeCode] = $model;
-		}
-		// clone cached model
-		$model = clone $this->_prototypeCache[$attributeCode];
-		return $model;
-	}
-
-	/**
 	 * get the attribute model field name for the config field name.
 	 * @param  string $fieldName
 	 * @return string
@@ -434,7 +404,32 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * load the attribute identified by $code into a model and return the model object.
+	 * get a prototype array to use to initialize an attribute model with config data.
+	 * @param  Varien_SimpleXml_Element $fieldCfg
+	 * @return Mage_Catalog_Model_Eav_Entity_Attribute
+	 */
+	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
+	{
+		$attributeCode = $fieldCfg->getName();
+		$baseData = $this->_getInitialData();
+		foreach ($fieldCfg->children() as $cfgField => $data) {
+			$fieldName = '';
+			if ($cfgField === 'default') {
+				$input_type = (string) $fieldCfg->input_type;
+				$fieldName  = $this->_getDefaultValueFieldName($input_type);
+			} else {
+				$fieldName = $this->_getMappedFieldName($cfgField);
+			}
+			$value                = $this->_getMappedFieldValue($fieldName, $data);
+			$baseData[$fieldName] = $value;
+		}
+		$model = Mage::getResourceModel('catalog/eav_attribute');
+		$model->addData($baseData);
+		return $model;
+	}
+
+	/**
+	 * create the attribute if it doesnt exist and return the model for it.
 	 * @param  string $code
 	 * @return Mage_Catalog_Model_Resource_Eav_Attribute
 	 */
