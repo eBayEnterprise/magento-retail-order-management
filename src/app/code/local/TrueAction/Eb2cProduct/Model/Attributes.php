@@ -96,35 +96,50 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		$attributeSetId = $attributeSet->getId();
 		$entityTypeId   = $attributeSet->getEntityTypeId();
 		foreach ($defaults->children() as $attrCode => $attrConfig) {
-			$newAttr = $this->_getModelPrototype($attrConfig);
-			$attr = $this->_lookupAttribute($attrCode, $entityTypeId);
-			$group = null;
-			if ($newAttr->hasGroup()) {
+			$attr    = $this->_getOrCreateAttribute($attrCode, $entityTypeId, $attrConfig);
+			$group   = null;
+			$groupId = null;
+			if ($attr->hasGroup()) {
 				// attribute is in a group
-				$groupName = $newAttr->getGroup(); // note: group field
+				$groupName = $attr->getGroup(); // note: group field
 				$group = $this->_getAttributeGroup($groupName, $attributeSetId);
 				if (!$group) {
 					$message = 'unable to get model for group (%s)';
 					Mage::throwException(sprintf($message, $groupName));
 				}
+				$groupId = $group->getId();
 			}
-			if ($attr->getId()) {
-				// check if the groupid !== $group->getAttributeGroupId
-				if ($attr->getAttributeGroupId() !== $group->getId()) {
-					// log a warning cuz the attribute already exists with another group.
-					$message = 'replacing attribute group (%s) with (%s)';
-					$this->_logWarn(sprintf($message, $group->getAttributeGroupName(), $newAttr->getGroup()));
-					// update attr with new group.
-					$attr->setAttributeGroupId($group->getId());
-					// attr->save
-					$attr->save();
-				}
-				// the groups match so nothing to do.
-			} else {
-				// the attribute doesn't exist, so use the prototype to add it.
-				$newAttr->setAttributeGroupId($group->getId());
-				$newAttr->save();
+			$oldAttr = Mage::getResourceModel('catalog/product_attribute_collection')
+				->setEntityTypeFilter($entityTypeId)
+				->setCodeFilter($attrCode)
+				->getFirstItem();
+			if (!$oldAttr->getId()) {
+				$attr->setAttributeSetId($attributeSetId);
+				// update attr with new group.
+				$attr->setAttributeGroupId($group->getId());
+				// attr->save
+				$attr->save();
+			} elseif ($group && $attr->getAttributeGroupId() !== $group->getId()) {
+				// the entity_attribute already exists and the group is different from
+				// what was stored so update the group
+				$message = 'replacing attribute group (%s) with (%s)';
+				$this->_logWarn(sprintf(
+					$message,
+					$group->getAttributeGroupName(),
+					$attr->getAttributeGroupName()
+				));
+				// update attr with new group.
+				$attr->setAttributeGroupId($group->getId());
+				// attr->save
+				$attr->save();
+				$message = 'succeeded replacing attribute group (%s) with (%s)';
+				$this->_logDebug(sprintf(
+					$message,
+					$group->getAttributeGroupName(),
+					$attr->getAttributeGroupName()
+				));
 			}
+			// the entity_attribute exists and the groups match so nothing to do.
 		}
 		return $this;
 	}
@@ -430,10 +445,21 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 * @param  string $code
 	 * @return Mage_Catalog_Model_Resource_Eav_Attribute
 	 */
-	protected function _getOrCreateAttribute($code)
+	protected function _getOrCreateAttribute($attrCode, $entityTypeId, $attrConfig)
 	{
-		// use collection to load instances of model.
-		return Mage::getModel('catalog/resource_eav_attribute')->load($code, 'attribute_code');
+		if (!isset($this->_prototypeCache[$attrCode])) {
+			$attr          = $this->_lookupAttribute($attrCode, $entityTypeId);
+			$attrPrototype = $this->_getModelPrototype($attrConfig);
+			if (!$attr->getId()) {
+				$attrPrototype->setEntityTypeId($entityTypeId);
+				$attr = $attrPrototype->save();
+			}
+			if (!$attr->hasGroup()) {
+				$attr->setGroup($attrPrototype->getGroup());
+			}
+			$this->_prototypeCache[$attrCode] = $attr;
+		}
+		return $this->_prototypeCache[$attrCode];
 	}
 
 	/**
@@ -507,5 +533,14 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected function _logWarn($message)
 	{
 		Mage::log($message, Zend_Log::WARN);
+	}
+
+	/**
+	 * log a debug message
+	 * @param  string $message
+	 */
+	protected function _logDebug($message)
+	{
+		Mage::log($message, Zend_Log::DEBUG);
 	}
 }

@@ -19,52 +19,67 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testApplyDefaultAttributes()
 	{
-		$this->markTestIncomplete('the attribute mocks are broken');
 		$attrCode     = 'tax_code';
 		$hasGroup     = true;
 		$attrSetId    = 1;
 		$groupId      = 2;
+		$entityAttrId = 3;
 		$entityTypeId = 9;
-		$groupName    = 'testgroup';
+		$groupName    = 'Prices';
 		$attrSet      = $this->_buildModelMock('eav/entity_attribute_set', array(
 			'load' => $this->returnSelf(),
 			'getEntityTypeId' => $this->returnValue($entityTypeId),
 			'getId' => $this->returnValue($attrSetId),
 		));
-		$methods = array('hasGroup', 'getGroup', 'setAttributeGroupId', 'setAttributeSetId', 'save');
-		$newAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
-		$newAttr->expects($this->once())
+		$methods = array('getId', 'getAttributeGroupId', 'getGroup', 'hasGroup', 'setAttributeGroupId', 'setAttributeSetId', 'save');
+		$attr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
+		$attr->expects($this->atLeastOnce())
 			->method('hasGroup')
 			->will($this->returnValue($hasGroup));
-		$newAttr->expects($this->once())
+		$attr->expects($this->once())
 			->method('getGroup')
 			->will($this->returnValue($groupName));
-		$newAttr->expects($this->once())
+		$attr->expects($this->never())
+			->method('getAttributeGroupId')
+			->will($this->returnValue($groupId));
+		$attr->expects($this->once())
 			->method('setAttributeGroupId')
 			->with($this->identicalTo($groupId))
 			->will($this->returnSelf());
-		$newAttr->expects($this->once())
+		$attr->expects($this->once())
+			->method('setAttributeSetId')
+			->with($this->identicalTo($attrSetId))
+			->will($this->returnSelf());
+		$attr->expects($this->once())
 			->method('save')
 			->will($this->returnSelf());
 
-		$methods = array('getAttributeGroupId', 'setAttributeGroupId', 'save');
-		$lookupAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
-		$lookupAttr->expects($this->never())
-			->method('getAttributeGroupId')
-			->will($this->returnSelf($groupId));
-		$lookupAttr->expects($this->never())
-			->method('setAttributeGroupId')
-			->with($this->identicalTo($groupId))
+		$methods = array('getId');
+		$entityAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
+		$entityAttr->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(null));
+
+		$methods = array('setEntityTypeFilter', 'setCodeFilter', 'getFirstItem');
+		$collection = $this->getResourceModelMock('catalog/product_attribute_collection', $methods);
+		$collection->expects($this->once())
+			->method('setEntityTypeFilter')
+			->with($this->identicalTo($entityTypeId))
 			->will($this->returnSelf());
-		$lookupAttr->expects($this->never())
-			->method('save')
+		$collection->expects($this->once())
+			->method('setCodeFilter')
+			->with($this->identicalTo($attrCode))
 			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('getFirstItem')
+			->will($this->returnValue($entityAttr));
+		$this->replaceByMock('resource_model', 'catalog/product_attribute_collection', $collection);
 
 		$attrGroup = $this->_buildModelMock('eav/entity_attribute_group', array(
 			'getId' => $this->returnValue($groupId),
 		));
 
-		$methods = array('_loadDefaultAttributesConfig', '_lookupAttribute', '_getModelPrototype', '_getAttributeGroup', '_getAttributeSet');
+		$methods = array('_loadDefaultAttributesConfig', '_getOrCreateAttribute', '_getAttributeGroup', '_getAttributeSet');
 		$model = $this->getModelMock('eb2cproduct/attributes', $methods);
 
 		$configNode = new Varien_SimpleXml_Element(self::$configXml);
@@ -78,11 +93,10 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 			->method('_loadDefaultAttributesConfig')->will($this->returnValue($attrConfig));
 
 		$model->expects($this->once())
-			->method('_lookupAttribute')->will($this->returnValue($lookupAttr));
+			->method('_getOrCreateAttribute')
+			->with($this->identicalTo($attrCode), $this->identicalTo($entityTypeId), $this->anything())
+			->will($this->returnValue($attr));
 
-		$model->expects($this->once())
-			->method('_getModelPrototype')
-			->will($this->returnValue($newAttr));
 		$model->expects($this->once())
 			->method('_getAttributeSet')
 			->with($this->identicalTo($attrSet))
@@ -190,6 +204,62 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 * verify a new model is returned and contains the correct data for each field
 	 * @loadExpectation
 	 */
+	public function testGetOrCreateAttribute()
+	{
+		$dataNode     = new Varien_SimpleXml_Element(self::$configXml);
+		$taxCodeNode  = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		$attrCode     = 'tax_code';
+		$entityTypeId = '9';
+		$this->assertSame(1, count($taxCodeNode));
+		list($taxCodeNode) = $taxCodeNode;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCodeNode);
+		$this->assertSame('tax_code', $taxCodeNode->getName());
+		$model = Mage::getModel('eb2cproduct/attributes');
+ 		$attrModel = $this->_reflectMethod($model, '_getOrCreateAttribute')
+ 			->invoke($model, $attrCode, $entityTypeId, $taxCodeNode);
+		$this->assertInstanceOf('Mage_Catalog_Model_Resource_Eav_Attribute', $attrModel);
+		$this->assertNotNull($attrModel->getId());
+		$e = $this->expected('tax_code');
+		$this->assertEquals($e->getData(), $attrModel->getData());
+	}
+
+	/**
+	 * verify the cache is used to get the new model without reprocessing the
+	 * config.
+	 * verify the new model will not be the the instance in the cache.
+	 */
+	public function testGetOrCreateAttributeCache()
+	{
+		// setup input data
+		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
+		$taxCodeNode  = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		$attrCode     = 'tax_code';
+		$entityTypeId = 9;
+		$this->assertSame(1, count($taxCodeNode));
+		list($taxCodeNode) = $taxCodeNode;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCodeNode);
+		$this->assertSame($attrCode, $taxCodeNode->getName());
+
+		// mock functions to make sure they're not called
+		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
+		$model->expects($this->never())->method('_getDefaultValueFieldName');
+		$model->expects($this->never())->method('_getMappedFieldName');
+		$model->expects($this->never())->method('_getMappedFieldValue');
+
+		// mock up the cache
+		$dummyObject = new Varien_Object();
+		$this->_reflectProperty($model, '_prototypeCache')
+			->setValue($model, array($attrCode => $dummyObject));
+ 		$attrModel = $this->_reflectMethod($model, '_getOrCreateAttribute')
+ 			->invoke($model, $attrCode, $entityTypeId, $taxCodeNode);
+		$this->assertInstanceOf('Varien_Object', $attrModel);
+		$this->assertSame($dummyObject, $attrModel);
+	}
+
+	/**
+	 * verify a new model is returned and contains the correct data for each field
+	 * @loadExpectation
+	 */
 	public function testGetModelPrototype()
 	{
 		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
@@ -204,37 +274,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$this->assertInstanceOf('Mage_Catalog_Model_Resource_Eav_Attribute', $attrModel);
 		$e = $this->expected('tax_code');
 		$this->assertEquals($e->getData(), $attrModel->getData());
-	}
-
-	/**
-	 * verify the cache is used to get the new model without reprocessing the
-	 * config.
-	 * verify the new model will not be the the instance in the cache.
-	 */
-	public function testGetModelPrototypeCache()
-	{
-		// setup input data
-		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
-		$taxCode = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
-		$this->assertSame(1, count($taxCode));
-		list($taxCode) = $taxCode;
-		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCode);
-		$this->assertSame('tax_code', $taxCode->getName());
-
-		// mock functions to make sure they're not called
-		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
-		$model->expects($this->never())->method('_getDefaultValueFieldName');
-		$model->expects($this->never())->method('_getMappedFieldName');
-		$model->expects($this->never())->method('_getMappedFieldValue');
-
-		// mock up the cache
-		$dummyObject = new Varien_Object();
-		$this->_reflectProperty($model, '_prototypeCache')
-			->setValue($model, array('tax_code' => $dummyObject));
- 		$attrModel = $this->_reflectMethod($model, '_getModelPrototype')
- 			->invoke($model, $taxCode);
-		$this->assertInstanceOf('Varien_Object', $attrModel);
-		$this->assertNotSame($dummyObject, $attrModel);
 	}
 
 	public function callbackGetModuleDir($dir, $module)
