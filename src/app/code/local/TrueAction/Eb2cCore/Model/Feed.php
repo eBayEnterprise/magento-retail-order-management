@@ -3,8 +3,9 @@
  * This class is intended to simplify file movements during feed processing, and make sure
  * 	all dirs exists. Intended usage:
  *
- * $feed = Mage::getModel('eb2corder/feed');
- * $feed->setBaseDir('/path/to/your/config/base/dir');	// intended to come from your config
+ * $feed = Mage::getModel('eb2ccore/feed', array(
+ *		'base_dir' => 'Your/Base/Dir/Here'
+ *	));
  * $fileTransferRecevier($feed->getInboundDir(), $remoteLocation); // Run your file receiver 'into' getInboundDir()
  * foreach( $feed->lsInboundDir() as $file ) {
  *		// Do feed things ...
@@ -49,21 +50,30 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * For feeds, just configure a base folder, and you'll get the rest.
+	 * 
+	 * @return bool whether all directories are ok
 	 */
 	public function setUpDirs()
 	{
 		$base = $this->getBaseDir();
 		if (!$base) {
 			// @fixme This could be written better
-			Mage::throwException('Need to set up base directory before calling this.');
-		}
-		return $this->addData(array(
-			'inbound_path'  => $this->_setCheckAndCreateDir($base . DS . self::INBOUND_DIR_NAME),
-			'outbound_path' => $this->_setCheckAndCreateDir($base . DS . self::OUTBOUND_DIR_NAME),
-			'archive_path'  => $this->_setCheckAndCreateDir($base . DS . self::ARCHIVE_DIR_NAME),
-			'error_path'    => $this->_setCheckAndCreateDir($base . DS . self::ERROR_DIR_NAME),
-			'tmp_path'      => $this->_setCheckAndCreateDir($base . DS . self::INBOUND_DIR_NAME),
+			Mage::throwException('No base dir specified. Cannot set up dirs.');
+		} // This comment seems to prevent coverage complaints.
+
+		$this->addData(array(
+			'inbound_path'  => $base . DS . self::INBOUND_DIR_NAME,
+			'outbound_path' => $base . DS . self::OUTBOUND_DIR_NAME,
+			'archive_path'  => $base . DS . self::ARCHIVE_DIR_NAME,
+			'error_path'    => $base . DS . self::ERROR_DIR_NAME,
+			'tmp_path'      => $base . DS . self::TMP_DIR_NAME,
 		));
+
+		$this->_setCheckAndCreateDir($this->getInboundPath());
+		$this->_setCheckAndCreateDir($this->getOutboundPath());
+		$this->_setCheckAndCreateDir($this->getArchivePath());
+		$this->_setCheckAndCreateDir($this->getErrorPath());
+		$this->_setCheckAndCreateDir($this->getTmpPath());
 	}
 
 	/**
@@ -73,7 +83,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 	{
 		$dirContents = array();
 
-		$this->getFsTool()->cd($this->_inboundDir);
+		$this->getFsTool()->cd($this->getInboundPath());
 		foreach ($this->getFsTool()->ls() as $file) {
 			if (!strcasecmp($filetype, $file['filetype'])) {
 				$dirContents[] = $this->getFsTool()->pwd() . DS . $file['text'];
@@ -96,34 +106,34 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 	 * mv file to Inbound Dir
 	 */
 	public function mvToInboundDir($filePath) {
-		return $this->_mvToDir($filePath, $this->_inboundDir);
+		return $this->_mvToDir($filePath, $this->getInboundPath());
 	}
 
 	/**
 	 * mv file to Outbound Dir
 	 */
 	public function mvToOutboundDir($filePath) {
-		return $this->_mvToDir($filePath, $this->_outboundDir);
+		return $this->_mvToDir($filePath, $this->getOutboundPath());
 	}
 
 	/**
 	 * mv file to Archive Dir
 	 */
 	public function mvToArchiveDir($filePath) {
-		return $this->_mvToDir($filePath, $this->_archiveDir);
+		return $this->_mvToDir($filePath, $this->getArchivePath());
 	}
 
 	/**
 	 * mv file to Error Dir
 	 */
 	public function mvToErrorDir($filePath) {
-		return $this->_mvToDir($filePath, $this->_errorDir);
+		return $this->_mvToDir($filePath, $this->getErrorPath());
 	}
 
 	/**
 	 * mv file to Tmp Dir
 	 */
 	public function mvToTmpDir($filePath) {
-		return $this->_mvToDir($filePath, $this->_tmpDir);
+		return $this->_mvToDir($filePath, $this->getTmpPath());
 	}
 }

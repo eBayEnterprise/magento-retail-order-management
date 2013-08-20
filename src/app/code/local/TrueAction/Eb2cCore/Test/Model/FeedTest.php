@@ -1,107 +1,118 @@
 <?php
 class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 {
-	const	TEST_FILE_PFX	=	'TestFeed';
-	const	TEST_XML_DATA = <<<'XML'
-<MessageHeader>
-	<Standard>GSI</Standard>
-	<HeaderVersion>2.3</HeaderVersion>
-	<VersionReleaseNumber>2.3.1</VersionReleaseNumber>
-	<SourceData>
-		<SourceId>TMSEU_DC001</SourceId>
-		<SourceType>WMS</SourceType>
-	</SourceData>
-	<DestinationData>
-		<DestinationId>GSI</DestinationId>
-		<DestinationType>FH</DestinationType>
-	</DestinationData>
-	<EventType>InventoryStatus</EventType>
-	<MessageData>
-		<MessageId>123456</MessageId>
-		<CorrelationId>456789</CorrelationId>
-	</MessageData>
-	<CreateDateAndTime>2012-01-11T12:19:05-06:00</CreateDateAndTime>
-</MessageHeader>
-XML;
+	const TESTBASE_DIR_NAME = 'testBase';
+	protected $_vfs;
+	protected $_mockFsTool;
 
 	/**
-	 * @test
-	 * @large
+	 * setUp virtual files/ directory structure
 	 */
-	public function testFeedMethods()
+	public function setUp()
 	{
-		$mockFsTool = $this->getMock('Varien_Io_File', array(
+		$this->_vfs = $this->getFixture()->getVfs();
+		$this->_vfs->apply(
+			array(
+				self::TESTBASE_DIR_NAME => array (
+					TrueAction_Eb2cCore_Model_Feed::INBOUND_DIR_NAME  => array(),
+					TrueAction_Eb2cCore_Model_Feed::OUTBOUND_DIR_NAME => array(),
+					TrueAction_Eb2cCore_Model_Feed::ARCHIVE_DIR_NAME  => array(),
+					TrueAction_Eb2cCore_Model_Feed::ERROR_DIR_NAME    => array(),
+					TrueAction_Eb2cCore_Model_Feed::TMP_DIR_NAME      => array(),
+				)
+			)
+		);
+
+		// Mock the Varien_Io_File object, this is our FsTool for testing purposes
+		$this->_mockFsTool = $this->getMock('Varien_Io_File', array(
 			'cd',
 			'checkAndCreateFolder',
+			'ls',
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
 		));
-		$mockFsTool
+		$this->_mockFsTool
 			->expects($this->any())
 			->method('cd')
-			->with($this->identicalTo('foobar'))
+			->with($this->stringContains($this->_vfs->url(self::TESTBASE_DIR_NAME)))
 			->will($this->returnValue(true));
-		$mockFsTool
+		$this->_mockFsTool
 			->expects($this->any())
 			->method('checkAndCreateFolder')
-			->with($this->identicalTo('wuzzit'))
+			->with($this->stringContains($this->_vfs->url(self::TESTBASE_DIR_NAME)))
 			->will($this->returnValue(true));
-		$mockFsTool
+		$this->_mockFsTool
 			->expects($this->any())
 			->method('mv')
-			->with($this->logicalAnd($this->identicalTo('foo'), $this->identicalTo('bar')))
+			->with($this->identicalTo('foo'), $this->stringContains($this->_vfs->url(self::TESTBASE_DIR_NAME)))
 			->will($this->returnValue(true));
-		$mockFsTool
+		$this->_mockFsTool
+			->expects($this->any())
+			->method('ls')
+			->will($this->returnValue(array(array('text'=> 'sampleFile.xml', 'filetype'=>'xml'))));
+		$this->_mockFsTool
 			->expects($this->any())
 			->method('pwd')
-			->will($this->returnValue('flibleci'));
-		$mockFsTool
+			->will($this->returnValue($this->_vfs->url('testBase'. DS. TrueAction_Eb2cCore_Model_Feed::INBOUND_DIR_NAME)));
+		$this->_mockFsTool
 			->expects($this->any())
 			->method('setAllowCreateFolders')
-			->with()
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+	}
 
+	/**
+	 * Exercises constructor that doesn't have fs_tool mocked nor a base_dir provided.
+	 *
+	 * @test
+	 */
+	public function testBareConstructor()
+	{
+		$feed = Mage::getModel('eb2ccore/feed'); // No args will ensure coverage
+		$this->assertEmpty($feed->getInboundPath()); // All these paths should be empty, as no base was provided.
+		$this->assertEmpty($feed->getOutboundPath());
+		$this->assertEmpty($feed->getArchivePath());
+		$this->assertEmpty($feed->getErrorPath());
+		$this->assertEmpty($feed->getTmpPath());
+	}
+
+	/**
+	 * Cover exception thrown when the setup function is called but no base had ever been defined
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 * @expectedExceptionMessage No base dir specified. Cannot set up dirs.
+	 */
+	public function testNoBaseConstructor()
+	{
+		$feed = Mage::getModel('eb2ccore/feed'); // No args will ensure coverage
+		$feed->setUpDirs();
+	}
+
+	/**
+	 * @test
+	 */
+	public function testFeedMethods()
+	{
 		$feed = Mage::getModel('eb2ccore/feed', array(
-			'fs_tool' => $mockFsTool,
-			'base_dir' => Mage::getBaseDir('tmp'),
+			'fs_tool' => $this->_mockFsTool,
+			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
 		));
-		$fileset = array();
-		for ($i = 0; $i < 4; $i++) {
-			$fileset[$i] = $feed->getInboundFolder() . DS . self::TEST_FILE_PFX  . $i . '.xml';
-			file_put_contents($fileset[$i], self::TEST_XML_DATA);
+
+		foreach ($feed->lsInboundDir() as $aFilePath) {
 		}
 
-		// In real-life usage, your would setBaseFolder => run receiver into getInboundFolder() => loop via lsInboundFolder() => mvToXXXFolder.
-		foreach ($feed->lsInboundFolder() as $aFilePath) {
-			$this->assertFileExists($aFilePath);
-		}
+		$this->assertFileExists($feed->getInboundPath());
+		$this->assertFileExists($feed->getOutboundPath());
+		$this->assertFileExists($feed->getArchivePath());
+		$this->assertFileExists($feed->getErrorPath());
+		$this->assertFileExists($feed->getTmpPath());
 
-		// The move tests assert the dest exists after the move, and in doing so are testing the getXXXFolder methods:
-		// Test moving a file to outbound
-		$feed->mvToOutboundFolder($fileset[0]);
-		$this->assertFileNotExists($fileset[0]);
-		$this->assertFileExists($feed->getOutboundFolder().DS.basename($fileset[0]));
-
-		// Test moving a file to archive
-		$feed->mvToArchiveFolder($fileset[1]);
-		$this->assertFileNotExists($fileset[1]);
-		$this->assertFileExists($feed->getArchiveFolder().DS.basename($fileset[1]));
-
-		// Test moving a file to error
-		$feed->mvToErrorFolder($fileset[2]);
-		$this->assertFileNotExists($fileset[2]);
-		$this->assertFileExists($feed->getErrorFolder().DS.basename($fileset[2]));
-
-		// Test moving a file to tmp; we save to a var name because we're going to test moving it back.
-		$feed->mvToTmpFolder($fileset[3]);
-		$this->assertFileNotExists($fileset[3]);
-		$targetTempFile = $feed->getTmpFolder().DS.basename($fileset[3]);
-		$this->assertFileExists($targetTempFile);
-
-		// Test moving back into the Inbound Folder:
-		$feed->mvToInboundFolder($targetTempFile);
-		$this->assertFileNotExists($targetTempFile);
-		$this->assertFileExists($feed->getInboundFolder().DS.basename($targetTempFile));
+		$feed->mvToOutboundDir('foo');
+		$feed->mvToArchiveDir('foo');
+		$feed->mvToErrorDir('foo');
+		$feed->mvToTmpDir('foo');
+		$feed->mvToInboundDir('foo');
 	}
 }
