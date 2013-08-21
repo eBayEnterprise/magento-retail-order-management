@@ -6,7 +6,7 @@
  * $feed = Mage::getModel('eb2ccore/feed', array(
  *		'base_dir' => 'Your/Base/Dir/Here'
  *	));
- * $fileTransferRecevier($feed->getInboundDir(), $remoteLocation); // Run your file receiver 'into' getInboundDir()
+ * // Here you'd run your file receiver 'into' feed->getInboundDir()
  * foreach( $feed->lsInboundDir() as $file ) {
  *		// Do feed things ...
  * 		if( ok ) {
@@ -16,8 +16,16 @@
  * 		}
  * }
  *
+ * @method string getArchivePath()
+ * @method string getBaseDir()
+ * @method string getErrorPath()
+ * @method string getFsTool()
+ * @method string getInboundPath()
+ * @method string getOutboundPath()
+ * @method string getTmpPath()
+ * @method string setBaseDir(string pathName)
  */
-class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 {
 	const INBOUND_DIR_NAME  = 'inbound';
 	const OUTBOUND_DIR_NAME = 'outbound';
@@ -26,9 +34,10 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 	const TMP_DIR_NAME      = 'tmp';
 
 	/**
-	 * Turn on allow create folders; it's off by default in the base Varien_Io_File
+	 * Turn on allow create folders; it's off by default in the base Varien_Io_File. Set up
+	 * subdirectories if we're passed a base_dir
 	 */
-	public function _construct()
+	protected function _construct()
 	{
 		if (!$this->hasFsTool()) {
 			$this->setFsTool(new Varien_Io_File());
@@ -41,7 +50,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Assigns our folder variable and does the recursive creation
+	 *
 	 * @param string $path the full path to the directory to set up.
+	 * @return boolean
 	 */
 	private function _setCheckAndCreateDir($path)
 	{
@@ -51,7 +62,6 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * For feeds, just configure a base folder, and you'll get the rest.
 	 * 
-	 * @return bool whether all directories are ok
 	 */
 	public function setUpDirs()
 	{
@@ -78,6 +88,8 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Lists contents of the Inbound Dir
+	 *
+	 * @return array() of file names
 	 */
 	public function lsInboundDir($filetype='xml')
 	{
@@ -95,45 +107,69 @@ class TrueAction_Eb2cCore_Model_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * mv a source file to a directory
+	 *
+	 * @param string $srcFile
+	 * @param string $targetDir
+	 * @return boolean
 	 */
 	private function _mvToDir($srcFile, $targetDir)
 	{
 		$dest = $targetDir . DS . basename($srcFile);
-		$this->getFsTool()->mv($srcFile, $dest);
+		return $this->getFsTool()->mv($srcFile, $dest);
 	}
 
 	/**
 	 * mv file to Inbound Dir
+	 *
+	 * @param string $filePath to move
+	 * @return boolean
 	 */
-	public function mvToInboundDir($filePath) {
+	public function mvToInboundDir($filePath)
+	{
 		return $this->_mvToDir($filePath, $this->getInboundPath());
 	}
 
 	/**
 	 * mv file to Outbound Dir
+	 *
+	 * @param string $filePath to move
+	 * @return boolean
 	 */
-	public function mvToOutboundDir($filePath) {
+	public function mvToOutboundDir($filePath)
+	{
 		return $this->_mvToDir($filePath, $this->getOutboundPath());
 	}
 
 	/**
 	 * mv file to Archive Dir
+	 *
+	 * @param string $filePath to move
+	 * @return boolean
 	 */
-	public function mvToArchiveDir($filePath) {
+	public function mvToArchiveDir($filePath)
+	{
 		return $this->_mvToDir($filePath, $this->getArchivePath());
 	}
 
 	/**
 	 * mv file to Error Dir
+	 *
+	 * @param string $filePath to move
+	 * @return boolean
 	 */
-	public function mvToErrorDir($filePath) {
+	public function mvToErrorDir($filePath)
+	{
 		return $this->_mvToDir($filePath, $this->getErrorPath());
 	}
 
 	/**
 	 * mv file to Tmp Dir
+	 *
+	 * @param string $filePath to move
+	 * @return boolean
 	 */
-	public function mvToTmpDir($filePath) {
+	public function mvToTmpDir($filePath)
+	{
 		return $this->_mvToDir($filePath, $this->getTmpPath());
 	}
 }
