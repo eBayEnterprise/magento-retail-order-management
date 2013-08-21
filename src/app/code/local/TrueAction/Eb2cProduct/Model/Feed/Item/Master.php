@@ -14,6 +14,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	protected $_bundleQueue;
 
 	/**
+	 * hold a collection of configurable operation data
+	 *
+	 * @var array
+	 */
+	protected $_configurableQueue;
+
+	/**
 	 * Initialize model
 	 */
 	protected function _construct()
@@ -25,6 +32,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$this->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'));
 		$this->setFeedModel(Mage::getModel('eb2ccore/feed'));
 		$this->setEavConfig(Mage::getModel('eav/config'));
+		$this->setEavEntityAttribute(Mage::getModel('eav/entity_attribute'));
+		$this->setProductTypeConfigurableAttribute(Mage::getModel('catalog/product_type_configurable_attribute'));
+
+		// setting default attribute set id
 		$this->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId());
 
 		// Magento product type ids
@@ -38,6 +49,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 		// initalialize bundle queue with an empty array
 		$this->_bundleQueue = array();
+
+		// initalialize configurable queue with an empty array
+		$this->_configurableQueue = array();
 
 		return $this;
 	}
@@ -55,6 +69,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	}
 
 	/**
+	 * getting the eav attribute object.
+	 *
+	 * @param string $attribute, the string attribute code to get the attribute config
+	 *
+	 * @return Mage_Eav_Model_Config
+	 */
+	protected function _getAttribute($attribute)
+	{
+		return $this->getEavConfig()->getAttribute('catalog_product', $attribute);
+	}
+
+	/**
 	 * add bundle product to a queue to be process later.
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to process bundle products
@@ -65,6 +91,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	{
 		if ($bundleDataObject) {
 			$this->_bundleQueue[] = $bundleDataObject;
+		}
+		return ;
+	}
+
+	/**
+	 * add configurable product to a queue to be process later.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to process configured products
+	 *
+	 * @return void
+	 */
+	protected function _queueConfigurableData($configurableDataObject)
+	{
+		if ($configurableDataObject) {
+			$this->_configurableQueue[] = $configurableDataObject;
 		}
 		return ;
 	}
@@ -146,6 +187,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		// let's process any bundle product that were added to the queue
 		$this->processBundleQueue();
 
+		// let's process any configurable product that were added to the queue
+		$this->processConfigurableQueue();
+
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
 	}
@@ -166,6 +210,52 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			$queueBundleObject->setParentSku($feedItem->getItemId()->getClientItemId());
 			$this->_queueBundleData($queueBundleObject);
 		}
+	}
+
+	/**
+	 * add configurable object to queue
+	 *
+	 * @param Varien_Object $feedItem, get configurable object from feed item
+	 *
+	 * @return void
+	 */
+	protected function _addConfigurableToQueue(Varien_Object $feedItem)
+	{
+		// if this item has configurable data let's queue it, so that we can process later.
+		if (!is_null($feedItem->getBundleContents())) {
+			$queueConfigurableObject = new Varien_Object();
+			$queueConfigurableObject->setConfigurableData($feedItem->getBundleContents());
+			$queueConfigurableObject->setParentSku($feedItem->getItemId()->getClientItemId());
+			$queueConfigurableObject->setConfigurableAttributes($this->_extractConfigurableAttributes($feedItem));
+			$this->_queueConfigurableData($queueConfigurableObject);
+		}
+	}
+
+	/**
+	 * extract configurable custom attributes feed item
+	 *
+	 * @param Varien_Object $feedItem, get configurable object from feed item
+	 *
+	 * @return array, all configurable attributes
+	 */
+	protected function _extractConfigurableAttributes(Varien_Object $feedItem)
+	{
+		$configurableAttributes = array();
+		// if this item has configurable attribute data let's extract it.
+		if (!is_null($feedItem->getCustomAttributes())) {
+			// adding custom attributes
+			$customAttributes = $feedItem->getCustomAttributes()->getAttributes();
+			if (!empty($customAttributes)) {
+				foreach ($customAttributes as $attribute) {
+					// only process custom attributes that mark is configurable
+					if (strtoupper(trim($attribute['name'])) === 'CONFIGURABLEATTRIBUTES') {
+						$configurableAttributes = explode(',', $attribute['value']);
+					}
+				}
+			}
+		}
+
+		return $configurableAttributes;
 	}
 
 	/**
@@ -213,8 +303,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 					continue;
 				}
 
-				// queue bundle data
-				$this->_addBundleToQueue($feedItem);
+				if (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'BUNDLE') {
+					// queue bundle data
+					$this->_addBundleToQueue($feedItem);
+				} elseif (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'CONFIGURABLE') {
+					// queue configurable data
+					$this->_addConfigurableToQueue($feedItem);
+				}
 
 				// pricess feed data according to their operations
 				switch (trim(strtoupper($feedItem->getOperationType()))) {
@@ -303,7 +398,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						}
 						if ($this->_isAttributeExists('color')) {
 							// setting color attribute
-							$productObject->setColor($dataObject->getExtendedAttributes()->getColorCode());
+							$productObject->setColor(ucfirst(strtolower($dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription())));
 						}
 						if ($this->_isAttributeExists('gift_cart_tender_code')) {
 							// setting gift_cart_tender_code attribute
@@ -316,13 +411,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
 								if ($this->_isAttributeExists($attributeCode)) {
-									// setting custom attributes
-									if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
-										// setting custom attributes to null on operation type 'delete'
-										$productObject->setData($attributeCode, null);
-									} else {
-										// seting custom value whener the operation type is 'add', or 'change'
-										$productObject->setData($attributeCode, $attribute['value']);
+									// only process custom attributes that not mark is configurable
+									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+										// setting custom attributes
+										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
+											// setting custom attributes to null on operation type 'delete'
+											$productObject->setData($attributeCode, null);
+										} else {
+											// seting custom value whener the operation type is 'add', or 'change'
+											$productObject->setData($attributeCode, $attribute['value']);
+										}
 									}
 								}
 							}
@@ -447,13 +545,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
 								if ($this->_isAttributeExists($attributeCode)) {
-									// setting custom attribute
-									if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
-										// setting custom attributes to null on operation type 'delete'
-										$productObject->setData($attributeCode, null);
-									} else {
-										// seting custom value whener the operation type is 'add', or 'change'
-										$productObject->setData($attributeCode, $attribute['value']);
+									// only process custom attributes that not mark is configurable
+									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+										// setting custom attribute
+										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
+											// setting custom attributes to null on operation type 'delete'
+											$productObject->setData($attributeCode, null);
+										} else {
+											// seting custom value whener the operation type is 'add', or 'change'
+											$productObject->setData($attributeCode, $attribute['value']);
+										}
 									}
 								}
 							}
@@ -601,6 +702,82 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 			// after looping through the queue, let's reset the bundle queue
 			$this->_bundleQueue = array();
+		}
+	}
+
+	/**
+	 * processing Configurable queue.
+	 *
+	 * @return void
+	 */
+	public function processConfigurableQueue()
+	{
+		// process Configurable only when the queue has actual data
+		if (!empty($this->_configurableQueue)) {
+			// loop through all queued items
+			foreach ($this->_configurableQueue as $configurableObject) {
+				// only process when there's a parent sku related to the configurable object
+				if (trim($configurableObject->getParentSku()) !== '') {
+					// we have a valid item, let's check if this parent product already exists in Magento
+					$parentProductObject = $this->_loadProductBySku($configurableObject->getParentSku());
+					if ($parentProductObject->getId()) {
+						// we have a valid parent product
+						try {
+							// get all the configurable object and set them as configurable product for the parent product.
+							if ($configurableItemCollection = $configurableObject->getConfigurableData()->getBundleItems()) {
+
+								$configurableData = array();
+
+								// all configurable attributes for this configurable parent product
+								$configurableAttributes = $configurableObject->getConfigurableAttributes();
+
+								foreach ($configurableItemCollection as $children) {
+									$childProduct = $this->_loadProductBySku($children->getItemId());
+									if ($childProduct->getId()) {
+										foreach ($configurableAttributes as $configAttribute) {
+											$attributeObject = $this->_getAttribute($configAttribute);
+											$attributeOptions = $attributeObject->getSource()->getAllOptions();
+											foreach ($attributeOptions as $option) {
+												$configurableData[$childProduct->getId()][] = array(
+													'attribute_id' => $attributeObject->getId(),
+													'label' => $option['label'],
+													'value_index'=> $option['value'],
+												);
+											}
+										}
+									}
+								}
+
+								$configurableAttributeData = array();
+								foreach ($configurableAttributes as $attrCode) {
+									$superAttribute = $this->getEavEntityAttribute()->loadByCode('catalog_product', $attrCode);
+									$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
+									$configurableAttributeData[] = array(
+										'id' => $configurableAtt->getId(),
+										'label' => $configurableAtt->getLabel(),
+										'position' => $superAttribute->getPosition(),
+										'values' => $configurableAtt->getPrices() ? $configProduct->getPrices() : array(),
+										'attribute_id' => $superAttribute->getId(),
+										'attribute_code' => $superAttribute->getAttributeCode(),
+										'frontend_label' => $superAttribute->getFrontend()->getLabel(),
+									);
+								}
+
+								$parentProductObject->setConfigurableProductsData($configurableData);
+								$parentProductObject->setConfigurableAttributesData($configurableAttributeData);
+								$parentProductObject->setCanSaveConfigurableAttributes(true);
+
+								$parentProductObject->save();
+							}
+						} catch (Exception $e) {
+							Mage::log('The following error has occurred while processing the configurable queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+						}
+					}
+				}
+			}
+
+			// after looping through the queue, let's reset the configurable queue
+			$this->_configurableQueue = array();
 		}
 	}
 

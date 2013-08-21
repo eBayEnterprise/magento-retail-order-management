@@ -507,7 +507,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 
 		// let save CustomAttributes/Attribute to a Varien_Object
 		$customAttributesObject = new Varien_Object();
-		$customAttributesObject->setAttributes(array(array('name' => null, 'operationType' => null, 'lang' => null, 'value' => null)));
+		$customAttributesObject->setAttributes(array(array('name' => null, 'operationType' => null, 'lang' => null, 'value' => null, 'is_configurable' => false)));
 
 		// Name value paris of additional attributes for the product.
 		$customAttributes = $feedXpath->query('//Item[' .
