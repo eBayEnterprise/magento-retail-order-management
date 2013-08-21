@@ -1,12 +1,6 @@
 <?php
 /**
- * Order Status processing Class.
- *	- Gets Order Status feeds from remote
- *	- For each file:
- * 		* Verify it's in the correct sequence
- * 		* Apply the specified updates
- * 		* Note/ Remember which files have been processed
- *		* Archive / Move to Error folders depending upon success/ failure
+ * Order Status processing Class, gets Order Status feeds from remote
  */
 class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 {
@@ -18,14 +12,20 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	private $_fileInfo;
 	private $_event;
 
-	public function _construct()
+	protected function _construct()
 	{
 		$helper = Mage::helper('eb2corder');
 		$this->_config = $helper->getConfig();
 		$this->_coreFeedHelper = $helper->getCoreFeedHelper();
 
 		// Set up local folders for receiving, processing
-		$this->_localIo = Mage::getModel('eb2ccore/feed')->setBaseFolder($this->_config->statusFeedLocalPath);
+		$coreFeedConstructorArgs = array(
+			'base_dir' => $this->_config->statusFeedLocalPath
+		);
+		if ($this->hasFsTool()) {
+			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
+		}
+		$this->_localIo = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 
 		// Set up remote conduit:
 		$this->_remoteIo = Mage::helper('filetransfer');
@@ -37,19 +37,19 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	private function _fetchFeedsFromRemote()
 	{
 		$this->_remoteIo->getFile(
-			$this->_localIo->getInboundFolder(),
+			$this->_localIo->getInboundDir(),
 			$this->_config->statusFeedRemotePath,
 			$this->_config->fileTransferConfigPath
 		);	// Gets the files. 
 	}
 
 	/**
-	 * Loops through all files found in the Inbound Folder.
+	 * Loops through all files found in the Inbound Dir.
 	 */
 	public function processFeeds()
 	{
 		$this->_fetchFeedsFromRemote();
-		foreach( $this->_localIo->lsInboundFolder() as $xmlFeedFile ) {
+		foreach( $this->_localIo->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
 		}
 		return true;
@@ -88,17 +88,17 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			}
 		}
 
-		Mage::log('File ' . $xmlFile
+		Mage::log('File ' . $xmlFile 
 			. sprintf(': Processed %d of %d, %d errors',
-				$this->_fileInfo['recordsProcessed'],
-				$this->_fileInfo['recordCount'],
-				$this->_fileInfo['recordsWithErrors']) );
+			$this->_fileInfo['recordsProcessed'],
+			$this->_fileInfo['recordCount'],
+		$this->_fileInfo['recordsWithErrors']) );
 
 		if( $this->_fileInfo['recordsWithErrors'] ) {
-			$this->_localIo->mvToErrorFolder($xmlFile);
+			$this->_localIo->mvToErrorDir($xmlFile);
 		}
 		else {
-			$this->_localIo->mvToArchiveFolder($xmlFile);
+			$this->_localIo->mvToArchiveDir($xmlFile);
 		}
 		return true;
 	}
@@ -107,7 +107,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Processes a single eb2c event
 	 *
-	 * @parama eventNode - node containing a single event to process
+	 * @param $eventNode - node containing a single event to process
 	 */
 	private function _processOneEvent($eventNode)
 	{
