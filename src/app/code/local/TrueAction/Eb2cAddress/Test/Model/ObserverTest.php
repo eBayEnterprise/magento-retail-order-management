@@ -1,8 +1,79 @@
 <?php
 
+use EcomDev_PHPUnit_Test_Case_Util as TestUtil;
+
 class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	extends EcomDev_PHPUnit_Test_Case
 {
+
+	public function setUp()
+	{
+		parent::setUp();
+		TestUtil::setUp();
+	}
+
+	public function tearDown()
+	{
+		parent::tearDown();
+		TestUtil::tearDown();
+	}
+
+	protected function _mockConfig($enabled)
+	{
+		$config = $this->getModelMockBuilder('eb2ccore/config_registry')
+			->disableOriginalConstructor()
+			->setMethods(array('__get', 'addConfigModel'))
+			->getMock();
+		$config->expects($this->once())
+			->method('addConfigModel')
+			->with($this->equalTo(Mage::getSingleton('eb2caddress/config')))
+			->will($this->returnSelf());
+		$config->expects($this->once())
+			->method('__get')
+			->with($this->identicalTo('isValidationEnabled'))
+			->will($this->returnValue($enabled));
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $config);
+		return $config;
+	}
+
+	/**
+	 * When disabled, observer method should do nothing.
+	 * @test
+	 */
+	public function testValidationValidationDisabled()
+	{
+		$config = $this->_mockConfig(0);
+
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->never())
+			->method('getEvent');
+		$validator = $this->getModelMock('eb2caddress/validator', array('validateAddress'));
+		$validator->expects($this->never())
+			->method('validateAddress');
+
+		Mage::getSingleton('eb2caddress/observer')->validateAddress($observer);
+	}
+
+	/**
+	 * When disabled, observer method should do nothing.
+	 * @test
+	 */
+	public function testAddSuggestionsValidationDisabled()
+	{
+		$config = $this->_mockConfig(0);
+
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->never())
+			->method('getEvent');
+		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
+		$validator->expects($this->never())
+			->method('hasSuggestions');
+		$addressObserver = $this->getModelMock('eb2caddress/observer', array('_getAddressBlockHtml'));
+		$addressObserver->expects($this->never())
+			->method('_getAddressBlockHtml');
+
+		$addressObserver->addSuggestionsToResponse($observer);
+	}
 
 	/**
 	 * When the event already has errors in it, nothing should happen.
@@ -10,6 +81,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testValidateAddressExistingErrors()
 	{
+		$this->markTestSkipped("this test may no longer be valid as this functionality may not be possible based on the proposed implementation of the validation event");
 		$errorContainer = $this->getMock('Varien_Object', array('getErrors'));
 		$errorContainer->expects($this->any())
 			->method('getErrors')
@@ -32,44 +104,30 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	}
 
 	/**
-	 * Make sure that when there are not pre-existing error messages that validation
-	 * gets called and that when validation returns an error message that
-	 * the error message gets added back to the observer object.
+	 * Test that when address validation fails, the errors are added to the address
+	 * object's set of errors.
 	 * @test
 	 */
 	public function testValidateAddressValidationErrors()
 	{
+		$this->_mockConfig(1);
+
 		$expectedError = 'Error from validation';
+		$address = $this->getModelMock('customer/address', array('addError'));
+		$address->expects($this->once())
+			->method('addError')
+			->with($this->identicalTo($expectedError))
+			->will($this->returnSelf());
 
-		$errorContainer = $this->getMock('Varien_Object', array('getErrors', 'setErrors'));
-		$errorContainer->expects($this->any())
-			->method('getErrors')
-			->will($this->returnValue(array()));
-
-		$errorContainer->expects($this->once())
-			->method('setErrors')
-			->with(array($expectedError));
-
-		$address = $this->getModelMock('customer/address');
-
-		$event = $this->getMock('Varien_Event', array('getErrorContainer', 'getAddress'));
-
-		$event->expects($this->any())
-			->method('getErrorContainer')
-			->will($this->returnValue($errorContainer));
-
-		$event->expects($this->any())
-			->method('getAddress')
-			->will($this->returnValue($address));
+		$event = new Varien_Object();
+		$event->setAddress($address);
 
 		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
-
 		$observer->expects($this->any())
 			->method('getEvent')
 			->will($this->returnValue($event));
 
 		$validator = $this->getModelMock('eb2caddress/validator', array('validateAddress'));
-
 		$validator->expects($this->once())
 			->method('validateAddress')
 			->with($this->equalTo($address))
@@ -81,40 +139,26 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	}
 
 	/**
-	 * Ensure when validation is successful, that no errors are added to the
-	 * errors container.
+	 * Ensure when validation is successful, that no errors are added to the address
 	 * @test
 	 */
 	public function testValidateAddressSuccess()
 	{
-		$errorContainer = $this->getMock('Varien_Object', array('getErrors', 'setErrors'));
-		$errorContainer->expects($this->any())
-			->method('getErrors')
-			->will($this->returnValue(array()));
+		$this->_mockConfig(1);
 
-		$errorContainer->expects($this->never())
-			->method('setErrors');
+		$address = $this->getModelMock('customer/address', array('addError'));
+		$address->expects($this->never())
+			->method('addError');
 
-		$address = $this->getModelMock('customer/address');
-
-		$event = $this->getMock('Varien_Event', array('getErrorContainer', 'getAddress'));
-
-		$event->expects($this->any())
-			->method('getErrorContainer')
-			->will($this->returnValue($errorContainer));
-
-		$event->expects($this->any())
-			->method('getAddress')
-			->will($this->returnValue($address));
+		$event = new Varien_Object();
+		$event->setAddress($address);
 
 		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
-
 		$observer->expects($this->any())
 			->method('getEvent')
 			->will($this->returnValue($event));
 
 		$validator = $this->getModelMock('eb2caddress/validator', array('validateAddress'));
-
 		$validator->expects($this->once())
 			->method('validateAddress')
 			->with($this->equalTo($address))
@@ -196,6 +240,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testResponseSuggestionsNoSuggestions()
 	{
+		$this->_mockConfig(1);
+
 		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
 		// when there aren't errors in the response, this shouldn't get called
 		$validator->expects($this->once())
@@ -262,6 +308,8 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testResponseSuggestionsErrorsAndSuggestions()
 	{
+		$this->_mockConfig(1);
+
 		$validator = $this->getModelMock('eb2caddress/validator', array('hasSuggestions'));
 		// when there aren't errors in the response, this shouldn't get called
 		$validator->expects($this->once())

@@ -56,27 +56,19 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$this->_doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_doc->preserveWhiteSpace = false;
 		if ($this->hasXml()) {
-			$this->_doc->loadXML($this->getXml());
-			$this->_namespaceUri = $this->_doc->documentElement->namespaceURI;
-			$this->_extractResults();
-			// validate response
-			$this->_isValid = $this->_validateDestinations();
+			$xml = $this->getXml();
+			$isDocOk = $this->_checkXml($xml);
+			if ($isDocOk) {
+				$this->_doc->loadXml($xml);
+				$this->_namespaceUri = $this->_doc->documentElement->namespaceURI;
+				// validate response
+				$this->_isValid = $this->_validateDestinations();
+				$this->_isValid = $this->_isValid && $this->_validateResponseItems($this->getRequest()->getDocument(), $this->_doc);
+				if ($this->_isValid) {
+					$this->_extractResults();
+				}
+			}
 		}
-	}
-
-	/**
-	 * loading sales/quoate_address object
-	 *
-	 * @param int $addressId, the address id to load the object data.
-	 *
-	 * @return Mage_Sales_Quote_Address
-	 */
-	protected function _loadAddress($addressId)
-	{
-		if (!($this->_address && $addressId)) {
-			$this->_address = Mage::getModel('sales/quote_address');
-		}
-		return $this->_address->load($addressId);
 	}
 
 	/**
@@ -110,34 +102,17 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 */
 	public function isValid()
 	{
-		return $this->_isValid && $this->getRequest() && $this->getRequest()->isValid();
+		return $this->_isValid && $this->_isRequestValid();
 	}
 
 	/**
-	 * get the address using the value from the ref attribute.
-	 * @param  TrueAction_Dom_Element $shipGroup
-	 * @return Mage_Sales_Model_Quote_Address
+	 * return true if the request is valid.
+	 * @return boolean [description]
 	 */
-	protected function _getAddress(TrueAction_Dom_Element $shipGroup)
+	protected function _isRequestValid()
 	{
-		$xpath = new DOMXPath($this->_doc);
-		$xpath->registerNamespace('a', $this->_namespaceUri);
-		$idRef = $xpath->evaluate('string(./a:DestinationTarget/@ref)', $shipGroup);
-		$id = null;
-		$idRefArray = explode('_', $idRef);
-		if (count($idRefArray) > 1) {
-			list(, $id) = $idRefArray;
-		}
-		$address = $this->_loadAddress($id);
-		if (!$address->getId()) {
-			$this->_isValid = false;
-			$message = "Address referenced by '$idRef' could not be loaded from the quote";
-			Mage::log($message, Zend_Log::WARN);
-			$address = null;
-		}
-		return $address;
+		return $this->getRequest() && $this->getRequest()->isValid();
 	}
-
 
 	/**
 	 * get and verify the address id for the shipgroup.
@@ -158,11 +133,10 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		if (!$id) {
 			$this->_isValid = false;
 			$message = "Unable to parse the address ID from the ShipGroup '$idRef'";
-			Mage::log($message, Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . $message, Zend_Log::WARN);
 		}
 		return $id;
 	}
-
 
 	/**
 	 * generate tax quote records with data extracted from the response.
@@ -184,9 +158,8 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		foreach ($shipGroups as $shipGroup) {
 			$addressId = $this->_getAddressId($shipGroup);
 			$responseSkus = array();
-			// foreach item
-			$items = $xpath->query('./a:Items/a:OrderItem', $shipGroup);
 			if ($addressId) {
+				$items = $xpath->query('./a:Items/a:OrderItem', $shipGroup);
 				// skip the shipgroup we can't get the address
 				foreach ($items as $item) {
 					$orderItem = Mage::getModel('eb2ctax/response_orderitem', array(
@@ -202,6 +175,151 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		}
 		// foreach destination
 		// verify data
+	}
+
+	/**
+	 * compare an OrderItem element with the corresponding element in the request
+	 * to make sure we got back what we sent.
+	 * return true if all items match; false otherwise.
+	 * @param  TrueAction_Dom_Element $itemNode OrderItem element from the request
+	 * @return bool
+	 */
+	protected function _validateResponseItems($requestDoc, $responseDoc)
+	{
+		if (!($requestDoc && $requestDoc->documentElement && $responseDoc && $responseDoc->documentElement)) {
+			$isValid = false;
+			return $isValid;
+		}
+		$isValid = true;
+		$requestXpath = new DOMXPath($requestDoc);
+		$requestXpath->registerNamespace('a', $requestDoc->documentElement->namespaceURI);
+		$responseXpath = new DOMXPath($responseDoc);
+		$responseXpath->registerNamespace('a', $responseDoc->documentElement->namespaceURI);
+		$heading = 'TaxDutyQuoteResponse';
+
+		// foreach request shipgroup
+		$requestShipgroups = $requestXpath->query('//a:ShipGroup');
+		foreach ($requestShipgroups as $shipGroup) {
+			if (!$isValid) {
+				break;
+			}
+			// get the shipgroupid
+			$shipGroupId = $requestXpath->evaluate('string(./@id)', $shipGroup);
+			$sgPath = '//a:ShipGroup[@id="' . $shipGroupId . '"]';
+			// create response shipgroup path
+			// query the response shipgroup
+			$result = $responseXpath->query($sgPath);
+			// if nodelist is empty fail
+			$isValid = $isValid && $result->length === 1;
+			if ($isValid) {
+				$responseShipgroup = $result->item(0);
+				$orderItems = $requestXpath->query('./a:Items/a:OrderItem', $shipGroup);
+				foreach ($orderItems as $orderItem) {
+					if (!$isValid) {
+						break;
+					}
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:ItemId)', $orderItem);
+					$itemSku = $val;
+					// constructpath to orderitem
+					$resPath = $sgPath . '/a:Items/a:OrderItem/a:ItemId[.="' . $val . '"]';
+					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
+					$orderItemPath = $sgPath . '/a:Items/a:OrderItem/a:ItemId[.="' . $val . '"]/..';
+					if (!$isValid) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: sku "%s" not found in the response.', $heading, $val),
+							Zend_Log::WARN
+						);
+						// don't bother checking any other fields since they will not be found
+						break;
+					}
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./@lineNumber)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $sgPath . '/a:Items/a:OrderItem[@lineNumber="' . $val . '"]/a:ItemId[.="' . $itemSku . '"]';
+					$isMatch = $responseXpath->query($resPath)->length === 1;
+					if (!$isMatch) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'lineNumber'),
+							Zend_Log::WARN
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:Quantity)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:Quantity[.="' . $val . '"]';
+					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
+					if (!$isValid) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Quantity'),
+							Zend_Log::WARN
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:Pricing/a:Merchandise/a:UnitPrice)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:Pricing/a:Merchandise/a:UnitPrice[.="' . $val . '"]';
+					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
+					if (!$isValid) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/Merchandise/UnitPrice'),
+							Zend_Log::WARN
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:Pricing/a:Shipping/a:Amount)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:Pricing/a:Shipping/a:Amount[.="' . $val . '"]';
+					$isMatch = $responseXpath->query($resPath)->length === 1;
+					if (!$isMatch) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/a:Shipping/a:Amount'),
+							Zend_Log::DEBUG
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:ItemDesc)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:ItemDesc[.="' . $val . '"]';
+					$isMatch = $responseXpath->query($resPath)->length === 1;
+					if (!$isMatch) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'ItemDesc'),
+							Zend_Log::DEBUG
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:HTSCode)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:HTSCode[.="' . $val . '"]';
+					$isMatch = $responseXpath->query($resPath)->length === 1;
+					if (!$isMatch) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'HTSCode'),
+							Zend_Log::DEBUG
+						);
+					}
+
+					// create paths for each value to check
+					$val = $requestXpath->evaluate('string(./a:Pricing/a:Merchandise/a:Amount)', $orderItem);
+					// constructpath to orderitem
+					$resPath = $orderItemPath . '/a:Pricing/a:Merchandise/a:Amount[.="' . $val . '"]';
+					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
+					if (!$isValid) {
+						Mage::log('[' . __CLASS__ . '] ' . 
+							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/a:Merchandise/a:Amount'),
+							Zend_Log::WARN
+						);
+					}
+				}
+			}
+		}
+		return $isValid;
 	}
 
 	/**
@@ -243,7 +361,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseFirstName, $requestFirstName)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: FirstName "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseFirstName->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -251,7 +369,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseLastName, $requestLastName)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: LastName "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseLastName->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -259,7 +377,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseLineAddress, $requestLineAddress)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: Address Line 1 "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseLineAddress->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -267,7 +385,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseCity, $requestCity)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: City "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseCity->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -275,7 +393,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseMainDivision, $requestMainDivision)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: Main Division "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseMainDivision->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -283,7 +401,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseCountryCode, $requestCountryCode)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: Country Code "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseCountryCode->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -291,7 +409,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responsePostalCode, $requestPostalCode)) {
 					$valid = false;
-					Mage::log(
+					Mage::log('[' . __CLASS__ . '] ' . 
 						sprintf('%s: Postal Code "%s" not match in the request.', 'TaxDutyQuoteResponse', $responsePostalCode->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -318,5 +436,40 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 			$isSame = false;
 		}
 		return $isSame;
+	}
+
+	/**
+	 * attempt to load the response text into a domdocument.
+	 * return true if the document is ok to process; false otherwise
+	 */
+	protected function _checkXml($xml)
+	{
+		$result = true;
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->preserveWhiteSpace = false;
+		try {
+			$doc->loadXML($xml);
+			if ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
+				$result = false;
+				$message = 'Eb2cTax: received document is not a TaxDutyQuoteResponse';
+				if ($doc->documentElement->nodeName === 'Fault') {
+					$x = new DOMXPath($doc);
+					$x->registerNamespace('a', $doc->documentElement->namespaceURI);
+					$desc    = $x->evaluate('string(/a:Fault/a:Description)');
+					$code    = $x->evaluate('string(/a:Fault/a:Code)');
+					$tStamp  = $x->evaluate('string(/a:Fault/a:CreateTimestamp)');
+					$message = "Eb2cTax: Fault Message received: " .
+						"Code: {$code} Description: {$desc} CreateTimestamp: {$tStamp}";
+				}
+				Mage::log('[' . __CLASS__ . '] ' . $message, Zend_Log::WARN);
+			}
+		} catch (Exception $e) {
+			$result = false;
+			Mage::log('[' . __CLASS__ . '] ' . 
+				'Error while attempting to read the TaxDutyQuoteResponse: ' . $e->getMessage(),
+				Zend_Log::WARN
+			);
+		}
+		return $result;
 	}
 }

@@ -2,16 +2,23 @@
 /**
  * tests the tax calculation class.
  */
-class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public function setUp()
 	{
 		$this->_setupBaseUrl();
 
+		$storeMock = $this->getModelMock('core/store', array('convertPrice'));
+		// store covertPrice method will double the amount, ensures that all of the base amounts are converted
+		// to the disable amounts properly
+		$storeMock->expects($this->any())
+			->method('convertPrice')
+			->will($this->returnCallback(function ($val) { return $val * 2; }));
+
 		$this->quoteMock = $this->getModelMock('sales/quote', array('getStore'));
 		$this->quoteMock->expects($this->any())
 			->method('getStore')
-			->will($this->returnValue(Mage::app()->getStore()));
+			->will($this->returnValue($storeMock));
 		$this->addressMock = $this->getModelMock('sales/quote_address', array('getId', 'getQuote'));
 		$this->addressMock->expects($this->any())
 			->method('getId')
@@ -234,6 +241,19 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$this->assertNotNull($request);
 	}
 
+	protected function _mockConfigRegistry($configValues)
+	{
+		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
+		$configRegistry->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap($configValues));
+		$configRegistry->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		return $configRegistry;
+	}
+
 	/**
 	 * @test
 	 * @dataProvider dataProvider
@@ -241,22 +261,13 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetAppliedRates($isAfterDiscounts)
 	{
-		$this->markTestIncomplete('temporary disable');
 		$response = $this->_mockResponseWithAll();
 
 		Mage::unregister('_helper/tax');
-
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(
-				array('taxApplyAfterDiscount', $isAfterDiscounts),
-				array('taxDutyRateCode', 'eb2c-duty-amount'),
-			)));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$this->_mockConfigRegistry(array(
+			array('taxApplyAfterDiscount', $isAfterDiscounts),
+			array('taxDutyRateCode', 'eb2c-duty-amount'),
+		));
 
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($response);
@@ -306,7 +317,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetAppliedRatesDuplicateRatesExtraDiscountRates()
 	{
-		$this->markTestIncomplete('temporary disable');
 		$response = $this->_mockResponseWithDuplicates();
 
 		Mage::unregister('_helper/tax');
