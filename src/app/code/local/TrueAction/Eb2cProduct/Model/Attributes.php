@@ -252,7 +252,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		return $out;
 	}
 
-
 	/**
 	 * convert data from the config to a form that can be set to the specified
 	 * field on the attribute model.
