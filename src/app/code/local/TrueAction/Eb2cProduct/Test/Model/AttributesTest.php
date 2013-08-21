@@ -260,20 +260,23 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 * verify a new model is returned and contains the correct data for each field
 	 * @loadExpectation
 	 */
-	public function testGetModelPrototype()
+	public function testGetPrototypeData()
 	{
 		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
-		$taxCode = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
-		$this->assertSame(1, count($taxCode));
-		list($taxCode) = $taxCode;
-		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCode);
-		$this->assertSame('tax_code', $taxCode->getName());
+		$result   = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		// start precondition checks
+		$this->assertSame(1, count($result));
+		list($taxCodeNode) = $result;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCodeNode);
+		$this->assertSame('tax_code', $taxCodeNode->getName());
+		// end preconditions checks
+
 		$model = Mage::getModel('eb2cproduct/attributes');
- 		$attrModel = $this->_reflectMethod($model, '_getModelPrototype')
- 			->invoke($model, $taxCode);
-		$this->assertInstanceOf('Mage_Catalog_Model_Resource_Eav_Attribute', $attrModel);
+ 		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
+ 			->invoke($model, $taxCodeNode);
+		$this->assertNotEmpty($attrData);
 		$e = $this->expected('tax_code');
-		$this->assertEquals($e->getData(), $attrModel->getData());
+		$this->assertEquals($e->getData(), $attrData);
 	}
 
 	public function callbackGetModuleDir($dir, $module)
