@@ -7,7 +7,6 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abstract
 {
 	/**
-	 *
 	 * hold a collection of bundle operation data
 	 *
 	 * @var array
@@ -25,6 +24,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$this->setProduct(Mage::getModel('catalog/product'));
 		$this->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'));
 		$this->setFeedModel(Mage::getModel('eb2ccore/feed'));
+		$this->setEavConfig(Mage::getModel('eav/config'));
 		$this->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId());
 
 		// Magento product type ids
@@ -40,6 +40,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$this->_bundleQueue = array();
 
 		return $this;
+	}
+
+	/**
+	 * checking product catalog eav config attributes.
+	 *
+	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
+	 *
+	 * @return bool, true the attribute exists, false otherwise
+	 */
+	protected function _isAttributeExists($attribute)
+	{
+		return ((int) $this->getEavConfig()->getAttribute('catalog_product', $attribute)->getId() > 0)? true : false;
 	}
 
 	/**
@@ -236,26 +248,103 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				if (!$this->getProduct()->getId()) {
 					try {
 						// adding new product to magento
-						$this->getProduct()->setId(null)
-							->setTypeId($dataObject->getBaseAttributes()->getItemType())
-							->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight())
-							->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure())
-							->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)
-							->setAttributeSetId($this->getDefaultAttributeSetId())
-							->setStatus($dataObject->getBaseAttributes()->getItemStatus())
-							->setSku($dataObject->getItemId()->getClientItemId())
-							->setMsrp($dataObject->getExtendedAttributes()->getMsrp())
-							->setPrice($dataObject->getExtendedAttributes()->getPrice())
-							// adding new attributes
-							->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped())
-							->setTaxCode($dataObject->getBaseAttributes()->getTaxCode())
-							->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName())
-							->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber())
-							->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber())
-							->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage())
-							->setUseConfigGiftMessageAvailable(false)
-							->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin())
-							->save();
+						$productObject = $this->getProduct();
+						$productObject->setId(null);
+						$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
+						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
+						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
+
+						// nosale should map to not visible individually.
+						// Both regular and always should map to catalog/search.
+						// Assume there can be a custom Visibility field. As always, the last node wins.
+						$catalogClass = strtoupper(trim($dataObject->getBaseAttributes()->getCatalogClass()));
+						if ($catalogClass === '' || $catalogClass === 'NOSALE') {
+							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
+						} elseif ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
+							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH);
+						}
+						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
+						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
+						$productObject->setSku($dataObject->getItemId()->getClientItemId());
+						if ($this->_isAttributeExists('msrp')) {
+							// setting msrp attribute
+							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
+						}
+						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
+						// adding new attributes
+						if ($this->_isAttributeExists('is_drop_shipped')) {
+							// setting is_drop_shipped attribute
+							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
+						}
+						if ($this->_isAttributeExists('tax_code')) {
+							// setting tax_code attribute
+							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
+							// setting drop_ship_supplier_name attribute
+							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
+							// setting drop_ship_supplier_number attribute
+							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
+							// setting drop_ship_supplier_part attribute
+							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
+						}
+						if ($this->_isAttributeExists('gift_message_available')) {
+							// setting gift_message_available attribute
+							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
+							$productObject->setUseConfigGiftMessageAvailable(false);
+						}
+						if ($this->_isAttributeExists('country_of_manufacture')) {
+							// setting country_of_manufacture attribute
+							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
+						}
+						if ($this->_isAttributeExists('color')) {
+							// setting color attribute
+							$productObject->setColor($dataObject->getExtendedAttributes()->getColorCode());
+						}
+						if ($this->_isAttributeExists('gift_cart_tender_code')) {
+							// setting gift_cart_tender_code attribute
+							$productObject->setGiftCartTenderCode($dataObject->getExtendedAttributes()->getGiftCartTenderCode());
+						}
+
+						// adding custom attributes
+						$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
+						if (!empty($customAttributes)) {
+							foreach ($customAttributes as $attribute) {
+								$attributeCode = $attribute['name'];
+								if ($this->_isAttributeExists($attributeCode)) {
+									// setting custom attributes
+									if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
+										// setting custom attributes to null on operation type 'delete'
+										$productObject->setData($attributeCode, null);
+									} else {
+										// seting custom value whener the operation type is 'add', or 'change'
+										$productObject->setData($attributeCode, $attribute['value']);
+									}
+								}
+							}
+						}
+
+						if ($this->_isAttributeExists('size')) {
+							// setting size attribute
+							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
+							$size = null;
+							if (!empty($sizeAttributes)){
+								foreach ($sizeAttributes as $sizeData) {
+									if (strtoupper(trim($sizeData['lang'])) === 'EN-GB') {
+										$size = $sizeData['description'];
+									}
+								}
+							}
+							$productObject->setSize($size);
+						}
+
+						// saving the product
+						$productObject->save();
+
 						// adding product stock item data
 						$this->getStockItem()->loadByProduct($this->getProduct())
 							->setUseConfigBackorders(false)
@@ -292,26 +381,101 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 				if ($this->getProduct()->getId()) {
 					try {
-						// updating already existed product
-						$this->getProduct()->setTypeId($dataObject->getBaseAttributes()->getItemType())
-							->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight())
-							->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure())
-							->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)
-							->setAttributeSetId($this->getDefaultAttributeSetId())
-							->setStatus($dataObject->getBaseAttributes()->getItemStatus())
-							->setSku($dataObject->getItemId()->getClientItemId())
-							->setMsrp($dataObject->getExtendedAttributes()->getMsrp())
-							->setPrice($dataObject->getExtendedAttributes()->getPrice())
-							// updating new attributes
-							->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped())
-							->setTaxCode($dataObject->getBaseAttributes()->getTaxCode())
-							->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName())
-							->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber())
-							->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber())
-							->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage())
-							->setUseConfigGiftMessageAvailable(false)
-							->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin())
-							->save();
+						$productObject = $this->getProduct();
+						$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
+						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
+						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
+						// nosale should map to not visible individually.
+						// Both regular and always should map to catalog/search.
+						// Assume there can be a custom Visibility field. As always, the last node wins.
+						$catalogClass = strtoupper(trim($dataObject->getBaseAttributes()->getCatalogClass()));
+						if ($catalogClass === '' || $catalogClass === 'NOSALE') {
+							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
+						} elseif ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
+							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH);
+						}
+						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
+						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
+						$productObject->setSku($dataObject->getItemId()->getClientItemId());
+						if ($this->_isAttributeExists('msrp')) {
+							// setting msrp attribute
+							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
+						}
+						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
+						// adding new attributes
+						if ($this->_isAttributeExists('is_drop_shipped')) {
+							// setting is_drop_shipped attribute
+							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
+						}
+						if ($this->_isAttributeExists('tax_code')) {
+							// setting tax_code attribute
+							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
+							// setting drop_ship_supplier_name attribute
+							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
+							// setting drop_ship_supplier_number attribute
+							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
+						}
+						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
+							// setting drop_ship_supplier_part attribute
+							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
+						}
+						if ($this->_isAttributeExists('gift_message_available')) {
+							// setting gift_message_available attribute
+							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
+							$productObject->setUseConfigGiftMessageAvailable(false);
+						}
+						if ($this->_isAttributeExists('country_of_manufacture')) {
+							// setting country_of_manufacture attribute
+							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
+						}
+						if ($this->_isAttributeExists('color')) {
+							// setting color attribute
+							$productObject->setColor($dataObject->getExtendedAttributes()->getColorCode());
+						}
+						if ($this->_isAttributeExists('gift_cart_tender_code')) {
+							// setting gift_cart_tender_code attribute
+							$productObject->setGiftCartTenderCode($dataObject->getExtendedAttributes()->getGiftCartTenderCode());
+						}
+
+						// adding custom attributes
+						$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
+						if (!empty($customAttributes)) {
+							foreach ($customAttributes as $attribute) {
+								$attributeCode = $attribute['name'];
+								if ($this->_isAttributeExists($attributeCode)) {
+									// setting custom attribute
+									if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
+										// setting custom attributes to null on operation type 'delete'
+										$productObject->setData($attributeCode, null);
+									} else {
+										// seting custom value whener the operation type is 'add', or 'change'
+										$productObject->setData($attributeCode, $attribute['value']);
+									}
+								}
+							}
+						}
+
+						if ($this->_isAttributeExists('size')) {
+							// setting size attribute
+							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
+							$size = null;
+							if (!empty($sizeAttributes)){
+								foreach ($sizeAttributes as $sizeData) {
+									if (strtoupper(trim($sizeData['lang'])) === 'EN-GB') {
+										$size = $sizeData['description'];
+									}
+								}
+							}
+							$productObject->setSize($size);
+						}
+
+						// saving the product
+						$productObject->save();
+
 						// updating product stock item data
 						$this->getStockItem()->loadByProduct($this->getProduct())
 							->setUseConfigBackorders(false)
@@ -383,7 +547,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						try {
 							// get all the bundle object and set them as bundle product for the parent product.
 							if ($bundleItemCollection = $bundleObject->getBundleData()->getBundleItems()) {
-								// before reistering product to Mage registry let's unregister first
+								// before registering product to Mage registry let's unregister first
 								Mage::unregister('product');
 								Mage::unregister('current_product');
 
