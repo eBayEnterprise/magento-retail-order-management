@@ -1,0 +1,24 @@
+0-0-0-0:
+  extract_results_called: false
+  is_valid: false
+0-1-1-1:
+  extract_results_called: false
+  is_valid: false
+1-0-0-0:
+  extract_results_called: false
+  is_valid: false
+1-0-1-1:
+  extract_results_called: false
+  is_valid: false
+1-1-0-0:
+  extract_results_called: false
+  is_valid: false
+1-1-0-1:
+  extract_results_called: false
+  is_valid: false
+1-1-1-0:
+  extract_results_called: false
+  is_valid: false
+1-1-1-1:
+  extract_results_called: true
+  is_valid: true

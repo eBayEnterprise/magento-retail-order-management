@@ -1,0 +1,73 @@
+<config>
+	<default>
+		<eb2cfraud>
+			<!--
+				<collectors> contains a JSON string of possible collectors.
+				I tried doing it with configxml, but
+				Mage_Core_Model_Config::loadModulesConfiguration removes all duplicate
+				nodes, making arrays really hard.
+			-->
+			<collectors><![CDATA[[{
+					"function": "utild.pdfunction",
+					"formfield": "field_d1",
+					"filename": "info.js"
+				}, {
+					"function": "form_v.load_d",
+					"formfield": "sess_data",
+					"filename": "util_form.js"
+				}, {
+					"function": "data1.val",
+					"formfield": "f1",
+					"filename": "script_util.js"
+				}, {
+					"function": "de1.extract",
+					"formfield": "key",
+					"filename": "line.js"
+				}, {
+					"function": "udata.cut",
+					"formfield": "datae",
+					"filename": "user_data.js"
+				}, {
+					"function": "detspc.bundle",
+					"formfield": "det1",
+					"filename": "details.js"
+				}, {
+					"function": "plan.compile",
+					"formfield": "pd1",
+					"filename": "plan_data.js"
+				}, {
+					"function": "util.fill",
+					"formfield": "u1",
+					"filename": "mode.js"
+				}, {
+					"function": "js.validate",
+					"formfield": "form_data",
+					"filename": "user.js"
+				}, {
+					"function": "element.parse_data",
+					"formfield": "k1",
+					"filename": "service.js"
+				}, {
+					"function": "dt1.val",
+					"formfield": "f_variable",
+					"filename": "form_functions.js"
+				}, {
+					"function": "forms.data_parse",
+					"formfield": "data1",
+					"filename": "util.js"
+				}, {
+					"function": "form_space.extractData",
+					"formfield": "sd1",
+					"filename": "session_d.js"
+				}, {
+					"function": "javascript.verify",
+					"formfield": "user_data",
+					"filename": "condition.js"
+				}, {
+					"function": "value.payload",
+					"formfield": "v1",
+					"filename": "scripts.js"
+				}]]]></collectors>
+		</eb2cfraud>
+	</default>
+</config>

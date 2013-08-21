@@ -1,37 +1,26 @@
 <?php
-/**
- *
- */
 class TrueAction_Eb2cFraud_Model_Observer
 {
-	private $_orderContext;
-
-	private function _getOrderContext()
-	{
-		if( !$this->_orderContext ) {
-			$this->_orderContext = Mage::getModel('eb2cfraud/context');
-		}
-		return $this->_orderContext;
-	}
-
+	/**
+	 * Handler called before order save.
+	 * Updates quote with 41st Parameter anti-fraud JS.
+	 */
 	public function captureOrderContext($observer)
 	{
-		$quote = $observer->getEvent()->getQuote();
-		$request = $observer->getEvent()->getRequest();
-
-		$quote->setEb2cFraudJavascriptData( $request->getPost('eb2cszyvl',array()) );
-		$quote->setEb2cFraudCharSet( $this->_getOrderContext()->getCharSet() );
-		$quote->setEb2cFraudContentTypes( $this->_getOrderContext()->getContentTypes() );
-		$quote->setEb2cFraudEncoding( $this->_getOrderContext()->getEncoding() );
-		$quote->setEb2cFraudHostName( $this->_getOrderContext()->getHostName() );
-		$quote->setEb2cFraudIpAddress( $this->_getOrderContext()->getIpAddress() );
-		$quote->setEb2cFraudLanguage( $this->_getOrderContext()->getLanguage() );
-		$quote->setEb2cFraudReferrer( $this->_getOrderContext()->getReferrer() );
-		$quote->setEb2cFraudSessionId( $this->_getOrderContext()->getSessionId() );
-		$quote->setEb2cFraudUserAgent( $this->_getOrderContext()->getUserAgent() );
-
-		$quote->save();
-
-		return;
+		$http = Mage::helper('eb2cfraud/http');
+		$sess = Mage::getSingleton('customer/session');
+		$rqst = $observer->getEvent()->getRequest();
+		$observer->getEvent()->getQuote()->addData(array(
+			'eb2c_fraud_char_set'        => $http->getHttpAcceptCharset(),
+			'eb2c_fraud_content_types'   => $http->getHttpAccept(),
+			'eb2c_fraud_encoding'        => $http->getHttpAcceptEncoding(),
+			'eb2c_fraud_host_name'       => $http->getHttpHost(),
+			'eb2c_fraud_referrer'        => $http->getHttpReferer(),
+			'eb2c_fraud_user_agent'      => $http->getHttpUserAgent(),
+			'eb2c_fraud_language'        => $http->getHttpAcceptLanguage(),
+			'eb2c_fraud_ip_address'      => $http->getRemoteAddr(),
+			'eb2c_fraud_session_id'      => $sess->getEncryptedSessionId(),
+			'eb2c_fraud_javascript_data' => $rqst->getPost(TrueAction_Eb2cFraud_Helper_Data::JSC_FIELD_NAME, array()),
+		))->save();
 	}
 }

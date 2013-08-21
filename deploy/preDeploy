@@ -1,0 +1,128 @@
+#!/bin/bash
+
+##
+# Run post-deploy tasks
+#
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=preDeploy
+
+main() {
+	local phase # Phase: test, uat, stage or prod
+
+	# Create files with permissions conducive to web service by apache and deployment by Jenkins.
+	umask 002
+
+	processOpts "$@"
+	checkPaths
+
+	backupDb
+}
+
+##
+# Check that the given arguments are sound.
+checkPaths() {
+	[[ -d "$basePath" ]] || die $? "Base path not found: '$basePath'."
+	cd "$basePath"
+
+	[[ -d "$phase" ]] || die $? "Phase path not found: '$basePath/$phase'."
+	cd "$phase"
+
+	[[ -d "$siteName" ]] || die $? "site path not found: '$basePath/$phase/$siteName'."
+	cd "$siteName"
+
+	[[ -e "$htmlRelPath" && ! -h "$htmlRelPath" ]] &&
+		die 1 "Public html path '$basePath/$phase/$siteName/$htmlRelPath' exists and is not a symlink."
+
+	[[ -d "${shortName}-${release}" ]] ||
+		die $? "Release path not found: '$basePath/$phase/$siteName/${shortName}-${release}'."
+	cd "${shortName}-${release}"
+
+	[[ -d "$staticRelPath" ]] ||
+		die $? "static path not found: '$basePath/$phase/$siteName/${shortName}-${release}/$staticRelPath'."
+}
+
+##
+# Back up the database.
+backupDb() {
+	local backupScript="$basePath/$phase/$siteName/$htmlRelPath/shell/backup.php"
+	# Back up the database.
+	if [[ -f "$backupScript" ]]; then
+		php -f "$backupScript" db
+	else
+		printf '%s\n' "No backup script found at '$backupScript': Did not back up database."
+		return 1
+	fi
+}
+
+##
+# Print the help for this script.
+printHelp() {
+	cat <<- 'EOF'
+		usage: preDeploy
+
+		See the config file for other options.
+
+		options:
+	EOF
+	column -ts: <<- 'EOF'
+		  -h|--help:(this information)
+		  -p|--phase=:(Deployment phase: test, uat, stage or prod)
+		  -s|--slot=:(Slotted pre-production numbers, like schiff02.test.mage.tandev.net)
+	EOF
+	echo
+}
+
+##
+# Process the commandline options in whatever order
+processOpts() {
+	while [[ $1 ]]; do
+		case $1 in
+			-h|--help)
+				printHelp
+				exit 0
+				;;
+			-p|--phase)
+				phase="$2"
+				shift
+				;;
+			-p=*|--phase=*)
+				phase="${1#*=}"
+				;;
+			-s|--slot)
+				slot="$2"
+				shift
+				;;
+			-s=*|--slot=*)
+				slot="${1#*=}"
+				;;
+			*)
+				printHelp
+				exit 1
+				;;
+		esac
+		shift
+	done
+
+	if ! has "$phase" 'test' 'uat' 'stage' 'prod'; then
+		printHelp
+		exit 1
+	elif [[ $phase = 'prod' ]]; then
+		phase='.' # No phase directory for production
+		slot='' # No slot for production
+	else
+		# Ensure slot is entirely numeric or not defined.
+		case $slot in
+			*[^[:digit:]]*)
+				printHelp
+				exit 1
+				;;
+			*)
+				siteName="${shortName}${slot}"
+				;;
+		esac
+	fi
+}
+
+# Sourcing utils runs main() if SCRIPTNAME is set properly.
+. utils
