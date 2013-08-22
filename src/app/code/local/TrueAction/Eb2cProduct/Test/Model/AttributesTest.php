@@ -36,7 +36,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$setup = $this->getResourceModelMockBuilder('catalog/eav_mysql4_setup')
 			->disableOriginalConstructor()
 			->setMethods(array('addAttribute', 'getAttribute'))
-			->getMock();l
+			->getMock();
 		$setup->expects($this->once())
 			->method('addAttribute')
 			->with(
