@@ -1,10 +1,5 @@
 <?php
-
-// list all attribute sets
-// foreach attribute set
-// create default attributes
-// attach attributes
-$this->installDefaultAttributes()
-
+$installer = $this;
+$attrs = Mage::getModel('eb2cproduct/attributes')->applyDefaultAttributes();
 
 die('product_attributes setup');
