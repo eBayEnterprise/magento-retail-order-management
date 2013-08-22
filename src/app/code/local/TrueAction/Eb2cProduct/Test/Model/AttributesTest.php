@@ -74,6 +74,28 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
+	 * verify the function returns true if the attribute set's entity id
+	 * is a valid entity id.
+	 * @param  int $eid1
+	 * @param  int $eid2
+	 * @param  bool $expect
+	 * @dataProvider dataProvider
+	 */
+	public function testIsValidEntityType($eid1, $eid2, $expect)
+	{
+		$this->markTestIncomplete();
+		$attrSet = $this->getModelMock('eav/entity_attribute_set', array('getEntityTypeId'));
+		$attrSet->expects($this->once())
+			->method('getEntityTypeId')
+			->will($this->returnValue($eid1));
+		$model   = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultEntityTypeId'));
+		$model->expects($this->once())
+			->method('_getDefaultEntityTypeId')
+			->will($this->returnValue($eid2));
+		$val = $this->_reflectMethod($model, '_isValidEntityType')->invoke($model, $attrSet);
+		$this->assertSame($expect, $val);
+	}
+	/**
 	 * verify a group is returned when successful and null when unsuccessful.
 	 * @loadExpectation
 	 * @dataProvider dataProvider
