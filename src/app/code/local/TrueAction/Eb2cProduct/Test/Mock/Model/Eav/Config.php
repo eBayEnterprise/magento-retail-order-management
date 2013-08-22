@@ -32,7 +32,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config extends EcomDev_PHPUnit_
 			array('value' => '16', 'label' => 'Red'),
 			array('value' => '17', 'label' => 'Silver'),
 			array('value' => '18', 'label' => 'White'),
-        );
+		);
 
 		$eavModelEntityAttributeSourceTableMock->expects($this->any())
 			->method('getAllOptions')

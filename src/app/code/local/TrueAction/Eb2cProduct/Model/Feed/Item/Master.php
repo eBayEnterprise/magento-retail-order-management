@@ -81,6 +81,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	}
 
 	/**
+	 * getting the attribute selected option.
+	 *
+	 * @param string $attribute, the string attribute code to get the attribute config
+	 * @param string $option, the string attribute option label to get the attribute
+	 *
+	 * @return Mage_Eav_Model_Config
+	 */
+	protected function _getAttributeOptionId($attribute, $option)
+	{
+		$optionId = 0;
+		$attributes = $this->getEavConfig()->getAttribute('catalog_product', $attribute);
+		$attributeOptions = $attributes->getSource()->getAllOptions();
+		foreach ($attributeOptions as $attrOption) {
+			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
+				$optionId = $attrOption['value'];
+			}
+		}
+
+		return $optionId;
+	}
+
+	/**
 	 * add bundle product to a queue to be process later.
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to process bundle products
@@ -120,6 +142,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	protected function _loadProductBySku($sku)
 	{
 		$products = Mage::getResourceModel('catalog/product_collection');
+		$products->addAttributeToSelect('*');
 		$products->getSelect()
 			->where('e.sku = ?', $sku);
 
@@ -349,6 +372,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
 						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
 
+						// Temporary fix
+						$productObject->setName($dataObject->getBaseAttributes()->getItemDescription());
+
 						// nosale should map to not visible individually.
 						// Both regular and always should map to catalog/search.
 						// Assume there can be a custom Visibility field. As always, the last node wins.
@@ -398,7 +424,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						}
 						if ($this->_isAttributeExists('color')) {
 							// setting color attribute
-							$productObject->setColor(ucfirst(strtolower($dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription())));
+							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
 						if ($this->_isAttributeExists('gift_cart_tender_code')) {
 							// setting gift_cart_tender_code attribute
@@ -532,7 +558,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						}
 						if ($this->_isAttributeExists('color')) {
 							// setting color attribute
-							$productObject->setColor($dataObject->getExtendedAttributes()->getColorCode());
+							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
 						if ($this->_isAttributeExists('gift_cart_tender_code')) {
 							// setting gift_cart_tender_code attribute
@@ -738,11 +764,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 											$attributeObject = $this->_getAttribute($configAttribute);
 											$attributeOptions = $attributeObject->getSource()->getAllOptions();
 											foreach ($attributeOptions as $option) {
-												$configurableData[$childProduct->getId()][] = array(
-													'attribute_id' => $attributeObject->getId(),
-													'label' => $option['label'],
-													'value_index'=> $option['value'],
-												);
+												if ((int) $childProduct->getData(strtolower($configAttribute)) === (int) $option['value']) {
+													$configurableData[$childProduct->getId()][] = array(
+														'attribute_id' => $attributeObject->getId(),
+														'label' => $option['label'],
+														'value_index' => $option['value'],
+													);
+												}
 											}
 										}
 									}
@@ -756,7 +784,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 										'id' => $configurableAtt->getId(),
 										'label' => $configurableAtt->getLabel(),
 										'position' => $superAttribute->getPosition(),
-										'values' => $configurableAtt->getPrices() ? $configProduct->getPrices() : array(),
+										'values' => array(),
 										'attribute_id' => $superAttribute->getId(),
 										'attribute_code' => $superAttribute->getAttributeCode(),
 										'frontend_label' => $superAttribute->getFrontend()->getLabel(),
