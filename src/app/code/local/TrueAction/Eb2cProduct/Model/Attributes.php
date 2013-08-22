@@ -13,6 +13,12 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
+	 * eav setup model.
+	 * @var Mage_Core_Catalog_Model_Resource_Eav_Mysql4_Setup
+	 */
+	protected $_eavSetup = null;
+
+	/**
 	 * the attributes configuration
 	 * @var [type]
 	 */
@@ -49,6 +55,11 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		'website' => '1',
 		'store'   => '0',
 	);
+
+	protected function _construct()
+	{
+		$this->_eavSetup = Mage::getResourceModel('catalog/eav_mysql4_setup', 'core_setup');
+	}
 
 	/**
 	 * return an attributeset for the product entity type or null
