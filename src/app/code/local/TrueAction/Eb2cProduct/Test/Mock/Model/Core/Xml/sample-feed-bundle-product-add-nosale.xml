@@ -23,12 +23,12 @@
 		</MessageData>
 		<CreateDateAndTime>2011-12-19T19:02:07-05:00</CreateDateAndTime>
 	</MessageHeader>
-	<Item operation_type="Change" gsi_client_id="TAN-CLI" catalog_id="70">
+	<Item operation_type="Add" gsi_client_id="TAN-CLI" catalog_id="70">
 		<ItemId>
-			<ClientItemId>0000-bundle-update-regular</ClientItemId>
+			<ClientItemId>0000-bundle-add-nosale</ClientItemId>
 		</ItemId>
 		<BaseAttributes>
-			<CatalogClass>regular</CatalogClass>
+			<CatalogClass>nosale</CatalogClass>
 			<IsDropShipped>false</IsDropShipped>
 			<ItemDescription>SW799 DANCING DOTS</ItemDescription>
 			<ItemType>bundle</ItemType>
