@@ -25,14 +25,12 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 				$attrId = $this->getAttribute($entityTypeId, $attrCode, 'attribute_id');
 				if ($attrId) {
 					$message = 'existing attribute with id=\'%s\' will be replaced';
-					var_dump($message);
 					$this->_logDebug(sprintf($message, $attrId));
 				}
 
 				$this->addAttribute($entityTypeId, $attrCode, $attrConfig);
 				if ($attrId) {
 					$message = 'existing attribute with id=\'%s\' was replaced';
-					var_dump($message);
 					$this->_logWarn(sprintf($message, $attrId));
 				}
 			}
