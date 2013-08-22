@@ -70,9 +70,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$model->applyDefaultAttributes();
 	}
 
-		$model->applyDefaultAttributes($attrSet);
-	}
-
 	/**
 	 * verify the function returns true if the attribute set's entity id
 	 * is a valid entity id.
