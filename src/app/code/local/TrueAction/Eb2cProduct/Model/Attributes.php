@@ -130,8 +130,9 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	{
 		$result = array();
 		foreach ($this->_entityTypes as $entityType) {
-			$result[] = Mage::getModel($entityType)->getResource()->getTypeId();
+			$result[] = (int) Mage::getModel($entityType)->getResource()->getTypeId();
 		}
+		return $result;
 	}
 
 	/**
