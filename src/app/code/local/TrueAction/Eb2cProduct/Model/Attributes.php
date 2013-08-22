@@ -95,6 +95,36 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	 * apply default attributes to all valid attribute sets.
+	 * @param  mixed $attributeSet
+	 * @return $this
+	 */
+	public function applyDefaultAttributes()
+	{
+		$entityTypeIds  = $this->_getTargetEntityTypeIds();
+		$config         = $this->_loadDefaultAttributesConfig();
+		$defaults       = $config->getNode('default');
+		foreach ($entityTypeIds as $entityTypeId) {
+			$message = 'applying default attributes';
+			$this->_logDebug(sprintf($message, $entityTypeId));
+			foreach ($defaults->children() as $attrCode => $attrConfig) {
+				$prototypeAttrData = $this->_getPrototypeData($attrConfig);
+				$attrId = $this->_eavSetup->getAttribute($entityTypeId, $attrCode, 'attribute_id');
+				if ($attrId) {
+					$message = 'existing attribute with id=\'%s\' will be replaced';
+					$this->_logDebug(sprintf($message, $attrId));
+				}
+				$this->_eavSetup->addAttribute($entityTypeId, $attrCode, $prototypeAttrData);
+				if ($attrId) {
+					$message = 'existing attribute with id=\'%s\' was replaced';
+					$this->_logWarn(sprintf($message, $attrId));
+				}
+			}
+		}
+		return $this;
+	}
+
+	/**
 	 * apply default attributes to $attributeSet
 	 * @param  mixed $attributeSet
 	 * @return $this

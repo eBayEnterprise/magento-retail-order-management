@@ -19,92 +19,56 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testApplyDefaultAttributes()
 	{
-		$attrCode     = 'tax_code';
-		$hasGroup     = true;
-		$attrSetId    = 1;
-		$groupId      = 2;
-		$entityAttrId = 3;
-		$entityTypeId = 9;
-		$groupName    = 'Prices';
-		$attrSet      = $this->_buildModelMock('eav/entity_attribute_set', array(
-			'load' => $this->returnSelf(),
-			'getEntityTypeId' => $this->returnValue($entityTypeId),
-			'getId' => $this->returnValue($attrSetId),
-		));
-		$methods = array('getId', 'getAttributeGroupId', 'getGroup', 'hasGroup', 'setAttributeGroupId', 'setAttributeSetId', 'save');
-		$attr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
-		$attr->expects($this->atLeastOnce())
-			->method('hasGroup')
-			->will($this->returnValue($hasGroup));
-		$attr->expects($this->once())
-			->method('getGroup')
-			->will($this->returnValue($groupName));
-		$attr->expects($this->never())
-			->method('getAttributeGroupId')
-			->will($this->returnValue($groupId));
-		$attr->expects($this->once())
-			->method('setAttributeGroupId')
-			->with($this->identicalTo($groupId))
-			->will($this->returnSelf());
-		$attr->expects($this->once())
-			->method('setAttributeSetId')
-			->with($this->identicalTo($attrSetId))
-			->will($this->returnSelf());
-		$attr->expects($this->once())
-			->method('save')
-			->will($this->returnSelf());
+		$attrCode       = 'tax_code';
+		$configNode     = new Varien_SimpleXml_Element(self::$configXml);
+		$entityTypeId   = 10;
+		list($attrNode) = $configNode->xpath('default/' . $attrCode);
+		$protoData      = array();
 
-		$methods = array('getId');
-		$entityAttr = $this->getResourceModelMock('catalog/eav_attribute', $methods);
-		$entityAttr->expects($this->once())
-			->method('getId')
-			->will($this->returnValue(null));
-
-		$methods = array('setEntityTypeFilter', 'setCodeFilter', 'getFirstItem');
-		$collection = $this->getResourceModelMock('catalog/product_attribute_collection', $methods);
-		$collection->expects($this->once())
-			->method('setEntityTypeFilter')
-			->with($this->identicalTo($entityTypeId))
-			->will($this->returnSelf());
-		$collection->expects($this->once())
-			->method('setCodeFilter')
-			->with($this->identicalTo($attrCode))
-			->will($this->returnSelf());
-		$collection->expects($this->once())
-			->method('getFirstItem')
-			->will($this->returnValue($entityAttr));
-		$this->replaceByMock('resource_model', 'catalog/product_attribute_collection', $collection);
-
-		$attrGroup = $this->_buildModelMock('eav/entity_attribute_group', array(
-			'getId' => $this->returnValue($groupId),
-		));
-
-		$methods = array('_loadDefaultAttributesConfig', '_getOrCreateAttribute', '_getAttributeGroup', '_getAttributeSet');
-		$model = $this->getModelMock('eb2cproduct/attributes', $methods);
-
-		$configNode = new Varien_SimpleXml_Element(self::$configXml);
 		list($defaultNode) = $configNode->xpath('default');
-		$attrConfig  = $this->getModelMock('core/config', array('getNode'));
+
+		$attrConfig = $this->getModelMock('core/config', array('getNode'));
 		$attrConfig->expects($this->any())
 			->method('getNode')
 			->with($this->identicalTo('default'))
 			->will($this->returnValue($defaultNode));
-		$model->expects($this->atLeastOnce())
-			->method('_loadDefaultAttributesConfig')->will($this->returnValue($attrConfig));
 
-		$model->expects($this->once())
-			->method('_getOrCreateAttribute')
-			->with($this->identicalTo($attrCode), $this->identicalTo($entityTypeId), $this->anything())
-			->will($this->returnValue($attr));
+		$setup = $this->getResourceModelMockBuilder('catalog/eav_mysql4_setup')
+			->disableOriginalConstructor()
+			->setMethods(array('addAttribute', 'getAttribute'))
+			->getMock();l
+		$setup->expects($this->once())
+			->method('addAttribute')
+			->with(
+				$this->identicalTo($entityTypeId),
+				$this->identicalTo($attrCode),
+				$this->identicalTo($protoData)
+			)
+			->will($this->returnSelf());
+		$setup->expects($this->once())
+			->method('getAttribute')
+			->with(
+				$this->identicalTo($entityTypeId),
+				$this->identicalTo($attrCode),
+				$this->identicalTo('attribute_id')
+			)
+			->will($this->returnValue(9000));
 
+		$methods = array('_loadDefaultAttributesConfig', '_getTargetEntityTypeIds', '_getPrototypeData');
+		$model   = $this->getModelMock('eb2cproduct/attributes', $methods);
+		$this->_reflectProperty($model, '_eavSetup')->setValue($model, $setup);
 		$model->expects($this->once())
-			->method('_getAttributeSet')
-			->with($this->identicalTo($attrSet))
-			->will($this->returnValue($attrSet));
+			->method('_getTargetEntityTypeIds')
+			->will($this->returnValue(array($entityTypeId)));
 		$model->expects($this->once())
-			->method('_getAttributeGroup')
-			->with($this->identicalTo($groupName), $this->identicalTo($attrSetId))
-			->will($this->returnValue($attrGroup));
+			->method('_loadDefaultAttributesConfig')
+			->will($this->returnValue($attrConfig));
+		$model->expects($this->once())
+			->method('_getPrototypeData')
+			->will($this->returnValue($protoData));
+
+		$model->applyDefaultAttributes();
+	}
 
 		$model->applyDefaultAttributes($attrSet);
 	}
