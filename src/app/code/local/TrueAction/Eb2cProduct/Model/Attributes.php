@@ -141,67 +141,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * apply default attributes to $attributeSet
-	 * @param  mixed $attributeSet
-	 * @return $this
-	 */
-	public function applyDefaultAttributes($attributeSet = null)
-	{
-		$attributeSet   = $this->_getAttributeSet($attributeSet);
-		$config         = $this->_loadDefaultAttributesConfig();
-		$defaults       = $config->getNode('default');
-		$attributeSetId = $attributeSet->getId();
-		$entityTypeId   = $attributeSet->getEntityTypeId();
-		foreach ($defaults->children() as $attrCode => $attrConfig) {
-			$attr    = $this->_getOrCreateAttribute($attrCode, $entityTypeId, $attrConfig);
-			$group   = null;
-			$groupId = null;
-			if ($attr->hasGroup()) {
-				// attribute is in a group
-				$groupName = $attr->getGroup(); // note: group field
-				$group = $this->_getAttributeGroup($groupName, $attributeSetId);
-				if (!$group) {
-					$message = 'unable to get model for group (%s)';
-					Mage::throwException(sprintf($message, $groupName));
-				}
-				$groupId = $group->getId();
-			}
-			$oldAttr = Mage::getResourceModel('catalog/product_attribute_collection')
-				->setEntityTypeFilter($entityTypeId)
-				->setCodeFilter($attrCode)
-				->getFirstItem();
-			if (!$oldAttr->getId()) {
-				$attr->setAttributeSetId($attributeSetId);
-				// update attr with new group.
-				$attr->setAttributeGroupId($group->getId());
-				// attr->save
-				$attr->save();
-			} elseif ($group && $attr->getAttributeGroupId() !== $group->getId()) {
-				// the entity_attribute already exists and the group is different from
-				// what was stored so update the group
-				$message = 'replacing attribute group (%s) with (%s)';
-				$this->_logWarn(sprintf(
-					$message,
-					$group->getAttributeGroupName(),
-					$attr->getAttributeGroupName()
-				));
-				// update attr with new group.
-				$attr->setAttributeGroupId($group->getId());
-				// attr->save
-				$attr->save();
-				$message = 'succeeded replacing attribute group (%s) with (%s)';
-				$this->_logDebug(sprintf(
-					$message,
-					$group->getAttributeGroupName(),
-					$attr->getAttributeGroupName()
-				));
-			}
-			// the entity_attribute exists and the groups match so nothing to do.
-		}
-		return $this;
-	}
-
-	/**
 	 * convert the fronend label into an an array.
 	 * @param  Varien_SimpleXml_Element $data
 	 * @return array
