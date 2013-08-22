@@ -331,7 +331,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _getDefaultEntityTypeId()
 	{
-		$entityTypeID = Mage::getModel('catalog/product')->getResource()->getTypeId();
+		$entityTypeID = Mage::getModel('catalog/category')->getResource()->getTypeId();
 		return $entityTypeID;
 	}
 
