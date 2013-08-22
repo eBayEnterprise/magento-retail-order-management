@@ -406,28 +406,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * create the attribute if it doesnt exist and return the model for it.
-	 * @param  string $code
-	 * @return Mage_Catalog_Model_Resource_Eav_Attribute
-	 */
-	protected function _getOrCreateAttribute($attrCode, $entityTypeId, $attrConfig)
-	{
-		if (!isset($this->_prototypeCache[$attrCode])) {
-			$attr          = $this->_lookupAttribute($attrCode, $entityTypeId);
-			$attrPrototype = $this->_getModelPrototype($attrConfig);
-			if (!$attr->getId()) {
-				$attrPrototype->setEntityTypeId($entityTypeId);
-				$attr = $attrPrototype->save();
-			}
-			if (!$attr->hasGroup()) {
-				$attr->setGroup($attrPrototype->getGroup());
-			}
-			$this->_prototypeCache[$attrCode] = $attr;
-		}
-		return $this->_prototypeCache[$attrCode];
-	}
-
-	/**
 	 * load attribute configuration files into a mage config object.
 	 * satisfies requirements:
 	 * 	- attributes stored in config file
