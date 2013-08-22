@@ -9,68 +9,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
 	/**
-	 * verify attributes are applied on the specified attributeset.
-	 * attributeset is a valid attribute set model
-	 * attribute to add is tax_code
-	 * attribute doesnt exist
-	 * attribute not already applied to attribute set
-	 * group is testgroup
-	 * group already exists
-	 */
-	public function testApplyDefaultAttributes()
-	{
-		$attrCode       = 'tax_code';
-		$configNode     = new Varien_SimpleXml_Element(self::$configXml);
-		$entityTypeId   = 10;
-		list($attrNode) = $configNode->xpath('default/' . $attrCode);
-		$protoData      = array();
-
-		list($defaultNode) = $configNode->xpath('default');
-
-		$attrConfig = $this->getModelMock('core/config', array('getNode'));
-		$attrConfig->expects($this->any())
-			->method('getNode')
-			->with($this->identicalTo('default'))
-			->will($this->returnValue($defaultNode));
-
-		$setup = $this->getResourceModelMockBuilder('catalog/eav_mysql4_setup')
-			->disableOriginalConstructor()
-			->setMethods(array('addAttribute', 'getAttribute'))
-			->getMock();
-		$setup->expects($this->once())
-			->method('addAttribute')
-			->with(
-				$this->identicalTo($entityTypeId),
-				$this->identicalTo($attrCode),
-				$this->identicalTo($protoData)
-			)
-			->will($this->returnSelf());
-		$setup->expects($this->once())
-			->method('getAttribute')
-			->with(
-				$this->identicalTo($entityTypeId),
-				$this->identicalTo($attrCode),
-				$this->identicalTo('attribute_id')
-			)
-			->will($this->returnValue(9000));
-
-		$methods = array('_loadDefaultAttributesConfig', '_getTargetEntityTypeIds', '_getPrototypeData');
-		$model   = $this->getModelMock('eb2cproduct/attributes', $methods);
-		$this->_reflectProperty($model, '_eavSetup')->setValue($model, $setup);
-		$model->expects($this->once())
-			->method('_getTargetEntityTypeIds')
-			->will($this->returnValue(array($entityTypeId)));
-		$model->expects($this->once())
-			->method('_loadDefaultAttributesConfig')
-			->will($this->returnValue($attrConfig));
-		$model->expects($this->once())
-			->method('_getPrototypeData')
-			->will($this->returnValue($protoData));
-
-		$model->applyDefaultAttributes();
-	}
-
-	/**
 	 * verify the function returns true if the attribute set's entity id
 	 * is a valid entity id.
 	 * @param  int $eid1
@@ -86,54 +24,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 			->will($this->returnValue(array(10)));
 		$val = $this->_reflectMethod($model, '_isValidEntityType')->invoke($model, $eid1);
 		$this->assertSame($expect, $val);
-	}
-	/**
-	 * verify a group is returned when successful and null when unsuccessful.
-	 * @loadExpectation
-	 * @dataProvider dataProvider
-	 */
-	public function testGetAttributeGroup($groupFound)
-	{
-		$groupFieldName = 'attribute_group_name';
-		$groupName      = 'group';
-		$attributeSetId = 1;
-		$groupId       = 2;
-		$e = $this->expected('%s-%s-%s', $groupName, $attributeSetId, (int)$groupFound);
-		$mockCollection = $this->getResourceModelMockBuilder('eav/entity_attribute_group_collection')
-			->disableOriginalConstructor()
-			->setMethods(array('setAttributeSetFilter', 'load', 'addFieldToFilter', 'getFirstItem'))
-			->getMock();
-		$mock          = $this->getModelMockBuilder('eav/entity_attribute_group')
-			->disableOriginalConstructor()
-			->setMethods(array('getResourceCollection', 'getId'))
-			->getMock();
-
-		// mock out the collection methods
-		$mockCollection->expects($this->once())->method('setAttributeSetFilter')
-			->with($this->identicalTo($attributeSetId))
-			->will($this->returnSelf());
-		$mockCollection->expects($this->once())->method('addFieldToFilter')
-			->with($this->identicalTo($groupFieldName), $this->equalTo($e->getGroupNameFilter()))
-			->will($this->returnSelf());
-		$mockCollection->expects($this->once())->method('load')
-			->will($this->returnSelf());
-		$mockCollection->expects($this->once())->method('getFirstItem')
-			->will($this->returnValue($mock));
-
-		// mock out the model methods
-		$mock->expects($this->once())->method('getResourceCollection')
-			->will($this->returnValue($mockCollection));
-		$mock->expects($this->once())->method('getId')
-			->will($this->returnValue($groupFound ? $groupId : null));
-
-		$this->replaceByMock('model' ,'eav/entity_attribute_group', $mock);
-		$model = Mage::getModel('eb2cproduct/attributes');
-		$val   = $this->_reflectMethod($model, '_getAttributeGroup')->invoke($model, $groupName, $attributeSetId);
-		if ($groupFound) {
-			$this->assertInstanceOf('Mage_Eav_Model_Entity_Attribute_Group', $val);
-		} else {
-			$this->assertNull($val);
-		}
 	}
 
 	/**

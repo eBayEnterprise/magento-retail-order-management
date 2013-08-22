@@ -2,15 +2,55 @@
 class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
-
-	public function testGetAttributeSetCollection()
+	/**
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testApplyToAllSets($expectation, $validEntityTypes, $existingAttributeId)
 	{
-		$mock  = $this->getResourceModelMockBuilder('eav/entity_attribute_set_collection')
+		$e = $this->expected($expectation);
+		$attributesData = $e->getAttributeData();
+		$attributeData = $attributesData['tax_code'];
+		$attrInfo = $this->getModelMock('eb2cproduct/attributes', array(
+			'getTargetEntityTypeIds',
+			'getAttributesData'
+		));
+		$attrInfo->expects($this->once())
+			->method('getTargetEntityTypeIds')
+			->will($this->returnValue($validEntityTypes));
+		$attrInfo->expects($this->once())
+			->method('getAttributesData')
+			->will($this->returnValue($attributesData));
+
+		$setup = $this->getMockBuilder('TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup')
 			->disableOriginalConstructor()
+			// ->disableOriginalClone()
+			// ->setConstructorArgs(array('core/setup'))
+			->setMethods(array('addAttribute', 'getAttribute', '_logWarn'))
 			->getMock();
-		$this->replaceByMock('resource_model' ,'eav/entity_attribute_set_collection', $mock);
-		$model = Mage::getModel('eb2cproduct/attributes');
-		$val   = $this->_reflectMethod($model, '_getAttributeSetCollection')->invoke($model);
-		$this->assertInstanceOf('Mage_Eav_Model_Resource_Entity_Attribute_Set_Collection', $val);
+		$setup->expects($this->once())
+			->method('addAttribute')
+			->with(
+				$this->identicalTo($e->getEntityId()),
+				$this->identicalTo($e->getAttributeCode()),
+				$this->identicalTo($attributeData)
+			)
+			->will($this->returnSelf());
+		$setup->expects($this->once())
+			->method('getAttribute')
+			->with(
+				$this->identicalTo($e->getEntityId()),
+				$this->identicalTo($e->getAttributeCode()),
+				$this->identicalTo('attribute_id')
+			)
+			->will($this->returnValue($existingAttributeId));
+
+		// $logWarnCalls = $e->getLogWarnCalled() ? $this->once() : $this->never();
+		// $setup->expects($logWarnCalls)
+		// 	->method('_logWarn')
+		// 	->with($this->identicalTo($e->getMessage()))
+		// 	->will($this->returnValue($existingAttributeId));
+
+		$setup->applyToAllSets($attrInfo);
 	}
 }

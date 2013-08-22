@@ -13,12 +13,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected static $_attributeConfigOverrideFilename = 'eb2cproduct_attributes.xml';
 
 	/**
-	 * eav setup model.
-	 * @var Mage_Core_Catalog_Model_Resource_Eav_Mysql4_Setup
-	 */
-	protected $_eavSetup = null;
-
-	/**
 	 * base log message template.
 	 * @var string
 	 */
@@ -37,7 +31,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected $_prototypeCache = array();
 
 	protected $_entityTypes    = array(
-		'catalog/category',
+		'catalog/product',
 	);
 
 	/**
@@ -66,40 +60,28 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		'store'   => '0',
 	);
 
-	protected function _construct()
+	/**
+	 * return a list of entity type id's the attributes should be added to.
+	 * @return array
+	 */
+	public function getTargetEntityTypeIds()
 	{
-		$this->_eavSetup = Mage::getResourceModel('catalog/eav_mysql4_setup', 'core_setup');
+		$result = array();
+		foreach ($this->_entityTypes as $entityType) {
+			$result[] = (int) Mage::getModel($entityType)->getResource()->getTypeId();
+		}
+		return $result;
 	}
 
-	/**
-	 * return an attributeset for the product entity type or null
-	 * @param  mixed $attributeSet
-	 * @return Mage_Eav_Model_Entity_Attribute_Set
-	 * @throws Mage_Core_Exception If $attributeSet references an invalid attribute set
-	 */
-	protected function _getAttributeSet($attributeSet = null)
+	public function getAttributesData()
 	{
-		$errorMessage = '';
-		// take either an id or a model.
-		if (!$attributeSet instanceof Mage_Eav_Model_Entity_Attribute_Set) {
-			if (is_int($attributeSet)) {
-				$attributeSet = Mage::getModel('eav/entity_attribute_set')
-					->load($attributeSet);
-			} else {
-				$errorMessage = 'unable to retrieve attribute set "' .
-					(string) $attributeSet .'"';
-				$this->_logWarn($errorMessage);
-			}
+		$config      = $this->_loadDefaultAttributesConfig();
+		$defaultNode = $config->getNode('default');
+		foreach ($defaultNode->children() as $attrCode => $attrConfig) {
+			$this->_getPrototypeData($attrConfig);
 		}
-		if (!$errorMessage && !$this->_isValidEntityType($attributeSet)) {
-			$errorMessage = 'attribute set is unexpected entity type: typeId(' .
-				$attributeSet->getEntityTypeId() . ')';
-			$this->_logDebug($errorMessage);
-		}
-		if ($errorMessage) {
-			$attributeSet = null;
-		}
-		return $attributeSet;
+		Mage::log("getattributesdata");
+		return $this->_prototypeCache;
 	}
 
 	/**
@@ -114,57 +96,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		return $result;
 	}
 
-	protected function _setCurrentEntityType($entityType)
-	{
-	}
-
-	protected function _setCurrentAttributeCode($attrCode)
-	{
-	}
-
-	/**
-	 * return a list of entity type id's the attributes will be added to.
-	 * @return array
-	 */
-	protected function _getTargetEntityTypeIds()
-	{
-		$result = array();
-		foreach ($this->_entityTypes as $entityType) {
-			$result[] = (int) Mage::getModel($entityType)->getResource()->getTypeId();
-		}
-		return $result;
-	}
-
-	/**
-	 * apply default attributes to all valid attribute sets.
-	 * @param  mixed $attributeSet
-	 * @return $this
-	 */
-	public function applyDefaultAttributes()
-	{
-		$entityTypeIds  = $this->_getTargetEntityTypeIds();
-		$config         = $this->_loadDefaultAttributesConfig();
-		$defaults       = $config->getNode('default');
-		foreach ($entityTypeIds as $entityTypeId) {
-			$message = 'applying default attributes';
-			$this->_logDebug(sprintf($message, $entityTypeId));
-			foreach ($defaults->children() as $attrCode => $attrConfig) {
-				$prototypeAttrData = $this->_getPrototypeData($attrConfig);
-				$attrId = $this->_eavSetup->getAttribute($entityTypeId, $attrCode, 'attribute_id');
-				if ($attrId) {
-					$message = 'existing attribute with id=\'%s\' will be replaced';
-					$this->_logDebug(sprintf($message, $attrId));
-				}
-				$this->_eavSetup->addAttribute($entityTypeId, $attrCode, $prototypeAttrData);
-				if ($attrId) {
-					$message = 'existing attribute with id=\'%s\' was replaced';
-					$this->_logWarn(sprintf($message, $attrId));
-				}
-			}
-		}
-		return $this;
-	}
-
 	/**
 	 * convert the fronend label into an an array.
 	 * @param  Varien_SimpleXml_Element $data
@@ -173,57 +104,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	protected function _formatFrontendLabel($data)
 	{
 		return array((string) $data, '', '', '', '');
-	}
-
-	/**
-	 * lookup an attribute by code and entity id.
-	 * @param  string $attributeCode
-	 * @param  int $entityTypeId
-	 * @return Mage_Catalog_Model_Resource_Eav_Attribute
-	 */
-	protected function _lookupAttribute($attributeCode, $entityTypeId)
-	{
-		$attrData = $this->_eavSetup->getAttribute($entityTypeId, $attributeCode);
-		return $attr;
-	}
-
-	protected function _checkAttributeGroup($groupName, $attrSetId, $entityTypeId)
-	{
-		$groupData = $this->_eavSetup->getAttributeGroup(
-			$entityTypeId,
-			$attrSetId,
-			$groupName
-		);
-		$isGroupSame = isset($groupData['attribute_group_id']) &&
-			$groupData['attribute_group_name'] === $groupName;
-		if (!$isGroupSame) {
-			$message = 'replacing attribute group (%s) with (%s)';
-			$this->logWarn(sprintf(
-				$message,
-				$groupData['attribute_group_name'],
-				$groupName
-			));
-		}
-		return $this;
-	}
-
-	/**
-	 * get an attribute group model.
-	 * return null if the group does not exist.
-	 * @param  string $groupName
-	 * @param  string $setId
-	 * @return Mage_Catalog_Model_Product_Attribute_Group
-	 */
-	protected function _getAttributeGroup($groupName, $setId)
-	{
-		$model = Mage::getModel('eav/entity_attribute_group')
-			->getResourceCollection()
-			->AddFieldToFilter('attribute_group_name', array('eq' => $groupName))
-			->setAttributeSetFilter($setId)
-			->load()
-			->getFirstItem();
-		$group = $model->getId() ? $model : null;
-		return $group;
 	}
 
 	/**
@@ -458,32 +338,5 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			'default_value'                 => '',
 		);
 		return $data;
-	}
-
-	/**
-	 * log an error message
-	 * @param  string $message
-	 */
-	protected function _logError($message)
-	{
-		Mage::log($message, Zend_Log::ERR);
-	}
-
-	/**
-	 * log a warning message
-	 * @param  string $message
-	 */
-	protected function _logWarn($message)
-	{
-		Mage::log($message, Zend_Log::WARN);
-	}
-
-	/**
-	 * log a debug message
-	 * @param  string $message
-	 */
-	protected function _logDebug($message)
-	{
-		Mage::log($message, Zend_Log::DEBUG);
 	}
 }

@@ -24,12 +24,20 @@
 				<class>TrueAction_Eb2cProduct_Helper</class>
 			</eb2cproduct>
 		</helpers>
+		<resources>
+			<eb2cproduct_attributes_setup>
+				<setup>
+					<module>TrueAction_Eb2cProduct</module>
+					<class>TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup</class>
+				</setup>
+			</eb2cproduct_attributes_setup>
+		</resources>
 		<eb2cproduct_attributes>
 			<default>
 				<tax_code>
 					<scope>Website</scope>
 					<label>Tax Code</label>
-					<group>Price</group>
+					<group>Foooooo</group>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
