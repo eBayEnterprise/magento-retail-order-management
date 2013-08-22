@@ -10,7 +10,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing loadProductBySku method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testLoadProductBySku()
@@ -31,7 +31,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - with invalid feed catalog id
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithInvalidFeedCatalogId()
@@ -63,7 +63,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - with invalid feed client id
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithInvalidFeedClientId()
@@ -95,7 +95,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - with invalid feed item type
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsWithInvalidFeeditemType()
@@ -127,7 +127,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Add'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductAddWithInvalidProductId()
@@ -166,7 +166,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with valid product id where operation type is 'Add'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductAddWithValidProductId()
@@ -201,7 +201,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product invalid product throw an exception where operation type is 'Add'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductAddWithInvalidProductException()
@@ -236,7 +236,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Change'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductUpdateWithInvalidProductId()
@@ -275,7 +275,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with valid product id where operation type is 'Change'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductUpdateWithValidProductId()
@@ -310,7 +310,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with valid product throwing exception where operation type is 'Change'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductUpdateWithValidProductException()
@@ -345,7 +345,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Delete'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductDeleteWithInvalidProductId()
@@ -384,7 +384,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - bundle product where delete a product will throw an exception where operation type is 'Delete'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsBundleProductDeleteWhereDeleteThrowException()
@@ -419,7 +419,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - Configurable product with invalid product id where operation type is 'Add'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsConfigurableProductAddWithValidProductId()
@@ -454,7 +454,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * testing processFeeds method - configurable product with invalid product id where operation type is 'Delete'
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testProcessFeedsConfigurableProductAddWithInvalidProductId()
