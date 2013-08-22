@@ -206,6 +206,29 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$this->assertEquals($e->getData(), $attrData);
 	}
 
+	public function testGetPrototypeDataCache()
+ 	{
+ 		// setup input data
+ 		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
+		$result = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
+		$this->assertSame(1, count($result));
+		list($taxCodeNode) = $result;
+		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCodeNode);
+		$this->assertSame('tax_code', $taxCodeNode->getName());
+
+ 		// mock functions to make sure they're not called
+ 		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
+ 		// mock up the cache
+ 		$dummyObject = new Varien_Object();
+ 		$this->_reflectProperty($model, '_prototypeCache')
+			->setValue($model, array('tax_code' => $dummyObject));
+ 		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
+ 			->invoke($model, $taxCodeNode);
+		$this->assertNotEmpty($attrData);
+		$this->assertInstanceOf('Varien_Object', $dummyObject);
+		$this->assertSame($dummyObject, $attrData);
+	}
+
 	public function callbackGetModuleDir($dir, $module)
 	{
 		$vfs = $this->getFixture()->getVfs();
