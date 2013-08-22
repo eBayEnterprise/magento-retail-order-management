@@ -82,20 +82,38 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			} else {
 				$errorMessage = 'unable to retrieve attribute set "' .
 					(string) $attributeSet .'"';
+				$this->_logWarn($errorMessage);
 			}
 		}
-		if (
-			!$errorMessage &&
-			$attributeSet->getEntityTypeId() !== $this->_getDefaultEntityTypeId()
-		) {
+		if (!$errorMessage && !$this->_isValidEntityType($attributeSet)) {
 			$errorMessage = 'attribute set is unexpected entity type: typeId(' .
 				$attributeSet->getEntityTypeId() . ')';
+			$this->_logDebug($errorMessage);
 		}
 		if ($errorMessage) {
 			$attributeSet = null;
-			Mage::throwException($errorMessage);
 		}
 		return $attributeSet;
+	}
+
+	/**
+	 * return true if the attribute set is an entity type that
+	 * should have the attributes applied.
+	 * @param  int  $typeId
+	 * @return boolean
+	 */
+	protected function _isValidEntityType($typeId)
+	{
+		$result = in_array((int)$typeId, $this->_getTargetEntityTypeIds());
+		return $result;
+	}
+
+	protected function _setCurrentEntityType($entityType)
+	{
+	}
+
+	protected function _setCurrentAttributeCode($attrCode)
+	{
 	}
 
 	/**
@@ -158,9 +176,29 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected function _lookupAttribute($attributeCode, $entityTypeId)
 	{
-		$attr = Mage::getResourceModel('catalog/eav_attribute');
-		$attr->loadByCode($entityTypeId, $attributeCode);
+		$eavSetup = Mage::getModel('eav/entity_setup');
+		$attrData = $eavSetup->getAttribute($entityTypeId, $attributeCode);
 		return $attr;
+	}
+
+	protected function _checkAttributeGroup($groupName, $attrSetId, $entityTypeId)
+	{
+		$groupData = $this->_eavSetup->getAttributeGroup(
+			$entityTypeId,
+			$attrSetId,
+			$groupName
+		);
+		$isGroupSame = isset($groupData['attribute_group_id']) &&
+			$groupData['attribute_group_name'] === $groupName;
+		if (!$isGroupSame) {
+			$message = 'replacing attribute group (%s) with (%s)';
+			$this->logWarn(sprintf(
+				$message,
+				$groupData['attribute_group_name'],
+				$groupName
+			));
+		}
+		return $this;
 	}
 
 	/**
