@@ -24,13 +24,6 @@
 				<class>TrueAction_Eb2cProduct_Helper</class>
 			</eb2cproduct>
 		</helpers>
-		<blocks>
-			<adminhtml>
-				<rewrite>
-					<catalog_product_attribute_set_main>TrueAction_Eb2cProduct_Overrides_Block_Catalog_Product_Attribute_Set_Main</catalog_product_attribute_set_main>
-				</rewrite>
-			</adminhtml>
-		</blocks>
 		<eb2cproduct_attributes>
 			<default>
 				<tax_code>
