@@ -30,6 +30,10 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 */
 	protected $_prototypeCache = array();
 
+	protected $_entityTypes    = array(
+		'catalog/category',
+	);
+
 	/**
 	 * mapping of config field name to model field name
 	 * @var array
@@ -92,6 +96,18 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			Mage::throwException($errorMessage);
 		}
 		return $attributeSet;
+	}
+
+	/**
+	 * return a list of entity type id's the attributes will be added to.
+	 * @return array
+	 */
+	protected function _getTargetEntityTypeIds()
+	{
+		$result = array();
+		foreach ($this->_entityTypes as $entityType) {
+			$result[] = Mage::getModel($entityType)->getResource()->getTypeId();
+		}
 	}
 
 	/**
