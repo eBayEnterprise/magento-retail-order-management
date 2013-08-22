@@ -22,7 +22,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 * base log message template.
 	 * @var string
 	 */
-	protected $_baseLogMessage = __CLASS__ . ': %sattribute "%s" entity type "%s": %s';
+	protected $_baseLogMessage = '%s: %sattribute "%s" entity type "%s": %s';
 
 	/**
 	 * the attributes configuration
