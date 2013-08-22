@@ -401,7 +401,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 * @param  Varien_SimpleXml_Element $fieldCfg
 	 * @return Mage_Catalog_Model_Eav_Entity_Attribute
 	 */
-	protected function _getModelPrototype(Varien_SimpleXml_Element $fieldCfg)
+	protected function _getPrototypeData(Varien_SimpleXml_Element $fieldCfg)
 	{
 		$attributeCode = $fieldCfg->getName();
 		$baseData = $this->_getInitialData();
@@ -416,9 +416,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			$value                = $this->_getMappedFieldValue($fieldName, $data);
 			$baseData[$fieldName] = $value;
 		}
-		$model = Mage::getResourceModel('catalog/eav_attribute');
-		$model->addData($baseData);
-		return $model;
+		return $baseData;
 	}
 
 	/**
