@@ -4,18 +4,9 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base 
 {
 	const VFS_ROOT = 'testBase';
-	protected $_inventories;
-
-	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-	}
 
 	/**
 	 * testing processFeeds method
@@ -26,7 +17,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 	 */
 	public function testProcessFeeds()
 	{
-
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
 
@@ -82,6 +72,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 				'fs_tool' => $mockFsTool 
 			)
 		);
+
 		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
 
 		$fileTransferHelperMock = $this->getMock(
@@ -146,6 +137,8 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		$this->assertNull(
 			$inventoryFeedModel->processFeeds()
 		);
+
+		$vfs->discard();
 	}
 
 	/**
