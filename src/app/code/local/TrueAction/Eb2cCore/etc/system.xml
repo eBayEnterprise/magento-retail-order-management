@@ -55,6 +55,40 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+					</fields>
+				</general>
+				<api>
+					<fields>
+						<key>
+							<label>API Key</label>
+							<comment>The api key for EB2C web services.</comment>
+							<sort_order>70</sort_order>
+							<frontend_type>obscure</frontend_type>
+							<validate>validate-password</validate>
+							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</key>
+						<timeout>
+							<label>API Timeout</label>
+							<comment>Time in milliseconds</comment>
+							<sort_order>80</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-digits</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</timeout>
+						<environment>
+							<label>API Environment</label>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+						</environment>
+					</fields>
+				</api>
+				<feed>
+					<fields>
 						<sftp_username>
 							<label>SFTP User Name</label>
 							<comment>The user name for authenticating to the feeds service.</comment>
@@ -86,27 +120,10 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</sftp_location>
-						<api_key>
-							<label>API Key</label>
-							<comment>The api key for EB2C web services.</comment>
-							<sort_order>70</sort_order>
-							<frontend_type>obscure</frontend_type>
-							<validate>validate-password</validate>
-							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_key>
-						<api_timeout>
-							<label>API Timeout</label>
-							<comment>Time in milliseconds</comment>
-							<sort_order>80</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-digits</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_timeout>
+					</fields>
+				</feed>
+				<development>
+					<fields>
 						<test_mode>
 							<label>Test Mode</label>
 							<comment>Should messages be sent as tests?</comment>
@@ -118,7 +135,7 @@
 							<show_in_store>0</show_in_store>
 						</test_mode>
 					</fields>
-				</general>
+				</development>
 			</groups>
 		</eb2ccore>
 	</sections>
