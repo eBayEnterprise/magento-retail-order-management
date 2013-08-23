@@ -37,7 +37,7 @@
 				<tax_code>
 					<scope>Website</scope>
 					<label>Tax Code</label>
-					<group>Foooooo</group>
+					<group>Price</group>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>

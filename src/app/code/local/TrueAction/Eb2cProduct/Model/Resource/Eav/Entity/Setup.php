@@ -16,10 +16,9 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 	public function applyToAllSets($attrInfo)
 	{
 		$entityTypeIds  = $attrInfo->getTargetEntityTypeIds();
-		xdebug_break();
 		$attributesData = $attrInfo->getAttributesData();
 		foreach ($entityTypeIds as $entityTypeId) {
-			$message = 'applying default attributes';
+			$message = 'applying default attributes to entity type id(%s)';
 			$this->_logDebug(sprintf($message, $entityTypeId));
 			foreach ($attributesData as $attrCode => $attrConfig) {
 				$attrId = $this->getAttribute($entityTypeId, $attrCode, 'attribute_id');
