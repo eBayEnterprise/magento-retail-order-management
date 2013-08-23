@@ -58,6 +58,12 @@
 					</fields>
 				</general>
 				<api>
+					<label>API</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>6</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
 					<fields>
 						<key>
 							<label>API Key</label>
@@ -84,10 +90,18 @@
 							<label>API Environment</label>
 							<frontend_type>text</frontend_type>
 							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
 						</environment>
 					</fields>
 				</api>
 				<feed>
+					<label>Feed</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>7</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
 					<fields>
 						<sftp_username>
 							<label>SFTP User Name</label>
@@ -123,6 +137,12 @@
 					</fields>
 				</feed>
 				<development>
+					<label>Development</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>8</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>0</show_in_website>
+					<show_in_store>0</show_in_store>
 					<fields>
 						<test_mode>
 							<label>Test Mode</label>
