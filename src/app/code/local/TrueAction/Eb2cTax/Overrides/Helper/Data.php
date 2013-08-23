@@ -38,7 +38,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 				->setUri($uri)
 				->request($request->getDocument());
 		} catch(Exception $e) {
-			Mage::throwException('Error sending request' . $e->getMessage() );
+			Mage::throwException('TaxDutyFee communications error: ' . $e->getMessage() );
 		}
 
 		$response = Mage::getModel('eb2ctax/response', array(
