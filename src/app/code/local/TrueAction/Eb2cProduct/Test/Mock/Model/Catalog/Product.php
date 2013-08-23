@@ -24,7 +24,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData'
+				'getData', 'setData', 'setGroupedLinkData'
 			)
 		);
 
@@ -117,6 +117,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnValue(10));
 		$catalogModelProductMock->expects($this->any())
 			->method('setData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGroupedLinkData')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -137,7 +140,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData'
+				'getData', 'setData', 'setGroupedLinkData'
 			)
 		);
 
@@ -230,6 +233,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnValue(10));
 		$catalogModelProductMock->expects($this->any())
 			->method('setData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGroupedLinkData')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -250,7 +256,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData'
+				'getData', 'setData', 'setGroupedLinkData'
 			)
 		);
 
@@ -344,6 +350,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 		$catalogModelProductMock->expects($this->any())
 			->method('setData')
 			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGroupedLinkData')
+			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
 	}
@@ -363,7 +372,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData'
+				'getData', 'setData', 'setGroupedLinkData'
 			)
 		);
 
@@ -456,6 +465,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnValue(10));
 		$catalogModelProductMock->expects($this->any())
 			->method('setData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGroupedLinkData')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -476,7 +488,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData'
+				'getData', 'setData', 'setGroupedLinkData'
 			)
 		);
 
@@ -569,6 +581,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnValue(10));
 		$catalogModelProductMock->expects($this->any())
 			->method('setData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('setGroupedLinkData')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;

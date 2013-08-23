@@ -21,6 +21,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	protected $_configurableQueue;
 
 	/**
+	 * hold a collection of grouped operation data
+	 *
+	 * @var array
+	 */
+	protected $_groupedQueue;
+
+	/**
 	 * Initialize model
 	 */
 	protected function _construct()
@@ -53,6 +60,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		// initalialize configurable queue with an empty array
 		$this->_configurableQueue = array();
 
+		// initalialize grouped queue with an empty array
+		$this->_groupedQueue = array();
+
 		return $this;
 	}
 
@@ -65,7 +75,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _isAttributeExists($attribute)
 	{
-		return ((int) $this->getEavConfig()->getAttribute('catalog_product', $attribute)->getId() > 0)? true : false;
+		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
 	}
 
 	/**
@@ -77,7 +87,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _getAttribute($attribute)
 	{
-		return $this->getEavConfig()->getAttribute('catalog_product', $attribute);
+		return $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 	}
 
 	/**
@@ -91,7 +101,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	protected function _getAttributeOptionId($attribute, $option)
 	{
 		$optionId = 0;
-		$attributes = $this->getEavConfig()->getAttribute('catalog_product', $attribute);
+		$attributes = $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
@@ -128,6 +138,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	{
 		if ($configurableDataObject) {
 			$this->_configurableQueue[] = $configurableDataObject;
+		}
+		return ;
+	}
+
+	/**
+	 * add grouped product to a queue to be process later.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to process grouped products
+	 *
+	 * @return void
+	 */
+	protected function _queueGroupedData($groupedDataObject)
+	{
+		if ($groupedDataObject) {
+			$this->_groupedQueue[] = $groupedDataObject;
 		}
 		return ;
 	}
@@ -213,6 +238,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		// let's process any configurable product that were added to the queue
 		$this->processConfigurableQueue();
 
+		// let's process any grouped product that were added to the queue
+		$this->processGroupedQueue();
+
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
 	}
@@ -251,6 +279,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			$queueConfigurableObject->setParentSku($feedItem->getItemId()->getClientItemId());
 			$queueConfigurableObject->setConfigurableAttributes($this->_extractConfigurableAttributes($feedItem));
 			$this->_queueConfigurableData($queueConfigurableObject);
+		}
+	}
+
+	/**
+	 * add Grouped object to queue
+	 *
+	 * @param Varien_Object $feedItem, get Grouped object from feed item
+	 *
+	 * @return void
+	 */
+	protected function _addGroupedToQueue(Varien_Object $feedItem)
+	{
+		// if this item has Grouped data let's queue it, so that we can process later.
+		if (!is_null($feedItem->getBundleContents())) {
+			$queueGroupedObject = new Varien_Object();
+			$queueGroupedObject->setGroupedData($feedItem->getBundleContents());
+			$queueGroupedObject->setParentSku($feedItem->getItemId()->getClientItemId());
+			$this->_queueGroupedData($queueGroupedObject);
 		}
 	}
 
@@ -332,6 +378,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 				} elseif (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'CONFIGURABLE') {
 					// queue configurable data
 					$this->_addConfigurableToQueue($feedItem);
+				} elseif (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'GROUPED') {
+					// queue Grouped data
+					$this->_addGroupedToQueue($feedItem);
 				}
 
 				// pricess feed data according to their operations
@@ -778,7 +827,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 								$configurableAttributeData = array();
 								foreach ($configurableAttributes as $attrCode) {
-									$superAttribute = $this->getEavEntityAttribute()->loadByCode('catalog_product', $attrCode);
+									$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
 									$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
 									$configurableAttributeData[] = array(
 										'id' => $configurableAtt->getId(),
@@ -806,6 +855,52 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 			// after looping through the queue, let's reset the configurable queue
 			$this->_configurableQueue = array();
+		}
+	}
+
+	/**
+	 * processing Grouped queue.
+	 *
+	 * @return void
+	 */
+	public function processGroupedQueue()
+	{
+		// process Grouped only when the queue has actual data
+		if (!empty($this->_groupedQueue)) {
+			// loop through all queued items
+			foreach ($this->_groupedQueue as $groupedObject) {
+				// only process when there's a parent sku related to the grouped object
+				if (trim($groupedObject->getParentSku()) !== '') {
+					// we have a valid item, let's check if this parent product already exists in Magento
+					$parentProductObject = $this->_loadProductBySku($groupedObject->getParentSku());
+					if ($parentProductObject->getId()) {
+						// we have a valid parent product
+						try {
+							// get all the grouped object and set them as grouped product for the parent product.
+							if ($groupedItemCollection = $groupedObject->getGroupedData()->getBundleItems()) {
+
+								$groupedData = array();
+
+								$groupedItemIndex = 0;
+								foreach ($groupedItemCollection as $children) {
+									$childProduct = $this->_loadProductBySku($children->getItemId());
+									if ($childProduct->getId()) {
+										$groupedData[$childProduct->getId()] = array('position' => $groupedItemIndex, 'qty' => $children->getQuantity());
+									}
+									$groupedItemIndex++;
+								}
+								$parentProductObject->setGroupedLinkData($groupedData);
+								$parentProductObject->save();
+							}
+						} catch (Exception $e) {
+							Mage::log('The following error has occurred while processing the grouped queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+						}
+					}
+				}
+			}
+
+			// after looping through the queue, let's reset the grouped queue
+			$this->_groupedQueue = array();
 		}
 	}
 
