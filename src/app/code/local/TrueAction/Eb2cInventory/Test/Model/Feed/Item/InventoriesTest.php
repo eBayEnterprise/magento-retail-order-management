@@ -6,144 +6,90 @@
  */
 class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends EcomDev_PHPUnit_Test_Case
 {
-	protected $_inventories;
-
 	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-		$this->_inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
-	}
-
-	/**
-	 * testing processFeeds method
+	 * testing processFeeds method - with valid product id
 	 *
 	 * @test
-	 * @medium
+	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeeds()
+	public function testProcessFeedsWithValidProductId()
 	{
-		$inventoriesReflector = new ReflectionObject($this->_inventories);
-		$feedModel = Mage::getModel('eb2ccore/feed');
-		$feedModel->setBaseFolder( Mage::getStoreConfig('eb2c/inventory/feed_local_path') );
-		$localPath = Mage::getBaseDir('base') . DS . $feedModel->getInboundFolder();
+		$inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
 
-		if (is_dir($localPath)) {
-			foreach(glob($localPath . DS . '*') as $file) {
-				unlink($file);
-			}
-			rmdir($localPath);
-		}
-		$this->assertEmpty(
-			$this->_inventories->processFeeds()
-		);
+		$mockHelperObject = new TrueAction_Eb2cInventory_Test_Mock_Helper_Data();
+		$inventories->setHelper($mockHelperObject->buildEb2cInventoryHelper());
 
-		// Adding xml to feed directory in other to get the feed
-		$sampleFeed = __DIR__ . '/InventoriesTest/fixtures/sample-feed.xml';
-		$destination = $localPath . DS . 'sample-feed.xml';
-		if (!is_dir($localPath)) {
-			umask(0);
-			@mkdir($localPath, 0777, true);
-		}
+		$mockCoreModelFeed = new TrueAction_Eb2cInventory_Test_Mock_Model_Core_Feed();
+		$inventories->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeed());
 
-		copy($sampleFeed, $destination);
+		$mockCatalogModelProduct = new TrueAction_Eb2cInventory_Test_Mock_Model_Catalog_Product();
+		$inventories->setProduct($mockCatalogModelProduct->buildCatalogModelProductWithValidProductId());
 
-		$fileTransferHelperMock = $this->getMock(
-			'TrueAction_FileTransfer_Helper_Data',
-			array('getFile')
-		);
-		$fileTransferHelperMock->expects($this->any())
-			->method('getFile')
-			->will($this->returnValue(true));
+		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Item();
+		$inventories->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$inventoryHelperMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Helper_Data',
-			array('getFileTransferHelper')
-		);
-		$inventoryHelperMock->expects($this->any())
-			->method('getFileTransferHelper')
-			->will($this->returnValue($fileTransferHelperMock));
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$inventories->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
 
-		$helper = $inventoriesReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_inventories, $inventoryHelperMock);
-
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
-
-		copy($sampleFeed, $destination);
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
-
-		// test with mock product and stock item
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('loadByAttribute', 'getId')
-		);
-		$productMock->expects($this->any())
-			->method('loadByAttribute')
-			->will($this->returnValue(true));
-		$productMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
-
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('loadByProduct', 'setQty', 'save')
-		);
-		$stockItemMock->expects($this->any())
-			->method('loadByProduct')
-			->will($this->returnSelf());
-		$stockItemMock->expects($this->any())
-			->method('setQty')
-			->will($this->returnSelf());
-		$stockItemMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf());
-
-		$productProperty = $inventoriesReflector->getProperty('_product');
-		$productProperty->setAccessible(true);
-		$productProperty->setValue($this->_inventories, $productMock);
-
-		$stockItemProperty = $inventoriesReflector->getProperty('_stockItem');
-		$stockItemProperty->setAccessible(true);
-		$stockItemProperty->setValue($this->_inventories, $stockItemMock);
-
-		copy($sampleFeed, $destination);
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
+		$this->assertNull($inventories->processFeeds());
 	}
 
 	/**
-	 * testing _clean method, to cover exception catch section
+	 * testing processFeeds method - with invalid product id
 	 *
 	 * @test
+	 * @large
+	 * @loadFixture loadConfig.yaml
 	 */
-	public function testCleanWithException()
+	public function testProcessFeedsWithInvalidProductId()
 	{
-		$stockStatusMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Status',
-			array('rebuild')
-		);
-		$stockStatusMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Exception));
+		$inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
 
-		$inventoriesReflector = new ReflectionObject($this->_inventories);
-		$stockStatusProperty = $inventoriesReflector->getProperty('_stockStatus');
-		$stockStatusProperty->setAccessible(true);
-		$stockStatusProperty->setValue($this->_inventories, $stockStatusMock);
+		$mockHelperObject = new TrueAction_Eb2cInventory_Test_Mock_Helper_Data();
+		$inventories->setHelper($mockHelperObject->buildEb2cInventoryHelper());
 
-		$cleanMethod = $inventoriesReflector->getMethod('_clean');
-		$cleanMethod->setAccessible(true);
-		$this->assertNull(
-			$cleanMethod->invoke($this->_inventories)
-		);
+		$mockCoreModelFeed = new TrueAction_Eb2cInventory_Test_Mock_Model_Core_Feed();
+		$inventories->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeed());
+
+		$mockCatalogModelProduct = new TrueAction_Eb2cInventory_Test_Mock_Model_Catalog_Product();
+		$inventories->setProduct($mockCatalogModelProduct->buildCatalogModelProductWithInvalidProductId());
+
+		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Item();
+		$inventories->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
+
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$inventories->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
+
+		$this->assertNull($inventories->processFeeds());
+	}
+
+	/**
+	 * testing processFeeds method - with invalid ftp settings
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testProcessFeedsWithInvalidFtpSetting()
+	{
+		$inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
+
+		$mockHelperObject = new TrueAction_Eb2cInventory_Test_Mock_Helper_Data();
+		$inventories->setHelper($mockHelperObject->buildEb2cInventoryHelperWithInvalidFtpSettings());
+
+		$mockCoreModelFeed = new TrueAction_Eb2cInventory_Test_Mock_Model_Core_Feed();
+		$inventories->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeed());
+
+		$mockCatalogModelProduct = new TrueAction_Eb2cInventory_Test_Mock_Model_Catalog_Product();
+		$inventories->setProduct($mockCatalogModelProduct->buildCatalogModelProductWithValidProductId());
+
+		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Item();
+		$inventories->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
+
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cInventory_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$inventories->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
+
+		$this->assertNull($inventories->processFeeds());
 	}
 }
