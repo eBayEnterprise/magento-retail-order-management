@@ -1,7 +1,8 @@
 <?php
 /**
  */
-class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 
 	public function setUp()
@@ -77,65 +78,59 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 
 	/**
 	 * @test
+	 * @loadFixture sendRequestConfig.yaml
 	 */
 	public function testSendRequest()
 	{
+		$requestDocument = new TrueAction_Dom_Document();
 		$request = $this->getModelMock('eb2ctax/request', array('getDocument'));
 		$request->expects($this->any())
 			->method('getDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document()));
+			->will($this->returnValue($requestDocument));
 
-		$apiModelMock = $this->getMock('TrueAction_Eb2cCore_Model_Api', array('setUri', 'request'));
-		$apiModelMock->expects($this->any())
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'setUri'));
+		$apiModelMock->expects($this->once())
 			->method('setUri')
+			->with($this->identicalTo('https://prod-eu.gsipartners.com/v1.10/stores/store-123/taxes/quote.xml'))
 			->will($this->returnSelf());
-
-		$apiModelMock->expects($this->any())
+		$apiModelMock->expects($this->once())
 			->method('request')
-			->will(
-				$this->returnValue('<foo>something</foo>')
-			);
+			->with($this->identicalTo($requestDocument))
+			->will($this->returnValue('<foo>something</foo>'));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$taxHelper = Mage::helper('tax');
-		$taxReflector = new ReflectionObject($taxHelper);
-		$apiModel = $taxReflector->getProperty('_apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($taxHelper, $apiModelMock);
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cTax_Model_Response',
 			$taxHelper->sendRequest($request)
 		);
 
-		// let cover getApiModel
-		$apiModel->setValue($taxHelper, null);
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cCore_Model_Api',
-			$taxHelper->getApiModel()
-		);
 	}
 
 	/**
 	 * @test
 	 * @expectedException Mage_Core_Exception
+	 * @loadFixture sendRequestConfig.yaml
 	 */
 	public function testSendRequestWithExceptionThrown()
 	{
+		$requestDocument = new TrueAction_Dom_Document();
+
 		$request = $this->getModelMock('eb2ctax/request', array('getDocument'));
 		$request->expects($this->any())
 			->method('getDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document()));
+			->will($this->returnValue($requestDocument));
 
 		$apiModelMock = $this->getMock('TrueAction_Eb2cCore_Model_Api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
+			->with($this->identicalTo('https://prod-eu.gsipartners.com/v1.10/stores/store-123/taxes/quote.xml'))
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->with($requestDocument)
+			->will($this->throwException(new Exception));
 
 		$taxHelper = Mage::helper('tax');
 		$taxReflector = new ReflectionObject($taxHelper);
@@ -163,7 +158,6 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 
 	/**
 	 * @test
-	 * @loadFixture vatInclusivePricingEnabled.yaml
 	 */
 	public function testGetVatInclusivePricingFlagEnabled()
 	{
@@ -172,5 +166,18 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest extends EcomDev_PHPUnit_
 		));
 		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
 		$this->assertTrue($val);
+	}
+
+	/**
+	 * @test
+	 */
+	public function testTaxDutyRateCode()
+	{
+		$code = 'eb2c-duty-amount';
+		$this->_mockConfig(array(
+			array('taxDutyRateCode', $code),
+		));
+		$val = Mage::helper('tax')->taxDutyAmountRateCode();
+		$this->assertSame($code, $val);
 	}
 }

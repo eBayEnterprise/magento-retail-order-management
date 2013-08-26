@@ -57,9 +57,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 
 		$items = $this->_getAddressItems($address);
 		if (!$items) {
-			// @codeCovergeIgnoreStart
 			return $this;
-			// @codeCovergeIgnoreEnd
 		}
 		foreach ($items as $item) {
 			if ($item->getParentItem()) {
@@ -88,45 +86,53 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	 */
 	protected function _applyTaxes($item, $address)
 	{
-		$rate           = 0; // this is no longer useful.
+		$helper         = $this->_helper;
 		$qty            = $item->getTotalQty();
 
-		$price          = $taxPrice         = $this->_calculator->round($item->getCalculationPriceOriginal());
 		$basePrice      = $baseTaxPrice     = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
-		$subtotal       = $taxSubtotal      = $item->getRowTotal();
 		$baseSubtotal   = $baseTaxSubtotal  = $item->getBaseRowTotal();
-		$item->setTaxPercent($rate);
-		$tax             = $this->_calculator->getTaxForItem($item, $address);
-		$baseTax         = $this->_calculator->getTaxForItemAmount($basePrice, $item, $address);
-		$taxPrice        = $price + $tax;
-		$baseTaxPrice    = $basePrice + $baseTax;
-		$taxSubtotal     = $taxPrice * $qty;
-		$baseTaxSubtotal = $baseTaxPrice * $qty;
-		$taxable         = $this->_calculator->getTaxableForItem($item, $address);
-		$baseTaxable     = $taxable;
+		$itemSelector   = new Varien_Object(array('item' => $item, 'address' => $address));
+		$baseTax        = $this->_calculator->getTaxForAmount($basePrice, $itemSelector);
+		$baseTaxPrice   = $basePrice + $baseTax;
+		$baseRowTax     = $this->_calculator->getTax($itemSelector);
+		$baseTaxSubtotal= $baseSubtotal + $baseRowTax;
+		$baseTaxable    = $baseSubtotal;
 		if ($item->hasCustomPrice()) {
 			/**
 			 * Initialize item original price before declaring custom price
 			 */
 			$item->getOriginalPrice();
-			$item->setCustomPrice($price);
+			$item->setCustomPrice($this->_convertAmount($basePrice));
 			$item->setBaseCustomPrice($basePrice);
 		}
-		$item->setPrice($price);
+		$item->setTaxPercent(0);
+		$item->setPrice($this->_convertAmount($basePrice));
 		$item->setBasePrice($basePrice);
-		$item->setRowTotal($subtotal);
+		$item->setRowTotal($this->_convertAmount($baseSubtotal));
 		$item->setBaseRowTotal($baseSubtotal);
-		$item->setPriceInclTax($taxPrice);
+		$item->setPriceInclTax($this->_convertAmount($baseTaxPrice));
 		$item->setBasePriceInclTax($baseTaxPrice);
-		$item->setRowTotalInclTax($taxSubtotal);
+		$item->setRowTotalInclTax($this->_convertAmount($baseTaxSubtotal));
 		$item->setBaseRowTotalInclTax($baseTaxSubtotal);
-		$item->setTaxableAmount($taxable);
+		$item->setTaxableAmount($this->_convertAmount($baseTaxable));
 		$item->setBaseTaxableAmount($baseTaxable);
 		$item->setIsPriceInclTax(false);
 		if ($this->_config->discountTax($this->_store)) {
-			$item->setDiscountCalculationPrice($taxPrice);
+			$item->setDiscountCalculationPrice($this->_convertAmount($baseTaxPrice));
 			$item->setBaseDiscountCalculationPrice($baseTaxPrice);
 		}
 		return $this;
+	}
+
+	/**
+	 * convert an amount to the quote's store currency
+	 * @param  float $amount
+	 * @return float
+	 */
+	protected function _convertAmount($amount)
+	{
+		$amount = $this->_store->convertPrice($amount);
+		$amount = $this->_calculator->round($amount);
+		return $amount;
 	}
 }

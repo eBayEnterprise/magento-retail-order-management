@@ -69,7 +69,9 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 			}
 		}
 		Mage::throwException('Configuration path specified by ' . $key . ' was not found.');
+	// @codeCoverageIgnoreStart
 	}
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Get the configuration value represented by the given configKey

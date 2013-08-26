@@ -1,0 +1,10 @@
+set-horse-horse:
+  same: true
+set-goat-horse:
+  same: false
+set--horse:
+  same: false
+set-horse-:
+  same: false
+set-horse-HorSe:
+  same: true

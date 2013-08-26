@@ -7,7 +7,7 @@
 /**
  * tests the tax calculation class.
  */
-class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public static $respXml = '';
 	public static $cls;
@@ -24,41 +24,16 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		self::$respXml = file_get_contents($path);
 		$path = dirname(__FILE__) . '/ResponseTest/fixtures/request.xml';
 		self::$reqXml = file_get_contents($path);
-	}
 
-	public function setUp()
-	{
-		parent::setUp();
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
-		$quote = Mage::getModel('sales/quote')->loadByIdWithoutStore(3);
-		$this->request = Mage::getModel('eb2ctax/request', array(
-			'quote' => $quote
-		));
-
-		$docObject = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$docObject->loadXML(self::$reqXml);
-		$requestReflector = new ReflectionObject($this->request);
-		$doc = $requestReflector->getProperty('_doc');
-		$doc->setAccessible(true);
-		$doc->setValue($this->request, $docObject);
 	}
 
 	/**
 	 * Testing getResponseForItem method
 	 *
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testGetResponseForItem()
 	{
-		$response = Mage::getModel('eb2ctax/response', array(
-			'xml' => self::$respXml,
-			'request' => $this->request
-		));
+		$response = $this->_mockResponse();
 
 		$item = $this->getModelMock('sales/quote_item', array('getSku'));
 		$item->expects($this->any())
@@ -75,11 +50,6 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 
 	/**
 	 * Testing getResponseItems method
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testGetResponseItems()
 	{
@@ -94,50 +64,56 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	}
 
 	/**
-	 * Testing isValid method
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
+	 * ensures the object is valid in only if all the parts of the.
+	 * @dataProvider dataProvider
 	 */
-	public function testIsValid()
+	public function testIsValid($hasXml, $isDocOk, $validateDestinations, $validateResponseItems)
 	{
-		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
-		$request->expects($this->any())
-			->method('isValid')
-			->will($this->returnValue(true));
-		$request->expects($this->any())
-			->method('getDocument')
-			->will($this->returnValue($this->request->getDocument()));
-		$response = Mage::getModel('eb2ctax/response', array(
-			'xml' => self::$respXml,
-			'request' => $request
-		));
-		$this->assertTrue($response->isValid());
+		$request = $this->_mockRequest();
+		$methods  = array('hasXml', '_validateResponseItems', '_checkXml', '_validateDestinations', '_extractResults');
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods($methods)
+			->getMock();
+		$response->expects($this->any())
+			->method('hasXml')
+			->will($this->returnValue($hasXml));
+		$response->expects($this->any())
+			->method('_validateResponseItems')
+			->will($this->returnValue($validateResponseItems));
+		$response->expects($this->any())
+			->method('_checkXml')
+			->with($this->identicalTo(self::$respXml))
+			->will($this->returnValue($isDocOk));
+		$response->expects($this->any())
+			->method('_validateDestinations')
+			->will($this->returnValue($validateDestinations));
+		// select expectation
+		$e = $this->expected('%s-%s-%s-%s', (int)$hasXml, (int)$isDocOk, (int)$validateDestinations, (int)$validateResponseItems);
+		$timesCalled = $e->getExtractResultsCalled() ? $this->once() : $this->never();
+		$response->expects($timesCalled)
+			->method('_extractResults')
+			->will($this->returnSelf());
+		// setup initial data
+		$initData = array('xml' => self::$respXml, 'request' => $request);
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->preserveWhiteSpace = false;
+		$doc->loadXML(self::$respXml);
+		$this->_reflectProperty($response, '_doc')->setValue($response, $doc);
+		$response->setData($initData);
+		// run the test
+		$this->_reflectMethod($response, '_construct')->invoke($response);
+		// check final result
+		$this->assertSame((bool)$e->getIsValid(), $response->isValid());
 	}
 
 	/**
-	 * invalid request should invalidate the response
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
+	 * Testing isValid method
 	 */
-	public function testIsValidBadRequest()
+	public function testIsValidWithBadRequest()
 	{
-		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
-		$request->expects($this->any())
-			->method('isValid')
-			->will($this->returnValue(true));
-		$request->expects($this->any())
-			->method('getDocument')
-			->will($this->returnValue($this->request->getDocument()));
-		$response = Mage::getModel('eb2ctax/response', array(
-			'xml' => self::$respXml,
-			'request' => $request
-		));
+		// setup the SUT
+		$response = $this->_mockResponse();
 		$this->assertTrue($response->isValid());
 		$request = Mage::getModel('eb2ctax/request');
 		$this->assertFalse($request->isValid());
@@ -149,15 +125,12 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	 * Testing _construct method - valid request/response match xml
 	 *
 	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testConstructValidRequestResponseMatch()
 	{
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
-			'request' => $this->request
+			'request' => $this->_mockRequest()
 		));
 
 		$addressMock = $this->getModelMock('sales/quote_address', array('getId'));
@@ -182,22 +155,13 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	 * Testing _construct method - invalid request/response match xml
 	 *
 	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testConstructInvalidRequestResponseMatch()
 	{
-		$docObject = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$docObject->loadXML(file_get_contents(dirname(__FILE__) . '/ResponseTest/fixtures/request-invalid.xml'));
-		$requestReflector = new ReflectionObject($this->request);
-		$doc = $requestReflector->getProperty('_doc');
-		$doc->setAccessible(true);
-		$doc->setValue($this->request, $docObject);
-
+		$request = $this->_mockRequest(file_get_contents(dirname(__FILE__) . '/ResponseTest/fixtures/request-invalid.xml'));
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
-			'request' => $this->request
+			'request' => $request
 		));
 
 		$responseReflector = new ReflectionObject($response);
@@ -213,19 +177,10 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 	 * Testing _construct method - invalid request/response match xml because of MailingAddress[@id="2"] element is different
 	 *
 	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testConstructMailingAddressMisMatch()
 	{
-		$docObject = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$docObject->loadXML(file_get_contents(dirname(__FILE__) . '/ResponseTest/fixtures/request-invalid-2.xml'));
-		$requestReflector = new ReflectionObject($this->request);
-		$doc = $requestReflector->getProperty('_doc');
-		$doc->setAccessible(true);
-		$doc->setValue($this->request, $docObject);
-
+		$request = $this->_mockRequest(file_get_contents(dirname(__FILE__) . '/ResponseTest/fixtures/request-invalid-2.xml'));
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
 			'request' => $this->request
@@ -240,112 +195,32 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		);
 	}
 
-
 	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
+	 * @dataProvider shipGroupXmlProvider
 	 */
-	public function testLoadAddress()
+	public function testGetAddressId($xml, $expected)
 	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$loadAddress = $rf->getMethod('_loadAddress');
-		$loadAddress->setAccessible(true);
-		$loadAddress->invoke($response, 1);
-
-		$address = $rf->getProperty('_address');
-		$address->setAccessible(true);
-		$a = $address->getValue($response);
-		$this->assertInstanceOf('Mage_Sales_Model_Quote_Address', $a);
-		$this->assertSame('1', $a->getId());
-	}
-
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
-	 */
-	public function testGetAddress()
-	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$docRf = $rf->getProperty('_doc');
-		$docRf->setAccessible(true);
-		$doc = $docRf->getValue($response);
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$shipGroups = $x->query('//a:ShipGroup');
-		// NOTE: THIS IS DEPENDENT ON THE ORDER OF THE SHIPGROUPS IN THE XML
-		foreach ($shipGroups as $index => $shipGroup) {
-			$this->assertNotNull($shipGroup);
-			$getAddress = $rf->getMethod('_getAddress');
-			$getAddress->setAccessible(true);
-			$a = $getAddress->invoke($response, $shipGroup);
-			$this->assertInstanceOf('Mage_Sales_Model_Quote_Address', $a);
-			$this->assertSame((string)($index + 1), $a->getId());
-		}
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->preserveWhiteSpace = false;
+		$doc->loadXML($xml);
+		$response = Mage::getModel('eb2ctax/response');
+		$responseDoc = new ReflectionProperty($response, '_doc');
+		$responseDoc->setAccessible(true);
+		$responseDoc->setValue($response, $doc);
+		$fn       = new ReflectionMethod($response, '_getAddressId');
+		$fn->setAccessible(true);
+		$val = $fn->invoke($response, $doc->documentElement);
+		$this->assertSame($expected, $val);
 	}
 
 	/**
 	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
-	 */
-	public function testGetAddressFail()
-	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
-		$rf = new ReflectionObject($response);
-		$getAddress = $rf->getMethod('_getAddress');
-		$getAddress->setAccessible(true);
-		$docRf = $rf->getProperty('_doc');
-		$docRf->setAccessible(true);
-		$doc = $docRf->getValue($response);
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$shipGroups = $x->query('//a:ShipGroup');
-		$shipGroup = $shipGroups->item(0)->parentNode->createChild('ShipGroup');
-		$getAddress->invoke($response, $shipGroup);
-		$this->assertFalse($response->isValid());
-	}
-
-	/**
-	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 */
 	public function testItemSplitAcrossShipgroups()
 	{
-		$xmlPath = dirname(__FILE__) . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
-		$response = Mage::getModel(
-			'eb2ctax/response',
-			array(
-				'xml' => file_get_contents($xmlPath)
-			)
-		);
+		$request  = $this->_mockRequest();
+		$xmlPath  = __DIR__ . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
+		$response = $this->_mockResponse(file_get_contents($xmlPath), $request);
 
 		$addressMock1 = $this->getModelMock('sales/quote_address', array('getId'));
 		$addressMock1->expects($this->any())
@@ -373,14 +248,11 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 
 	/**
 	 * @test
-	 * @large
-	 * @loadFixture base.yaml
-	 * @loadFixture testItemSplitAcrossShipGroups.yaml
 	 * @loadExpectation
 	 */
 	public function testDiscounts()
 	{
-		$response = Mage::getModel('eb2ctax/response', array('xml' => self::$respXml));
+		$response       = $this->_mockResponse();
 		$addressMethods = array('getId');
 		$itemMethods    = array('getSku');
 		$mockAddress    = $this->getModelMock('sales/quote_address', $addressMethods);
@@ -506,4 +378,186 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends EcomDev_PHPUnit_Test_Ca
 		$this->assertNull($obj->getShippingAmount());
 		$this->assertNull($obj->getDutyAmount());
 	}
+
+	/**
+	 * Test the isSameNodelistElement method. Ensures that each node list has at least one item
+	 * and the first item in each list are case-insensitive equal
+	 * @param  string $responseValue
+	 * @param  string $requestValue
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testCompareNodelistElements($responseValue, $requestValue)
+	{
+		$dom = new TrueAction_Dom_Document();
+		$dom->loadXML('<root>'
+			. '<response>'
+			. (!is_null($responseValue) ? '<item>' . $responseValue . '</item>' : '')
+			. '</response>'
+			. '<request>'
+			. (!is_null($requestValue) ? '<item>' . $requestValue . '</item>' : '')
+			. '</request>'
+			. '</root>');
+
+		$responseNodelist = $dom->getElementsByTagName('response')->item(0)->childNodes;
+		$requestNodelist  = $dom->getElementsByTagName('request')->item(0)->childNodes;
+
+		$this->assertSame(
+			$this->expected('set-%s-%s', $responseValue, $requestValue)->getSame(),
+			Mage::getModel('eb2ctax/response')->isSameNodelistElement($responseNodelist, $requestNodelist)
+		);
+	}
+
+	public function shipGroupXmlProvider()
+	{
+		return array(
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_1"/>
+				</ShipGroup>', 1),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_256_virtual"/>
+				</ShipGroup>', 256),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_"/>
+				</ShipGroup>', null),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref=""/>
+				</ShipGroup>', null),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<DestinationTarget ref="_a"/>
+				</ShipGroup>', null),
+		);
+	}
+
+	/**
+	 * @dataProvider xmlProviderForCheckXml
+	 */
+	public function testCheckXml($xml, $expected)
+	{
+		$response = Mage::getModel('eb2ctax/response');
+		$val = $this->_reflectMethod($response, '_checkXml')->invoke($response, $xml);
+		$this->assertSame($expected, $val);
+	}
+
+	/**
+	 * @dataProvider xmlProviderForValidateResponseItems
+	 */
+	public function testValidateResponseItems($path1, $path2, $expected)
+	{
+		$response = Mage::getModel('eb2ctax/response');
+		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc1->preserveWhiteSpace = false;
+		$doc1->loadXML(file_get_contents($path1));
+		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc2->preserveWhiteSpace = false;
+		$doc2->loadXML(file_get_contents($path2));
+		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $doc1, $doc2);
+		$this->assertSame($expected, $val);
+	}
+
+	public function testValidateResponseItemsWithEmptyDocs()
+	{
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc1->preserveWhiteSpace = false;
+		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc2->preserveWhiteSpace = false;
+		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $doc1, $doc2);
+		$this->assertSame(false, $val);
+	}
+
+
+	public function xmlProviderForCheckXml()
+	{
+		return array(
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<TaxDutyQuoteResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+				</TaxDutyQuoteResponse>', true),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<Fault xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+				<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
+				<Code>INVALID_XML</Code>
+				<Description>The xml submitted for quote request was invalid.</Description>
+				</Fault>', false),
+			array('<?xml version="1.0" encoding="UTF-8"?>
+				<someotherdocument>
+				</someotherdocument>', false),
+			array('sfslfjslfjlsfdlkfjlsfjl', false),
+		);
+	}
+
+	public function xmlProviderForValidateResponseItems()
+	{
+		$basePath = __DIR__ . '/ResponseTest/fixtures';
+		return array(
+			array("{$basePath}/req1.xml", "{$basePath}/res1.xml", true),
+			array("{$basePath}/req2.xml", "{$basePath}/res2.xml", true),
+			array("{$basePath}/req3.xml", "{$basePath}/res3.xml", false),
+			array("{$basePath}/req4.xml", "{$basePath}/res4.xml", true),
+			array("{$basePath}/req5.xml", "{$basePath}/res5.xml", false),
+			array("{$basePath}/req6.xml", "{$basePath}/res6.xml", false),
+			array("{$basePath}/req7.xml", "{$basePath}/res7.xml", false),
+		);
+	}
+
+	/**
+	 * mock up a simple response object
+	 * @param  string $xml
+	 * @param  TrueAction_Eb2cTax_Model_Request $request
+	 * @return TrueAction_Eb2cTax_Model_Response
+	 */
+	protected function _mockResponse($xml = '', $request = null)
+	{
+		$xml     = $xml ? $xml : self::$respXml;
+		$request = $request ? $request : $this->_mockRequest();
+		// initial data for the model
+		$initData = array('xml' => $xml, 'request' => $request);
+		// manually initialize the response
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(array('_validateResponseItems', '_validateDestinations'))
+			->getMock();
+		$response->expects($this->any())
+			->method('_validateResponseItems')
+			->will($this->returnValue(true));
+		$response->expects($this->any())
+			->method('_validateDestinations')
+			->will($this->returnValue(true));
+		$response->setData($initData);
+		$this->_reflectMethod($response, '_construct')->invoke($response);
+		return $response;
+	}
+
+	/**
+	 * mock up a simple request object
+	 * @param  string $xml
+	 * @param  bool $isValid
+	 * @return TrueAction_Eb2cTax_Model_Request
+	 */
+	protected function _mockRequest($xml = '', $isValid = true)
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->preserveWhiteSpace = false;
+		if ($xml) {
+			$doc->loadXML($xml);
+		} else {
+			$doc->loadXML(self::$reqXml);
+		}
+		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
+		$request->expects($this->any())
+			->method('isValid')
+			->will($this->returnValue($isValid));
+		$request->expects($this->any())
+			->method('getDocument')
+			->will($this->returnValue($doc));
+		return $request;
+	}
+
 }

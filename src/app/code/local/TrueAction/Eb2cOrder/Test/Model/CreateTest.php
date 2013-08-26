@@ -1,106 +1,103 @@
 <?php
 /**
  * Test Suite for the Order_Create
+ * TODO: Need to mock up getApiModel()->request() to provide 100% sendRequest coverage
  */
-class TrueAction_Eb2cOrder_Test_Model_CreateTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
-	private $_creator;
+	const SAMPLE_SUCCESS_XML = <<<SUCCESS_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+  <ResponseStatus>Success</ResponseStatus>
+</OrderCreateResponse>
+SUCCESS_XML;
+
+	const SAMPLE_FAILED_XML = <<<FAILED_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+  <ResponseStatus>Failed</ResponseStatus>
+</OrderCreateResponse>
+FAILED_XML;
+
+	const SAMPLE_INVALID_XML = <<<INVALID_XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCreateResponse>
+This is a fine mess ollie.
+INVALID_XML;
 
 	/**
-	 * Setup gets a TrueAction_Eb2cOrder_Model_Create, and mocks the send method
-	 */
-	public function setUp()
-	{
-		$this->_creator = $this->getMock('TrueAction_Eb2cOrder_Model_Create', array('sendRequest'));
-		$this->_creator->expects($this->any())
-			->method('sendRequest')
-			->will($this->returnValue(true));
-	}
-
-	/**
-	 * @test
-	 * Test factory method returns proper class
-	 */
-	public function testFactoryMethod()
-	{
-		$testFactoryCreator = Mage::getModel('eb2corder/create');
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $testFactoryCreator );
-	}
-
-
-	/**
+	 * Create an Order
+	 * 
 	 * @test
 	 * @large
-	 * @loadFixture testOrderCreateScenarios.yaml
-	 * Get a collection; try creating order for last one
 	 */
-	public function testOrderCreateFromCollection()
+	public function testOrderCreate()
 	{
-		$status = null;
-		$testId = Mage::getModel('sales/order')->getCollection()->getLastItem()->getIncrementId();
-		try {
-			$this->_creator->buildRequest($testId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			echo $e->getMessage();
-		}
-		$this->assertSame($status, true);
+		$this->replaceCoreConfigRegistry();
+		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
+
+		$status = Mage::getModel('eb2corder/create')
+					->buildRequest($this->getMockSalesOrder())
+					->sendRequest();
+		$this->assertSame(true, $status);
 	}
 
 	/**
+	 * Should throw an exception because an invalid xml response was received
 	 * @test
-	 * @loadFixture testOrderCreateScenarios.yaml
-	 * One known order is create by increment Id value
+	 * @large
+	 * @expectedException Mage_Core_Exception
 	 */
-	public function testOrderCreateOneOff()
+	public function testInvalidResponseReceived()
 	{
-		$status = null;
-		$incrementId = '100000002';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			echo $e->getMessage();
-			$status = false;
-		}
-		$this->assertSame($status, true);
+		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_INVALID_XML), false );
+		Mage::getModel('eb2corder/create')->sendRequest();
 	}
 
+
 	/**
+	 * FIXME: I don't know if we really need this if we're not queued? Check what happens
+	 * 	if Inventory etc has to be rolled back.
+	 *
 	 * @test
-	 * Don't want to find this order, handle exception correctly.
+	 * @large
 	 */
-	public function testOrderNotFound()
+	public function testFinallyFailed()
 	{
-		$status = null;
-		$incrementId = 'NO_CHANCE';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		} catch(Exception $e) {
-			$status = false;
-		}
-		$this->assertSame($status, false);
+		$orderCreateClass = get_class(Mage::getModel('eb2corder/create'));
+		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
+		$privateFinallyFailedMethod->setAccessible(true);
+		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
+		$this->assertEventDispatched('eb2c_order_create_fail');
 	}
 
-	/**
-	 * @test
-	 * @loadFixture
-	 * This fixture was setup to fail with a syntactically correct URL that couldn't really answer us in any sensible way.
-	 */
-	public function testWithEb2cPaymentsEnabled()
-	{
-		$status = null;
 
-		$this->_creator = Mage::getModel('eb2corder/create');
-		$incrementId = '100000003';
-		try {
-			$this->_creator->buildRequest($incrementId);
-			$status = $this->_creator->sendRequest();
-		}
-		catch(Exception $e) {
-			$status = false;
-		}
-		$this->assertSame($status, false);
+	/**
+	 * Call the observerCreate method, which is meant to be called by a dispatched event
+	 * Also covers the eb2c payments not enabled case
+	 * 
+	 * @test
+	 * @large
+	 */
+	public function testObserverCreate()
+	{
+		// Mock the core config registry, only value passed is the vfs filename
+		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_FAILED_XML), false );
+		$this->replaceCoreConfigRegistry( array('eb2cPaymentsEnabled' => false)); // Serves dual purpose, cover payments not enabled case.
+
+		Mage::getModel('eb2corder/create')->observerCreate(
+			$this->replaceModel(
+				'varien/event_observer',
+				array(
+					'getEvent' =>
+						$this->replaceModel(
+							'varien/event',
+							array(
+								'getOrder' => $this->getMockSalesOrder()
+							)
+						)
+					)
+				)
+			);
 	}
 }

@@ -1,0 +1,123 @@
+#!/bin/bash
+
+##
+# Archive older deploys.
+#
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=archive
+
+##
+# Archive
+main() {
+	local phase
+
+	# Create files with permissions conducive to web service by apache and deployment by Jenkins.
+	umask 002
+
+	processOpts "$@"
+	checkPaths
+
+	cd -P "$basePath/$phase/$siteName"
+
+	# What not to archive
+	skip=( 'static' )
+	# Don't archive directories currently symlinked to $htmlRelPath and $htmlRelPath.old
+	[[ -d "${htmlRelPath}.old" ]] && skip+=( "$(cd -P "${htmlRelPath}.old" && echo "${PWD##*/}")" )
+	[[ -d "${htmlRelPath}" ]] && skip+=( "$(cd -P "${htmlRelPath}" && echo "${PWD##*/}")" )
+
+	for deploy in */; do
+		deploy="${deploy%/}"
+		# Don't archive the current, second-most current, non-directories and symlinks.
+		if ! { has "$deploy" "${skip[@]}" || [[ -h "$deploy" || ! -d "$deploy" ]]; }; then
+			tar -cJpf "${deploy}.tar.xz" "$deploy" && rm -rf "$deploy"
+		fi
+	done
+
+}
+
+##
+# Check that the given arguments are sound.
+checkPaths() {
+	[[ -d "$basePath" ]] || die $? "Base path not found: '$basePath'."
+	cd "$basePath"
+
+	[[ -d "$phase" ]] || die $? "Phase path not found: '$basePath/$phase'."
+	cd "$phase"
+
+	[[ -d "$siteName" ]] || die $? "site path not found: '$basePath/$phase/$siteName'."
+	cd "$siteName"
+
+	[[ -e "$htmlRelPath" && ! -h "$htmlRelPath" ]] &&
+		die 1 "Public html path '$basePath/$phase/$siteName/$htmlRelPath' exists and is not a symlink."
+}
+
+##
+# Print the help for this script.
+printHelp() {
+	cat <<- 'EOF'
+		usage: archive [options]
+
+		See the config file for other options.
+
+		options:
+	EOF
+	column -ts: <<- 'EOF'
+		  -h|--help:(this information)
+		  -p|--phase=:(Deployment phase: test, uat, stage or prod)
+		  -s|--slot=:(Slotted pre-production numbers, like schiff02.test.mage.tandev.net)
+	EOF
+	echo
+}
+
+##
+# Process the commandline options in whatever order
+processOpts() {
+	while [[ $1 ]]; do
+		case $1 in
+			-h|--help)
+				printHelp
+				exit 0
+				;;
+			-p|--phase)
+				phase="$2"
+				shift
+				;;
+			-p=*|--phase=*)
+				phase="${1#*=}"
+				;;
+			-s|--slot)
+				slot="$2"
+				shift
+				;;
+			-s=*|--slot=*)
+				slot="${1#*=}"
+				;;
+			*)
+				printHelp
+				exit 1
+				;;
+		esac
+		shift
+	done
+
+	if ! has "$phase" 'test' 'uat' 'stage' 'prod'; then
+		printHelp
+		exit 1
+	elif [[ $phase = 'prod' ]]; then
+		phase='.' # No phase directory for production
+	else
+		case $slot in
+			*[^[:digit:]]*)
+				printHelp
+				exit 1
+				;;
+			*)
+				siteName="${shortName}${slot}"
+				;;
+		esac
+	fi
+}
+
+# Sourcing utils runs main() if SCRIPTNAME is set properly.
+. utils

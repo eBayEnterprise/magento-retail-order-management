@@ -16,13 +16,14 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 		parent::setUp();
 		$this->_allocation = Mage::getModel('eb2cinventory/allocation');
 
+		// @fixme can this be a mock helper?
 		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-
 		$allocationReflector = new ReflectionObject($this->_allocation);
 		$helper = $allocationReflector->getProperty('_helper');
 		$helper->setAccessible(true);
 		$helper->setValue($this->_allocation, $newHelper);
 
+		// @fixme avoid setupBaseUrl.
 		$_SESSION = array();
 		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
 		$this->app()->getRequest()->setBaseUrl($_baseUrl);
@@ -32,7 +33,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
+			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
 		);
 		$addressMock->expects($this->any())
 			->method('getShippingMethod')
@@ -63,6 +64,12 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			'Mage_Sales_Model_Quote_Item',
 			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save')
 		);
+
+		$addressMock->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array($itemMock))
+			);
+
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)
@@ -112,7 +119,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($addressMock))
 			);
 
 		return $quoteMock;
@@ -219,7 +226,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
+			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
 		);
 		$addressMock->expects($this->any())
 			->method('getShippingMethod')
@@ -250,6 +257,12 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			'Mage_Sales_Model_Quote_Item',
 			array('getQty', 'getId', 'getSku', 'getItemId')
 		);
+
+		$addressMock->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array($itemMock))
+			);
+
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)
@@ -288,7 +301,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 			);
 		$quoteMock->expects($this->any())
 			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
+			->will($this->returnValue(array($addressMock))
 			);
 
 		return array(
@@ -320,7 +333,6 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 				'reservation_expires' => '2013-06-20 15:02:20',
 				'qty' => 0
 			)
-
 		);
 
 		return array(

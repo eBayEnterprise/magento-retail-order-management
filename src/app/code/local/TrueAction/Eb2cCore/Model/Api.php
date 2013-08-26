@@ -4,13 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Helper_Abstract
+class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 {
-	private $_adapter = null;		// Set to self::DEFAULT_ADAPTER if not set by $this->setAdapter()
-	private $_httpClient = null;	// new Varien_Http_Client, or set by $this->setHttpClient()
-	private $_timeout = 0;			// 0 forces evaluation of config, or set by $this->setTimeout()
-	private $_uri = null;			// Must be set by setUri(), or nothing much will happen
-
 	/**
 	 * If _timeout is not set via $this->setApiTimeout() for request(), and the configuration does not contain one,
 	 * this our default value.  This value is taken from Zend_Http_Client's default.
@@ -38,64 +33,32 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Helper_Abstract
 	{
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server
 		// by default, curl will be used as the default adapter
-		$client = $this->_getHttpClient();
-		$client->setUri($this->_getUri());
-		$client->setConfig( array(
-					'adapter' => $this->_getAdapter(),
-					'timeout', $this->_getTimeout()
-					));
-		$client->setRawData($doc->saveXML())->setEncType('text/xml');
+		$client = $this->getHttpClient();
+		$client
+			->setHeaders('apiKey', $this->getConfig()->apiKey)
+			->setUri($this->getUri())
+			->setRawData($doc->saveXML())
+			->setEncType('text/xml')
+			->setConfig(array(
+				'adapter' => $this->getAdapter(),
+				'timeout' => $this->getTimeout()
+			));
+		Mage::log('[' . __CLASS__ . ']: Making API request to ' . $client->getUri(), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
-		$results = '';
-		if ($response->isSuccessful()) {
-			$results = $response->getBody();
-		}
-		return $results;
+		return $response->isSuccessful() ?
+			$response->getBody() :
+			'';
 	}
 
-
-	/**
-	 * Sets the URI request() will pass to http client
-	 *
-	 */
-	public function setUri( $uriIn )
+	protected function _construct()
 	{
-		$this->_uri = $uriIn;
-		return $this;
-	}
-
-	/**
-	 * Return current URI
-	 */
-	public function getUri()
-	{
-		return $this->_getUri();
-	}
-
-	/**
-	 * Set the default timeout value for subsquent invocation of request().  *
-	 */
-	public function setTimeout( $timeoutIn )
-	{
-		$timeout = (int)$timeoutIn;
-		if( !$timeout ) {
-			$timeout = Mage::getModel('eb2ccore/config_registry')
-				->addConfigModel(Mage::getSingleton('eb2ccore/config'))
-				->apiTimeout;
-			if( !$timeout ) {
-				$timeout = self::DEFAULT_TIMEOUT;
-			}
-		}
-		$this->_timeout = $timeout;
-		return $this;
-	}
-
-	/**
-	 * Public method that request can use to see if timeout has been set at all
-	 */
-	public function getTimeout()
-	{
-		return $this->_getTimeout();
+		$this->setAdapter(self::DEFAULT_ADAPTER);
+		$this->setHttpClient(new Varien_Http_Client());
+		$this->setConfig(
+			Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'))
+		);
+		$this->setTimeout($this->getConfig()->apiTimeout);
 	}
 
 	/**
@@ -103,76 +66,6 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Helper_Abstract
 	 */
 	public function setHttpClient(Zend_Http_Client $clientIn)
 	{
-		$this->_httpClient = $clientIn;
-		return $this;
-	}
-
-	/**
-	 * Gets the current Http Client
-	 */
-	public function getHttpClient()
-	{
-		return $this->_getHttpClient();
-	}
-
-	/**
-	 * Set the Adapter used if you don't want the default
-	 */
-	public function setAdapter($adapterIn)
-	{
-		$this->_adapter = $adapterIn;
-		return $this;
-	}
-
-	/**
-	 * Current adapter in use
-	 */
-	public function getAdapter()
-	{
-		return $this->_getAdapter();
-	}
-
-
-	/**
-	 * Private methods used by request() to get the adapter
-	 */
-	private function _getAdapter()
-	{
-		if( !$this->_adapter ) {
-			$this->setAdapter(self::DEFAULT_ADAPTER);
-		}
-		return $this->_adapter;
-	}
-
-	/**
-	 * Private methods used by request() to get the http client.
-	 */
-	private function _getHttpClient()
-	{
-		if( !$this->_httpClient ) {
-			$this->setHttpClient(new Varien_Http_Client());
-		}
-		return $this->_httpClient;
-	}
-
-
-	/**
-	 * Private method used by request() to get the timeout value.
-	 */
-	private function _getTimeout()
-	{
-		if( !$this->_timeout ) {
-			$this->setTimeout(0);
-		}
-		return $this->_timeout;
-	}
-
-
-	/**
-	 * Private method used by request() to set the URI
-	 */
-	private function _getUri()
-	{
-		return $this->_uri;
+		return $this->setData('http_client', $clientIn);
 	}
 }

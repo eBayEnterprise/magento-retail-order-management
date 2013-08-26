@@ -154,7 +154,7 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 		);
 		$productMock->expects($this->any())
 			->method('getId')
-			->will($this->returnValue($productMock));
+			->will($this->returnSelf());
 		$productMock->expects($this->any())
 			->method('getWebsiteIds')
 			->will($this->returnValue(array(0,1,2,3,4)));
@@ -176,7 +176,7 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 		);
 		$quoteMock->expects($this->any())
 			->method('updateItem')
-			->will($this->returnValue($quoteMock));
+			->will($this->returnSelf());
 		$quoteMock->expects($this->any())
 			->method('getItemById')
 			->will($this->returnValue($itemMock));

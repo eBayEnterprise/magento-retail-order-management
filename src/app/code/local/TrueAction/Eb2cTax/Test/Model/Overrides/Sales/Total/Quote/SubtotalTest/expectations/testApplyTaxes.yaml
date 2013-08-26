@@ -1,18 +1,10 @@
-1-1111:
-  tax_percent: 0
-  price_incl_tax: 300.37
-  row_total_incl_tax: 300.37
-  taxable_amount: 10
-  is_price_incl_tax: false
-1-1112:
-  tax_percent: 0
-  price_incl_tax: 130.37
-  row_total_incl_tax: 130.37
-  taxable_amount: 10
-  is_price_incl_tax: false
-1-1113:
-  tax_percent: 0
-  price_incl_tax: 600.37
-  row_total_incl_tax: 600.37
-  taxable_amount: 10
-  is_price_incl_tax: false
+2-2.00-4.00-2.00-4.00:
+  tax: 1.00
+  base_tax: 1.00
+  tax_price: 3.00
+  base_tax_price: 3.00
+  base_row_tax: 2.00
+  tax_subtotal: 6.00
+  base_tax_subtotal: 6.00
+  taxable: 4.00
+  base_taxable: 4.00

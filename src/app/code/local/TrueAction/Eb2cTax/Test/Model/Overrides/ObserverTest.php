@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb2cTax_Test_Base
+class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb2cCore_Test_Base
 {
 	public $className = 'TrueAction_Eb2cTax_Overrides_Model_Observer';
 	public $quoteItem = null;
@@ -798,6 +798,110 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		Mage::getSingleton('tax/observer')->salesEventOrderAfterSave($observer);
 
 		Mage::unregister('_helper/tax');
+	}
+
+	/**
+	 * Create a Varient_Event_Observer mock with a Varien_Event
+	 * mock that will return the given quote
+	 * @param  Mock_Mage_Sales_Model_Quote $quote Quote item the Varien_Event mock will return
+	 * @return Mock_Varien_Event_Observer
+	 */
+	protected function _sendRequestObserverMockWithQuote($quote)
+	{
+		$event = $this->getMock('Varien_Event', array('getQuote'));
+		$event->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer->expects($this->any())
+			->method('getEvent')
+			->will($this->returnValue($event));
+		return $observer;
+	}
+
+	/**
+	 * Test test taxEventSendRequest method
+	 * @test
+	 */
+	public function testTaxEventSendRequest()
+	{
+		$taxObserver = Mage::getModel('tax/observer');
+
+		$quote = $this->getModelMock('sales/quote', array('getId'));
+		$quote->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1));
+
+		$observer = $this->_sendRequestObserverMockWithQuote($quote);
+
+		$taxRequest = $this->getModelMock('eb2ctax/request', array(
+			'checkAddresses',
+			'checkShippingOriginAddresses',
+			'checkAdminOriginAddresses',
+			'isValid',
+		));
+		$taxRequest->expects($this->once())
+			->method('checkAddresses')
+			->with($this->equalTo($quote))
+			->will($this->returnSelf());
+		$taxRequest->expects($this->once())
+			->method('checkShippingOriginAddresses')
+			->with($this->equalTo($quote))
+			->will($this->returnSelf());
+		$taxRequest->expects($this->once())
+			->method('checkAdminOriginAddresses')
+			->will($this->returnSelf());
+		$taxRequest->expects($this->once())
+			->method('isValid')
+			->will($this->returnValue(true));
+
+		$taxResponse = $this->getModelMock('eb2ctax/response', array('isValid'));
+		$taxResponse->expects($this->once())
+			->method('isValid')
+			->will($this->returnValue(true));
+
+		$calculator = $this->getModelMock('tax/calculation', array('getTaxRequest', 'setTaxResponse'));
+		$calculator->expects($this->any())
+			->method('getTaxRequest')
+			->will($this->returnValue($taxRequest));
+		$calculator->expects($this->once())
+			->method('setTaxResponse')
+			->with($this->equalTo($taxResponse))
+			->will($this->returnSelf());
+
+		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator', 'sendRequest'));
+		$taxHelper->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculator));
+		$taxHelper->expects($this->once())
+			->method('sendRequest')
+			->with($this->equalTo($taxRequest))
+			->will($this->returnValue($taxResponse));
+		$this->_reflectProperty($taxObserver, '_tax')->setValue($taxObserver, $taxHelper);
+
+		$taxObserver->taxEventSendRequest($observer);
+	}
+
+	/**
+	 * Test that the tax request is only sent when the observer has a quote object
+	 */
+	public function testTaxEventSendRequestNoQuote()
+	{
+		$taxObserver = Mage::getModel('tax/observer');
+
+		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator'));
+		// make sure to actually assert something. When the "quote" from the event
+		// isn't actually a quote, nothing should happen, including getting
+		// the calculation model from the tax helper
+		$taxHelper->expects($this->never())
+			->method('getCalculator')
+			->will($this->returnValue(null));
+		$this->_reflectProperty($taxObserver, '_tax')->setValue($taxObserver, $taxHelper);
+
+		$quote = 'Not a quote object';
+
+		$observer = $this->_sendRequestObserverMockWithQuote($quote);
+		Mage::getModel('tax/observer')->taxEventSendRequest($observer);
 	}
 
 }

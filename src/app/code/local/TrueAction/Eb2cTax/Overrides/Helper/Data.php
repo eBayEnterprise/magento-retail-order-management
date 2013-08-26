@@ -4,13 +4,13 @@
  */
 class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 {
-	protected $_service             = 'taxes';
-	protected $_operation           = 'quote';
-	protected $_responseFormat      = 'xml';
+	protected $_service        = 'taxes';
+	protected $_operation      = 'quote';
+	protected $_responseFormat = 'xml';
 
-	protected $_coreHelper          = null;
-	protected $_apiModel            = null;
-	protected $_configRegistry      = null;
+	protected $_coreHelper     = null;
+	protected $_apiModel       = null;
+	protected $_configRegistry = null;
 
 	public function __construct()
 	{
@@ -28,22 +28,21 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	public function sendRequest(TrueAction_Eb2cTax_Model_Request $request)
 	{
 		$uri = $this->_coreHelper->getApiUri(
-						$this->_service,
-						$this->_operation,
-						array(),
-						$this->_responseFormat
-					);
+			$this->_service,
+			$this->_operation,
+			array(),
+			$this->_responseFormat
+		);
 		try {
-			$response = $this->getApiModel()
-							->setUri($uri)
-							->request($request->getDocument());
-		}
-		catch(Exception $e) {
-			Mage::throwException('Error sending request' . $e->getMessage() );
+			$response = Mage::getModel('eb2ccore/api')
+				->setUri($uri)
+				->request($request->getDocument());
+		} catch(Exception $e) {
+			Mage::throwException('Error sending request: ' . $e->getMessage() );
 		}
 
 		$response = Mage::getModel('eb2ctax/response', array(
-			'xml' => $response,
+			'xml'     => $response,
 			'request' => $request
 		));
 		return $response;
@@ -59,7 +58,6 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		return $this->_configRegistry->setStore($store)->apiNamespace;
 	}
 
-
 	/**
 	 * return true if the prices already include VAT.
 	 * @return boolean
@@ -69,20 +67,13 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		return $this->_configRegistry->setStore($store)->taxVatInclusivePricing;
 	}
 
-	/**
-	 * Retrieves core api model for sending/ receiving web services
-	 */
-	public function getApiModel()
-	{
-		if( !$this->_apiModel ) {
-			$this->_apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->_apiModel;
-	}
-
 	public function getApplyTaxAfterDiscount($store = null)
 	{
 		return $this->_configRegistry->setStore($store)->taxApplyAfterDiscount;
 	}
 
+	public function taxDutyAmountRateCode($store = null)
+	{
+		return $this->_configRegistry->setStore($store)->taxDutyRateCode;
+	}
 }
