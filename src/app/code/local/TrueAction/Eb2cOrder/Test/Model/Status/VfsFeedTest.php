@@ -4,6 +4,8 @@
  */
 class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
+	const VFS_ROOT = 'testBase';
+
 	/**
 	 * Fakes up some files to send to the feed processor
 	 *
@@ -13,32 +15,62 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 	public function testWithFixture()
 	{
 		$vfs = $this->getFixture()->getVfs();
-		// Mock a few eb2ccore/feed methods so we can get our way through receiving/ listing files
-		$this->replaceModel(
-			'eb2ccore/feed',		// Class alias to replace ... 
-			array(					// Array of methods => return values for mocks
-				'cd'					=> true,
-				'checkAndCreateFolder'	=> true,
-				'getInboundFolder'		=> 'inbound',
-				'lsInboundFolder'		=> array (
-												$vfs->url('inbound/invalidXml.xml'),
-												$vfs->url('inbound/badEb2cSample.xml'),
-												$vfs->url('inbound/goodEb2cSample.xml'),
-											),
-			)
-		);
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		$dummyFiles = array ();
+		foreach( $vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$dummyFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		// Mock the Varien_Io_File object, this is our FsTool for testing purposes
+		$mockFsTool = $this->getMock('Varien_Io_File', array(
+			'cd',
+			'checkAndCreateFolder',
+			'ls',
+			'mv',
+			'pwd',
+			'setAllowCreateFolders',
+		));
+		$mockFsTool
+			->expects($this->any())
+			->method('cd')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('checkAndCreateFolder')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('mv')
+			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('ls')
+			->will($this->returnValue($dummyFiles));
+		$mockFsTool
+			->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue($vfs->url(self::VFS_ROOT.'/inbound')));
+		$mockFsTool
+			->expects($this->any())
+			->method('setAllowCreateFolders')
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
+			->will($this->returnSelf());
 
 		// The transport protocol is mocked - we just pretend we got files
-		$this->replaceModel('filetransfer/protocol_types_ftp', array('getFile'=>true,));
+		$this->replaceModel('filetransfer/protocol_types_ftp', array('getFile' => true,));
 
 		// Mock the core config registry, only value passed is the vfs filename
 		$this->replaceCoreConfigRegistry(
 			array (
-				'statusFeedLocalPath' => $vfs->url('inbound'),
+				'statusFeedLocalPath' => $vfs->url(self::VFS_ROOT),
 			)
 		);
 
-		$rc = Mage::getModel('eb2corder/status_feed')->processFeeds();
-		$this->assertSame(true, $rc);
+		$this->assertSame(true, Mage::getModel('eb2corder/status_feed', array('fs_tool' => $mockFsTool))->processFeeds());
 	}
 }
