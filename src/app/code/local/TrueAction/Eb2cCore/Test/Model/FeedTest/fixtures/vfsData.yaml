@@ -1,0 +1,4 @@
+vfs:
+  inbound:
+    incompleteXml.xml: '<?xml version="1.0" encoding="UTF-8"?> <OrderStatusUpdate> <MessageHeader>'
+    sample.txt: 'This is a sample text file.'
