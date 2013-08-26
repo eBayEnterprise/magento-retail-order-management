@@ -43,6 +43,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 				'adapter' => $this->getAdapter(),
 				'timeout' => $this->getTimeout()
 			));
+		Mage::log('[' . __CLASS__ . ']: Making API request to ' . $client->getUri(), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
 		return $response->isSuccessful() ?
 			$response->getBody() :
