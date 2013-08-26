@@ -91,6 +91,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 	}
 
 	/**
+	 * @large
 	 * @test
 	 */
 	public function testFeedMethods()
