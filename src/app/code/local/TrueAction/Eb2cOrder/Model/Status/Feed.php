@@ -36,11 +36,12 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _fetchFeedsFromRemote()
 	{
+		$cfg = Mage::helper('eb2ccore/feed');
 		$this->_remoteIo->getFile(
 			$this->_localIo->getInboundDir(),
 			$this->_config->statusFeedRemotePath,
-			$this->_config->fileTransferConfigPath
-		);	// Gets the files. 
+			$cfg::FILETRANSFER_CONFIG_PATH
+		);	// Gets the files.
 	}
 
 	/**
@@ -88,7 +89,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			}
 		}
 
-		Mage::log('File ' . $xmlFile 
+		Mage::log('File ' . $xmlFile
 			. sprintf(': Processed %d of %d, %d errors',
 			$this->_fileInfo['recordsProcessed'],
 			$this->_fileInfo['recordCount'],
@@ -113,7 +114,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	{
 		$this->_event = array();	// The Plan: flatten the event into an array.
 
-		$this->_loadNodes( 
+		$this->_loadNodes(
 			$eventNode,
 			array(
 				'OrderStatusEventTimeStamp',
@@ -140,7 +141,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Adds values to the event array
 	 *
-	 * @param node pointing at some XML parent for which we which to parse the children 
+	 * @param node pointing at some XML parent for which we which to parse the children
 	 * @tagSet array of tag names from which to get a value
 	 *
 	 */
@@ -152,7 +153,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * Get name of the function used to process this particular event. 
+	 * Get name of the function used to process this particular event.
 	 *
 	 * @return string name of method to use to process this event
 	 */
@@ -172,7 +173,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Load File information, taken from the root node's attributes
-	 * 
+	 *
 	 * @param node pointing at root node of the OrderStatus document
 	 * @attrSet array of attributes from which to get a value
 	 *
@@ -191,7 +192,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Process an Order Fulfillment Event
 	 *
-	 * @return bool  
+	 * @return bool
 	 */
 	private function _processOrderFulfillment()
 	{

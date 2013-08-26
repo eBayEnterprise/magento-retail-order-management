@@ -6,6 +6,7 @@
  */
 class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 {
+	const FILETRANSFER_CONFIG_PATH = 'eb2ccore/feed';
 	/**
 	 * Validating Feed Header. This will validate:
 	 * (In MessageHeader):
@@ -42,7 +43,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		} elseif(trim($versions['major']) !== trim($headerVersion->item(0)->nodeValue)) {
 			// Header Version doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Header Version "' . $headerVersion->item(0)->nodeValue . '" does not match expected Header Version "' . $versions['major'] . '"',
 				Zend_Log::WARN
 			);
@@ -56,7 +57,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		} elseif(trim($versions['minor']) !== trim($versionReleaseNumber->item(0)->nodeValue)) {
 			// Version Release Number doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Version Release Number "' . $versionReleaseNumber->item(0)->nodeValue .
 				'" does not match expected Version Release Number "' . $versions['minor'] . '"',
 				Zend_Log::WARN
@@ -72,7 +73,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		} elseif(trim($expectEventType) !== trim($eventType->item(0)->nodeValue)) {
 			// Event Type doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Event Type "' . $eventType->item(0)->nodeValue . '" does not match config Event Type "' . $expectEventType . '"',
 				Zend_Log::WARN
 			);
@@ -86,7 +87,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		} elseif(trim($coreConfig->clientId) !== trim($destinationId->item(0)->nodeValue)) {
 			// DestinationId doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed DestinationId "' . $destinationId->item(0)->nodeValue .
 				'" does not match config DestinationId (client_id) "' . $coreConfig->clientId . '"',
 				Zend_Log::WARN
@@ -101,7 +102,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		} elseif(trim($coreConfig->feedDestinationType) !== trim($destinationType->item(0)->nodeValue)) {
 			// Destination Type doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Destination Type "' . $destinationType->item(0)->nodeValue .
 				'" does not match config Destination Type "' . $coreConfig->feedDestinationType . '"',
 				Zend_Log::WARN

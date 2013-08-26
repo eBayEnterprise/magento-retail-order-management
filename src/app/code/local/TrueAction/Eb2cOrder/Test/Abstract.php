@@ -1,5 +1,5 @@
 <?php
-abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Test_Base 
+abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * Mocks a Sales Order
@@ -91,7 +91,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		);
 	}
 
-	/** 
+	/**
  	 * Let us mock a Mage_Sales_Model_Order_Payment
 	 *
 	 */
@@ -113,7 +113,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 	}
 
 	/**
-	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for Eb2cOrder Testing. 
+	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for Eb2cOrder Testing.
 	 *
 	 * @param array ('statusFeedLocalPath' => 'a/path')	A testable path containing Status Feed XML - prefer that this be vfs
 	 */
@@ -131,7 +131,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			'eb2cPaymentsEnabled'				=> true,
 			'statusFeedLocalPath'				=> 'some_local_path_for_files',
 			'statusFeedRemotePath'				=> 'doesnt_matter_just_some_path',
-			'fileTransferConfigPath'			=> 'eb2ccore/general',
 			'statusFeedEventType'				=> 'OrderStatus',
 			'statusFeedHeaderVersion'			=> '2.3.4',
 		);
@@ -166,15 +165,15 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 	{
 		$mockMethodNames = array_keys($mockedMethodSet);
 		if( $disableConstructor ) {
-			$mock = $this->getModelMockBuilder($classAlias) 
+			$mock = $this->getModelMockBuilder($classAlias)
 					->disableOriginalConstructor()
 					->setMethods($mockMethodNames)
-					->getMock(); 
+					->getMock();
 		}
 		else {
-			$mock = $this->getModelMockBuilder($classAlias) 
+			$mock = $this->getModelMockBuilder($classAlias)
 					->setMethods($mockMethodNames)
-					->getMock(); 
+					->getMock();
 		}
 		foreach($mockedMethodSet as $method => $returnSet ) {
 			$mock->expects($this->any())
@@ -183,10 +182,10 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		}
 		return $mock;
 	}
-	
+
 	/**
 	 * Returns a mocked object, original model constructor disabled - you get only the methods you mocked.
-	 * 
+	 *
 	 * @param a Magento Class Alias
 	 * @param array of key / value pairs; key is the method name, value is value returned by that method
 	 * @param disableOriginalConstructor	true or false, defaults to true
