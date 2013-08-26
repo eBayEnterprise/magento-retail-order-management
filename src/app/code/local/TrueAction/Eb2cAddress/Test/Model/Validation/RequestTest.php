@@ -67,6 +67,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 
 	/**
 	 * @test
+	 * @large
 	 */
 	public function testRequestMessage()
 	{

@@ -37,6 +37,7 @@
 				<sftp_username />
 				<sftp_password backend_model="adminhtml/system_config_backend_encrypted" />
 				<sftp_location />
+				<filetransfer_protocol>sftp</filetransfer_protocol>
 			</feed>
 			<development>
 				<test_mode />

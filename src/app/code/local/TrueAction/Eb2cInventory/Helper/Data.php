@@ -8,7 +8,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $coreHelper;
 	public $coreFeed;
-	public $fileTransferHelper;
 	public $constantHelper;
 	public $configModel;
 	public $apiModel;
@@ -17,7 +16,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	public function __construct()
 	{
 		$this->coreHelper = $this->getCoreHelper();
-		$this->fileTransferHelper = $this->getFileTransferHelper();
 		$this->configModel = $this->getConfigModel(null);
 		$this->constantHelper = $this->getConstantHelper();
 		$constantHelper = $this->getConstantHelper();
@@ -53,19 +51,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->coreHelper = Mage::helper('eb2ccore');
 		}
 		return $this->coreHelper;
-	}
-
-	/**
-	 * Get file Transfer helper instantiated object.
-	 *
-	 * @return TrueAction_FileTransfer_Helper_Data
-	 */
-	public function getFileTransferHelper()
-	{
-		if (!$this->fileTransferHelper) {
-			$this->fileTransferHelper = Mage::helper('filetransfer');
-		}
-		return $this->fileTransferHelper;
 	}
 
 	/**

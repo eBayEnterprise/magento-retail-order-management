@@ -45,7 +45,7 @@ INVALID_XML;
 		// Test that we can receive CANCELLED message succesfully:
 		$this->replaceModel( 'eb2ccore/api',
 			array (
-				'request'				=> self::SAMPLE_CANCELLED_XML
+				'request' => self::SAMPLE_CANCELLED_XML
 			),
 			false
 		);
@@ -55,7 +55,7 @@ INVALID_XML;
 		// Test that we can receive !CANCELLED message succesfully
 		$this->replaceModel( 'eb2ccore/api',
 			array (
-				'request'				=> self::SAMPLE_FAILED_XML
+				'request' => self::SAMPLE_FAILED_XML
 			),
 			false
 		);
@@ -65,7 +65,7 @@ INVALID_XML;
 		// Test that we can receive invalid XML without ill effect:
 		$this->replaceModel( 'eb2ccore/api',
 			array (
-				'request'				=> self::SAMPLE_INVALID_XML
+				'request' => self::SAMPLE_INVALID_XML
 			),
 			false
 		);
