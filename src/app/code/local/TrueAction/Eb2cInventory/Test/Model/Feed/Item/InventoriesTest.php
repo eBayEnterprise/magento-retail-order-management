@@ -68,6 +68,39 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// vfs setup ends
 		return $mockFsTool;
 	}
+
+	/**
+	 * testing _constructor method - this test to test fs tool is set in the constructor when no paramenter pass
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testConstructor()
+	{
+		$feedItemInventoriesMock = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->setMethods(array('hasFsTool'))
+			->getMock();
+
+		$feedItemInventoriesMock->expects($this->any())
+			->method('hasFsTool')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/feed_item_inventories', $feedItemInventoriesMock);
+
+		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
+
+		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
+		$constructMethod = $inventoriesReflector->getMethod('_construct');
+		$constructMethod->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cInventory_Model_Feed_Item_Inventories',
+			$constructMethod->invoke($inventoryFeedModel)
+		);
+	}
+
+
 	/**
 	 * testing processFeeds method
 	 *
@@ -123,15 +156,8 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->method('save')
 			->will($this->returnSelf());
 
-		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-
-		$productProperty = $inventoriesReflector->getProperty('_product');
-		$productProperty->setAccessible(true);
-		$productProperty->setValue($inventoryFeedModel, $productMock);
-
-		$stockItemProperty = $inventoriesReflector->getProperty('_stockItem');
-		$stockItemProperty->setAccessible(true);
-		$stockItemProperty->setValue($inventoryFeedModel, $stockItemMock);
+		$inventoryFeedModel->setProduct($productMock);
+		$inventoryFeedModel->setStockItem($stockItemMock);
 
 		$this->assertNull($inventoryFeedModel->processFeeds());
 
@@ -154,11 +180,8 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->throwException(new Exception));
 
 		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$inventoryFeedModel->setStockStatus($stockStatusMock);
 		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-		$stockStatusProperty = $inventoriesReflector->getProperty('_stockStatus');
-		$stockStatusProperty->setAccessible(true);
-		$stockStatusProperty->setValue($inventoryFeedModel, $stockStatusMock);
-
 		$cleanMethod = $inventoriesReflector->getMethod('_clean');
 		$cleanMethod->setAccessible(true);
 		$this->assertNull(
