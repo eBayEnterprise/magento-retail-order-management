@@ -38,6 +38,7 @@
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
+				<filetransfer_protocol>sftp</filetransfer_protocol>
 			</feed>
 			<service>
 				<order>

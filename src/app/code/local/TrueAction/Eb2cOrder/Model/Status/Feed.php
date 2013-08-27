@@ -39,11 +39,12 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _fetchFeedsFromRemote()
 	{
+		$cfg = Mage::helper('eb2ccore/feed');
 		$this->_remoteIo->getFile(
 			$this->_localIo->getInboundDir(),
 			$this->_config->statusFeedRemotePath,
-			$this->_config->fileTransferConfigPath
-		);	// Gets the files. 
+			$cfg::FILETRANSFER_CONFIG_PATH
+		);	// Gets the files.
 	}
 
 	/**
@@ -91,7 +92,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			}
 		}
 
-		Mage::log('File ' . $xmlFile 
+		Mage::log('File ' . $xmlFile
 			. sprintf(': Processed %d of %d, %d errors',
 			$this->_fileInfo['recordsProcessed'],
 			$this->_fileInfo['recordCount'],
@@ -126,16 +127,15 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		{
 			$this->_event['Header'][$tag] = $eventNode->getElementsByTagName($tag)->item(0)->nodeValue;
 		}
-		$this->_fileInfo['recordsProcessed']++;
-
 		// The name of the function that knows how to process this event. 
 		$funcName = '_process' 
 			. str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['Header']['ProcessTypeKey']))));
 
 		$this->_mageOrder = $this->_loadOrder();
 		// TODO: I have to trudge on regardless of whether I find the order, I need a test here
-		$this->_fileInfo['recordsProcessed']++; // I found the record
-		$this->_fileInfo['recordsOk']++;  // TODO: Is there some case, if found, that it's not OK? Not sure.
+		$this->_fileInfo['recordsProcessed']++;
+		 // TODO: Is there some case, if found, that it's not OK? Not sure.
+		$this->_fileInfo['recordsOk']++;
 
 		$i=0;
 		foreach ($eventNode->getElementsByTagName('OrderEventDetail') as $eventDetailNode ) {
@@ -163,7 +163,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Load File information, taken from the root node's attributes
-	 * 
+	 *
 	 * @param node pointing at root node of the OrderStatus document
 	 * @attrSet array of attributes from which to get a value
 	 *
@@ -204,7 +204,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Process an Order Fulfillment Event
 	 *
-	 * @return bool  
+	 * @return bool
 	 */
 	private function _processOrderFulfillment()
 	{

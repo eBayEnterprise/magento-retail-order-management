@@ -53,6 +53,22 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	}
 
 	/**
+	 * enterprise giftcardaccount object
+	 *
+	 * @var Enterprise_GiftCardAccount_Model_Giftcardaccount
+	 */
+	protected $_giftCardAccountModel;
+
+	protected function _getGiftCardAccountModel()
+	{
+		if (!$this->_giftCardAccountModel) {
+			$this->_giftCardAccountModel = Mage::getModel('enterprise_giftcardaccount/giftcardaccount');
+		}
+
+		return $this->_giftCardAccountModel;
+	}
+
+	/**
 	 * filter gift card by by pan and pin
 	 *
 	 * @return TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
@@ -116,16 +132,17 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		// Check eb2c stored value first
 		if (trim($pan) !== '' && trim($pin) !== '') {
 			// only fetch eb2c stored value balance when both pan and pin is valid
-			if ($storeValueBalanceReply = $this->_getStoredValueBalance()->getBalance($pan, $pin)) {
-				if ($balanceData = $this->_getStoredValueBalance()->parseResponse($storeValueBalanceReply)) {
+			$storeValueBalanceReply = $this->_getStoredValueBalance()->getBalance($pan, $pin);
+			if ($storeValueBalanceReply) {
+				$balanceData = $this->_getStoredValueBalance()->parseResponse($storeValueBalanceReply);
+				if ($balanceData) {
 					$balanceData['pin'] = $pin;
-
 					// making sure we have the right data
 					if (isset($balanceData['paymentAccountUniqueId']) && $balanceData['paymentAccountUniqueId'] === $pan) {
 						// We have the right gift card info from eb2c let's add it to to magento enteprise giftcard account
 						// Let's first check if pan and pin already exists in magento enterprise gift card
 						$mgGiftCard = $this->_filterGiftCardByPanPin();
-						if (count($mgGiftCard)) {
+						if ($mgGiftCard->count()) {
 							$this->_updateGiftCardWithEb2cData($mgGiftCard->getFirstItem(), $balanceData);
 						} else {
 							$this->_addGiftCardWithEb2cData($balanceData);
@@ -171,7 +188,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 */
 	protected function _addGiftCardWithEb2cData(array $balanceData)
 	{
-		$giftCard = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->load(null);
+		$giftCard = $this->_getGiftCardAccountModel()->load(null);
 		$giftCard->setGiftcardaccountId(null)
 			->setCode($balanceData['paymentAccountUniqueId'])
 			->setEb2cPan($balanceData['paymentAccountUniqueId'])

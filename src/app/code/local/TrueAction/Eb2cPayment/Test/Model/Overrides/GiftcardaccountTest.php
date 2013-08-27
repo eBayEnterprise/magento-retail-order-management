@@ -4,56 +4,18 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends EcomDev_PHPUnit_Test_Case
 {
-	protected $_giftCardAccount;
-
 	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
-		$this->_giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
-
-		$balance = Mage::getModel('eb2cpayment/stored_value_balance');
-
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$balanceReflector = new ReflectionObject($balance);
-		$helper = $balanceReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($balance, $paymentHelper);
-
-		$giftCardAccountReflector = new ReflectionObject($this->_giftCardAccount);
-		$storedValueBalance = $giftCardAccountReflector->getProperty('_storedValueBalance');
-		$storedValueBalance->setAccessible(true);
-		$storedValueBalance->setValue($this->_giftCardAccount, $balance);
-	}
-
-	public function providerLoadByCode()
-	{
-		return array(
-			array('4111111ak4idq1111')
-		);
-	}
-
-	/**
-	 * testing loadByCode method
+	 * testing _getStoredValueBalance method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
 	 * @test
-	 * @medium
-	 * @dataProvider providerLoadByCode
-	 * @loadFixture loadWebsiteConfig.yaml
-	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
 	 */
-	public function testLoadByCode($code)
+	public function testGetStoredValueBalance()
 	{
-		// because we are setting the gift card class property in the setup as a reflection some of te code
-		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
-		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
+		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
 		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
+
 		$getStoredValueBalance = $giftCardAccountReflector->getMethod('_getStoredValueBalance');
 		$getStoredValueBalance->setAccessible(true);
 
@@ -61,41 +23,113 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 			'TrueAction_Eb2cPayment_Model_Stored_Value_Balance',
 			$getStoredValueBalance->invoke($giftCardAccount)
 		);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			$this->_giftCardAccount->loadByCode($code)
-		);
 	}
 
-	public function providerLoadByPanPin()
+	/**
+	 * testing _getHelper method - the reason for this test is because the method will be replace by a mock on all the other tests
+	 *
+	 * @test
+	 */
+	public function testGetHelper()
 	{
-		return array(
-			array('4111111ak4idq1111', '5344')
+		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
+
+		$getHelper = $giftCardAccountReflector->getMethod('_getHelper');
+		$getHelper->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'Enterprise_GiftCardAccount_Helper_Data',
+			$getHelper->invoke($giftCardAccount)
 		);
 	}
 
 	/**
-	 * testing loadByPanPin method - when there's no prior gift card account in the magento enterprrise database.
+	 * testing _filterGiftCardByPanPin method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
 	 * @test
-	 * @medium
-	 * @dataProvider providerLoadByPanPin
-	 * @loadFixture loadWebsiteConfig.yaml
-	 * @loadFixture emptyEnterpriseGiftCardAccount.yaml
 	 */
-	public function testLoadByPanPin($pan, $pin)
+	public function testFilterGiftCardByPanPin()
 	{
+		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
+
+		$filterGiftCardByPanPin = $giftCardAccountReflector->getMethod('_filterGiftCardByPanPin');
+		$filterGiftCardByPanPin->setAccessible(true);
+
 		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			$this->_giftCardAccount->loadByPanPin($pan, $pin)
+			'Enterprise_GiftCardAccount_Model_Resource_Giftcardaccount_Collection',
+			$filterGiftCardByPanPin->invoke($giftCardAccount)
 		);
 	}
 
-	public function providerAddToCart()
+	/**
+	 * testing _getGiftCardAccountModel method - the reason for this test is because the method will be replace by a mock on all the other tests
+	 *
+	 * @test
+	 */
+	public function testGetGiftCardAccountModel()
 	{
-		return array(
-			array(true, null)
+		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
+
+		$getGiftCardAccountModel = $giftCardAccountReflector->getMethod('_getGiftCardAccountModel');
+		$getGiftCardAccountModel->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
+			$getGiftCardAccountModel->invoke($giftCardAccount)
+		);
+	}
+
+	/**
+	 * testing giftCardPinByPan method
+	 *
+	 * @test
+	 * @loadFixture loadWebsiteConfig.yaml
+	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
+	 */
+	public function testGiftCardPinByPan()
+	{
+		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$this->assertSame('5344',	$giftCardAccount->giftCardPinByPan('4111111ak4idq1111'));
+	}
+
+	/**
+	 * testing loadByCode method - With GiftCard Data to be updated
+	 *
+	 * @test
+	 * @loadFixture loadWebsiteConfig.yaml
+	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
+	 */
+	public function testLoadByCodeWithGiftData()
+	{
+		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
+		$mockGiftCardAccount->replaceGiftCardAccountByMock();
+
+		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
+		$this->assertInstanceOf(
+			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
+			$giftCardAccount->loadByCode('4111111ak4idq1111')
+		);
+	}
+
+	/**
+	 * testing loadByCode method - Without GiftCard Data to be updated
+	 *
+	 * @test
+	 * @loadFixture loadWebsiteConfig.yaml
+	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
+	 */
+	public function testLoadByCodeWithoutGiftData()
+	{
+		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
+		$mockGiftCardAccount->replaceGiftCardAccountByMockWithoutGiftCardData();
+
+		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
+		$this->assertInstanceOf(
+			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
+			$giftCardAccount->loadByCode('4111111ak4idq1111')
 		);
 	}
 
@@ -103,49 +137,38 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 * testing addToCart method
 	 *
 	 * @test
-	 * @medium
-	 * @dataProvider providerAddToCart
 	 * @loadFixture loadWebsiteConfig.yaml
 	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
 	 */
-	public function testAddToCart($saveQuote=true, $quote=null)
+	public function testAddToCart()
 	{
-		$this->_giftCardAccount->loadByPanPin('4111111ak4idq1111', '5344');
+		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
+		$mockGiftCardAccount->replaceGiftCardAccountByMock();
 
+		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			$this->_giftCardAccount->addToCart($saveQuote, $quote)
+			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
+			$giftCardAccount->addToCart(true, null)
 		);
 	}
 
 	/**
-	 * testing addToCart method - make it throw exception when gift card already exist in the cart
+	 * testing addToCart method - with exception
 	 *
 	 * @test
-	 * @dataProvider providerAddToCart
 	 * @loadFixture loadWebsiteConfig.yaml
 	 * @loadFixture loadEnterpriseGiftCardAccount.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
-	public function testAddToCartWithException($saveQuote=true, $quote=null)
+	public function testAddToCartWithException()
 	{
-		$this->_giftCardAccount->loadByPanPin('4111111ak4idq1111', '5344');
+		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
+		$mockGiftCardAccount->replaceGiftCardAccountByMockWithException();
 
-		$cardSerialized = array(array('i' => 1));
-
-		$mockHelper = $this->getMock('Enterprise_GiftCardAccount_Helper_Data', array('getCards'));
-		$mockHelper->expects($this->any())
-			->method('getCards')
-			->will($this->returnValue($cardSerialized));
-
-		$giftCardAccountReflector = new ReflectionObject($this->_giftCardAccount);
-		$helperProperty = $giftCardAccountReflector->getProperty('_helper');
-		$helperProperty->setAccessible(true);
-		$helperProperty->setValue($this->_giftCardAccount, $mockHelper);
-
+		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			$this->_giftCardAccount->addToCart($saveQuote, $quote)
+			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
+			$giftCardAccount->addToCart(true, null)
 		);
 	}
 }

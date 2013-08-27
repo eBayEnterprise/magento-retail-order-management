@@ -6,7 +6,6 @@
  */
 class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
 	protected $_stockItem;
 	protected $_product;
 	protected $_stockStatus;
@@ -17,7 +16,6 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	 */
 	protected function _construct()
 	{
-		$this->_helper = $this->_getHelper();
 		$this->_stockItem = $this->_getStockItem();
 		$this->_product = $this->_getProduct();
 		$this->_stockStatus = $this->_getStockStatus();
@@ -30,19 +28,6 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 		$this->_feedModel = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 
 		return $this;
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cinventory');
-		}
-		return $this->_helper;
 	}
 
 	/**
@@ -86,16 +71,20 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 
 	/**
 	 * Get the item inventory feed from eb2c.
-	 *
-	 * @return array, All the feed xml document, from eb2c server.
 	 */
 	protected function _getItemInventoriesFeeds()
 	{
-		$remoteFile = $this->_getHelper()->getConfigModel()->feedRemoteReceivedPath;
-		$configPath =  $this->_getHelper()->getConfigModel()->configPath;
+		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
+		$remoteFile = $cfg->feedRemoteReceivedPath;
+		$configPath = $cfg->configPath;
+		$feedHelper = Mage::helper('eb2ccore/feed');
 
-		// downloading feed from eb2c server down to local server
-		$this->_getHelper()->getFileTransferHelper()->getFile($this->_feedModel->getInboundDir(), $remoteFile, $configPath, null);
+		// Download feed from eb2c server to local server
+		Mage::helper('filetransfer')->getFile(
+			$this->_feedModel->getInboundDir(),
+			$remoteFile,
+			$feedHelper::FILETRANSFER_CONFIG_PATH
+		);
 	}
 
 	/**
@@ -106,16 +95,16 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	public function processFeeds()
 	{
 		$this->_getItemInventoriesFeeds();
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2cinventory')->getDomDocument();
 		foreach ($this->_feedModel->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $this->_getHelper()->getConfigModel()->feedEventType;
-			$expectHeaderVersion = $this->_getHelper()->getConfigModel()->feedHeaderVersion;
+			$expectEventType = Mage::helper('eb2cinventory')->getConfigModel()->feedEventType;
+			$expectHeaderVersion = Mage::helper('eb2cinventory')->getConfigModel()->feedHeaderVersion;
 
 			// validate feed header
-			if ($this->_getHelper()->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if (Mage::helper('eb2cinventory')->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}
