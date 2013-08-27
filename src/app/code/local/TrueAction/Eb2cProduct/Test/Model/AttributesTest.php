@@ -43,7 +43,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$product->save();
 		$product->load(1);
 		$this->assertNotNull($product->getId());
-		$this->assertTrue($product->hasTaxCode(), 'product does not have a tax_code value');
 		$this->assertSame($taxCode, $product->getTaxCode());
 	}
 
