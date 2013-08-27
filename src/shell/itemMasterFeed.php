@@ -15,8 +15,22 @@ class Mage_Shell_Item_Master_Feed extends Mage_Shell_Abstract
 	{
 		Mage::log('Starting Eb2cProduct Item Master Feed from shell script.', Zend_Log::DEBUG);
 		$itemMaster = Mage::getModel('eb2cproduct/feed_item_master');
-		Mage::log("Eb2cProduct Item Master Feed Shell Script Run Ruselt:\n\r" . $itemMaster->processFeeds(), Zend_Log::DEBUG);
+		$itemMaster->processFeeds();
 		Mage::log('Ending Eb2cProduct Item Master Feed from shell script', Zend_Log::DEBUG);
+	}
+
+	/**
+	 * Retrieve Usage Help Message
+	 *
+	 */
+	public function usageHelp()
+	{
+		$scriptName = basename(__FILE__);
+		return <<<USAGE
+Usage:  php -f $scriptName -- [options]
+  help          This help
+
+USAGE;
 	}
 }
 
