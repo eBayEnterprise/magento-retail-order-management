@@ -4,8 +4,10 @@
  */
 class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 {
+	private $_headerNodeNames = array('OrderStatusEventTimeStamp', 'StoreCode', 'OrderId', 'StatusId', 'ProcessTypeKey', 'StatusName');
+	private $_detailNodeNames = array('OrderLineId', 'ItemId', 'Qty');
+
 	private $_config;
-	private $_helper;
 	private $_localIo;
 	private $_remoteIo;
 
@@ -17,8 +19,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	protected function _construct()
 	{
-		$this->_helper = Mage::helper('eb2corder');
-		$this->_config = $this->_helper->getConfig();
+		$this->_config = Mage::helper('eb2corder')->getConfig();
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array(
@@ -49,7 +50,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Loops through all files found in the Inbound Dir.
 	 *
-	 * @return Number of files we looked at.
+	 * @return int Number of files we looked at.
 	 */
 	public function processFeeds()
 	{
@@ -65,7 +66,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	/**
 	 * Processes a single xml file.
 	 *
-	 * @return number of Records we looked at.
+	 * @return int number of Records we looked at.
 	 */
 	public function processFile($xmlFile)
 	{
@@ -79,8 +80,11 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			return 0;
 		}
 
-		// Validate Eb2c Header Information:
-		if (!$this->_helper->getCoreFeedHelper()->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)) {
+		// Validate Eb2c Header Information (FWIW, CodeSniff liked this indentation and if parens and bracing):
+		if ( !Mage::helper('eb2corder')
+			->getCoreFeedHelper()
+			->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)
+		) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return 0;
 		}
@@ -105,8 +109,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 		if( $this->_fileInfo['recordsWithErrors'] ) {
 			$this->_localIo->mvToErrorDir($xmlFile);
-		}
-		else {
+		} else {
 			$this->_localIo->mvToArchiveDir($xmlFile);
 		}
 
@@ -119,20 +122,13 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 *
 	 * @param $eventNode - node containing a single event to process
 	 *
-	 * @return Number of OrderEventDetails we looked at
+	 * @return int Number of OrderEventDetails we looked at
 	 */
 	private function _processStatusEvent($eventNode)
 	{
 		$this->_event = array();
 
-		foreach( array(
-				'OrderStatusEventTimeStamp',
-				'StoreCode',
-				'OrderId',
-				'StatusId',
-				'ProcessTypeKey',
-				'StatusName',) as $tag )
-		{
+		foreach( $this->_headerNodeNames as $tag ) {
 			$this->_event['Header'][$tag] = $eventNode->getElementsByTagName($tag)->item(0)->nodeValue;
 		}
 
@@ -144,11 +140,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 		$i = 0;
 		foreach ($eventNode->getElementsByTagName('OrderEventDetail') as $eventDetailNode ) {
-			foreach( array(
-					'OrderLineId',
-					'ItemId',
-					'Qty') as $tag )
-			{
+			foreach( $this->_detailNodeNames as $tag ) {
 				$this->_event['Details'][$i][$tag] = $eventDetailNode->getElementsByTagName($tag)->item(0)->nodeValue;
 			}
 			$this->_loadOrderItem($i);
@@ -157,13 +149,11 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 
 		// The name of the function that knows how to process this event. 
-		$funcName = '_process' 
-			. str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['Header']['ProcessTypeKey']))));
+		$funcName = '_process' . $this->_camelize(strtolower($this->_event['Header']['ProcessTypeKey']));
 		if (method_exists($this, $funcName) ) {
 			$this->$funcName();
-		}
-		else {
-			Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event, true), Zend_Log::ERR);
+		} else {
+			Mage::log('Error: ' . $funcName . ' undefined, Can\'t process ' . print_r($this->_event['Header'], true), Zend_Log::ERR);
 			$this->_fileInfo['recordsWithErrors']++;
 		}
 		$this->_event = null;
@@ -212,11 +202,12 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		// TODO: Better return value if not found
 		$this->_event['Details'][$lineId]['mageOrderItem'] =
 			Mage::getModel('sales/order_item')->load($this->_event['Details'][$lineId]['OrderLineId']);
+		return $this;
 	}
 
 	/**
 	 * Process an Order Fulfillment Event
-	 *
+	 * @todo Finish when spec'd; ProcessKey 'ORDER_FULFILLMENT' is not documented at https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processOrderFulfillment()
@@ -228,7 +219,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Return Order
-	 *
+	 * @todo Finish when spec'd; ProcessKey 'Return Order' See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processReturnOrder()
@@ -240,7 +231,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Sales Order
-	 *
+	 * @todo Finish! when spec'd; ProcessKey 'Sales Order' See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processSalesOrder()
