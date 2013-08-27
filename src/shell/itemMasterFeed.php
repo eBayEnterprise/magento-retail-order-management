@@ -2,11 +2,8 @@
 require_once 'abstract.php';
 
 /**
- * Magento Log Shell Script
+ * Magento Eb2cProduct Item Master Shell Script
  *
- * @category    Eb2cProduct
- * @package     Mage_Shell
- * @author      TrueAction
  */
 class Mage_Shell_Item_Master_Feed extends Mage_Shell_Abstract
 {
@@ -16,10 +13,10 @@ class Mage_Shell_Item_Master_Feed extends Mage_Shell_Abstract
 	 */
 	public function run()
 	{
-		Mage::log('Start Eb2cProduct: Item Master Feed.', Zend_Log::DEBUG);
+		Mage::log('Starting Eb2cProduct Item Master Feed from shell script.', Zend_Log::DEBUG);
 		$itemMaster = Mage::getModel('eb2cproduct/feed_item_master');
-		$itemMaster->processFeeds();
-		Mage::log('End Eb2cProduct: Item Master Feed.', Zend_Log::DEBUG);
+		Mage::log("Eb2cProduct Item Master Feed Shell Script Run Ruselt:\n\r" . $itemMaster->processFeeds(), Zend_Log::DEBUG);
+		Mage::log('Ending Eb2cProduct Item Master Feed from shell script', Zend_Log::DEBUG);
 	}
 }
 
