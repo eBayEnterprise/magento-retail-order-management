@@ -28,6 +28,22 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	}
 
 	/**
+	 * verify a fault message is properly parsed to a log message.
+	 */
+	public function testGetFaultLogMessage()
+	{
+		$faultMessageXml = '<?xml version="1.0" encoding="UTF-8"?> <fault><faultstring>stuff happened</faultstring> <detail> <errorcode>someCode</errorcode> <trace>lots of details</trace> </detail> </fault>';
+		$message = "Eb2cTax: Fault Message received: Code: (someCode) Description: 'stuff happened' Trace: 'lots of details'";
+		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$document->loadXML($faultMessageXml);
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$fn  = $this->_reflectMethod($response, '_getFaultLogMessage');
+		$this->assertSame($message, $fn->invoke($response, $document));
+	}
+
+	/**
 	 * Testing getResponseForItem method
 	 *
 	 */
