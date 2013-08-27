@@ -27,6 +27,27 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
+	 * ensure the tax code is readable
+	 * @loadFixture
+	 * @large
+	 * NOTE: ticket EB2C-14
+	 * NOTE: marked large because this is an integration test.
+	 */
+	public function testReadingAttributeValue()
+	{
+		$fixture = $this->getFixture()->getStorage()->getLocalFixture();
+		$product = Mage::getModel('catalog/product');
+		$taxCode = 'thecode';
+		$product->load(1);
+		$product->setTaxCode($taxCode);
+		$product->save();
+		$product->load(1);
+		$this->assertNotNull($product->getId());
+		$this->assertTrue($product->hasTaxCode(), 'product does not have a tax_code value');
+		$this->assertSame($taxCode, $product->getTaxCode());
+	}
+
+	/**
 	 * verify a the model field name is returned when it is defined in the map
 	 * and the input field name is returned if not in the map.
 	 * @dataProvider dataProvider
