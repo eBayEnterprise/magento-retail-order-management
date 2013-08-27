@@ -71,6 +71,41 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 			)
 		);
 
-		$this->assertSame(count($dummyFiles), Mage::getModel('eb2corder/status_feed', array('fs_tool' => $mockFsTool))->processFeeds());
+		$this->assertSame(
+			count($dummyFiles),
+			Mage::getModel(
+					'eb2corder/status_feed',
+					array(
+						'fs_tool' => $mockFsTool
+					)
+				)->processFeeds()
+		);
+
+	}
+
+
+	/**
+	 * Test constructing the status feed with a base_dir argument
+	 *
+	 * @test
+	 */
+	public function testWithBaseDirArg()
+	{
+		// The core feed is mocked, I'm not going to need anything of it for this test.
+		$this->replaceModel('eb2ccore/feed', array());
+
+		// The transport protocol is mocked
+		$this->replaceModel('filetransfer/protocol_types_sftp', array());
+
+		// This test covers code for passing base_dir as an argument, test that we get the right object
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cOrder_Model_Status_Feed',
+			Mage::getModel(
+					'eb2corder/status_feed',
+					array(
+						'base_dir'=> 'SomeMadeUpBaseDir'
+					)
+				)
+		);
 	}
 }
