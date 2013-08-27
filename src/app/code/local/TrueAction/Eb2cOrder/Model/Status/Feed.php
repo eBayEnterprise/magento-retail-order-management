@@ -5,18 +5,21 @@
 class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 {
 	private $_config;
-	private $_coreFeedHelper;
+	private $_helper;
 	private $_localIo;
 	private $_remoteIo;
 
 	private $_fileInfo;
 	private $_event;
 
+	private $_mageOrder;
+	private $_mageOrderItem;
+
+
 	protected function _construct()
 	{
-		$helper = Mage::helper('eb2corder');
-		$this->_config = $helper->getConfig();
-		$this->_coreFeedHelper = $helper->getCoreFeedHelper();
+		$this->_helper = Mage::helper('eb2corder');
+		$this->_config = $this->_helper->getConfig();
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array(
@@ -71,19 +74,19 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 
 		// Validate Eb2c Header Information:
-		if (!$this->_coreFeedHelper->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)) {
+		if (!$this->_helper->getCoreFeedHelper()->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return false;
 		}
 
-		// OrderStatusUpdate is the root nood of each Status Feed file:
+		// OrderStatusUpdate is the root node of each Status Feed file:
 		foreach( $dom->getElementsByTagName('OrderStatusUpdate') as $orderStatusUpdate) {
 			// Load the attributes into the _fileInfo array, not yet well defined, but recordCount, for example, seems useful.
 			$this->_loadFileInfo($orderStatusUpdate, array('fileType', 'fileStartTime', 'fileEndTime', 'recordCount'));
 			// OrderStatusEvents wraps all of our OrderStatusEvents
 			foreach( $dom->getElementsByTagName('OrderStatusEvents') as $eventSets ) {
 				foreach ($eventSets->getElementsByTagName('OrderStatusEvent') as $eventNode ) {
-					$this->_processOneEvent($eventNode);
+					$this->_processStatusEvent($eventNode);
 				}
 			}
 		}
@@ -105,68 +108,56 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 
 	/**
-	 * Processes a single eb2c event
+	 * Processes a single eb2c OrderStatusEvent
 	 *
 	 * @param $eventNode - node containing a single event to process
 	 */
-	private function _processOneEvent($eventNode)
+	private function _processStatusEvent($eventNode)
 	{
-		$this->_event = array();	// The Plan: flatten the event into an array.
+		$this->_event = array();
 
-		$this->_loadNodes( 
-			$eventNode,
-			array(
+		foreach( array(
 				'OrderStatusEventTimeStamp',
 				'StoreCode',
 				'OrderId',
 				'StatusId',
 				'ProcessTypeKey',
-				'StatusName',
-			)
-		);
-
-		$this->_loadNodes(
-			$eventNode->getElementsByTagName('OrderEventDetail')->item(0),
-			array(
-				'OrderLineId',
-				'ItemId',
-				'Qty',
-			)
-		);
-		$this->_runEventProcessor();			// The name of the method to process an event is based on ProcessTypeKey
+				'StatusName',) as $tag )
+		{
+			$this->_event['Header'][$tag] = $eventNode->getElementsByTagName($tag)->item(0)->nodeValue;
+		}
 		$this->_fileInfo['recordsProcessed']++;
-	}
 
-	/**
-	 * Adds values to the event array
-	 *
-	 * @param node pointing at some XML parent for which we which to parse the children 
-	 * @tagSet array of tag names from which to get a value
-	 *
-	 */
-	private function _loadNodes($node, $tagSet)
-	{
-		foreach( $tagSet as $tag ) {
-			$this->_event[$tag] = $node->getElementsByTagName($tag)->item(0)->nodeValue;
-		}
-	}
+		// The name of the function that knows how to process this event. 
+		$funcName = '_process' 
+			. str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['Header']['ProcessTypeKey']))));
 
-	/**
-	 * Get name of the function used to process this particular event. 
-	 *
-	 * @return string name of method to use to process this event
-	 */
-	private function _runEventProcessor()
-	{
-		$funcName = '_process' . str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['ProcessTypeKey']))));
-		if (method_exists($this, $funcName) ) {
-			return $this->$funcName();
+		$this->_mageOrder = $this->_loadOrder();
+		// TODO: I have to trudge on regardless of whether I find the order, I need a test here
+		$this->_fileInfo['recordsProcessed']++; // I found the record
+		$this->_fileInfo['recordsOk']++;  // TODO: Is there some case, if found, that it's not OK? Not sure.
+
+		$i=0;
+		foreach ($eventNode->getElementsByTagName('OrderEventDetail') as $eventDetailNode ) {
+			foreach( array(
+					'OrderLineId',
+					'ItemId',
+					'Qty') as $tag )
+			{
+				$this->_event['Details'][$i][$tag] = $eventDetailNode->getElementsByTagName($tag)->item(0)->nodeValue;
+			}
+			$this->_mageOrderItem = $this->_loadOrderItem($i);
+			if (method_exists($this, $funcName) ) {
+				$this->$funcName();
+			}
+			else {
+				Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event['Details'][$i], true));
+				$this->_fileInfo['recordsWithErrors']++;
+			}
+			$i++;
+			$this->_fileInfo['recordsProcessed']++;
 		}
-		else {
-			Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event, true));
-			$this->_fileInfo['recordsWithErrors']++;
-			return false;
-		}
+		$this->_event = null;
 	}
 
 
@@ -188,6 +179,28 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		$this->_fileInfo['recordsWithErrors'] = 0;
 	}
 
+
+	/**
+	 * Get the Magento order
+	 * 
+	 * @return Mage_Sales_Model_Order
+	 */
+	private function _loadOrder()
+	{
+		return Mage::getModel('sales/order')->loadByIncrementId($this->_event['Header']['OrderId']);
+	}
+
+	/**
+	 * Get a single magento order item
+	 * 
+	 * @param which array element to get the item for.
+	 * @return Mage_Sales_Model_Order_Item
+	 */
+	private function _loadOrderItem($lineId)
+	{
+		return Mage::getModel('sales/order_item')->load($this->_event['Details'][$lineId]['OrderLineId']);
+	}
+
 	/**
 	 * Process an Order Fulfillment Event
 	 *
@@ -195,7 +208,31 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _processOrderFulfillment()
 	{
-		$this->_fileInfo['recordsOk']++;		// I assume ... ?
+		$this->_fileInfo['recordsOk']++;
+		return true;
+	}
+
+
+	/**
+	 * Return Order
+	 *
+	 * @return bool
+	 */
+	private function _processReturnOrder()
+	{
+		$this->_fileInfo['recordsOk']++;
+		return true;
+	}
+
+
+	/**
+	 * Sales Order
+	 *
+	 * @return bool
+	 */
+	private function _processSalesOrder()
+	{
+		$this->_fileInfo['recordsOk']++;
 		return true;
 	}
 }
