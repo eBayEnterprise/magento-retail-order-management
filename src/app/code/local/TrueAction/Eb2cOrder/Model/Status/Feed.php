@@ -13,7 +13,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	private $_event;
 
 	private $_mageOrder;
-	private $_mageOrderItem;
 
 
 	protected function _construct()
@@ -44,23 +43,29 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			$this->_localIo->getInboundDir(),
 			$this->_config->statusFeedRemotePath,
 			$cfg::FILETRANSFER_CONFIG_PATH
-		);	// Gets the files.
+		);
 	}
 
 	/**
 	 * Loops through all files found in the Inbound Dir.
+	 *
+	 * @return Number of files we looked at.
 	 */
 	public function processFeeds()
 	{
+		$filesProcessed = 0;
 		$this->_fetchFeedsFromRemote();
 		foreach( $this->_localIo->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
+			$filesProcessed++;
 		}
-		return true;
+		return $filesProcessed;
 	}
 
 	/**
 	 * Processes a single xml file.
+	 *
+	 * @return number of Records we looked at.
 	 */
 	public function processFile($xmlFile)
 	{
@@ -71,13 +76,13 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 		catch(Exception $e) {
 			Mage::logException($e);
-			return false;
+			return 0;
 		}
 
 		// Validate Eb2c Header Information:
 		if (!$this->_helper->getCoreFeedHelper()->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
-			return false;
+			return 0;
 		}
 
 		// OrderStatusUpdate is the root node of each Status Feed file:
@@ -94,9 +99,9 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 		Mage::log('File ' . $xmlFile
 			. sprintf(': Processed %d of %d, %d errors',
-			$this->_fileInfo['recordsProcessed'],
-			$this->_fileInfo['recordCount'],
-		$this->_fileInfo['recordsWithErrors']) );
+				$this->_fileInfo['recordsProcessed'],
+				$this->_fileInfo['recordCount'],
+			$this->_fileInfo['recordsWithErrors']) );
 
 		if( $this->_fileInfo['recordsWithErrors'] ) {
 			$this->_localIo->mvToErrorDir($xmlFile);
@@ -104,7 +109,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		else {
 			$this->_localIo->mvToArchiveDir($xmlFile);
 		}
-		return true;
+
+		return $this->_fileInfo['recordsProcessed'];
 	}
 
 
@@ -112,6 +118,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 * Processes a single eb2c OrderStatusEvent
 	 *
 	 * @param $eventNode - node containing a single event to process
+	 *
+	 * @return Number of OrderEventDetails we looked at
 	 */
 	private function _processStatusEvent($eventNode)
 	{
@@ -127,17 +135,14 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		{
 			$this->_event['Header'][$tag] = $eventNode->getElementsByTagName($tag)->item(0)->nodeValue;
 		}
-		// The name of the function that knows how to process this event. 
-		$funcName = '_process' 
-			. str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['Header']['ProcessTypeKey']))));
 
 		$this->_mageOrder = $this->_loadOrder();
 		// TODO: I have to trudge on regardless of whether I find the order, I need a test here
 		$this->_fileInfo['recordsProcessed']++;
-		 // TODO: Is there some case, if found, that it's not OK? Not sure.
+		// TODO: Is there some case, if found, that it's not OK? Not sure.
 		$this->_fileInfo['recordsOk']++;
 
-		$i=0;
+		$i = 0;
 		foreach ($eventNode->getElementsByTagName('OrderEventDetail') as $eventDetailNode ) {
 			foreach( array(
 					'OrderLineId',
@@ -146,18 +151,23 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			{
 				$this->_event['Details'][$i][$tag] = $eventDetailNode->getElementsByTagName($tag)->item(0)->nodeValue;
 			}
-			$this->_mageOrderItem = $this->_loadOrderItem($i);
-			if (method_exists($this, $funcName) ) {
-				$this->$funcName();
-			}
-			else {
-				Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event['Details'][$i], true));
-				$this->_fileInfo['recordsWithErrors']++;
-			}
-			$i++;
+			$this->_loadOrderItem($i);
 			$this->_fileInfo['recordsProcessed']++;
+			$i++;
+		}
+
+		// The name of the function that knows how to process this event. 
+		$funcName = '_process' 
+			. str_replace(' ', '', ucwords(str_replace('_', ' ', strtolower($this->_event['Header']['ProcessTypeKey']))));
+		if (method_exists($this, $funcName) ) {
+			$this->$funcName();
+		}
+		else {
+			Mage::log('Error: ' . $funcName . ' is undefined, unprocessed record: ', print_r($this->_event, true), Zend_Log::ERR);
+			$this->_fileInfo['recordsWithErrors']++;
 		}
 		$this->_event = null;
+		return $i;
 	}
 
 
@@ -177,6 +187,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		$this->_fileInfo['recordsProcessed'] = 0;
 		$this->_fileInfo['recordsOk'] = 0;
 		$this->_fileInfo['recordsWithErrors'] = 0;
+		return $this;
 	}
 
 
@@ -187,6 +198,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _loadOrder()
 	{
+		// TODO: Better return value if not found
 		return Mage::getModel('sales/order')->loadByIncrementId($this->_event['Header']['OrderId']);
 	}
 
@@ -194,11 +206,12 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 * Get a single magento order item
 	 * 
 	 * @param which array element to get the item for.
-	 * @return Mage_Sales_Model_Order_Item
 	 */
 	private function _loadOrderItem($lineId)
 	{
-		return Mage::getModel('sales/order_item')->load($this->_event['Details'][$lineId]['OrderLineId']);
+		// TODO: Better return value if not found
+		$this->_event['Details'][$lineId]['mageOrderItem'] =
+			Mage::getModel('sales/order_item')->load($this->_event['Details'][$lineId]['OrderLineId']);
 	}
 
 	/**

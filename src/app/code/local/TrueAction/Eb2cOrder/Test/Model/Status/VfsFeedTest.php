@@ -71,6 +71,6 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 			)
 		);
 
-		$this->assertSame(true, Mage::getModel('eb2corder/status_feed', array('fs_tool' => $mockFsTool))->processFeeds());
+		$this->assertSame(count($dummyFiles), Mage::getModel('eb2corder/status_feed', array('fs_tool' => $mockFsTool))->processFeeds());
 	}
 }
