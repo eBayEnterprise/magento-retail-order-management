@@ -22,13 +22,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		$this->_config = Mage::helper('eb2corder')->getConfig();
 
 		// Set up local folders for receiving, processing
-		if( $this->hasBaseDir() ) {
-			$baseDir = $this->getBaseDir();
-		}
-		else {
-			$baseDir = $this->_config->statusFeedLocalPath;
-		}
-		$coreFeedConstructorArgs = array('base_dir' => $baseDir);
+		$coreFeedConstructorArgs = array('base_dir' => $this->_config->statusFeedLocalPath);
 		if ($this->hasFsTool()) {
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
