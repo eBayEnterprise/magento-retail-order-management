@@ -1,5 +1,5 @@
 <?php
-abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_Case
+abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * Mocks a Sales Order
@@ -91,7 +91,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 		);
 	}
 
-	/** 
+	/**
  	 * Let us mock a Mage_Sales_Model_Order_Payment
 	 *
 	 */
@@ -113,10 +113,9 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
-	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for 
-	 *	Eb2cOrder Testing. 
+	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for Eb2cOrder Testing.
 	 *
-	 * @param statusFeedLocalPath	A testable path containing Status Feed XML - prefer that this be vfs
+	 * @param array ('statusFeedLocalPath' => 'a/path')	A testable path containing Status Feed XML - prefer that this be vfs
 	 */
 	protected function replaceCoreConfigRegistry($userConfigValuePairs=array())
 	{
@@ -132,7 +131,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 			'eb2cPaymentsEnabled'				=> true,
 			'statusFeedLocalPath'				=> 'some_local_path_for_files',
 			'statusFeedRemotePath'				=> 'doesnt_matter_just_some_path',
-			'fileTransferConfigPath'			=> 'eb2ccore/general',
 			'statusFeedEventType'				=> 'OrderStatus',
 			'statusFeedHeaderVersion'			=> '2.3.4',
 		);
@@ -158,33 +156,25 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 
 	/**
 	 * Returns a mocked object
+	 *
 	 * @param a Magento Class Alias
 	 * @param array of key / value pairs; key is the method name, value is value returned by that method
-	 *
 	 * @return mocked-object
 	 */
-	private function _getFullMocker($classAlias, $mockedMethodSet, $disableConstructor=true)
+	protected function _getFullMocker($classAlias, $mockedMethodSet, $disableConstructor=true)
 	{
-		$justMethodNames = array();
-		foreach( $mockedMethodSet as $method => $returnValue ) {
-			$justMethodNames[] = $method;
-		}
-
-		$mock = null;
-
+		$mockMethodNames = array_keys($mockedMethodSet);
 		if( $disableConstructor ) {
-			$mock = $this->getModelMockBuilder($classAlias) 
+			$mock = $this->getModelMockBuilder($classAlias)
 					->disableOriginalConstructor()
-					->setMethods($justMethodNames)
-					->getMock(); 
+					->setMethods($mockMethodNames)
+					->getMock();
 		}
 		else {
-			$mock = $this->getModelMockBuilder($classAlias) 
-					->setMethods($justMethodNames)
-					->getMock(); 
+			$mock = $this->getModelMockBuilder($classAlias)
+					->setMethods($mockMethodNames)
+					->getMock();
 		}
-
-		reset($mockedMethodSet);
 		foreach($mockedMethodSet as $method => $returnSet ) {
 			$mock->expects($this->any())
 				->method($method)
@@ -192,9 +182,10 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends EcomDev_PHPUnit_Test_C
 		}
 		return $mock;
 	}
-	
+
 	/**
 	 * Returns a mocked object, original model constructor disabled - you get only the methods you mocked.
+	 *
 	 * @param a Magento Class Alias
 	 * @param array of key / value pairs; key is the method name, value is value returned by that method
 	 * @param disableOriginalConstructor	true or false, defaults to true

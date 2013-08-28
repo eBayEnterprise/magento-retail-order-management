@@ -1,45 +1,34 @@
 <?php
-/**
+/*
  * @category   TrueAction
- * @package    TrueAction_Eb2c
+ * @package    TrueActionEb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 {
+	const FILETRANSFER_CONFIG_PATH = 'eb2ccore/feed';
 	/**
-	 * hold instantiate core config registry model object
-	 *
-	 * @var eb2ccore/config_registry
-	 */
-	protected $_coreConfig;
-
-	/**
-	 * Get core config registry instantiated object.
-	 *
-	 * @return eb2ccore/config_registry
-	 */
-	protected function _getCoreConfig($store=null)
-	{
-		if (!$this->_coreConfig) {
-			$this->_coreConfig = Mage::getModel('eb2ccore/config_registry');
-			$this->_coreConfig->setStore($store)
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
-		return $this->_coreConfig;
-	}
-
-	/**
-	 * Validating Feed Header Messages.
+	 * Validating Feed Header. This will validate:
+	 * (In MessageHeader):
+	 *    HeaderVersion
+	 *    VersionReleaseNumber
+	 *    EventType
+	 *    DestinationId
+	 *    DestinationType
 	 *
 	 * @param DOMDocument $doc, the loaded Dom xml feed
 	 * @param string $expectEventType
-	 * @param string $expectHeaderVersion, Validate to match expected version for feed
+	 * @param string $expectHeaderVersion, expected to be in the form 2.3.4, where ".4" is your minor version
 	 *
 	 * @return bool, true header is valid false otherwise
 	 */
 	public function validateHeader($doc, $expectEventType, $expectHeaderVersion)
 	{
 		$isValid = true;
+
+		$coreConfig = Mage::getModel('eb2ccore/config_registry')
+			->setStore(null)
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 
 		// Determine the major and minor version from the pass Header Version
 		$versions = $this->_extractMinorMajorVersion($expectHeaderVersion);
@@ -50,12 +39,12 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$headerVersion->length) {
 			// Header Version wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('HeaderVersion node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'HeaderVersion node was not found in the xml feed', Zend_Log::WARN);
 		} elseif(trim($versions['major']) !== trim($headerVersion->item(0)->nodeValue)) {
 			// Header Version doesn't match
 			$isValid = false;
-			Mage::log(
-				'Feed Header Version "' . $headerVersion->item(0)->nodeValue . '" do not matched expected Header Version "' . $versions['major'] . '".',
+			Mage::log('[' . __CLASS__ . '] ' .
+				'Feed Header Version "' . $headerVersion->item(0)->nodeValue . '" does not match expected Header Version "' . $versions['major'] . '"',
 				Zend_Log::WARN
 			);
 		}
@@ -64,13 +53,13 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$versionReleaseNumber->length) {
 			// Version Release Number wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('versionReleaseNumber node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'versionReleaseNumber node was not found in the xml feed', Zend_Log::WARN);
 		} elseif(trim($versions['minor']) !== trim($versionReleaseNumber->item(0)->nodeValue)) {
 			// Version Release Number doesn't match
 			$isValid = false;
-			Mage::log(
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Version Release Number "' . $versionReleaseNumber->item(0)->nodeValue .
-				'" do not matched expected Version Release Number "' . $versions['minor'] . '".',
+				'" does not match expected Version Release Number "' . $versions['minor'] . '"',
 				Zend_Log::WARN
 			);
 		}
@@ -80,12 +69,12 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$eventType->length) {
 			// Event Type wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('EventType node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'EventType node was not found in the xml feed', Zend_Log::WARN);
 		} elseif(trim($expectEventType) !== trim($eventType->item(0)->nodeValue)) {
 			// Event Type doesn't match
 			$isValid = false;
-			Mage::log(
-				'Feed Event Type "' . $eventType->item(0)->nodeValue . '" do not matched config Event Type "' . $expectEventType . '".',
+			Mage::log('[' . __CLASS__ . '] ' .
+				'Feed Event Type "' . $eventType->item(0)->nodeValue . '" does not match config Event Type "' . $expectEventType . '"',
 				Zend_Log::WARN
 			);
 		}
@@ -94,13 +83,13 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$destinationId->length) {
 			// DestinationId wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('DestinationId (client_id) node was not found in the xml feed', Zend_Log::WARN);
-		} elseif(trim($this->_getCoreConfig()->clientId) !== trim($destinationId->item(0)->nodeValue)) {
+			Mage::log('[' . __CLASS__ . '] ' . 'DestinationId (client_id) node was not found in the xml feed', Zend_Log::WARN);
+		} elseif(trim($coreConfig->clientId) !== trim($destinationId->item(0)->nodeValue)) {
 			// DestinationId doesn't match
 			$isValid = false;
-			Mage::log(
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed DestinationId "' . $destinationId->item(0)->nodeValue .
-				'" do not matched config DestinationId (client_id) "' . $this->_getCoreConfig()->clientId . '".',
+				'" does not match config DestinationId (client_id) "' . $coreConfig->clientId . '"',
 				Zend_Log::WARN
 			);
 		}
@@ -109,25 +98,25 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$destinationType->length) {
 			// Destination Type wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('Destination Type node was not found in the xml feed', Zend_Log::WARN);
-		} elseif(trim($this->_getCoreConfig()->feedDestinationType) !== trim($destinationType->item(0)->nodeValue)) {
+			Mage::log('[' . __CLASS__ . '] ' . 'Destination Type node was not found in the xml feed', Zend_Log::WARN);
+		} elseif(trim($coreConfig->feedDestinationType) !== trim($destinationType->item(0)->nodeValue)) {
 			// Destination Type doesn't match
 			$isValid = false;
-			Mage::log(
+			Mage::log('[' . __CLASS__ . '] ' .
 				'Feed Destination Type "' . $destinationType->item(0)->nodeValue .
-				'" do not matched config Destination Type "' . $this->_getCoreConfig()->feedDestinationType . '".',
+				'" does not match config Destination Type "' . $coreConfig->feedDestinationType . '"',
 				Zend_Log::WARN
 			);
 		}
 
-		// log the entired feed header on any invalid mismatch
 		if (!$isValid) {
+			// Log the entire feed header on any mismatch
 			$feedHeaderContent = '';
 			$headerArr = explode('</MessageHeader>', stristr($doc->saveXML(), '<MessageHeader>'));
 			if (sizeof($headerArr) > 0) {
 				$feedHeaderContent = $headerArr[0] . '</MessageHeader>';
 			}
-			Mage::log($feedHeaderContent, Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . $feedHeaderContent, Zend_Log::DEBUG);
 		}
 
 		return $isValid;

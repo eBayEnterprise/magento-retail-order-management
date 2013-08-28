@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ItemMaster xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../XSD/ItemMasterV11.xsd">
+	<MessageHeader>
+		<Standard>GSI</Standard>
+		<HeaderVersion>2.3</HeaderVersion>
+		<VersionReleaseNumber>0</VersionReleaseNumber>
+		<SourceData>
+			<SourceId>TMS</SourceId>
+			<SourceType>CLIENT</SourceType>
+		</SourceData>
+		<DestinationData>
+			<DestinationId>Enfinity</DestinationId>
+			<DestinationType>WebStore</DestinationType>
+		</DestinationData>
+		<DestinationData>
+			<DestinationId>Sterling</DestinationId>
+			<DestinationType>OMS_EU</DestinationType>
+		</DestinationData>
+		<EventType>ItemMaster</EventType>
+		<MessageData>
+			<MessageId>297</MessageId>
+			<CorrelationId>297</CorrelationId>
+		</MessageData>
+		<CreateDateAndTime>2011-12-19T19:02:07-05:00</CreateDateAndTime>
+	</MessageHeader>
+	<Item operation_type="Delete" gsi_client_id="TAN-CLI" catalog_id="70">
+		<ItemId>
+			<ClientItemId>0000-bundle-add-regular</ClientItemId>
+		</ItemId>
+		<BaseAttributes>
+			<CatalogClass>regular</CatalogClass>
+			<IsDropShipped>false</IsDropShipped>
+			<ItemDescription>SW799 DANCING DOTS</ItemDescription>
+			<ItemType>bundle</ItemType>
+			<ItemStatus>Active</ItemStatus>
+			<TaxCode>02000</TaxCode>
+			<Hierarchy>
+				<DeptNumber>303</DeptNumber>
+				<SubDeptNumber>700</SubDeptNumber>
+				<SubDeptDescription>ACCESSORIES</SubDeptDescription>
+				<ClassNumber>710</ClassNumber>
+				<ClassDescription>GENERAL ACCESSORIES</ClassDescription>
+				<SubClass>908</SubClass>
+				<SubClassDescription>SOCKS</SubClassDescription>
+			</Hierarchy>
+		</BaseAttributes>
+		<ExtendedAttributes>
+			<Price>77.99</Price>
+			<MSRP>0.00</MSRP>
+			<CountryOfOrigin>US</CountryOfOrigin>
+			<GiftCartTenderCode>SP</GiftCartTenderCode>
+			<AllowGiftMessage>false</AllowGiftMessage>
+			<BackOrderable>true</BackOrderable>
+			<Brand>
+				<Description xml:lang="en-GB"/>
+			</Brand>
+			<ColorAttributes>
+				<Color>
+					<Code>100</Code>
+					<Description xml:lang="en-GB">WHITE</Description>
+				</Color>
+			</ColorAttributes>
+			<ItemDimensions>
+				<Display>
+					<Mass unit_of_measure="kg">
+						<Weight>1</Weight>
+					</Mass>
+					<Packaging unit_of_measure="cm">
+						<Width>1</Width>
+						<Length>1</Length>
+						<Height>1</Height>
+					</Packaging>
+				</Display>
+				<Shipping>
+					<Mass unit_of_measure="kg">
+						<Weight>1</Weight>
+					</Mass>
+					<Packaging unit_of_measure="cm">
+						<Width>1</Width>
+						<Length>1</Length>
+						<Height>1</Height>
+					</Packaging>
+				</Shipping>
+				<Carton>
+					<Mass unit_of_measure="kg">
+						<Weight>1</Weight>
+					</Mass>
+					<Packaging unit_of_measure="cm">
+						<Width>1</Width>
+						<Length>1</Length>
+						<Height>1</Height>
+					</Packaging>
+				</Carton>
+			</ItemDimensions>
+			<SalesClass>stock</SalesClass>
+			<SizeAttributes>
+				<Size xml:lang="en-GB">
+					<Code>S</Code>
+					<Description>S</Description>
+				</Size>
+				<Size xml:lang="fr-FR">
+					<Code>S</Code>
+					<Description>S</Description>
+				</Size>
+				<Size xml:lang="es-ES">
+					<Code>S</Code>
+					<Description>S</Description>
+				</Size>
+				<Size xml:lang="it-IT">
+					<Code>S</Code>
+					<Description>S</Description>
+				</Size>
+				<Size xml:lang="de-DE">
+					<Code>S</Code>
+					<Description>S</Description>
+				</Size>
+			</SizeAttributes>
+			<Style>
+				<StyleID>SW799</StyleID>
+			</Style>
+		</ExtendedAttributes>
+		<CustomAttributes>
+			<Attribute name="Gender" xml:lang="en-GB">
+				<Value>W</Value>
+			</Attribute>
+			<Attribute name="GII">
+				<Value>20319000</Value>
+			</Attribute>
+			<Attribute name="Test" operation_type="delete">
+				<Value>Test-83838</Value>
+			</Attribute>
+		</CustomAttributes>
+		<BundleContents ship_together="true">
+			<BundleItems operation_type="Add" catalog_id="70">
+				<ItemID>20984752345</ItemID>
+				<Quantity>1</Quantity>
+			</BundleItems>
+			<BundleItems operation_type="Delete">
+				<ItemID>129238248248</ItemID>
+				<Quantity>3</Quantity>
+			</BundleItems>
+		</BundleContents>
+		<DropShipSupplierInformation>
+			<SupplierName>Mass Merchants, Intl</SupplierName>
+			<SupplierNumber>9876</SupplierNumber>
+			<SupplierPartNumber>9843333A</SupplierPartNumber>
+		</DropShipSupplierInformation>
+	</Item>
+</ItemMaster>

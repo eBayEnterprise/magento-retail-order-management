@@ -8,7 +8,6 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $coreHelper;
 	public $coreFeed;
-	public $fileTransferHelper;
 	public $constantHelper;
 	public $configModel;
 	public $apiModel;

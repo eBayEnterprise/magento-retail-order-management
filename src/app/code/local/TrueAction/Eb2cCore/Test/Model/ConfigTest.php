@@ -1,14 +1,12 @@
 <?php
-
 /**
  * Test the abstract config model which does the majority of work implementing
  * the config model interface required by the TrueAction_Eb2cCore_Helper_Config
  */
-class TrueAction_Eb2cCore_Test_Model_ConfigTests extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Model_ConfigTest extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
-	 * Test determining if a config model knows about a key
+	 * A config model knows about a key.
 	 * @test
 	 */
 	public function testConfigModelHasKey()
@@ -19,7 +17,7 @@ class TrueAction_Eb2cCore_Test_Model_ConfigTests extends EcomDev_PHPUnit_Test_Ca
 	}
 
 	/**
-	 * Test getting path for a known key
+	 * A config model can get the correct path for a known key.
 	 * @test
 	 */
 	public function testConfigModelGetPath()
@@ -27,7 +25,6 @@ class TrueAction_Eb2cCore_Test_Model_ConfigTests extends EcomDev_PHPUnit_Test_Ca
 		$configModel = new ConfigStub();
 		$this->assertSame($configModel->getPathForKey('catalog_id'), 'eb2c/core/catalog_id');
 	}
-
 }
 
 /**

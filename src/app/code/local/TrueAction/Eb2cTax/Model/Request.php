@@ -77,7 +77,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$this->_hasChanges = $this->_hasChanges || $this->_isAddressItemsDifferent($address);
 			}
 			// TODO: REMOVE ME
-			if ($this->_hasChanges) Mage::log('The address has changed');
+			if ($this->_hasChanges) Mage::log('[' . __CLASS__ . '] ' . 'The address has changed');
 		}
 	}
 
@@ -112,7 +112,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 			// TODO: REMOVE ME
-			if ($this->_hasChanges) Mage::log('The discounts have changed');
+			if ($this->_hasChanges) Mage::log('[' . __CLASS__ . '] ' . 'The discounts have changed');
 		}
 	}
 
@@ -452,7 +452,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		// @codeCoverageIgnoreEnd
 		if (strlen($newSku) < strlen($item['item_id'])) {
 			$message = 'Item sku "' . $item['item_id'] . '" is too long and has been truncated';
- 			Mage::log($message, Zend_Log::WARN);
+ 			Mage::log('[' . __CLASS__ . '] ' . $message, Zend_Log::WARN);
 		}
 		return $newSku;
 	}
@@ -491,7 +491,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$destinations = $shipping->createChild('Destinations');
 			$this->_processAddresses($destinations, $shipGroups);
 		} catch (Mage_Core_Exception $e) {
-			Mage::log('TaxDutyQuoteRequest Error: ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . 'TaxDutyQuoteRequest Error: ' . $e->getMessage(), Zend_Log::WARN);
 			$this->invalidate();
 		}
 	}
