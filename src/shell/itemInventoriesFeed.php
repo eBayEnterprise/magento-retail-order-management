@@ -14,8 +14,7 @@ class Mage_Shell_Item_Inventories_Feed extends Mage_Shell_Abstract
 	public function run()
 	{
 		Mage::log('Starting Eb2cInventory Item Inventories Feed from shell script.', Zend_Log::DEBUG);
-		$baseDir = Mage::getBaseDir('var') . '/TrueAction/Eb2c/Feed/Item/Inventories/';
-		$itemInventories = Mage::getModel('eb2cinventory/feed_item_Inventories', array('base_dir' => $baseDir));
+		$itemInventories = Mage::getModel('eb2cinventory/feed_item_Inventories');
 		$itemInventories->processFeeds();
 		Mage::log('Ending Eb2cInventory Item Inventories Feed from shell script', Zend_Log::DEBUG);
 	}
