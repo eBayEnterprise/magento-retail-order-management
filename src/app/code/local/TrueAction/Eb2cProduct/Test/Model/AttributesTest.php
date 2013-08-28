@@ -73,6 +73,38 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	}
 
 	/**
+	 * the function shouldn't die if an exception occurs.
+	 */
+	public function testGetAttributesDataException()
+	{
+		$attrNode = Mage::getModel('core/config');
+		$attrNode->loadString(self::$configXml);
+		$attrNode =	$attrNode->getNode('default/tax_code');
+		$defaultNode = $this->getMock('Varien_Object', array('children'));
+		$defaultNode->expects($this->once())
+			->method('children')
+			->will($this->returnValue(array('tax_code' => $attrNode)));
+		$config = $this->getModelMock('core/config', array('getNode'));
+		$config->expects($this->once())
+			->method('getNode')
+			->with($this->identicalTo('default'))
+			->will($this->returnValue($defaultNode));
+		$model = $this->getModelMock('eb2cproduct/attributes', array(
+			'_loadDefaultAttributesConfig',
+			'_getPrototypeData'
+		));
+		$model->expects($this->once())
+			->method('_loadDefaultAttributesConfig')
+			->will($this->returnValue($config));
+		$model->expects($this->once())
+			->method('_getPrototypeData')
+			->with($this->identicalTo($attrNode))
+			->will($this->throwException(new Mage_Core_Exception()));
+		$result = $model->getAttributesData();
+		$this->assertEquals(array(), $result);
+	}
+
+	/**
 	 * verify we get an array with the entity type id for products.
 	 * @loadExpectation
 	 */

@@ -79,9 +79,13 @@ class TrueAction_Eb2cProduct_Model_Attributes
 		$config      = $this->_loadDefaultAttributesConfig();
 		$defaultNode = $config->getNode('default');
 		foreach ($defaultNode->children() as $attrCode => $attrConfig) {
-			$this->_getPrototypeData($attrConfig);
+			try {
+				$this->_getPrototypeData($attrConfig);
+			} catch (Exception $e) {
+				$message = 'Error processing attribute %s: %s';
+				Mage::log(sprintf($message, $attrCode, $e->getMessage()), Zend_Log::WARN);
+			}
 		}
-		Mage::log("getattributesdata");
 		return $this->_prototypeCache;
 	}
 
