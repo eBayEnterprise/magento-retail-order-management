@@ -14,8 +14,7 @@ class Mage_Shell_Item_Master_Feed extends Mage_Shell_Abstract
 	public function run()
 	{
 		Mage::log('Starting Eb2cProduct Item Master Feed from shell script.', Zend_Log::DEBUG);
-		$baseDir = Mage::getBaseDir('var') . '/TrueAction/Eb2c/Feed/Item/Master/';
-		$itemMaster = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $baseDir));
+		$itemMaster = Mage::getModel('eb2cproduct/feed_item_master');
 		$itemMaster->processFeeds();
 		Mage::log('Ending Eb2cProduct Item Master Feed from shell script', Zend_Log::DEBUG);
 	}
