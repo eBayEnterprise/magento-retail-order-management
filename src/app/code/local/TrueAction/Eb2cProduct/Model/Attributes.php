@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Attributes
+	extends Mage_Core_Model_Abstract
 {
 	/**
 	 * @var string path of the attributes configuration in the global config.
@@ -129,8 +130,10 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		$scopeStr = strtolower((string) $data);
 		$key = strtolower($scopeStr);
 		if (!isset(self::$_scopeMap[$scopeStr])) {
+			// @codeCoverageIgnoreStart
 			Mage::throwException('Invalid scope value "' . $scopeStr . '"');
 		}
+		// @codeCoverageIgnoreEnd
 		$val = self::$_scopeMap[$scopeStr];
 		return $val;
 	}
@@ -185,10 +188,12 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		if (isset($this->_valueFunctionMap[$fieldName])) {
 			$funcName = $this->_valueFunctionMap[$fieldName];
 			if (!method_exists($this, $funcName)) {
+				// @codeCoverageIgnoreStart
 				Mage::throwException(
 					"invalid value-function map. $funcName is not a member of " . get_class($this)
 				);
 			}
+			// @codeCoverageIgnoreEnd
 			$value = $this->$funcName($data);
 		}
 		return $value;
@@ -247,16 +252,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 		}
 		// TODO: perhaps store it in a cache?
 		return $result;
-	}
-
-	/**
-	 * get the entity type id of the product model.
-	 * @return int
-	 */
-	protected function _getDefaultEntityTypeId()
-	{
-		$entityTypeID = Mage::getModel('catalog/category')->getResource()->getTypeId();
-		return $entityTypeID;
 	}
 
 	/**
