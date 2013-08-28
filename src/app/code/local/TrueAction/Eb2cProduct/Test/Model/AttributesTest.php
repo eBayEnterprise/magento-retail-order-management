@@ -9,6 +9,37 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
 	/**
+	 * verify the _getMappedFieldValue function throws an exception when
+	 * the function mapped to the fieldname does not exist.
+	 * @dataProvider dataProvider
+	 */
+	public function testGetMappedFieldValueException($funcName, $message)
+	{
+		$exceptionName = 'Mage_Core_Exception';
+		$this->setExpectedException($exceptionName, $message);
+		$element = new Varien_SimpleXml_Element('<scope>Website</scope>');
+		$model = Mage::getModel('eb2cproduct/attributes');
+		$this->_reflectProperty($model, '_valueFunctionMap')
+			->setValue($model, array('is_global' => $funcName));
+		$fn = $this->_reflectMethod($model, '_getMappedFieldValue');
+		$fn->invoke($model, 'is_global', $element);
+	}
+
+	/**
+	 * verify the _formatScope function throws an exception when
+	 * an invalid valid is passed in.
+	 * @dataProvider dataProvider
+	 */
+	public function testFormatScopeException($value, $message)
+	{
+		$exceptionName = 'Mage_Core_Exception';
+		$this->setExpectedException($exceptionName, $message);
+		$model = Mage::getModel('eb2cproduct/attributes');
+		$fn = $this->_reflectMethod($model, '_formatScope');
+		$fn->invoke($model, $value);
+	}
+
+	/**
 	 * the return value is an array.
 	 * the function loops through all attributes in the default config
 	 */
