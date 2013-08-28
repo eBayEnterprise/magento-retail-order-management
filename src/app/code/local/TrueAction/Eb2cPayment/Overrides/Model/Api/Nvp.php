@@ -375,7 +375,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 					if ($payPalDoAuthorizationCheckoutObject = $this->_getPaypalDoAuthorization()->parseResponse($payPalDoAuthorizationReply)) {
 						if (strtoupper(trim($payPalDoAuthorizationCheckoutObject->getResponseCode())) === 'SUCCESS') {
 							$response = array(
-								'TRANSACTIONID' => uniqid(),
+								'TRANSACTIONID' => $quote->getId(),
 								'ACK' => $payPalDoAuthorizationCheckoutObject->getResponseCode(),
 								'PAYMENTSTATUS' => $payPalDoAuthorizationCheckoutObject->getPaymentStatus(),
 								'PENDINGREASON' => $payPalDoAuthorizationCheckoutObject->getPendingReason(),
