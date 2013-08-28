@@ -24,8 +24,6 @@ class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 
 		$setup = $this->getMockBuilder('TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup')
 			->disableOriginalConstructor()
-			// ->disableOriginalClone()
-			// ->setConstructorArgs(array('core/setup'))
 			->setMethods(array('addAttribute', 'getAttribute', '_logWarn'))
 			->getMock();
 		$setup->expects($this->once())
@@ -45,12 +43,9 @@ class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 			)
 			->will($this->returnValue($existingAttributeId));
 
-		// $logWarnCalls = $e->getLogWarnCalled() ? $this->once() : $this->never();
-		// $setup->expects($logWarnCalls)
-		// 	->method('_logWarn')
-		// 	->with($this->identicalTo($e->getMessage()))
-		// 	->will($this->returnValue($existingAttributeId));
-
+		$logCalls = $e->getLogWarnCalled() ? $this->once() : $this->never();
+		$setup->expects($logCalls)
+			->method('_logWarn');
 		$setup->applyToAllSets($attrInfo);
 	}
 }

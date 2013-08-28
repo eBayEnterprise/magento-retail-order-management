@@ -2,3 +2,7 @@
   - "category-taxcode-notexist"
   - [10]
   - ~
+-
+  - "category-taxcode-exist"
+  - [10]
+  - 5
