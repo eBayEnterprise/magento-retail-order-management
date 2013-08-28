@@ -9,6 +9,28 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
 	/**
+	 * verify we get an array with the entity type id for products.
+	 * @loadExpectation
+	 */
+	public function testGetTargetEntityTypeIds()
+	{
+		$e          = $this->expected('product_only');
+		$entityType = 'catalog/product';
+		$entity     = $this->getModelMock($entityType);
+		$this->assertInstanceOf('Mage_Catalog_Model_Product', $entity);
+		$entity->expects($this->once())
+			->method('getResource')
+			->will($this->returnSelf());
+		$entity->expects($this->once())
+			->method('getTypeId')
+			->will($this->returnValue($e->getEntityTypeId()));
+		$this->replaceByMock('model', $entityType, $entity);
+		$model = Mage::getModel('eb2cproduct/attributes');
+		$ids   = $model->getTargetEntityTypeIds();
+		$this->assertEquals($e->getIds(), $ids);
+	}
+
+	/**
 	 * verify the function returns true if the attribute set's entity id
 	 * is a valid entity id.
 	 * @param  int $eid1
