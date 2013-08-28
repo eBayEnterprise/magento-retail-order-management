@@ -82,7 +82,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 			try {
 				$this->_getPrototypeData($attrConfig);
 			} catch (Exception $e) {
-				$message = 'Error processing attribute %s: %s';
+				$message = 'Error processing config for attribute "%s": %s';
 				Mage::log(sprintf($message, $attrCode, $e->getMessage()), Zend_Log::WARN);
 			}
 		}
