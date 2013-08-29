@@ -28,7 +28,6 @@
 			<eb2cproduct_attributes_setup>
 				<setup>
 					<module>TrueAction_Eb2cProduct</module>
-					<class>TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup</class>
 				</setup>
 			</eb2cproduct_attributes_setup>
 		</resources>
