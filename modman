@@ -11,6 +11,9 @@ src/app/locale/en_US/* app/locale/en_US/
 # TrueAction_Eb2cFraud
 src/js/trueaction_eb2cfraud		js/trueaction_eb2cfraud
 
+# TrueAction_Eb2cProduct
+src/shell/eb2cProductImageFeed.php shell/
+
 # TrueAction_Eb2c_Address
 src/app/design/frontend/base/default/template/eb2caddress_frontend app/design/frontend/base/default/template/eb2caddress_frontend
 src/app/design/frontend/base/default/layout/eb2caddress_frontend.xml app/design/frontend/base/default/layout/eb2caddress_frontend.xml
