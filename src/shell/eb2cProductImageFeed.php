@@ -37,14 +37,12 @@ USAGE;
 
 	/**
 	 * Instantiate and call the _processFeeds Method
-	 * @todo: This doesn't actually do anything as there's no implementation yet. Come back and attach to actual feed processor.
-	 * @fixme: This doesn't actually do anything, as above.
+	 * @todo: This was written prior to Image Feed being built, please come back and check that this works!
 	 */
 	public function run()
 	{
 		$this->_log( 'Script started', Zend_log::DEBUG );
-		// TODO: OBVIOUSLY this isn't real. Return value depends on image implementation, as yet undefined.
-		$filesProcessed = rand(0, 9);
+		$filesProcessed = Mage::getModel('eb2cproduct/feed_image_master')->processFeeds();
 		$this->_log( "Script finished, $filesProcessed file(s) processed.", Zend_log::DEBUG );
 	}
 }
