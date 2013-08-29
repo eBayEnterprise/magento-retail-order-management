@@ -23,6 +23,8 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
+				<filetransfer_protocol>sftp</filetransfer_protocol>
+				<filetransfer_sftp_auth_type>password</filetransfer_sftp_auth_type>
 				<sftp_username />
 				<sftp_password backend_model="adminhtml/system_config_backend_encrypted" />
 				<sftp_location />
