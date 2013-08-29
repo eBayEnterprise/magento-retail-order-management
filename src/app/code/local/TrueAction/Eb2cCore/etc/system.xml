@@ -55,37 +55,14 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
-						<sftp_username>
-							<label>SFTP User Name</label>
-							<comment></comment>
-							<sort_order>40</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-alphanum</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</sftp_username>
-						<sftp_password>
-							<label>SFTP Password/Key</label>
-							<comment></comment>
-							<sort_order>50</sort_order>
-							<frontend_type>obscure</frontend_type>
-							<validate>validate-password</validate>
-							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</sftp_password>
-						<sftp_location>
-							<label>SFTP Location</label>
-							<comment></comment>
-							<sort_order>60</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-url</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</sftp_location>
+						<activeconfig_import>
+							<filetransfer>
+								<sort_order>40</sort_order>
+								<show_in_default>1</show_in_default>
+								<show_in_website>1</show_in_website>
+								<show_in_store>0</show_in_store>
+							</filetransfer>
+						</activeconfig_import>
 						<api_key>
 							<label>API Key</label>
 							<comment></comment>
