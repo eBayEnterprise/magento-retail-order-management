@@ -7,9 +7,8 @@ declare -r SCRIPTNAME=validatePhp
 # Gather arguments and execute script
 main() {
 	local -a phpFiles
-	getCsStandard
 	gatherPhp "$@"
-	lint "${phpFiles[@]}" && checkStyle "${phpFiles[@]}"
+	lint "${phpFiles[@]}"
 }
 ##
 # Pretty-print normal output.
@@ -29,18 +28,6 @@ printHelp() {
 		usage: validatePhp [dirs]
 	EOF
 	echo
-}
-
-##
-# Get the standards code for php code sniffer
-getCsStandard() {
-	(
-		mkdir -p build/codeAnalysis
-		if cd build/codeAnalysis; then
-			git pull ||
-			git clone --depth 0 git@bitbucket.org:trueaction/codeAnalysis .
-		fi
-	)
 }
 
 ##
@@ -80,14 +67,6 @@ lint() {
 		fi
 	done
 	return "$st"
-}
-##
-# Check the style against our coding standard.
-checkStyle() {
-	phpcs -p \
-		--report-checkstyle=build/checkstyle.xml \
-		--standard=build/codeAnalysis/php-code-checker/TrueAction \
-		.
 }
 
 . tests/utils
