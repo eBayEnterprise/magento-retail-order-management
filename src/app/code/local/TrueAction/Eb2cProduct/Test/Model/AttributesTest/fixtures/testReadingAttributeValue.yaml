@@ -1,7 +1,7 @@
 eav:
   catalog_product:
     - entity_id: 1
-      attribute_set_id: 4
+      attribute_set_id: 1
       type_id: simple
       sku: book
       name: Book
@@ -14,7 +14,7 @@ eav:
         qty: 100.00
         is_in_stock: 1
       website_ids:
-        - 1
+        - 0
       category_ids:
         - 2 # Default Category
       price: 12.99

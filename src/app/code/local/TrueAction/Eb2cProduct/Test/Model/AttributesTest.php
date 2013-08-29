@@ -136,7 +136,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testIsValidEntityType($eid1, $expect)
 	{
-		$model   = $this->getModelMock('eb2cproduct/attributes', array('_getTargetEntityTypeIds'));
+		$model = $this->getModelMock('eb2cproduct/attributes', array('_getTargetEntityTypeIds'));
 		$model->expects($this->any())
 			->method('_getTargetEntityTypeIds')
 			->will($this->returnValue(array(10)));
@@ -153,7 +153,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testReadingAttributeValue()
 	{
-		$fixture = $this->getFixture()->getStorage()->getLocalFixture();
 		$product = Mage::getModel('catalog/product');
 		$taxCode = 'thecode';
 		$product->load(1);
