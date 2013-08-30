@@ -23,6 +23,9 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
+				<filetransfer_protocol>sftp</filetransfer_protocol>
+				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
+				<test_mode />
 			</general>
 			<api>
 				<environment>api</environment>
@@ -34,10 +37,6 @@
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
-				<sftp_username />
-				<sftp_password backend_model="adminhtml/system_config_backend_encrypted" />
-				<sftp_location />
-				<filetransfer_protocol>sftp</filetransfer_protocol>
 			</feed>
 			<development>
 				<test_mode />
