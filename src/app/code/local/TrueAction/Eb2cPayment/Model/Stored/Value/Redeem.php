@@ -71,7 +71,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 	 */
 	public function buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$storeValueRedeemRequest = $domDocument->addElement('StoreValueRedeemRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 		$storeValueRedeemRequest->setAttribute('requestId', $this->_getHelper()->getRequestId($entityId));
 
@@ -121,7 +121,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 	{
 		$redeemData = array();
 		if (trim($storeValueRedeemReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueRedeemReply);
 			$redeemXpath = new DOMXPath($doc);
 			$redeemXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

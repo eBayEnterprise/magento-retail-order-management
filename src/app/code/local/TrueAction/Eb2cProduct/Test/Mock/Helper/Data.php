@@ -1,8 +1,8 @@
 <?php
 /**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ * @category  TrueAction
+ * @package   TrueAction_Eb2c
+ * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 /**
  * @codeCoverageIgnore
@@ -150,8 +150,16 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$helperMock = $this->getMock(
 			'TrueAction_Eb2cProduct_Helper_Data',
 			array(
-				'getCoreHelper', 'getFileTransferHelper', 'getConfigModel', 'getConstantHelper',
-				'getCoreFeed', 'getDomDocument', 'getXmlNs', 'getOperationUri', 'getRequestId', 'getReservationId', 'getApiModel'
+				'getCoreHelper',
+				'getFileTransferHelper',
+				'getConfigModel',
+				'getConstantHelper',
+				'getCoreFeed',
+				'getXmlNs',
+				'getOperationUri',
+				'getRequestId',
+				'getReservationId',
+				'getApiModel',
 			)
 		);
 		$helperMock->expects($this->any())
@@ -169,9 +177,6 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$helperMock->expects($this->any())
 			->method('getCoreFeed')
 			->will($this->returnValue($this->buildEb2cCoreHelperFeed()));
-		$helperMock->expects($this->any())
-			->method('getDomDocument')
-			->will($this->returnValue($this->buildDomDocument()));
 		$helperMock->expects($this->any())
 			->method('getXmlNs')
 			->will($this->returnValue('http://api.gsicommerce.com/schema/checkout/1.0'));

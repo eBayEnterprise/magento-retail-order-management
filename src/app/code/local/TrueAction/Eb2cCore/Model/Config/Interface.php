@@ -1,6 +1,5 @@
 <?php
-interface TrueAction_Eb2cCore_Model_Config_Interface
-{
+interface TrueAction_Eb2cCore_Model_Config_Interface {
 	/**
 	 * Indicates this model knows about the given config key
 	 * @return boolean

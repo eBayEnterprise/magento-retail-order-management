@@ -67,7 +67,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$base = $this->getBaseDir();
 		if (!$base) {
 			Mage::throwException('No base dir specified. Cannot set up dirs.');
-		// @codeCoverageIgnoreStart
+			// @codeCoverageIgnoreStart
 		}
 		// @codeCoverageIgnoreEnd
 

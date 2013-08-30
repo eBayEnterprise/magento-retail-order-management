@@ -75,19 +75,6 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		);
 	}
 
-	/**
-	 * testing getDomDocument method
-	 *
-	 * @test
-	 */
-	public function testGetDomDocument()
-	{
-		$this->assertInstanceOf(
-			'TrueAction_Dom_Document',
-			$this->_helper->getDomDocument()
-		);
-	}
-
 	public function providerGetRequestId()
 	{
 		return array(

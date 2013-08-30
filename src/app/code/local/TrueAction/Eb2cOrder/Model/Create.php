@@ -46,7 +46,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		Mage::dispatchEvent('eb2c_order_create_fail', array('order' => $this->_o));
 		// TODO: Presumably set a certain status
 		return;
-	}	
+	}
 
 	/**
 	 * The event observer version of transmit order
@@ -82,7 +82,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 								->setUri($uri)
 								->setTimeout($this->_config->serviceOrderTimeout)
 								->request($this->_domRequest);
-			$this->_domResponse = $this->_helper->getDomDocument();
+			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
 		}
@@ -428,7 +428,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 
 	/**
-	 * Populates the Context/BrowserData element 
+	 * Populates the Context/BrowserData element
 	 *
 	 * @param DomElement context
 	 */
@@ -438,7 +438,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			'HostName' => $this->_o->getEb2cHostName(),
 			'IPAddress' => $this->_o->getEb2cIpAddress(),
 			'SessionId' => $this->_o->getEb2cSessionId(),
-			'UserAgent' => $this->_o->getEb2cUserAgent(), 
+			'UserAgent' => $this->_o->getEb2cUserAgent(),
 			'JavascriptData' => $this->_o->getEb2cJavascriptData(),
 			'Referrer' => $this->_o->getEb2cReferer(),
 			'HTTPAcceptData' => 'HttpAcceptData',
