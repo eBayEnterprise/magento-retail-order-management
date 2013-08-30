@@ -1,13 +1,14 @@
 <?php
-abstract class TrueAction_Eb2cCore_Test_Base extends EcomDev_PHPUnit_Test_Case {
-	protected function _reflectProperty($object, $propName, $accessible = true)
+abstract class TrueAction_Eb2cCore_Test_Base
+	extends EcomDev_PHPUnit_Test_Case {
+	protected function _reflectProperty($object, $propName, $accessible=true)
 	{
 		$p = new ReflectionProperty($object, $propName);
 		$p->setAccessible($accessible);
 		return $p;
 	}
 
-	protected function _reflectMethod($object, $methodName, $accessible = true)
+	protected function _reflectMethod($object, $methodName, $accessible=true)
 	{
 		$p = new ReflectionMethod($object, $methodName);
 		$p->setAccessible($accessible);
@@ -49,10 +50,12 @@ abstract class TrueAction_Eb2cCore_Test_Base extends EcomDev_PHPUnit_Test_Case {
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
 	}
-	public function setUp() {
+	public function setUp()
+	{
 		EcomDev_PHPUnit_Test_Case_Util::setUp();
 	}
-	public function tearDown() {
+	public function tearDown()
+	{
 		EcomDev_PHPUnit_Test_Case_Util::tearDown();
 	}
 }
