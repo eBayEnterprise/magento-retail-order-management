@@ -33,7 +33,6 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 				}
 			}
 		}
-		$this->cleancache();
 		return $this;
 	}
 
