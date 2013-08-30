@@ -4,6 +4,7 @@
 @import extensions/mage_log
 
 # TrueAction_Eb2cCore
+src/shell/eb2cOrderStatusFeed.php shell/
 src/app/etc/modules/*.xml app/etc/modules/
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
 src/app/locale/en_US/* app/locale/en_US/
