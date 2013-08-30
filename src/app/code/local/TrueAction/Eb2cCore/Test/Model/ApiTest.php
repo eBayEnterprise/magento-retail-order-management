@@ -32,14 +32,13 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Get Dom instantiated object.
-	 * TODO: Why isn't this just a generic core helper?
+	 * @todo Why isn't this just a generic core helper?
 	 * @return TrueAction_Dom_Document
 	 */
 	public function getDomDocument()
 	{
 		return new TrueAction_Dom_Document('1.0', 'UTF-8');
 	}
-
 
 	public function providerApiCall()
 	{

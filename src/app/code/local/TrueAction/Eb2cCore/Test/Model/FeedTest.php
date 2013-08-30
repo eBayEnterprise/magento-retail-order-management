@@ -50,11 +50,11 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$this->_mockFsTool
 			->expects($this->any())
 			->method('ls')
-			->will($this->returnValue(array(array('text'=> 'sampleFile.xml', 'filetype'=>'xml'))));
+			->will($this->returnValue(array(array('text' => 'sampleFile.xml', 'filetype' => 'xml'))));
 		$this->_mockFsTool
 			->expects($this->any())
 			->method('pwd')
-			->will($this->returnValue($this->_vfs->url('testBase'. DS. TrueAction_Eb2cCore_Model_Feed::INBOUND_DIR_NAME)));
+			->will($this->returnValue($this->_vfs->url('testBase' . DS . TrueAction_Eb2cCore_Model_Feed::INBOUND_DIR_NAME)));
 		$this->_mockFsTool
 			->expects($this->any())
 			->method('setAllowCreateFolders')
