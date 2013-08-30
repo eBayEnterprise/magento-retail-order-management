@@ -14,28 +14,12 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_details = $this->_getDetails();
+		$this->_details = Mage::getModel('eb2cinventory/details');
 
 		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-
-		$detailsReflector = new ReflectionObject($this->_details);
-		$helper = $detailsReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_details, $newHelper);
+		$this->_details->setHelper($newHelper);
 	}
 
-	/**
-	 * Get Details instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Model_Details
-	 */
-	protected function _getDetails()
-	{
-		if (!$this->_details) {
-			$this->_details = Mage::getModel('eb2cinventory/details');
-		}
-		return $this->_details;
-	}
 
 	public function buildQuoteMock()
 	{
@@ -137,7 +121,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	{
 		// testing when you can allocated inventory
 		$this->assertNotNull(
-			$this->_getDetails()->getInventoryDetails($quote)
+			$this->_details->getInventoryDetails($quote)
 		);
 	}
 
@@ -168,14 +152,11 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 		$apiModel->setAccessible(true);
 		$apiModel->setValue($inventoryHelper, $apiModelMock);
 
-		$detailsReflector = new ReflectionObject($this->_getDetails());
-		$helper = $detailsReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_getDetails(), $inventoryHelper);
+		$this->_details->setHelper($inventoryHelper);
 
 		$this->assertSame(
 			'',
-			trim($this->_getDetails()->getInventoryDetails($quote))
+			trim($this->_details->getInventoryDetails($quote))
 		);
 	}
 
@@ -197,7 +178,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	{
 		// testing when you can allocated inventory
 		$this->assertNotNull(
-			$this->_getDetails()->buildInventoryDetailsRequestMessage($quote)
+			$this->_details->buildInventoryDetailsRequestMessage($quote)
 		);
 	}
 
@@ -289,7 +270,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	{
 		// testing when building the inventory details message throw an exception
 		$this->assertNotNull(
-			$this->_getDetails()->buildInventoryDetailsRequestMessage($quote)
+			$this->_details->buildInventoryDetailsRequestMessage($quote)
 		);
 	}
 
@@ -328,7 +309,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	public function testProcessInventoryDetails($quote, $inventoryData)
 	{
 		$this->assertNull(
-			$this->_getDetails()->processInventoryDetails($quote, $inventoryData)
+			$this->_details->processInventoryDetails($quote, $inventoryData)
 		);
 	}
 }

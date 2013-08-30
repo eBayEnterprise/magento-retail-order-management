@@ -11,17 +11,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	 */
 	protected function _construct()
 	{
-		$this->setExtractor(Mage::getModel('eb2cinventory/feed_item_extractor'));
-		$this->setStockItem(Mage::getModel('cataloginventory/stock_item'));
-		$this->setProduct(Mage::getModel('catalog/product'));
-		$this->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'));
-
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
-
-		// if not set during model instantiation, let set it to the config base path
-		if (trim($this->getBaseDir()) === '') {
-			$this->setBaseDir($cfg->feedLocalPath);
-		}
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
@@ -29,7 +19,12 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs));
+		$this->setExtractor(Mage::getModel('eb2cinventory/feed_item_extractor'))
+			->setStockItem(Mage::getModel('cataloginventory/stock_item'))
+			->setProduct(Mage::getModel('catalog/product'))
+			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
+			->setBaseDir($cfg->feedLocalPath);
 
 		return $this;
 	}

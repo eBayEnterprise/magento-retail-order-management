@@ -6,24 +6,9 @@
  */
 class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
 	public function __construct()
 	{
-		$this->_helper = $this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cinventory');
-		}
-		return $this->_helper;
+		$this->setHelper(Mage::helper('eb2cinventory'));
 	}
 
 	/**
@@ -44,8 +29,8 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 				$quantityRequestMessage = $this->buildQuantityRequestMessage(array(array('id' => $itemId, 'sku' => $sku)));
 
 				// make request to eb2c for quantity
-				$quantityResponseMessage = $this->_getHelper()->getApiModel()
-					->setUri($this->_getHelper()->getOperationUri('check_quantity'))
+				$quantityResponseMessage = $this->getHelper()->getApiModel()
+					->setUri($this->getHelper()->getOperationUri('check_quantity'))
 					->request($quantityRequestMessage);
 
 				// get available stock from response XML
@@ -66,8 +51,8 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	 */
 	public function buildQuantityRequestMessage($items)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
-		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$domDocument = $this->getHelper()->getDomDocument();
+		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, $this->getHelper()->getXmlNs())->firstChild;
 		if ($items) {
 			foreach ($items as $item) {
 				if (isset($item['id']) && isset($item['sku'])) {
@@ -93,7 +78,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	{
 		$availableStock = 0;
 		if (trim($quantityResponseMessage) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = $this->getHelper()->getDomDocument();
 
 			// load response string XML from eb2c
 			$doc->loadXML($quantityResponseMessage);

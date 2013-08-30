@@ -6,27 +6,12 @@
  */
 class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
 	/**
 	 * Initialize resource model
 	 */
 	protected function _construct()
 	{
-		$this->_helper = $this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cinventory');
-		}
-		return $this->_helper;
+		$this->setHelper(Mage::helper('eb2cinventory'));
 	}
 
 	/**
@@ -44,8 +29,8 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 			$inventoryDetailsRequestMessage = $this->buildInventoryDetailsRequestMessage($quote);
 
 			// make request to eb2c for inventory details
-			$inventoryDetailsResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_inventory_details'))
+			$inventoryDetailsResponseMessage = $this->getHelper()->getApiModel()
+				->setUri($this->getHelper()->getOperationUri('get_inventory_details'))
 				->request($inventoryDetailsRequestMessage);
 
 		}catch(Exception $e){
@@ -64,8 +49,8 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	 */
 	public function buildInventoryDetailsRequestMessage($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
-		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$domDocument = $this->getHelper()->getDomDocument();
+		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $this->getHelper()->getXmlNs())->firstChild;
 		if ($quote) {
 			foreach($quote->getAllItems() as $item){
 				try{
@@ -154,7 +139,7 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	{
 		$inventoryData = array();
 		if (trim($inventoryDetailsResponseMessage) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = $this->getHelper()->getDomDocument();
 
 			// load response string xml from eb2c
 			$doc->loadXML($inventoryDetailsResponseMessage);
