@@ -61,15 +61,15 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 
 	/**
 	 * For feeds, just configure a base folder, and you'll get the rest.
-	 * 
 	 */
 	public function setUpDirs()
 	{
 		$base = $this->getBaseDir();
 		if (!$base) {
-			// @fixme This could be written better
 			Mage::throwException('No base dir specified. Cannot set up dirs.');
-		} // This comment seems to prevent coverage complaints.
+		// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
 
 		$this->addData(array(
 			'inbound_path'  => $base . DS . self::INBOUND_DIR_NAME,
