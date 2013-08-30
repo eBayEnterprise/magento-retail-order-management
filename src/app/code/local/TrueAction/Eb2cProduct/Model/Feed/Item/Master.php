@@ -211,7 +211,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	public function processFeeds()
 	{
 		$this->_getItemMasterFeeds();
-		$domDocument = $this->getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);

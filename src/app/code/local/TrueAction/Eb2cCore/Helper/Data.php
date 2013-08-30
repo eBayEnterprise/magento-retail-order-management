@@ -45,4 +45,12 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			$format
 		);
 	}
+	/**
+	 * Create and return a new instance of TrueAction_Dom_Document.
+	 * @return TrueAction_Dom_Document
+	 */
+	public function getNewDomDocument()
+	{
+		return new TrueAction_Dom_Document('1.0', 'UTF-8');
+	}
 }

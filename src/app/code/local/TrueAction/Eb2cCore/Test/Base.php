@@ -28,9 +28,6 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		return $mock;
 	}
 
-	/**
-	 * @todo Replace this with mocking the store/session/etc.
-	 */
 	protected function _setupBaseUrl()
 	{
 		parent::setUp();
