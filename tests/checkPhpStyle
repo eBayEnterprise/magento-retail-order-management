@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=checkPhpStyle
+
+##
+# Gather arguments and execute script
+main() {
+	local -a phpFiles
+	getCsStandard
+	checkStyle "$@"
+}
+
+##
+# Pretty-print normal output.
+pp() {
+	tput setaf 4; printf "$@"; tput sgr0
+}
+##
+# Pretty-print warning/error output.
+er() {
+	tput setaf 1; printf "$@"; tput sgr0
+}
+
+##
+# Print the help for this script.
+printHelp() {
+	cat <<- 'EOF'
+		usage: checkPhpStyle [dirs]
+	EOF
+	echo
+}
+
+##
+# Get the standards code for php code sniffer
+getCsStandard() {
+	(
+		mkdir -p build/codeAnalysis
+		if cd build/codeAnalysis; then
+			git clone --depth 0 git@bitbucket.org:trueaction/codeAnalysis . 2>/dev/null;
+			git pull
+		else
+			echo "$PWD"
+		fi
+	)
+}
+
+##
+# Check the style against our coding standard.
+checkStyle() {
+	phpcs -p \
+		--report-checkstyle=build/checkstyle.xml \
+		--standard=build/codeAnalysis/php-code-checker/TrueAction \
+		"$@"
+}
+
+. tests/utils
