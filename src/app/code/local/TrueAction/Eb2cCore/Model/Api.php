@@ -22,7 +22,6 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	 */
 	const DEFAULT_ADAPTER = 'Zend_Http_Client_Adapter_Socket';
 
-
 	/**
 	 * Call the API.
 	 *

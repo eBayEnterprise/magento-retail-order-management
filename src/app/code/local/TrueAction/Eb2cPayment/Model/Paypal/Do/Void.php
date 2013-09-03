@@ -53,7 +53,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * Build  PaypalDoVoid request.
+	 * Build PaypalDoVoid request.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
 	 *
@@ -61,7 +61,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	 */
 	public function buildPayPalDoVoidRequest($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoVoidRequest = $domDocument->addElement('PayPalDoVoidRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 		$payPalDoVoidRequest->setAttribute('requestId', $this->_getHelper()->getRequestId($quote->getEntityId()));
 		$payPalDoVoidRequest->createChild(
@@ -88,7 +88,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	{
 		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoVoidReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalDoVoidReply);
 			$checkoutXpath = new DOMXPath($doc);
 			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

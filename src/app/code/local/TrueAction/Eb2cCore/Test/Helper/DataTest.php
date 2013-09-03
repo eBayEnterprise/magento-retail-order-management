@@ -18,18 +18,8 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	}
 
 	/**
-	 * Get Dom instantiated object.
-	 *
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
-	}
-
-	/**
 	 * Get helper instantiated object.
-	 *
+	 * @todo get rid of this
 	 * @return TrueAction_Eb2cCore_Helper_Data
 	 */
 	protected function _getHelper()
@@ -42,7 +32,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 	public function providerApiCall()
 	{
-		$domDocument = $this->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		$quantityRequestMessage->createChild(
 			'QuantityRequest',

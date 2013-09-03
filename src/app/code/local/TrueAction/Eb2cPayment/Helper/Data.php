@@ -98,16 +98,6 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * Get Dom instantiated object.
-	 *
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
-	}
-
-	/**
 	 * Getting the NS constant value
 	 *
 	 * @return string, the ns value

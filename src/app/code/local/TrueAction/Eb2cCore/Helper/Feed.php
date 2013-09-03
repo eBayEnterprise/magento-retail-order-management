@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * @category   TrueAction
  * @package    TrueActionEb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
@@ -39,12 +39,19 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$headerVersion->length) {
 			// Header Version wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'HeaderVersion node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log(
+				'[' . __CLASS__ . '] HeaderVersion node was not found in the xml feed',
+				Zend_Log::WARN
+			);
 		} elseif(trim($versions['major']) !== trim($headerVersion->item(0)->nodeValue)) {
 			// Header Version doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' .
-				'Feed Header Version "' . $headerVersion->item(0)->nodeValue . '" does not match expected Header Version "' . $versions['major'] . '"',
+			Mage::log(
+				'[' . __CLASS__ . '] Feed Header Version "' .
+				$headerVersion->item(0)->nodeValue .
+				'" does not match expected Header Version "' .
+				$versions['major'] .
+				'"',
 				Zend_Log::WARN
 			);
 		}
@@ -53,13 +60,19 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$versionReleaseNumber->length) {
 			// Version Release Number wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'versionReleaseNumber node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log(
+				'[' . __CLASS__ . '] versionReleaseNumber node was not found in the xml feed',
+				Zend_Log::WARN
+			);
 		} elseif(trim($versions['minor']) !== trim($versionReleaseNumber->item(0)->nodeValue)) {
 			// Version Release Number doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' .
-				'Feed Version Release Number "' . $versionReleaseNumber->item(0)->nodeValue .
-				'" does not match expected Version Release Number "' . $versions['minor'] . '"',
+			Mage::log(
+				'[' . __CLASS__ . '] Feed Version Release Number "' .
+				$versionReleaseNumber->item(0)->nodeValue .
+				'" does not match expected Version Release Number "' .
+				$versions['minor'] .
+				'"',
 				Zend_Log::WARN
 			);
 		}
@@ -69,12 +82,19 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$eventType->length) {
 			// Event Type wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'EventType node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log(
+				'[' . __CLASS__ . '] EventType node was not found in the xml feed',
+				Zend_Log::WARN
+			);
 		} elseif(trim($expectEventType) !== trim($eventType->item(0)->nodeValue)) {
 			// Event Type doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' .
-				'Feed Event Type "' . $eventType->item(0)->nodeValue . '" does not match config Event Type "' . $expectEventType . '"',
+			Mage::log(
+				'[' . __CLASS__ . '] Feed Event Type "' .
+				$eventType->item(0)->nodeValue .
+				'" does not match config Event Type "' .
+				$expectEventType .
+				'"',
 				Zend_Log::WARN
 			);
 		}
@@ -83,13 +103,19 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$destinationId->length) {
 			// DestinationId wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'DestinationId (client_id) node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log(
+				'[' . __CLASS__ . '] DestinationId (client_id) node was not found in the xml feed',
+				Zend_Log::WARN
+			);
 		} elseif(trim($coreConfig->clientId) !== trim($destinationId->item(0)->nodeValue)) {
 			// DestinationId doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' .
-				'Feed DestinationId "' . $destinationId->item(0)->nodeValue .
-				'" does not match config DestinationId (client_id) "' . $coreConfig->clientId . '"',
+			Mage::log(
+				'[' . __CLASS__ . '] Feed DestinationId "' .
+				$destinationId->item(0)->nodeValue .
+				'" does not match config DestinationId (client_id) "' .
+				$coreConfig->clientId .
+				'"',
 				Zend_Log::WARN
 			);
 		}
@@ -98,13 +124,18 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!$destinationType->length) {
 			// Destination Type wasn't found in the feed document.
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'Destination Type node was not found in the xml feed', Zend_Log::WARN);
+			Mage::log(
+				'[' . __CLASS__ . '] Destination Type node was not found in the xml feed',
+				Zend_Log::WARN
+			);
 		} elseif(trim($coreConfig->feedDestinationType) !== trim($destinationType->item(0)->nodeValue)) {
 			// Destination Type doesn't match
 			$isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' .
-				'Feed Destination Type "' . $destinationType->item(0)->nodeValue .
-				'" does not match config Destination Type "' . $coreConfig->feedDestinationType . '"',
+			Mage::log(
+				'[' . __CLASS__ . '] Feed Destination Type "' .
+				$destinationType->item(0)->nodeValue .
+				'" does not match config Destination Type "' .
+				$coreConfig->feedDestinationType . '"',
 				Zend_Log::WARN
 			);
 		}

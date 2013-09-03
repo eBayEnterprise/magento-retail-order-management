@@ -42,8 +42,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	{
 		$this->assertSame(
 			true,
-			Mage::helper('eb2ccore/feed')
-				->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
 		);
 	}
 
@@ -58,8 +57,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	{
 		$this->assertSame(
 			false,
-			Mage::helper('eb2ccore/feed')
-				->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
 		);
 	}
 
@@ -74,8 +72,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	{
 		$this->assertSame(
 			false,
-			Mage::helper('eb2ccore/feed')
-				->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
 		);
 	}
 
