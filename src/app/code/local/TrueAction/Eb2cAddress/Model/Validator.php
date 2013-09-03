@@ -167,8 +167,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 		// during checkout, the only two "types" of checkout that would actually allow
 		// saving addresses in the address book are METHOD_REGISTER and METHOD_CUSTOMER
 		$checkoutMethod = $this->_getCheckoutMethod();
-		$canSaveAddressesInCheckout = $checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_REGISTER
-			|| $checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_CUSTOMER;
+		$canSaveAddressesInCheckout = $checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_REGISTER ||
+			$checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_CUSTOMER;
 		return $postFlag && $canSaveAddressesInCheckout;
 	}
 

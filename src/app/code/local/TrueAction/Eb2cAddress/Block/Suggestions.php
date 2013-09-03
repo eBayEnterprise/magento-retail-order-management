@@ -57,8 +57,8 @@ class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 	public function shouldShowSuggestions()
 	{
 		if (is_null($this->_shouldShowSuggestions)) {
-			$this->_shouldShowSuggestions = $this->_validator->hasFreshSuggestions()
-				&& ($this->_validator->hasSuggestions() || !$this->_validator->isValid());
+			$this->_shouldShowSuggestions = $this->_validator->hasFreshSuggestions() &&
+				($this->_validator->hasSuggestions() || !$this->_validator->isValid());
 		}
 		return $this->_shouldShowSuggestions;
 	}
