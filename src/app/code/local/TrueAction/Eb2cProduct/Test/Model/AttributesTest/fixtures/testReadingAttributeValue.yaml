@@ -1,22 +1,21 @@
 eav:
   catalog_product:
     - entity_id: 1
-      attribute_set_id: 1
       type_id: simple
       sku: book
       name: Book
       short_description: Book
       description: Book
-      tax_code: 'thecode'
       weight: 1.0
       url_key: book
+      tax_code: 'thecode'
       stock:
         qty: 100.00
         is_in_stock: 1
       website_ids:
         - 0
       category_ids:
-        - 2 # Default Category
+        - 1 # Default Category
       price: 12.99
       tax_class_id: 2 # Taxable Goods
       status: 1             # Enabled

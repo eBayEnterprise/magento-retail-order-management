@@ -9,6 +9,37 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	public static $modelClass = 'TrueAction_Eb2cProduct_Model_Attributes';
 
 	/**
+	 * ensure the tax code is readable
+	 * @loadFixture
+	 * @large
+	 * NOTE: ticket EB2C-14
+	 * NOTE: marked large because this is an integration test that invokes several
+	 * queries to/from the database.
+	 */
+	public function testReadingAttributeValue()
+	{
+		$taxCode = 'thecode';
+		$product = Mage::getModel('catalog/product')
+			->getCollection()
+			->addAttributeToSelect('*')
+			->addFieldToFilter('entity_id', array('eq' => 1))
+			->getFirstItem();
+		$this->assertNotNull($product->getId());
+		$this->assertArrayHasKey('tax_code', $product->getData());
+		$this->assertSame($taxCode, $product->getTaxCode());
+		$data = array('tax_code' => 'thecode2');
+		Mage::getSingleton('catalog/product_action')
+			->updateAttributes(array($product->getId()), $data, 0);
+		unset($product);
+		$product = Mage::getModel('catalog/product')
+			->getCollection()
+			->addAttributeToSelect('*')
+			->addFieldToFilter('entity_id', array('eq' => 1))
+			->getFirstItem();
+		$this->assertSame('thecode2', $product->getTaxCode());
+	}
+
+	/**
 	 * verify the _getMappedFieldValue function throws an exception when
 	 * the function mapped to the fieldname does not exist.
 	 * @dataProvider dataProvider
@@ -142,25 +173,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 			->will($this->returnValue(array(10)));
 		$val = $this->_reflectMethod($model, '_isValidEntityType')->invoke($model, $eid1);
 		$this->assertSame($expect, $val);
-	}
-
-	/**
-	 * ensure the tax code is readable
-	 * @loadFixture
-	 * @large
-	 * NOTE: ticket EB2C-14
-	 * NOTE: marked large because this is an integration test.
-	 */
-	public function testReadingAttributeValue()
-	{
-		$product = Mage::getModel('catalog/product');
-		$taxCode = 'thecode';
-		$product->load(1);
-		$product->setTaxCode($taxCode);
-		$product->save();
-		$product->load(1);
-		$this->assertNotNull($product->getId());
-		$this->assertSame($taxCode, $product->getTaxCode());
 	}
 
 	/**
