@@ -6,7 +6,10 @@
  */
 class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 {
-	public function __construct()
+	/**
+	 * Initialize model
+	 */
+	protected function _construct()
 	{
 		$this->setHelper(Mage::helper('eb2cinventory'));
 	}

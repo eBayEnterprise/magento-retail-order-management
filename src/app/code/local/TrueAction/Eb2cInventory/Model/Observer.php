@@ -6,7 +6,10 @@
  */
 class TrueAction_Eb2cInventory_Model_Observer extends Varien_Object
 {
-	public function __construct()
+	/**
+	 * Initialize model
+	 */
+	protected function _construct()
 	{
 		$this->setQuantity(Mage::getModel('eb2cinventory/quantity'));
 		$this->setDetails(Mage::getModel('eb2cinventory/details'));

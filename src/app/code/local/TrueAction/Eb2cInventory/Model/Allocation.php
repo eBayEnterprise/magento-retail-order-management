@@ -8,11 +8,13 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 {
 	protected $_helper;
 
-	public function __construct()
+	/**
+	 * Initialize model
+	 */
+	protected function _construct()
 	{
 		$this->setHelper(Mage::helper('eb2cinventory'));
 	}
-
 
 	/**
 	 * Allocating all items brand new quote from eb2c.

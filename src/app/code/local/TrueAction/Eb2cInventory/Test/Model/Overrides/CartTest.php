@@ -60,7 +60,6 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 			->method('getUrl')
 			->will($this->returnValue('some-place'));
 
-
 		return array(
 			array($productMock, null)
 		);
@@ -85,9 +84,6 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 			->will($this->returnValue(array('some message')));
 
 		$this->_cart->setQuote($quoteMock);
-
-		/*$session = Mage::getSingleton('checkout/session');
-		$session->setData('use_notice', null);*/
 
 		$this->assertNotNull(
 			$this->_cart->addProduct($productInfo, $requestInfo)

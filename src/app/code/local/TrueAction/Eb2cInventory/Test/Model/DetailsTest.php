@@ -20,7 +20,6 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 		$this->_details->setHelper($newHelper);
 	}
 
-
 	public function buildQuoteMock()
 	{
 		$addressMock = $this->getMock(

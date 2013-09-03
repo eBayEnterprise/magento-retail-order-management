@@ -84,7 +84,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 				// This assumes that we have process all ok
 				$this->getFeedModel()->mvToArchiveDir($feed);
 			}
-			// If this had failed, we could do this: $this->getFeedModel()->mvToErrorDir($feed);
+			// If this had failed, we could do this: [mvToErrorDir(feed)]
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status

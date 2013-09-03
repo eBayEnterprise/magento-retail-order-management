@@ -30,7 +30,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Extractor extends Mage_Core_Model
 	protected function _extractMeasurements($feedXPath, $itemIndex, $gsiClientId)
 	{
 		$qty = $feedXPath->query("//Inventory[$itemIndex][@gsi_client_id='$gsiClientId']/Measurements/AvailableQuantity");
-    	return new Varien_Object(array('available_quantity' => $qty->length ? (int) $qty->item(0)->nodeValue : 0));
+		return new Varien_Object(array('available_quantity' => $qty->length ? (int) $qty->item(0)->nodeValue : 0));
 	}
 
 	/**
