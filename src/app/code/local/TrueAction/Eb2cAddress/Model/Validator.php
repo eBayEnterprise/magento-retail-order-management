@@ -27,14 +27,12 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * has_been_validated flag, which will bypass re-validating the address.
 	 * @return Mage_Customer_Model_Address_Abstract
 	 */
-	protected function _updateAddressWithSelection(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
-		$suggestionAddress = $this->getStashedAddressByKey(
-			Mage::app()
-				->getRequest()
-				->getPost(TrueAction_Eb2cAddress_Block_Suggestions::SUGGESTION_INPUT_NAME)
-		);
+	protected function _updateAddressWithSelection(Mage_Customer_Model_Address_Abstract $address)
+	{
+		$key = Mage::app()
+			->getRequest()
+			->getPost(TrueAction_Eb2cAddress_Block_Suggestions::SUGGESTION_INPUT_NAME);
+		$suggestionAddress = $this->getStashedAddressByKey($key);
 		if ($suggestionAddress) {
 			$address->addData($suggestionAddress->getData());
 		}
@@ -49,9 +47,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract
 	 * @return boolean
 	 */
-	protected function _hasAddressBeenValidated(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _hasAddressBeenValidated(Mage_Customer_Model_Address_Abstract $address)
+	{
 		// flag set on addresses that are returned from the Address Validation response
 		if ($address->getHasBeenValidated()) {
 			return true;
@@ -67,8 +64,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 		// ensure - a validated address of this type exists
 		// it was actually validated/validation wasn't skipped
 		// and it matches the current address
-		return $validatedAddress
-			&& $this->_compareAddressToValidatedAddress($address, $validatedAddress);
+		return $validatedAddress && $this->_compareAddressToValidatedAddress($address, $validatedAddress);
 	}
 
 	/**
@@ -86,9 +82,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isCheckoutAddress(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _isCheckoutAddress(Mage_Customer_Model_Address_Abstract $address)
+	{
 		return $address->hasData('quote_id');
 	}
 
@@ -109,9 +104,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isBillingAddress(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _isBillingAddress(Mage_Customer_Model_Address_Abstract $address)
+	{
 		return $address->getAddressType() === Mage_Customer_Model_Address::TYPE_BILLING;
 	}
 
@@ -123,22 +117,21 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isAddressUsedForShipping(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
-			// obviously, when the address type is shipping, it's a shipping address
-			if ($address->getAddressType() === Mage_Customer_Model_Address::TYPE_SHIPPING) {
-				return true;
-			}
-
-			// when address type is not a shipping address
-			// only other way it could be a shipping address is during onepage checkout
-			// billing address, in which case a 'billing[use_for_shipping]' field will be
-			// submitted with the address.
-			$data = Mage::app()->getRequest()->getPost('billing', array());
-			$useForShipping = isset($data['use_for_shipping']) && $data['use_for_shipping'];
-			return $useForShipping;
+	protected function _isAddressUsedForShipping(Mage_Customer_Model_Address_Abstract $address)
+	{
+		// obviously, when the address type is shipping, it's a shipping address
+		if ($address->getAddressType() === Mage_Customer_Model_Address::TYPE_SHIPPING) {
+			return true;
 		}
+
+		// when address type is not a shipping address
+		// only other way it could be a shipping address is during onepage checkout
+		// billing address, in which case a 'billing[use_for_shipping]' field will be
+		// submitted with the address.
+		$data = Mage::app()->getRequest()->getPost('billing', array());
+		$useForShipping = isset($data['use_for_shipping']) && $data['use_for_shipping'];
+		return $useForShipping;
+	}
 
 	/**
 	 * Determine if the address is to be used as a billing address only and
@@ -147,9 +140,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isAddressBillingOnly(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _isAddressBillingOnly(Mage_Customer_Model_Address_Abstract $address)
+	{
 		return $this->_isBillingAddress($address) && !$this->_isAddressUsedForShipping($address);
 	}
 
@@ -164,9 +156,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isAddressBeingSaved(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _isAddressBeingSaved(Mage_Customer_Model_Address_Abstract $address)
+	{
 		$request = Mage::app()->getRequest();
 		// get billing post data or shipping post data or emtpy array
 		$data = $request->getPost('billing') ?: $request->getPost('shipping', array());
@@ -186,9 +177,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isAddressFromAddressBook(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _isAddressFromAddressBook(Mage_Customer_Model_Address_Abstract $address)
+	{
 		return $address->getId() && $address->getCustomerId() && $address->getCustomerAddressId();
 	}
 
@@ -201,28 +191,27 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract
 	 * @return boolean
 	 */
-	public function shouldValidateAddress(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	public function shouldValidateAddress(Mage_Customer_Model_Address_Abstract $address)
+	{
 		if ($this->_hasAddressBeenValidated($address)) {
-			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - already validated', Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - already validated', Zend_Log::DEBUG);
 			return false;
 		}
 		if ($this->_isCheckoutAddress($address)) {
 			if ($this->_isAddressFromAddressBook($address)) {
-				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - from address book', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - from address book', Zend_Log::DEBUG);
 				return false;
 			}
 			if ($this->_isAddressBeingSaved($address)) {
-				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: Require validation - saving address in address book', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: Require validation - saving address in address book', Zend_Log::DEBUG);
 				return true;
 			}
 			if ($this->_isVirtualOrder()) {
-				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - virtual order', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - virtual order', Zend_Log::DEBUG);
 				return false;
 			}
 			if ($this->_isAddressBillingOnly($address)) {
-				Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address Validation: No validation - billing only', Zend_Log::DEBUG);
+				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - billing only', Zend_Log::DEBUG);
 				return false;
 			}
 		}
@@ -234,24 +223,23 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return TrueAction_Eb2cAddress_Model_Validation_Response
 	 */
-	protected function _makeRequestForAddress(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _makeRequestForAddress(Mage_Customer_Model_Address_Abstract $address)
+	{
 		$apiResponse = '';
 		$api = Mage::getModel('eb2ccore/api');
 		$api->setUri(Mage::helper('eb2ccore')->getApiUri(
 			TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
-			TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION)
-		);
+			TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION
+		));
 		try {
 			$apiResponse = $api->request(
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
 			);
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] EB2C Address: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
 		}
 		if (empty($apiResponse)) {
-			Mage::log('[' . __CLASS__ . '] ' . 'EB2C Address: Empty reponse returned from address validation service.', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] EB2C Address: Empty reponse returned from address validation service.', Zend_Log::WARN);
 			return null;
 		} else {
 			return Mage::getModel('eb2caddress/validation_response')
@@ -268,9 +256,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return string - the error message generated in validation
 	 */
-	public function validateAddress(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	public function validateAddress(Mage_Customer_Model_Address_Abstract $address)
+	{
 		$errorMessage = null;
 		$response = null;
 		$address = $this->_updateAddressWithSelection($address);
@@ -310,7 +297,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	protected function _compareAddressToValidatedAddress(
 		Mage_Customer_Model_Address_Abstract $address,
 		Mage_Customer_Model_Address_Abstract $validatedAddress
-	) {
+	)
+	{
 		$validatedData = $validatedAddress->getData();
 		foreach ($validatedData as $key => $value) {
 			// skip a few keys we don't care about when comparing the addresses
@@ -330,15 +318,14 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return Mage_Customer_Model_Address_Abstract - an address object containing only the data that gets validated by EB2c
 	 */
-	protected function _extractValidatedAddressData(
-		Mage_Customer_Model_Address_Abstract $address
-	) {
+	protected function _extractValidatedAddressData(Mage_Customer_Model_Address_Abstract $address)
+	{
 		$validatedAddress = Mage::getModel('customer/address')->setData(array(
-			'street'    => $address->getData('street'),
-			'city'      => $address->getCity(),
-			'region_id' => $address->getRegionId(),
-			'country_id' => $address->getCountryId(),
-			'postcode'  => $address->getPostcode(),
+			'street'       => $address->getData('street'),
+			'city'         => $address->getCity(),
+			'region_id'    => $address->getRegionId(),
+			'country_id'   => $address->getCountryId(),
+			'postcode'     => $address->getPostcode(),
 			'address_type' => $address->getAddressType(),
 		));
 		return $validatedAddress;
@@ -353,13 +340,14 @@ class TrueAction_Eb2cAddress_Model_Validator
 	protected function _copyAddressName(
 		Mage_Customer_Model_Address_Abstract $dest,
 		Mage_Customer_Model_Address_Abstract $source
-	) {
+	)
+	{
 		$dest->addData(array(
-			'prefix' => $source->getPrefix(),
-			'firstname' => $source->getFirstname(),
+			'prefix'     => $source->getPrefix(),
+			'firstname'  => $source->getFirstname(),
 			'middlename' => $source->getMiddlename(),
-			'lastname' => $source->getLastname(),
-			'suffix' => $source->getSuffix()
+			'lastname'   => $source->getLastname(),
+			'suffix'     => $source->getSuffix()
 		));
 		return $this;
 	}
@@ -376,7 +364,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	protected function _updateSession(
 		Mage_Customer_Model_Address_Abstract $requestAddress,
 		$response
-	) {
+	)
+	{
 		$addressCollection = $this->getAddressCollection();
 
 		if ($response) {
@@ -405,8 +394,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 		$addressCollection->addValidatedAddress($validationAddressExtract);
 		// when the address is a billing address used for billing and shipping
 		// add a validated address for billing and shipping
-		if ($this->_isBillingAddress($requestAddress)
-			&& $this->_isAddressUsedForShipping($requestAddress)
+		if ($this->_isBillingAddress($requestAddress) && $this->_isAddressUsedForShipping($requestAddress)
 		) {
 			$addressCollection->addValidatedAddress(
 				$validationAddressExtract->setAddressType(Mage_Customer_Model_Address::TYPE_SHIPPING)
@@ -436,7 +424,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param boolean $keepFresh - flag passed to the session's method
 	 * @return Mage_Customer_Model_Address
 	 */
-	public function getOriginalAddress($keepFresh = false)
+	public function getOriginalAddress($keepFresh=false)
 	{
 		return $this->getAddressCollection()->getOriginalAddress($keepFresh);
 	}
@@ -446,7 +434,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * @param boolean $keepFresh - flag passed to the session's method
 	 * @return Mage_Customer_Model_Address[]
 	 */
-	public function getSuggestedAddresses($keepFresh = false)
+	public function getSuggestedAddresses($keepFresh=false)
 	{
 		return $this->getAddressCollection()->getSuggestedAddresses($keepFresh);
 	}

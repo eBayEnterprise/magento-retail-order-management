@@ -17,7 +17,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * Create an address object to pass off to the validator.
 	 * @return Mage_Customer_Model_Address
 	 */
-	protected function _createAddress($fields = array())
+	protected function _createAddress($fields=array())
 	{
 		$addr = Mage::getModel('customer/address');
 		$addr->setData($fields);
@@ -28,17 +28,19 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * Replace the eb2ccore/api model with a mock
 	 * @param boolean $emptyResponse
 	 */
-	protected function _mockApiModel($emptyResponse = false)
+	protected function _mockApiModel($emptyResponse=false)
 	{
-		$mock = $this->getModelMock(
-			'eb2ccore/api',
-			array('setUri', 'request'));
+		$mock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$mock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
 		$mock->expects($this->any())
 			->method('request')
-			->will($this->returnValue($emptyResponse ? '' : '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"></AddressValidationResponse>'));
+			->will($this->returnValue($emptyResponse ? '' : '
+<?xml version="1.0" encoding="UTF-8"?>
+<AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+</AddressValidationResponse>
+				'));
 		$this->replaceByMock('model', 'eb2ccore/api', $mock);
 		return $mock;
 	}
@@ -47,7 +49,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * Replace the eb2ccore/data helper class with a mock.
 	 * @return PHPUnit_Framework_MockObject_MockObject - the mock helper
 	 */
-	protected function _mockCoreHelper($emptyResponse = false)
+	protected function _mockCoreHelper($emptyResponse=false)
 	{
 		$mockCoreHelper = $this->getHelperMock(
 			'eb2ccore/data',
@@ -93,15 +95,19 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * @return PHPUnit_Framework_MockObject_MockObject - the mock respose model
 	 */
 	protected function _mockValidationResponse(
-		$isAddressValid = false,
-		$hasSuggestions = false,
-		$originalAddress = null,
-		$validAddress = null,
-		$addressSuggestions = array()
-	) {
-		$respMock = $this->getModelMock('eb2caddress/validation_response', array(
-			'setMessage', 'isAddressValid', 'getValidAddress', 'getOriginalAddress',
-			'hasAddressSuggestions', 'getAddressSuggestions'));
+		$isAddressValid=false,
+		$hasSuggestions=false,
+		$originalAddress=null,
+		$validAddress=null,
+		$addressSuggestions=array()
+	)
+	{
+		$respMock = $this->getModelMock(
+			'eb2caddress/validation_response',
+			array('setMessage', 'isAddressValid', 'getValidAddress',
+				'getOriginalAddress','hasAddressSuggestions', 'getAddressSuggestions'
+			)
+		);
 		$respMock->expects($this->any())
 			->method('isAddressValid')
 			->will($this->returnValue($isAddressValid));
@@ -139,7 +145,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 * @param Mage_Customer_Model_Address_Abstract[] $suggestions
 	 * @param boolean $hasFreshSuggestions
 	 */
-	protected function _setupSessionWithSuggestions($original, $suggestions, $hasFreshSuggestions = true)
+	protected function _setupSessionWithSuggestions($original, $suggestions, $hasFreshSuggestions=true)
 	{
 		// populate the session with usable data - replaced with mock in setUp
 		$addresses = new TrueAction_Eb2cAddress_Model_Suggestion_Group();
@@ -179,7 +185,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 
 		$validator = Mage::getModel('eb2caddress/validator');
 
-		$session->setData($sessionKey, "a string");
+		$session->setData($sessionKey, 'a string');
 		$this->assertInstanceOf($expectedType, $validator->getAddressCollection());
 
 		$session->setData($sessionKey, new Varien_Object());
@@ -233,8 +239,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		$this->_setupSessionWithSuggestions($originalAddress, $suggestions);
 
 		// set the submitted value in the request post data
-		// @todo stop doing this
-		$_POST[TrueAction_Eb2cAddress_Block_Suggestions::SUGGESTION_INPUT_NAME] = $postValue;
+		Mage::app()->getRequest()->setPost(TrueAction_Eb2cAddress_Block_Suggestions::SUGGESTION_INPUT_NAME, $postValue);
 
 		// create an address object to act as the address submitted by the user
 		$submittedAddress = $this->_createAddress(array(
@@ -247,7 +252,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		));
 
 		// this is necessary due to expectation not allowing a / in the key to get expectations
-		$expectationKey = str_replace("/", "", $postValue);
+		$expectationKey = str_replace('/', '', $postValue);
 
 		$validator = Mage::getModel('eb2caddress/validator');
 		$reflection = new ReflectionClass('TrueAction_Eb2cAddress_Model_Validator');
@@ -366,7 +371,8 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		$this->assertSame(
 			$origAddress->getPostcode(),
 			$address->getPostcode(),
-			'Corrected data in the "original_address" fields from EB2C should still be copied over.');
+			'Corrected data in the "original_address" fields from EB2C should still be copied over.'
+		);
 		$this->assertSame(
 			TrueAction_Eb2cAddress_Model_Validator::SUGGESTIONS_ERROR_MESSAGE,
 			$errorMessage,
@@ -416,7 +422,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			'has_been_validated' => true
 		));
 
-		$_POST['billing'] = array('use_for_shipping' => $useForShipping);
+		Mage::app()->getRequest()->setPost('billing', array('use_for_shipping' => $useForShipping));
 
 		$validator = Mage::getModel('eb2caddress/validator');
 		$validator->validateAddress($address);
@@ -538,7 +544,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		$mockSession = $this->_getSession();
 		$validator = Mage::getModel('eb2caddress/validator');
-		$staleData = "STALE_DATA";
+		$staleData = 'STALE_DATA';
 		$mockSession->setAddressValidationAddresses($staleData);
 		$this->assertNotNull($mockSession->getAddressValidationAddresses(), 'Session has address validation data.');
 		$validator->clearSessionAddresses();
@@ -673,7 +679,8 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		$mock = $this->getModelMock(
 			'eb2ccore/api',
-			array('setUri', 'request'));
+			array('setUri', 'request')
+		);
 		$mock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
@@ -790,20 +797,22 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		// set up suggested addresses to place into the session
 		$suggestions = array(
-			$this->_createAddress(array(
-				'street' => '123 Main St',
-				'city' => 'Fooville',
-				'region_code' => 'NY',
-				'country_code' => 'US',
-				'postcode' => '12345',
-			),
-			array(
-				'street' => '321 Main Rd',
-				'city' => 'Bartown',
-				'region_code' => 'PA',
-				'country_code' => 'US',
-				'postcode' => '19231',
-			))
+			$this->_createAddress(
+				array(
+					'street' => '123 Main St',
+					'city' => 'Fooville',
+					'region_code' => 'NY',
+					'country_code' => 'US',
+					'postcode' => '12345',
+				),
+				array(
+					'street' => '321 Main Rd',
+					'city' => 'Bartown',
+					'region_code' => 'PA',
+					'country_code' => 'US',
+					'postcode' => '19231',
+				)
+			)
 		);
 		// create the TrueAction_Eb2cAddress_Model_Suggestion_Group that stores the address data in the session
 		$addressCollection = new TrueAction_Eb2cAddress_Model_Suggestion_Group();
@@ -885,7 +894,8 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			? array(Mage::getModel('customer/address'), Mage::getModel('customer/address'))
 			: array();
 		$group = $this->getModelMock('eb2caddress/suggestion_group',
-			array('getSuggestedAddresses'));
+			array('getSuggestedAddresses')
+		);
 		$group->expects($this->once())
 			->method('getSuggestedAddresses')
 			->with($this->equalTo(true))
@@ -1108,8 +1118,10 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			->will($this->returnValue($quote));
 		$this->replaceByMock('singleton', 'checkout/session', $checkout);
 
-		// set up the post data necessary, there needs to be either a
-		// shipping[save_in_address_book] or billing[save_in_address_book] submitted
+		/*
+		 * set up the post data necessary, there needs to be either a
+		 * shipping[save_in_address_book] or billing[save_in_address_book] submitted
+		 */
 		if ($postType === 'billing' || $postType === 'shipping') {
 			$_POST[$postType] = array('save_in_address_book' => $postFlag);
 		}
@@ -1186,12 +1198,6 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			$validator->shouldValidateAddress($address)
 		);
 	}
-
-	/**
-	 * @todo - needs tests for:
-	 * - shipping address marked same as billing that is invalid, should no longer be same as billing
-	 * - making updates to the session after validation
-	 */
 
 	/**
 	 * When a shipping address is marked same_as_billing but is not valid, the
