@@ -85,6 +85,19 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
+	 * testing getDomDocument method
+	 *
+	 * @test
+	 */
+	public function testGetDomDocument()
+	{
+		$this->assertInstanceOf(
+			'TrueAction_Dom_Document',
+			$this->_helper->getDomDocument()
+		);
+	}
+
+	/**
 	 * testing getXmlNs method
 	 *
 	 * @test

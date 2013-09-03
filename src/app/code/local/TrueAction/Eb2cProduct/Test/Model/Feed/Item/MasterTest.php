@@ -42,7 +42,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -74,7 +74,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedClientId()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -106,7 +106,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedItemType()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -141,7 +141,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -180,7 +180,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAddNosale());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAddNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -215,7 +215,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -250,7 +250,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -285,7 +285,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -320,7 +320,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -355,7 +355,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdateNosale());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdateNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -390,7 +390,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -425,7 +425,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsDelete());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -460,7 +460,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsDelete());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -495,7 +495,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithConfigurableProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -530,7 +530,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithConfigurableProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -565,7 +565,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithGroupedProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -600,7 +600,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithGroupedProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
