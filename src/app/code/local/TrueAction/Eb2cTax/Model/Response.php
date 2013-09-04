@@ -447,7 +447,9 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 	/**
 	 * attempt to load the response text into a domdocument.
-	 * return true if the document is ok to process; false otherwise
+	 * return true if the document is ok to process; false otherwise.
+	 * @param  string $xml
+	 * @return bool
 	 */
 	protected function _checkXml($xml)
 	{
@@ -481,7 +483,12 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		return $result;
 	}
 
-	protected function _getFaultLogMessage($doc)
+	/**
+	 * get a formatted message suitable for logging from a fault message.
+	 * @param  TrueAction_Dom_Document $doc
+	 * @return string
+	 */
+	protected function _getFaultLogMessage(TrueAction_Dom_Document $doc)
 	{
 		$x = new DOMXPath($doc);
 		$ns = '';
