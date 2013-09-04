@@ -453,28 +453,29 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$result = true;
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->preserveWhiteSpace = false;
+		$message = '';
 		try {
+			libxml_use_internal_errors(true);
+			libxml_clear_errors();
 			$doc->loadXML($xml);
-			if ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
+			$errors = libxml_get_errors();
+			if (!empty($errors)) {
+				$message = $this->_getXmlErrorLogMessage($errors, $xml);
+			} elseif ($doc->documentElement->nodeName === 'fault') {
+				$message = $this->_getFaultLogMessage($doc);
+			} elseif ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
+				$message = 'document was not recognized to be either a TaxDutyQuoteResponse or a Fault message';
+			}
+			if ($message) {
 				$result = false;
-				$message = 'Eb2cTax: received document is not a TaxDutyQuoteResponse';
-				if ($doc->documentElement->nodeName === 'Fault') {
-					$x = new DOMXPath($doc);
-					$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-					$desc    = $x->evaluate('string(/a:Fault/a:Description)');
-					$code    = $x->evaluate('string(/a:Fault/a:Code)');
-					$tStamp  = $x->evaluate('string(/a:Fault/a:CreateTimestamp)');
-					$message = "Eb2cTax: Fault Message received: " .
-						"Code: {$code} Description: {$desc} CreateTimestamp: {$tStamp}";
-				}
 				Mage::log($message, Zend_Log::WARN);
 			}
+			libxml_clear_errors();
+			libxml_use_internal_errors(false);
 		} catch (Exception $e) {
 			$result = false;
-			Mage::log(
-				'Error while attempting to read the TaxDutyQuoteResponse: ' . $e->getMessage(),
-				Zend_Log::WARN
-			);
+			$message = 'Unable to read the response: ' . $e->getMessage();
+			Mage::log($message, Zend_Log::WARN);
 		}
 		return $result;
 	}
