@@ -53,17 +53,16 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	 * @param  Mage_Core_Model_Store $store
 	 * @return int
 	 */
-	public function getNamespaceUri($store = null)
+	public function getNamespaceUri($store=null)
 	{
 		return $this->_configRegistry->setStore($store)->apiNamespace;
 	}
-
 
 	/**
 	 * return true if the prices already include VAT.
 	 * @return boolean
 	 */
-	public function getVatInclusivePricingFlag($store = null)
+	public function getVatInclusivePricingFlag($store=null)
 	{
 		return $this->_configRegistry->setStore($store)->taxVatInclusivePricing;
 	}
@@ -79,12 +78,12 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		return $this->_apiModel;
 	}
 
-	public function getApplyTaxAfterDiscount($store = null)
+	public function getApplyTaxAfterDiscount($store=null)
 	{
 		return $this->_configRegistry->setStore($store)->taxApplyAfterDiscount;
 	}
 
-	public function taxDutyAmountRateCode($store = null)
+	public function taxDutyAmountRateCode($store=null)
 	{
 		return $this->_configRegistry->setStore($store)->taxDutyRateCode;
 	}

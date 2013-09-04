@@ -37,7 +37,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 		$helper->expects($this->any())
 			->method('convertToBaseCurrency')
 			->with($this->anything(), $this->identicalTo($store))
-			->will($this->returnCallback(function ($val, $store) { return $val * 2; }));
+			->will($this->returnCallback(
+				function ($val, $store)
+				{ return $val * 2; }
+			));
 
 		$item = $this->getModelMock('sales/quote_item', array(
 			'getQuote',
@@ -81,12 +84,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 		$taxSubtotal = (float) $e->getTaxSubtotal();
 		$taxable = (float) $e->getTaxable();
 
-		$baseTax = (float) $e->getBaseTax();;
-		$baseTaxPrice = (float) $e->getBaseTaxPrice();;
+		$baseTax = (float) $e->getBaseTax();
+		$baseTaxPrice = (float) $e->getBaseTaxPrice();
 		$baseRowTax = (float) $e->getBaseRowTax();
-		$baseTaxSubtotal = (float) $e->getBaseTaxSubtotal();;
-		$baseTaxable = (float) $e->getBaseTaxable();;
-
+		$baseTaxSubtotal = (float) $e->getBaseTaxSubtotal();
+		$baseTaxable = (float) $e->getBaseTaxable();
 
 		$item->expects($this->any())
 			->method('getQuote')
@@ -272,8 +274,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 	 * @return Mock_Mage_Sales_Model_Quote_Item
 	 */
 	protected function _collectItemGenerator(
-		$parentItem,$hasChildren,$childrenCalculated
-	) {
+		$parentItem, $hasChildren, $childrenCalculated
+	)
+	{
 		$item = $this->getModelMock('sales/quote_item', array(
 			'getParentItem',
 			'getHasChildren',

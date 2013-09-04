@@ -65,9 +65,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			array($this->anything(), 'duty', 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
-			$scenario === 'afterdiscount' ?
-				self::$classicJeansAppliedRatesAfter2 :
-				self::$classicJeansAppliedRatesBefore2
+			$scenario === 'afterdiscount' ? self::$classicJeansAppliedRatesAfter2 : self::$classicJeansAppliedRatesBefore2
 		));
 
 		// set up the SUT
@@ -166,9 +164,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			array($itemSelector, 'duty', 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
-			$isTaxAppliedAfter ?
-				self::$classicJeansAppliedRatesAfter2 :
-				self::$classicJeansAppliedRatesBefore2
+			$isTaxAppliedAfter ? self::$classicJeansAppliedRatesAfter2 : self::$classicJeansAppliedRatesBefore2
 		));
 
 		// setup the address
@@ -207,11 +203,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// check flags
 		$address->expects($this->any())
 			->method('setIsShippingInclTax')
-			->with($this->equalTo((bool)$e->getIsShippingInclTax()))
+			->with($this->equalTo((bool) $e->getIsShippingInclTax()))
 			->will($this->returnSelf());
 		$address->expects($this->any())
 			->method('setIsShippingInclVat')
-			->with($this->equalTo((bool)$e->getIsShippingInclVat()))
+			->with($this->equalTo((bool) $e->getIsShippingInclVat()))
 			->will($this->returnSelf());
 
 		// store currency amounts
@@ -293,9 +289,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			array($itemSelector2, 'duty', 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
-			$isTaxAppliedAfter ?
-				self::$classicJeansAppliedRatesAfter2 :
-				self::$classicJeansAppliedRatesBefore2
+			$isTaxAppliedAfter ? self::$classicJeansAppliedRatesAfter2 : self::$classicJeansAppliedRatesBefore2
 		));
 
 		// setup the address
@@ -340,11 +334,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			// check flags
 			$address->expects($this->any())
 				->method('setIsShippingInclTax')
-				->with($this->equalTo((bool)$e->getIsShippingInclTax()))
+				->with($this->equalTo((bool) $e->getIsShippingInclTax()))
 				->will($this->returnSelf());
 			$address->expects($this->any())
 				->method('setIsShippingInclVat')
-				->with($this->equalTo((bool)$e->getIsShippingInclVat()))
+				->with($this->equalTo((bool) $e->getIsShippingInclVat()))
 				->will($this->returnSelf());
 
 			// store currency amounts
@@ -358,10 +352,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	}
 
-	protected function _mockSingleItemForCalcTaxForItem($after = false)
+	protected function _mockSingleItemForCalcTaxForItem($after=false)
 	{
-		$methods = array('getDiscountAmount', 'getBaseDiscountAmount', 'getSku', 'getTaxableAmount', 'getBaseTaxableAmount', 'getIsPriceInclVat', 'getId', 'setTaxRates',
-			'setTaxAmount', 'setRowTotalInclTax', 'setHiddenTaxAmount', 'setBaseTaxAmount', 'setBaseRowTotalInclTax', 'setBaseHiddenTaxAmount');
+		$methods = array(
+			'getDiscountAmount', 'getBaseDiscountAmount', 'getSku', 'getTaxableAmount', 'getBaseTaxableAmount', 'getIsPriceInclVat', 'getId', 'setTaxRates',
+			'setTaxAmount', 'setRowTotalInclTax', 'setHiddenTaxAmount', 'setBaseTaxAmount', 'setBaseRowTotalInclTax', 'setBaseHiddenTaxAmount'
+		);
 		$itemMock = $this->getModelMock('sales/quote_item', $methods);
 		$itemMock->expects($this->any())
 			->method('getId')
@@ -514,7 +510,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	 */
 	public function testCalcTaxForItem($scenario)
 	{
-		$isTaxAppliedAfter = $scenario  === 'afterdiscount';
+		$isTaxAppliedAfter = $scenario === 'afterdiscount';
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
 		Mage::unregister('_helper/tax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
@@ -610,25 +606,25 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		}
 		$e = $this->expected("{$scenario}-address");
 		$this->assertSame(
-			(float)$e->getTotalAmountHiddenTax(),
+			(float) $e->getTotalAmountHiddenTax(),
 			$address->getTotalAmount('hidden_tax')
 		);
 		$this->assertSame(
-			(float)$e->getTotalAmountShippingHiddenTax(),
+			(float) $e->getTotalAmountShippingHiddenTax(),
 			$address->getTotalAmount('shipping_hidden_tax')
 		);
 		// base amounts
 		$this->assertSame(
-			(float)$e->getBaseTotalAmountHiddenTax(),
+			(float) $e->getBaseTotalAmountHiddenTax(),
 			$address->getBaseTotalAmount('hidden_tax')
 		);
 		$this->assertSame(
-			(float)$e->getBaseTotalAmountShippingHiddenTax(),
+			(float) $e->getBaseTotalAmountShippingHiddenTax(),
 			$address->getBaseTotalAmount('shipping_hidden_tax')
 		);
 	}
 
-	protected function _mockItemsCalcTaxForItem($after = false)
+	protected function _mockItemsCalcTaxForItem($after=false)
 	{
 		$items = array();
 		$methods = array('getDiscountAmount', 'getBaseDiscountAmount', 'getSku', 'getTaxableAmount', 'getBaseTaxableAmount', 'getIsPriceInclVat', 'getId', 'setTaxRates');
@@ -949,8 +945,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 						),
 					),
 				),
-			))
-		);
+			)));
 		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
 		$this->replaceByMock('model', 'tax/calculation', $calcMock);
 	}
@@ -1028,21 +1023,24 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		return $itemMock;
 	}
 
-	public  function getTaxCallback($itemSelector) {
+	public  function getTaxCallback($itemSelector)
+	{
 		if ($itemSelector->getItem()->getSku() == 'classic-jeans') {
 			return (self::$isDiscountTest) ? 6.4 : 8.0;
 		}
 		return 0;
 	}
 
-	public function getDiscountTaxCallback($item, $address) {
+	public function getDiscountTaxCallback($item, $address)
+	{
 		if ($itemSelector->getItem()->getSku() == 'classic-jeans') {
 			return (self::$isDiscountTest) ? 1.6 : 1.6;
 		}
 		return 0;
 	}
 
-	public function getAppliedRatesCallback($itemSelector) {
+	public function getAppliedRatesCallback($itemSelector)
+	{
 		if ($item->getSku() == 'classic-jeans') {
 			return (self::$isDiscountTest) ?
 				$this->classicJeansAppliedRatesAfter :
