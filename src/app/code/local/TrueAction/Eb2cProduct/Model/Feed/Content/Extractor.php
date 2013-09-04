@@ -10,10 +10,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract UniqueId data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractUniqueId($feedXpath, $contentIndex, $catalogId)
+	protected function _extractUniqueId(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		// Unique identifier for the item, SKU.
 		$nodeUniqueID = $feedXpath->query("//Content[$contentIndex][@catalog_id='$catalogId']/UniqueID");
@@ -24,10 +26,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract StyleID data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractStyleID($feedXpath, $contentIndex, $catalogId)
+	protected function _extractStyleID(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		// The parent SKU, associated with this child item
 		// should be the same as UniqueID if this item doesn't have a parent product.
@@ -40,10 +44,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract ProductLinks data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return array, a collection of Varien_Ojbect
+	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractProductLinks($feedXpath, $contentIndex, $catalogId)
+	protected function _extractProductLinks(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		$productLinks = array();
 
@@ -75,10 +81,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract CategoryLinks data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return array, a collection of Varien_Ojbect
+	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCategoryLinks($feedXpath, $contentIndex, $catalogId)
+	protected function _extractCategoryLinks(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		$categoryLinks = array();
 
@@ -111,10 +119,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract BaseAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return array, a collection of Varien_Ojbect
+	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractBaseAttributes($feedXpath, $contentIndex, $catalogId)
+	protected function _extractBaseAttributes(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		$baseAttributes = array();
 
@@ -142,10 +152,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract ExtendedAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return array, a collection of Varien_Ojbect
+	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractExtendedAttributes($feedXpath, $contentIndex, $catalogId)
+	protected function _extractExtendedAttributes(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		$extendedAttributes = array();
 
@@ -234,10 +246,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract CustomAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param int $contentIndex, the current content position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return array, a collection of Varien_Ojbect
+	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCustomAttributes($feedXpath, $contentIndex, $catalogId)
+	protected function _extractCustomAttributes(DOMXPath $feedXpath, $contentIndex, $catalogId)
 	{
 		$customAttributes = array();
 
@@ -269,11 +283,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	/**
 	 * extract feed data into a collection of varien objects
 	 *
-	 * @param DOMDocument $doc, the dom document with the loaded feed data
+	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extractContentMasterFeed($doc)
+	public function extractContentMasterFeed(DOMDocument $doc)
 	{
 		$collectionOfContents = array();
 		$feedXpath = new DOMXPath($doc);
@@ -284,7 +298,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			// setting catalog id
 			$catalogId = (string) $content->getAttribute('catalog_id');
 
-			// setting Content object into the colelction of Content objects.
+			// setting Content object into the collection of Content objects.
 			$collectionOfContents[] = new Varien_Object(
 				array(
 					'catalog_id' => $catalogId, // Catalog ID of the client or shared catalog.

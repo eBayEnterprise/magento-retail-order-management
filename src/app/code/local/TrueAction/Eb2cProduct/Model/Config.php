@@ -17,5 +17,13 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'content_feed_remote_received_path' => 'eb2c/product/content_feed_remote_received_path',
 		'content_feed_event_type' => 'eb2c/product/content_feed_event_type',
 		'content_feed_header_version' => 'eb2c/product/content_feed_header_version',
+		'api_xml_ns' => 'eb2c/product/api_xml_ns',
+		'api_env' => 'eb2c/product/api_env',
+		'api_region' => 'eb2c/product/api_region',
+		'api_version' => 'eb2c/product/api_version',
+		'api_service' => 'eb2c/product/api_service',
+		'api_uri_format' => 'eb2c/product/api_uri_format',
+		'api_return_format' => 'eb2c/product/api_return_format',
+
 	);
 }
