@@ -31,7 +31,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 * discount amounts parsed from the response.
 	 * @var array
 	 */
-	protected $_discounts     = array();
+	protected $_discounts = array();
 
 	/**
 	 * skus of OrderItem elements that passed validation
@@ -84,10 +84,11 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 * @param  int    $addressId
 	 * @return TrueAction_Eb2cTax_Model_Response_OrderItem
 	 */
-	public function getResponseForItem($item, $address) {
+	public function getResponseForItem($item, $address)
+	{
 		// ensure the correct types to access the data
-		$addressId = (int)$address->getId();
-		$sku = (string)$item->getSku();
+		$addressId = (int) $address->getId();
+		$sku = (string) $item->getSku();
 		$orderItem = isset($this->_responseItems[$addressId][$sku]) ?
 			$this->_responseItems[$addressId][$sku] : null;
 		return $orderItem;
@@ -134,7 +135,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$idRefArray = explode('_', $idRef);
 		if (count($idRefArray) > 1) {
 			list(, $id) = $idRefArray;
-			$id = is_numeric($id) ? (int)$id : null;
+			$id = is_numeric($id) ? (int) $id : null;
 		}
 		if (!$id) {
 			$this->_isValid = false;
@@ -173,7 +174,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 						'namespace_uri' => $this->_namespaceUri
 					));
 					if ($orderItem->isValid()) {
-						$itemKey = (string)$orderItem->getSku();
+						$itemKey = (string) $orderItem->getSku();
 						$this->_responseItems[$addressId][$itemKey] = $orderItem;
 					}
 				}
@@ -446,7 +447,9 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 	/**
 	 * attempt to load the response text into a domdocument.
-	 * return true if the document is ok to process; false otherwise
+	 * return true if the document is ok to process; false otherwise.
+	 * @param  string $xml
+	 * @return bool
 	 */
 	protected function _checkXml($xml)
 	{
@@ -480,7 +483,12 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		return $result;
 	}
 
-	protected function _getFaultLogMessage($doc)
+	/**
+	 * get a formatted message suitable for logging from a fault message.
+	 * @param  TrueAction_Dom_Document $doc
+	 * @return string
+	 */
+	protected function _getFaultLogMessage(TrueAction_Dom_Document $doc)
 	{
 		$x = new DOMXPath($doc);
 		$ns = '';
@@ -490,7 +498,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$desc    = $desc->length ? $desc->item(0)->nodeValue : '';
 		$code    = $code->length ? $code->item(0)->nodeValue : '';
 		$trace   = $trace->length ? $trace->item(0)->nodeValue : '';
-		$message = "Eb2cTax: Fault Message received: " .
+		$message = 'Eb2cTax: Fault Message received: ' .
 			"Code: ({$code}) Description: '{$desc}' Trace: '{$trace}'";
 		return $message;
 	}
@@ -509,27 +517,26 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$newLine       = '';
 		foreach ($errors as $error) {
 			$snippet = trim($lines[$error->line - 1]);
-			$offset  = max($error->column - (int)($snippetLength / 2), 0);
+			$offset  = max($error->column - (int) ($snippetLength / 2), 0);
 			$length  = min($snippetLength, strlen($snippet));
 			$snippet = substr($snippet, $offset, $length);
 
 			$message .= $newLine . 'XML Parser ';
 
-		    $newLine = "\n"; // only add newlines to subsequent errors
+			$newLine = "\n"; // only add newlines to subsequent errors
 			switch ($error->level) {
-			    case LIBXML_ERR_WARNING:
-			        $message .= "Warning $error->code: ";
-			        break;
-			     case LIBXML_ERR_ERROR:
-			        $message .= "Error $error->code: ";
-			        break;
-			    case LIBXML_ERR_FATAL:
-			        $message .= "Fatal Error $error->code: ";
-			        break;
+				case LIBXML_ERR_WARNING:
+					$message .= "Warning $error->code: ";
+					break;
+				case LIBXML_ERR_ERROR:
+					$message .= "Error $error->code: ";
+					break;
+				case LIBXML_ERR_FATAL:
+					$message .= "Fatal Error $error->code: ";
+					break;
 			}
 			$message .= trim($error->message) .
-			           " Line: $error->line" .
-			           " Column: $error->column: ";
+				" Line: $error->line Column: $error->column: ";
 			$message .= "`{$snippet}`";
 		}
 		return $message;
