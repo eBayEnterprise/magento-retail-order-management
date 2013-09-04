@@ -46,6 +46,12 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	protected $_isValid = false;
 
 	/**
+	 * default length of the xml snippet to be reported with libxml errors.
+	 *
+	 */
+	protected $_responseSnippetLength = 40;
+
+	/**
 	 * namespace uri of the root element.
 	 * @var string
 	 */
@@ -485,6 +491,46 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$trace   = $trace->length ? $trace->item(0)->nodeValue : '';
 		$message = "Eb2cTax: Fault Message received: " .
 			"Code: ({$code}) Description: '{$desc}' Trace: '{$trace}'";
+		return $message;
+	}
+
+	/**
+	 * format libxml errors into a log message.
+	 * @param  mixed $errors
+	 * @param  string $xml
+	 * @return string
+	 */
+	protected function _getXmlErrorLogMessage($errors, $xml)
+	{
+		$lines         = explode("\n", $xml);
+		$snippetLength = $this->_responseSnippetLength;
+		$message       = '';
+		$newLine       = '';
+		foreach ($errors as $error) {
+			$snippet = trim($lines[$error->line - 1]);
+			$offset  = max($error->column - (int)($snippetLength / 2), 0);
+			$length  = min($snippetLength, strlen($snippet));
+			$snippet = substr($snippet, $offset, $length);
+
+			$message .= $newLine . 'XML Parser ';
+
+		    $newLine = "\n"; // only add newlines to subsequent errors
+			switch ($error->level) {
+			    case LIBXML_ERR_WARNING:
+			        $message .= "Warning $error->code: ";
+			        break;
+			     case LIBXML_ERR_ERROR:
+			        $message .= "Error $error->code: ";
+			        break;
+			    case LIBXML_ERR_FATAL:
+			        $message .= "Fatal Error $error->code: ";
+			        break;
+			}
+			$message .= trim($error->message) .
+			           " Line: $error->line" .
+			           " Column: $error->column: ";
+			$message .= "`{$snippet}`";
+		}
 		return $message;
 	}
 }

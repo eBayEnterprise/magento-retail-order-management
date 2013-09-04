@@ -44,6 +44,39 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	}
 
 	/**
+	 * verify xml parsing errors are properly formated to a log message.
+	 * 20 characters are displayed around the error location.
+	 * if the error column is 0, the first 20 characters are displayed.
+	 * each error is on its own line.
+	 */
+	public function testGetXmlErrorLogMessage()
+	{
+		$warning          = new libXMLError();
+		$warning->level   = LIBXML_ERR_WARNING;
+		$warning->code    = 'warncode';
+		$warning->column  = 0;
+		$warning->line    = 1;
+		$warning->message = 'the warning message';
+
+		$error          = new libXMLError();
+		$error->level   = LIBXML_ERR_ERROR;
+		$error->code    = 'errorcode';
+		$error->column  = 30;
+		$error->line    = 1;
+		$error->message = 'the error message';
+
+		$xml = '.........1.........2.........3.........4';
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$fn = $this->_reflectMethod($response, '_getXmlErrorLogMessage');
+		$message = $fn->invoke($response, array($warning, $error), $xml);
+		$expectedMessage = 'XML Parser Warning warncode: the warning message Line: 1 Column: 0: `.........1.........2.........3.........4`' . "\n" .
+			'XML Parser Error errorcode: the error message Line: 1 Column: 30: `.........2.........3.........4`';
+		$this->assertSame($expectedMessage, $message);
+	}
+
+	/**
 	 * Testing getResponseForItem method
 	 *
 	 */
@@ -92,24 +125,24 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 			->setMethods($methods)
 			->getMock();
 		$response->expects($this->any())
-			->method('hasXml')
-			->will($this->returnValue($hasXml));
+		->method('hasXml')
+		->will($this->returnValue($hasXml));
 		$response->expects($this->any())
-			->method('_validateResponseItems')
-			->will($this->returnValue($validateResponseItems));
+		->method('_validateResponseItems')
+		->will($this->returnValue($validateResponseItems));
 		$response->expects($this->any())
-			->method('_checkXml')
-			->with($this->identicalTo(self::$respXml))
-			->will($this->returnValue($isDocOk));
+		->method('_checkXml')
+		->with($this->identicalTo(self::$respXml))
+		->will($this->returnValue($isDocOk));
 		$response->expects($this->any())
-			->method('_validateDestinations')
-			->will($this->returnValue($validateDestinations));
+		->method('_validateDestinations')
+		->will($this->returnValue($validateDestinations));
 		// select expectation
 		$e = $this->expected('%s-%s-%s-%s', (int)$hasXml, (int)$isDocOk, (int)$validateDestinations, (int)$validateResponseItems);
 		$timesCalled = $e->getExtractResultsCalled() ? $this->once() : $this->never();
 		$response->expects($timesCalled)
-			->method('_extractResults')
-			->will($this->returnSelf());
+		->method('_extractResults')
+		->will($this->returnSelf());
 		// setup initial data
 		$initData = array('xml' => self::$respXml, 'request' => $request);
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -147,12 +180,12 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
 			'request' => $this->_mockRequest()
-		));
+			));
 
 		$addressMock = $this->getModelMock('sales/quote_address', array('getId'));
 		$addressMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
+		->method('getId')
+		->will($this->returnValue(1));
 
 		$responseReflector = new ReflectionObject($response);
 		$addressProperty = $responseReflector->getProperty('_address');
@@ -164,7 +197,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 
 		$this->assertNull(
 			$constructMethod->invoke($response)
-		);
+			);
 	}
 
 	/**
@@ -178,7 +211,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
 			'request' => $request
-		));
+			));
 
 		$responseReflector = new ReflectionObject($response);
 		$constructMethod = $responseReflector->getMethod('_construct');
@@ -186,7 +219,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 
 		$this->assertNull(
 			$constructMethod->invoke($response)
-		);
+			);
 	}
 
 	/**
@@ -200,7 +233,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
 			'request' => $this->request
-		));
+			));
 
 		$responseReflector = new ReflectionObject($response);
 		$constructMethod = $responseReflector->getMethod('_construct');
@@ -208,7 +241,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 
 		$this->assertNull(
 			$constructMethod->invoke($response)
-		);
+			);
 	}
 
 	/**
@@ -240,17 +273,17 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 
 		$addressMock1 = $this->getModelMock('sales/quote_address', array('getId'));
 		$addressMock1->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
+		->method('getId')
+		->will($this->returnValue(1));
 		$addressMock2 = $this->getModelMock('sales/quote_address', array('getId'));
 		$addressMock2->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(2));
+		->method('getId')
+		->will($this->returnValue(2));
 
 		$itemMock = $this->getModelMock('sales/quote_item', array('getSku'));
 		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('gc_virtual1'));
+		->method('getSku')
+		->will($this->returnValue('gc_virtual1'));
 		$responseItems = $response->getResponseItems();
 
 		$this->assertNotEmpty($response->getResponseItems());
@@ -275,11 +308,11 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$mockItem       = $this->getModelMock('sales/quote_address_item', $itemMethods);
 
 		$mockAddress->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
+		->method('getId')
+		->will($this->returnValue(1));
 		$mockItem->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('gc_virtual1'));
+		->method('getSku')
+		->will($this->returnValue('gc_virtual1'));
 
 		$ir = $response->getResponseForItem($mockItem, $mockAddress);
 		$ds = $ir->getTaxQuoteDiscounts();
@@ -296,16 +329,16 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	public function testResponseQuote()
 	{
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>
-			<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<Tax taxType="SELLER_USE" taxability="TAXABLE">
-					<Situs>DESTINATION</Situs>
-					<Jurisdiction jurisdictionLevel="STATE" jurisdictionId="31152">PENNSYLVANIA</Jurisdiction>
-					<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
-					<EffectiveRate>0.06</EffectiveRate>
-					<TaxableAmount>2.0</TaxableAmount>
-					<CalculatedTax>0.12</CalculatedTax>
-				</Tax>
-			</Taxes>';
+		<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+			<Tax taxType="SELLER_USE" taxability="TAXABLE">
+				<Situs>DESTINATION</Situs>
+				<Jurisdiction jurisdictionLevel="STATE" jurisdictionId="31152">PENNSYLVANIA</Jurisdiction>
+				<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+				<EffectiveRate>0.06</EffectiveRate>
+				<TaxableAmount>2.0</TaxableAmount>
+				<CalculatedTax>0.12</CalculatedTax>
+			</Tax>
+		</Taxes>';
 		$doc = new TrueAction_Dom_Document();
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXML($xml);
@@ -317,7 +350,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 			'effective_rate' => 0.06,
 			'taxable_amount' => 2.00,
 			'calculated_tax' => 0.12,
-		);
+			);
 		$obj = Mage::getModel('eb2ctax/response_quote', array('node' => $node));
 		$this->assertSame($a, $obj->getData());
 	}
@@ -328,62 +361,61 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	public function testResponseOrderItemNan()
 	{
 		$xml = '<OrderItem lineNumber="7"  xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-					<ItemId><![CDATA[classic-jeans]]></ItemId>
-					<ItemDesc><![CDATA[Classic Jean]]></ItemDesc>
-					<HTSCode/>
-					<Quantity><![CDATA[1]]></Quantity>
-					<Pricing>
-					  <Merchandise>
-					    <UnitPrice><![CDATA[foo]]></UnitPrice>
-						<Amount><![CDATA[]]></Amount>
-						<TaxData>
-						  <TaxClass>89000</TaxClass>
-						  <Taxes>
+			<ItemId><![CDATA[classic-jeans]]></ItemId>
+			<ItemDesc><![CDATA[Classic Jean]]></ItemDesc>
+			<HTSCode/>
+			<Quantity><![CDATA[1]]></Quantity>
+			<Pricing>
+				<Merchandise>
+					<UnitPrice><![CDATA[foo]]></UnitPrice>
+					<Amount><![CDATA[]]></Amount>
+					<TaxData>
+						<TaxClass>89000</TaxClass>
+						<Taxes>
 							<Tax taxType="SELLER_USE" taxability="TAXABLE">
-							  <Situs>DESTINATION</Situs>
-							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-							  <Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
-							  <EffectiveRate>0.06</EffectiveRate>
-							  <TaxableAmount>99.99</TaxableAmount>
-							  <CalculatedTax>6.0</CalculatedTax>
-							</Tax>
-							<Tax taxType="SELLER_USE" taxability="TAXABLE">
-							  <Situs>DESTINATION</Situs>
-							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-							  <Imposition impositionType="Random Tax">Random Tax</Imposition>
-							  <EffectiveRate>0.02</EffectiveRate>
-							  <TaxableAmount>99.99</TaxableAmount>
-							  <CalculatedTax>2.0</CalculatedTax>
-							</Tax>
-						  </Taxes>
-						</TaxData>
-						<PromotionalDiscounts>
-						  <Discount calculateDuty="false" id="334">
-							<Amount>20.00</Amount>
-							<Taxes>
-							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
 								<Situs>DESTINATION</Situs>
 								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
 								<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
 								<EffectiveRate>0.06</EffectiveRate>
-								<TaxableAmount>20.0</TaxableAmount>
-								<CalculatedTax>1.2</CalculatedTax>
-							  </Tax>
-							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
+								<TaxableAmount>99.99</TaxableAmount>
+								<CalculatedTax>6.0</CalculatedTax>
+							</Tax>
+							<Tax taxType="SELLER_USE" taxability="TAXABLE">
 								<Situs>DESTINATION</Situs>
 								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
 								<Imposition impositionType="Random Tax">Random Tax</Imposition>
 								<EffectiveRate>0.02</EffectiveRate>
-								<TaxableAmount>20.0</TaxableAmount>
-								<CalculatedTax>0.4</CalculatedTax>
-							  </Tax>
+								<TaxableAmount>99.99</TaxableAmount>
+								<CalculatedTax>2.0</CalculatedTax>
+							</Tax>
+						</Taxes>
+					</TaxData>
+					<PromotionalDiscounts>
+						<Discount calculateDuty="false" id="334">
+							<Amount>20.00</Amount>
+							<Taxes>
+								<Tax taxType="SELLER_USE" taxability="TAXABLE">
+									<Situs>DESTINATION</Situs>
+									<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+									<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+									<EffectiveRate>0.06</EffectiveRate>
+									<TaxableAmount>20.0</TaxableAmount>
+									<CalculatedTax>1.2</CalculatedTax>
+								</Tax>
+								<Tax taxType="SELLER_USE" taxability="TAXABLE">
+									<Situs>DESTINATION</Situs>
+									<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+									<Imposition impositionType="Random Tax">Random Tax</Imposition>
+									<EffectiveRate>0.02</EffectiveRate>
+									<TaxableAmount>20.0</TaxableAmount>
+									<CalculatedTax>0.4</CalculatedTax>
+								</Tax>
 							</Taxes>
-						  </Discount>
-						</PromotionalDiscounts>
-					  </Merchandise>
-					</Pricing>
-				  </OrderItem>
-		';
+						</Discount>
+					</PromotionalDiscounts>
+				</Merchandise>
+			</Pricing>
+		</OrderItem>';
 		$doc = new TrueAction_Dom_Document();
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXML($xml);
@@ -421,7 +453,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$this->assertSame(
 			$this->expected('set-%s-%s', $responseValue, $requestValue)->getSame(),
 			Mage::getModel('eb2ctax/response')->isSameNodelistElement($responseNodelist, $requestNodelist)
-		);
+			);
 	}
 
 	public function shipGroupXmlProvider()
@@ -447,7 +479,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 				<ShipGroup chargeType="FLATRATE" id="shipgroup_1_FLATRATE" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 					<DestinationTarget ref="_a"/>
 				</ShipGroup>', null),
-		);
+			);
 	}
 
 	/**
@@ -479,8 +511,8 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	public function testValidateResponseItemsWithEmptyDocs()
 	{
 		$response = $this->getModelMockBuilder('eb2ctax/response')
-			->disableOriginalConstructor()
-			->getMock();
+		->disableOriginalConstructor()
+		->getMock();
 		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc1->preserveWhiteSpace = false;
 		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -498,15 +530,35 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 				</TaxDutyQuoteResponse>', true),
 			array('<?xml version="1.0" encoding="UTF-8"?>
 				<Fault xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
-				<Code>INVALID_XML</Code>
-				<Description>The xml submitted for quote request was invalid.</Description>
+					<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
+					<Code>INVALID_XML</Code>
+					<Description>The xml submitted for quote request was invalid.</Description>
 				</Fault>', false),
 			array('<?xml version="1.0" encoding="UTF-8"?>
 				<someotherdocument>
 				</someotherdocument>', false),
 			array('sfslfjslfjlsfdlkfjlsfjl', false),
-		);
+			array('', false),
+			array(null, false),
+			array('<fault>
+				<faultstring>Incorrect HTTP method used in the request</faultstring>
+				<detail>
+					<errorcode>26301</errorcode>
+					<trace>
+						Fault Name: IncorrectHTTPMethod
+						Error Type: MethodValidationFailure
+						Description: Incorrect HTTP method used in the request
+						Service: eb2c
+						Endpoint: eb2c_client
+						Operation (Client):taxes_quote_client_op
+					</trace>
+				</detail>
+			</fault>', false),
+			array('<div>
+				<a href="/app/search?op=list&type=50">eins</a>
+				<!-- HTML parser error : htmlParseEntityRef: expecting \';\' -->
+			</div>', false),
+			);
 	}
 
 	public function xmlProviderForValidateResponseItems()
@@ -520,7 +572,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 			array("{$basePath}/req5.xml", "{$basePath}/res5.xml", false),
 			array("{$basePath}/req6.xml", "{$basePath}/res6.xml", false),
 			array("{$basePath}/req7.xml", "{$basePath}/res7.xml", false),
-		);
+			);
 	}
 
 	/**
@@ -537,15 +589,15 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$initData = array('xml' => $xml, 'request' => $request);
 		// manually initialize the response
 		$response = $this->getModelMockBuilder('eb2ctax/response')
-			->disableOriginalConstructor()
-			->setMethods(array('_validateResponseItems', '_validateDestinations'))
-			->getMock();
+		->disableOriginalConstructor()
+		->setMethods(array('_validateResponseItems', '_validateDestinations'))
+		->getMock();
 		$response->expects($this->any())
-			->method('_validateResponseItems')
-			->will($this->returnValue(true));
+		->method('_validateResponseItems')
+		->will($this->returnValue(true));
 		$response->expects($this->any())
-			->method('_validateDestinations')
-			->will($this->returnValue(true));
+		->method('_validateDestinations')
+		->will($this->returnValue(true));
 		$response->setData($initData);
 		$this->_reflectMethod($response, '_construct')->invoke($response);
 		return $response;
@@ -568,12 +620,11 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		}
 		$request = $this->getModelMock('eb2ctax/request', array('isValid', 'getDocument'));
 		$request->expects($this->any())
-			->method('isValid')
-			->will($this->returnValue($isValid));
+		->method('isValid')
+		->will($this->returnValue($isValid));
 		$request->expects($this->any())
-			->method('getDocument')
-			->will($this->returnValue($doc));
+		->method('getDocument')
+		->will($this->returnValue($doc));
 		return $request;
 	}
-
 }
