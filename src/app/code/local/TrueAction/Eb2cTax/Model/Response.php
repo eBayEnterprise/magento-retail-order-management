@@ -477,10 +477,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	{
 		$x = new DOMXPath($doc);
 		$ns = '';
-		if ($doc->documentElement->namespaceURI) {
-			$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-			$ns = 'a:';
-		}
 		$desc    = $x->evaluate("/{$ns}fault/{$ns}faultstring/text()");
 		$code    = $x->evaluate("/{$ns}fault/{$ns}detail/{$ns}errorcode/text()");
 		$trace   = $x->evaluate("/{$ns}fault/{$ns}detail/{$ns}trace/text()");
