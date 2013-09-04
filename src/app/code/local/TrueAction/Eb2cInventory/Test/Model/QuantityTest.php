@@ -15,13 +15,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 	{
 		parent::setUp();
 		$this->_quantity = Mage::getModel('eb2cinventory/quantity');
-
-		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-
-		$quantityReflector = new ReflectionObject($this->_quantity);
-		$helper = $quantityReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_quantity, $newHelper);
+		$this->_quantity->setHelper(new TrueAction_Eb2cInventory_Helper_Data());
 	}
 
 	public function providerBuildQuantityRequestMessage()
@@ -95,10 +89,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 		$apiModel->setAccessible(true);
 		$apiModel->setValue($inventoryHelper, $apiModelMock);
 
-		$quantityReflector = new ReflectionObject($this->_quantity);
-		$helper = $quantityReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_quantity, $inventoryHelper);
+		$this->_quantity->setHelper($inventoryHelper);
 
 		$this->assertSame(
 			0,

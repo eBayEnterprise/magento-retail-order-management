@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_cart;
 
@@ -13,17 +13,33 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 	 */
 	public function setUp()
 	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		parent::setUp();
 		$this->_cart = Mage::getModel('eb2cinventoryoverride/cart');
+
+		$sessionMock = $this->getModelMockBuilder('checkout/session', array('setUseNotice', 'setRedirectUrl', 'getUseNotice', 'setLastAddedProductId'))
+			->disableOriginalConstructor()
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('setUseNotice')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('setRedirectUrl')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('getUseNotice')
+			->will($this->returnValue(null));
+		$sessionMock->expects($this->any())
+			->method('setLastAddedProductId')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
 	}
 
 	public function providerAddProduct()
 	{
 		$productMock = $this->getMock(
 			'Mage_Catalog_Model_Product',
-			array('getId', 'getWebsiteIds', 'hasOptionsValidationFail')
+			array('getId', 'getWebsiteIds', 'hasOptionsValidationFail', 'getProductUrl', 'getUrlModel', 'getUrl')
 		);
 		$productMock->expects($this->any())
 			->method('getId')
@@ -34,6 +50,15 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 		$productMock->expects($this->any())
 			->method('hasOptionsValidationFail')
 			->will($this->returnValue(true));
+		$productMock->expects($this->any())
+			->method('getProductUrl')
+			->will($this->returnValue('some-place'));
+		$productMock->expects($this->any())
+			->method('getUrlModel')
+			->will($this->returnSelf());
+		$productMock->expects($this->any())
+			->method('getUrl')
+			->will($this->returnValue('some-place'));
 
 		return array(
 			array($productMock, null)
@@ -59,9 +84,6 @@ class TrueAction_Eb2cInventory_Test_Model_Overrides_CartTest extends EcomDev_PHP
 			->will($this->returnValue(array('some message')));
 
 		$this->_cart->setQuote($quoteMock);
-
-		$session = Mage::getSingleton('checkout/session');
-		$session->setData('use_notice', null);
 
 		$this->assertNotNull(
 			$this->_cart->addProduct($productInfo, $requestInfo)

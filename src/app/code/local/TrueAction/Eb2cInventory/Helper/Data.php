@@ -15,11 +15,10 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 
 	public function __construct()
 	{
-		$this->coreHelper = $this->getCoreHelper();
-		$this->configModel = $this->getConfigModel(null);
-		$this->constantHelper = $this->getConstantHelper();
+		$this->getCoreHelper();
+		$this->getConfigModel(null);
 		$constantHelper = $this->getConstantHelper();
-		$this->coreFeed = $this->getCoreFeed();
+		$this->getCoreFeed();
 		$this->_operation = array(
 			'check_quantity' => array(
 				'pro' => $constantHelper::OPT_QTY,
@@ -60,12 +59,10 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfigModel($store=null)
 	{
-		if (!$this->configModel) {
-			$this->configModel = Mage::getModel('eb2ccore/config_registry');
-			$this->configModel->setStore($store)
-				->addConfigModel(Mage::getModel('eb2cinventory/config'))
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
+		$this->configModel = Mage::getModel('eb2ccore/config_registry');
+		$this->configModel->setStore($store)
+			->addConfigModel(Mage::getModel('eb2cinventory/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 		return $this->configModel;
 	}
 
@@ -89,9 +86,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreFeed()
 	{
-		if (!$this->coreFeed) {
-			$this->coreFeed = Mage::helper('eb2ccore/feed');
-		}
+		$this->coreFeed = Mage::helper('eb2ccore/feed');
 		return $this->coreFeed;
 	}
 
@@ -170,5 +165,16 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->apiModel = Mage::getModel('eb2ccore/api');
 		}
 		return $this->apiModel;
+	}
+
+	/**
+	 * validating ftp settings by simply checking if there's actual setting data.
+	 *
+	 * @return bool, true valid ftp settings otherwise false
+	 */
+	public function isValidFtpSettings()
+	{
+		$cfg = $this->getConfigModel();
+		return trim($cfg->sftpLocation) && trim($cfg->sftpUsername) && trim($cfg->sftpPassword);
 	}
 }
