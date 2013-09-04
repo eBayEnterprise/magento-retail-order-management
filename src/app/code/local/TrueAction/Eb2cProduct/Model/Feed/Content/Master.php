@@ -13,18 +13,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	{
 		// getting the default magento language
 		$storeLocaleData = explode('_', Mage::app()->getLocale()->getLocaleCode());
-		$storeLang = 'EN-GB'; // default
+		$storeLang = 'EN-GB'; // this is the default store language
 		if (sizeof($storeLocaleData) > 1) {
 			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
+		}
+
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+
+		// Set up local folders for receiving, processing
+		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
+		if ($this->hasFsTool()) {
+			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
 		$this->setExtractor(Mage::getModel('eb2cproduct/feed_content_extractor')) // Magicaly setting an instantiated extractor object
 			->setProduct(Mage::getModel('catalog/product'))
 			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
-			->setFeedModel(Mage::getModel('eb2ccore/feed'))
 			->setEavConfig(Mage::getModel('eav/config'))
 			->setCategory(Mage::getModel('catalog/category')) // magically setting catalog/category model object
-			->setDefaultStoreLanguageCode($storeLang); // setting default store language
+			->setDefaultStoreLanguageCode($storeLang) // setting default store language
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
+			->setBaseDir($cfg->contentFeedLocalPath);
 
 		return $this;
 	}
@@ -117,9 +126,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	protected function _loadCategoryByName($categoryName)
 	{
 		$categories = Mage::getModel('catalog/category')->getCollection()
-                ->addAttributeToSelect('*')
-                ->addFieldToFilter('name', array('eq' => $categoryName))
-                ->load();
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('name', array('eq' => $categoryName))
+			->load();
 
 		return $categories->getFirstItem();
 	}
@@ -131,13 +140,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	 */
 	protected function _getContentMasterFeeds()
 	{
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$coreHelper = Mage::helper('eb2ccore');
+		$remoteFile = $cfg->contentFeedRemoteReceivedPath;
+		$configPath = $cfg->configPath;
+		$feedHelper = Mage::helper('eb2ccore/feed');
 		$productHelper = Mage::helper('eb2cproduct');
-		$this->getFeedModel()->setBaseFolder($productHelper->getConfigModel()->feedLocalPath );
-		$remoteFile = $productHelper->getConfigModel()->feedRemoteReceivedPath;
-		$configPath =  $productHelper->getConfigModel()->configPath;
 
-		// downloading feed from eb2c server down to local server
-		$productHelper->getFileTransferHelper()->getFile($this->getFeedModel()->getInboundFolder(), $remoteFile, $configPath, null);
+		// only attempt to transfer file when the ftp setting is valid
+		if ($coreHelper->isValidFtpSettings()) {
+			// Download feed from eb2c server to local server
+			Mage::helper('filetransfer')->getFile(
+				$this->getFeedModel()->getInboundDir(),
+				$remoteFile,
+				$feedHelper::FILETRANSFER_CONFIG_PATH
+			);
+		} else {
+			// log as a warning
+			Mage::log(
+				'[' . __CLASS__ . '] Content Master Feed: can\'t transfer file from eb2c server because of invalid ftp setting on the magento store.',
+				Zend_Log::WARN
+			);
+		}
 	}
 
 	/**
@@ -148,14 +172,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	public function processFeeds()
 	{
 		$productHelper = Mage::helper('eb2cproduct');
+		$coreHelper = Mage::helper('eb2ccore');
 		$this->_getContentMasterFeeds();
-		$domDocument = $productHelper->getDomDocument();
+		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $productHelper->getConfigModel()->feedEventType;
-			$expectHeaderVersion = $productHelper->getConfigModel()->feedHeaderVersion;
+			$expectEventType = $productHelper->getConfigModel()->contentFeedEventType;
+			$expectHeaderVersion = $productHelper->getConfigModel()->contentFeedHeaderVersion;
 
 			// validate feed header
 			if ($productHelper->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {

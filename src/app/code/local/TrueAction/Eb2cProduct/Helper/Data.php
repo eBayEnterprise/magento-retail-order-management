@@ -37,9 +37,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreHelper()
 	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
+		$this->coreHelper = Mage::helper('eb2ccore');
 		return $this->coreHelper;
 	}
 
@@ -50,9 +48,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getFileTransferHelper()
 	{
-		if (!$this->fileTransferHelper) {
-			$this->fileTransferHelper = Mage::helper('filetransfer');
-		}
+		$this->fileTransferHelper = Mage::helper('filetransfer');
 		return $this->fileTransferHelper;
 	}
 
@@ -63,12 +59,10 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfigModel($store=null)
 	{
-		if (!$this->configModel) {
-			$this->configModel = Mage::getModel('eb2ccore/config_registry');
-			$this->configModel->setStore($store)
-				->addConfigModel(Mage::getModel('eb2cproduct/config'))
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
+		$this->configModel = Mage::getModel('eb2ccore/config_registry');
+		$this->configModel->setStore($store)
+			->addConfigModel(Mage::getModel('eb2cproduct/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 		return $this->configModel;
 	}
 
@@ -79,9 +73,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConstantHelper()
 	{
-		if (!$this->constantHelper) {
-			$this->constantHelper = Mage::helper('eb2cproduct/constants');
-		}
+		$this->constantHelper = Mage::helper('eb2cproduct/constants');
 		return $this->constantHelper;
 	}
 
@@ -92,9 +84,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreFeed()
 	{
-		if (!$this->coreFeed) {
-			$this->coreFeed = Mage::helper('eb2ccore/feed');
-		}
+		$this->coreFeed = Mage::helper('eb2ccore/feed');
 		return $this->coreFeed;
 	}
 
@@ -179,9 +169,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getApiModel()
 	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
+		$this->apiModel = Mage::getModel('eb2ccore/api');
 		return $this->apiModel;
 	}
 }

@@ -180,9 +180,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 				}
 				$extendedAttributes['color_attributes'] = new Varien_Object(
 					array(
-						'code' =>($nodeCode->length)? (string) $nodeCode->item(0)->nodeValue : null, // Code used to identify the color
+						'code' => ($nodeCode->length)? (string) $nodeCode->item(0)->nodeValue : null, // Code used to identify the color
 						'description' => $colorDescriptionCollection, // collection of description per language.
-						'sequence' =>($nodeSequence->length)? (string) $nodeSequence->item(0)->nodeValue : null, // Color order/sequence.
+						'sequence' => ($nodeSequence->length)? (string) $nodeSequence->item(0)->nodeValue : null, // Color order/sequence.
 					)
 				);
 			}
@@ -296,7 +296,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 					'category_links' => $this->_extractCategoryLinks($feedXpath, $contentIndex, $catalogId), // Link the product into categories.
 					'base_attributes' => $this->_extractBaseAttributes($feedXpath, $contentIndex, $catalogId), // base product attributes (name/title)
 					'extended_attributes' => $this->_extractExtendedAttributes($feedXpath, $contentIndex, $catalogId), // Attributes known to eb2c.
-					'custom_attributes' => $this->_extractCustomAttributes($feedXpath, $contentIndex, $catalogId), // List of additional attributes that may be used by the client system/Magento.
+					'custom_attributes' => $this->_extractCustomAttributes($feedXpath, $contentIndex, $catalogId), // additional attributes
 				)
 			);
 

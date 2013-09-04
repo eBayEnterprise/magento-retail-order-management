@@ -649,8 +649,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		return $coreModelFeedMock;
 	}
 
-
-		/**
+	/**
 	 * return a mock of the TrueAction_Eb2cCore_Model_Feed class
 	 *
 	 * @return Mock_TrueAction_Eb2cCore_Model_Feed
