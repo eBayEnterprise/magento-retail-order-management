@@ -4,7 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_DetailsTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_details;
 
@@ -15,9 +16,6 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	{
 		parent::setUp();
 		$this->_details = Mage::getModel('eb2cinventory/details');
-
-		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-		$this->_details->setHelper($newHelper);
 	}
 
 	public function buildQuoteMock()
@@ -133,25 +131,14 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	 */
 	public function testGetInventoryDetailsWithApiCallException($quote)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
 			->will($this->throwException(new Exception));
-
-		$inventoryHelper = Mage::helper('eb2cinventory');
-		$inventoryReflector = new ReflectionObject($inventoryHelper);
-		$apiModel = $inventoryReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($inventoryHelper, $apiModelMock);
-
-		$this->_details->setHelper($inventoryHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',

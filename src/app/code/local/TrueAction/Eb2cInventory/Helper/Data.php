@@ -9,7 +9,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	public $coreFeed;
 	public $constantHelper;
 	public $configModel;
-	public $apiModel;
 	protected $_operation;
 
 	public function __construct()
@@ -136,17 +135,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->getConfigModel()->storeId,
 			$entityId
 		));
-	}
-
-	/**
-	 * Return the Core API model for issuing requests/ retrieving response:
-	 */
-	public function getApiModel()
-	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->apiModel;
 	}
 
 	/**

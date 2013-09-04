@@ -4,7 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_AllocationTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_allocation;
 
@@ -15,12 +16,6 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		parent::setUp();
 		$this->_allocation = Mage::getModel('eb2cinventory/allocation');
-
-		$invHlpr = $this->getMock(
-			'TrueAction_Eb2cInventory_Helper_Data'
-		)
-
-		$this->_allocation->setHelper(new TrueAction_Eb2cInventory_Helper_Data());
 	}
 
 	public function buildQuoteMock()
@@ -152,15 +147,11 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	 */
 	public function testAllocateQuoteItems($quote)
 	{
-		$inventoryHelperMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Helper_Data',
-			array('getOperationUri')
-		);
+		$inventoryHelperMock = $this->getHelperMock('eb2cinventory/data', array('getOperationUri'));
 		$inventoryHelperMock->expects($this->any())
 			->method('getOperationUri')
 			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml'));
-
-		$this->_allocation->setHelper($inventoryHelperMock);
+		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
 
 		// testing when you can allocated inventory
 		$this->assertNotNull(
@@ -177,27 +168,16 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	 */
 	public function testAllocateQuoteItemsWithApiCallException($quote)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
 			->will(
 				$this->throwException(new Exception)
 			);
-
-		$inventoryHelper = Mage::helper('eb2cinventory');
-		$inventoryReflector = new ReflectionObject($inventoryHelper);
-		$apiModel = $inventoryReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($inventoryHelper, $apiModelMock);
-
-		$this->_allocation->setHelper($inventoryHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',
@@ -468,25 +448,14 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	 */
 	public function testRollbackAllocationWithApiCallException($quote)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
 			->will($this->throwException(new Exception));
-
-		$inventoryHelper = Mage::helper('eb2cinventory');
-		$inventoryReflector = new ReflectionObject($inventoryHelper);
-		$apiModel = $inventoryReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($inventoryHelper, $apiModelMock);
-
-		$this->_allocation->setHelper($inventoryHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',

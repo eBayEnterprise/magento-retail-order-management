@@ -17,7 +17,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 				$quantityRequestMessage = $this->buildQuantityRequestMessage(array(array('id' => $itemId, 'sku' => $sku)));
 
 				// make request to eb2c for quantity
-				$quantityResponseMessage = Mage::helper('eb2cinventory')->getApiModel()
+				$quantityResponseMessage = Mage::getModel('eb2ccore/api')
 					->setUri(Mage::helper('eb2cinventory')->getOperationUri('check_quantity'))
 					->request($quantityRequestMessage);
 
