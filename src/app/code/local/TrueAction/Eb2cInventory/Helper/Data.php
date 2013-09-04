@@ -6,7 +6,6 @@
  */
 class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $coreHelper;
 	public $coreFeed;
 	public $constantHelper;
 	public $configModel;
@@ -15,7 +14,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 
 	public function __construct()
 	{
-		$this->getCoreHelper();
 		$this->getConfigModel(null);
 		$constantHelper = $this->getConstantHelper();
 		$this->getCoreFeed();
@@ -40,19 +38,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * Get core helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	public function getCoreHelper()
-	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
-		return $this->coreHelper;
-	}
-
-	/**
 	 * Get inventory config instantiated object.
 	 *
 	 * @return TrueAction_Eb2cInventory_Model_Config
@@ -73,10 +58,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConstantHelper()
 	{
-		if (!$this->constantHelper) {
-			$this->constantHelper = Mage::helper('eb2cinventory/constants');
-		}
-		return $this->constantHelper;
+		return Mage::helper('eb2cinventory/constants');
 	}
 
 	/**
@@ -116,7 +98,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		$constantHelper = $this->getConstantHelper();
 		$apiUri = $operation['dev'];
 		if (!(bool) $this->getConfigModel()->developerMode) {
-			$apiUri = $this->getCoreHelper()->getApiUri(
+			$apiUri = Mage::helper('eb2ccore')->getApiUri(
 				$constantHelper::SERVICE,
 				$operation['pro']
 			);

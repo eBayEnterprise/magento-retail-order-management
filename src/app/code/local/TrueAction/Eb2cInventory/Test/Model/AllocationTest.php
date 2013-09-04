@@ -15,6 +15,11 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest extends EcomDev_PHPUnit
 	{
 		parent::setUp();
 		$this->_allocation = Mage::getModel('eb2cinventory/allocation');
+
+		$invHlpr = $this->getMock(
+			'TrueAction_Eb2cInventory_Helper_Data'
+		)
+
 		$this->_allocation->setHelper(new TrueAction_Eb2cInventory_Helper_Data());
 	}
 
