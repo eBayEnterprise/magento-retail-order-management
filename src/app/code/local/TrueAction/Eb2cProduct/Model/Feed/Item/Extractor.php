@@ -9,549 +9,246 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	/**
 	 * extract item id data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractItemId($feedXpath, $itemIndex, $catalogId)
+	protected function _extractItemId($feedXPath, $itemIndex, $catalogId)
 	{
-		$itemIdObject = new Varien_Object();
-		$itemIdObject->setClientItemId(null);
-
 		// SKU used to identify this item from the client system.
-		$clientItemId = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/ItemId/ClientItemId'
-		);
-
-		if ($clientItemId->length) {
-			$itemIdObject->setClientItemId(trim($clientItemId->item(0)->nodeValue));
-		}
-
-		return $itemIdObject;
+		$nodeClientItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientItemId");
+		return new Varien_Object(array('client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null));
 	}
 
 	/**
 	 * extract BaseAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractBaseAttributes($feedXpath, $itemIndex, $catalogId)
+	protected function _extractBaseAttributes($feedXPath, $itemIndex, $catalogId)
 	{
-		$baseAttributesObject = new Varien_Object();
-
 		// Allows for control of the web store display.
-		$baseAttributesObject->setCatalogClass(null);
-		$catalogClass = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/CatalogClass'
-		);
-		if ($catalogClass->length) {
-			$baseAttributesObject->setCatalogClass(trim($catalogClass->item(0)->nodeValue));
-		}
+		$nodeCatalogClass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
 
 		// Indicates the item if fulfilled by a drop shipper.
 		// New attribute.
-		$baseAttributesObject->setDropShipped(null);
-		$isDropShipped = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/IsDropShipped'
-		);
-		if ($isDropShipped->length) {
-			$baseAttributesObject->setDropShipped((bool) $isDropShipped->item(0)->nodeValue);
-		}
+		$nodeIsDropShipped = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
 
 		// Short description in the catalog's base language.
-		$baseAttributesObject->setItemDescription(null);
-		$itemDescription = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/ItemDescription'
-		);
-		if ($itemDescription->length) {
-			$baseAttributesObject->setItemDescription(trim($itemDescription->item(0)->nodeValue));
-		}
+		$nodeItemDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
 
 		// Identifies the type of item.
-		$baseAttributesObject->setItemType(null);
-		$itemType = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/ItemType'
-		);
-
-		if ($itemType->length) {
-			$baseAttributesObject->setItemType(strtolower(trim($itemType->item(0)->nodeValue)));
-		}
+		$nodeItemType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemType");
 
 		// Indicates whether an item is active, inactive or other various states.
-		$baseAttributesObject->setItemStatus(0);
-		$itemStatus = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/ItemStatus'
-		);
-		if ($itemStatus->length) {
-			$baseAttributesObject->setItemStatus( (strtoupper(trim($itemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0 );
-		}
+		$nodeItemStatus = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
 
 		// Tax group the item belongs to.
-		$baseAttributesObject->setTaxCode(null);
-		$taxCode = $feedXpath->query('//Item[' .
-			$itemIndex . '][@catalog_id="' .
-			$catalogId .
-			'"]/BaseAttributes/TaxCode'
-		);
-		if ($taxCode->length) {
-			$baseAttributesObject->setTaxCode(trim($taxCode->item(0)->nodeValue));
-		}
+		$nodeTaxCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
 
-		return $baseAttributesObject;
+		return new Varien_Object(
+			array(
+				'catalog_class' => ($nodeCatalogClass->length)? (string) $nodeCatalogClass->item(0)->nodeValue : null,
+				'drop_shipped' => ($nodeIsDropShipped->length)? (bool) $nodeIsDropShipped->item(0)->nodeValue : false,
+				'item_description' => ($nodeItemDescription->length)? (string) $nodeItemDescription->item(0)->nodeValue : null,
+				'item_type' => ($nodeItemType->length)? strtolower(trim($nodeItemType->item(0)->nodeValue)) : null,
+				'item_status' => (strtoupper(trim($nodeItemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0,
+				'tax_code' => ($nodeTaxCode->length)? (string) $nodeTaxCode->item(0)->nodeValue : null,
+			)
+		);
 	}
 
 	/**
 	 * extract BundleContents data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractBundleContents($feedXpath, $itemIndex, $catalogId)
+	protected function _extractBundleContents($feedXPath, $itemIndex, $catalogId)
 	{
-		$bundleContentsObject = null;
+		$bundleItemCollection = array();
 
-		// Items included if this item is a bundle product.
-		$bundleContents = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/BundleContents'
-		);
-		if ($bundleContents->length) {
-			// Since we have bundle product let save these to a Varien_Object
-			$bundleContentsObject = new Varien_Object();
+		// get all bundle items
+		$nodeBundleItems = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems");
+		if ($nodeBundleItems->length) {
+			$bundleItemIndex = 1;
+			foreach ($nodeBundleItems as $bundleItem) {
+				// Client or vendor id (SKU) for the item to be included in the bundle.
+				$nodeItemID = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems[$bundleItemIndex]/ItemID");
 
-			// Child item of this item
-			$bundleItems = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/BundleContents/BundleItems'
-			);
-			if ($bundleItems->length) {
-				$bundleItemCollection = array();
-				$bundleItemIndex = 1;
-				foreach ($bundleItems as $bundleItem) {
-					$bundleItemObject = new Varien_Object();
-					// All items in the bundle must ship together.
-					$bundleItemObject->setShipTogether((bool) $bundleItem->getAttribute('ship_together'));
+				// How many of the child item come in the bundle.
+				$nodeQuantity = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems[$bundleItemIndex]/Quantity");
 
-					$bundleItemObject->setOperationType((string) $bundleItem->getAttribute('operation_type'));
-					$bundleCatalogId = (string) $bundleItem->getAttribute('catalog_id');
-					$bundleItemObject->setCatalogId($bundleCatalogId);
+				$bundleItemCollection[] = new Varien_Object(
+					array(
+						'ship_together' => (bool) $bundleItem->getAttribute('ship_together'), // All items in the bundle must ship together.
+						'operation_type' => (string) $bundleItem->getAttribute('operation_type'),
+						'catalog_id' => (string) $bundleItem->getAttribute('catalog_id'),
+						'item_id' => ($nodeItemID->length)? (string) $nodeItemID->item(0)->nodeValue : null,
+						'quantity' => ($nodeQuantity->length)? (int) $nodeQuantity->item(0)->nodeValue : null,
+					)
+				);
 
-					// Client or vendor id (SKU) for the item to be included in the bundle.
-					$bundleItemObject->setItemID(null);
-					$itemID = $feedXpath->query('//Item[' .
-						$itemIndex . '][@catalog_id="' .
-						$catalogId .
-						'"]/BundleContents/BundleItems[' .
-						$bundleItemIndex .
-						']/ItemID'
-					);
-					if ($itemID->length) {
-						$bundleItemObject->setItemID(trim($itemID->item(0)->nodeValue));
-					}
-
-					// How many of the child item come in the bundle.
-					$bundleItemObject->setQuantity(null);
-					$quantity = $feedXpath->query('//Item[' .
-						$itemIndex . '][@catalog_id="' .
-						$catalogId . '"]/BundleContents/BundleItems[' .
-						$bundleItemIndex . ']/Quantity'
-					);
-					if ($quantity->length) {
-						$bundleItemObject->setQuantity((int) $quantity->item(0)->nodeValue);
-					}
-					$bundleItemCollection[] = $bundleItemObject;
-					$bundleItemIndex++;
-				}
-
-				$bundleContentsObject->setBundleItems($bundleItemCollection);
+				$bundleItemIndex++;
 			}
 		}
 
-		return $bundleContentsObject;
+		return new Varien_Object(array('bundle_items' => ($nodeBundleItems->length)? $bundleItemCollection : null));
 	}
 
 	/**
 	 * extract DropShipSupplierInformation data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractDropShipSupplierInformation($feedXpath, $itemIndex, $catalogId)
+	protected function _extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId)
 	{
-		$dropShipSupplierInformationObject = new Varien_Object();
+		// Name of the Drop Ship Supplier fulfilling the item
+		$nodeSupplierName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierName");
 
-		// let save drop Ship Supplier Information to a Varien_Object
-		$dropShipSupplierInformationObject = new Varien_Object();
-		$dropShipSupplierInformationObject->setSupplierName(null);
-		$dropShipSupplierInformationObject->setSupplierNumber(null);
-		$dropShipSupplierInformationObject->setSupplierPartNumber(null);
+		// Unique code assigned to this supplier.
+		$nodeSupplierNumber = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierNumber");
 
-		// Encapsulates data for drop shipper fulfillment. If the item is fulfilled by a drop shipper, these values are required.
-		$dropShipSupplierInformation = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/DropShipSupplierInformation'
+		// Id or SKU used by the drop shipper to identify this item.
+		$nodeSupplierPartNumber = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierPartNumber");
+
+		return new Varien_Object(
+			array(
+				'supplier_name' => ($nodeSupplierName->length)? (string) $nodeSupplierName->item(0)->nodeValue : null,
+				'supplier_number' => ($nodeSupplierNumber->length)? (string) $nodeSupplierNumber->item(0)->nodeValue : null,
+				'supplier_part_number' => ($nodeSupplierPartNumber->length)? (string) $nodeSupplierPartNumber->item(0)->nodeValue : null,
+			)
 		);
-		if ($dropShipSupplierInformation->length) {
-			// Name of the Drop Ship Supplier fulfilling the item
-			$supplierName = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/DropShipSupplierInformation/SupplierName'
-			);
-			if ($supplierName->length) {
-				$dropShipSupplierInformationObject->setSupplierName(trim($supplierName->item(0)->nodeValue));
-			}
-
-			// Unique code assigned to this supplier.
-			$supplierNumber = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/DropShipSupplierInformation/SupplierNumber'
-			);
-			if ($supplierNumber->length) {
-				$dropShipSupplierInformationObject->setSupplierNumber(trim($supplierNumber->item(0)->nodeValue));
-			}
-
-			// Id or SKU used by the drop shipper to identify this item.
-			$supplierPartNumber = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/DropShipSupplierInformation/SupplierPartNumber'
-			);
-			if ($supplierPartNumber->length) {
-				$dropShipSupplierInformationObject->setSupplierPartNumber(trim($supplierPartNumber->item(0)->nodeValue));
-			}
-		}
-
-		return $dropShipSupplierInformationObject;
 	}
 
 	/**
 	 * extract ExtendedAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractExtendedAttributes($feedXpath, $itemIndex, $catalogId)
+	protected function _extractExtendedAttributes($feedXPath, $itemIndex, $catalogId)
 	{
-		$extendedAttributesObject = new Varien_Object();
+		// If false, customer cannot add a gift message to the item.
+		$nodeAllowGiftMessage = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/AllowGiftMessage");
 
-		// let save drop Extended Attributes to a Varien_Object
-		$extendedAttributesObject = new Varien_Object();
-		$extendedAttributesObject->setAllowGiftMessage(false);
-		$extendedAttributesObject->setBackOrderable(null);
+		// Item is able to be back ordered.
+		$nodeBackOrderable = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
 
-		// let save drop color Attributes to a Varien_Object
-		$colorAttributesObject = new Varien_Object();
-		$colorAttributesObject->setColorCode(null);
-		$colorAttributesObject->setColorDescription(null);
+		// Color value/name with a locale specific description.
+		// Name of the color used as the default and in the admin.
+		$nodeColorCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
 
-		$extendedAttributesObject->setColorAttributes($colorAttributesObject);
-		$extendedAttributesObject->setCountryOfOrigin(null);
-		$extendedAttributesObject->setGiftCartTenderCode(null);
+		// Description of the color used for specific store views/languages.
+		$nodeColorDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
 
-		// let save ItemDimensions/Shipping to a Varien_Object
-		$itemDimensionsShippingObject = new Varien_Object();
-		$itemDimensionsShippingObject->setMassUnitOfMeasure(null);
-		$itemDimensionsShippingObject->setWeight(0);
+		// Country in which goods were completely derived or manufactured.
+		$nodeCountryOfOrigin = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
 
-		$extendedAttributesObject->setItemDimensionsShipping($itemDimensionsShippingObject);
-		$extendedAttributesObject->setMsrp(null);
-		$extendedAttributesObject->setPrice(0);
+		/*
+		 *  Type of gift card to be used for activation.
+		 * 		SD - TRU Digital Gift Card
+		 *		SP - SVS Physical Gift Card
+		 *		ST - SmartClixx Gift Card Canada
+		 *		SV - SVS Virtual Gift Card
+		 *		SX - SmartClixx Gift Card
+		 */
+		$nodeGiftCardTenderCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
 
-		// let save ItemDimensions/Shipping to a Varien_Object
-		$sizeAttributesObject = new Varien_Object();
-		$sizeAttributesObject->setSize(array(array('lang' => null, 'code' => null, 'description' => null)));
-		$extendedAttributesObject->setSizeAttributes($sizeAttributesObject);
+		// Shipping weight of the item.
+		$nodeMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimensions/Shipping/Mass");
 
-		// Additional named attributes. None are required.
-		$extendedAttributes = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/ExtendedAttributes'
-		);
-		if ($extendedAttributes->length) {
-			// If false, customer cannot add a gift message to the item.
-			$allowGiftMessage = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/AllowGiftMessage'
+		// Shipping weight of the item.
+		$nodeWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimensions/Shipping/Mass/Weight");
+
+		// Manufacturers suggested retail price. Not used for actual price calculations.
+		$nodeMsrp = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MSRP");
+
+		// Default price item is sold at. Required only if the item is new.
+		$nodePrice = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Price");
+
+		$sizeData = array();
+		$nodeSizeAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size");
+		foreach ($nodeSizeAttributes as $sizeRecord) {
+			// Size code.
+			$nodeSizeCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Code");
+
+			// Size Description.
+			$nodeSizeDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
+
+			$sizeData[] = array(
+				'lang' => $sizeRecord->getAttribute('xml:lang'), // Language code for the natural language of the size data.
+				'code' => ($nodeSizeCode->length)? (string) $nodeSizeCode->item(0)->nodeValue : null,
+				'description' => ($nodeSizeDescription->length)? (string) $nodeSizeDescription->item(0)->nodeValue : null,
 			);
-			if ($allowGiftMessage->length) {
-				$extendedAttributesObject->setAllowGiftMessage((bool) $allowGiftMessage->item(0)->nodeValue);
-			}
-
-			// Item is able to be back ordered.
-			$backOrderable = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/BackOrderable'
-			);
-			if ($backOrderable->length) {
-				$extendedAttributesObject->setBackOrderable(trim($backOrderable->item(0)->nodeValue));
-			}
-
-			// Item color
-			$colorAttributes = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/ColorAttributes'
-			);
-			if ($colorAttributes->length) {
-				// Color value/name with a locale specific description.
-				// Name of the color used as the default and in the admin.
-				$colorCode = $feedXpath->query('//Item[' .
-					$itemIndex .
-					'][@catalog_id="' .
-					$catalogId .
-					'"]/ExtendedAttributes/ColorAttributes/Color/Code'
-				);
-				if ($colorCode->length) {
-					$colorAttributesObject->setColorCode((string) $colorCode->item(0)->nodeValue);
-				}
-
-				// Description of the color used for specific store views/languages.
-				$colorDescription = $feedXpath->query('//Item[' .
-					$itemIndex .
-					'][@catalog_id="' .
-					$catalogId .
-					'"]/ExtendedAttributes/ColorAttributes/Color/Description'
-				);
-				if ($colorDescription->length) {
-					$colorAttributesObject->setColorDescription(trim($colorDescription->item(0)->nodeValue));
-				}
-			}
-			$extendedAttributesObject->setColorAttributes($colorAttributesObject);
-
-			// Country in which goods were completely derived or manufactured.
-			$countryOfOrigin = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/CountryOfOrigin'
-			);
-			if ($countryOfOrigin->length) {
-				$extendedAttributesObject->setCountryOfOrigin(trim($countryOfOrigin->item(0)->nodeValue));
-			}
-
-			/*
-			 *  Type of gift card to be used for activation.
-			 * 		SD - TRU Digital Gift Card
-			 *		SP - SVS Physical Gift Card
-			 *		ST - SmartClixx Gift Card Canada
-			 *		SV - SVS Virtual Gift Card
-			 *		SX - SmartClixx Gift Card
-			 */
-			$giftCartTenderCode = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/GiftCartTenderCode'
-			);
-			if ($giftCartTenderCode->length) {
-				$extendedAttributesObject->setGiftCartTenderCode(trim($giftCartTenderCode->item(0)->nodeValue));
-			}
-
-			// Dimensions used for shipping the item.
-			$itemDimensionsShipping = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/ItemDimensions/Shipping'
-			);
-			if ($itemDimensionsShipping->length) {
-				// Shipping weight of the item.
-				$mass = $feedXpath->query('//Item[' .
-					$itemIndex .
-					'][@catalog_id="' .
-					$catalogId .
-					'"]/ExtendedAttributes/ItemDimensions/Shipping/Mass'
-				);
-				if ($mass->length) {
-					$itemDimensionsShippingObject->setMassUnitOfMeasure((string) $mass->item(0)->getAttribute('unit_of_measure'));
-
-					// Shipping weight of the item.
-					$weight = $feedXpath->query('//Item[' .
-						$itemIndex .
-						'][@catalog_id="' .
-						$catalogId .
-						'"]/ExtendedAttributes/ItemDimensions/Shipping/Mass/Weight'
-					);
-					if ($weight->length) {
-						$itemDimensionsShippingObject->setWeight((float) $weight->item(0)->nodeValue);
-					}
-				}
-			}
-			$extendedAttributesObject->setItemDimensionsShipping($itemDimensionsShippingObject);
-
-			// Manufacturers suggested retail price. Not used for actual price calculations.
-			$msrp = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/MSRP'
-			);
-			if ($msrp->length) {
-				$extendedAttributesObject->setMsrp((string) $msrp->item(0)->nodeValue);
-			}
-
-			// Default price item is sold at. Required only if the item is new.
-			$price = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/Price'
-			);
-			if ($price->length) {
-				$extendedAttributesObject->setPrice((float) $price->item(0)->nodeValue);
-			}
-
-			// Dimensions used for shipping the item.
-			$sizeAttributes = $feedXpath->query('//Item[' .
-				$itemIndex .
-				'][@catalog_id="' .
-				$catalogId .
-				'"]/ExtendedAttributes/SizeAttributes/Size'
-			);
-			if ($sizeAttributes->length) {
-				$sizeData = array();
-				foreach ($sizeAttributes as $sizeRecord) {
-					// Language code for the natural language of the size data.
-					$sizeLang = $sizeRecord->getAttribute('xml:lang');
-
-					// Size code.
-					$sizeCode = '';
-					$sizeCodeElement = $feedXpath->query('//Item[' .
-						$itemIndex .
-						'][@catalog_id="' .
-						$catalogId .
-						'"]/ExtendedAttributes/SizeAttributes/Size/Code'
-					);
-					if ($sizeCodeElement->length) {
-						$sizeCode = (string) $sizeCodeElement->item(0)->nodeValue;
-					}
-
-					// Size Description.
-					$sizeDescription = '';
-					$sizeDescriptionElement = $feedXpath->query('//Item[' .
-						$itemIndex .
-						'][@catalog_id="' .
-						$catalogId .
-						'"]/ExtendedAttributes/SizeAttributes/Size/Description'
-					);
-					if ($sizeDescriptionElement->length) {
-						$sizeDescription = (string) $sizeDescriptionElement->item(0)->nodeValue;
-					}
-
-					$sizeData[] = array(
-						'lang' => $sizeLang,
-						'code' => $sizeCode,
-						'description' => $sizeDescription,
-					);
-				}
-
-				$sizeAttributesObject->setSize($sizeData);
-			}
-			$extendedAttributesObject->setSizeAttributes($sizeAttributesObject);
 		}
 
-		return $extendedAttributesObject;
+		return new Varien_Object(
+			array(
+				'allow_gift_message' => ($nodeAllowGiftMessage->length)? (bool) $nodeAllowGiftMessage->item(0)->nodeValue : false,
+				'back_orderable' => ($nodeBackOrderable->length)? (string) $nodeBackOrderable->item(0)->nodeValue : null,
+				'color_attributes' => new Varien_Object(
+					array(
+						'color_code' => ($nodeColorCode->length)? (string) $nodeColorCode->item(0)->nodeValue : null,
+						'description' => ($nodeColorDescription->length)? (string) $nodeColorDescription->item(0)->nodeValue : null,
+						'country_of_origin' => ($nodeCountryOfOrigin->length)? (string) $nodeCountryOfOrigin->item(0)->nodeValue : null,
+						'gift_card_tender_code' => ($nodeGiftCardTenderCode->length)? (string) $nodeGiftCardTenderCode->item(0)->nodeValue : null,
+					)
+				),
+				'item_dimensions_shipping' => new Varien_Object(
+					array(
+						'mass_unit_of_measure' => ($nodeMass->length)? (string) $nodeMass->item(0)->getAttribute('unit_of_measure') : null,
+						'weight' => ($nodeWeight->length)? (float) $nodeWeight->item(0)->nodeValue : 0,
+					)
+				),
+				'msrp' => ($nodeMsrp->length)? (string) $nodeMsrp->item(0)->nodeValue : null,
+				'price' => ($nodePrice->length)? (float) $nodePrice->item(0)->nodeValue : 0,
+				'size_attributes' => new Varien_Object(
+					array(
+						'size' => $sizeData
+					)
+				)
+			)
+		);
 	}
 
 	/**
 	 * extract CustomAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXpath, the xpath object
+	 * @param DOMXPath $feedXPath, the xpath object
 	 *
 	 * @return Varien_Ojbect
 	 */
-	protected function _extractCustomAttributes($feedXpath, $itemIndex, $catalogId)
+	protected function _extractCustomAttributes($feedXPath, $itemIndex, $catalogId)
 	{
-		$customAttributesObject = new Varien_Object();
-
-		// let save CustomAttributes/Attribute to a Varien_Object
-		$customAttributesObject = new Varien_Object();
-		$customAttributesObject->setAttributes(array(array('name' => null, 'operationType' => null, 'lang' => null, 'value' => null, 'is_configurable' => false)));
+		$attributeData = array();
 
 		// Name value paris of additional attributes for the product.
-		$customAttributes = $feedXpath->query('//Item[' .
-			$itemIndex .
-			'][@catalog_id="' .
-			$catalogId .
-			'"]/CustomAttributes/Attribute'
-		);
-		if ($customAttributes->length) {
-			$attributeData = array();
-			foreach ($customAttributes as $attributeRecord) {
-				// The name of the attribute.
-				$attributeName = $attributeRecord->getAttribute('name');
-
-				// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-				$attributeOperationType = $attributeRecord->getAttribute('operation_type');
-
-				// Language code for the natural language or the <Value /> element.
-				$attributeLang = $attributeRecord->getAttribute('xml:lang');
-
-				// Value of the attribute.
-				$attributeValue = '';
-				$attributeValueElement = $feedXpath->query('//Item[' .
-					$itemIndex .
-					'][@catalog_id="' .
-					$catalogId .
-					'"]/CustomAttributes/Attribute/Value'
-				);
-				if ($attributeValueElement->length) {
-					$attributeValue = (string) $attributeValueElement->item(0)->nodeValue;
-				}
+		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		if ($nodeAttribute->length) {
+			foreach ($nodeAttribute as $attributeRecord) {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
 				$attributeData[] = array(
-					'name' => $attributeName,
-					'operationType' => $attributeOperationType,
-					'lang' => $attributeLang,
-					'value' => $attributeValue,
+					'name' => (string) $attributeRecord->getAttribute('name'), // The name of the attribute.
+					'operationType' => (string) $attributeRecord->getAttribute('operation_type'), // Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+					'lang' => (string) $attributeRecord->getAttribute('xml:lang'), // Language code for the natural language or the <Value /> element.
+					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
 				);
 			}
-
-			$customAttributesObject->setAttributes($attributeData);
 		}
 
-		return $customAttributesObject;
+		return new Varien_Object(
+			array(
+				'attributes' => $attributeData
+			)
+		);
 	}
 
 	/**
@@ -564,43 +261,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	public function extractItemItemMasterFeed($doc)
 	{
 		$collectionOfItems = array();
-		$feedXpath = new DOMXPath($doc);
+		$feedXPath = new DOMXPath($doc);
 
-		$master = $feedXpath->query('//Item');
+		$master = $feedXPath->query('//Item');
 		$itemIndex = 1; // start index
 		foreach ($master as $item) {
-			// item object
-			$itemObject = new Varien_Object();
-
-			// setting catalog id
-			$itemObject->setCatalogId((string) $item->getAttribute('catalog_id'));
-
-			// setting gsi_client_id id
-			$itemObject->setGsiClientId((string) $item->getAttribute('gsi_client_id'));
-
-			// Defines the action requested for this item. enum:("Add", "Change", "Delete")
-			$itemObject->setOperationType((string) $item->getAttribute('operation_type'));
-
-			// get varien object of item id node
-			$itemObject->setItemId($this->_extractItemId($feedXpath, $itemIndex, $itemObject->getCatalogId()));
-
-			// get varien object of base attributes node
-			$itemObject->setBaseAttributes($this->_extractBaseAttributes($feedXpath, $itemIndex, $itemObject->getCatalogId()));
-
-			// get varien object of bundle attributes node
-			$itemObject->setBundleContents($this->_extractBundleContents($feedXpath, $itemIndex, $itemObject->getCatalogId()));
-
-			// get varien object of Drop Ship Supplier Information attribute node
-			$itemObject->setDropShipSupplierInformation($this->_extractDropShipSupplierInformation($feedXpath, $itemIndex, $itemObject->getCatalogId()));
-
-			// get varien object of Extended Attributes node
-			$itemObject->setExtendedAttributes($this->_extractExtendedAttributes($feedXpath, $itemIndex, $itemObject->getCatalogId()));
-
-			// get varien object of Custom Attributes node
-			$itemObject->setCustomAttributes($this->_extractCustomAttributes($feedXpath, $itemIndex, $itemObject->getCatalogId()));
+			$catalogId = (string) $item->getAttribute('catalog_id');
 
 			// setting item object into the colelction of item objects.
-			$collectionOfItems[] = $itemObject;
+			$collectionOfItems[] = new Varien_Object(
+				array(
+					'catalog_id' => $catalogId, // setting catalog id
+					'gsi_client_id' => (string) $item->getAttribute('gsi_client_id'), // setting gsi_client_id id
+					'operation_type' => (string) $item->getAttribute('operation_type'), // Defines the action requested for this item. enum:("Add", "Change", "Delete")
+					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId), // get varien object of item id node
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of base attributes node
+					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId), // get varien object of bundle attributes node
+					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId), // get varien object of Drop Ship Supplier Information attribute node
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Extended Attributes node
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Custom Attributes node
+				)
+			);
 
 			// increment item index
 			$itemIndex++;

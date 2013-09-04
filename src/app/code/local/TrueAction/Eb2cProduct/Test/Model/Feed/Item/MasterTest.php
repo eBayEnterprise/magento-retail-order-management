@@ -28,6 +28,35 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	}
 
 	/**
+	 * testing _constructor method - this test to test fs tool is set in the constructor when no paramenter pass
+	 *
+	 * @test
+	 */
+	public function testConstructor()
+	{
+		$feedItemMasterMock = $this->getModelMockBuilder('eb2cproduct/feed_item_master')
+			->setMethods(array('hasFsTool'))
+			->getMock();
+
+		$feedItemMasterMock->expects($this->any())
+			->method('hasFsTool')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cproduct/feed_item_master', $feedItemMasterMock);
+
+		$productFeedModel = Mage::getModel('eb2cproduct/feed_item_master');
+
+		$masterReflector = new ReflectionObject($productFeedModel);
+		$constructMethod = $masterReflector->getMethod('_construct');
+		$constructMethod->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$constructMethod->invoke($productFeedModel)
+		);
+	}
+
+	/**
 	 * testing processFeeds method - with invalid feed catalog id
 	 *
 	 * @test
@@ -39,10 +68,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -71,10 +101,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedClientId()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -103,10 +134,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithInvalidFeedItemType()); // give a feed with invalid catalog id
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -119,6 +151,46 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
+
+		$this->assertNull($master->processFeeds());
+	}
+
+	/**
+	 * testing processFeeds method - when sftp setting is invalid
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testProcessFeedsWithInvalidSftpSettings()
+	{
+		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
+		$mockItemMaster->replaceByMockWithInvalidProductId();
+
+		$master = Mage::getModel('eb2cproduct/feed_item_master');
+
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperInvalidSftpSettings();
+
+		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
+
+		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
+		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
+
+		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
+		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
+
+		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
+		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
+
+		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
+		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
+
+		// to make the _clean method throw an exception we must mock it
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
 
 		$this->assertNull($master->processFeeds());
 	}
@@ -138,10 +210,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -177,10 +250,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAddNosale());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAddNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -212,10 +286,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -247,10 +322,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -282,10 +358,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -317,10 +394,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -352,10 +430,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdateNosale());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdateNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -387,10 +466,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsUpdate());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -422,10 +502,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsDelete());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -457,10 +538,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithBundleProductsDelete());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -492,10 +574,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithConfigurableProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -527,10 +610,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithConfigurableProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -562,10 +646,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithGroupedProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -597,10 +682,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$master = Mage::getModel('eb2cproduct/feed_item_master');
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$master->setHelper($mockHelperObject->buildEb2cProductHelper());
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedWithGroupedProductsAdd());
+		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());

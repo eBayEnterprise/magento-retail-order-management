@@ -32,27 +32,31 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _construct()
 	{
-		$this->setExtractor(Mage::getModel('eb2cproduct/feed_item_extractor'));
-		$this->setHelper(Mage::helper('eb2cproduct'));
-		$this->setStockItem(Mage::getModel('cataloginventory/stock_item'));
-		$this->setProduct(Mage::getModel('catalog/product'));
-		$this->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'));
-		$this->setFeedModel(Mage::getModel('eb2ccore/feed'));
-		$this->setEavConfig(Mage::getModel('eav/config'));
-		$this->setEavEntityAttribute(Mage::getModel('eav/entity_attribute'));
-		$this->setProductTypeConfigurableAttribute(Mage::getModel('catalog/product_type_configurable_attribute'));
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
-		// setting default attribute set id
-		$this->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId());
+		// Set up local folders for receiving, processing
+		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
+		if ($this->hasFsTool()) {
+			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
+		}
 
-		// Magento product type ids
-		$this->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'));
-
-		// set the default store id
-		$this->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId());
-
-		// set array of website ids
-		$this->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
+		$this->setExtractor(Mage::getModel('eb2cproduct/feed_item_extractor'))
+			->setStockItem(Mage::getModel('cataloginventory/stock_item'))
+			->setProduct(Mage::getModel('catalog/product'))
+			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
+			->setEavConfig(Mage::getModel('eav/config'))
+			->setEavEntityAttribute(Mage::getModel('eav/entity_attribute'))
+			->setProductTypeConfigurableAttribute(Mage::getModel('catalog/product_type_configurable_attribute'))
+			// setting default attribute set id
+			->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId())
+			// Magento product type ids
+			->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'))
+			// set the default store id
+			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
+			// set array of website ids
+			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds())
+			->setBaseDir($cfg->itemFeedLocalPath);
 
 		// initalialize bundle queue with an empty array
 		$this->_bundleQueue = array();
@@ -195,12 +199,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _getItemMasterFeeds()
 	{
-		$this->getFeedModel()->setBaseFolder( $this->getHelper()->getConfigModel()->feedLocalPath );
-		$remoteFile = $this->getHelper()->getConfigModel()->feedRemoteReceivedPath;
-		$configPath =  $this->getHelper()->getConfigModel()->configPath;
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$coreHelper = Mage::helper('eb2ccore');
+		$remoteFile = $cfg->itemFeedRemoteReceivedPath;
+		$configPath = $cfg->configPath;
+		$feedHelper = Mage::helper('eb2ccore/feed');
+		$productHelper = Mage::helper('eb2cproduct');
 
-		// downloading feed from eb2c server down to local server
-		$this->getHelper()->getFileTransferHelper()->getFile($this->getFeedModel()->getInboundFolder(), $remoteFile, $configPath, null);
+		// only attempt to transfer file when the ftp setting is valid
+		if ($coreHelper->isValidFtpSettings()) {
+			// Download feed from eb2c server to local server
+			Mage::helper('filetransfer')->getFile(
+				$this->getFeedModel()->getInboundDir(),
+				$remoteFile,
+				$feedHelper::FILETRANSFER_CONFIG_PATH
+			);
+		} else {
+			// log as a warning
+			Mage::log(
+				'[' . __CLASS__ . '] Item Master Feed: can\'t transfer file from eb2c server because of invalid ftp setting on the magento store.',
+				Zend_Log::WARN
+			);
+		}
 	}
 
 	/**
@@ -210,17 +230,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	public function processFeeds()
 	{
+		$productHelper = Mage::helper('eb2cproduct');
+		$coreHelper = Mage::helper('eb2ccore');
+
 		$this->_getItemMasterFeeds();
-		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
+		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $this->getHelper()->getConfigModel()->feedEventType;
-			$expectHeaderVersion = $this->getHelper()->getConfigModel()->feedHeaderVersion;
+			$expectEventType = $productHelper->getConfigModel()->itemFeedEventType;
+			$expectHeaderVersion = $productHelper->getConfigModel()->itemFeedHeaderVersion;
 
 			// validate feed header
-			if ($this->getHelper()->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($productHelper->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
 				// processing feed items
 				$this->_itemMasterActions($domDocument);
 			}
@@ -336,15 +359,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _itemMasterActions($doc)
 	{
+		$productHelper = Mage::helper('eb2cproduct');
+
 		if ($feedItemCollection = $this->getExtractor()->extractItemItemMasterFeed($doc)){
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedItemCollection as $feedItem) {
 				// Ensure this matches the catalog id set in the Magento admin configuration.
 				// If different, do not update the item and log at WARN level.
-				if ($feedItem->getCatalogId() !== $this->getHelper()->getConfigModel()->catalogId) {
+				if ($feedItem->getCatalogId() !== $productHelper->getConfigModel()->catalogId) {
 					Mage::log(
 						'Item Master Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$this->getHelper()->getConfigModel()->catalogId . ')',
+						$productHelper->getConfigModel()->catalogId . ')',
 						Zend_Log::WARN
 					);
 					continue;
@@ -352,10 +377,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 				// Ensure that the client_id field here matches the value supplied in the Magento admin.
 				// If different, do not update this item and log at WARN level.
-				if ($feedItem->getGsiClientId() !== $this->getHelper()->getConfigModel()->clientId) {
+				if ($feedItem->getGsiClientId() !== $productHelper->getConfigModel()->clientId) {
 					Mage::log(
 						'Item Master Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$this->getHelper()->getConfigModel()->clientId . ')',
+						$productHelper->getConfigModel()->clientId . ')',
 						Zend_Log::WARN
 					);
 					continue;

@@ -1,8 +1,8 @@
 <?php
 /**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ * @category   TrueAction
+ * @package    TrueAction_Eb2c
+ * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 /**
  * @codeCoverageIgnore
@@ -53,14 +53,18 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function buildEb2cCoreModelConfigRegistry()
 	{
 		$properties = new StdClass();
-		$properties->feedLocalPath = 'var/TrueAction/Eb2c/Feed/Item/Master/';
-		$properties->feedRemoteReceivedPath = '/Item/Master/';
 		$properties->configPath = 'eb2ccore/general';
-		$properties->feedEventType = 'ItemMaster';
-		$properties->feedHeaderVersion = '2.3.0';
 		$properties->destinationType = 'MAILBOX';
 		$properties->catalogId = '70';
 		$properties->clientId = 'TAN-CLI';
+		$properties->contentFeedLocalPath = 'var/TrueAction/Eb2c/Feed/Content/Master/';
+		$properties->contentFeedRemoteReceivedPath = '/Content/Master/';
+		$properties->contentFeedEventType = 'ContentMaster';
+		$properties->contentFeedHeaderVersion = '2.3.0';
+		$properties->itemFeedLocalPath = 'var/TrueAction/Eb2c/Feed/Item/Master/';
+		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
+		$properties->itemFeedEventType = 'ItemMaster';
+		$properties->itemFeedHeaderVersion = '2.3.0';
 
 		return $properties;
 	}
@@ -147,19 +151,11 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function buildEb2cProductHelper()
 	{
-		$helperMock = $this->getMock(
-			'TrueAction_Eb2cProduct_Helper_Data',
+		$helperMock = $this->getHelperMock(
+			'eb2cproduct/data',
 			array(
-				'getCoreHelper',
-				'getFileTransferHelper',
-				'getConfigModel',
-				'getConstantHelper',
-				'getCoreFeed',
-				'getXmlNs',
-				'getOperationUri',
-				'getRequestId',
-				'getReservationId',
-				'getApiModel',
+				'getCoreHelper', 'getFileTransferHelper', 'getConfigModel', 'getConstantHelper',
+				'getCoreFeed', 'getDomDocument', 'getXmlNs', 'getOperationUri', 'getRequestId', 'getReservationId', 'getApiModel'
 			)
 		);
 		$helperMock->expects($this->any())
@@ -178,6 +174,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->method('getCoreFeed')
 			->will($this->returnValue($this->buildEb2cCoreHelperFeed()));
 		$helperMock->expects($this->any())
+			->method('getDomDocument')
+			->will($this->returnValue($this->buildDomDocument()));
+		$helperMock->expects($this->any())
 			->method('getXmlNs')
 			->will($this->returnValue('http://api.gsicommerce.com/schema/checkout/1.0'));
 		$helperMock->expects($this->any())
@@ -194,5 +193,45 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->will($this->returnValue($this->buildEb2cCoreModelApi()));
 
 		return $helperMock;
+	}
+
+	/**
+	 * replacing by mock of the eb2cproduct helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockProductHelper()
+	{
+		$this->replaceByMock('helper', 'eb2cproduct', $this->buildEb2cProductHelper());
+	}
+
+	/**
+	 * replacing by mock of the eb2ccore helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockCoreHelperInvalidSftpSettings()
+	{
+		// with invalid ftp setting
+		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$coreHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(false));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+	}
+
+	/**
+	 * replacing by mock of the eb2ccore helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockCoreHelperValidSftpSettings()
+	{
+		// with invalid ftp setting
+		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$coreHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 	}
 }
