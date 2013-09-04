@@ -248,9 +248,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
 				$attributeData[] = array(
-					'name' => (string) $attributeRecord->getAttribute('name'), // The name of the attribute.
-					'operationType' => (string) $attributeRecord->getAttribute('operation_type'), // Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-					'lang' => (string) $attributeRecord->getAttribute('xml:lang'), // Language code for the natural language or the <Value /> element.
+					// The name of the attribute.
+					'name' => (string) $attributeRecord->getAttribute('name'),
+					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
+					// Language code for the natural language or the <Value /> element.
+					'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
 					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
 				);
 			}
@@ -283,15 +286,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			// setting item object into the colelction of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
-					'catalog_id' => $catalogId, // setting catalog id
-					'gsi_client_id' => (string) $item->getAttribute('gsi_client_id'), // setting gsi_client_id id
-					'operation_type' => (string) $item->getAttribute('operation_type'), // Defines the action requested for this item. enum:("Add", "Change", "Delete")
-					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId), // get varien object of item id node
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of base attributes node
-					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId), // get varien object of bundle attributes node
-					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId), // get varien object of Drop Ship Supplier Information attribute node
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Extended Attributes node
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Custom Attributes node
+					// setting catalog id
+					'catalog_id' => $catalogId,
+					// setting gsi_client_id id
+					'gsi_client_id' => (string) $item->getAttribute('gsi_client_id'),
+					// Defines the action requested for this item. enum:("Add", "Change", "Delete")
+					'operation_type' => (string) $item->getAttribute('operation_type'),
+					// get varien object of item id node
+					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId),
+					// get varien object of base attributes node
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId),
+					// get varien object of bundle attributes node
+					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Drop Ship Supplier Information attribute node
+					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Extended Attributes node
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Custom Attributes node
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId),
 				)
 			);
 
