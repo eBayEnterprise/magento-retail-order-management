@@ -10,10 +10,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractItemId($feedXPath, $itemIndex, $catalogId)
+	protected function _extractItemId(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		// SKU used to identify this item from the client system.
 		$nodeClientItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientItemId");
@@ -24,10 +26,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract BaseAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractBaseAttributes($feedXPath, $itemIndex, $catalogId)
+	protected function _extractBaseAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		// Allows for control of the web store display.
 		$nodeCatalogClass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
@@ -64,10 +68,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract BundleContents data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractBundleContents($feedXPath, $itemIndex, $catalogId)
+	protected function _extractBundleContents(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		$bundleItemCollection = array();
 
@@ -103,10 +109,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract DropShipSupplierInformation data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId)
+	protected function _extractDropShipSupplierInformation(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		// Name of the Drop Ship Supplier fulfilling the item
 		$nodeSupplierName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierName");
@@ -130,10 +138,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract ExtendedAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractExtendedAttributes($feedXPath, $itemIndex, $catalogId)
+	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		// If false, customer cannot add a gift message to the item.
 		$nodeAllowGiftMessage = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/AllowGiftMessage");
@@ -222,10 +232,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract CustomAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
 	 *
-	 * @return Varien_Ojbect
+	 * @return Varien_Object
 	 */
-	protected function _extractCustomAttributes($feedXPath, $itemIndex, $catalogId)
+	protected function _extractCustomAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
 		$attributeData = array();
 
@@ -236,9 +248,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
 				$attributeData[] = array(
-					'name' => (string) $attributeRecord->getAttribute('name'), // The name of the attribute.
-					'operationType' => (string) $attributeRecord->getAttribute('operation_type'), // Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-					'lang' => (string) $attributeRecord->getAttribute('xml:lang'), // Language code for the natural language or the <Value /> element.
+					// The name of the attribute.
+					'name' => (string) $attributeRecord->getAttribute('name'),
+					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
+					// Language code for the natural language or the <Value /> element.
+					'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
 					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
 				);
 			}
@@ -258,7 +273,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extractItemItemMasterFeed($doc)
+	public function extractItemItemMasterFeed(DOMDocument $doc)
 	{
 		$collectionOfItems = array();
 		$feedXPath = new DOMXPath($doc);
@@ -271,15 +286,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			// setting item object into the colelction of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
-					'catalog_id' => $catalogId, // setting catalog id
-					'gsi_client_id' => (string) $item->getAttribute('gsi_client_id'), // setting gsi_client_id id
-					'operation_type' => (string) $item->getAttribute('operation_type'), // Defines the action requested for this item. enum:("Add", "Change", "Delete")
-					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId), // get varien object of item id node
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of base attributes node
-					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId), // get varien object of bundle attributes node
-					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId), // get varien object of Drop Ship Supplier Information attribute node
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Extended Attributes node
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId), // get varien object of Custom Attributes node
+					// setting catalog id
+					'catalog_id' => $catalogId,
+					// setting gsi_client_id id
+					'gsi_client_id' => (string) $item->getAttribute('gsi_client_id'),
+					// Defines the action requested for this item. enum:("Add", "Change", "Delete")
+					'operation_type' => (string) $item->getAttribute('operation_type'),
+					// get varien object of item id node
+					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId),
+					// get varien object of base attributes node
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId),
+					// get varien object of bundle attributes node
+					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Drop Ship Supplier Information attribute node
+					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Extended Attributes node
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId),
+					// get varien object of Custom Attributes node
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId),
 				)
 			);
 

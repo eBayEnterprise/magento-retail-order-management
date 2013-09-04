@@ -44,6 +44,13 @@
 	<default>
 		<eb2c>
 			<product>
+				<api_xml_ns>http://api.gsicommerce.com/schema/checkout/1.0</api_xml_ns>
+				<api_env>developer</api_env>
+				<api_region>na</api_region>
+				<api_version>v1.10</api_version>
+				<api_service>product</api_service>
+				<api_uri_format>https://%s.%s.gsipartners.com/%s/stores/%s/%s/%s.%s</api_uri_format>
+				<api_return_format>xml</api_return_format>
 				<developer_mode>1</developer_mode>
 				<item_feed_local_path>var/TrueAction/Eb2c/Feed/Item/Master/</item_feed_local_path>
 				<item_feed_remote_received_path>/Item/Master/</item_feed_remote_received_path>

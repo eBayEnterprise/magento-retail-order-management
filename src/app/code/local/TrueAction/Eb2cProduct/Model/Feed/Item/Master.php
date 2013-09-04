@@ -58,13 +58,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds())
 			->setBaseDir($cfg->itemFeedLocalPath);
 
-		// initalialize bundle queue with an empty array
+		// initialize bundle queue with an empty array
 		$this->_bundleQueue = array();
 
-		// initalialize configurable queue with an empty array
+		// initialize configurable queue with an empty array
 		$this->_configurableQueue = array();
 
-		// initalialize grouped queue with an empty array
+		// initialize grouped queue with an empty array
 		$this->_groupedQueue = array();
 
 		return $this;
@@ -206,7 +206,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$feedHelper = Mage::helper('eb2ccore/feed');
 		$productHelper = Mage::helper('eb2cproduct');
 
-		// only attempt to transfer file when the ftp setting is valid
+		// only attempt to transfer file when the FTP setting is valid
 		if ($coreHelper->isValidFtpSettings()) {
 			// Download feed from eb2c server to local server
 			Mage::helper('filetransfer')->getFile(
@@ -232,25 +232,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
+		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 
 		$this->_getItemMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
-			// load feed files to dom object
+			// load feed files to Dom object
 			$domDocument->load($feed);
 
 			$expectEventType = $productHelper->getConfigModel()->itemFeedEventType;
 			$expectHeaderVersion = $productHelper->getConfigModel()->itemFeedHeaderVersion;
 
 			// validate feed header
-			if ($productHelper->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
 				// processing feed items
 				$this->_itemMasterActions($domDocument);
 			}
 
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
-				// This assumes that we have process all ok
+				// This assumes that we have process all OK
 				$this->getFeedModel()->mvToArchiveFolder($feed);
 			}
 		}
@@ -353,7 +354,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	/**
 	 * determine which action to take for item master (add, update, delete.
 	 *
-	 * @param DOMDocument $doc, the dom document with the loaded feed data
+	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
 	 * @return void
 	 */
@@ -408,7 +409,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 					$this->_addGroupedToQueue($feedItem);
 				}
 
-				// pricess feed data according to their operations
+				// process feed data according to their operations
 				switch (trim(strtoupper($feedItem->getOperationType()))) {
 					case 'ADD':
 						$this->_addItem($feedItem);
@@ -500,9 +501,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 							// setting color attribute
 							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
-						if ($this->_isAttributeExists('gift_cart_tender_code')) {
-							// setting gift_cart_tender_code attribute
-							$productObject->setGiftCartTenderCode($dataObject->getExtendedAttributes()->getGiftCartTenderCode());
+						if ($this->_isAttributeExists('gift_card_tender_code')) {
+							// setting gift_card_tender_code attribute
+							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 						}
 
 						// adding custom attributes
@@ -518,7 +519,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 											// setting custom attributes to null on operation type 'delete'
 											$productObject->setData($attributeCode, null);
 										} else {
-											// seting custom value whener the operation type is 'add', or 'change'
+											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
 										}
 									}
@@ -634,9 +635,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 							// setting color attribute
 							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
-						if ($this->_isAttributeExists('gift_cart_tender_code')) {
-							// setting gift_cart_tender_code attribute
-							$productObject->setGiftCartTenderCode($dataObject->getExtendedAttributes()->getGiftCartTenderCode());
+						if ($this->_isAttributeExists('gift_card_tender_code')) {
+							// setting gift_card_tender_code attribute
+							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 						}
 
 						// adding custom attributes
@@ -652,7 +653,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 											// setting custom attributes to null on operation type 'delete'
 											$productObject->setData($attributeCode, null);
 										} else {
-											// seting custom value whener the operation type is 'add', or 'change'
+											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
 										}
 									}

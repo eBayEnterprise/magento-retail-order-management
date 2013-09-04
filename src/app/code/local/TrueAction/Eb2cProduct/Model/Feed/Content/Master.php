@@ -26,7 +26,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setExtractor(Mage::getModel('eb2cproduct/feed_content_extractor')) // Magicaly setting an instantiated extractor object
+		$this->setExtractor(Mage::getModel('eb2cproduct/feed_content_extractor')) // Magically setting an instantiated extractor object
 			->setProduct(Mage::getModel('catalog/product'))
 			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
 			->setEavConfig(Mage::getModel('eav/config'))
@@ -147,7 +147,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 		$feedHelper = Mage::helper('eb2ccore/feed');
 		$productHelper = Mage::helper('eb2cproduct');
 
-		// only attempt to transfer file when the ftp setting is valid
+		// only attempt to transfer file when the FTP setting is valid
 		if ($coreHelper->isValidFtpSettings()) {
 			// Download feed from eb2c server to local server
 			Mage::helper('filetransfer')->getFile(
@@ -158,7 +158,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 		} else {
 			// log as a warning
 			Mage::log(
-				'[' . __CLASS__ . '] Content Master Feed: can\'t transfer file from eb2c server because of invalid ftp setting on the magento store.',
+				'[' . __CLASS__ . '] Content Master Feed: can\'t transfer file from eb2c server because of invalid FTP setting on the magento store.',
 				Zend_Log::WARN
 			);
 		}
@@ -173,6 +173,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
+		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$this->_getContentMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
@@ -183,14 +184,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			$expectHeaderVersion = $productHelper->getConfigModel()->contentFeedHeaderVersion;
 
 			// validate feed header
-			if ($productHelper->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
 				// processing feed Contents
 				$this->_contentMasterActions($domDocument);
 			}
 
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
-				// This assumes that we have process all ok
+				// This assumes that we have process all OK
 				$this->getFeedModel()->mvToArchiveFolder($feed);
 			}
 		}
@@ -202,7 +203,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	/**
 	 * determine which action to take for Content master (add, update, delete.
 	 *
-	 * @param DOMDocument $doc, the dom document with the loaded feed data
+	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
 	 * @return void
 	 */
@@ -454,7 +455,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	 * add category to magento, check if already exist and return the category id
 	 *
 	 * @param string $categoryName, the category to either add or get category id from magento
-	 * @param string $path, delimitated string of the category depth path
+	 * @param string $path, delimited string of the category depth path
 	 *
 	 * @return int, the category id
 	 */
@@ -475,7 +476,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 						'is_active' => 1,
 						'is_anchor' => 0, //for layered navigation
 						'page_layout' => 'default',
-						'url_key' => Mage::helper('catalog/product_url')->format($categoryName) // url to access this category
+						'url_key' => Mage::helper('catalog/product_url')->format($categoryName) // URL to access this category
 					);
 
 					$this->getCategory()->addData($categoryData);
