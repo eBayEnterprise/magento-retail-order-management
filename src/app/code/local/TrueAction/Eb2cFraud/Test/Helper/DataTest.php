@@ -7,7 +7,8 @@ class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	/**
 	 * setUp method
 	 */
-	public function setUp() {
+	public function setUp()
+	{
 		parent::setUp();
 		$this->_helper = new TrueAction_Eb2cFraud_Helper_Data();
 		$this->_jsModuleName = TrueAction_Eb2cFraud_Helper_Data::JSC_JS_PATH;
@@ -18,7 +19,7 @@ class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	 * @test
 	 * @loadFixture testConfig
 	 */
-	public function testGetConfig( )
+	public function testGetConfig()
 	{
 		$config = $this->_helper->getConfig();
 		$this->assertSame('TAN-EB2CJS', $config->clientId);
