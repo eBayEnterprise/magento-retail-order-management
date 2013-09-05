@@ -25,7 +25,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	/**
 	 * Generate a reusable Mage_Customer_Model_Address object
 	 */
-	protected function _generateAddressObject($streetLines = 4)
+	protected function _generateAddressObject($streetLines=4)
 	{
 		$address = Mage::getModel('customer/address');
 		$street = array();
@@ -43,7 +43,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	/**
 	 * Create a DOMDocument containing a PhysicalAddressType
 	 */
-	protected function _generatePhysicalAddressElement($streetLines = 4)
+	protected function _generatePhysicalAddressElement($streetLines=4)
 	{
 		$dom = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$rootNs = Mage::getModel('eb2ccore/config_registry')
