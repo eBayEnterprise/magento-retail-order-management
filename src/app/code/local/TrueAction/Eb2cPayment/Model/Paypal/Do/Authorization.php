@@ -61,7 +61,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	 */
 	public function buildPayPalDoAuthorizationRequest($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoAuthorizationRequest = $domDocument->addElement('PayPalDoAuthorizationRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 		$payPalDoAuthorizationRequest->setAttribute('requestId', $this->_getHelper()->getRequestId($quote->getEntityId()));
 		$payPalDoAuthorizationRequest->createChild(
@@ -89,7 +89,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	{
 		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoAuthorizationReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalDoAuthorizationReply);
 			$checkoutXpath = new DOMXPath($doc);
 			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

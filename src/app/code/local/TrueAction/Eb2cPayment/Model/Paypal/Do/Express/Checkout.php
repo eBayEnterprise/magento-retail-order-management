@@ -90,7 +90,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	 */
 	public function buildPayPalDoExpressCheckoutRequest($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoExpressCheckoutRequest = $domDocument->addElement('PayPalDoExpressCheckoutRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 		$payPalDoExpressCheckoutRequest->createChild(
 			'OrderId',
@@ -247,7 +247,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	{
 		$checkoutObject = new Varien_Object();
 		if (trim($payPalDoExpressCheckoutReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalDoExpressCheckoutReply);
 			$checkoutXpath = new DOMXPath($doc);
 			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

@@ -90,7 +90,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	 */
 	public function buildPayPalGetExpressCheckoutRequest($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalGetExpressCheckoutRequest = $domDocument->addElement('PayPalGetExpressCheckoutRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 		$payPalGetExpressCheckoutRequest->createChild(
 			'OrderId',
@@ -122,7 +122,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	{
 		$checkoutObject = new Varien_Object();
 		if (trim($payPalGetExpressCheckoutReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalGetExpressCheckoutReply);
 			$checkoutXpath = new DOMXPath($doc);
 			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

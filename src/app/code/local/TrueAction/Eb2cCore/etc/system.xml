@@ -55,6 +55,72 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+						<activeconfig_import>
+							<filetransfer>
+								<sort_order>40</sort_order>
+								<show_in_store>0</show_in_store>
+							</filetransfer>
+						</activeconfig_import>
+						<!-- HACK TO HIDE THE PROTOCOL SELECTOR -->
+						<filetransfer_protocol>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_protocol>
+						<filetransfer_sftp_auth_type>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_sftp_auth_type>
+						<!-- END HACK -->
+					</fields>
+				</general>
+				<api>
+					<label>API</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>6</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
+						<key>
+							<label>API Key</label>
+							<comment>The api key for EB2C web services.</comment>
+							<sort_order>70</sort_order>
+							<frontend_type>obscure</frontend_type>
+							<validate>validate-password</validate>
+							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</key>
+						<timeout>
+							<label>API Timeout</label>
+							<comment>Time in milliseconds</comment>
+							<sort_order>80</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-digits</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</timeout>
+						<environment>
+							<label>API Environment</label>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</environment>
+					</fields>
+				</api>
+				<feed>
+					<label>Feed</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>7</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
 						<sftp_username>
 							<label>SFTP User Name</label>
 							<comment>The user name for authenticating to the feeds service.</comment>
@@ -86,27 +152,16 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</sftp_location>
-						<api_key>
-							<label>API Key</label>
-							<comment>The api key for EB2C web services.</comment>
-							<sort_order>70</sort_order>
-							<frontend_type>obscure</frontend_type>
-							<validate>validate-password</validate>
-							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_key>
-						<api_timeout>
-							<label>API Timeout</label>
-							<comment>Time in milliseconds</comment>
-							<sort_order>80</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-digits</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_timeout>
+					</fields>
+				</feed>
+				<development>
+					<label>Development</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>8</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>0</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
 						<test_mode>
 							<label>Test Mode</label>
 							<comment>Should messages be sent as tests?</comment>
@@ -118,7 +173,7 @@
 							<show_in_store>0</show_in_store>
 						</test_mode>
 					</fields>
-				</general>
+				</development>
 			</groups>
 		</eb2ccore>
 	</sections>

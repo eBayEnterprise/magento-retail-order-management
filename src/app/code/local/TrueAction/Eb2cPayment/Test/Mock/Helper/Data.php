@@ -103,9 +103,15 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$helperMock = $this->getMockBuilder(
 			'TrueAction_Eb2cPayment_Helper_Data',
 			array(
-				'getCoreHelper', 'getConfigModel', 'getConstantHelper',
-				'getDomDocument', 'getXmlNs', 'getOperationUri', 'getRequestId', 'getReservationId', 'getApiModel',
-				'isValidFtpSettings'
+				'getCoreHelper',
+				'getConfigModel',
+				'getConstantHelper',
+				'getXmlNs',
+				'getOperationUri',
+				'getRequestId',
+				'getReservationId',
+				'getApiModel',
+				'isValidFtpSettings',
 			))
 			->disableOriginalConstructor()
 			->getMock();
@@ -118,9 +124,6 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$helperMock->expects($this->any())
 			->method('getConstantHelper')
 			->will($this->returnValue($this->buildEb2cPaymentConstant()));
-		$helperMock->expects($this->any())
-			->method('getDomDocument')
-			->will($this->returnValue($this->buildDomDocument()));
 		$helperMock->expects($this->any())
 			->method('getXmlNs')
 			->will($this->returnValue('http://api.gsicommerce.com/schema/checkout/1.0'));
