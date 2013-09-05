@@ -16,7 +16,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	private $_mageOrder;
 
-
 	protected function _construct()
 	{
 		$this->_config = Mage::helper('eb2corder')->getConfig();
@@ -99,11 +98,10 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			}
 		}
 
-		Mage::log('File ' . $xmlFile
-			. sprintf(': Processed %d of %d, %d errors',
-				$this->_fileInfo['recordsProcessed'],
-				$this->_fileInfo['recordCount'],
-			$this->_fileInfo['recordsWithErrors']) );
+		Mage::log('File ' . $xmlFile . sprintf(': Processed %d of %d, %d errors',
+			$this->_fileInfo['recordsProcessed'],
+			$this->_fileInfo['recordCount'],
+		$this->_fileInfo['recordsWithErrors']) );
 
 		if( $this->_fileInfo['recordsWithErrors'] ) {
 			$this->_localIo->mvToErrorDir($xmlFile);
@@ -114,12 +112,11 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		return $this->_fileInfo['recordsProcessed'];
 	}
 
-
 	/**
 	 * Processes a single eb2c OrderStatusEvent
 	 *
+	 * @todo: if loadOrder fails, continue processing XML and do ... something.
 	 * @param $eventNode - node containing a single event to process
-	 *
 	 * @return int Number of OrderEventDetails we looked at
 	 */
 	private function _processStatusEvent($eventNode)
@@ -131,9 +128,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		}
 
 		$this->_mageOrder = $this->_loadOrder();
-		// TODO: I have to trudge on regardless of whether I find the order, I need a test here
 		$this->_fileInfo['recordsProcessed']++;
-		// TODO: Is there some case, if found, that it's not OK? Not sure.
 		$this->_fileInfo['recordsOk']++;
 
 		$i = 0;
@@ -146,7 +141,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 			$i++;
 		}
 
-		// The name of the function that knows how to process this event. 
+		// The name of the function that knows how to process this event.
 		$funcName = '_process' . $this->_camelize(strtolower($this->_event['Header']['ProcessTypeKey']));
 		if (method_exists($this, $funcName) ) {
 			$this->$funcName();
@@ -157,7 +152,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		$this->_event = null;
 		return $i;
 	}
-
 
 	/**
 	 * Load File information, taken from the root node's attributes
@@ -178,7 +172,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		return $this;
 	}
 
-
 	/**
 	 * Get the Magento order
 	 * 
@@ -186,7 +179,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _loadOrder()
 	{
-		// TODO: Better return value if not found
 		return Mage::getModel('sales/order')->loadByIncrementId($this->_event['Header']['OrderId']);
 	}
 
@@ -197,7 +189,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 	 */
 	private function _loadOrderItem($lineId)
 	{
-		// TODO: Better return value if not found
 		$this->_event['Details'][$lineId]['mageOrderItem'] =
 			Mage::getModel('sales/order_item')->load($this->_event['Details'][$lineId]['OrderLineId']);
 		return $this;
@@ -205,7 +196,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 
 	/**
 	 * Process an Order Fulfillment Event
-	 * @todo Finish when spec'd; ProcessKey 'ORDER_FULFILLMENT' is not documented at https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 * @todo Finish when ProcessKey 'ORDER_FULFILLMENT' spec'd
+	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processOrderFulfillment()
@@ -214,10 +206,10 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		return true;
 	}
 
-
 	/**
 	 * Return Order
-	 * @todo Finish when spec'd; ProcessKey 'Return Order' See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 * @todo Finish when ProcessKey 'Return Order' spec'd
+	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processReturnOrder()
@@ -226,10 +218,10 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
 		return true;
 	}
 
-
 	/**
 	 * Sales Order
-	 * @todo Finish! when spec'd; ProcessKey 'Sales Order' See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 * @todo Finish when ProcessKey 'Sales Order' spec'd
+	 *   See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
 	 * @return bool
 	 */
 	private function _processSalesOrder()

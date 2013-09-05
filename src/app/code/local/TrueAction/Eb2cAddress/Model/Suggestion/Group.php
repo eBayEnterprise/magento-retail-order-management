@@ -68,7 +68,7 @@ class TrueAction_Eb2cAddress_Model_Suggestion_Group
 	 * @param boolean $keepFresh
 	 * @return Mage_Customer_Model_Address_Abstract
 	 */
-	public function getOriginalAddress($keepFresh = false)
+	public function getOriginalAddress($keepFresh=false)
 	{
 		$this->setHasFreshSuggestions($keepFresh && $this->getHasFreshSuggestions());
 		return $this->getData('original_address');
@@ -83,7 +83,7 @@ class TrueAction_Eb2cAddress_Model_Suggestion_Group
 	 * @param boolean $keepFresh
 	 * @return Mage_Customer_Model_Address_Abstract
 	 */
-	public function getSuggestedAddresses($keepFresh = false)
+	public function getSuggestedAddresses($keepFresh=false)
 	{
 		$this->setHasFreshSuggestions($keepFresh && $this->getHasFreshSuggestions());
 		return $this->getData('suggested_addresses');

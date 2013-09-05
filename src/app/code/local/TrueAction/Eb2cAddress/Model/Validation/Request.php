@@ -81,9 +81,9 @@ class TrueAction_Eb2cAddress_Model_Validation_Request
 		$fragment = $dom->createDocumentFragment();
 
 		$fragment->appendChild(
-			$dom->createElement('Address',
-				Mage::helper('eb2caddress')
-					->addressToPhysicalAddressXml($this->getAddress(), $this->_dom)
+			$dom->createElement(
+				'Address',
+				Mage::helper('eb2caddress')->addressToPhysicalAddressXml($this->getAddress(), $this->_dom)
 			)
 		);
 		return $fragment;

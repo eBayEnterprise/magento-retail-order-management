@@ -47,9 +47,9 @@ JS;
 		parent::_construct();
 		$collectors = $this->getCollectors() ?: json_decode(
 			Mage::getConfig()
-				->loadModulesConfiguration('jsc.xml')
-				->getNode(TrueAction_Eb2cFraud_Model_Jsc::EB2C_FRAUD_COLLECTOR_PATH),
-			true);
+			->loadModulesConfiguration('jsc.xml')
+			->getNode(TrueAction_Eb2cFraud_Model_Jsc::EB2C_FRAUD_COLLECTOR_PATH),
+		true);
 		$collector = $collectors[array_rand($collectors)];
 		$url = Mage::helper('eb2cfraud')->getJscUrl() . '/' . $collector['filename'];
 		$call = sprintf("%s('%s');", $collector['function'], $collector['formfield']);
