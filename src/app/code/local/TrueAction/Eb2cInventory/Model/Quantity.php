@@ -8,7 +8,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	 * @param string $sku product sku for the added item
 	 * @return int the eb2c available stock for the item.
 	 */
-	public function requestQuantity($qty=0, $itemId, $sku)
+	public function requestQuantity($qty, $itemId, $sku)
 	{
 		$isReserved = 0; // this is to simulate out of stock response from eb2c
 		if ($qty > 0) {
@@ -22,7 +22,8 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 					->request($quantityRequestMessage);
 
 				// get available stock from response XML
-				$isReserved = $this->getAvailableStockFromResponse($quantityResponseMessage);
+				$availableStock = $this->getAvailableStockFromResponse($quantityResponseMessage);
+				$isReserved = isset($availableStock[$itemId]) ? $availableStock[$itemId] : 0;
 			} catch(Exception $e) {
 				Mage::logException($e);
 			}
@@ -56,20 +57,22 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	/**
 	 * Parse through XML response to get eb2c available stock for an item.
 	 * @param string $quantityResponseMessage the XML response from eb2c
-	 * @return int The available stock from eb2c
+	 * @return array The available stock from eb2c for each item, keyed by itemId
 	 */
 	public function getAvailableStockFromResponse($quantityResponseMessage)
 	{
-		$availableStock = 0;
+		$availableStock = array();
 		if (trim($quantityResponseMessage) !== '') {
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			// load response string XML from eb2c
 			$doc->loadXML($quantityResponseMessage);
-			$i = 0;
 			$quantityResponse = $doc->getElementsByTagName('QuantityResponse');
 			foreach($quantityResponse as $response) {
-				$availableStock = (int) $quantityResponse->item($i)->nodeValue;
-				$i++;
+				foreach ($response->childNodes as $node) {
+					if ($node->nodeName === 'Quantity') {
+						$availableStock[$response->getAttribute('itemId')] = (int) $node->nodeValue;
+					}
+				}
 			}
 		}
 		return $availableStock;

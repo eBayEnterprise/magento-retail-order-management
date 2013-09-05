@@ -129,11 +129,11 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$this->_replaceFileTransferHelper();
 
 		// with invalid ftp setting
-		$inventoryHelperMock = $this->getHelperMock('eb2cinventory/data', array('isValidFtpSettings'));
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
 		$inventoryHelperMock->expects($this->any())
 			->method('isValidFtpSettings')
 			->will($this->returnValue(false));
-		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
 
 		$this->assertNull($inventoryFeedModel->processFeeds());
 
@@ -198,11 +198,11 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$inventoryFeedModel->setStockItem($stockItemMock);
 
 		// with valid ftp setting
-		$inventoryHelperMock = $this->getHelperMock('eb2cinventory/data', array('isValidFtpSettings'));
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
 		$inventoryHelperMock->expects($this->any())
 			->method('isValidFtpSettings')
 			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
 
 		$this->assertNull($inventoryFeedModel->processFeeds());
 

@@ -148,6 +148,42 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		);
 	}
 
+	/**
+	 * testing when eb2c quantity check is less than what shopper requested
+	 *
+	 * @test
+	 * @medium
+	 * @dataProvider providerCheckEb2cInventoryQuantity
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCheckEb2cInventoryQuantityRollbackExistingAllocation($observer)
+	{
+		$allocationMock = $this->getModelMock(
+			'eb2cinventory/allocation',
+			array('hasAllocation', 'rollbackAllocation')
+		);
+		$allocationMock->expects($this->once())
+			->method('hasAllocation')
+			->with($this->identicalTo($observer->getEvent()->getItem()->getQuote()))
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->once())
+			->method('rollbackAllocation')
+			->with($this->identicalTo($observer->getEvent()->getItem()->getQuote()));
+
+		// testing when available stock is less, than what shopper requested.
+		$quantityMock = $this->getModelMock('eb2cinventory/quantity', array('requestQuantity'));
+		$quantityMock->expects($this->any())
+			->method('requestQuantity')
+			->will($this->returnValue(1));
+
+		$this->_observer->setQuantity($quantityMock);
+		$this->_observer->setAllocation($allocationMock);
+
+		$this->assertNull(
+			$this->_observer->checkEb2cInventoryQuantity($observer)
+		);
+	}
+
 	public function providerProcessInventoryDetails()
 	{
 		$addressMock = $this->getMock(

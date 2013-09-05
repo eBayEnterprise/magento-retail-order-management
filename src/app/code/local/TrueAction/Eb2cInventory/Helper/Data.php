@@ -137,14 +137,4 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		));
 	}
 
-	/**
-	 * validating ftp settings by simply checking if there's actual setting data.
-	 *
-	 * @return bool, true valid ftp settings otherwise false
-	 */
-	public function isValidFtpSettings()
-	{
-		$cfg = $this->getConfigModel();
-		return trim($cfg->sftpLocation) && trim($cfg->sftpUsername) && trim($cfg->sftpPassword);
-	}
 }

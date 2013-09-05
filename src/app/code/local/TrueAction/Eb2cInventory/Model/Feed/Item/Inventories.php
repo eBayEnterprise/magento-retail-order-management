@@ -31,12 +31,10 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	{
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 		$remoteFile = $cfg->feedRemoteReceivedPath;
-		$configPath = $cfg->configPath;
 		$feedHelper = Mage::helper('eb2ccore/feed');
-		$inventoryHelper = Mage::helper('eb2cinventory');
 
 		// only attempt to transfer file when the ftp setting is valid
-		if ($inventoryHelper->isValidFtpSettings()) {
+		if (Mage::helper('eb2ccore')->isValidFtpSettings()) {
 			// Download feed from eb2c server to local server
 			Mage::helper('filetransfer')->getFile(
 				$this->getFeedModel()->getInboundDir(),
