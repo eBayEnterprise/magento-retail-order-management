@@ -54,7 +54,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	 */
 	public function buildQuantityRequestMessage($items)
 	{
-		$domDocument = $this->getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, $this->getHelper()->getXmlNs())->firstChild;
 		if ($items) {
 			foreach ($items as $item) {
@@ -81,7 +81,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
 	{
 		$availableStock = 0;
 		if (trim($quantityResponseMessage) !== '') {
-			$doc = $this->getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string XML from eb2c
 			$doc->loadXML($quantityResponseMessage);

@@ -55,6 +55,24 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+						<activeconfig_import>
+							<filetransfer>
+								<sort_order>40</sort_order>
+								<show_in_store>0</show_in_store>
+							</filetransfer>
+						</activeconfig_import>
+						<!-- HACK TO HIDE THE PROTOCOL SELECTOR -->
+						<filetransfer_protocol>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_protocol>
+						<filetransfer_sftp_auth_type>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_sftp_auth_type>
+						<!-- END HACK -->
 					</fields>
 				</general>
 				<api>

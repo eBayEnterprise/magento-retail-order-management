@@ -1,0 +1,4 @@
+config:
+  default/eb2ccore/feed/sftp_username: ''
+  default/eb2ccore/feed/sftp_password: ''
+  default/eb2ccore/feed/sftp_location: ''

@@ -6,44 +6,17 @@
  */
 class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 {
-	protected $_helper;
-
 	/**
 	 * setUp method
 	 */
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_helper = $this->_getHelper();
 	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2ccore');
-		}
-		return $this->_helper;
-	}
-
-	/**
-	 * Get Dom instantiated object.
-	 * TODO: Why isn't this just a generic core helper?
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
-	}
-
 
 	public function providerApiCall()
 	{
-		$domDocument = $this->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		$quantityRequestMessage->createChild(
 			'QuantityRequest',

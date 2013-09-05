@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Single point of access for retrieving configuration values.
  * Looks up configuration paths and values via configuration models registered with the helper.
@@ -26,7 +25,8 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 	 * @param TrueAction_Eb2cCore_Model_Config_Interface $configModel
 	 * @return TrueAction_Eb2cCore_Helper_Config $this
 	 */
-	public function addConfigModel(TrueAction_Eb2cCore_Model_Config_Interface $configModel) {
+	public function addConfigModel(TrueAction_Eb2cCore_Model_Config_Interface $configModel)
+	{
 		array_unshift($this->_configModels, $configModel);
 		return $this;
 	}
@@ -69,7 +69,7 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 			}
 		}
 		Mage::throwException('Configuration path specified by ' . $key . ' was not found.');
-	// @codeCoverageIgnoreStart
+		// @codeCoverageIgnoreStart
 	}
 	// @codeCoverageIgnoreEnd
 
@@ -79,7 +79,7 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 	 * @param null|string|bool|int|Mage_Core_Model_Store $store
 	 * @return string
 	 */
-	public function getConfigFlag($configKey, $store = null)
+	public function getConfigFlag($configKey, $store=null)
 	{
 		// if a value is given store, use it, even if it is null/false/empty string/whatever
 		$store = count(func_get_args()) > 1 ? $store : $this->getStore();
@@ -92,7 +92,7 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 	 * @param null|string|bool|int|Mage_Core_Model_Store $store
 	 * @return boolean
 	 */
-	public function getConfig($configKey, $store = null)
+	public function getConfig($configKey, $store=null)
 	{
 		// if a value is given store, use it, even if it is null/false/empty string/whatever
 		$store = count(func_get_args()) > 1 ? $store : $this->getStore();

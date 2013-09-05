@@ -51,7 +51,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 */
 	public function buildAllocationRequestMessage($quote)
 	{
-		$domDocument = $this->getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, $this->getHelper()->getXmlNs())->firstChild;
 		$allocationRequestMessage->setAttribute('requestId', $this->getHelper()->getRequestId($quote->getEntityId()));
 		$allocationRequestMessage->setAttribute('reservationId', $this->getHelper()->getReservationId($quote->getEntityId()));
@@ -147,7 +147,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	{
 		$allocationData = array();
 		if (trim($allocationResponseMessage) !== '') {
-			$doc = $this->getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string XML from eb2c
 			$doc->loadXML($allocationResponseMessage);
@@ -336,7 +336,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 */
 	public function buildRollbackAllocationRequestMessage($quote)
 	{
-		$domDocument = $this->getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$rollbackAllocationRequestMessage = $domDocument->addElement('RollbackAllocationRequestMessage', null, $this->getHelper()->getXmlNs())->firstChild;
 		$rollbackAllocationRequestMessage->setAttribute('requestId', $this->getHelper()->getRequestId($quote->getEntityId()));
 		$rollbackAllocationRequestMessage->setAttribute('reservationId', $this->getHelper()->getReservationId($quote->getEntityId()));
