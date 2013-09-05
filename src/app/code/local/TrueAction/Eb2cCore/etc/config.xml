@@ -23,8 +23,6 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
-				<filetransfer_protocol>sftp</filetransfer_protocol>
-				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 				<test_mode />
 			</general>
 			<api>
@@ -37,6 +35,8 @@
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
+				<filetransfer_protocol>sftp</filetransfer_protocol>
+				<filetransfer_sftp_auth_type>password</filetransfer_sftp_auth_type>
 			</feed>
 			<development>
 				<test_mode />
