@@ -32,7 +32,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	 */
 	protected function _construct()
 	{
+		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+
+		// set base dir base on the config
+		$this->setBaseDir($cfg->contentFeedLocalPath);
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
@@ -55,8 +59,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			// set the default store id
 			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
 			// set array of website ids
-			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds())
-			->setBaseDir($cfg->itemFeedLocalPath);
+			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
 		// initialize bundle queue with an empty array
 		$this->_bundleQueue = array();
@@ -236,7 +239,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 		$this->_getItemMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
+		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to Dom object
 			$domDocument->load($feed);
 
@@ -252,7 +255,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveFolder($feed);
+				$this->getFeedModel()->mvToArchiveDir($feed);
 			}
 		}
 
