@@ -24,18 +24,18 @@ class TrueAction_Eb2cFraud_Helper_Data extends Mage_Core_Helper_Abstract
 			->addConfigModel(Mage::getModel('eb2ccore/config'));
 		$this->_jscUrl = Mage::getBaseUrl(
 			Mage_Core_Model_Store::URL_TYPE_JS,
-			array('_secure'=>true)
+			array('_secure' => true)
 		) . self::JSC_JS_PATH;
 	}
 	/**
-	 * @see self::_config
+	 * @see _config
 	 */
 	public function getConfig()
 	{
 		return $this->_config;
 	}
 	/**
-	 * @see self::_jscUrl
+	 * @see _jscUrl
 	 */
 	public function getJscUrl()
 	{

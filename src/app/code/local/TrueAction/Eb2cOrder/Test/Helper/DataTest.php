@@ -22,7 +22,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', $coreHelper);
 	}
 
-
 	/**
 	 * Accessing constants using our helper and '::' accessor
 	 * @test
