@@ -1,8 +1,4 @@
 <?php
-/**
- *
- *
- */
 class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
@@ -26,7 +22,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', $coreHelper);
 	}
 
-
 	/**
 	 * Accessing constants using our helper and '::' accessor
 	 * @test
@@ -39,18 +34,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 		$this->assertSame($consts::CREATE_DOM_ROOT_NODE_NAME, 'OrderCreateRequest');
 		$this->assertSame($consts::CANCEL_DOM_ROOT_NODE_NAME, 'OrderCancelRequest');
 		$this->assertSame($consts::DOM_ROOT_NS, 'http://api.gsicommerce.com/schema/checkout/1.0');
-	}
-
-
-	/**
-	 * DOM Documents must be TrueAction_Dom_Document class
-	 * @test
-	 */
-	public function testGetDomDocument()
-	{
-		$dom = $this->_helper->getDomDocument();
-		$this->assertSame(get_class($dom), 'TrueAction_Dom_Document');
-		$this->assertSame($dom->saveXML(), '<?xml version="1.0" encoding="UTF-8"?>'."\n");
 	}
 
 	/**

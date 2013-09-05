@@ -223,7 +223,7 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	}
 
 	/**
-	 * @todo - This may be a bad test as the test is basically the same as the implementation.
+	 * This may not be the best test as the test is basically the same as the implementation, but not much else to test.
 	 * My main reason for doing this is that other code also uses the const, such as
 	 * the validator model to pull out the selected value, hence it is important
 	 * to ensure this method pulls the same value other code is expecting it to be.
@@ -238,7 +238,7 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	}
 
 	/**
-	 * @todo - This may be a bad test as the test is basically the same as the implementation.
+	 * This may not be the best test as the test is basically the same as the implementation, but not much else to test.
 	 * My main reason for doing this is that other code also uses the const, such as
 	 * the validator model to determine if the "New Address" seleciton is made,
 	 * hence it is important to ensure this method pulls the same value

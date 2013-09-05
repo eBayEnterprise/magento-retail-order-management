@@ -10,8 +10,8 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 	 */
 	public function testEventObserverDefined()
 	{
-		$areas = array( 'frontend', 'test' );	// Testing that it's in frontend so it will actually do something live.
-		foreach( $areas as $area ) {			// Testing that it's in test so it will actually get called.
+		$areas = array( 'frontend' );
+		foreach( $areas as $area ) {
 			$this->assertEventObserverDefined(
 				$area,
 				'eb2c_onepage_save_order_before',
@@ -52,13 +52,81 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 			->method('getPost')
 			->will($this->returnValue('sample_js_data'));
 
-		Mage::dispatchEvent(
-			'eb2c_onepage_save_order_before',
+		$this->replaceSingleton(
+			'customer/session',
 			array(
-				'quote' => $mockQuote,
-				'request' => $mockRequest
+				'getEncryptedSessionId' => '123456'
 			)
 		);
-		$this->assertEventDispatched('eb2c_onepage_save_order_before');
+
+		Mage::getModel('eb2cfraud/observer')->captureOrderContext(
+			$this->replaceModel(
+				'varien/event_observer',
+				array(
+					'getEvent' =>
+					$this->replaceModel(
+						'varien/event',
+						array(
+							'getQuote' => $mockQuote,
+							'getRequest' => $mockRequest
+						)
+					)
+				)
+			)
+		);
+	}
+
+	/**
+	 * Returns a mocked object
+	 * @todo: Merge this into test base class?
+	 * @param a Magento Class Alias
+	 * @param array of key / value pairs; key is the method name, value is value returned by that method
+	 *
+	 * @return mocked-object
+	 */
+	private function _getFullMocker($classAlias, $mockedMethodSet, $disableConstructor=true)
+	{
+		$justMethodNames = array();
+		foreach( $mockedMethodSet as $method => $returnValue ) {
+			$justMethodNames[] = $method;
+		}
+
+		$mock = null;
+
+		if( $disableConstructor ) {
+			$mock = $this->getModelMockBuilder($classAlias)
+				->disableOriginalConstructor()
+				->setMethods($justMethodNames)
+				->getMock();
+		} else {
+			$mock = $this->getModelMockBuilder($classAlias)
+				->setMethods($justMethodNames)
+				->getMock();
+		}
+
+		reset($mockedMethodSet);
+		foreach($mockedMethodSet as $method => $returnSet ) {
+			$mock->expects($this->any())
+				->method($method)
+				->will($this->returnValue($returnSet));
+		}
+		return $mock;
+	}
+
+	/**
+	 * @todo: Merge this into test base class?
+	 */
+	public function replaceModel($classAlias, $mockedMethodSet, $disableOriginalConstructor=true)
+	{
+		$mock = $this->_getFullMocker($classAlias, $mockedMethodSet, $disableOriginalConstructor);
+		$this->replaceByMock('model', $classAlias, $mock);
+		return $mock;
+	}
+
+	public function replaceSingleton($classAlias, $mockedMethodSet, $disableOriginalConstructor=true)
+	{
+		$mock = $this->_getFullMocker($classAlias, $mockedMethodSet, $disableOriginalConstructor);
+		$this->replaceByMock('singleton', $classAlias, $mock);
+		return $mock;
 	}
 }

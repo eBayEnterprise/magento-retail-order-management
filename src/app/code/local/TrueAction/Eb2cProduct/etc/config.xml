@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+/**
+ *
+ * @category    TrueAction
+ * @package     TrueAction_Eb2c
+ * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
+ */
+-->
+<config>
+	<modules>
+		<TrueAction_Eb2cProduct>
+			<version>1.0.0</version>
+		</TrueAction_Eb2cProduct>
+	</modules>
+	<global>
+		<models>
+			<eb2cproduct>
+				<class>TrueAction_Eb2cProduct_Model</class>
+			</eb2cproduct>
+		</models>
+		<helpers>
+			<eb2cproduct>
+				<class>TrueAction_Eb2cProduct_Helper</class>
+			</eb2cproduct>
+		</helpers>
+	</global>
+	<crontab>
+		<jobs>
+			<eb2cproduct_feed_item_master>
+				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_item_master::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_item_master>
+			<eb2cproduct_feed_content_master>
+				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_content_master::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_content_master>
+		</jobs>
+	</crontab>
+	<default>
+		<eb2c>
+			<product>
+				<api_xml_ns>http://api.gsicommerce.com/schema/checkout/1.0</api_xml_ns>
+				<api_env>developer</api_env>
+				<api_region>na</api_region>
+				<api_version>v1.10</api_version>
+				<api_service>product</api_service>
+				<api_uri_format>https://%s.%s.gsipartners.com/%s/stores/%s/%s/%s.%s</api_uri_format>
+				<api_return_format>xml</api_return_format>
+				<developer_mode>1</developer_mode>
+				<item_feed_local_path>var/TrueAction/Eb2c/Feed/Item/Master/</item_feed_local_path>
+				<item_feed_remote_received_path>/Item/Master/</item_feed_remote_received_path>
+				<config_path>eb2ccore/general</config_path>
+				<item_feed_event_type>ItemMaster</item_feed_event_type>
+				<item_feed_header_version>2.3.0</item_feed_header_version>
+				<content_feed_local_path>var/TrueAction/Eb2c/Feed/Content/Master/</content_feed_local_path>
+				<content_feed_remote_received_path>/Content/Master/</content_feed_remote_received_path>
+				<content_feed_event_type>ItemMaster</content_feed_event_type>
+				<content_feed_header_version>2.3.0</content_feed_header_version>
+			</product>
+		</eb2c>
+	</default>
+	<phpunit>
+		<suite>
+			<modules>
+				<TrueAction_Eb2cProduct />
+			</modules>
+		</suite>
+	</phpunit>
+</config>

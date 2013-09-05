@@ -27,7 +27,7 @@
 					<fields>
 						<catalog_id translate="label comment">
 							<label>Catalog Id</label>
-							<comment></comment>
+							<comment>The two-digit code that precedes all SKUs in this catalog.</comment>
 							<sort_order>10</sort_order>
 							<frontend_type>text</frontend_type>
 							<validate>validate-alphanum</validate>
@@ -37,7 +37,7 @@
 						</catalog_id>
 						<client_id>
 							<label>Client Id</label>
-							<comment></comment>
+							<comment>The three-to-five letter code that identifies the client. Usually uppercase.</comment>
 							<sort_order>20</sort_order>
 							<frontend_type>text</frontend_type>
 							<validate>validate-alphanum</validate>
@@ -47,7 +47,7 @@
 						</client_id>
 						<store_id>
 							<label>Store Id</label>
-							<comment></comment>
+							<comment>The three-to-five letter code that identifies the store. May be the same as Client Id.</comment>
 							<sort_order>30</sort_order>
 							<frontend_type>text</frontend_type>
 							<validate>validate-alphanum</validate>
@@ -55,19 +55,85 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+						<activeconfig_import>
+							<filetransfer>
+								<sort_order>40</sort_order>
+								<show_in_store>0</show_in_store>
+							</filetransfer>
+						</activeconfig_import>
+						<!-- HACK TO HIDE THE PROTOCOL SELECTOR -->
+						<filetransfer_protocol>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_protocol>
+						<filetransfer_sftp_auth_type>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</filetransfer_sftp_auth_type>
+						<!-- END HACK -->
+					</fields>
+				</general>
+				<api>
+					<label>API</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>6</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
+						<key>
+							<label>API Key</label>
+							<comment>The api key for EB2C web services.</comment>
+							<sort_order>70</sort_order>
+							<frontend_type>obscure</frontend_type>
+							<validate>validate-password</validate>
+							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</key>
+						<timeout>
+							<label>API Timeout</label>
+							<comment>Time in milliseconds</comment>
+							<sort_order>80</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-digits</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</timeout>
+						<environment>
+							<label>API Environment</label>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>0</show_in_website>
+							<show_in_store>0</show_in_store>
+						</environment>
+					</fields>
+				</api>
+				<feed>
+					<label>Feed</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>7</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
 						<sftp_username>
 							<label>SFTP User Name</label>
-							<comment></comment>
+							<comment>The user name for authenticating to the feeds service.</comment>
 							<sort_order>40</sort_order>
 							<frontend_type>text</frontend_type>
-							<validate>validate-alphanum</validate>
+							<validate>validate-required</validate>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</sftp_username>
 						<sftp_password>
-							<label>SFTP Password/Key</label>
-							<comment></comment>
+							<label>SFTP Key</label>
+							<comment>The private key for authenticating to the feeds service. (The feeds service must be provided a corresponding public key.)</comment>
 							<sort_order>50</sort_order>
 							<frontend_type>obscure</frontend_type>
 							<validate>validate-password</validate>
@@ -78,35 +144,24 @@
 						</sftp_password>
 						<sftp_location>
 							<label>SFTP Location</label>
-							<comment></comment>
+							<comment>The sftp url to the feeds service. (sftp://host.gsipartners.com/path)</comment>
 							<sort_order>60</sort_order>
 							<frontend_type>text</frontend_type>
-							<validate>validate-url</validate>
+							<validate>validate-required</validate>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</sftp_location>
-						<api_key>
-							<label>API Key</label>
-							<comment></comment>
-							<sort_order>70</sort_order>
-							<frontend_type>obscure</frontend_type>
-							<validate>validate-password</validate>
-							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_key>
-						<api_timeout>
-							<label>API Timeout</label>
-							<comment>Time in milliseconds</comment>
-							<sort_order>80</sort_order>
-							<frontend_type>text</frontend_type>
-							<validate>validate-digits</validate>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</api_timeout>
+					</fields>
+				</feed>
+				<development>
+					<label>Development</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>8</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>0</show_in_website>
+					<show_in_store>0</show_in_store>
+					<fields>
 						<test_mode>
 							<label>Test Mode</label>
 							<comment>Should messages be sent as tests?</comment>
@@ -118,7 +173,7 @@
 							<show_in_store>0</show_in_store>
 						</test_mode>
 					</fields>
-				</general>
+				</development>
 			</groups>
 		</eb2ccore>
 	</sections>

@@ -231,7 +231,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					if (isset($result[$id])) {
 						$group = $result[$id];
 					} else {
-						Mage::log(
+						Mage::log('[' . __CLASS__ . '] ' . 
 							sprintf(
 								'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
 								$code, $taxRate

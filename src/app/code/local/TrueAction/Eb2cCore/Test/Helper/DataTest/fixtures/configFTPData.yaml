@@ -1,0 +1,4 @@
+config:
+  default/eb2ccore/feed/sftp_username: "test"
+  default/eb2ccore/feed/sftp_password: "test"
+  default/eb2ccore/feed/sftp_location: "localhost"

@@ -64,7 +64,7 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	 */
 	public function buildInventoryDetailsRequestMessage($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
 		if ($quote) {
 			foreach($quote->getAllItems() as $item){
@@ -154,7 +154,7 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	{
 		$inventoryData = array();
 		if (trim($inventoryDetailsResponseMessage) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string xml from eb2c
 			$doc->loadXML($inventoryDetailsResponseMessage);

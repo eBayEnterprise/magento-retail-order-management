@@ -14,6 +14,20 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 	const POSTCODE_PATH  = 'eb2c:PostalCode';
 
 	/**
+	 * Make sure the given string does not exceed the max length specified.
+	 *
+	 * BTW, wouldn't it be nice if PHP had partial functions?
+	 *
+	 * @param  string $str    String to limit to given length
+	 * @param  ing    $maxLen Max length of the string
+	 * @return string         String which will be at most $maxLen characters
+	 */
+	protected function _limit($str, $maxLen)
+	{
+		return mb_substr($str, 0, $maxLen, 'UTF-8');
+	}
+
+	/**
 	 * Generate the xml to represent the Eb2c PhysicalAddressType from an address
 	 * @param Mage_Customer_Model_Address_Abstract
 	 * @return DOMDocumentFragment
@@ -23,12 +37,12 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 		$frag = $doc->createDocumentFragment();
 		$addressLines = $address->getStreet();
 		foreach ($addressLines as $idx => $line) {
-			$frag->appendChild($doc->createElement('Line' . ($idx + 1), $line));
+			$frag->appendChild($doc->createElement('Line' . ($idx + 1), $this->_limit($line, 70)));
 		}
-		$frag->appendChild($doc->createElement('City', $address->getCity()));
-		$frag->appendChild($doc->createElement('MainDivision', $address->getRegionCode()));
-		$frag->appendChild($doc->createElement('CountryCode', $address->getCountry()));
-		$frag->appendChild($doc->createElement('PostalCode', $address->getPostcode()));
+		$frag->appendChild($doc->createElement('City', $this->_limit($address->getCity(), 35)));
+		$frag->appendChild($doc->createElement('MainDivision', $this->_limit($address->getRegionCode(), 35)));
+		$frag->appendChild($doc->createElement('CountryCode', $this->_limit($address->getCountry(), 40)));
+		$frag->appendChild($doc->createElement('PostalCode', $this->_limit($address->getPostcode(), 15)));
 		return $frag;
 	}
 
@@ -47,7 +61,7 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 		$nodes = $xpath->query($path, $context);
 		if ($nodes->length === 1) {
 			return $nodes->item(0)->textContent;
-		} else if ($nodes->length > 1) {
+		} elseif ($nodes->length > 1) {
 			$values = array();
 			foreach ($nodes as $node) {
 				$values[] = $node->textContent;
@@ -102,7 +116,8 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 		return (int) Mage::getModel('directory/region')
 			->loadByCode(
 				$this->getTextValueByXPath(self::REGION_PATH, $physicalAddressXml),
-				$this->physicalAddressCountryId($physicalAddressXml))
+				$this->physicalAddressCountryId($physicalAddressXml)
+			)
 			->getId();
 	}
 
@@ -123,4 +138,5 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return $this->getTextValueByXPath(self::POSTCODE_PATH, $physicalAddressXml);
 	}
+
 }

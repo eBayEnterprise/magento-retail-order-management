@@ -34,7 +34,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 			$this->_responseFormat
 		);
 		try {
-			$response = $this->getApiModel()
+			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
 				->request($request->getDocument());
 		} catch(Exception $e) {
@@ -65,17 +65,6 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	public function getVatInclusivePricingFlag($store=null)
 	{
 		return $this->_configRegistry->setStore($store)->taxVatInclusivePricing;
-	}
-
-	/**
-	 * Retrieves core api model for sending/ receiving web services
-	 */
-	public function getApiModel()
-	{
-		if( !$this->_apiModel ) {
-			$this->_apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->_apiModel;
 	}
 
 	public function getApplyTaxAfterDiscount($store=null)

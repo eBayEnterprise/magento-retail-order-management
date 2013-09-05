@@ -32,19 +32,18 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	public function buildRequest(array $args)
 	{
 		$consts = $this->_helper->getConstHelper();
-		$this->_domRequest = $this->_helper->getDomDocument();
+		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
 		$cancelRequest = $this->_domRequest->addElement($consts::CANCEL_DOM_ROOT_NODE_NAME, null, $consts::DOM_ROOT_NS)->firstChild;
 		$cancelRequest->addAttribute('orderType', $args['order_type']);
 
 		$this->_orderId = $args['order_id'];
 		$cancelRequest->createChild('CustomerOrderId', $this->_orderId);
 		$cancelRequest->createChild('ReasonCode', $args['reason_code']);
-		$cancelRequest->createChild('Reason', $args['reason']);;
+		$cancelRequest->createChild('Reason', $args['reason']);
 
 		$this->_domRequest->formatOutput = true;
 		return $this;
 	}
-
 
 	/**
 	 * Handles communication with service endpoint. Either returns true or false when successfully receiving a valid
@@ -62,14 +61,14 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 
 		try {
 			$response = $this->_helper->getApiModel()
-								->setUri($uri)
-								->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
-								->request($this->_domRequest);
+				->setUri($uri)
+				->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
+				->request($this->_domRequest);
 
-			$this->_domResponse = $this->_helper->getDomDocument();
+			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			$rc = strcmp($status,'CANCELLED') ? false : true;
+			$rc = strcmp($status, 'CANCELLED') ? false : true;
 		}
 		catch(Exception $e) {
 			Mage::logException($e);

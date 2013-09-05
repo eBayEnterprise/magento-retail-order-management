@@ -4,53 +4,15 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base
 {
-	protected $_inventories;
+	const VFS_ROOT = 'testBase';
 
 	/**
-	 * setUp method
+	 * Replace the FileTransfer Helper with a mock object.
 	 */
-	public function setUp()
+	private function _replaceFileTransferHelper()
 	{
-		parent::setUp();
-		$this->_inventories = Mage::getModel('eb2cinventory/feed_item_inventories');
-	}
-
-	/**
-	 * testing processFeeds method
-	 *
-	 * @test
-	 * @medium
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeeds()
-	{
-		$inventoriesReflector = new ReflectionObject($this->_inventories);
-		$feedModel = Mage::getModel('eb2ccore/feed');
-		$feedModel->setBaseFolder( Mage::getStoreConfig('eb2c/inventory/feed_local_path') );
-		$localPath = Mage::getBaseDir('base') . DS . $feedModel->getInboundFolder();
-
-		if (is_dir($localPath)) {
-			foreach(glob($localPath . DS . '*') as $file) {
-				unlink($file);
-			}
-			rmdir($localPath);
-		}
-		$this->assertEmpty(
-			$this->_inventories->processFeeds()
-		);
-
-		// Adding xml to feed directory in other to get the feed
-		$sampleFeed = __DIR__ . '/InventoriesTest/fixtures/sample-feed.xml';
-		$destination = $localPath . DS . 'sample-feed.xml';
-		if (!is_dir($localPath)) {
-			umask(0);
-			@mkdir($localPath, 0777, true);
-		}
-
-		copy($sampleFeed, $destination);
-
 		$fileTransferHelperMock = $this->getMock(
 			'TrueAction_FileTransfer_Helper_Data',
 			array('getFile')
@@ -58,27 +20,82 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 		$fileTransferHelperMock->expects($this->any())
 			->method('getFile')
 			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
+	}
 
-		$inventoryHelperMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Helper_Data',
-			array('getFileTransferHelper')
+	/**
+	 * Mock the Varien_Io_File object,
+	 * this is our FsTool for testing purposes
+	 */
+	private function _getMockFsTool($vfs, $sampleFiles)
+	{
+		$mockFsTool = $this->getMock('Varien_Io_File', array(
+			'cd',
+			'checkAndCreateFolder',
+			'ls',
+			'mv',
+			'pwd',
+			'setAllowCreateFolders',
+		));
+		$mockFsTool
+			->expects($this->any())
+			->method('cd')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('checkAndCreateFolder')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('mv')
+			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('ls')
+			->will($this->returnValue($sampleFiles));
+		$mockFsTool
+			->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue($vfs->url(self::VFS_ROOT.'/inbound')));
+		$mockFsTool
+			->expects($this->any())
+			->method('setAllowCreateFolders')
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
+			->will($this->returnSelf());
+		// vfs setup ends
+		return $mockFsTool;
+	}
+	/**
+	 * testing processFeeds method
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testProcessFeeds()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$inventoryFeedModel = Mage::getModel(
+			'eb2cinventory/feed_item_inventories',
+			array(
+				'base_dir' => $vfs->url(self::VFS_ROOT),
+				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+			)
 		);
-		$inventoryHelperMock->expects($this->any())
-			->method('getFileTransferHelper')
-			->will($this->returnValue($fileTransferHelperMock));
 
-		$helper = $inventoriesReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_inventories, $inventoryHelperMock);
-
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
-
-		copy($sampleFeed, $destination);
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
+		$this->_replaceFileTransferHelper();
+		$this->assertNull($inventoryFeedModel->processFeeds());
 
 		// test with mock product and stock item
 		$productMock = $this->getMock(
@@ -106,18 +123,19 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 			->method('save')
 			->will($this->returnSelf());
 
+		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
+
 		$productProperty = $inventoriesReflector->getProperty('_product');
 		$productProperty->setAccessible(true);
-		$productProperty->setValue($this->_inventories, $productMock);
+		$productProperty->setValue($inventoryFeedModel, $productMock);
 
 		$stockItemProperty = $inventoriesReflector->getProperty('_stockItem');
 		$stockItemProperty->setAccessible(true);
-		$stockItemProperty->setValue($this->_inventories, $stockItemMock);
+		$stockItemProperty->setValue($inventoryFeedModel, $stockItemMock);
 
-		copy($sampleFeed, $destination);
-		$this->assertNull(
-			$this->_inventories->processFeeds()
-		);
+		$this->assertNull($inventoryFeedModel->processFeeds());
+
+		$vfs->discard();
 	}
 
 	/**
@@ -135,15 +153,16 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends Ecom
 			->method('rebuild')
 			->will($this->throwException(new Exception));
 
-		$inventoriesReflector = new ReflectionObject($this->_inventories);
+		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
 		$stockStatusProperty = $inventoriesReflector->getProperty('_stockStatus');
 		$stockStatusProperty->setAccessible(true);
-		$stockStatusProperty->setValue($this->_inventories, $stockStatusMock);
+		$stockStatusProperty->setValue($inventoryFeedModel, $stockStatusMock);
 
 		$cleanMethod = $inventoriesReflector->getMethod('_clean');
 		$cleanMethod->setAccessible(true);
 		$this->assertNull(
-			$cleanMethod->invoke($this->_inventories)
+			$cleanMethod->invoke($inventoryFeedModel)
 		);
 	}
 }

@@ -36,17 +36,15 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_config = $this->_helper->getConfig();
 	}
 
-
 	/**
-	 * TODO: This is not well defined. We are supposed to try a couple times to get the order to eb2c. At some point, though,
-	 * 			the order needs to be considered as Finally Failed. This function is called when that happens.
+	 * When we have failed to create order, dispatch event
+	 * @todo Originally we were going to try some number of times to transmit. Is this still the case?
 	 */
 	private function _finallyFailed()
 	{
 		Mage::dispatchEvent('eb2c_order_create_fail', array('order' => $this->_o));
-		// TODO: Presumably set a certain status
 		return;
-	}	
+	}
 
 	/**
 	 * The event observer version of transmit order
@@ -58,7 +56,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			$this->sendRequest();
 		}
 		catch( Exception $e ) {
-			// TODO: Right here (or when we get a false return) we need to queue for another order create call attempt.
 			Mage::logException($e);	// Fail quietly!
 		}
 		return;
@@ -79,10 +76,10 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		try {
 			$response = $this->_helper->getApiModel()
-								->setUri($uri)
-								->setTimeout($this->_config->serviceOrderTimeout)
-								->request($this->_domRequest);
-			$this->_domResponse = $this->_helper->getDomDocument();
+				->setUri($uri)
+				->setTimeout($this->_config->serviceOrderTimeout)
+				->request($this->_domRequest);
+			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
 		}
@@ -90,17 +87,19 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			Mage::throwException('Send Web Service Request Failed: ' . $e->getMessage());
 		}
 
-		$rc = strcmp($status,'Success') ? false : true;
+		$rc = strcmp($status, 'Success') ? false : true;
 		if( $rc === true ) {
 			Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
 		}
 		return $rc;
 	}
 
-
 	/**
 	 * Build DOM for a complete order
 	 *
+	 * @todo Get tax details for TaxHeader
+	 * @todo Get locale from correct fields
+	 * @todo Get 'OrderSource' and 'OrderSource type' from correct fields
 	 * @param $orderObject a Mage_Sales_Model_Order
 	 */
 	public function buildRequest($orderObject)
@@ -136,18 +135,15 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		$order->createChild('Currency', $this->_o->getOrderCurrencyCode());
 
-		$taxHeader = $order->createChild('TaxHeader')->createChild('Error', 'false');	// TODO: Tax Details needed here.
+		$taxHeader = $order->createChild('TaxHeader')->createChild('Error', 'false');
 
-		$order->createChild('Locale', 'en_US');	// TODO: Is this region?
+		$order->createChild('Locale', 'en_US');
 
-		$orderSource = $order->CreateChild('OrderSource'); // TODO: Not sure what this means.
-		$orderSource->setAttribute('type','');	// TODO: Where should this come from? Doc says "Only to be used for Marketing and affiliate tracking,
-												// passed by entrypoint component in Webstore. Will be present only if referring url to website has values."
+		$orderSource = $order->CreateChild('OrderSource');
+		$orderSource->setAttribute('type', '');
 
 		$order->createChild('OrderHistoryUrl',
-			Mage::app()->getStore($this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) .
-			$consts::ORDER_HISTORY_PATH .
-			$this->_o->getEntityId());
+		Mage::app()->getStore( $this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . $consts::ORDER_HISTORY_PATH . $this->_o->getEntityId());
 
 		$order->createChild('OrderTotal', sprintf('%.02f', $this->_o->getGrandTotal()));
 
@@ -176,8 +172,8 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			// Previously tried to pull out the gender text, but that's probably worse, since one could change
 			// 	'Male' to 'Boys' (or 'Woman', for that matter) and an invalid or flat-out wrong value would be sent to GSI.
 			//	Let's just check the gender value/ option id. If it's 1, male, otherwise, female.
-			$eb2cGender = ($this->_o->getCustomerGender() == self::GENDER_MALE) ?  'M' : 'F';
-			$customer->createChild('Gender', $eb2cGender);
+			$genderToSend = ($this->_o->getCustomerGender() == self::GENDER_MALE) ?  'M' : 'F';
+			$customer->createChild('Gender', $genderToSend);
 		}
 
 		if( $this->_o->getCustomerDob() ) {
@@ -188,17 +184,18 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		return;
 	}
 
-
 	/**
 	 * Builds a single Order Item node inside the Order Items array
 	 *
+	 * @todo support > 1 tax 
+	 * @todo get taxType, taxability, Jurisdiction, Situs, EffectiveRate, TaxClass from correct fields
 	 * @param DomElement orderItem
 	 * @param Mage_Sales_Model_Order_Item item
 	 * @param integer webLineId	identifier to indicate the line item's sequence within the order
 	 */
 	private function _buildOrderItem(DomElement $orderItem, Mage_Sales_Model_Order_Item $item, $webLineId)
 	{
-		$itemId = 'item_'.$item->getId();
+		$itemId = 'item_' . $item->getId();
 		$this->_orderItemRef[] = $itemId;
 		$orderItem->setAttribute('id', $itemId );
 		$orderItem->setAttribute('webLineId', $webLineId++);
@@ -228,16 +225,15 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$shippingWindow->createChild('From', $item->getEb2cShippingWindowFrom());
 		$shippingWindow->createChild('To', $item->getEb2cShippingWindowTo());
 
-		$orderItem->createChild('ReservationId', '???PLACEHOLDER-'.$item->getEb2cReservationId()); // PLACEHOLDER so I can validate required field
+		$orderItem->createChild('ReservationId', $item->getEb2cReservationId());
 
 		// Tax on the Merchandise:
 		$taxData = $merchandise->createChild('TaxData');
 		$taxData->createChild('TaxClass', '????');
 		$taxes = $taxData->createChild('Taxes');
-		// TODO: More than 1 tax?
 		$tax = $taxes->createChild('Tax');
-		$tax->setAttribute('taxType', 'SELLER_USE');	// TODO: Fix where this comes from.
-		$tax->setAttribute('taxability', 'TAXABLE');		// TODO: Fix where this comes from.
+		$tax->setAttribute('taxType', 'SELLER_USE');
+		$tax->setAttribute('taxability', 'TAXABLE');
 		$tax->createChild('Situs', 0);
 		$jurisdiction = $tax->createChild('Jurisdiction', '??Jurisdiction Name??');
 		$jurisdiction->setAttribute('jurisdictionLevel', '??State or County Level??');
@@ -252,15 +248,13 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$shipping = $orderItem->createChild('Shipping');
 		$shipping->createChild('Amount');
 
-		// Tax on Shipping: TODO: More than 1 tax?
 		$taxData = $shipping->createChild('TaxData');
 		$taxes = $taxData->createChild('Taxes');
 		$tax = $taxes->createChild('Tax');
-		$tax->createChild('Situs', 0);		//TODO: This is REQUIRED
+		$tax->createChild('Situs', 0);
 		$tax->createChild('EffectiveRate', 0);
 		$tax->createChild('CalculatedTax', sprintf('%.02f', 0));
 		// End Shipping
-
 
 		// Duty on the orderItem:
 		$duty = $orderItem->createChild('Duty');
@@ -268,10 +262,9 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$taxData = $duty->createChild('TaxData');
 		$taxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
 		$taxes = $taxData->createChild('Taxes');
-		// TODO: More than 1 tax?
 		$tax = $taxes->createChild('Tax');
-		$tax->setAttribute('taxType', 'SELLER_USE');	// TODO: Fix where this comes from.
-		$tax->setAttribute('taxability', 'TAXABLE');		// TODO: Fix where this comes from.
+		$tax->setAttribute('taxType', 'SELLER_USE');
+		$tax->setAttribute('taxability', 'TAXABLE');
 		$tax->createChild('Situs', 0);
 		$jurisdiction = $tax->createChild('Jurisdiction', '??Jurisdiction Name??');
 		$jurisdiction->setAttribute('jurisdictionLevel', '??State or County Level??');
@@ -310,9 +303,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_buildAddress($dest->createChild('Address'), $sa);
 		$dest->createChild('Phone', $sa->getTelephone());
 
-
 		// Bill-To
-		// TODO: We may have to revisit billing details in case of multiple tenders for a single order? Don't know what magento allows.
 		$ba = $this->_o->getBillingAddress();
 		$billing = $destinations->createChild('MailingAddress');
 		$billing->setAttribute('id', $consts::SHIPGROUP_BILLING_ID);
@@ -322,11 +313,10 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		return;
 	}
 
-
 	/**
 	 * Creates PersonName element details from an address
 	 *
-	 * @param personNamede
+	 * @param DomElement personName
 	 * @param Mage_Sales_Model_Order_Address address
  	 */
 	private function _buildPersonName(DomElement $person, Mage_Sales_Model_Order_Address $address)
@@ -338,7 +328,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		return;
 	}
 
-
 	/**
 	 * Creates MailingAddress/Address element details from address
 	 *
@@ -349,7 +338,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	{
 		$line = 1;
 		foreach($address->getStreet() as $streetLine) {
-			$addressElement->createChild('Line'.$line, $streetLine);
+			$addressElement->createChild('Line' . $line, $streetLine);
 			$line++;
 		}
 		$addressElement->createChild('City', $address->getCity());
@@ -358,7 +347,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$addressElement->createChild('PostalCode', $address->getPostalCode());
 		return;
 	}
-
 
 	/**
 	 * Populate the Payment Element of the request
@@ -372,7 +360,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_buildPayments($payment->createChild('Payments'));
 		return;
 	}
-
 
 	/**
 	 * Creates the Tender entries within the Payments Element
@@ -401,7 +388,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 				$auth->createChild('AVSResponseCode', $payment->getCcAvsStatus());
 				$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
-				$thisPayment->createChild('ExpirationDate', $payment->getCcExpYear().'-'.$payment->getCcExpMonth());
+				$thisPayment->createChild('ExpirationDate', $payment->getCcExpYear() . '-' . $payment->getCcExpMonth());
 				$thisPayment->createChild('StartDate', '???');
 				$thisPayment->createChild('IssueNumber', '???');
 			}
@@ -414,7 +401,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		return;
 	}
 
-
 	/**
 	 * Populates the Context element
 	 *
@@ -426,9 +412,8 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		return;
 	}
 
-
 	/**
-	 * Populates the Context/BrowserData element 
+	 * Populates the Context/BrowserData element
 	 *
 	 * @param DomElement context
 	 */
@@ -438,7 +423,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			'HostName' => $this->_o->getEb2cHostName(),
 			'IPAddress' => $this->_o->getEb2cIpAddress(),
 			'SessionId' => $this->_o->getEb2cSessionId(),
-			'UserAgent' => $this->_o->getEb2cUserAgent(), 
+			'UserAgent' => $this->_o->getEb2cUserAgent(),
 			'JavascriptData' => $this->_o->getEb2cJavascriptData(),
 			'Referrer' => $this->_o->getEb2cReferer(),
 			'HTTPAcceptData' => 'HttpAcceptData',
@@ -450,7 +435,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		return;
 	}
-
 
 	/**
 	 * Get globally unique request identifier

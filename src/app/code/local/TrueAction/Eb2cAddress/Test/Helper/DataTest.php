@@ -5,21 +5,27 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 {
 
 	protected $_addressParts = array(
-		'line1' => '123 Main St',
-		'line2' => 'STE 6',
-		'line3' => 'Foo',
-		'line4' => 'Bar',
-		'city' => 'Auburn',
+		'line1' => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn Street",
+		'line1_trimmed' => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn",
+		'line2' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line2_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'line3' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line3_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'line4' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line4_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'city' => '1234567890123456789012345678901234567890',
+		'city_trimmed' => '12345678901234567890123456789012345',
 		'region_id' => '51',
 		'region_code' => 'PA',
 		'country_id' => 'US',
-		'postcode' => '13021',
+		'postcode' => '12345678901234567890',
+		'postcode_trimmed' => '123456789012345'
 	);
 
 	/**
 	 * Generate a reusable Mage_Customer_Model_Address object
 	 */
-	protected function _generateAddressObject($streetLines = 4)
+	protected function _generateAddressObject($streetLines=4)
 	{
 		$address = Mage::getModel('customer/address');
 		$street = array();
@@ -37,7 +43,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	/**
 	 * Create a DOMDocument containing a PhysicalAddressType
 	 */
-	protected function _generatePhysicalAddressElement($streetLines = 4)
+	protected function _generatePhysicalAddressElement($streetLines=4)
 	{
 		$dom = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$rootNs = Mage::getModel('eb2ccore/config_registry')
@@ -101,18 +107,19 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	 */
 	public function testAddressStreetLines()
 	{
+		$expectedParts = $this->_addressParts;
 		$street = Mage::helper('eb2caddress')
 			->physicalAddressStreet($this->_generatePhysicalAddressElement());
-		$this->assertEquals($street, array('123 Main St', 'STE 6', 'Foo', 'Bar'));
+		$this->assertEquals($street, array($expectedParts['line1'], $expectedParts['line2'], $expectedParts['line3'], $expectedParts['line4']));
 		$street = Mage::helper('eb2caddress')
 			->physicalAddressStreet($this->_generatePhysicalAddressElement(3));
-		$this->assertEquals($street, array('123 Main St', 'STE 6', 'Foo'));
+		$this->assertEquals($street, array($expectedParts['line1'], $expectedParts['line2'], $expectedParts['line3']));
 		$street = Mage::helper('eb2caddress')
 			->physicalAddressStreet($this->_generatePhysicalAddressElement(2));
-		$this->assertEquals($street, array('123 Main St', 'STE 6'));
+		$this->assertEquals($street, array($expectedParts['line1'], $expectedParts['line2']));
 		$street = Mage::helper('eb2caddress')
 			->physicalAddressStreet($this->_generatePhysicalAddressElement(1));
-		$this->assertEquals($street, '123 Main St');
+		$this->assertEquals($street, $expectedParts['line1']);
 	}
 
 	/**
@@ -123,7 +130,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	{
 		$city = Mage::helper('eb2caddress')
 			->physicalAddressCity($this->_generatePhysicalAddressElement());
-		$this->assertSame($city, 'Auburn');
+		$this->assertSame($city, $this->_addressParts['city']);
 	}
 
 	/**
@@ -156,7 +163,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 	{
 		$postcode = Mage::helper('eb2caddress')
 			->physicalAddressPostcode($this->_generatePhysicalAddressElement());
-		$this->assertSame($postcode, '13021');
+		$this->assertSame($postcode, $this->_addressParts['postcode']);
 	}
 
 	/**
@@ -171,21 +178,21 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 			->addressToPhysicalAddressXml($address, $dom);
 		$fragmentNodes = $addressFragment->childNodes;
 		$this->assertEquals($fragmentNodes->item(0)->nodeName, 'Line1');
-		$this->assertEquals($fragmentNodes->item(0)->textContent, $this->_addressParts['line1']);
+		$this->assertEquals($fragmentNodes->item(0)->textContent, $this->_addressParts['line1_trimmed']);
 		$this->assertEquals($fragmentNodes->item(1)->nodeName, 'Line2');
-		$this->assertEquals($fragmentNodes->item(1)->textContent, $this->_addressParts['line2']);
+		$this->assertEquals($fragmentNodes->item(1)->textContent, $this->_addressParts['line2_trimmed']);
 		$this->assertEquals($fragmentNodes->item(2)->nodeName, 'Line3');
-		$this->assertEquals($fragmentNodes->item(2)->textContent, $this->_addressParts['line3']);
+		$this->assertEquals($fragmentNodes->item(2)->textContent, $this->_addressParts['line3_trimmed']);
 		$this->assertEquals($fragmentNodes->item(3)->nodeName, 'Line4');
-		$this->assertEquals($fragmentNodes->item(3)->textContent, $this->_addressParts['line4']);
+		$this->assertEquals($fragmentNodes->item(3)->textContent, $this->_addressParts['line4_trimmed']);
 		$this->assertEquals($fragmentNodes->item(4)->nodeName, 'City');
-		$this->assertEquals($fragmentNodes->item(4)->textContent, $this->_addressParts['city']);
+		$this->assertEquals($fragmentNodes->item(4)->textContent, $this->_addressParts['city_trimmed']);
 		$this->assertEquals($fragmentNodes->item(5)->nodeName, 'MainDivision');
 		$this->assertEquals($fragmentNodes->item(5)->textContent, $this->_addressParts['region_code']);
 		$this->assertEquals($fragmentNodes->item(6)->nodeName, 'CountryCode');
 		$this->assertEquals($fragmentNodes->item(6)->textContent, $this->_addressParts['country_id']);
 		$this->assertEquals($fragmentNodes->item(7)->nodeName, 'PostalCode');
-		$this->assertEquals($fragmentNodes->item(7)->textContent, $this->_addressParts['postcode']);
+		$this->assertEquals($fragmentNodes->item(7)->textContent, $this->_addressParts['postcode_trimmed']);
 	}
 
 	/**
