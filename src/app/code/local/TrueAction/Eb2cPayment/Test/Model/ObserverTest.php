@@ -4,19 +4,20 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_observer;
+	protected $_mockObject;
 
 	/**
 	 * setUp method
 	 */
 	public function setUp()
 	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		parent::setUp();
 		$this->_observer = Mage::getModel('eb2cpayment/observer');
+		$this->_mockObject = new TrueAction_Eb2cPayment_Test_Mock_Model_Observer();
+		$this->_mockObject->replaceByMockCheckoutSessionModel();
 	}
 
 	public function providerRedeemGiftCard()
@@ -67,33 +68,19 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	 */
 	public function testRedeemGiftCard($observer)
 	{
-		$redeemMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem',
-			array('getRedeem', 'parseResponse')
-		);
+		$redeemMock = $this->getModelMockBuilder('eb2cpayment/stored_value_redeem')
+			->setMethods(array('getRedeem', 'parseResponse'))
+			->getMock();
+
 		$redeemMock->expects($this->any())
 			->method('getRedeem')
-			->will($this->returnValue('<foo></foo>')
-			);
+			->will($this->returnValue('<foo></foo>'));
+
 		$redeemMock->expects($this->any())
 			->method('parseResponse')
-			->will($this->returnValue(array('responseCode' => 'Success', 'pan' => '4111111ak4idq1111', 'pin' => '5344'))
-			);
+			->will($this->returnValue(array('responseCode' => 'Success', 'pan' => '4111111ak4idq1111', 'pin' => '5344')));
 
-		$observerReflector = new ReflectionObject($this->_observer);
-
-		// before we mock stored value redeem class in the observer let check it's object just to cover the code.
-		$getStoredValueRedeem = $observerReflector->getMethod('_getStoredValueRedeem');
-		$getStoredValueRedeem->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem',
-			$getStoredValueRedeem->invoke($this->_observer)
-		);
-
-		$storedValueRedeem = $observerReflector->getProperty('_storedValueRedeem');
-		$storedValueRedeem->setAccessible(true);
-		$storedValueRedeem->setValue($this->_observer, $redeemMock);
+		$this->replaceByMock('model', 'eb2cpayment/stored_value_redeem', $redeemMock);
 
 		$this->assertNull(
 			$this->_observer->redeemGiftCard($observer)
@@ -110,10 +97,10 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	 */
 	public function testRedeemGiftCardFailReponse($observer)
 	{
-		$redeemMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem',
-			array('getRedeem', 'parseResponse')
-		);
+		$redeemMock = $this->getModelMockBuilder('eb2cpayment/stored_value_redeem')
+			->setMethods(array('getRedeem', 'parseResponse'))
+			->getMock();
+
 		$redeemMock->expects($this->any())
 			->method('getRedeem')
 			->will($this->returnValue('<foo></foo>')
@@ -122,26 +109,14 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->method('parseResponse')
 			->will($this->returnValue(array('responseCode' => 'fail', 'pan' => '4111111ak4idq1111', 'pin' => '5344'))
 			);
+		$this->replaceByMock('model', 'eb2cpayment/stored_value_redeem', $redeemMock);
 
-		$observerReflector = new ReflectionObject($this->_observer);
-		$storedValueRedeem = $observerReflector->getProperty('_storedValueRedeem');
-		$storedValueRedeem->setAccessible(true);
-		$storedValueRedeem->setValue($this->_observer, $redeemMock);
-
-		// before we mock gift accound class in the observer let check it's object just to cover the code.
-		$getGiftCardAccount = $observerReflector->getMethod('_getGiftCardAccount');
-		$getGiftCardAccount->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			$getGiftCardAccount->invoke($this->_observer)
-		);
 
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
-		$giftCardAccountMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			array('loadByPanPin', 'removeFromCart')
-		);
+		$giftCardAccountMock = $this->getModelMockBuilder('enterprise_giftcardaccount/giftcardaccount')
+			->setMethods(array('loadByPanPin', 'removeFromCart'))
+			->getMock();
+
 		$giftCardAccountMock->expects($this->any())
 			->method('loadByPanPin')
 			->will($this->returnSelf()
@@ -151,9 +126,7 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->will($this->returnSelf()
 			);
 
-		$giftCardAccount = $observerReflector->getProperty('_giftCardAccount');
-		$giftCardAccount->setAccessible(true);
-		$giftCardAccount->setValue($this->_observer, $giftCardAccountMock);
+		$this->replaceByMock('model', 'enterprise_giftcardaccount/giftcardaccount', $giftCardAccountMock);
 
 		$this->assertNull(
 			$this->_observer->redeemGiftCard($observer)
@@ -210,10 +183,10 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	public function testRedeemVoidGiftCard($observer)
 	{
 
-		$redeemVoidMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void',
-			array('getRedeemVoid', 'parseResponse')
-		);
+		$redeemVoidMock = $this->getModelMockBuilder('eb2cpayment/stored_value_redeem_void')
+			->setMethods(array('getRedeemVoid', 'parseResponse'))
+			->getMock();
+
 		$redeemVoidMock->expects($this->any())
 			->method('getRedeemVoid')
 			->will($this->returnValue('<foo></foo>')
@@ -223,26 +196,13 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->will($this->returnValue(array('responseCode' => 'success', 'pan' => '4111111ak4idq1111', 'pin' => '5344'))
 			);
 
-		$observerReflector = new ReflectionObject($this->_observer);
-
-		// before we mock redeem void class in the observer let check it's object just to cover the code.
-		$getStoredValueRedeemVoid = $observerReflector->getMethod('_getStoredValueRedeemVoid');
-		$getStoredValueRedeemVoid->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void',
-			$getStoredValueRedeemVoid->invoke($this->_observer)
-		);
-
-		$storedValueRedeemVoid = $observerReflector->getProperty('_storedValueRedeemVoid');
-		$storedValueRedeemVoid->setAccessible(true);
-		$storedValueRedeemVoid->setValue($this->_observer, $redeemVoidMock);
+		$this->replaceByMock('model', 'eb2cpayment/stored_value_redeem_void', $redeemVoidMock);
 
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
-		$giftCardAccountMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			array('loadByPanPin', 'removeFromCart')
-		);
+		$giftCardAccountMock = $this->getModelMockBuilder('enterprise_giftcardaccount/giftcardaccount')
+			->setMethods(array('loadByPanPin', 'removeFromCart'))
+			->getMock();
+
 		$giftCardAccountMock->expects($this->any())
 			->method('loadByPanPin')
 			->will($this->returnSelf()
@@ -252,9 +212,7 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->will($this->returnSelf()
 			);
 
-		$giftCardAccount = $observerReflector->getProperty('_giftCardAccount');
-		$giftCardAccount->setAccessible(true);
-		$giftCardAccount->setValue($this->_observer, $giftCardAccountMock);
+		$this->replaceByMock('model', 'enterprise_giftcardaccount/giftcardaccount', $giftCardAccountMock);
 
 		$this->assertNull(
 			$this->_observer->redeemVoidGiftCard($observer)
@@ -270,11 +228,10 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	 */
 	public function testRedeemVoidGiftCardWithfailureResponseFromEb2c($observer)
 	{
+		$redeemVoidMock = $this->getModelMockBuilder('eb2cpayment/stored_value_redeem_void')
+			->setMethods(array('getRedeemVoid', 'parseResponse'))
+			->getMock();
 
-		$redeemVoidMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void',
-			array('getRedeemVoid', 'parseResponse')
-		);
 		$redeemVoidMock->expects($this->any())
 			->method('getRedeemVoid')
 			->will($this->returnValue('<foo></foo>')
@@ -284,26 +241,13 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->will($this->returnValue(array('responseCode' => 'fail', 'pan' => '4111111ak4idq1111', 'pin' => '5344'))
 			);
 
-		$observerReflector = new ReflectionObject($this->_observer);
-
-		// before we mock redeem void class in the observer let check it's object just to cover the code.
-		$getStoredValueRedeemVoid = $observerReflector->getMethod('_getStoredValueRedeemVoid');
-		$getStoredValueRedeemVoid->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void',
-			$getStoredValueRedeemVoid->invoke($this->_observer)
-		);
-
-		$storedValueRedeemVoid = $observerReflector->getProperty('_storedValueRedeemVoid');
-		$storedValueRedeemVoid->setAccessible(true);
-		$storedValueRedeemVoid->setValue($this->_observer, $redeemVoidMock);
+		$this->replaceByMock('model', 'eb2cpayment/stored_value_redeem_void', $redeemVoidMock);
 
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
-		$giftCardAccountMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount',
-			array('loadByPanPin', 'removeFromCart')
-		);
+		$giftCardAccountMock = $this->getModelMockBuilder('enterprise_giftcardaccount/giftcardaccount')
+			->setMethods(array('loadByPanPin', 'removeFromCart'))
+			->getMock();
+
 		$giftCardAccountMock->expects($this->any())
 			->method('loadByPanPin')
 			->will($this->returnSelf()
@@ -313,9 +257,7 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			->will($this->returnSelf()
 			);
 
-		$giftCardAccount = $observerReflector->getProperty('_giftCardAccount');
-		$giftCardAccount->setAccessible(true);
-		$giftCardAccount->setValue($this->_observer, $giftCardAccountMock);
+		$this->replaceByMock('model', 'enterprise_giftcardaccount/giftcardaccount', $giftCardAccountMock);
 
 		$this->assertNull(
 			$this->_observer->redeemVoidGiftCard($observer)

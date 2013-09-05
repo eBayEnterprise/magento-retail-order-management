@@ -6,24 +6,9 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
 	public function __construct()
 	{
-		$this->_helper = $this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cpayment');
-		}
-		return $this->_helper;
+		return $this;
 	}
 
 	/**
@@ -41,8 +26,8 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 			$payPalDoAuthorizationRequest = $this->buildPayPalDoAuthorizationRequest($quote);
 
 			// make request to eb2c for quote items PaypalDoAuthorization
-			$paypalDoAuthorizationResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_paypal_do_authorization'))
+			$paypalDoAuthorizationResponseMessage = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_authorization'))
 				->request($payPalDoAuthorizationRequest);
 
 		}catch(Exception $e){
@@ -62,8 +47,8 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	public function buildPayPalDoAuthorizationRequest($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$payPalDoAuthorizationRequest = $domDocument->addElement('PayPalDoAuthorizationRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
-		$payPalDoAuthorizationRequest->setAttribute('requestId', $this->_getHelper()->getRequestId($quote->getEntityId()));
+		$payPalDoAuthorizationRequest = $domDocument->addElement('PayPalDoAuthorizationRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$payPalDoAuthorizationRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
 		$payPalDoAuthorizationRequest->createChild(
 			'OrderId',
 			(string) $quote->getEntityId()
@@ -92,35 +77,21 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalDoAuthorizationReply);
 			$checkoutXpath = new DOMXPath($doc);
-			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());
-
-			$orderId = $checkoutXpath->query('//a:OrderId');
-			if ($orderId->length) {
-				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
-			}
-
-			$responseCode = $checkoutXpath->query('//a:ResponseCode');
-			if ($responseCode->length) {
-				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
-			}
-
-			$authorizationInfo = $checkoutXpath->query('//a:AuthorizationInfo');
-			if ($authorizationInfo->length) {
-				$paymentStatus = $checkoutXpath->query('//a:AuthorizationInfo/a:PaymentStatus');
-				if ($paymentStatus->length) {
-					$checkoutObject->setPaymentStatus((string) $paymentStatus->item(0)->nodeValue);
-				}
-
-				$pendingReason = $checkoutXpath->query('//a:AuthorizationInfo/a:PendingReason');
-				if ($pendingReason->length) {
-					$checkoutObject->setPendingReason((string) $pendingReason->item(0)->nodeValue);
-				}
-
-				$reasonCode = $checkoutXpath->query('//a:AuthorizationInfo/a:ReasonCode');
-				if ($reasonCode->length) {
-					$checkoutObject->setReasonCode((string) $reasonCode->item(0)->nodeValue);
-				}
-			}
+			$checkoutXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getXmlNs());
+			$nodeOrderId = $checkoutXpath->query('//a:OrderId');
+			$nodeResponseCode = $checkoutXpath->query('//a:ResponseCode');
+			$nodePaymentStatus = $checkoutXpath->query('//a:AuthorizationInfo/a:PaymentStatus');
+			$nodePendingReason = $checkoutXpath->query('//a:AuthorizationInfo/a:PendingReason');
+			$nodeReasonCode = $checkoutXpath->query('//a:AuthorizationInfo/a:ReasonCode');
+			$checkoutObject = new Varien_Object(
+				array(
+					'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue: 0,
+					'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+					'payment_status' => ($nodePaymentStatus->length)? (string) $nodePaymentStatus->item(0)->nodeValue : null,
+					'pending_reason' => ($nodePendingReason->length)? (string) $nodePendingReason->item(0)->nodeValue : null,
+					'reason_code' => ($nodeReasonCode->length)? (string) $nodeReasonCode->item(0)->nodeValue : null,
+				)
+			);
 		}
 
 		return $checkoutObject;

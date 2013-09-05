@@ -7,49 +7,11 @@
 class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core_Model_Abstract
 {
 	/**
-	 * instantiate payment helper object
-	 *
-	 * @var TrueAction_Eb2cPayment_Helper_Data
+	 * Initialize model
 	 */
-	protected $_helper;
-
-	/**
-	 * instantiate paypal payment model object
-	 *
-	 * @var TrueAction_Eb2cPayment_Model_Paypal
-	 */
-	protected $_paypal;
-
-	public function __construct()
+	protected function _construct()
 	{
-		$this->_helper = $this->_getHelper();
-		$this->_paypal = $this->_getPaypal();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cpayment');
-		}
-		return $this->_helper;
-	}
-
-	/**
-	 * Get model paypal instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Model_Paypal
-	 */
-	protected function _getPaypal()
-	{
-		if (!$this->_paypal) {
-			$this->_paypal = Mage::getModel('eb2cpayment/paypal');
-		}
-		return $this->_paypal;
+		return $this;
 	}
 
 	/**
@@ -67,8 +29,8 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 			$payPalSetExpressCheckoutRequest = $this->buildPayPalSetExpressCheckoutRequest($quote);
 
 			// make request to eb2c for quote items PaypalSetExpressCheckout
-			$paypalSetExpressCheckoutResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_paypal_set_express_checkout'))
+			$paypalSetExpressCheckoutResponseMessage = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_set_express_checkout'))
 				->request($payPalSetExpressCheckoutRequest);
 
 		}catch(Exception $e){
@@ -91,7 +53,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 	public function buildPayPalSetExpressCheckoutRequest($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$payPalSetExpressCheckoutRequest = $domDocument->addElement('PayPalSetExpressCheckoutRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$payPalSetExpressCheckoutRequest = $domDocument->addElement('PayPalSetExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 		$payPalSetExpressCheckoutRequest->createChild(
 			'OrderId',
 			(string) $quote->getEntityId()
@@ -188,22 +150,17 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalSetExpressCheckoutReply);
 			$checkoutXpath = new DOMXPath($doc);
-			$checkoutXpath->registerNamespace('a', $this->_getHelper()->getPaymentXmlNs());
-
-			$orderId = $checkoutXpath->query('//a:OrderId');
-			if ($orderId->length) {
-				$checkoutObject->setOrderId((int) $orderId->item(0)->nodeValue);
-			}
-
-			$responseCode = $checkoutXpath->query('//a:ResponseCode');
-			if ($responseCode->length) {
-				$checkoutObject->setResponseCode((string) $responseCode->item(0)->nodeValue);
-			}
-
-			$token = $checkoutXpath->query('//a:Token');
-			if ($token->length) {
-				$checkoutObject->setToken((string) $token->item(0)->nodeValue);
-			}
+			$checkoutXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getPaymentXmlNs());
+			$nodeOrderId = $checkoutXpath->query('//a:OrderId');
+			$nodeResponseCode = $checkoutXpath->query('//a:ResponseCode');
+			$nodeToken = $checkoutXpath->query('//a:Token');
+			$checkoutObject = new Varien_Object(
+				array(
+					'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
+					'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+					'token' => ($nodeToken->length)? (string) $nodeToken->item(0)->nodeValue : null,
+				)
+			);
 		}
 
 		return $checkoutObject;
@@ -220,8 +177,8 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 	protected function _savePaymentData($checkoutObject, $quote)
 	{
 		if (trim($checkoutObject->getToken()) !== '') {
-			$this->_getPaypal()->loadByQuoteId($quote->getEntityId());
-			$this->_getPaypal()->setQuoteId($quote->getEntityId())
+			$paypalObj = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
+			$paypalObj->setQuoteId($quote->getEntityId())
 				->setEb2cPaypalToken($checkoutObject->getToken())
 				->save();
 		}

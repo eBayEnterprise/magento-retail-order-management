@@ -9,46 +9,6 @@ require_once('Enterprise/GiftCardAccount/controllers/CartController.php');
 class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends Enterprise_GiftCardAccount_CartController
 {
 	/**
-	 * hold enterprise giftcardaccount instantiated object
-	 *
-	 * @var TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
-	 */
-	protected $_giftCardAccount;
-
-	/**
-	 * @see $_giftCardAccount
-	 * @return TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
-	 */
-	protected function _getGiftCardAccount()
-	{
-		if (!$this->_giftCardAccount) {
-			$this->_giftCardAccount = Mage::getModel('enterprise_giftcardaccount/giftcardaccount');
-		}
-
-		return $this->_giftCardAccount;
-	}
-
-	/**
-	 * hold enterprise layout instantiated object
-	 *
-	 * @var Mage_Core_Model_Layout
-	 */
-	protected $_layout;
-
-	/**
-	 * @see $_layout
-	 * @return Mage_Core_Model_Layout
-	 */
-	public function getLayout()
-	{
-		if (!$this->_layout) {
-			$this->_layout = Mage::getSingleton('core/layout');
-		}
-
-		return $this->_layout;
-	}
-
-	/**
 	 * Overriding Enterprise add gift card to cart controller
 	 * Add Gift Card to current quote
 	 *
@@ -72,7 +32,7 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 				}
 				// @codeCoverageIgnoreEnd
 
-				$this->_getGiftCardAccount()->loadByPanPin($code, $pin)  // override this method to make eb2c stored value balance check request for actual valid gift card
+				Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->loadByPanPin($code, $pin)  // override this method to make eb2c stored value balance check request for actual valid gift card
 					->addToCart();
 				Mage::getSingleton('checkout/session')->addSuccess(
 					$this->__('Gift Card "%s" was added.', Mage::helper('core')->escapeHtml($code))
@@ -96,7 +56,7 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 	 */
 	public function quickCheckAction()
 	{
-		$card = $this->_getGiftCardAccount()->loadByPanPin(
+		$card = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->loadByPanPin(
 			$this->getRequest()->getParam('giftcard_code', ''),
 			$this->getRequest()->getParam('giftcard_pin', '')
 		);

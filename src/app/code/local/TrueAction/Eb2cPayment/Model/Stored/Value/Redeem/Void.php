@@ -6,28 +6,12 @@
  */
 class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
 	/**
 	 * Initialize resource model
 	 */
 	protected function _construct()
 	{
-		$this->_helper = $this->_getHelper();
 		return $this;
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cpayment');
-		}
-		return $this->_helper;
 	}
 
 	/**
@@ -48,8 +32,8 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 			$storeValueRedeemVoidRequest = $this->buildStoreValueRedeemVoidRequest($pan, $pin, $entityId, $amount);
 
 			// make request to eb2c for Gift Card redeem void
-			$storeValueRedeemVoidReply = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_gift_card_redeem_void'))
+			$storeValueRedeemVoidReply = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem_void'))
 				->request($storeValueRedeemVoidRequest);
 
 		}catch(Exception $e){
@@ -72,7 +56,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 	public function buildStoreValueRedeemVoidRequest($pan, $pin, $entityId, $amount)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueRedeemVoidRequest = $domDocument->addElement('StoreValueRedeemVoidRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$storeValueRedeemVoidRequest = $domDocument->addElement('StoreValueRedeemVoidRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 
 		// creating PaymentContent element
 		$paymentContext = $storeValueRedeemVoidRequest->createChild(
@@ -123,22 +107,15 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueRedeemVoidReply);
 			$redeemVoidXpath = new DOMXPath($doc);
-			$redeemVoidXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());
-
-			$orderId = $redeemVoidXpath->query('//a:PaymentContext/a:OrderId');
-			if ($orderId->length) {
-				$redeemVoidData['orderId'] = (int) $orderId->item(0)->nodeValue;
-			}
-
-			$paymentAccountUniqueId = $redeemVoidXpath->query('//a:PaymentContext/a:PaymentAccountUniqueId');
-			if ($paymentAccountUniqueId->length) {
-				$redeemVoidData['paymentAccountUniqueId'] = (string) $paymentAccountUniqueId->item(0)->nodeValue;
-			}
-
-			$responseCode = $redeemVoidXpath->query('//a:ResponseCode');
-			if ($responseCode->length) {
-				$redeemVoidData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
-			}
+			$redeemVoidXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getXmlNs());
+			$nodeOrderId = $redeemVoidXpath->query('//a:PaymentContext/a:OrderId');
+			$nodePaymentAccountUniqueId = $redeemVoidXpath->query('//a:PaymentContext/a:PaymentAccountUniqueId');
+			$nodeResponseCode = $redeemVoidXpath->query('//a:ResponseCode');
+			$redeemVoidData = array(
+				'orderId' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
+				'paymentAccountUniqueId' => ($nodePaymentAccountUniqueId->length)? (string) $nodePaymentAccountUniqueId->item(0)->nodeValue : null,
+				'responseCode' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue: null,
+			);
 		}
 
 		return $redeemVoidData;
