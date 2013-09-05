@@ -26,7 +26,7 @@ INVALID_XML;
 
 	/**
 	 * Create an Order
-	 * 
+	 * @medium
 	 * @test
 	 */
 	public function testOrderCreate()
@@ -67,7 +67,7 @@ INVALID_XML;
 	/**
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
 	 * Also covers the eb2c payments not enabled case
-	 * 
+	 *
 	 * @test
 	 */
 	public function testObserverCreate()
