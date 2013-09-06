@@ -24,6 +24,71 @@
 				<class>TrueAction_Eb2cProduct_Helper</class>
 			</eb2cproduct>
 		</helpers>
+		<resources>
+			<eb2cproduct_attributes_setup>
+				<setup>
+					<module>TrueAction_Eb2cProduct</module>
+				</setup>
+			</eb2cproduct_attributes_setup>
+		</resources>
+		<eb2cproduct_attributes>
+			<default>
+				<tax_code>
+					<scope>Website</scope>
+					<label>Tax Code</label>
+					<group>Price</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</tax_code>
+				<is_drop_shipped>
+					<scope>Website</scope>
+					<label>Is Drop Shipped</label>
+					<group></group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default>N</default>
+				</is_drop_shipped>
+				<drop_ship_supplier_name>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_name>
+				<drop_ship_supplier_number>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Number</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_number>
+				<drop_ship_supplier_part>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Part Number</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_part>
+				<price_is_vat_inclusive>
+					<scope>Store</scope>
+					<label>Price is VAT Inclusive</label>
+					<group>Prices</group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types></product_types>
+					<default>N</default>
+				</price_is_vat_inclusive>
+			</default>
+		</eb2cproduct_attributes>
 	</global>
 	<crontab>
 		<jobs>

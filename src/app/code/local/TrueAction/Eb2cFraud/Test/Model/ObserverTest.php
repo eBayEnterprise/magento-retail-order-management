@@ -73,12 +73,12 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 					)
 				)
 			)
-		); 
+		);
 	}
 
 	/**
-	 * TODO: Merge this into test base class?
 	 * Returns a mocked object
+	 * @todo: Merge this into test base class?
 	 * @param a Magento Class Alias
 	 * @param array of key / value pairs; key is the method name, value is value returned by that method
 	 *
@@ -94,15 +94,14 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 		$mock = null;
 
 		if( $disableConstructor ) {
-			$mock = $this->getModelMockBuilder($classAlias) 
+			$mock = $this->getModelMockBuilder($classAlias)
 				->disableOriginalConstructor()
 				->setMethods($justMethodNames)
-				->getMock(); 
-		}
-		else {
-			$mock = $this->getModelMockBuilder($classAlias) 
+				->getMock();
+		} else {
+			$mock = $this->getModelMockBuilder($classAlias)
 				->setMethods($justMethodNames)
-				->getMock(); 
+				->getMock();
 		}
 
 		reset($mockedMethodSet);
@@ -115,7 +114,7 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 	}
 
 	/**
-	 * TODO: Merge this into test base class?
+	 * @todo: Merge this into test base class?
 	 */
 	public function replaceModel($classAlias, $mockedMethodSet, $disableOriginalConstructor=true)
 	{

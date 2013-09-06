@@ -1,0 +1,15 @@
+-
+  - ''
+  - 'Invalid scope value ""'
+-
+  - ~
+  - 'Invalid scope value ""'
+-
+  - notvalid
+  - 'Invalid scope value "notvalid"'
+-
+  - NOTvaLID
+  - 'Invalid scope value "notvalid"'
+-
+  - 0
+  - 'Invalid scope value "0"'

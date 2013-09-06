@@ -1,0 +1,15 @@
+-
+  - 'text'
+  - 'default_value_text'
+-
+  - 'boolean'
+  - 'default_value_yesno'
+-
+  - 'select'
+  - 'option'
+-
+  - 'multiselect'
+  - 'option'
+-
+  - date
+  - default_value_date

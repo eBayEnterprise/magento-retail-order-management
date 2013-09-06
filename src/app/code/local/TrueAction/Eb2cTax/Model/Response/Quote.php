@@ -28,11 +28,11 @@ class TrueAction_Eb2cTax_Model_Response_Quote extends Mage_Core_Model_Abstract
 			// get situs
 			$this->setSitus($xpath->evaluate('string(a:Situs)', $tax));
 			// get effective rate
-			$this->setEffectiveRate((float)$effectiveRate);
+			$this->setEffectiveRate((float) $effectiveRate);
 			// get taxable amount
-			$this->setTaxableAmount((float)$xpath->evaluate('string(a:TaxableAmount)', $tax));
+			$this->setTaxableAmount((float) $xpath->evaluate('string(a:TaxableAmount)', $tax));
 			// calculatedtax
-			$this->setCalculatedTax((float)$xpath->evaluate('string(a:CalculatedTax)', $tax));
+			$this->setCalculatedTax((float) $xpath->evaluate('string(a:CalculatedTax)', $tax));
 		}
 	}
 }
