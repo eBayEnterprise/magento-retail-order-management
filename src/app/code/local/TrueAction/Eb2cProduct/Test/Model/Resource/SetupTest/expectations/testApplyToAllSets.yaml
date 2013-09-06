@@ -1,0 +1,14 @@
+category-taxcode-notexist:
+  entity_id: 10
+  attribute_code: 'tax_code'
+  attribute_data:
+    tax_code:
+      group: testgroup
+      frontend_label:
+        0: testlabel
+        1:
+        2:
+        3:
+        4:
+  log_warn_called: false
+  message: existing attribute with id='' was replaced'
