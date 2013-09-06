@@ -111,7 +111,6 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 			);
 		$this->replaceByMock('model', 'eb2cpayment/stored_value_redeem', $redeemMock);
 
-
 		// let's mock the enterprise gift card class so that removeFromCart method don't thrown an exception
 		$giftCardAccountMock = $this->getModelMockBuilder('enterprise_giftcardaccount/giftcardaccount')
 			->setMethods(array('loadByPanPin', 'removeFromCart'))

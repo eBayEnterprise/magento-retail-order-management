@@ -29,6 +29,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallSetExpressCheckout()
 	{
+		$this->_mockObject->replaceByMockPaypalSetExpressCheckoutModel();
 		// because we are setting the paypal set express checkout class property in the setup as a reflection some of te code
 		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
 		$nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
@@ -75,6 +76,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallSetExpressCheckoutWithAddress()
 	{
+		$this->_mockObject->replaceByMockPaypalSetExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -107,6 +110,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallSetExpressCheckoutDisabled()
 	{
+		$this->_mockObject->replaceByMockPaypalSetExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
@@ -135,6 +140,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallGetExpressCheckoutDetails()
 	{
+		$this->_mockObject->replaceByMockPaypalGetExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -161,6 +168,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallGetExpressCheckoutDetailsDisabled()
 	{
+		$this->_mockObject->replaceByMockPaypalGetExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -185,6 +194,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoExpressCheckoutPayment()
 	{
+		$this->_mockObject->replaceByMockPaypalDoExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -213,6 +224,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoExpressCheckoutPaymentDisabled()
 	{
+		$this->_mockObject->replaceByMockPaypalDoExpressCheckoutModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -237,6 +250,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoAuthorization()
 	{
+		$this->_mockObject->replaceByMockPaypalDoAuthorizationModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -266,6 +281,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoAuthorizationDisabled()
 	{
+		$this->_mockObject->replaceByMockPaypalDoAuthorizationModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -293,6 +310,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoVoid()
 	{
+		$this->_mockObject->replaceByMockPaypalDoVoidModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();
@@ -319,6 +338,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 */
 	public function testCallDoVoidDisabled()
 	{
+		$this->_mockObject->replaceByMockPaypalDoVoidModel();
+
 		$nvpReflector = new ReflectionObject($this->_nvp);
 
 		$configObject = new Mage_Paypal_Model_Config();

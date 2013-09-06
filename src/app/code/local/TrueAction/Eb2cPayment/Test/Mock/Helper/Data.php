@@ -145,11 +145,27 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function replaceByMockCoreHelper()
 	{
-		// with invalid ftp setting
 		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('getApiUri'));
 		$coreHelperMock->expects($this->any())
 			->method('getApiUri')
 			->will($this->returnCallback(array($this, 'getOperationUriCallback')));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+	}
+
+	/**
+	 * replacing by mock of the enterprise_giftcardaccount helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockEnterpriseGiftCardAccountHelper()
+	{
+		$enterpriseGiftCardAccountHelperMock = $this->getHelperMock('enterprise_giftcardaccount/data', array('getCards', 'setCards'));
+		$enterpriseGiftCardAccountHelperMock->expects($this->any())
+			->method('getCards')
+			->will($this->returnValue(array(array('i' => 1))));
+		$enterpriseGiftCardAccountHelperMock->expects($this->any())
+			->method('setCards')
+			->will($this->returnSelf());
+		$this->replaceByMock('helper', 'enterprise_giftcardaccount', $enterpriseGiftCardAccountHelperMock);
 	}
 }

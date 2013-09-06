@@ -6,11 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Model_Abstract
 {
-	public function __construct()
-	{
-		return $this;
-	}
-
 	/**
 	 * Do paypal Authorization from eb2c.
 	 *

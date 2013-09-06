@@ -6,11 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_Model_Abstract
 {
-	public function __construct()
-	{
-		return $this;
-	}
-
 	/**
 	 * Do paypal express checkout from eb2c.
 	 *

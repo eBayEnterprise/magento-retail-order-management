@@ -57,7 +57,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 	 */
 	public function testGetExpressCheckout($quote)
 	{
-
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
 			->setMethods(array('getEb2cPaypalToken', 'setEb2cPaypalPayerId', 'save'))
 			->getMock();
@@ -102,7 +101,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 			->will($this->throwException(new Exception));
 
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
 
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
 			->setMethods(array('getEb2cPaypalToken', 'setEb2cPaypalPayerId', 'save'))

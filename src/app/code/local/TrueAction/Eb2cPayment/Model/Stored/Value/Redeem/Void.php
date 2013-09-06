@@ -7,14 +7,6 @@
 class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Model_Abstract
 {
 	/**
-	 * Initialize resource model
-	 */
-	protected function _construct()
-	{
-		return $this;
-	}
-
-	/**
 	 * Get gift card redeem void from eb2c.
 	 *
 	 * @param string $pan, Either a raw PAN or a token representing a PAN

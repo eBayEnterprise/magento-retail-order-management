@@ -204,7 +204,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
 			->setMethods(array('getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId'))
 			->getMock();

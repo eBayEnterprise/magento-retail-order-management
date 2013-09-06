@@ -6,11 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstract
 {
-	public function __construct()
-	{
-		return $this;
-	}
-
 	/**
 	 * Do paypal Void from eb2c.
 	 *

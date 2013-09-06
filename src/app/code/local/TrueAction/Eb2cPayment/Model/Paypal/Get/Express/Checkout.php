@@ -7,14 +7,6 @@
 class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core_Model_Abstract
 {
 	/**
-	 * Initialize model
-	 */
-	protected function _construct()
-	{
-		return $this;
-	}
-
-	/**
 	 * getting paypal express checkout from eb2c.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to Get express paypal checkout for in eb2c

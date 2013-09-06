@@ -22,8 +22,10 @@ class TrueAction_Eb2cPayment_Model_Observer
 			foreach ($giftCard as $card) {
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's redeem gift card in eb2c.
-					if ($storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')->getRedeem($card['pan'], $card['pin'], $quote->getId(), $card['ba'])) {
-						if ($redeemData = Mage::getModel('eb2cpayment/stored_value_redeem')->parseResponse($storeValueRedeemReply)) {
+					$storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')->getRedeem($card['pan'], $card['pin'], $quote->getId(), $card['ba']);
+					if ($storeValueRedeemReply) {
+						$redeemData = Mage::getModel('eb2cpayment/stored_value_redeem')->parseResponse($storeValueRedeemReply);
+						if ($redeemData) {
 							// making sure we have the right data
 							if (isset($redeemData['responseCode']) && strtoupper(trim($redeemData['responseCode'])) === 'FAIL') {
 								// removed gift card from the shopping cart
@@ -62,8 +64,11 @@ class TrueAction_Eb2cPayment_Model_Observer
 			foreach ($giftCard as $card) {
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's RedeemVoid gift card in eb2c.
-					if ($storeValueRedeemVoidReply = Mage::getModel('eb2cpayment/stored_value_redeem_void')->getRedeemVoid($card['pan'], $card['pin'], $quote->getId(), $card['ba'])) {
-						if ($redeemVoidData = Mage::getModel('eb2cpayment/stored_value_redeem_void')->parseResponse($storeValueRedeemVoidReply)) {
+					$storeValueRedeemVoidReply = Mage::getModel('eb2cpayment/stored_value_redeem_void')
+						->getRedeemVoid($card['pan'], $card['pin'], $quote->getId(), $card['ba']);
+					if ($storeValueRedeemVoidReply) {
+						$redeemVoidData = Mage::getModel('eb2cpayment/stored_value_redeem_void')->parseResponse($storeValueRedeemVoidReply);
+						if ($redeemVoidData) {
 							// making sure we have the right data
 							if (isset($redeemVoidData['responseCode']) && strtoupper(trim($redeemVoidData['responseCode'])) === 'SUCCESS') {
 								// removed gift card from the shopping cart

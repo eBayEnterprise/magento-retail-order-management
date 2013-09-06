@@ -21,54 +21,6 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	protected $_requestedPin = false;
 
 	/**
-	 * eb2c stored value balance object
-	 *
-	 * @var TrueAction_Eb2cPayment_Model_Stored_Value_Balance
-	 */
-	protected $_storedValueBalance;
-
-	protected function _getStoredValueBalance()
-	{
-		if (!$this->_storedValueBalance) {
-			$this->_storedValueBalance = Mage::getModel('eb2cpayment/stored_value_balance');
-		}
-
-		return $this->_storedValueBalance;
-	}
-
-	/**
-	 * giftcardaccount helper object
-	 *
-	 * @var Enterprise_GiftCardAccount_Helper_Data
-	 */
-	protected $_helper;
-
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('enterprise_giftcardaccount');
-		}
-
-		return $this->_helper;
-	}
-
-	/**
-	 * enterprise giftcardaccount object
-	 *
-	 * @var Enterprise_GiftCardAccount_Model_Giftcardaccount
-	 */
-	protected $_giftCardAccountModel;
-
-	protected function _getGiftCardAccountModel()
-	{
-		if (!$this->_giftCardAccountModel) {
-			$this->_giftCardAccountModel = Mage::getModel('enterprise_giftcardaccount/giftcardaccount');
-		}
-
-		return $this->_giftCardAccountModel;
-	}
-
-	/**
 	 * filter gift card by by pan and pin
 	 *
 	 * @return TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
@@ -132,9 +84,9 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		// Check eb2c stored value first
 		if (trim($pan) !== '' && trim($pin) !== '') {
 			// only fetch eb2c stored value balance when both pan and pin is valid
-			$storeValueBalanceReply = $this->_getStoredValueBalance()->getBalance($pan, $pin);
+			$storeValueBalanceReply = Mage::getModel('eb2cpayment/stored_value_balance')->getBalance($pan, $pin);
 			if ($storeValueBalanceReply) {
-				$balanceData = $this->_getStoredValueBalance()->parseResponse($storeValueBalanceReply);
+				$balanceData = Mage::getModel('eb2cpayment/stored_value_balance')->parseResponse($storeValueBalanceReply);
 				if ($balanceData) {
 					$balanceData['pin'] = $pin;
 					// making sure we have the right data
@@ -188,7 +140,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 */
 	protected function _addGiftCardWithEb2cData(array $balanceData)
 	{
-		$giftCard = $this->_getGiftCardAccountModel()->load(null);
+		$giftCard = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->load(null);
 		$giftCard->setGiftcardaccountId(null)
 			->setCode($balanceData['paymentAccountUniqueId'])
 			->setEb2cPan($balanceData['paymentAccountUniqueId'])
@@ -217,7 +169,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		}
 		$website = Mage::app()->getStore($quote->getStoreId())->getWebsite();
 		if ($this->isValid(true, true, $website)) {
-			$cards = $this->_getHelper()->getCards($quote);
+			$cards = Mage::helper('enterprise_giftcardaccount')->getCards($quote);
 			if (!$cards) {
 				$cards = array();
 			} else {
