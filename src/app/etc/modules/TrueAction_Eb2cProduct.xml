@@ -11,6 +11,10 @@
 		<TrueAction_Eb2cProduct>
 			<active>true</active>
 			<codePool>local</codePool>
+			<depends>
+				<Mage_Eav/>
+				<Mage_Catalog/>
+			</depends>
 		</TrueAction_Eb2cProduct>
 	</modules>
 </config>

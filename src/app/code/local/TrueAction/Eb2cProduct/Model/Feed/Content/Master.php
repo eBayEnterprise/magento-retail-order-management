@@ -18,7 +18,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
 		}
 
+		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+
+		// set base dir base on the config
+		$this->setBaseDir($cfg->contentFeedLocalPath);
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
@@ -32,8 +36,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			->setEavConfig(Mage::getModel('eav/config'))
 			->setCategory(Mage::getModel('catalog/category')) // magically setting catalog/category model object
 			->setDefaultStoreLanguageCode($storeLang) // setting default store language
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			->setBaseDir($cfg->contentFeedLocalPath);
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs));
 
 		return $this;
 	}
@@ -176,7 +179,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$this->_getContentMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
+		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
@@ -192,7 +195,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveFolder($feed);
+				$this->getFeedModel()->mvToArchiveDir($feed);
 			}
 		}
 

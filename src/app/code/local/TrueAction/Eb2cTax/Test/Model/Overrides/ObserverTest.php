@@ -788,7 +788,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 
 		$responseItem = $this->_orderSaveResponseItemMock($taxQuote, $taxQuoteDiscount);
 		$response = $this->_orderSaveResponseMock($responseItem, $quoteItems, $address);
-		$response->hasThisBeenReplacedByMyMock = "yes this has been";
+		$response->hasThisBeenReplacedByMyMock = 'yes this has been';
 		$calculator = $this->_orderSaveCalculatorMock($response);
 		$helper = $this->_orderSaveHelperMock($calculator);
 		$this->replaceByMock('helper', 'tax', $helper);
