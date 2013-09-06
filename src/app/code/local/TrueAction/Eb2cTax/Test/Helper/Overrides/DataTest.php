@@ -131,13 +131,9 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 			->method('request')
 			->with($requestDocument)
 			->will($this->throwException(new Exception));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$taxHelper = Mage::helper('tax');
-		$taxReflector = new ReflectionObject($taxHelper);
-		$apiModel = $taxReflector->getProperty('_apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($taxHelper, $apiModelMock);
-
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cTax_Model_Response',
 			$taxHelper->sendRequest($request)

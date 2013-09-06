@@ -1,52 +1,29 @@
 <?php
 /**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ * @category  TrueAction
+ * @package   TrueAction_Eb2c
+ * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
-	public function __construct()
-	{
-		$this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Data
-	 * @todo Use magic.
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cinventory');
-		}
-		return $this->_helper;
-	}
-
 	/**
 	 * Allocating all items brand new quote from eb2c.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to allocate inventory items in eb2c for
-	 *
 	 * @return string the eb2c response to the request.
 	 */
 	public function allocateQuoteItems($quote)
 	{
 		$allocationResponseMessage = '';
-		try{
+		try {
 			// build request
 			$allocationRequestMessage = $this->buildAllocationRequestMessage($quote);
 
 			// make request to eb2c for quote items allocation
-			$allocationResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('allocate_inventory'))
+			$allocationResponseMessage = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cinventory')->getOperationUri('allocate_inventory'))
 				->request($allocationRequestMessage);
 
-		}catch(Exception $e){
+		} catch (Exception $e) {
 			Mage::logException($e);
 		}
 
@@ -57,20 +34,19 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 * Build  Allocation request.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
 	public function buildAllocationRequestMessage($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
-		$allocationRequestMessage->setAttribute('requestId', $this->_getHelper()->getRequestId($quote->getEntityId()));
-		$allocationRequestMessage->setAttribute('reservationId', $this->_getHelper()->getReservationId($quote->getEntityId()));
+		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
+		$allocationRequestMessage->setAttribute('requestId', Mage::helper('eb2cinventory')->getRequestId($quote->getEntityId()));
+		$allocationRequestMessage->setAttribute('reservationId', Mage::helper('eb2cinventory')->getReservationId($quote->getEntityId()));
 		if ($quote) {
-			foreach($quote->getAllAddresses() as $addresses){
-				if ($addresses){
+			foreach ($quote->getAllAddresses() as $addresses) {
+				if ($addresses) {
 					foreach ($addresses->getAllItems() as $item) {
-						try{
+						try {
 							// creating quoteItem element
 							$quoteItem = $allocationRequestMessage->createChild(
 								'OrderItem',
@@ -137,7 +113,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 								$shippingAddress->getPostcode(),
 								null
 							);
-						}catch(Exception $e){
+						} catch (Exception $e) {
 							Mage::logException($e);
 						}
 					}
@@ -151,7 +127,6 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 * Parse allocation response XML.
 	 *
 	 * @param string $allocationResponseMessage the XML response from eb2c
-	 *
 	 * @return array, an associative array of response data
 	 */
 	public function parseResponse($allocationResponseMessage)
@@ -165,7 +140,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 			$i = 0;
 			$allocationResponse = $doc->getElementsByTagName('AllocationResponse');
 			$allocationMessage = $doc->getElementsByTagName('AllocationResponseMessage');
-			foreach($allocationResponse as $response) {
+			foreach ($allocationResponse as $response) {
 				$allocationData[] = array(
 					'lineId' => $response->getAttribute('lineId'),
 					'itemId' => $response->getAttribute('itemId'),
@@ -185,7 +160,6 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 *
 	 * @param Mage_Sales_Model_Order $quote the quote we use to get allocation response from eb2c
 	 * @param string $allocationData, a parse associative array of eb2c response
-	 *
 	 * @return array, error results of item that cannot be allocated
 	 */
 	public function processAllocation($quote, $allocationData)
@@ -212,7 +186,6 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 * Removing all allocation data from quote item.
 	 *
 	 * @param Mage_Sales_Model_Order $quote the quote to empty any allocation data from it's item
-	 *
 	 * @return void
 	 */
 	protected function _emptyQuoteAllocation($quote)
@@ -230,7 +203,6 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 * checking if any quote item has allocation data.
 	 *
 	 * @param Mage_Sales_Model_Order $quote the quote to check if it's items have any allocation data
-	 *
 	 * @return boolean, true reserved allocation is found, false no allocation data found on any quote item
 	 */
 	public function hasAllocation($quote)
@@ -250,7 +222,6 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	 * Check if the reserved allocation exceed the maximum expired setting.
 	 *
 	 * @param Mage_Sales_Model_Order $quote the quote to check if it's items have any allocation data
-	 *
 	 * @return boolean, true reserved allocation is found, false no allocation data found on any quote item
 	 */
 	public function isExpired($quote)
@@ -264,7 +235,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 				$interval = $reservedExpiredDateTime->diff($currentDateTime);
 				$differenceInMinutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
 				// check if the current date time exceed the maximum allocation expired in minutes
-				if ($differenceInMinutes > (int) $this->_getHelper()->getConfigModel()->allocation_expired) {
+				if ($differenceInMinutes > (int) Mage::helper('eb2cinventory')->getConfigModel()->allocation_expired) {
 					$isExpired = true;
 					break;
 				}
@@ -274,7 +245,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * update quote with allocation response data.
+	 * Update quote with allocation response data.
 	 *
 	 * @param Mage_Sales_Model_Quote_Item $quoteItem the item to be updated with eb2c data
 	 * @param array $quoteData the data from eb2c for the quote item
@@ -311,10 +282,9 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * Rolling back allocation request.
+	 * Roll back allocation request.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XMLfrom
-	 *
 	 * @return string, the string xml message
 	 */
 	public function rollbackAllocation($quote)
@@ -323,15 +293,15 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 		$this->_emptyQuoteAllocation($quote);
 
 		$rollbackAllocationResponseMessage = '';
-		try{
+		try {
 			// build request
 			$rollbackAllocationRequestMessage = $this->buildRollbackAllocationRequestMessage($quote);
 
 			// make request to eb2c for inventory rollback allocation
-			$rollbackAllocationResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('rollback_allocation'))
+			$rollbackAllocationResponseMessage = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cinventory')->getOperationUri('rollback_allocation'))
 				->request($rollbackAllocationRequestMessage);
-		}catch(Exception $e){
+		} catch (Exception $e) {
 			Mage::logException($e);
 		}
 
@@ -339,19 +309,17 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * Build  Rollback Allocation request.
+	 * Build Rollback Allocation request.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
 	public function buildRollbackAllocationRequestMessage($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$rollbackAllocationRequestMessage = $domDocument->addElement('RollbackAllocationRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
-		$rollbackAllocationRequestMessage->setAttribute('requestId', $this->_getHelper()->getRequestId($quote->getEntityId()));
-		$rollbackAllocationRequestMessage->setAttribute('reservationId', $this->_getHelper()->getReservationId($quote->getEntityId()));
-
+		$rollbackAllocationRequestMessage = $domDocument->addElement('RollbackAllocationRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
+		$rollbackAllocationRequestMessage->setAttribute('requestId', Mage::helper('eb2cinventory')->getRequestId($quote->getEntityId()));
+		$rollbackAllocationRequestMessage->setAttribute('reservationId', Mage::helper('eb2cinventory')->getReservationId($quote->getEntityId()));
 		return $domDocument;
 	}
 }

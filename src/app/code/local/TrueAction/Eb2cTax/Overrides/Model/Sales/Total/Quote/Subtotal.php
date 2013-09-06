@@ -86,17 +86,18 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	 */
 	protected function _applyTaxes($item, $address)
 	{
-		$helper         = $this->_helper;
-		$qty            = $item->getTotalQty();
+		$helper          = $this->_helper;
+		$qty             = $item->getTotalQty();
+		$basePrice       = $baseTaxPrice = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
 
-		$basePrice      = $baseTaxPrice     = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
-		$baseSubtotal   = $baseTaxSubtotal  = $item->getBaseRowTotal();
-		$itemSelector   = new Varien_Object(array('item' => $item, 'address' => $address));
-		$baseTax        = $this->_calculator->getTaxForAmount($basePrice, $itemSelector);
-		$baseTaxPrice   = $basePrice + $baseTax;
-		$baseRowTax     = $this->_calculator->getTax($itemSelector);
-		$baseTaxSubtotal= $baseSubtotal + $baseRowTax;
-		$baseTaxable    = $baseSubtotal;
+		$baseSubtotal = $baseTaxSubtotal = $item->getBaseRowTotal();
+		$itemSelector = new Varien_Object(array('item' => $item, 'address' => $address));
+
+		$baseTax         = $this->_calculator->getTaxForAmount($basePrice, $itemSelector);
+		$baseTaxPrice    = $basePrice + $baseTax;
+		$baseRowTax      = $this->_calculator->getTax($itemSelector);
+		$baseTaxSubtotal = $baseSubtotal + $baseRowTax;
+		$baseTaxable     = $baseSubtotal;
 		if ($item->hasCustomPrice()) {
 			/**
 			 * Initialize item original price before declaring custom price

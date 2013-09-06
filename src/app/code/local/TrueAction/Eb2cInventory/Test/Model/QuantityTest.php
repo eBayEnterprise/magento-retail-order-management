@@ -4,7 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_QuantityTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_quantity;
 
@@ -15,13 +16,13 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 	{
 		parent::setUp();
 		$this->_quantity = Mage::getModel('eb2cinventory/quantity');
+	}
 
-		$newHelper = new TrueAction_Eb2cInventory_Helper_Data();
-
-		$quantityReflector = new ReflectionObject($this->_quantity);
-		$helper = $quantityReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_quantity, $newHelper);
+	public function providerRequestQuantity()
+	{
+		return array(
+			array('qty' => 1, 'itemId' => 100, 'sku' => '1234-TA')
+		);
 	}
 
 	public function providerBuildQuantityRequestMessage()
@@ -50,7 +51,6 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 	 * testing Building Quantity Request Message
 	 *
 	 * @test
-	 * @loadFixture loadConfig.yaml
 	 * @dataProvider providerBuildQuantityRequestMessage
 	 */
 	public function testBuildQuantityRequestMessage($items)
@@ -61,10 +61,26 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 		);
 	}
 
-	public function providerRequestQuantity()
+	/**
+	 * testing requestQuantity method, when exception is throw from API call
+	 *
+	 * @test
+	 * @dataProvider providerRequestQuantity
+	 */
+	public function testRequestQuantityRequesetException($qty, $itemId, $sku)
 	{
-		return array(
-			array('qty' => 1, 'itemId' => 100, 'sku' => '1234-TA')
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->throwException(new Exception));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$this->assertSame(
+			0,
+			$this->_quantity->requestQuantity($qty, $itemId, $sku)
 		);
 	}
 
@@ -72,37 +88,67 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest extends EcomDev_PHPUnit_T
 	 * testing requestQuantity method, when exception is throw from API call
 	 *
 	 * @test
-	 * @loadFixture loadConfig.yaml
 	 * @dataProvider providerRequestQuantity
 	 */
-	public function testRequestQuantity($qty=0, $itemId, $sku)
+	public function testRequestQuantityRequesetAvailableInventory($qty, $itemId, $sku)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Exception));
-
-		$inventoryHelper = Mage::helper('eb2cinventory');
-		$inventoryReflector = new ReflectionObject($inventoryHelper);
-		$apiModel = $inventoryReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($inventoryHelper, $apiModelMock);
-
-		$quantityReflector = new ReflectionObject($this->_quantity);
-		$helper = $quantityReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_quantity, $inventoryHelper);
+			->will($this->returnValue('<?xml version="1.0" encoding="UTF-8"?>
+<QuantityResponseMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+	<QuantityResponse itemId="100" lineId="1">
+		<Quantity>1020</Quantity>
+	</QuantityResponse>
+</QuantityResponseMessage>
+			'));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
-			0,
+			1020,
 			$this->_quantity->requestQuantity($qty, $itemId, $sku)
 		);
 	}
+
+	/**
+	 * Test parsing quantity data from a quantity response.
+	 *
+	 * @test
+	 */
+	public function testGetAvailStockFromResponse()
+	{
+		$responseMessage = '<?xml version="1.0" encoding="UTF-8"?>
+<QuantityResponseMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+	<QuantityResponse itemId="1234-TA" lineId="1">
+		<Quantity>1020</Quantity>
+	</QuantityResponse>
+	<QuantityResponse itemId="4321-TA" lineId="1">
+		<Quantity>55</Quantity>
+	</QuantityResponse>
+</QuantityResponseMessage>';
+
+		$this->assertSame(
+			array('1234-TA' => 1020, '4321-TA' => 55),
+			$this->_quantity->getAvailableStockFromResponse($responseMessage)
+		);
+	}
+
+	/**
+	 * Empty quantity response should be considered 0 stock
+	 *
+	 * @test
+	 */
+	public function testGetAvailStockFromEmptyResponse()
+	{
+		$responseMessage = ' ';
+
+		$this->assertSame(
+			array(),
+			$this->_quantity->getAvailableStockFromResponse($responseMessage)
+		);
+	}
+
 }
