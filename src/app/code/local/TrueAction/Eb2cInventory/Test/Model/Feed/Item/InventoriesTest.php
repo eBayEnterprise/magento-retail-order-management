@@ -59,7 +59,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$mockFsTool
 			->expects($this->any())
 			->method('pwd')
-			->will($this->returnValue($vfs->url(self::VFS_ROOT.'/inbound')));
+			->will($this->returnValue($vfs->url(self::VFS_ROOT . '/inbound')));
 		$mockFsTool
 			->expects($this->any())
 			->method('setAllowCreateFolders')
@@ -68,14 +68,46 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// vfs setup ends
 		return $mockFsTool;
 	}
+
 	/**
-	 * testing processFeeds method
+	 * testing _constructor method - this test to test fs tool is set in the constructor when no paramenter pass
 	 *
 	 * @test
 	 * @medium
 	 * @loadFixture sample-data.yaml
 	 */
-	public function testProcessFeeds()
+	public function testConstructor()
+	{
+		$feedItemInventoriesMock = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->setMethods(array('hasFsTool'))
+			->getMock();
+
+		$feedItemInventoriesMock->expects($this->any())
+			->method('hasFsTool')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/feed_item_inventories', $feedItemInventoriesMock);
+
+		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
+
+		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
+		$constructMethod = $inventoriesReflector->getMethod('_construct');
+		$constructMethod->setAccessible(true);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cInventory_Model_Feed_Item_Inventories',
+			$constructMethod->invoke($inventoryFeedModel)
+		);
+	}
+
+	/**
+	 * testing processFeeds method - with invalid ftp settings
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testProcessFeedsWithInvalidFtpSettings()
 	{
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
@@ -95,7 +127,46 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		);
 
 		$this->_replaceFileTransferHelper();
+
+		// with invalid ftp setting
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$inventoryHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(false));
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
+
 		$this->assertNull($inventoryFeedModel->processFeeds());
+
+		$vfs->discard();
+	}
+
+	/**
+	 * testing processFeeds method, with valid ftp settings
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testProcessFeedsWithValidFtpSettings()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$inventoryFeedModel = Mage::getModel(
+			'eb2cinventory/feed_item_inventories',
+			array(
+				'base_dir' => $vfs->url(self::VFS_ROOT),
+				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+			)
+		);
+
+		$this->_replaceFileTransferHelper();
 
 		// test with mock product and stock item
 		$productMock = $this->getMock(
@@ -123,15 +194,15 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->method('save')
 			->will($this->returnSelf());
 
-		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
+		$inventoryFeedModel->setProduct($productMock);
+		$inventoryFeedModel->setStockItem($stockItemMock);
 
-		$productProperty = $inventoriesReflector->getProperty('_product');
-		$productProperty->setAccessible(true);
-		$productProperty->setValue($inventoryFeedModel, $productMock);
-
-		$stockItemProperty = $inventoriesReflector->getProperty('_stockItem');
-		$stockItemProperty->setAccessible(true);
-		$stockItemProperty->setValue($inventoryFeedModel, $stockItemMock);
+		// with valid ftp setting
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$inventoryHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
 
 		$this->assertNull($inventoryFeedModel->processFeeds());
 
@@ -154,11 +225,8 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->throwException(new Exception));
 
 		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$inventoryFeedModel->setStockStatus($stockStatusMock);
 		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-		$stockStatusProperty = $inventoriesReflector->getProperty('_stockStatus');
-		$stockStatusProperty->setAccessible(true);
-		$stockStatusProperty->setValue($inventoryFeedModel, $stockStatusMock);
-
 		$cleanMethod = $inventoriesReflector->getMethod('_clean');
 		$cleanMethod->setAccessible(true);
 		$this->assertNull(
