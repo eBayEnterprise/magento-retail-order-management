@@ -7,27 +7,27 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	/**
 	 * @var Mage_Sales_Model_Quote (mock)
 	 */
-	public $quote          = null;
+	public $quote = null;
 
 	/**
 	 * @var Mage_Sales_Model_Quote_Address (mock)
 	 */
-	public $shipAddress    = null;
+	public $shipAddress = null;
 
 	/**
 	 * @var Mage_Sales_Model_Quote_Address (mock)
 	 */
-	public $billAddress    = null;
+	public $billAddress = null;
 
 	/**
 	 * @var ReflectionProperty(TrueAction_Eb2cTax_Model_Request::_xml)
 	 */
-	public $doc            = null;
+	public $doc = null;
 
 	/**
 	 * @var ReflectionClass(TrueAction_Eb2cTax_Model_Request)
 	 */
-	public static $cls     = null;
+	public static $cls = null;
 
 	/**
 	 * path to the xsd file to validate against.
@@ -46,7 +46,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		self::$xsdFile = dirname(__FILE__) .
 			'/RequestTest/fixtures/TaxDutyFee-QuoteRequest-1.0.xsd';
 	}
-
 
 	public function getItemTaxClassProvider()
 	{
@@ -108,20 +107,20 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'qty' => 1.000, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'qty' => 1.000, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$mockQuote = $this->_buildModelMock('sales/quote', array(
-			'getId'                 => $this->returnValue(1),
-			'isVirtual'             => $this->returnValue(1),
-			'getStore'              => $this->returnValue($store),
-			'getBillingAddress'     => $this->returnValue($address),
-			'getAllAddresses'       => $this->returnValue(array($address)),
+			'getId'                   => $this->returnValue(1),
+			'isVirtual'               => $this->returnValue(1),
+			'getStore'                => $this->returnValue($store),
+			'getBillingAddress'       => $this->returnValue($address),
+			'getAllAddresses'         => $this->returnValue(array($address)),
 			'getAllShippingAddresses' => $this->returnValue(array()),
-			'getItemById'           => $this->returnValueMap(array(
+			'getItemById'             => $this->returnValueMap(array(
 				array(1, $item),
 				array(2, $childItem)
 			))
 		));
-		$mockQuote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$mockQuote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $mockQuote;
 	}
 
@@ -139,12 +138,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$hasChanges = $this->_reflectProperty($request, '_hasChanges');
 		$this->assertFalse($hasChanges->getValue($request));
-		$this->assertTrue((bool)$request->getQuote());
-		$this->assertTrue((bool)$request->getQuote()->getId());
-		$this->assertTrue((bool)$request->getQuote()->getBillingAddress());
-		$this->assertTrue((bool)$request->getQuote()->getBillingAddress()->getId());
+		$this->assertTrue((bool) $request->getQuote());
+		$this->assertTrue((bool) $request->getQuote()->getId());
+		$this->assertTrue((bool) $request->getQuote()->getBillingAddress());
+		$this->assertTrue((bool) $request->getQuote()->getBillingAddress()->getId());
 		$itemQuantities = $this->_reflectProperty($request, '_itemQuantities')->getValue($request);
-		$this->assertSame((int)$request->getQuote()->getItemsQty(), count($itemQuantities));
+		$this->assertSame((int) $request->getQuote()->getItemsQty(), count($itemQuantities));
 		$this->assertTrue($request->isValid());
 		$request->invalidate();
 		$this->assertTrue($hasChanges->getValue($request));
@@ -160,9 +159,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->_setupBaseUrl();
 		$quote = $this->_mockSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$helper       = $this->getHelperMock('tax/data', array('getNamespaceUri'));
+		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
 		$helper->expects($this->atLeastOnce())
 			->method('getNamespaceUri')
 			->will($this->returnValue(self::$namespaceUri));
@@ -181,14 +178,11 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote = $this->_mockSingleShipVirtual();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$helper       = $this->getHelperMock('tax/data', array('getNamespaceUri'));
+		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
 		$helper->expects($this->atLeastOnce())
 			->method('getNamespaceUri')
 			->will($this->returnValue(self::$namespaceUri));
 		$this->_reflectProperty($request, '_helper')->setValue($request, $helper);
-
 
 		$this->assertTrue($request->isValid());
 		$doc = $request->getDocument();
@@ -203,8 +197,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote = $this->_mockMultiShipNotSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$helper       = $this->getHelperMock('tax/data', array('getNamespaceUri'));
+		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
 		$helper->expects($this->atLeastOnce())
 			->method('getNamespaceUri')
 			->will($this->returnValue(self::$namespaceUri));
@@ -347,8 +340,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote   = $this->_mockMultiShipNotSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$helper       = $this->getHelperMock('tax/data', array('getNamespaceUri'));
+		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
 		$helper->expects($this->atLeastOnce())
 			->method('getNamespaceUri')
 			->will($this->returnValue(self::$namespaceUri));
@@ -400,9 +392,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testVirtualPhysicalMix()
 	{
-		$quote   = $this->_mockSingleShipSameAsBillVirtualMix();
+		$quote = $this->_mockSingleShipSameAsBillVirtualMix();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		$doc     = $request->getDocument();
+		$doc = $request->getDocument();
 		// billing address
 		$node1 = $doc->getElementById('_1');
 		$this->assertNotNull($node1);
@@ -491,7 +483,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckSkuWithLongSku()
 	{
-		$quote   = $this->_mockQuoteWithSku("123456789012345678901");
+		$quote   = $this->_mockQuoteWithSku('123456789012345678901');
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$doc = $request->getDocument();
 		$this->assertNotNull($doc->documentElement);
@@ -526,7 +518,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue(''),
@@ -534,7 +526,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 
@@ -553,7 +545,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue('10off'),
@@ -561,7 +553,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 
 		$request->checkDiscounts($quote);
 		$this->assertFalse($request->isValid());
@@ -587,7 +579,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue('10off'),
@@ -595,7 +587,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		// coupon code changes   -> invalidates the quote
 		$this->assertTrue($request->isValid());
@@ -614,7 +606,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue('10off2'),
@@ -622,7 +614,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 
 		$request->checkDiscounts($quote);
 		$this->assertFalse($request->isValid());
@@ -644,18 +636,18 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'           => $this->returnValue($vProduct),
 		));
 		$address = $this->_buildModelMock('sales/quote_address', array(
-			'getId'                   => $this->returnValue(1),
-			'getAllNonNominalItems'   => $this->returnValue(array($item)),
-			'getShippingDiscountAmount'=> $this->returnValue(5),
+			'getId'                     => $this->returnValue(1),
+			'getAllNonNominalItems'     => $this->returnValue(array($item)),
+			'getShippingDiscountAmount' => $this->returnValue(5),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getBillingAddress'     => $this->returnValue($address),
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		// coupon code changes   -> invalidates the quote
 		$this->assertTrue($request->isValid());
@@ -670,18 +662,18 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'           => $this->returnValue($vProduct),
 		));
 		$address = $this->_buildModelMock('sales/quote_address', array(
-			'getId'                   => $this->returnValue(1),
-			'getAllNonNominalItems'   => $this->returnValue(array($item)),
-			'getShippingDiscountAmount'=> $this->returnValue(0),
+			'getId'                     => $this->returnValue(1),
+			'getAllNonNominalItems'     => $this->returnValue(array($item)),
+			'getShippingDiscountAmount' => $this->returnValue(0),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getBillingAddress'     => $this->returnValue($address),
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 
 		$request->checkDiscounts($quote);
 		$this->assertFalse($request->isValid());
@@ -706,7 +698,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue(''),
@@ -714,7 +706,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 		$request->checkDiscounts($quote);
@@ -740,7 +732,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue(''),
@@ -748,7 +740,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 
@@ -771,7 +763,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$quote = $this->_buildModelMock('sales/quote', array(
 			'getId'                 => $this->returnValue(1),
 			'getCouponCode'         => $this->returnValue(''),
@@ -779,14 +771,13 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllAddresses'       => $this->returnValue(array($address)),
 			'getStore'              => $this->returnValue(Mage::app()->getStore()),
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
 
 		$request->checkDiscounts(Mage::getModel('sales/quote'));
 		$this->assertFalse($request->isValid());
 	}
-
 
 	public function testAddToDestination()
 	{
@@ -1053,7 +1044,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		);
 	}
 
-
 	public function providerBuildShippingOriginNode()
 	{
 		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -1121,9 +1111,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$orderItemsProperty->setAccessible(true);
 		$orderItemsProperty->setValue(
 			$request, array('1' => array(
-					'id' => 1,
-					'ShippingOrigin' => array(
-
+				'id' => 1,
+				'ShippingOrigin' => array(
 					'Line1' => '1075 First Avenue', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
 					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
 				)
@@ -1155,9 +1144,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$orderItemsProperty->setAccessible(true);
 		$orderItemsProperty->setValue(
 			$request, array('1' => array(
-					'id' => 1,
-					'AdminOrigin' => array(
-
+				'id' => 1,
+				'AdminOrigin' => array(
 					'Line1' => 'This is not a test, it\'s difficulty', 'Line2' => 'Line2', 'Line3' => 'Line3', 'Line4' => 'Line4', 'City' => 'King Of Prussia',
 					'MainDivision' => 'PA', 'CountryCode' => 'US', 'PostalCode' => '19406'
 				)
@@ -1182,7 +1170,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$store = $this->_mockStore();
 
-
 		$product = $this->getModelMock('catalog/product', array('isVirtual'));
 		$product->expects($this->any())
 			->method('isVirtual')
@@ -1197,19 +1184,19 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getId'                   => $this->returnValue(1),
 			'getAllNonNominalItems'   => $this->returnValue(array($item)),
 		));
-		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
+		$address->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, ));
 		$mockQuote = $this->_buildModelMock('sales/quote', array(
-			'getId'                 => $this->returnValue(1),
-			'isVirtual'             => $this->returnValue(1),
-			'getStore'              => $this->returnValue($store),
-			'getBillingAddress'     => $this->returnValue($address),
-			'getAllAddresses'       => $this->returnValue(array($address)),
+			'getId'                   => $this->returnValue(1),
+			'isVirtual'               => $this->returnValue(1),
+			'getStore'                => $this->returnValue($store),
+			'getBillingAddress'       => $this->returnValue($address),
+			'getAllAddresses'         => $this->returnValue(array($address)),
 			'getAllShippingAddresses' => $this->returnValue(array()),
-			'getItemById'           => $this->returnValueMap(array(
+			'getItemById'             => $this->returnValueMap(array(
 				array(1, $item),
 			))
 		));
-		$mockQuote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$mockQuote->setData(array('entity_id' => 1, 'store_id' => 2, 'is_active' => 0, 'is_virtual' => 1, 'is_multi_shipping' => 0, 'items_count' => 1, 'items_qty' => 1.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $mockQuote;
 	}
 
@@ -1228,7 +1215,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => 'Ottoman', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
 
 		$item2 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(2),
@@ -1236,7 +1223,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1112, 'name' => "Chair", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
+		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1112, 'name' => 'Chair', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
 
 		$item3 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(3),
@@ -1244,7 +1231,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1113, 'name' => "Couch", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => "simple", 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
+		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1113, 'name' => 'Couch', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => 'simple', 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
 		$items = array($item1, $item2, $item3);
 
 		// mock the billing addresses
@@ -1253,7 +1240,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array()),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'prefix' => 'Mr.', 'middlename' => 'mid', 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
+		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'prefix' => 'Mr.', 'middlename' => 'mid', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => 'a:0:{}', 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
 
 		// mock the shipping address
 		$shippingRate = new Varien_Object(array('method' => 'flatrate', 'code' => 'flatrate_flatrate'));
@@ -1262,7 +1249,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue($items),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'prefix' => 'Mr.', 'middlename' => 'mid', 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
+		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => 'shipping', 'email' => 'foo@example.com', 'firstname' => 'test', 'prefix' => 'Mr.', 'middlename' => 'mid', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => 'flatrate_flatrate', 'shipping_description' => 'Flat Rate - Fixed', 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => 'a:0:{}', 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
 
 		// mock the quote
 		$quote = $this->_buildModelMock('sales/quote', array(
@@ -1280,7 +1267,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				array(3, $item3),
 			))
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => "2013-06-27 17:32:54", 'updated_at' => "2013-06-27 17:36:19", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => '2013-06-27 17:32:54', 'updated_at' => '2013-06-27 17:36:19', 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $quote;
 	}
 
@@ -1299,7 +1286,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1111, 'name' => 'Ottoman', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
 
 		$item2 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(2),
@@ -1307,7 +1294,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1112, 'name' => "Chair", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
+		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1112, 'name' => 'Chair', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
 
 		$item3 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(3),
@@ -1315,7 +1302,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1113, 'name' => "Couch", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => "simple", 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
+		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1113, 'name' => 'Couch', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => 'simple', 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
 		$items = array($item1, $item2, $item3);
 
 		// mock the billing addresses
@@ -1324,7 +1311,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue($items),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
+		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => 'a:0:{}', 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
 
 		// mock the quote
 		$quote = $this->_buildModelMock('sales/quote', array(
@@ -1341,7 +1328,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				array(3, $item3),
 			))
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => "2013-06-27 17:32:54", 'updated_at' => "2013-06-27 17:36:19", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => '2013-06-27 17:32:54', 'updated_at' => '2013-06-27 17:36:19', 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $quote;
 	}
 
@@ -1363,7 +1350,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => "Ottoman", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
+		$item1->setData(array('item_id' => 1, 'quote_id' => 1, 'product_id' => 51, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1111, 'name' => 'Ottoman', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 20.0000, 'qty' => 1.0000, 'price' => 299.9900, 'base_price' => 299.9900, 'row_total' => 299.9900, 'base_row_total' => 299.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 20.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 299.9900, 'base_price_incl_tax' => 299.9900, 'row_total_incl_tax' => 299.9900, 'base_row_total_incl_tax' => 299.9900,));
 
 		$item2 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(2),
@@ -1371,7 +1358,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1112, 'name' => "Chair", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => "simple", 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
+		$item2->setData(array('item_id' => 2, 'quote_id' => 1, 'product_id' => 52, 'store_id' => 2, 'is_virtual' => 1, 'sku' => 1112, 'name' => 'Chair', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 50.0000, 'qty' => 1.0000, 'price' => 129.9900, 'base_price' => 129.9900, 'row_total' => 129.9900, 'base_row_total' => 129.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 50.0000, 'product_type' => 'simple', 'base_cost' => 50.0000, 'price_incl_tax' => 129.9900, 'base_price_incl_tax' => 129.9900, 'row_total_incl_tax' => 129.9900, 'base_row_total_incl_tax' => 129.9900,));
 
 		$item3 = $this->_buildModelMock('sales/quote_item', array(
 			'getId'          => $this->returnValue(3),
@@ -1379,7 +1366,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1113, 'name' => "Couch", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => "simple", 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
+		$item3->setData(array('item_id' => 3, 'quote_id' => 1, 'product_id' => 53, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 1113, 'name' => 'Couch', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 200.0000, 'qty' => 1.0000, 'price' => 599.9900, 'base_price' => 599.9900, 'row_total' => 599.9900, 'base_row_total' => 599.9900, 'row_total_with_discount' => 0.0000, 'row_weight' => 200.0000, 'product_type' => 'simple', 'base_cost' => 200.0000, 'price_incl_tax' => 599.9900, 'base_price_incl_tax' => 599.9900, 'row_total_incl_tax' => 599.9900, 'base_row_total_incl_tax' => 599.9900,));
 		$items = array($item1, $item2, $item3);
 
 		// mock the billing addresses
@@ -1388,7 +1375,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array()),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
+		$address1->setData(array('address_id' => 1, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 1, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => 'a:0:{}', 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000,));
 
 		// mock the shipping address
 		$shippingRate = new Varien_Object(array('method' => 'flatrate', 'code' => 'flatrate_flatrate'));
@@ -1397,7 +1384,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array($item1, $item2, $item3)),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
+		$address2->setData(array('address_id' => 2, 'quote_id' => 1, 'customer_id' => 5, 'save_in_address_book' => 0, 'address_type' => 'shipping', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => 'flatrate_flatrate', 'shipping_description' => 'Flat Rate - Fixed', 'weight' => 270.0000, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 15.0000, 'base_shipping_amount' => 15.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'applied_taxes' => 'a:0:{}', 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 1029.9700, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 15.0000, 'base_shipping_incl_tax' => 15.0000,));
 
 		// mock the quote
 		$quote = $this->_buildModelMock('sales/quote', array(
@@ -1415,11 +1402,11 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				array(3, $item3),
 			))
 		));
-		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => "2013-06-27 17:32:54", 'updated_at' => "2013-06-27 17:36:19", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
+		$quote->setData(array('entity_id' => 1, 'store_id' => 0, 'created_at' => '2013-06-27 17:32:54', 'updated_at' => '2013-06-27 17:36:19', 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 0, 'items_count' => 3, 'items_qty' => 3.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'grand_total' => 1044.9700, 'base_grand_total' => 1044.9700, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000050, 'subtotal' => 1029.9700, 'base_subtotal' => 1029.9700, 'subtotal_with_discount' => 1029.9700, 'base_subtotal_with_discount' => 1029.9700, 'is_changed' => 1, 'trigger_recollect' => 0, 'is_persistent' => 0,));
 		return $quote;
 	}
 
-	protected function _mockStore($code = 'usa', $id = 2)
+	protected function _mockStore($code='usa', $id=2)
 	{
 		$store = $this->getModelMockBuilder('core/store')
 			->disableOriginalConstructor()
@@ -1450,7 +1437,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item->setData(array('item_id' => 4, 'quote_id' => 2, 'created_at' => "2013-06-27 17:41:05", 'updated_at' => "2013-06-27 17:41:37", 'product_id' => 16, 'store_id' => 2, 'is_virtual' => 0, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 3.2000, 'qty' => 3.0000, 'price' => 149.9900, 'base_price' => 149.9900, 'discount_percent' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'tax_percent' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_total' => 299.9800, 'base_row_total' => 299.9800, 'row_total_with_discount' => 0.0000, 'row_weight' => 6.4000, 'product_type' => "simple", 'weee_tax_applied' => "a:0:{}", 'weee_tax_applied_amount' => 0.0000, 'weee_tax_applied_row_amount' => 0.0000, 'base_weee_tax_applied_amount' => 0.0000, 'weee_tax_disposition' => 0.0000, 'weee_tax_row_disposition' => 0.0000, 'base_weee_tax_disposition' => 0.0000, 'base_weee_tax_row_disposition' => 0.0000, 'base_cost' => 20.0000, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 299.9800, 'base_row_total_incl_tax' => 299.9800, ));
+		$item->setData(array('item_id' => 4, 'quote_id' => 2, 'created_at' => '2013-06-27 17:41:05', 'updated_at' => '2013-06-27 17:41:37', 'product_id' => 16, 'store_id' => 2, 'is_virtual' => 0, 'sku' => 'n2610', 'name' => 'Nokia 2610 Phone', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'no_discount' => 0, 'weight' => 3.2000, 'qty' => 3.0000, 'price' => 149.9900, 'base_price' => 149.9900, 'discount_percent' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'tax_percent' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_total' => 299.9800, 'base_row_total' => 299.9800, 'row_total_with_discount' => 0.0000, 'row_weight' => 6.4000, 'product_type' => 'simple', 'weee_tax_applied' => 'a:0:{}', 'weee_tax_applied_amount' => 0.0000, 'weee_tax_applied_row_amount' => 0.0000, 'base_weee_tax_applied_amount' => 0.0000, 'weee_tax_disposition' => 0.0000, 'weee_tax_row_disposition' => 0.0000, 'base_weee_tax_disposition' => 0.0000, 'base_weee_tax_row_disposition' => 0.0000, 'base_cost' => 20.0000, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 299.9800, 'base_row_total_incl_tax' => 299.9800, ));
 		$items = array($item);
 
 		// mock the address items
@@ -1460,7 +1447,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$addressItem1->setData(array('address_item_id' => 5, 'quote_address_id' => 9, 'quote_item_id' => 4, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'weight' => 3.2000, 'qty' => 2.0000, 'discount_amount' => 0.0000, 'tax_amount' => 0.0000, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 0.0000, 'base_price' => 149.9900, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 149.9900, 'base_row_total_incl_tax' => 149.9900,));
+		$addressItem1->setData(array('address_item_id' => 5, 'quote_address_id' => 9, 'quote_item_id' => 4, 'created_at' => '2013-06-27 17:43:32', 'updated_at' => '2013-06-27 17:45:05', 'weight' => 3.2000, 'qty' => 2.0000, 'discount_amount' => 0.0000, 'tax_amount' => 0.0000, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => 'n2610', 'name' => 'Nokia 2610 Phone', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 0.0000, 'base_price' => 149.9900, 'price_incl_tax' => 149.9900, 'base_price_incl_tax' => 149.9900, 'row_total_incl_tax' => 149.9900, 'base_row_total_incl_tax' => 149.9900,));
 
 		$addressItem2 = $this->_buildModelMock('sales/quote_address_item', array(
 			'getId'          => $this->returnValue(6),
@@ -1468,7 +1455,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$addressItem2->setData(array('address_item_id' => 6, 'quote_address_id' => 10, 'quote_item_id' => 4, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'weight' => 3.2000, 'qty' => 1.0000, 'discount_amount' => 0.0000, 'tax_amount' => 12.3700, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 12.3700, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => "n2610", 'name' => "Nokia 2610 Phone", 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 8.2500, 'base_price' => 149.9900, 'price_incl_tax' => 162.3600, 'base_price_incl_tax' => 162.3600, 'row_total_incl_tax' => 162.3600, 'base_row_total_incl_tax' => 162.3600,));
+		$addressItem2->setData(array('address_item_id' => 6, 'quote_address_id' => 10, 'quote_item_id' => 4, 'created_at' => '2013-06-27 17:43:32', 'updated_at' => '2013-06-27 17:45:05', 'weight' => 3.2000, 'qty' => 1.0000, 'discount_amount' => 0.0000, 'tax_amount' => 12.3700, 'row_total' => 149.9900, 'base_row_total' => 149.9900, 'row_total_with_discount' => 0.0000, 'base_discount_amount' => 0.0000, 'base_tax_amount' => 12.3700, 'row_weight' => 3.2000, 'product_id' => 16, 'sku' => 'n2610', 'name' => 'Nokia 2610 Phone', 'free_shipping' => 0, 'is_qty_decimal' => 0, 'price' => 149.9900, 'discount_percent' => 0.0000, 'tax_percent' => 8.2500, 'base_price' => 149.9900, 'price_incl_tax' => 162.3600, 'base_price_incl_tax' => 162.3600, 'row_total_incl_tax' => 162.3600, 'base_row_total_incl_tax' => 162.3600,));
 
 		// mock the shipping address
 		$shippingRate = new Varien_Object(array('method' => 'flatrate', 'code' => 'flatrate_flatrate'));
@@ -1477,14 +1464,14 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array($addressItem1)),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$address1->setData(array('address_id' => 9, 'quote_id' => 2, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 4, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 3.2000, 'subtotal' => 149.9900, 'base_subtotal' => 149.9900, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 5.0000, 'base_shipping_amount' => 5.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 154.9900, 'base_grand_total' => 154.9900, 'applied_taxes' => "a:0:{}", 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => "a:0:{}", 'used_gift_cards' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 149.9900, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 5.0000, 'base_shipping_incl_tax' => 5.0000, 'gw_base_price' => 0.0000, 'gw_price' => 0.0000, 'gw_items_base_price' => 0.0000, 'gw_items_price' => 0.0000, 'gw_card_base_price' => 0.0000, 'gw_card_price' => 0.0000, 'gw_base_tax_amount' => 0.0000, 'gw_tax_amount' => 0.0000, 'gw_items_base_tax_amount' => 0.0000, 'gw_items_tax_amount' => 0.0000, 'gw_card_base_tax_amount' => 0.0000, 'gw_card_tax_amount' => 0.0000, 'reward_points_balance' => 0, 'base_reward_currency_amount' => 0.0000, 'reward_currency_amount' => 0.0000,));
+		$address1->setData(array('address_id' => 9, 'quote_id' => 2, 'created_at' => '2013-06-27 17:43:32', 'updated_at' => '2013-06-27 17:45:05', 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 4, 'address_type' => 'shipping', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => 'flatrate_flatrate', 'shipping_description' => 'Flat Rate - Fixed', 'weight' => 3.2000, 'subtotal' => 149.9900, 'base_subtotal' => 149.9900, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 5.0000, 'base_shipping_amount' => 5.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 154.9900, 'base_grand_total' => 154.9900, 'applied_taxes' => 'a:0:{}', 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => 'a:0:{}', 'used_gift_cards' => 'a:0:{}', 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 149.9900, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 5.0000, 'base_shipping_incl_tax' => 5.0000, 'gw_base_price' => 0.0000, 'gw_price' => 0.0000, 'gw_items_base_price' => 0.0000, 'gw_items_price' => 0.0000, 'gw_card_base_price' => 0.0000, 'gw_card_price' => 0.0000, 'gw_base_tax_amount' => 0.0000, 'gw_tax_amount' => 0.0000, 'gw_items_base_tax_amount' => 0.0000, 'gw_items_tax_amount' => 0.0000, 'gw_card_base_tax_amount' => 0.0000, 'gw_card_tax_amount' => 0.0000, 'reward_points_balance' => 0, 'base_reward_currency_amount' => 0.0000, 'reward_currency_amount' => 0.0000,));
 
 		$address2 = $this->_buildModelMock('sales/quote_address', array(
 			'getId'                      => $this->returnValue(10),
 			'getAllNonNominalItems'      => $this->returnValue(array($addressItem2)),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$address2->setData(array('address_id' => 10, 'quote_id' => 2, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 5, 'address_type' => "shipping", 'email' => "foo@example.com", 'firstname' => "extra", 'lastname' => "guy", 'street' => "1 Shields", 'city' => "davis", 'region' => "California", 'region_id' => 12, 'postcode' => 90210, 'country_id' => "US", 'telephone' => 1234567890, 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => "flatrate_flatrate", 'shipping_description' => "Flat Rate - Fixed", 'weight' => 3.2000, 'subtotal' => 149.9900, 'base_subtotal' => 149.9900, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 12.3700, 'base_tax_amount' => 12.3700, 'shipping_amount' => 5.0000, 'base_shipping_amount' => 5.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 167.3600, 'base_grand_total' => 167.3600, 'applied_taxes' => 'a:1:{s:14:\"US-CA-*-Rate 1\";a:6:{s:5:\"rates\";a:1:{i:0;a:6:{s:4:\"code\";s:14:\"US-CA-*-Rate 1\";s:5:\"title\";s:14:\"US-CA-*-Rate 1\";s:7:\"percent\";d:8.25;s:8:\"position\";s:1:\"1\";s:8:\"priority\";s:1:\"1\";s:7:\"rule_id\";s:1:\"1\";}}s:7:\"percent\";d:8.25;s:2:\"id\";s:14:\"US-CA-*-Rate 1\";s:7:\"process\";i:0;s:6:\"amount\";d:12.369999999999999;s:11:\"base_amount\";d:12.369999999999999;}}', 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => "a:0:{}", 'used_gift_cards' => "a:0:{}", 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 162.3600, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 5.0000, 'base_shipping_incl_tax' => 5.0000, 'gw_base_price' => 0.0000, 'gw_price' => 0.0000, 'gw_items_base_price' => 0.0000, 'gw_items_price' => 0.0000, 'gw_card_base_price' => 0.0000, 'gw_card_price' => 0.0000, 'gw_base_tax_amount' => 0.0000, 'gw_tax_amount' => 0.0000, 'gw_items_base_tax_amount' => 0.0000, 'gw_items_tax_amount' => 0.0000, 'gw_card_base_tax_amount' => 0.0000, 'gw_card_tax_amount' => 0.0000,));
+		$address2->setData(array('address_id' => 10, 'quote_id' => 2, 'created_at' => '2013-06-27 17:43:32', 'updated_at' => '2013-06-27 17:45:05', 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 5, 'address_type' => 'shipping', 'email' => 'foo@example.com', 'firstname' => 'extra', 'lastname' => 'guy', 'street' => '1 Shields', 'city' => 'davis', 'region' => 'California', 'region_id' => 12, 'postcode' => 90210, 'country_id' => 'US', 'telephone' => 1234567890, 'same_as_billing' => 1, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'shipping_method' => 'flatrate_flatrate', 'shipping_description' => 'Flat Rate - Fixed', 'weight' => 3.2000, 'subtotal' => 149.9900, 'base_subtotal' => 149.9900, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 12.3700, 'base_tax_amount' => 12.3700, 'shipping_amount' => 5.0000, 'base_shipping_amount' => 5.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 167.3600, 'base_grand_total' => 167.3600, 'applied_taxes' => 'a:1:{s:14:\"US-CA-*-Rate 1\";a:6:{s:5:\"rates\";a:1:{i:0;a:6:{s:4:\"code\";s:14:\"US-CA-*-Rate 1\";s:5:\"title\";s:14:\"US-CA-*-Rate 1\";s:7:\"percent\";d:8.25;s:8:\"position\";s:1:\"1\";s:8:\"priority\";s:1:\"1\";s:7:\"rule_id\";s:1:\"1\";}}s:7:\"percent\";d:8.25;s:2:\"id\";s:14:\"US-CA-*-Rate 1\";s:7:\"process\";i:0;s:6:\"amount\";d:12.369999999999999;s:11:\"base_amount\";d:12.369999999999999;}}', 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => 'a:0:{}', 'used_gift_cards' => 'a:0:{}', 'shipping_discount_amount' => 0.0000, 'base_shipping_discount_amount' => 0.0000, 'subtotal_incl_tax' => 162.3600, 'hidden_tax_amount' => 0.0000, 'base_hidden_tax_amount' => 0.0000, 'shipping_hidden_tax_amount' => 0.0000, 'shipping_incl_tax' => 5.0000, 'base_shipping_incl_tax' => 5.0000, 'gw_base_price' => 0.0000, 'gw_price' => 0.0000, 'gw_items_base_price' => 0.0000, 'gw_items_price' => 0.0000, 'gw_card_base_price' => 0.0000, 'gw_card_price' => 0.0000, 'gw_base_tax_amount' => 0.0000, 'gw_tax_amount' => 0.0000, 'gw_items_base_tax_amount' => 0.0000, 'gw_items_tax_amount' => 0.0000, 'gw_card_base_tax_amount' => 0.0000, 'gw_card_tax_amount' => 0.0000,));
 
 		// mock the billing addresses
 		$address3 = $this->_buildModelMock('sales/quote_address', array(
@@ -1492,7 +1479,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array()),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$address3->setData(array('address_id' => 11, 'quote_id' => 2, 'created_at' => "2013-06-27 17:43:32", 'updated_at' => "2013-06-27 17:45:05", 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 4, 'address_type' => "billing", 'email' => "foo@example.com", 'firstname' => "test", 'lastname' => "guy", 'street' => "1 Rosedale St", 'city' => "Baltimore", 'region' => "Maryland", 'region_id' => 31, 'postcode' => 21229, 'country_id' => "US", 'telephone' => "(123) 456-7890", 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => "a:0:{}", 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => "a:0:{}", 'used_gift_cards' => "a:0:{}", 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000, ));
+		$address3->setData(array('address_id' => 11, 'quote_id' => 2, 'created_at' => '2013-06-27 17:43:32', 'updated_at' => '2013-06-27 17:45:05', 'customer_id' => 5, 'save_in_address_book' => 0, 'customer_address_id' => 4, 'address_type' => 'billing', 'email' => 'foo@example.com', 'firstname' => 'test', 'lastname' => 'guy', 'street' => '1 Rosedale St', 'city' => 'Baltimore', 'region' => 'Maryland', 'region_id' => 31, 'postcode' => 21229, 'country_id' => 'US', 'telephone' => '(123) 456-7890', 'same_as_billing' => 0, 'free_shipping' => 0, 'collect_shipping_rates' => 0, 'weight' => 0.0000, 'subtotal' => 0.0000, 'base_subtotal' => 0.0000, 'subtotal_with_discount' => 0.0000, 'base_subtotal_with_discount' => 0.0000, 'tax_amount' => 0.0000, 'base_tax_amount' => 0.0000, 'shipping_amount' => 0.0000, 'base_shipping_amount' => 0.0000, 'shipping_tax_amount' => 0.0000, 'base_shipping_tax_amount' => 0.0000, 'discount_amount' => 0.0000, 'base_discount_amount' => 0.0000, 'grand_total' => 0.0000, 'base_grand_total' => 0.0000, 'applied_taxes' => 'a:0:{}', 'base_customer_balance_amount' => 0.0000, 'customer_balance_amount' => 0.0000, 'gift_cards_amount' => 0.0000, 'base_gift_cards_amount' => 0.0000, 'gift_cards' => 'a:0:{}', 'used_gift_cards' => 'a:0:{}', 'subtotal_incl_tax' => 0.0000, 'shipping_incl_tax' => 0.0000, 'base_shipping_incl_tax' => 0.0000, ));
 
 		// mock the quote
 		$quote = $this->_buildModelMock('sales/quote', array(
@@ -1508,7 +1495,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				array(4, $item),
 			))
 		));
-		$quote->setData(array('entity_id' => 2, 'store_id' => 2, 'created_at' => "2013-06-27 17:41:05", 'updated_at' => "2013-06-27 17:45:05", 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 1, 'items_count' => 1, 'items_qty' => 2.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => "USD", 'base_currency_code' => "USD", 'store_currency_code' => "USD", 'quote_currency_code' => "USD", 'grand_total' => 322.3500, 'base_grand_total' => 322.3500, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => "foo@example.com", 'customer_firstname' => "test", 'customer_lastname' => "guy", 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => "192.168.56.1", 'reserved_order_id' => 100000052, 'subtotal' => 299.9800, 'base_subtotal' => 299.9800, 'subtotal_with_discount' => 299.9800, 'base_subtotal_with_discount' => 299.9800, 'trigger_recollect' => 0, ));
+		$quote->setData(array('entity_id' => 2, 'store_id' => 2, 'created_at' => '2013-06-27 17:41:05', 'updated_at' => '2013-06-27 17:45:05', 'is_active' => 0, 'is_virtual' => 0, 'is_multi_shipping' => 1, 'items_count' => 1, 'items_qty' => 2.0000, 'orig_order_id' => 0, 'store_to_base_rate' => 1.0000, 'store_to_quote_rate' => 1.0000, 'base_to_global_rate' => 1.0000, 'base_to_quote_rate' => 1.0000, 'global_currency_code' => 'USD', 'base_currency_code' => 'USD', 'store_currency_code' => 'USD', 'quote_currency_code' => 'USD', 'grand_total' => 322.3500, 'base_grand_total' => 322.3500, 'customer_id' => 5, 'customer_tax_class_id' => 3, 'customer_group_id' => 1, 'customer_email' => 'foo@example.com', 'customer_firstname' => 'test', 'customer_lastname' => 'guy', 'customer_note_notify' => 1, 'customer_is_guest' => 0, 'remote_ip' => '192.168.56.1', 'reserved_order_id' => 100000052, 'subtotal' => 299.9800, 'base_subtotal' => 299.9800, 'subtotal_with_discount' => 299.9800, 'base_subtotal_with_discount' => 299.9800, 'trigger_recollect' => 0, ));
 		return $quote;
 	}
 
