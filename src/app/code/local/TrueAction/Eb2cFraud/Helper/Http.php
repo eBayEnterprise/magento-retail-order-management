@@ -7,7 +7,7 @@ class TrueAction_Eb2cFraud_Helper_Http extends Mage_Core_Helper_Http
 	 * @param boolean $clean clean non UTF-8 characters
 	 * @return string
 	 */
-	public function getHttpAccept($clean = true)
+	public function getHttpAccept($clean=true)
 	{
 		return $this->_getHttpCleanValue('HTTP_ACCEPT', $clean);
 	}
@@ -18,7 +18,7 @@ class TrueAction_Eb2cFraud_Helper_Http extends Mage_Core_Helper_Http
 	 * @param boolean $clean clean non UTF-8 characters
 	 * @return string
 	 */
-	public function getHttpAcceptEncoding($clean = true)
+	public function getHttpAcceptEncoding($clean=true)
 	{
 		return $this->_getHttpCleanValue('HTTP_ACCEPT_ENCODING', $clean);
 	}
@@ -29,7 +29,7 @@ class TrueAction_Eb2cFraud_Helper_Http extends Mage_Core_Helper_Http
 	 * @param boolean $clean clean non UTF-8 characters
 	 * @return string
 	 */
-	public function getHttpAcceptLanguage($clean = true)
+	public function getHttpAcceptLanguage($clean=true)
 	{
 		return $this->_getHttpCleanValue('HTTP_ACCEPT_LANGUAGE', $clean);
 	}

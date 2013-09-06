@@ -26,21 +26,19 @@ INVALID_XML;
 
 	/**
 	 * @test
-	 * @large
 	 */
 	public function testCancel()
 	{
 
 		$cancelor = Mage::getModel('eb2corder/cancel')
-				->buildRequest(
-					array(
-						'order_id'=>'12345',
-						'order_type'=>'RETURN',
-						'reason_code'=>'TestReasonCode',
-						'reason'=>'Testing out a longish reason text right here',
-					)
-				);
-
+			->buildRequest(
+				array(
+					'order_id'    => '12345',
+					'order_type'  => 'RETURN',
+					'reason_code' => 'TestReasonCode',
+					'reason'      => 'Testing out a longish reason text right here',
+				)
+			);
 
 		// Test that we can receive CANCELLED message succesfully:
 		$this->replaceModel( 'eb2ccore/api',
@@ -51,7 +49,6 @@ INVALID_XML;
 		);
 		$this->assertSame(true, $cancelor->sendRequest());
 
-
 		// Test that we can receive !CANCELLED message succesfully
 		$this->replaceModel( 'eb2ccore/api',
 			array (
@@ -60,7 +57,6 @@ INVALID_XML;
 			false
 		);
 		$this->assertSame(false, $cancelor->sendRequest());
-
 
 		// Test that we can receive invalid XML without ill effect:
 		$this->replaceModel( 'eb2ccore/api',

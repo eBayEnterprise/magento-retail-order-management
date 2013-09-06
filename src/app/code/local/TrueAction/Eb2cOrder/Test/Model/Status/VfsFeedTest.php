@@ -54,7 +54,7 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 		$mockFsTool
 			->expects($this->any())
 			->method('pwd')
-			->will($this->returnValue($vfs->url(self::VFS_ROOT.'/inbound')));
+			->will($this->returnValue($vfs->url(self::VFS_ROOT . '/inbound')));
 		$mockFsTool
 			->expects($this->any())
 			->method('setAllowCreateFolders')
@@ -74,11 +74,11 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 		$this->assertSame(
 			count($dummyFiles),
 			Mage::getModel(
-					'eb2corder/status_feed',
-					array(
-						'fs_tool' => $mockFsTool
-					)
-				)->processFeeds()
+				'eb2corder/status_feed',
+				array(
+					'fs_tool' => $mockFsTool
+				)
+			)->processFeeds()
 		);
 
 	}

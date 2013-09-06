@@ -31,7 +31,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 * discount amounts parsed from the response.
 	 * @var array
 	 */
-	protected $_discounts     = array();
+	protected $_discounts = array();
 
 	/**
 	 * skus of OrderItem elements that passed validation
@@ -44,6 +44,12 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 * @var boolean
 	 */
 	protected $_isValid = false;
+
+	/**
+	 * default length of the xml snippet to be reported with libxml errors.
+	 *
+	 */
+	protected $_responseSnippetLength = 40;
 
 	/**
 	 * namespace uri of the root element.
@@ -72,16 +78,20 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get the response for the specified sku and address id.
+	 * get the response for the specified item and address.
 	 * return null if there is no valid response to retrieve.
-	 * @param  string $sku
-	 * @param  int    $addressId
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @param  Mage_Sales_Model_Quote_Address       $address
 	 * @return TrueAction_Eb2cTax_Model_Response_OrderItem
 	 */
-	public function getResponseForItem($item, $address) {
+	public function getResponseForItem(
+		Mage_Sales_Model_Quote_Item_Abstract $item,
+		Mage_Sales_Model_Quote_Address $address
+	)
+	{
 		// ensure the correct types to access the data
-		$addressId = (int)$address->getId();
-		$sku = (string)$item->getSku();
+		$addressId = (int) $address->getId();
+		$sku = (string) $item->getSku();
 		$orderItem = isset($this->_responseItems[$addressId][$sku]) ?
 			$this->_responseItems[$addressId][$sku] : null;
 		return $orderItem;
@@ -128,7 +138,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 		$idRefArray = explode('_', $idRef);
 		if (count($idRefArray) > 1) {
 			list(, $id) = $idRefArray;
-			$id = is_numeric($id) ? (int)$id : null;
+			$id = is_numeric($id) ? (int) $id : null;
 		}
 		if (!$id) {
 			$this->_isValid = false;
@@ -167,7 +177,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 						'namespace_uri' => $this->_namespaceUri
 					));
 					if ($orderItem->isValid()) {
-						$itemKey = (string)$orderItem->getSku();
+						$itemKey = (string) $orderItem->getSku();
 						$this->_responseItems[$addressId][$itemKey] = $orderItem;
 					}
 				}
@@ -226,7 +236,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
 					$orderItemPath = $sgPath . '/a:Items/a:OrderItem/a:ItemId[.="' . $val . '"]/..';
 					if (!$isValid) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: sku "%s" not found in the response.', $heading, $val),
 							Zend_Log::WARN
 						);
@@ -239,7 +249,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $sgPath . '/a:Items/a:OrderItem[@lineNumber="' . $val . '"]/a:ItemId[.="' . $itemSku . '"]';
 					$isMatch = $responseXpath->query($resPath)->length === 1;
 					if (!$isMatch) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'lineNumber'),
 							Zend_Log::WARN
 						);
@@ -251,7 +261,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:Quantity[.="' . $val . '"]';
 					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
 					if (!$isValid) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Quantity'),
 							Zend_Log::WARN
 						);
@@ -263,7 +273,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:Pricing/a:Merchandise/a:UnitPrice[.="' . $val . '"]';
 					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
 					if (!$isValid) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/Merchandise/UnitPrice'),
 							Zend_Log::WARN
 						);
@@ -275,7 +285,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:Pricing/a:Shipping/a:Amount[.="' . $val . '"]';
 					$isMatch = $responseXpath->query($resPath)->length === 1;
 					if (!$isMatch) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/a:Shipping/a:Amount'),
 							Zend_Log::DEBUG
 						);
@@ -287,7 +297,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:ItemDesc[.="' . $val . '"]';
 					$isMatch = $responseXpath->query($resPath)->length === 1;
 					if (!$isMatch) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'ItemDesc'),
 							Zend_Log::DEBUG
 						);
@@ -299,7 +309,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:HTSCode[.="' . $val . '"]';
 					$isMatch = $responseXpath->query($resPath)->length === 1;
 					if (!$isMatch) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'HTSCode'),
 							Zend_Log::DEBUG
 						);
@@ -311,7 +321,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 					$resPath = $orderItemPath . '/a:Pricing/a:Merchandise/a:Amount[.="' . $val . '"]';
 					$isValid = $isValid && $responseXpath->query($resPath)->length === 1;
 					if (!$isValid) {
-						Mage::log('[' . __CLASS__ . '] ' . 
+						Mage::log('[' . __CLASS__ . '] ' .
 							sprintf('%s: %s "%s" not found in response for %s.', $heading, $itemSku, $val, 'Pricing/a:Merchandise/a:Amount'),
 							Zend_Log::WARN
 						);
@@ -361,7 +371,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseFirstName, $requestFirstName)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: FirstName "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseFirstName->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -369,7 +379,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseLastName, $requestLastName)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: LastName "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseLastName->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -377,7 +387,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseLineAddress, $requestLineAddress)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: Address Line 1 "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseLineAddress->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -385,7 +395,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseCity, $requestCity)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: City "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseCity->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -393,7 +403,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseMainDivision, $requestMainDivision)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: Main Division "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseMainDivision->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -401,7 +411,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responseCountryCode, $requestCountryCode)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: Country Code "%s" not match in the request.', 'TaxDutyQuoteResponse', $responseCountryCode->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -409,7 +419,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 				if (!$this->isSameNodelistElement($responsePostalCode, $requestPostalCode)) {
 					$valid = false;
-					Mage::log('[' . __CLASS__ . '] ' . 
+					Mage::log('[' . __CLASS__ . '] ' .
 						sprintf('%s: Postal Code "%s" not match in the request.', 'TaxDutyQuoteResponse', $responsePostalCode->item(0)->nodeValue),
 						Zend_Log::DEBUG
 					);
@@ -440,36 +450,97 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 	/**
 	 * attempt to load the response text into a domdocument.
-	 * return true if the document is ok to process; false otherwise
+	 * return true if the document is ok to process; false otherwise.
+	 * @param  string $xml
+	 * @return bool
 	 */
 	protected function _checkXml($xml)
 	{
 		$result = true;
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->preserveWhiteSpace = false;
+		$message = '';
 		try {
+			libxml_use_internal_errors(true);
+			libxml_clear_errors();
 			$doc->loadXML($xml);
-			if ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
-				$result = false;
-				$message = 'Eb2cTax: received document is not a TaxDutyQuoteResponse';
-				if ($doc->documentElement->nodeName === 'Fault') {
-					$x = new DOMXPath($doc);
-					$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-					$desc    = $x->evaluate('string(/a:Fault/a:Description)');
-					$code    = $x->evaluate('string(/a:Fault/a:Code)');
-					$tStamp  = $x->evaluate('string(/a:Fault/a:CreateTimestamp)');
-					$message = "Eb2cTax: Fault Message received: " .
-						"Code: {$code} Description: {$desc} CreateTimestamp: {$tStamp}";
-				}
-				Mage::log('[' . __CLASS__ . '] ' . $message, Zend_Log::WARN);
+			$errors = libxml_get_errors();
+			if (!empty($errors)) {
+				$message = $this->_getXmlErrorLogMessage($errors, $xml);
+			} elseif ($doc->documentElement && $doc->documentElement->nodeName === 'fault') {
+				$message = $this->_getFaultLogMessage($doc);
+			} elseif ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
+				$message = 'document was not recognized to be either a TaxDutyQuoteResponse or a Fault message';
+			}
+			libxml_clear_errors();
+			libxml_use_internal_errors(false);
+			if ($message) {
+				Mage::throwException($message);
 			}
 		} catch (Exception $e) {
 			$result = false;
-			Mage::log('[' . __CLASS__ . '] ' . 
-				'Error while attempting to read the TaxDutyQuoteResponse: ' . $e->getMessage(),
-				Zend_Log::WARN
-			);
+			$message = '[' . __CLASS__ . '] Unable to read the response: ' . $e->getMessage();
+			Mage::log($message, Zend_Log::WARN);
 		}
 		return $result;
+	}
+
+	/**
+	 * get a formatted message suitable for logging from a fault message.
+	 * @param  TrueAction_Dom_Document $doc
+	 * @return string
+	 */
+	protected function _getFaultLogMessage(TrueAction_Dom_Document $doc)
+	{
+		$x = new DOMXPath($doc);
+		$ns = '';
+		$desc    = $x->evaluate("/{$ns}fault/{$ns}faultstring/text()");
+		$code    = $x->evaluate("/{$ns}fault/{$ns}detail/{$ns}errorcode/text()");
+		$trace   = $x->evaluate("/{$ns}fault/{$ns}detail/{$ns}trace/text()");
+		$desc    = $desc->length ? $desc->item(0)->nodeValue : '';
+		$code    = $code->length ? $code->item(0)->nodeValue : '';
+		$trace   = $trace->length ? $trace->item(0)->nodeValue : '';
+		$message = 'Eb2cTax: Fault Message received: ' .
+			"Code: ({$code}) Description: '{$desc}' Trace: '{$trace}'";
+		return $message;
+	}
+
+	/**
+	 * format libxml errors into a log message.
+	 * @param  mixed $errors
+	 * @param  string $xml
+	 * @return string
+	 */
+	protected function _getXmlErrorLogMessage($errors, $xml)
+	{
+		$lines         = explode("\n", $xml);
+		$snippetLength = $this->_responseSnippetLength;
+		$message       = '';
+		$newLine       = '';
+		foreach ($errors as $error) {
+			$snippet = trim($lines[$error->line - 1]);
+			$offset  = max($error->column - (int) ($snippetLength / 2), 0);
+			$length  = min($snippetLength, strlen($snippet));
+			$snippet = substr($snippet, $offset, $length);
+
+			$message .= $newLine . 'XML Parser ';
+
+			$newLine = "\n"; // only add newlines to subsequent errors
+			switch ($error->level) {
+				case LIBXML_ERR_WARNING:
+					$message .= "Warning $error->code: ";
+					break;
+				case LIBXML_ERR_ERROR:
+					$message .= "Error $error->code: ";
+					break;
+				case LIBXML_ERR_FATAL:
+					$message .= "Fatal Error $error->code: ";
+					break;
+			}
+			$message .= trim($error->message) .
+				" Line: $error->line Column: $error->column: ";
+			$message .= "`{$snippet}`";
+		}
+		return $message;
 	}
 }

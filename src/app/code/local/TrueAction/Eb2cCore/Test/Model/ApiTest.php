@@ -6,28 +6,12 @@
  */
 class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 {
-	protected $_helper;
-
 	/**
 	 * setUp method
 	 */
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_helper = $this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 * @todo get rid of this
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2ccore');
-		}
-		return $this->_helper;
 	}
 
 	public function providerApiCall()

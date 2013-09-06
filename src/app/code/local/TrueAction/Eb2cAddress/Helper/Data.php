@@ -61,7 +61,7 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 		$nodes = $xpath->query($path, $context);
 		if ($nodes->length === 1) {
 			return $nodes->item(0)->textContent;
-		} else if ($nodes->length > 1) {
+		} elseif ($nodes->length > 1) {
 			$values = array();
 			foreach ($nodes as $node) {
 				$values[] = $node->textContent;
@@ -116,7 +116,8 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 		return (int) Mage::getModel('directory/region')
 			->loadByCode(
 				$this->getTextValueByXPath(self::REGION_PATH, $physicalAddressXml),
-				$this->physicalAddressCountryId($physicalAddressXml))
+				$this->physicalAddressCountryId($physicalAddressXml)
+			)
 			->getId();
 	}
 

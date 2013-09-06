@@ -9,11 +9,8 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 	 * @var TrueAction_Dom_Element
 	 */
 	protected $_xpath             = null;
-
 	protected $_isValid           = true;
-
 	protected $_taxQuotes         = array();
-
 	protected $_taxQuoteDiscounts = array();
 
 	/**
@@ -24,7 +21,6 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 	{
 		return $this->_isValid;
 	}
-
 
 	/**
 	 * @see self::$_taxQuotes
