@@ -467,7 +467,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 			$errors = libxml_get_errors();
 			if (!empty($errors)) {
 				$message = $this->_getXmlErrorLogMessage($errors, $xml);
-			} elseif ($doc->documentElement->nodeName === 'fault') {
+			} elseif ($doc->documentElement && $doc->documentElement->nodeName === 'fault') {
 				$message = $this->_getFaultLogMessage($doc);
 			} elseif ($doc->documentElement && $doc->documentElement->nodeName !== 'TaxDutyQuoteResponse') {
 				$message = 'document was not recognized to be either a TaxDutyQuoteResponse or a Fault message';
