@@ -6,21 +6,21 @@ simple:
     msrp: 21.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'
 has-vat:
   event:
     price: 17.28
     msrp: 21.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: true
+    price_vat_inclusive: 'true'
 empty-eventnumber:
   event:
     price: 17.28
     msrp: 21.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'
 # price -> special_price
 has-eventnumber:
   event:
@@ -29,7 +29,7 @@ has-eventnumber:
     msrp: 21.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'
 # price -> special_price; alternateprice1 -> price
 has-alternate-price:
   event:
@@ -39,7 +39,7 @@ has-alternate-price:
     alternate_price: 18.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'
 # alternateprice ignored
 has-alternate-price-no-eventnumber:
   event:
@@ -48,7 +48,7 @@ has-alternate-price-no-eventnumber:
     alternate_price: 18.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'
 # price -> special_price; alternateprice ignored
 empty-alternate-price:
   event:
@@ -57,4 +57,4 @@ empty-alternate-price:
     msrp: 21.99
     start_date: 2013-07-25T12:19:05-06:00
     end_date: 2013-08-25T12:19:05-06:00
-    price_vat_inclusive: false
+    price_vat_inclusive: 'false'

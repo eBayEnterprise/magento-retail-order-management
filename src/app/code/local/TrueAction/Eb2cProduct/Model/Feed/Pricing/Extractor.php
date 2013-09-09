@@ -6,32 +6,19 @@
  */
 class TrueAction_Eb2cProduct_Model_Feed_Pricing_Extractor
 {
-	public function __construct()
-	{
-	}
-
 	/**
-	 * parse the $value into a boolean.
-	 * return null on invalid input.
-	 * @param  string $value
-	 * @return bool
+	 * map an xpath to the name of the field the data will be extracted to.
+	 * @var array
 	 */
-	protected function _asBool($value)
-	{
-		$result = null;
-		switch(strtolower((string) $value)) {
-			case 'false':
-				$result = false;
-				break;
-			case 'true':
-				$result = true;
-				break;
-			default:
-				Mage::log("unable to convert {$value} to a boolean");
-				break;
-		}
-		return $result;
-	}
+	protected $_extractionMap = array(
+		'EventNumber/text()' => 'event_number',
+		'Price/text()' => 'price',
+		'MSRP/text()' => 'msrp',
+		'AlternatePrice1/text()' => 'alternate_price',
+		'StartDate/text()' => 'start_date',
+		'EndDate/text()' => 'end_date',
+		'PriceVatInclusive/text()' => 'price_vat_inclusive',
+	);
 
 	/**
 	 * extract the data for a pricing event.
@@ -42,45 +29,36 @@ class TrueAction_Eb2cProduct_Model_Feed_Pricing_Extractor
 	{
 		$result = array();
 		$x = new DOMXPath($eventNode->ownerDocument);
-		// get pricing event number
-		$path = 'EventNumber/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['event_number'] = $node->nodeValue;
+		foreach ($this->_extractionMap as $path => $fieldName) {
+			$node = $x->query($path, $eventNode)->item(0);
+			if ($node && $node->nodeValue) {
+				$result[$fieldName] = $node->nodeValue;
+			}
 		}
-		// get the amount
-		$path = 'Price/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['price'] = (float) $node->nodeValue;
-		}
-		// get the msrp
-		$path = 'MSRP/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['msrp'] = (float) $node->nodeValue;
-		}
-		// ignore this if the eventNumber is not present
-		$path = 'AlternatePrice1/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['alternate_price'] = (float) $node->nodeValue;
-		}
-		$path = 'StartDate/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['start_date'] = $node->nodeValue;
-		}
-		$path = 'EndDate/text()';
-		$node = $x->query($path, $eventNode)->item(0);
-		if ($node && $node->nodeValue) {
-			$result['end_date'] = $node->nodeValue;
-		}
+		return $result;
+	}
 
-		$path = 'PriceVatInclusive/text()';
-		$node = $x->query($path, $eventNode)->item(0);
+	/**
+	 * extract the data from a PricePerItem node.
+	 * @param  TrueAction_Dom_Element $eventNode
+	 * @return array
+	 */
+	protected function _extractPricePerItem(TrueAction_Dom_Element $pricePerItemNode)
+	{
+		$result = array();
+		$result['gsi_store_id'] = $pricePerItemNode->getAttribute('gsi_store_id');
+		$result['gsi_client_id'] = $pricePerItemNode->getAttribute('gsi_client_id');
+		$result['catalog_id'] = $pricePerItemNode->getAttribute('catalog_id');
+		$x = new DOMXPath($pricePerItemNode->ownerDocument);
+		$path = 'ClientItemId/text()';
+		$node = $x->query($path, $pricePerItemNode)->item(0);
 		if ($node && $node->nodeValue) {
-			$result['price_vat_inclusive'] = $this->_asBool($node->nodeValue);
+			$result['client_item_id'] = (float) $node->nodeValue;
+		}
+		$path = 'Event';
+		$eventNodes = $x->query($path, $pricePerItemNode);
+		foreach ($eventNodes as $eventNode) {
+			$result['events'][] = $this->_extractEvent($eventNode);
 		}
 		return $result;
 	}

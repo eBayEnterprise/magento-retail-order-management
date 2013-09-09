@@ -1,0 +1,22 @@
+no-price-events:
+  result:
+    gsi_store_id: 'clientstoreid'
+    gsi_client_id: 'clientid'
+    catalog_id: 'catalog_id'
+    client_item_id: '1233441526'
+1-price-events:
+  result:
+    gsi_store_id: 'clientstoreid'
+    gsi_client_id: 'clientid'
+    catalog_id: 'catalog_id'
+    client_item_id: '1233441526'
+    events: [ [] ]
+2-price-events:
+  result:
+    gsi_store_id: 'clientstoreid'
+    gsi_client_id: 'clientid'
+    catalog_id: 'catalog_id'
+    client_item_id: '1233441526'
+    events: [ [], [] ]
+
+
