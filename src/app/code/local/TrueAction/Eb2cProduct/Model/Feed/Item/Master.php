@@ -36,7 +36,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
 		// set base dir base on the config
-		$this->setBaseDir($cfg->contentFeedLocalPath);
+		$this->setBaseDir($cfg->itemFeedLocalPath);
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
@@ -236,6 +236,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
 		$this->_getItemMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
@@ -243,8 +244,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 			// load feed files to Dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $productHelper->getConfigModel()->itemFeedEventType;
-			$expectHeaderVersion = $productHelper->getConfigModel()->itemFeedHeaderVersion;
+			$expectEventType = $cfg->itemFeedEventType;
+			$expectHeaderVersion = $cfg->itemFeedHeaderVersion;
 
 			// validate feed header
 			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
@@ -364,16 +365,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 	protected function _itemMasterActions($doc)
 	{
 		$productHelper = Mage::helper('eb2cproduct');
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
-		if ($feedItemCollection = $this->getExtractor()->extractItemItemMasterFeed($doc)){
+		if ($feedItemCollection = $this->getExtractor()->extractItemMasterFeed($doc)){
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedItemCollection as $feedItem) {
 				// Ensure this matches the catalog id set in the Magento admin configuration.
 				// If different, do not update the item and log at WARN level.
-				if ($feedItem->getCatalogId() !== $productHelper->getConfigModel()->catalogId) {
+				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
 					Mage::log(
 						'Item Master Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$productHelper->getConfigModel()->catalogId . ')',
+						$cfg->catalogId . ')',
 						Zend_Log::WARN
 					);
 					continue;
@@ -381,10 +383,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 
 				// Ensure that the client_id field here matches the value supplied in the Magento admin.
 				// If different, do not update this item and log at WARN level.
-				if ($feedItem->getGsiClientId() !== $productHelper->getConfigModel()->clientId) {
+				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
 					Mage::log(
 						'Item Master Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$productHelper->getConfigModel()->clientId . ')',
+						$cfg->clientId . ')',
 						Zend_Log::WARN
 					);
 					continue;

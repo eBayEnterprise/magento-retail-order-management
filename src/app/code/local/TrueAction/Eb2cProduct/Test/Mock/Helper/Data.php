@@ -112,6 +112,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function replaceByMockFileTransferHelper()
 	{
+		// with invalid ftp setting
 		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
 		$filetransferHelperMock->expects($this->any())
 			->method('getFile')
