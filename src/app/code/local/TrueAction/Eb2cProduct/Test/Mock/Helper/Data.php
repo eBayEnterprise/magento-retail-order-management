@@ -29,6 +29,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
 		$properties->itemFeedEventType = 'ItemMaster';
 		$properties->itemFeedHeaderVersion = '2.3.0';
+		$properties->iShipFeedLocalPath = 'var/TrueAction/Eb2c/Feed/I/Ship/';
+		$properties->iShipFeedRemoteReceivedPath = '/I/Ship/';
+		$properties->iShipFeedEventType = 'IShip';
+		$properties->iShipFeedHeaderVersion = '2.3.0';
 
 		return $properties;
 	}

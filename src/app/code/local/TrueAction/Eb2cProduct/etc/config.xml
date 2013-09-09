@@ -126,6 +126,10 @@
 				<content_feed_remote_received_path>/Content/Master/</content_feed_remote_received_path>
 				<content_feed_event_type>ItemMaster</content_feed_event_type>
 				<content_feed_header_version>2.3.0</content_feed_header_version>
+				<i_ship_feed_local_path>var/TrueAction/Eb2c/Feed/I/Ship/</i_ship_feed_local_path>
+				<i_ship_feed_remote_received_path>/I/Ship/</i_ship_feed_remote_received_path>
+				<i_ship_feed_event_type>iShip</i_ship_feed_event_type>
+				<i_ship_feed_header_version>2.3.0</i_ship_feed_header_version>
 			</product>
 		</eb2c>
 	</default>
