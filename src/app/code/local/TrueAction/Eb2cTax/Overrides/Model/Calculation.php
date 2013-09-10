@@ -64,12 +64,20 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
-	 * get a request object for the quote.
+	 * get a tax request object.
+	 * if $quote is null and a current request exists, return the existing request.
+	 * if $quote is not null return a new request using the quote's data.
+	 * otherwise return a new invalid request.
 	 * @param  Mage_Sales_Model_Quote $quote
 	 * @return TrueAction_Eb2cTax_Model_Request
 	 */
 	public function getTaxRequest(Mage_Sales_Model_Quote $quote=null)
 	{
+		if ($quote) {
+			// delete old response/request
+			$this->unsTaxResponse();
+			Mage::getSingleton('checkout/session')->unsEb2cTaxResponse();
+		}
 		$response = $this->getTaxResponse();
 		$request = is_null($quote) && $response && $response->getRequest() ?
 			$response->getRequest() :
