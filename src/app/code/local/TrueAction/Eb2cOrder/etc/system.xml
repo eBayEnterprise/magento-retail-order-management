@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<config>
+	<sections>
+		<eb2corder translate="label" module="eb2corder">
+			<label>Orders</label>
+			<tab>eb2c</tab>
+			<frontend_type>text</frontend_type>
+			<sort_order>10</sort_order>
+			<show_in_default>1</show_in_default>
+			<show_in_website>1</show_in_website>
+			<show_in_store>1</show_in_store>
+			<groups>
+				<status_feed translate="label">
+					<label>Status Feed</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>100</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+					<fields>
+						<remote_path translate="label">
+							<label>Remote Path</label>
+							<comment>
+								<![CDATA[Remote Path containing Order Status Feeds]]>
+							</comment>
+							<sort_order>1000</sort_order>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</remote_path>
+						<local_path translate="label">
+							<label>Local Path</label>
+							<comment>
+								<![CDATA[Local working path containing Order Status Feeds. This is the root directory for all Status Feed Processing.]]>
+							</comment>
+							<sort_order>2000</sort_order>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</local_path>
+					</fields>
+				</status_feed>
+			</groups>
+		</eb2corder>
+	</sections>
+</config>
