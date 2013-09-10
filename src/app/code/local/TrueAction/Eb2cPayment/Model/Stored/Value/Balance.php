@@ -66,7 +66,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 	 */
 	public function buildStoreValueBalanceRequest($pan, $pin)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$storeValueBalanceRequest = $domDocument->addElement('StoreValueBalanceRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 
 		// creating PaymentAccountUniqueId element
@@ -102,7 +102,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 	{
 		$balanceData = array();
 		if (trim($storeValueBalanceReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueBalanceReply);
 			$balanceXpath = new DOMXPath($doc);
 			$balanceXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

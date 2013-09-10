@@ -122,15 +122,15 @@
 	<default>
 		<eb2c>
 			<payment>
-				<developer_mode>1</developer_mode>
-				<stored_value_balance_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueBalanceReply.xml</stored_value_balance_api_uri>
-				<stored_value_redeem_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemReply.xml</stored_value_redeem_api_uri>
-				<stored_value_redeem_void_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemVoidReply.xml</stored_value_redeem_void_api_uri>
-				<paypal_set_express_checkout_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalSetExpressCheckoutReply.xml</paypal_set_express_checkout_api_uri>
-				<paypal_get_express_checkout_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalGetExpressCheckoutReply.xml</paypal_get_express_checkout_api_uri>
-				<paypal_do_express_checkout_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoExpressCheckoutReply.xml</paypal_do_express_checkout_api_uri>
-				<paypal_do_authorization_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoAuthorizationReply.xml</paypal_do_authorization_api_uri>
-				<paypal_do_void_api_uri>http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoVoidReply.xml</paypal_do_void_api_uri>
+				<developer_mode>0</developer_mode>
+				<stored_value_balance_api_uri></stored_value_balance_api_uri>
+				<stored_value_redeem_api_uri></stored_value_redeem_api_uri>
+				<stored_value_redeem_void_api_uri></stored_value_redeem_void_api_uri>
+				<paypal_set_express_checkout_api_uri></paypal_set_express_checkout_api_uri>
+				<paypal_get_express_checkout_api_uri></paypal_get_express_checkout_api_uri>
+				<paypal_do_express_checkout_api_uri></paypal_do_express_checkout_api_uri>
+				<paypal_do_authorization_api_uri></paypal_do_authorization_api_uri>
+				<paypal_do_void_api_uri></paypal_do_void_api_uri>
 				<enabled_eb2c_paypal_set_express_checkout>1</enabled_eb2c_paypal_set_express_checkout>
 				<enabled_eb2c_paypal_get_express_checkout>1</enabled_eb2c_paypal_get_express_checkout>
 				<enabled_eb2c_paypal_do_express_checkout>1</enabled_eb2c_paypal_do_express_checkout>

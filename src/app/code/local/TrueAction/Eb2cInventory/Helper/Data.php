@@ -6,22 +6,25 @@
  */
 class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $coreHelper;
 	public $coreFeed;
-	public $fileTransferHelper;
 	public $constantHelper;
 	public $configModel;
-	public $apiModel;
 	protected $_operation;
 
 	public function __construct()
 	{
+<<<<<<< HEAD
 		$this->getCoreHelper();
 		$this->getFileTransferHelper();
 		$this->getConfigModel(null);
 		$this->getConstantHelper();
 		$this->getCoreFeed();
 		$constantHelper = $this->getConstantHelper();
+=======
+		$this->getConfigModel(null);
+		$constantHelper = $this->getConstantHelper();
+		$this->getCoreFeed();
+>>>>>>> master
 		$this->_operation = array(
 			'check_quantity' => array(
 				'pro' => $constantHelper::OPT_QTY,
@@ -43,44 +46,16 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * Get core helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	public function getCoreHelper()
-	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
-		return $this->coreHelper;
-	}
-
-	/**
-	 * Get file Transfer helper instantiated object.
-	 *
-	 * @return TrueAction_FileTransfer_Helper_Data
-	 */
-	public function getFileTransferHelper()
-	{
-		if (!$this->fileTransferHelper) {
-			$this->fileTransferHelper = Mage::helper('filetransfer');
-		}
-		return $this->fileTransferHelper;
-	}
-
-	/**
 	 * Get inventory config instantiated object.
 	 *
 	 * @return TrueAction_Eb2cInventory_Model_Config
 	 */
 	public function getConfigModel($store=null)
 	{
-		if (!$this->configModel) {
-			$this->configModel = Mage::getModel('eb2ccore/config_registry');
-			$this->configModel->setStore($store)
-				->addConfigModel(Mage::getModel('eb2cinventory/config'))
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
+		$this->configModel = Mage::getModel('eb2ccore/config_registry');
+		$this->configModel->setStore($store)
+			->addConfigModel(Mage::getModel('eb2cinventory/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 		return $this->configModel;
 	}
 
@@ -91,10 +66,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConstantHelper()
 	{
-		if (!$this->constantHelper) {
-			$this->constantHelper = Mage::helper('eb2cinventory/constants');
-		}
-		return $this->constantHelper;
+		return Mage::helper('eb2cinventory/constants');
 	}
 
 	/**
@@ -104,20 +76,8 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getCoreFeed()
 	{
-		if (!$this->coreFeed) {
-			$this->coreFeed = Mage::helper('eb2ccore/feed');
-		}
+		$this->coreFeed = Mage::helper('eb2ccore/feed');
 		return $this->coreFeed;
-	}
-
-	/**
-	 * Get Dom instantiated object.
-	 *
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
 	}
 
 	/**
@@ -146,7 +106,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		$constantHelper = $this->getConstantHelper();
 		$apiUri = $operation['dev'];
 		if (!(bool) $this->getConfigModel()->developerMode) {
-			$apiUri = $this->getCoreHelper()->getApiUri(
+			$apiUri = Mage::helper('eb2ccore')->getApiUri(
 				$constantHelper::SERVICE,
 				$operation['pro']
 			);
@@ -186,6 +146,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		));
 	}
 
+<<<<<<< HEAD
 	/**
 	 * Return the Core API model for issuing requests/ retrieving response:
 	 */
@@ -223,4 +184,6 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 
 		return $isValid;
 	}
+=======
+>>>>>>> master
 }

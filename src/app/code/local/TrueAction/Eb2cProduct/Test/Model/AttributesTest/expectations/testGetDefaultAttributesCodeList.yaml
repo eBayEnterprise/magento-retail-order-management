@@ -1,0 +1,9 @@
+default:
+  - tax_code
+  - is_drop_shipped
+  - drop_ship_supplier_name
+  - drop_ship_supplier_number
+  - drop_ship_supplier_part
+  - price_is_vat_inclusive
+prices:
+  - price_is_vat_inclusive

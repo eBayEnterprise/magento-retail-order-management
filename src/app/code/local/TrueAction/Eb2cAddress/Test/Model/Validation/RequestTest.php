@@ -30,8 +30,10 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 	{
 		$parts = $this->_addressParts;
 
-		$stub = $this->getMock('Mage_Customer_Model_Address_Abstract',
-			array('getStreet', 'getCity', 'getRegionCode', 'getCountry', 'getPostcode'));
+		$stub = $this->getMock(
+			'Mage_Customer_Model_Address_Abstract',
+			array('getStreet', 'getCity', 'getRegionCode', 'getCountry', 'getPostcode')
+		);
 
 		$stub->expects($this->any())
 			->method('getStreet')
@@ -67,6 +69,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 
 	/**
 	 * @test
+	 * @large
 	 */
 	public function testRequestMessage()
 	{
@@ -87,13 +90,15 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 		// test that the MaxAddressSuggestions pulled correctly from config
 		$this->assertEquals(
 			Mage::getStoreConfig('eb2caddress/general/max_suggestions'),
-			$maxSuggestions);
+			$maxSuggestions
+		);
 		$address = $xpath
 			->query('x:AddressValidationRequest/Address', $message);
 		// make sure there is an address node - actual content tested elsewhere
 		$this->assertSame(
 			$address->length,
-			1);
+			1
+		);
 	}
 
 }

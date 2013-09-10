@@ -71,7 +71,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 	 */
 	public function buildStoreValueRedeemVoidRequest($pan, $pin, $entityId, $amount)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$storeValueRedeemVoidRequest = $domDocument->addElement('StoreValueRedeemVoidRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
 
 		// creating PaymentContent element
@@ -120,7 +120,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void extends Mage_Core_Mo
 	{
 		$redeemVoidData = array();
 		if (trim($storeValueRedeemVoidReply) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueRedeemVoidReply);
 			$redeemVoidXpath = new DOMXPath($doc);
 			$redeemVoidXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());

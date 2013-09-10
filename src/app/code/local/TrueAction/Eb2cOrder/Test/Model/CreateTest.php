@@ -1,7 +1,6 @@
 <?php
 /**
  * Test Suite for the Order_Create
- * TODO: Need to mock up getApiModel()->request() to provide 100% sendRequest coverage
  */
 class TrueAction_Eb2cOrder_Test_Model_CreateTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
@@ -27,9 +26,8 @@ INVALID_XML;
 
 	/**
 	 * Create an Order
-	 * 
+	 * @medium
 	 * @test
-	 * @large
 	 */
 	public function testOrderCreate()
 	{
@@ -37,15 +35,14 @@ INVALID_XML;
 		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
 
 		$status = Mage::getModel('eb2corder/create')
-					->buildRequest($this->getMockSalesOrder())
-					->sendRequest();
+			->buildRequest($this->getMockSalesOrder())
+			->sendRequest();
 		$this->assertSame(true, $status);
 	}
 
 	/**
 	 * Should throw an exception because an invalid xml response was received
 	 * @test
-	 * @large
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testInvalidResponseReceived()
@@ -54,35 +51,29 @@ INVALID_XML;
 		Mage::getModel('eb2corder/create')->sendRequest();
 	}
 
-
 	/**
-	 * FIXME: I don't know if we really need this if we're not queued? Check what happens
-	 * 	if Inventory etc has to be rolled back.
-	 *
+	 * Dispatch eb2c_order_create_fail event
 	 * @test
-	 * @large
 	 */
 	public function testFinallyFailed()
 	{
 		$orderCreateClass = get_class(Mage::getModel('eb2corder/create'));
-		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass,'_finallyFailed');
+		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass, '_finallyFailed');
 		$privateFinallyFailedMethod->setAccessible(true);
 		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
 		$this->assertEventDispatched('eb2c_order_create_fail');
 	}
 
-
 	/**
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
 	 * Also covers the eb2c payments not enabled case
-	 * 
+	 *
 	 * @test
-	 * @large
 	 */
 	public function testObserverCreate()
 	{
 		// Mock the core config registry, only value passed is the vfs filename
-		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_FAILED_XML), false );
+		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_INVALID_XML), false );
 		$this->replaceCoreConfigRegistry( array('eb2cPaymentsEnabled' => false)); // Serves dual purpose, cover payments not enabled case.
 
 		Mage::getModel('eb2corder/create')->observerCreate(
@@ -90,14 +81,14 @@ INVALID_XML;
 				'varien/event_observer',
 				array(
 					'getEvent' =>
-						$this->replaceModel(
-							'varien/event',
-							array(
-								'getOrder' => $this->getMockSalesOrder()
-							)
+					$this->replaceModel(
+						'varien/event',
+						array(
+							'getOrder' => $this->getMockSalesOrder()
 						)
 					)
 				)
-			);
+			)
+		);
 	}
 }

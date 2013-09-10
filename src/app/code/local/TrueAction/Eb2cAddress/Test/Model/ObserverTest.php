@@ -81,7 +81,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testValidateAddressExistingErrors()
 	{
-		$this->markTestSkipped("this test may no longer be valid as this functionality may not be possible based on the proposed implementation of the validation event");
+		$this->markTestSkipped('test may no longer be valid as this functionality may not be possible based on the proposed implementation of the validation event');
 		$errorContainer = $this->getMock('Varien_Object', array('getErrors'));
 		$errorContainer->expects($this->any())
 			->method('getErrors')

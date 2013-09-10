@@ -1,5 +1,4 @@
 <?php
-
 abstract class TrueAction_Eb2cCore_Model_Config_Abstract
 	implements TrueAction_Eb2cCore_Model_Config_Interface
 {
@@ -29,5 +28,4 @@ abstract class TrueAction_Eb2cCore_Model_Config_Abstract
 	{
 		return $this->_configPaths[$configKey];
 	}
-
 }

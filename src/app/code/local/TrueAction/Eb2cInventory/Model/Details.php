@@ -1,74 +1,40 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
-	/**
-	 * Initialize resource model
-	 */
-	protected function _construct()
-	{
-		$this->_helper = $this->_getHelper();
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cinventory');
-		}
-		return $this->_helper;
-	}
-
 	/**
 	 * Get the inventory details for all items in this quote from eb2c.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote the quote to get eb2c inventory details on
-	 *
 	 * @return string the eb2c response to the request.
 	 */
 	public function getInventoryDetails($quote)
 	{
 		$inventoryDetailsResponseMessage = '';
-		try{
+		try {
 			// build request
 			$inventoryDetailsRequestMessage = $this->buildInventoryDetailsRequestMessage($quote);
 
 			// make request to eb2c for inventory details
-			$inventoryDetailsResponseMessage = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_inventory_details'))
+			$inventoryDetailsResponseMessage = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cinventory')->getOperationUri('get_inventory_details'))
 				->request($inventoryDetailsRequestMessage);
-
-		}catch(Exception $e){
+		} catch (Exception $e) {
 			Mage::logException($e);
 		}
-
 		return $inventoryDetailsResponseMessage;
 	}
 
 	/**
 	 * Build Inventory Details request.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
-	 *
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
 	public function buildInventoryDetailsRequestMessage($quote)
 	{
-		$domDocument = $this->_getHelper()->getDomDocument();
-		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
+		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		if ($quote) {
-			foreach($quote->getAllItems() as $item){
-				try{
+			foreach($quote->getAllItems() as $item) {
+				try {
 					// creating orderItem element
 					$orderItem = $inventoryDetailsRequestMessage->createChild(
 						'OrderItem',
@@ -135,7 +101,7 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 						'PostalCode',
 						$shippingAddress->getPostcode()
 					);
-				}catch(Exception $e){
+				} catch(Exception $e) {
 					Mage::logException($e);
 				}
 			}
@@ -145,16 +111,14 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 
 	/**
 	 * Parse inventory details response xml.
-	 *
 	 * @param string $inventoryDetailsResponseMessage the xml response from eb2c
-	 *
 	 * @return array, an associative array of response data
 	 */
 	public function parseResponse($inventoryDetailsResponseMessage)
 	{
 		$inventoryData = array();
 		if (trim($inventoryDetailsResponseMessage) !== '') {
-			$doc = $this->_getHelper()->getDomDocument();
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string xml from eb2c
 			$doc->loadXML($inventoryDetailsResponseMessage);
@@ -204,11 +168,9 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * update quote with inventory details response data.
-	 *
+	 * Update quote with inventory details response data.
 	 * @param Mage_Sales_Model_Quote $quote the quote we use to get inventory details from eb2c
 	 * @param array $inventoryData, a parse associative array of eb2c response
-	 *
 	 * @return void
 	 */
 	public function processInventoryDetails($quote, $inventoryData)
@@ -226,11 +188,9 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * update quote with inventory details response data.
-	 *
+	 * Update quote with inventory details response data.
 	 * @param Mage_Sales_Model_Quote_Item $quoteItem the item to be updated with eb2c data
 	 * @param array $inventoryData the data from eb2c for the quote-item
-	 *
 	 * @return void
 	 */
 	protected function _updateQuoteWithEb2cInventoryDetails($quoteItem, $inventoryData)

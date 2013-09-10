@@ -1,11 +1,7 @@
 <?php
-/**
- * @package Eb2c
- */
 class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $apiModel;
-
 
 	/**
 	 * Gets a combined configuration model from core and order
@@ -15,8 +11,8 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getConfig()
 	{
 		return Mage::getModel('eb2ccore/config_registry')
-						->addConfigModel(Mage::getModel('eb2corder/config'))
-						->addConfigModel(Mage::getModel('eb2ccore/config'));
+			->addConfigModel(Mage::getModel('eb2corder/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 	}
 
 	/**
@@ -59,17 +55,6 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 		$consts = $this->getConstHelper();
 		return $this->getCoreHelper()->getApiUri($consts::SERVICE, $operation);
 	}
-
-	/**
-	 * Return a usable DOMDocument of the TrueAction variety:
-	 *
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
-	}
-
 
 	/**
 	 * Return the Core API model for issuing requests/ retrieving response:

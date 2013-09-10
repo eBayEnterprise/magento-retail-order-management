@@ -8,7 +8,6 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $coreHelper;
 	public $coreFeed;
-	public $fileTransferHelper;
 	public $constantHelper;
 	public $configModel;
 	public $apiModel;
@@ -96,16 +95,6 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$this->constantHelper = Mage::helper('eb2cpayment/constants');
 		}
 		return $this->constantHelper;
-	}
-
-	/**
-	 * Get Dom instantiated object.
-	 *
-	 * @return TrueAction_Dom_Document
-	 */
-	public function getDomDocument()
-	{
-		return new TrueAction_Dom_Document('1.0', 'UTF-8');
 	}
 
 	/**

@@ -24,7 +24,55 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		self::$respXml = file_get_contents($path);
 		$path = dirname(__FILE__) . '/ResponseTest/fixtures/request.xml';
 		self::$reqXml = file_get_contents($path);
+	}
 
+	/**
+	 * verify a fault message is properly parsed to a log message.
+	 */
+	public function testGetFaultLogMessage()
+	{
+		$faultMessageXml = '<?xml version="1.0" encoding="UTF-8"?> <fault><faultstring>stuff happened</faultstring> <detail> <errorcode>someCode</errorcode> <trace>lots of details</trace> </detail> </fault>';
+		$message = "Eb2cTax: Fault Message received: Code: (someCode) Description: 'stuff happened' Trace: 'lots of details'";
+		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$document->loadXML($faultMessageXml);
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$fn = $this->_reflectMethod($response, '_getFaultLogMessage');
+		$this->assertSame($message, $fn->invoke($response, $document));
+	}
+
+	/**
+	 * verify xml parsing errors are properly formated to a log message.
+	 * 20 characters are displayed around the error location.
+	 * if the error column is 0, the first 20 characters are displayed.
+	 * each error is on its own line.
+	 */
+	public function testGetXmlErrorLogMessage()
+	{
+		$warning          = new libXMLError();
+		$warning->level   = LIBXML_ERR_WARNING;
+		$warning->code    = 'warncode';
+		$warning->column  = 0;
+		$warning->line    = 1;
+		$warning->message = 'the warning message';
+
+		$error          = new libXMLError();
+		$error->level   = LIBXML_ERR_ERROR;
+		$error->code    = 'errorcode';
+		$error->column  = 30;
+		$error->line    = 1;
+		$error->message = 'the error message';
+
+		$xml = '.........1.........2.........3.........4';
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->getMock();
+		$fn = $this->_reflectMethod($response, '_getXmlErrorLogMessage');
+		$message = $fn->invoke($response, array($warning, $error), $xml);
+		$expectedMessage = 'XML Parser Warning warncode: the warning message Line: 1 Column: 0: `.........1.........2.........3.........4`' . "\n" .
+			'XML Parser Error errorcode: the error message Line: 1 Column: 30: `.........2.........3.........4`';
+		$this->assertSame($expectedMessage, $message);
 	}
 
 	/**
@@ -89,7 +137,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 			->method('_validateDestinations')
 			->will($this->returnValue($validateDestinations));
 		// select expectation
-		$e = $this->expected('%s-%s-%s-%s', (int)$hasXml, (int)$isDocOk, (int)$validateDestinations, (int)$validateResponseItems);
+		$e = $this->expected('%s-%s-%s-%s', (int) $hasXml, (int) $isDocOk, (int) $validateDestinations, (int) $validateResponseItems);
 		$timesCalled = $e->getExtractResultsCalled() ? $this->once() : $this->never();
 		$response->expects($timesCalled)
 			->method('_extractResults')
@@ -104,7 +152,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		// run the test
 		$this->_reflectMethod($response, '_construct')->invoke($response);
 		// check final result
-		$this->assertSame((bool)$e->getIsValid(), $response->isValid());
+		$this->assertSame((bool) $e->getIsValid(), $response->isValid());
 	}
 
 	/**
@@ -207,7 +255,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$responseDoc = new ReflectionProperty($response, '_doc');
 		$responseDoc->setAccessible(true);
 		$responseDoc->setValue($response, $doc);
-		$fn       = new ReflectionMethod($response, '_getAddressId');
+		$fn = new ReflectionMethod($response, '_getAddressId');
 		$fn->setAccessible(true);
 		$val = $fn->invoke($response, $doc->documentElement);
 		$this->assertSame($expected, $val);
@@ -270,26 +318,26 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$this->assertSame(3, count($ds));
 		foreach ($ds as $d) {
 			$e = $this->expected('0-' . $d->getDiscountId());
-			$this->assertSame((float)$e->getAmount(), $d->getAmount());
-			$this->assertSame((float)$e->getEffectiveRate(), $d->getEffectiveRate());
-			$this->assertSame((float)$e->getTaxableAmount(), $d->getTaxableAmount());
-			$this->assertSame((float)$e->getCalculatedTax(), $d->getCalculatedTax());
+			$this->assertSame((float) $e->getAmount(), $d->getAmount());
+			$this->assertSame((float) $e->getEffectiveRate(), $d->getEffectiveRate());
+			$this->assertSame((float) $e->getTaxableAmount(), $d->getTaxableAmount());
+			$this->assertSame((float) $e->getCalculatedTax(), $d->getCalculatedTax());
 		}
 	}
 
 	public function testResponseQuote()
 	{
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>
-			<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<Tax taxType="SELLER_USE" taxability="TAXABLE">
-					<Situs>DESTINATION</Situs>
-					<Jurisdiction jurisdictionLevel="STATE" jurisdictionId="31152">PENNSYLVANIA</Jurisdiction>
-					<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
-					<EffectiveRate>0.06</EffectiveRate>
-					<TaxableAmount>2.0</TaxableAmount>
-					<CalculatedTax>0.12</CalculatedTax>
-				</Tax>
-			</Taxes>';
+		<Taxes xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+			<Tax taxType="SELLER_USE" taxability="TAXABLE">
+				<Situs>DESTINATION</Situs>
+				<Jurisdiction jurisdictionLevel="STATE" jurisdictionId="31152">PENNSYLVANIA</Jurisdiction>
+				<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+				<EffectiveRate>0.06</EffectiveRate>
+				<TaxableAmount>2.0</TaxableAmount>
+				<CalculatedTax>0.12</CalculatedTax>
+			</Tax>
+		</Taxes>';
 		$doc = new TrueAction_Dom_Document();
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXML($xml);
@@ -312,62 +360,61 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	public function testResponseOrderItemNan()
 	{
 		$xml = '<OrderItem lineNumber="7"  xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-					<ItemId><![CDATA[classic-jeans]]></ItemId>
-					<ItemDesc><![CDATA[Classic Jean]]></ItemDesc>
-					<HTSCode/>
-					<Quantity><![CDATA[1]]></Quantity>
-					<Pricing>
-					  <Merchandise>
-					    <UnitPrice><![CDATA[foo]]></UnitPrice>
+				<ItemId><![CDATA[classic-jeans]]></ItemId>
+				<ItemDesc><![CDATA[Classic Jean]]></ItemDesc>
+				<HTSCode/>
+				<Quantity><![CDATA[1]]></Quantity>
+				<Pricing>
+					<Merchandise>
+						<UnitPrice><![CDATA[foo]]></UnitPrice>
 						<Amount><![CDATA[]]></Amount>
 						<TaxData>
-						  <TaxClass>89000</TaxClass>
-						  <Taxes>
-							<Tax taxType="SELLER_USE" taxability="TAXABLE">
-							  <Situs>DESTINATION</Situs>
-							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-							  <Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
-							  <EffectiveRate>0.06</EffectiveRate>
-							  <TaxableAmount>99.99</TaxableAmount>
-							  <CalculatedTax>6.0</CalculatedTax>
-							</Tax>
-							<Tax taxType="SELLER_USE" taxability="TAXABLE">
-							  <Situs>DESTINATION</Situs>
-							  <Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-							  <Imposition impositionType="Random Tax">Random Tax</Imposition>
-							  <EffectiveRate>0.02</EffectiveRate>
-							  <TaxableAmount>99.99</TaxableAmount>
-							  <CalculatedTax>2.0</CalculatedTax>
-							</Tax>
-						  </Taxes>
+							<TaxClass>89000</TaxClass>
+							<Taxes>
+								<Tax taxType="SELLER_USE" taxability="TAXABLE">
+									<Situs>DESTINATION</Situs>
+									<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+									<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+									<EffectiveRate>0.06</EffectiveRate>
+									<TaxableAmount>99.99</TaxableAmount>
+									<CalculatedTax>6.0</CalculatedTax>
+								</Tax>
+								<Tax taxType="SELLER_USE" taxability="TAXABLE">
+									<Situs>DESTINATION</Situs>
+									<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+									<Imposition impositionType="Random Tax">Random Tax</Imposition>
+									<EffectiveRate>0.02</EffectiveRate>
+									<TaxableAmount>99.99</TaxableAmount>
+									<CalculatedTax>2.0</CalculatedTax>
+								</Tax>
+							</Taxes>
 						</TaxData>
 						<PromotionalDiscounts>
-						  <Discount calculateDuty="false" id="334">
-							<Amount>20.00</Amount>
-							<Taxes>
-							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
-								<Situs>DESTINATION</Situs>
-								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-								<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
-								<EffectiveRate>0.06</EffectiveRate>
-								<TaxableAmount>20.0</TaxableAmount>
-								<CalculatedTax>1.2</CalculatedTax>
-							  </Tax>
-							  <Tax taxType="SELLER_USE" taxability="TAXABLE">
-								<Situs>DESTINATION</Situs>
-								<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
-								<Imposition impositionType="Random Tax">Random Tax</Imposition>
-								<EffectiveRate>0.02</EffectiveRate>
-								<TaxableAmount>20.0</TaxableAmount>
-								<CalculatedTax>0.4</CalculatedTax>
-							  </Tax>
-							</Taxes>
-						  </Discount>
+							<Discount calculateDuty="false" id="334">
+								<Amount>20.00</Amount>
+								<Taxes>
+									<Tax taxType="SELLER_USE" taxability="TAXABLE">
+										<Situs>DESTINATION</Situs>
+										<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+										<Imposition impositionType="General Sales and Use Tax">Sales and Use Tax</Imposition>
+										<EffectiveRate>0.06</EffectiveRate>
+										<TaxableAmount>20.0</TaxableAmount>
+										<CalculatedTax>1.2</CalculatedTax>
+									</Tax>
+									<Tax taxType="SELLER_USE" taxability="TAXABLE">
+										<Situs>DESTINATION</Situs>
+										<Jurisdiction jurisdictionId="31152" jurisdictionLevel="STATE">PENNSYLVANIA</Jurisdiction>
+										<Imposition impositionType="Random Tax">Random Tax</Imposition>
+										<EffectiveRate>0.02</EffectiveRate>
+										<TaxableAmount>20.0</TaxableAmount>
+										<CalculatedTax>0.4</CalculatedTax>
+									</Tax>
+								</Taxes>
+							</Discount>
 						</PromotionalDiscounts>
-					  </Merchandise>
-					</Pricing>
-				  </OrderItem>
-		';
+					</Merchandise>
+				</Pricing>
+			</OrderItem>';
 		$doc = new TrueAction_Dom_Document();
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXML($xml);
@@ -390,14 +437,12 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	public function testCompareNodelistElements($responseValue, $requestValue)
 	{
 		$dom = new TrueAction_Dom_Document();
-		$dom->loadXML('<root>'
-			. '<response>'
-			. (!is_null($responseValue) ? '<item>' . $responseValue . '</item>' : '')
-			. '</response>'
-			. '<request>'
-			. (!is_null($requestValue) ? '<item>' . $requestValue . '</item>' : '')
-			. '</request>'
-			. '</root>');
+		$dom->loadXML('<root><response>' .
+			(!is_null($responseValue) ? '<item>' . $responseValue . '</item>' : '') .
+			'</response><request>' .
+			(!is_null($requestValue) ? '<item>' . $requestValue . '</item>' : '') .
+			'</request></root>'
+		);
 
 		$responseNodelist = $dom->getElementsByTagName('response')->item(0)->childNodes;
 		$requestNodelist  = $dom->getElementsByTagName('request')->item(0)->childNodes;
@@ -473,7 +518,6 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$this->assertSame(false, $val);
 	}
 
-
 	public function xmlProviderForCheckXml()
 	{
 		return array(
@@ -482,14 +526,34 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 				</TaxDutyQuoteResponse>', true),
 			array('<?xml version="1.0" encoding="UTF-8"?>
 				<Fault xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
-				<Code>INVALID_XML</Code>
-				<Description>The xml submitted for quote request was invalid.</Description>
+					<CreateTimestamp>2011-07-23T20:07:39+00:00</CreateTimestamp>
+					<Code>INVALID_XML</Code>
+					<Description>The xml submitted for quote request was invalid.</Description>
 				</Fault>', false),
 			array('<?xml version="1.0" encoding="UTF-8"?>
 				<someotherdocument>
 				</someotherdocument>', false),
 			array('sfslfjslfjlsfdlkfjlsfjl', false),
+			array('', false),
+			array(null, false),
+			array('<fault>
+				<faultstring>Incorrect HTTP method used in the request</faultstring>
+				<detail>
+					<errorcode>26301</errorcode>
+					<trace>
+						Fault Name: IncorrectHTTPMethod
+						Error Type: MethodValidationFailure
+						Description: Incorrect HTTP method used in the request
+						Service: eb2c
+						Endpoint: eb2c_client
+						Operation (Client):taxes_quote_client_op
+					</trace>
+				</detail>
+			</fault>', false),
+			array('<div>
+				<a href="/app/search?op=list&type=50">eins</a>
+				<!-- HTML parser error : htmlParseEntityRef: expecting \';\' -->
+			</div>', false),
 		);
 	}
 
@@ -513,7 +577,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	 * @param  TrueAction_Eb2cTax_Model_Request $request
 	 * @return TrueAction_Eb2cTax_Model_Response
 	 */
-	protected function _mockResponse($xml = '', $request = null)
+	protected function _mockResponse($xml='', $request=null)
 	{
 		$xml     = $xml ? $xml : self::$respXml;
 		$request = $request ? $request : $this->_mockRequest();
@@ -541,7 +605,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	 * @param  bool $isValid
 	 * @return TrueAction_Eb2cTax_Model_Request
 	 */
-	protected function _mockRequest($xml = '', $isValid = true)
+	protected function _mockRequest($xml='', $isValid=true)
 	{
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->preserveWhiteSpace = false;
@@ -559,5 +623,4 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 			->will($this->returnValue($doc));
 		return $request;
 	}
-
 }

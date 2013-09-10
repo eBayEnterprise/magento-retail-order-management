@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * @category    TrueAction
+ * @package     TrueAction_Eb2c
+ * @copyright   Copyright (c) 2013 True Action Network (http://www.trueaction.com)
+ */
+-->
+<config>
+	<modules>
+		<TrueAction_Eb2cProduct>
+			<active>true</active>
+			<codePool>local</codePool>
+			<depends>
+				<Mage_Eav/>
+				<Mage_Catalog/>
+			</depends>
+		</TrueAction_Eb2cProduct>
+	</modules>
+</config>

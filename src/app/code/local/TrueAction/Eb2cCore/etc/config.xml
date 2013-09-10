@@ -23,22 +23,24 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
-				<sftp_username />
-				<sftp_password backend_model="adminhtml/system_config_backend_encrypted" />
-				<sftp_location />
-				<api_key backend_model="adminhtml/system_config_backend_encrypted" />
-				<api_timeout />
 				<test_mode />
 			</general>
 			<api>
-				<environment>developer</environment>
-				<region>na</region>
+				<environment>api</environment>
+				<key backend_model="adminhtml/system_config_backend_encrypted" />
 				<major_version>1</major_version>
 				<minor_version>10</minor_version>
+				<region>na</region>
+				<timeout />
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
+				<filetransfer_protocol>sftp</filetransfer_protocol>
+				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 			</feed>
+			<development>
+				<test_mode />
+			</development>
 			<service>
 				<order>
 					<timeout>15</timeout>
