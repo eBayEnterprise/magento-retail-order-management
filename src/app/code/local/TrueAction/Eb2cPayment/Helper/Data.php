@@ -6,66 +6,48 @@
  */
 class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $coreHelper;
-	public $coreFeed;
-	public $constantHelper;
 	public $configModel;
 	public $apiModel;
 	protected $_operation;
 
 	public function __construct()
 	{
-		$this->coreHelper = $this->getCoreHelper();
-		$this->configModel = $this->getConfigModel(null);
-		$this->constantHelper = $this->getConstantHelper();
-		$constantHelper = $this->getConstantHelper();
+		$cfg = $this->getConfigModel(null);
+
 		$this->_operation = array(
 			'get_gift_card_balance' => array(
-				'pro' => $constantHelper::OPT_STORED_VALUE_BALANCE,
-				'dev' => $this->getConfigModel()->storedValueBalanceApiUri
+				'pro' => $cfg->apiOptStoredValueBalance,
+				'dev' => $cfg->storedValueBalanceApiUri
 			),
 			'get_gift_card_redeem' => array(
-				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM,
-				'dev' => $this->getConfigModel()->storedValueRedeemApiUri
+				'pro' => $cfg->apiOptStoredValueRedeem,
+				'dev' => $cfg->storedValueRedeemApiUri
 			),
 			'get_gift_card_redeem_void' => array(
-				'pro' => $constantHelper::OPT_STORED_VALUE_REDEEM_VOID,
-				'dev' => $this->getConfigModel()->storedValueRedeemVoidApiUri
+				'pro' => $cfg->apiOptStoredValueRedeemVoid,
+				'dev' => $cfg->storedValueRedeemVoidApiUri
 			),
 			'get_paypal_set_express_checkout' => array(
-				'pro' => $constantHelper::OPT_PAYPAL_SET_EXPRESS_CHECKOUT,
-				'dev' => $this->getConfigModel()->paypalSetExpressCheckoutApiUri
+				'pro' => $cfg->apiOptPaypalSetExpressCheckout,
+				'dev' => $cfg->paypalSetExpressCheckoutApiUri
 			),
 			'get_paypal_get_express_checkout' => array(
-				'pro' => $constantHelper::OPT_PAYPAL_GET_EXPRESS_CHECKOUT,
-				'dev' => $this->getConfigModel()->paypalGetExpressCheckoutApiUri
+				'pro' => $cfg->apiOptPaypalGetExpressCheckout,
+				'dev' => $cfg->paypalGetExpressCheckoutApiUri
 			),
 			'get_paypal_do_express_checkout' => array(
-				'pro' => $constantHelper::OPT_PAYPAL_DO_EXPRESS_CHECKOUT,
-				'dev' => $this->getConfigModel()->paypalDoExpressCheckoutApiUri
+				'pro' => $cfg->apiOptPaypalDoExpressCheckout,
+				'dev' => $cfg->paypalDoExpressCheckoutApiUri
 			),
 			'get_paypal_do_authorization' => array(
-				'pro' => $constantHelper::OPT_PAYPAL_DO_AUTHORIZATION,
-				'dev' => $this->getConfigModel()->paypalDoAuthorizationApiUri
+				'pro' => $cfg->apiOptPaypalDoAuthorization,
+				'dev' => $cfg->paypalDoAuthorizationApiUri
 			),
 			'get_paypal_do_void' => array(
-				'pro' => $constantHelper::OPT_PAYPAL_DO_VOID,
-				'dev' => $this->getConfigModel()->paypalDoVoidApiUri
+				'pro' => $cfg->apiOptPaypalDoVoid,
+				'dev' => $cfg->paypalDoVoidApiUri
 			)
 		);
-	}
-
-	/**
-	 * Get core helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	public function getCoreHelper()
-	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
-		return $this->coreHelper;
 	}
 
 	/**
@@ -75,26 +57,11 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfigModel($store=null)
 	{
-		if (!$this->configModel) {
-			$this->configModel = Mage::getModel('eb2ccore/config_registry');
-			$this->configModel->setStore($store)
-				->addConfigModel(Mage::getModel('eb2cpayment/config'))
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
+		$this->configModel = Mage::getModel('eb2ccore/config_registry');
+		$this->configModel->setStore($store)
+			->addConfigModel(Mage::getModel('eb2cpayment/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 		return $this->configModel;
-	}
-
-	/**
-	 * Get Constants helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Constants
-	 */
-	public function getConstantHelper()
-	{
-		if (!$this->constantHelper) {
-			$this->constantHelper = Mage::helper('eb2cpayment/constants');
-		}
-		return $this->constantHelper;
 	}
 
 	/**
@@ -104,8 +71,8 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getXmlNs()
 	{
-		$constantHelper = $this->getConstantHelper();
-		return $constantHelper::XMLNS;
+		$cfg = $this->getConfigModel(null);
+		return $cfg->apiXmlNs;
 	}
 
 	/**
@@ -115,8 +82,8 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getPaymentXmlNs()
 	{
-		$constantHelper = $this->getConstantHelper();
-		return $constantHelper::PAYMENT_XMLNS;
+		$cfg = $this->getConfigModel(null);
+		return $cfg->apiPaymentXmlNs;
 	}
 
 	/**
@@ -131,26 +98,15 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 		if (isset($this->_operation[$optIndex])) {
 			$operation = $this->_operation[$optIndex];
 		}
-		$constantHelper = $this->getConstantHelper();
+		$cfg = $this->getConfigModel(null);
 		$apiUri = $operation['dev'];
-		if (!(bool) $this->getConfigModel()->developerMode) {
-			$apiUri = $this->getCoreHelper()->getApiUri(
-				$constantHelper::SERVICE,
+		if (!(bool) $cfg->developerMode) {
+			$apiUri = Mage::helper('eb2ccore')->getApiUri(
+				$cfg->apiService,
 				$operation['pro']
 			);
 		}
 		return $apiUri;
-	}
-
-	/**
-	 * Return the Core API model for issuing requests/ retrieving response:
-	 */
-	public function getApiModel()
-	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->apiModel;
 	}
 
 	/**
@@ -162,9 +118,10 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getRequestId($entityId)
 	{
+		$cfg = $this->getConfigModel(null);
 		return implode('-', array(
-			$this->getConfigModel()->clientId,
-			$this->getConfigModel()->storeId,
+			$cfg->clientId,
+			$cfg->storeId,
 			$entityId
 		));
 	}

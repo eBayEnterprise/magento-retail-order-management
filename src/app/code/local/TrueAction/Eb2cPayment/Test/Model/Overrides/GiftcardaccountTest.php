@@ -7,44 +7,6 @@
 class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
-	 * testing _getStoredValueBalance method - the reason for this test is because the method will be replace by a mock on all the other tests
-	 *
-	 * @test
-	 */
-	public function testGetStoredValueBalance()
-	{
-		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
-		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
-
-		$getStoredValueBalance = $giftCardAccountReflector->getMethod('_getStoredValueBalance');
-		$getStoredValueBalance->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Balance',
-			$getStoredValueBalance->invoke($giftCardAccount)
-		);
-	}
-
-	/**
-	 * testing _getHelper method - the reason for this test is because the method will be replace by a mock on all the other tests
-	 *
-	 * @test
-	 */
-	public function testGetHelper()
-	{
-		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
-		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
-
-		$getHelper = $giftCardAccountReflector->getMethod('_getHelper');
-		$getHelper->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'Enterprise_GiftCardAccount_Helper_Data',
-			$getHelper->invoke($giftCardAccount)
-		);
-	}
-
-	/**
 	 * testing _filterGiftCardByPanPin method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
 	 * @test
@@ -60,25 +22,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 		$this->assertInstanceOf(
 			'Enterprise_GiftCardAccount_Model_Resource_Giftcardaccount_Collection',
 			$filterGiftCardByPanPin->invoke($giftCardAccount)
-		);
-	}
-
-	/**
-	 * testing _getGiftCardAccountModel method - the reason for this test is because the method will be replace by a mock on all the other tests
-	 *
-	 * @test
-	 */
-	public function testGetGiftCardAccountModel()
-	{
-		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
-		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
-
-		$getGiftCardAccountModel = $giftCardAccountReflector->getMethod('_getGiftCardAccountModel');
-		$getGiftCardAccountModel->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
-			$getGiftCardAccountModel->invoke($giftCardAccount)
 		);
 	}
 
@@ -104,8 +47,12 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testLoadByCodeWithGiftData()
 	{
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
+
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
 		$mockGiftCardAccount->replaceGiftCardAccountByMock();
+		$mockGiftCardAccount->replaceEnterpriseGiftCardAccountByMock();
 
 		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(
@@ -123,8 +70,12 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testLoadByCodeWithoutGiftData()
 	{
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
+
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
 		$mockGiftCardAccount->replaceGiftCardAccountByMockWithoutGiftCardData();
+		$mockGiftCardAccount->replaceEnterpriseGiftCardAccountByMock();
 
 		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(
@@ -142,8 +93,12 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testAddToCart()
 	{
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
+
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
 		$mockGiftCardAccount->replaceGiftCardAccountByMock();
+		$mockGiftCardAccount->replaceEnterpriseGiftCardAccountByMock();
 
 		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(
@@ -162,8 +117,15 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testAddToCartWithException()
 	{
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
+
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
 		$mockGiftCardAccount->replaceGiftCardAccountByMockWithException();
+		$mockGiftCardAccount->replaceEnterpriseGiftCardAccountByMock();
+
+		$mockHelper = new TrueAction_Eb2cPayment_Test_Mock_Helper_Data();
+		$mockHelper->replaceByMockEnterpriseGiftCardAccountHelper();
 
 		$giftCardAccount = Mage::getModel('eb2cpaymentoverrides/giftcardaccount');
 		$this->assertInstanceOf(

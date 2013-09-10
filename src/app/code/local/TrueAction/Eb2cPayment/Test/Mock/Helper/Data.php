@@ -103,9 +103,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$helperMock = $this->getMockBuilder(
 			'TrueAction_Eb2cPayment_Helper_Data',
 			array(
-				'getCoreHelper',
 				'getConfigModel',
-				'getConstantHelper',
 				'getXmlNs',
 				'getOperationUri',
 				'getRequestId',
@@ -116,14 +114,8 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->disableOriginalConstructor()
 			->getMock();
 		$helperMock->expects($this->any())
-			->method('getCoreHelper')
-			->will($this->returnValue($this->buildEb2cCoreHelper()));
-		$helperMock->expects($this->any())
 			->method('getConfigModel')
 			->will($this->returnValue($this->buildEb2cCoreModelConfigRegistry()));
-		$helperMock->expects($this->any())
-			->method('getConstantHelper')
-			->will($this->returnValue($this->buildEb2cPaymentConstant()));
 		$helperMock->expects($this->any())
 			->method('getXmlNs')
 			->will($this->returnValue('http://api.gsicommerce.com/schema/checkout/1.0'));
@@ -144,5 +136,36 @@ class TrueAction_Eb2cPayment_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->will($this->returnValue(true));
 
 		return $helperMock;
+	}
+
+	/**
+	 * replacing by mock of the eb2ccore helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockCoreHelper()
+	{
+		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('getApiUri'));
+		$coreHelperMock->expects($this->any())
+			->method('getApiUri')
+			->will($this->returnCallback(array($this, 'getOperationUriCallback')));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+	}
+
+	/**
+	 * replacing by mock of the enterprise_giftcardaccount helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockEnterpriseGiftCardAccountHelper()
+	{
+		$enterpriseGiftCardAccountHelperMock = $this->getHelperMock('enterprise_giftcardaccount/data', array('getCards', 'setCards'));
+		$enterpriseGiftCardAccountHelperMock->expects($this->any())
+			->method('getCards')
+			->will($this->returnValue(array(array('i' => 1))));
+		$enterpriseGiftCardAccountHelperMock->expects($this->any())
+			->method('setCards')
+			->will($this->returnSelf());
+		$this->replaceByMock('helper', 'enterprise_giftcardaccount', $enterpriseGiftCardAccountHelperMock);
 	}
 }

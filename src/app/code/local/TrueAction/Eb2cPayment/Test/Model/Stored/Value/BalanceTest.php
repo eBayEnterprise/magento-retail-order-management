@@ -16,11 +16,11 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 		parent::setUp();
 		$this->_balance = Mage::getModel('eb2cpayment/stored_value_balance');
 
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$balanceReflector = new ReflectionObject($this->_balance);
-		$helper = $balanceReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_balance, $paymentHelper);
+		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
+		$paymentHelperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueBalanceReply.xml'));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function providerGetBalance()
@@ -53,30 +53,18 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	 */
 	public function testGetBalanceWithException($pan, $pin)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->will($this->throwException(new Exception));
 
-		$paymentHelper = Mage::helper('eb2cpayment');
-		$paymentReflector = new ReflectionObject($paymentHelper);
-		$apiModel = $paymentReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($paymentHelper, $apiModelMock);
-
-		$balanceReflector = new ReflectionObject($this->_balance);
-		$helper = $balanceReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_balance, $paymentHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',
@@ -101,7 +89,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 	public function testParseResponse($storeValueBalanceReply)
 	{
 		$this->assertSame(
-			array('paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success', 'balanceAmount' => '50.00'),
+			array('paymentAccountUniqueId' => '4111111ak4idq1111', 'responseCode' => 'Success', 'balanceAmount' => 50.00),
 			$this->_balance->parseResponse($storeValueBalanceReply)
 		);
 	}

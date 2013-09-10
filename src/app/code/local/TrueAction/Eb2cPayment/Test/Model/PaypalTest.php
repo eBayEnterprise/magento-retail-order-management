@@ -31,6 +31,11 @@ class TrueAction_Eb2cPayment_Test_Model_PaypalTest extends EcomDev_PHPUnit_Test_
 			0,
 			$collection->count()
 		);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal',
+			$this->_paypal->loadByQuoteId(1)
+		);
 	}
 
 	/**
