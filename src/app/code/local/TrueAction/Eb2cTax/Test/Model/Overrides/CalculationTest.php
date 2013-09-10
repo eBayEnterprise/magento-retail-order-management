@@ -234,13 +234,43 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	}
 
 	/**
+	 * verify new invalid request is returned when quote is null and no previous request exists.
+	 * verify new request is returned when quote is not null
+	 * verify existing request/response is discarded when quote is not null
+	 * verify same request is returned when qutoe is null and previous request exists.
 	 * @test
 	 */
 	public function testGetTaxRequest()
 	{
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->getMock();
 		$calc = Mage::getModel('tax/calculation');
 		$request = $calc->getTaxRequest();
 		$this->assertNotNull($request);
+		$this->assertFalse($request->isValid());
+
+		$otherReq = $calc->getTaxRequest();
+		$this->assertNotSame($request, $otherReq);
+
+		$quoteRequest = $calc->getTaxRequest($quote);
+		$this->assertNotSame($otherReq, $quoteRequest);
+
+		$otherQuoteRequest = $calc->getTaxRequest($quote);
+		$this->assertNotSame($quoteRequest, $otherQuoteRequest);
+
+		$response = $this->getModelMock('eb2ctax/response', array('getRequest'));
+		$response->expects($this->any())
+			->method('getRequest')
+			->will($this->returnValue($request));
+		$calc->setData('tax_response', $response);
+		$storedRequest = $calc->getTaxRequest();
+		$this->assertSame($request, $storedRequest);
+
+		$quoteRequest = $calc->getTaxRequest($quote);
+		$this->assertNotSame($storedRequest, $quoteRequest);
+		$request = $calc->getTaxRequest();
+		$this->assertNotSame($storedRequest, $request);
 	}
 
 	protected function _mockConfigRegistry($configValues)
