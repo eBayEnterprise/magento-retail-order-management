@@ -71,7 +71,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	public function getTaxRequest(Mage_Sales_Model_Quote $quote=null)
 	{
 		$response = $this->getTaxResponse();
-		$request = ($response && $response->getTaxRequest()) ?
+		$request = is_null($quore) && $response && $response->getTaxRequest() ?
 			$response->getRequest() :
 			Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		return $request;
@@ -231,13 +231,13 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					if (isset($result[$id])) {
 						$group = $result[$id];
 					} else {
-						Mage::log('[' . __CLASS__ . '] ' . 
-							sprintf(
-								'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
-								$code, $taxRate
-							),
-							Zend_Log::WARN
+						$message = sprintf(
+							'[ %s ] Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
+							__CLASS__,
+							$code,
+							$taxRate
 						);
+						Mage::log($message, Zend_Log::WARN);
 						continue;
 					}
 
