@@ -71,6 +71,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
@@ -105,6 +106,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId()); // give a feed with invalid catalog id
@@ -139,6 +141,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType()); // give a feed with invalid catalog id
@@ -176,6 +179,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperInvalidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
@@ -217,6 +221,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
@@ -258,6 +263,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAddNosale());
@@ -295,6 +301,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
@@ -332,6 +339,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
@@ -369,6 +377,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
@@ -406,6 +415,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
@@ -443,6 +453,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdateNosale());
@@ -480,6 +491,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
@@ -517,6 +529,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
@@ -554,6 +567,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
@@ -591,6 +605,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
@@ -628,6 +643,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
@@ -665,6 +681,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
@@ -702,6 +719,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelper();
 
 		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());

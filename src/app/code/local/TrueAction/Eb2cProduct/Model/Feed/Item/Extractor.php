@@ -273,7 +273,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extractItemItemMasterFeed(DOMDocument $doc)
+	public function extractItemMasterFeed(DOMDocument $doc)
 	{
 		$collectionOfItems = array();
 		$feedXPath = new DOMXPath($doc);
