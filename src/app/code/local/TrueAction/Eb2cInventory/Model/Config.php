@@ -19,5 +19,16 @@ class TrueAction_Eb2cInventory_Model_Config extends TrueAction_Eb2cCore_Model_Co
 		'config_path' => 'eb2c/inventory/config_path',
 		'feed_event_type' => 'eb2c/inventory/feed_event_type',
 		'feed_header_version' => 'eb2c/inventory/feed_header_version',
+		'api_xml_ns' => 'eb2c/inventory/api_xml_ns',
+		'api_env' => 'eb2c/inventory/api_env',
+		'api_region' => 'eb2c/inventory/api_region',
+		'api_version' => 'eb2c/inventory/api_version',
+		'api_service' => 'eb2c/inventory/api_service',
+		'api_opt_inventory_qty' => 'eb2c/inventory/api_opt_inventory_qty',
+		'api_opt_inventory_details' => 'eb2c/inventory/api_opt_inventory_details',
+		'api_opt_inventory_allocation' => 'eb2c/inventory/api_opt_inventory_allocation',
+		'api_opt_inventory_rollback_allocation' => 'eb2c/inventory/api_opt_inventory_rollback_allocation',
+		'api_uri_format' => 'eb2c/inventory/api_uri_format',
+		'api_return_format' => 'eb2c/inventory/api_return_format',
 	);
 }
