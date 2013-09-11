@@ -17,6 +17,16 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		$this->_helper = Mage::helper('eb2ccore');
 	}
 
+	/** 
+	 * Test getNewDomDocument - although providerApiCall calls it, does not get noted as covered.
+	 *
+	 * @test
+	 */
+	public function testGetNewDomDocument()
+	{
+		$this->assertInstanceOf('TrueAction_Dom_Document', Mage::helper('eb2ccore')->getNewDomDocument());
+	}
+
 	public function providerApiCall()
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();

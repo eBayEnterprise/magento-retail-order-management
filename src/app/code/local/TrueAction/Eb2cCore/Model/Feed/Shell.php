@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 /**
  * Eb2c Feed Shell
  *
@@ -12,9 +11,8 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 	private $_availableFeeds;
 
 	/**
-	 * Basically assembles the 'feed model' => 'module' array
-	 *
-	 * @todo: move array to the 'normal' way we do configuration
+	 * Loads the configured feed models.
+	 * 
 	 */
 	public function _construct()
 	{
@@ -22,15 +20,7 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 			$this->_availableFeeds = $this->getFeedSet();
 		}
 		else {
-			$this->_availableFeeds = array (
-				'feed_item_Inventories' => 'eb2cinventory',
-				'status_feed'           => 'eb2corder',
-				'feed_content_master'   => 'eb2cproduct',
-				'feed_image_master'     => 'eb2cproduct',
-				'feed_item_iship'       => 'eb2cproduct',
-				'feed_item_master'      => 'eb2cproduct',
-				'feed_item_pricing'     => 'eb2cproduct',
-			);
+			$this->_availableFeeds = Mage::helper('eb2ccore/feed_shell')->getConfiguredFeedModels();
 		}
 	}
 
@@ -38,7 +28,7 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 	 * Instantiate and Validate that this model name implements 'TrueAction_Eb2cCore_Model_Feed_Interface' - that ensure we'll
 	 * have a processFeeds method. That will convince me that this is an OK feed processor.
 	 *
-	 * @param $modelName a (theoretically) valid Model
+	 * @param $modelName a Model to validate
 	 * @return boolean null - Not a valid 'TrueAction_Eb2cCore_Model_Feed_Interface'
 	 * @return Mage::getModel() - valid model for feed processing.
 	 */
@@ -61,18 +51,18 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 	}
 
 	/**
-	 * Given a partial feed name, return the approriate model for that feed. Side effect is that all feed 
-	 * names must be unique. Intentionally called 'pregGet' as opposed to 'get' to avoid any magic connotations.
+	 * Given a partial feed name (or full model/method name), return the approriate model for that feed.
+	 * The name must resovle uniquely - if you pass just 'feed' for example, you'll fail - too many matches.
 	 *
 	 * @return boolean null - Not a valid 'TrueAction_Eb2cCore_Model_Feed_Interface'
 	 * @return Mage::getModel() - valid model for feed processing.
 	 */
-	public function pregGetFeedModel($partialFeedName)
+	public function getFeedModel($partialFeedName)
 	{
-		$match = preg_grep("/$partialFeedName/", array_keys($this->_availableFeeds));
+		$searchArg = preg_replace('/\//', '\\/', $partialFeedName); // escape '/', as I *know* that's part of the full Model Name
+		$match = preg_grep("/$searchArg/", $this->_availableFeeds);
 		if( count($match) === 1 ) {
-			$feedName = $match[key($match)];
-			$modelName = $this->_availableFeeds[$feedName] . '/' . $feedName;
+			$modelName = $match[key($match)];
 			return $this->_validateModel($modelName);
 		}
 		return false;
@@ -85,7 +75,7 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 	 */
 	public function runFeedModel($partialFeedName)
 	{
-		$model = $this->pregGetFeedModel($partialFeedName);
+		$model = $this->getFeedModel($partialFeedName);
 		if( !$model ) {
 			Mage::throwException('No valid model found for feed type ' . $partialFeedName);
 			// @codeCoverageIgnoreStart
@@ -94,7 +84,6 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 		return $model->processFeeds();
 	}
 
-
 	/**
 	 * Return a list of the configured feeds
 	 *
@@ -102,6 +91,6 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 	 */
 	public function listAvailableFeeds()
 	{
-		return array_keys($this->_availableFeeds);
+		return $this->_availableFeeds;
 	}
 }

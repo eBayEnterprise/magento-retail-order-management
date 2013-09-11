@@ -36,7 +36,7 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	private function _validateConfig()
 	{
 		foreach( $this->_feedCore->listAvailableFeeds() as $aFeed ) {
-			echo $aFeed . ' ' . ($this->_feedCore->pregGetFeedModel($aFeed) ? 'Valid' : 'INVALID') . "\n";
+			echo "\t$aFeed " . ($this->_feedCore->getFeedModel($aFeed) ? 'valid' : '*INVALID*') . "\n";
 		}
 	}
 
@@ -47,6 +47,11 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	 */
 	public function run()
 	{
+		if( !count($this->_args) ) {
+			echo $this->usageHelp();
+			return;
+		}
+
 		if( $this->getArg('validate') === 'config' ) {
 			$this->_validateConfig();
 			return;
@@ -60,6 +65,7 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 				$rc = $this->_feedCore->runFeedModel($feedName);
 			} catch(Exception $e) {
 				Mage::logException($e);
+				$rc = false;
 			}
 			$this->_log( "Feed ends: $feedName, rc is $rc", Zend_log::DEBUG );
 		}
@@ -87,15 +93,16 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	{
 		$scriptName = basename(__FILE__);
 		$msg = <<<USAGE
-Usage: php -f $scriptName -- [options]
-	-feed 	list_of_feeds (Watch out for shell escapes) 
-	-validate	config (Ensures all feeds configured are valid)
-	help	This help
 
-Available feeds:
+Usage: php -f $scriptName -- [options]
+  -feed      list_of_feeds (Watch out for shell escapes) 
+  -validate  config (Ensures all feeds configured are valid)
+  help       This help
+
+Configured and Enabled feeds:
 
 USAGE;
-		return $msg . implode( "\n", $this->_feedCore->listAvailableFeeds()) . "\n";
+		return $msg . '  ' . implode( "\n  ", $this->_feedCore->listAvailableFeeds()) . "\n";
 	}
 }
 

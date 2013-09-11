@@ -6,6 +6,7 @@
 class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_Test_Base
 {
 	private $_shellCore;
+	private $_config;
 
 	public function setUp()
 	{
@@ -29,7 +30,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testMatchFeedNames()
 	{
-		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->pregGetFeedModel('status'));
+		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->getFeedModel('status'));
 	}
 
 	/**
@@ -39,21 +40,52 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testMatchShortName()
 	{
-		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->pregGetFeedModel('sta'));
+		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->getFeedModel('sta'));
 	}
 
 	/**
-	 * Loop over an array of names, should get valid runners back with a 'processFeeds()' method defined.
+	 * Loop over an array of names, should get valid runners
 	 *
 	 * @test
 	 */
 	public function testMultipleNames()
 	{
-		$multipleFeeds = array( 'status', 'content', 'inv', 'image');
+		// This mocks the available nodes construct, as found in config.xml
+		$configValuePairs = array (
+			'feedAvailableModels' => array(
+				'eb2cinventory' => array(
+					'feed_item_Inventories' => 0
+				),
+				'eb2corder' => array(
+					'status_feed' => 1
+				),
+				'eb2cproduct' => array(
+					'feed_content_master' => 1,
+					'feed_image_master' => 0,
+				),
+			),
+		);
+
+		// Build the array in the format returnValueMap wants
+		$valueMap = array();
+		foreach( $configValuePairs as $configPath => $configValue ) {
+			$valueMap[] = array($configPath, $configValue);
+		}
+
+		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
+		$mockConfig->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap($valueMap));
+
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+
+		$multipleFeeds = array( 'status', 'content', );
 		foreach( $multipleFeeds as $aFeed ) {
-			$model = $this->_shellCore->pregGetFeedModel($aFeed);
-			if( $model ) {
-				$this->assertTrue(method_exists($model, 'processFeeds'));
+			$model = $this->_shellCore->getFeedModel($aFeed);
+			if( $aFeed === 'status' ) {
+				$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $model);
+			} else {
+				$this->assertInstanceOf(get_class(Mage::getModel('eb2cproduct/feed_content_master')), $model);
 			}
 		}
 	}
@@ -69,7 +101,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
-					'feed' => 'eb2ccore',
+					'eb2ccore/feed',
 				)
 			)
 		);
@@ -87,11 +119,11 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
-					'some_invalid_feed_config' => 'someGarbageName43346dfbdc2c57f0889d37ce061e58c57daffe6e',
+					'someGarbageName43346dfbdc2c57f0889d37ce061e58c57daffe6e/some_invalid_model',
 				)
 			)
 		);
-		$rc = $fakeShell->runFeedModel('some_invalid_feed_config');
+		$rc = $fakeShell->runFeedModel('GarbageName');
 	}
 
 	/**
@@ -114,7 +146,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
-					'status_feed' => 'eb2corder'
+					'eb2corder/status_feed'
 				)
 			)
 		);
@@ -128,7 +160,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testInvalidFeedIsFalse()
 	{
-		$this->assertfalse($this->_shellCore->pregGetFeedModel('2d9af10bd2a388151591c37f100d72d731ba1427'));
+		$this->assertfalse($this->_shellCore->getFeedModel('2d9af10bd2a388151591c37f100d72d731ba1427'));
 	}
 
 	/**
@@ -138,7 +170,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testMultipleMatchesIsFalse()
 	{
-		$this->assertfalse($this->_shellCore->pregGetFeedModel('feed'));
+		$this->assertfalse($this->_shellCore->getFeedModel('feed'));
 	}
 
 	/**
