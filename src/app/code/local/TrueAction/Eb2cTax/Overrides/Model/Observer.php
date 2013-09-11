@@ -93,7 +93,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 
 	public function salesEventItemQtyUpdated(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] salesEventItemQtyUpdated');
 		$quoteItem = $observer->getEvent()->getItem();
 		if (!is_a($quoteItem, 'Mage_Sales_Model_Quote_Item')) {
 			Mage::log('[' . __CLASS__ . '] EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote_Item object',
@@ -114,7 +113,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	 */
 	public function quoteCollectTotalsBefore(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] send tax request event');
 		$quote = $observer->getEvent()->getQuote();
 		if (is_a($quote, 'Mage_Sales_Model_Quote')) {
 			foreach ($quote->getAllAddresses() as $address) {
