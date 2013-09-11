@@ -17,31 +17,17 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 	public function replaceGiftCardAccountByMock()
 	{
 		$mock = $this->getModelMockBuilder('eb2cpaymentoverrides/giftcardaccount')
-			->setMethods(array('_getStoredValueBalance', '_getHelper', '_filterGiftCardByPanPin', '_getCheckoutSession', '_getGiftCardAccountModel', 'isValid'))
+			->setMethods(array('_filterGiftCardByPanPin', '_getCheckoutSession', 'isValid'))
 			->getMock();
-
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
-		$mock->expects($this->any())
-			->method('_getStoredValueBalance')
-			->will($this->returnValue($mockPaymentModelStoredValueBalance->buildEb2cPaymentModelStoredValueBalance()));
-
-		$mockGiftCardAccountHelper = new TrueAction_Eb2cPayment_Test_Mock_Helper_Giftcardaccount_Data();
-		$mock->expects($this->any())
-			->method('_getHelper')
-			->will($this->returnValue($mockGiftCardAccountHelper->buildGiftCardAccountHelper()));
 
 		$mockGiftCardAccountModelCollection = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection();
 		$mock->expects($this->any())
 			->method('_filterGiftCardByPanPin')
 			->will($this->returnValue($mockGiftCardAccountModelCollection->buildGiftCardAccountModelResourceGiftcardaccountCollection()));
-
 		$mockCheckoutModelSession = new TrueAction_Eb2cPayment_Test_Mock_Model_Checkout_Session();
 		$mock->expects($this->any())
 			->method('_getCheckoutSession')
 			->will($this->returnValue($mockCheckoutModelSession->buildCheckoutModelSession()));
-		$mock->expects($this->any())
-			->method('_getGiftCardAccountModel')
-			->will($this->returnValue($mockGiftCardAccountModelCollection->buildGiftCardAccountModelGiftcardaccount()));
 		$mock->expects($this->any())
 			->method('isValid')
 			->will($this->returnValue(true));
@@ -57,18 +43,8 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 	public function replaceGiftCardAccountByMockWithoutGiftCardData()
 	{
 		$mock = $this->getModelMockBuilder('eb2cpaymentoverrides/giftcardaccount')
-			->setMethods(array('_getStoredValueBalance', '_getHelper', '_filterGiftCardByPanPin',  '_getGiftCardAccountModel', 'isValid'))
+			->setMethods(array('_filterGiftCardByPanPin',  '_getCheckoutSession', 'isValid'))
 			->getMock();
-
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
-		$mock->expects($this->any())
-			->method('_getStoredValueBalance')
-			->will($this->returnValue($mockPaymentModelStoredValueBalance->buildEb2cPaymentModelStoredValueBalance()));
-
-		$mockGiftCardAccountHelper = new TrueAction_Eb2cPayment_Test_Mock_Helper_Giftcardaccount_Data();
-		$mock->expects($this->any())
-			->method('_getHelper')
-			->will($this->returnValue($mockGiftCardAccountHelper->buildGiftCardAccountHelper()));
 
 		$mockGiftCardAccountModelCollection = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection();
 		$mock->expects($this->any())
@@ -80,9 +56,6 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 			->method('_getCheckoutSession')
 			->will($this->returnValue($mockCheckoutModelSession->buildCheckoutModelSession()));
 
-		$mock->expects($this->any())
-			->method('_getGiftCardAccountModel')
-			->will($this->returnValue($mockGiftCardAccountModelCollection->buildGiftCardAccountModelGiftcardaccount()));
 		$mock->expects($this->any())
 			->method('isValid')
 			->will($this->returnValue(true));
@@ -98,31 +71,17 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 	public function replaceGiftCardAccountByMockWithException()
 	{
 		$mock = $this->getModelMockBuilder('eb2cpaymentoverrides/giftcardaccount')
-			->setMethods(array('_getStoredValueBalance', '_getHelper', '_filterGiftCardByPanPin', '_getCheckoutSession', '_getGiftCardAccountModel', 'isValid', 'getId'))
+			->setMethods(array('_filterGiftCardByPanPin', '_getCheckoutSession', 'isValid', 'getId'))
 			->getMock();
-
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
-		$mock->expects($this->any())
-			->method('_getStoredValueBalance')
-			->will($this->returnValue($mockPaymentModelStoredValueBalance->buildEb2cPaymentModelStoredValueBalance()));
-
-		$mockGiftCardAccountHelper = new TrueAction_Eb2cPayment_Test_Mock_Helper_Giftcardaccount_Data();
-		$mock->expects($this->any())
-			->method('_getHelper')
-			->will($this->returnValue($mockGiftCardAccountHelper->buildGiftCardAccountHelperWithData()));
 
 		$mockGiftCardAccountModelCollection = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection();
 		$mock->expects($this->any())
 			->method('_filterGiftCardByPanPin')
 			->will($this->returnValue($mockGiftCardAccountModelCollection->buildGiftCardAccountModelResourceGiftcardaccountCollection()));
-
 		$mockCheckoutModelSession = new TrueAction_Eb2cPayment_Test_Mock_Model_Checkout_Session();
 		$mock->expects($this->any())
 			->method('_getCheckoutSession')
 			->will($this->returnValue($mockCheckoutModelSession->buildCheckoutModelSession()));
-		$mock->expects($this->any())
-			->method('_getGiftCardAccountModel')
-			->will($this->returnValue($mockGiftCardAccountModelCollection->buildGiftCardAccountModelGiftcardaccount()));
 		$mock->expects($this->any())
 			->method('isValid')
 			->will($this->returnValue(true));
@@ -131,5 +90,63 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 			->will($this->returnValue(1));
 
 		$this->replaceByMock('model', 'eb2cpaymentoverrides/giftcardaccount', $mock);
+	}
+
+	/**
+	 * replacing by mock of the enterprise_giftcardaccount/giftcardaccount class
+	 *
+	 * @return void
+	 */
+	public function replaceEnterpriseGiftCardAccountByMock()
+	{
+		$mock = $this->getModelMockBuilder('enterprise_giftcardaccount/giftcardaccount')
+			->setMethods(
+				array(
+					'getGiftcardaccountId', 'setGiftcardaccountId', 'setCode', 'setEb2cPan', 'setEb2cPin', 'setStatus',
+					'setState', 'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpries', 'save', 'load'
+				))
+			->getMock();
+
+		$mock->expects($this->any())
+			->method('getGiftcardaccountId')
+			->will($this->returnValue(1));
+		$mock->expects($this->any())
+			->method('setGiftcardaccountId')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setCode')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setEb2cPan')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setEb2cPin')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setStatus')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setState')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setBalance')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setIsRedeemable')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setWebsiteId')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('setDateExpries')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf());
+		$mock->expects($this->any())
+			->method('load')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('model', 'enterprise_giftcardaccount/giftcardaccount', $mock);
 	}
 }

@@ -15,6 +15,11 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 	{
 		parent::setUp();
 		$this->_redeem = Mage::getModel('eb2cpayment/stored_value_redeem');
+		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
+		$paymentHelperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemReply.xml'));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function providerGetRedeem()
@@ -33,12 +38,6 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 	 */
 	public function testGetRedeem($pan, $pin, $entityId, $amount)
 	{
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$redeemReflector = new ReflectionObject($this->_redeem);
-		$helper = $redeemReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_redeem, $paymentHelper);
-
 		$this->assertNotNull(
 			$this->_redeem->getRedeem($pan, $pin, $entityId, $amount)
 		);
@@ -53,30 +52,18 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 	 */
 	public function testGetRedeemWithException($pan, $pin, $entityId, $amount)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->will($this->throwException(new Exception));
 
-		$paymentHelper = Mage::helper('eb2cpayment');
-		$paymentReflector = new ReflectionObject($paymentHelper);
-		$apiModel = $paymentReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($paymentHelper, $apiModelMock);
-
-		$redeemReflector = new ReflectionObject($this->_redeem);
-		$helper = $redeemReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_redeem, $paymentHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',

@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_checkout;
 
@@ -13,10 +13,42 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 	 */
 	public function setUp()
 	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		parent::setUp();
 		$this->_checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
+
+		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
+		$paymentHelperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalSetExpressCheckoutReply.xml'));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
+
+		$urlMock = $this->getModelMockBuilder('core/url')
+			->disableOriginalConstructor()
+			->setMethods(array('getUrl'))
+			->getMock();
+		$urlMock->expects($this->any())
+			->method('getUrl')
+			->will($this->returnValue('checkout/cart'));
+
+		$this->replaceByMock('singleton', 'core/url', $urlMock);
+
+		$sessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCookieShouldBeReceived')
+			->will($this->returnValue(true));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdQueryParam')
+			->will($this->returnValue('name'));
+		$sessionMock->expects($this->any())
+			->method('getSessionId')
+			->will($this->returnValue(1));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdForHost')
+			->will($this->returnValue(1));
+		$this->replaceByMock('singleton', 'core/session', $sessionMock);
 	}
 
 	public function buildQuoteMock()
@@ -104,16 +136,10 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 	 */
 	public function testSetExpressCheckout($quote)
 	{
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$checkoutReflector = new ReflectionObject($this->_checkout);
-		$helper = $checkoutReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_checkout, $paymentHelper);
+		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
+			->setMethods(array('setEb2cPaypalToken', 'save'))
+			->getMock();
 
-		$paypalMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Paypal',
-			array('setEb2cPaypalToken', 'save')
-		);
 		$paypalMock->expects($this->any())
 			->method('setEb2cPaypalToken')
 			->will($this->returnSelf()
@@ -123,9 +149,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 			->will($this->returnSelf()
 			);
 
-		$paypal = $checkoutReflector->getProperty('_paypal');
-		$paypal->setAccessible(true);
-		$paypal->setValue($this->_checkout, $paypalMock);
+		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalMock);
 
 		$this->assertNotNull(
 			$this->_checkout->setExpressCheckout($quote)
@@ -141,35 +165,23 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 	 */
 	public function testSetExpressCheckoutWithException($quote)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->will($this->throwException(new Exception));
 
-		$paymentHelper = Mage::helper('eb2cpayment');
-		$paymentReflector = new ReflectionObject($paymentHelper);
-		$apiModel = $paymentReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($paymentHelper, $apiModelMock);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$checkoutReflector = new ReflectionObject($this->_checkout);
-		$helper = $checkoutReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_checkout, $paymentHelper);
+		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
+			->setMethods(array('setEb2cPaypalToken', 'save'))
+			->getMock();
 
-		$paypalMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Paypal',
-			array('setEb2cPaypalToken', 'save')
-		);
 		$paypalMock->expects($this->any())
 			->method('setEb2cPaypalToken')
 			->will($this->returnSelf()
@@ -179,9 +191,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 			->will($this->returnSelf()
 			);
 
-		$paypal = $checkoutReflector->getProperty('_paypal');
-		$paypal->setAccessible(true);
-		$paypal->setValue($this->_checkout, $paypalMock);
+		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalMock);
 
 		$this->assertSame(
 			'',

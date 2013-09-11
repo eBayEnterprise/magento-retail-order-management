@@ -6,30 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
-	/**
-	 * Initialize resource model
-	 */
-	protected function _construct()
-	{
-		$this->_helper = $this->_getHelper();
-		return $this;
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cpayment');
-		}
-		return $this->_helper;
-	}
-
 	/**
 	 * Get gift card balance from eb2c.
 	 *
@@ -46,8 +22,8 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 			$storeValueBalanceRequest = $this->buildStoreValueBalanceRequest($pan, $pin);
 
 			// make request to eb2c for Gift Card Balance
-			$storeValueBalanceReply = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_gift_card_balance'))
+			$storeValueBalanceReply = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_balance'))
 				->request($storeValueBalanceRequest);
 
 		}catch(Exception $e){
@@ -67,7 +43,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 	public function buildStoreValueBalanceRequest($pan, $pin)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueBalanceRequest = $domDocument->addElement('StoreValueBalanceRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
+		$storeValueBalanceRequest = $domDocument->addElement('StoreValueBalanceRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 
 		// creating PaymentAccountUniqueId element
 		$storeValueBalanceRequest->createChild(
@@ -105,22 +81,15 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueBalanceReply);
 			$balanceXpath = new DOMXPath($doc);
-			$balanceXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());
-
-			$paymentAccountUniqueId = $balanceXpath->query('//a:PaymentAccountUniqueId');
-			if ($paymentAccountUniqueId->length) {
-				$balanceData['paymentAccountUniqueId'] = $paymentAccountUniqueId->item(0)->nodeValue;
-			}
-
-			$responseCode = $balanceXpath->query('//a:ResponseCode');
-			if ($responseCode->length) {
-				$balanceData['responseCode'] = $responseCode->item(0)->nodeValue;
-			}
-
-			$balanceAmount = $balanceXpath->query('//a:BalanceAmount');
-			if ($balanceAmount->length) {
-				$balanceData['balanceAmount'] = $balanceAmount->item(0)->nodeValue;
-			}
+			$balanceXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getXmlNs());
+			$nodePaymentAccountUniqueId = $balanceXpath->query('//a:PaymentAccountUniqueId');
+			$nodeResponseCode = $balanceXpath->query('//a:ResponseCode');
+			$nodeBalanceAmount = $balanceXpath->query('//a:BalanceAmount');
+			$balanceData = array(
+				'paymentAccountUniqueId' => ($nodePaymentAccountUniqueId->length)? (string) $nodePaymentAccountUniqueId->item(0)->nodeValue : null,
+				'responseCode' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+				'balanceAmount' => ($nodeBalanceAmount->length)? (float) $nodeBalanceAmount->item(0)->nodeValue : 0,
+			);
 		}
 
 		return $balanceData;

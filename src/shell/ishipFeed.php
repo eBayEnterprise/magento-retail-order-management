@@ -2,21 +2,21 @@
 require_once 'abstract.php';
 
 /**
- * Magento Eb2cProduct Item iShip Shell Script
+ * Magento Eb2cProduct iShip Shell Script
  *
  */
-class Mage_Shell_Item_Iship_Feed extends Mage_Shell_Abstract
+class Mage_Shell_I_Ship_Feed extends Mage_Shell_Abstract
 {
 	/**
-	 * Running Eb2cProduct Item iShip Feed Script
+	 * Running Eb2cProduct iShip Feed Script
 	 *
 	 */
 	public function run()
 	{
-		Mage::log('Starting Eb2cProduct Item iShip Feed.', Zend_Log::DEBUG);
-		$iship = Mage::getModel('eb2cproduct/feed_item_iship');
-		$iship->processFeeds();
-		Mage::log('Ending Eb2cProduct Item iShip Feed', Zend_Log::DEBUG);
+		Mage::log('Starting Eb2cProduct iShip Feed from shell script.', Zend_Log::DEBUG);
+		$iShip = Mage::getModel('eb2cproduct/feed_i_ship');
+		$iShip->processFeeds();
+		Mage::log('Ending Eb2cProduct iShip Feed from shell script', Zend_Log::DEBUG);
 	}
 
 	/**
@@ -34,5 +34,5 @@ USAGE;
 	}
 }
 
-$shell = new Mage_Shell_Item_Iship_Feed();
+$shell = new Mage_Shell_I_Ship_Feed();
 $shell->run();

@@ -104,4 +104,15 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 			$this->_helper->getReservationId($entityId)
 		);
 	}
+
+	/**
+	 * testing helper data isValidFtpSettings method
+	 *
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testIsValidFtpSettings()
+	{
+		$this->assertSame(false, $this->_helper->isValidFtpSettings());
+	}
 }
