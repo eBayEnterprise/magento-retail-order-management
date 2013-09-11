@@ -10,6 +10,7 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 	 * Fakes up some files to send to the feed processor
 	 *
 	 * @test
+	 * @large
 	 * @loadFixture sampleFeeds.yaml
 	 */
 	public function testWithFixture()
