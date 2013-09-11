@@ -51,8 +51,20 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
+<<<<<<< HEAD
+			array('getId', 'getQty', 'setQty', 'getProductId', 'getSku', 'getQuote')
+=======
 			array('getQty', 'getProductId', 'getSku', 'getQuote', 'setQty')
+>>>>>>> master
 		);
+		$itemMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1)
+			);
+		$itemMock->expects($this->any())
+			->method('setQty')
+			->will($this->returnSelf()
+			);
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)

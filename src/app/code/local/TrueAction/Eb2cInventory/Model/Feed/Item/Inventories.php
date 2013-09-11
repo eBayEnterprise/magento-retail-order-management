@@ -58,15 +58,17 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 	{
 		$this->_getItemInventoriesFeeds();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
+		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
+		$coreHelperFeed = Mage::helper('eb2cinventory')->getCoreFeed();
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
-			$expectEventType = Mage::helper('eb2cinventory')->getConfigModel()->feedEventType;
-			$expectHeaderVersion = Mage::helper('eb2cinventory')->getConfigModel()->feedHeaderVersion;
+			$expectEventType = $cfg->feedEventType;
+			$expectHeaderVersion = $cfg->feedHeaderVersion;
 
 			// validate feed header
-			if (Mage::helper('eb2cinventory')->getCoreFeed()->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}
