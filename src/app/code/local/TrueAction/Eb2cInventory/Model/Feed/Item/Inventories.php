@@ -59,7 +59,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Mod
 		$this->_getItemInventoriesFeeds();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
-		$coreHelperFeed = Mage::helper('eb2cinventory')->getCoreFeed();
+		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
