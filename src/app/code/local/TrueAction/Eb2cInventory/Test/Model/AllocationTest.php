@@ -580,4 +580,31 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			$this->_allocation->isExpired($quote)
 		);
 	}
+
+	public function providerParseResponse()
+	{
+		return array(
+			array(file_get_contents(__DIR__ . '/AllocationTest/fixtures/AllocationResponseMessage.xml', FILE_USE_INCLUDE_PATH))
+		);
+	}
+
+	/**
+	 * testing parseResponse
+	 *
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 * @dataProvider providerParseResponse
+	 */
+	public function testParseResponse($allocationResponseMessage)
+	{
+		$this->assertSame(
+			array(array('lineId' => '106',
+				'itemId' => '8525 PDA',
+				'qty' => 1,
+				'reservation_id' => 'TAN_DEV_CLI-ABC-44',
+				'reservation_expires' => Mage::getModel('core/date')->date('Y-m-d H:i:s')
+			)),
+			$this->_allocation->parseResponse($allocationResponseMessage)
+		);
+	}
 }
