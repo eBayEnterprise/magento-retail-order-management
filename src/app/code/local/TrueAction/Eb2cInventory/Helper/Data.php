@@ -13,18 +13,9 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 
 	public function __construct()
 	{
-<<<<<<< HEAD
-		$this->getCoreHelper();
-		$this->getFileTransferHelper();
-		$this->getConfigModel(null);
-		$this->getConstantHelper();
-		$this->getCoreFeed();
-		$constantHelper = $this->getConstantHelper();
-=======
 		$this->getConfigModel(null);
 		$constantHelper = $this->getConstantHelper();
 		$this->getCoreFeed();
->>>>>>> master
 		$this->_operation = array(
 			'check_quantity' => array(
 				'pro' => $constantHelper::OPT_QTY,
@@ -145,45 +136,4 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 			$entityId
 		));
 	}
-
-<<<<<<< HEAD
-	/**
-	 * Return the Core API model for issuing requests/ retrieving response:
-	 */
-	public function getApiModel()
-	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->apiModel;
-	}
-
-	/**
-	 * validating ftp settings by simply checking if there's actual setting data.
-	 *
-	 * @return bool, true valid ftp settings otherwise false
-	 */
-	public function isValidFtpSettings()
-	{
-		$isValid = true;
-
-		// check if ftp location is set in the config
-		if (trim($this->getConfigModel()->sftpLocation) === '') {
-			$isValid = false;
-		}
-
-		// check if ftp username is set in the config
-		if (trim($this->getConfigModel()->sftpUsername) === '') {
-			$isValid = false;
-		}
-
-		// check if ftp password is set in the config
-		if (trim($this->getConfigModel()->sftpPassword) === '') {
-			$isValid = false;
-		}
-
-		return $isValid;
-	}
-=======
->>>>>>> master
 }
