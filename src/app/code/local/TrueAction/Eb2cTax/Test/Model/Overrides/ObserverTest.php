@@ -826,9 +826,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 	 */
 	public function testTaxEventSendRequestEBC28($scenario, $validitySequence)
 	{
-		$e = $this->expected($scenario);
-		$taxObserver = Mage::getModel('tax/observer');
-
 		$quote = $this->getModelMock('sales/quote', array('getId'));
 		$quote->expects($this->any())
 			->method('getId')
@@ -847,24 +844,28 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 			'checkAdminOriginAddresses',
 			'isValid',
 		));
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkAddresses')
 			->with($this->equalTo($quote))
 			->will($this->returnSelf());
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkShippingOriginAddresses')
 			->with($this->equalTo($quote))
 			->will($this->returnSelf());
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkAdminOriginAddresses')
 			->will($this->returnSelf());
-		// $taxRequest->expects($this->exactly($e->getIsValidCallCount()))
-		$taxRequest->expects($this->any())
+
+		// this allows me to feed the $this->onConsecutiveCalls function an array of arguments
+		// instead of having to specify them individually
+		$onConsecutiveCalls = call_user_func_array(array($this, 'onConsecutiveCalls'), $validitySequence);
+		$e = $this->expected($scenario);
+		$invokeCondition = $this->exactly($e->getIsValidCallCount());
+		$taxRequest->expects($invokeCondition)
 			->method('isValid')
-			->will($this->onConsecutiveCalls($validitySequence));
+			->will($onConsecutiveCalls);
 
 		$taxResponse = $this->getModelMock('eb2ctax/response', array('isValid'));
-		// $taxResponse->expects($this->once())
 		$taxResponse->expects($this->any())
 			->method('isValid')
 			->will($this->returnValue(true));
@@ -881,8 +882,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		$taxHelper->expects($this->any())
 			->method('getCalculator')
 			->will($this->returnValue($calculator));
-		$timesToBeCalled = $e->getIsSendCalled() ? $this->once() : $this->never();
-		$taxHelper->expects($timesToBeCalled)
+		$invokeCondition = $e->getIsSendCalled() ? $this->once() : $this->never();
+		$taxHelper->expects($invokeCondition)
 			->method('sendRequest')
 			->will($this->returnValue($taxResponse));
 
