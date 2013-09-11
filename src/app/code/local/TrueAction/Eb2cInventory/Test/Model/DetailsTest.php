@@ -298,4 +298,39 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			$this->_details->processInventoryDetails($quote, $inventoryData)
 		);
 	}
+
+	public function providerParseResponse()
+	{
+		return array(
+			array(file_get_contents(__DIR__ . '/DetailsTest/fixtures/InventoryDetailsResponseMessage.xml', FILE_USE_INCLUDE_PATH))
+		);
+	}
+
+	/**
+	 * testing parseResponse
+	 *
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 * @dataProvider providerParseResponse
+	 */
+	public function testParseResponse($inventoryDetailsResponseMessage)
+	{
+		$this->assertSame(
+			array(array('lineId' => '106',
+				'itemId' => '8525 PDA',
+				'creationTime' => '2010-11-02T17:47:00',
+				'display' => 'true',
+				'deliveryWindow_from' => '2011-11-02T05:01:50Z',
+				'deliveryWindow_to' => '2011-11-02T05:01:50Z',
+				'shippingWindow_from' => '2011-11-02T05:01:50Z',
+				'shippingWindow_to' => '2011-11-02T05:01:50Z',
+				'shipFromAddress_line1' => 'Ten Bagshot Row',
+				'shipFromAddress_city' => 'Bag End',
+				'shipFromAddress_mainDivision' => 'PA',
+				'shipFromAddress_countryCode' => 'US',
+				'shipFromAddress_postalCode' => '19123'
+			)),
+			$this->_details->parseResponse($inventoryDetailsResponseMessage)
+		);
+	}
 }
