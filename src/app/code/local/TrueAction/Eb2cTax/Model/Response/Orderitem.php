@@ -158,16 +158,14 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 		}
 	}
 
-	/**
-	 */
 	protected function _validate()
 	{
 		if (!$this->getSku()) {
 			$this->_isValid = false;
-			Mage::log('[' . __CLASS__ . '] ' . 'TaxDutyResponse: OrderItem received with an empty sku.');
+			Mage::log('[' . __CLASS__ . '] TaxDutyResponse: OrderItem received with an empty sku.');
 		}
 		if (!$this->getLineNumber()) {
-			Mage::log('[' . __CLASS__ . '] ' . 'TaxDutyResponse: OrderItem received with an empty lineNumber attribute.');
+			Mage::log('[' . __CLASS__ . '] TaxDutyResponse: OrderItem received with an empty lineNumber attribute.');
 		}
 	}
 }
