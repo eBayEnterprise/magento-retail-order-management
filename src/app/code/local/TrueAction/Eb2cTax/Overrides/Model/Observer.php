@@ -142,7 +142,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 			$request = $this->_getTaxHelper()
 				->getCalculator()
 				->getTaxRequest();
-			$isFetchNeeded = false;
+			$isFetchNeeded = true;
 			// check for changes if the current request is valid
 			if ($request->isValid()) {
 				Mage::log('[' . __CLASS__ . '] checking quote for changes', Zend_Log::DEBUG);
@@ -152,12 +152,11 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 				$request->checkShippingOriginAddresses($quote);
 				// checking AdminOrigin Address
 				$request->checkAdminOriginAddresses();
-				if (!$request->isValid()) {
+				if ($request->isValid()) {
+					$isFetchNeeded = false;
+				} else {
 					Mage::log('[' . __CLASS__ . '] quote has changed', Zend_Log::DEBUG);
-					$isFetchNeeded = true;
 				}
-			} else {
-				$isFetchNeeded = true;
 			}
 			if ($isFetchNeeded) {
 				$this->_fetchTaxDutyInfo($quote);
