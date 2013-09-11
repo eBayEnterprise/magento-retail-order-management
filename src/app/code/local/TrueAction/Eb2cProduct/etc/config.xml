@@ -24,6 +24,71 @@
 				<class>TrueAction_Eb2cProduct_Helper</class>
 			</eb2cproduct>
 		</helpers>
+		<resources>
+			<eb2cproduct_attributes_setup>
+				<setup>
+					<module>TrueAction_Eb2cProduct</module>
+				</setup>
+			</eb2cproduct_attributes_setup>
+		</resources>
+		<eb2cproduct_attributes>
+			<default>
+				<tax_code>
+					<scope>Website</scope>
+					<label>Tax Code</label>
+					<group>Price</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</tax_code>
+				<is_drop_shipped>
+					<scope>Website</scope>
+					<label>Is Drop Shipped</label>
+					<group></group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default>N</default>
+				</is_drop_shipped>
+				<drop_ship_supplier_name>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_name>
+				<drop_ship_supplier_number>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Number</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_number>
+				<drop_ship_supplier_part>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Part Number</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</drop_ship_supplier_part>
+				<price_is_vat_inclusive>
+					<scope>Store</scope>
+					<label>Price is VAT Inclusive</label>
+					<group>Prices</group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types></product_types>
+					<default>N</default>
+				</price_is_vat_inclusive>
+			</default>
+		</eb2cproduct_attributes>
 	</global>
 	<crontab>
 		<jobs>
@@ -61,6 +126,10 @@
 				<content_feed_remote_received_path>/Content/Master/</content_feed_remote_received_path>
 				<content_feed_event_type>ItemMaster</content_feed_event_type>
 				<content_feed_header_version>2.3.0</content_feed_header_version>
+				<i_ship_feed_local_path>var/TrueAction/Eb2c/Feed/I/Ship/</i_ship_feed_local_path>
+				<i_ship_feed_remote_received_path>/I/Ship/</i_ship_feed_remote_received_path>
+				<i_ship_feed_event_type>iShip</i_ship_feed_event_type>
+				<i_ship_feed_header_version>2.3.0</i_ship_feed_header_version>
 			</product>
 		</eb2c>
 	</default>

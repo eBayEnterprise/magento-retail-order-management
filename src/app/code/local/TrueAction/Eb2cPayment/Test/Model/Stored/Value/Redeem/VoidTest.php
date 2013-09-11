@@ -15,6 +15,11 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 	{
 		parent::setUp();
 		$this->_void = Mage::getModel('eb2cpayment/stored_value_redeem_void');
+		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
+		$paymentHelperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemVoidReply.xml'));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function providerGetRedeemVoid()
@@ -33,12 +38,6 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 	 */
 	public function testGetRedeemVoid($pan, $pin, $incrementId, $amount)
 	{
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$voidReflector = new ReflectionObject($this->_void);
-		$helper = $voidReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_void, $paymentHelper);
-
 		$this->assertNotNull(
 			$this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount)
 		);
@@ -53,35 +52,20 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends Eco
 	 */
 	public function testGetRedeemVoidWithException($pan, $pin, $incrementId, $amount)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->will($this->throwException(new Exception));
 
-		$paymentHelper = Mage::helper('eb2cpayment');
-		$paymentReflector = new ReflectionObject($paymentHelper);
-		$apiModel = $paymentReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($paymentHelper, $apiModelMock);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$voidReflector = new ReflectionObject($this->_void);
-		$helper = $voidReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_void, $paymentHelper);
-
-		$this->assertSame(
-			'',
-			trim($this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount))
-		);
+		$this->assertSame('', trim($this->_void->getRedeemVoid($pan, $pin, $incrementId, $amount)));
 	}
 
 	public function providerParseResponse()

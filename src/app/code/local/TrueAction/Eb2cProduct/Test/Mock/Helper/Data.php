@@ -29,6 +29,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
 		$properties->itemFeedEventType = 'ItemMaster';
 		$properties->itemFeedHeaderVersion = '2.3.0';
+		$properties->iShipFeedLocalPath = 'var/TrueAction/Eb2c/Feed/I/Ship/';
+		$properties->iShipFeedRemoteReceivedPath = '/I/Ship/';
+		$properties->iShipFeedEventType = 'IShip';
+		$properties->iShipFeedHeaderVersion = '2.3.0';
 
 		return $properties;
 	}
@@ -103,5 +107,20 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->method('validateHeader')
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperFeedMock);
+	}
+
+	/**
+	 * replacing by mock of the filetransfer helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockFileTransferHelper()
+	{
+		// with invalid ftp setting
+		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 }

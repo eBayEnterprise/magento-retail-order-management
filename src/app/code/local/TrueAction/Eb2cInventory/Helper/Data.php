@@ -6,51 +6,29 @@
  */
 class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $coreHelper;
-	public $coreFeed;
-	public $constantHelper;
-	public $configModel;
-	public $apiModel;
 	protected $_operation;
 
 	public function __construct()
 	{
-		$this->coreHelper = $this->getCoreHelper();
-		$this->configModel = $this->getConfigModel(null);
-		$this->constantHelper = $this->getConstantHelper();
-		$constantHelper = $this->getConstantHelper();
-		$this->coreFeed = $this->getCoreFeed();
+		$cfg = $this->getConfigModel(null);
 		$this->_operation = array(
 			'check_quantity' => array(
-				'pro' => $constantHelper::OPT_QTY,
-				'dev' => $this->getConfigModel()->quantityApiUri
+				'pro' => $cfg->apiOptInventoryQty,
+				'dev' => $cfg->quantityApiUri
 			),
 			'get_inventory_details' => array(
-				'pro' => $constantHelper::OPT_INV_DETAILS,
-				'dev' => $this->getConfigModel()->inventoryDetailUri
+				'pro' => $cfg->apiOptInventoryDetails,
+				'dev' => $cfg->inventoryDetailUri
 			),
 			'allocate_inventory' => array(
-				'pro' => $constantHelper::OPT_ALLOCATION,
-				'dev' => $this->getConfigModel()->allocationUri
+				'pro' => $cfg->apiOptInventoryAllocation,
+				'dev' => $cfg->allocationUri
 			),
 			'rollback_allocation' => array(
-				'pro' => $constantHelper::OPT_ROLLBACK_ALLOCATION,
-				'dev' => $this->getConfigModel()->rollbackAllocationUri
+				'pro' => $cfg->apiOptInventoryRollbackAllocation,
+				'dev' => $cfg->rollbackAllocationUri
 			)
 		);
-	}
-
-	/**
-	 * Get core helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Data
-	 */
-	public function getCoreHelper()
-	{
-		if (!$this->coreHelper) {
-			$this->coreHelper = Mage::helper('eb2ccore');
-		}
-		return $this->coreHelper;
 	}
 
 	/**
@@ -60,39 +38,10 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfigModel($store=null)
 	{
-		if (!$this->configModel) {
-			$this->configModel = Mage::getModel('eb2ccore/config_registry');
-			$this->configModel->setStore($store)
-				->addConfigModel(Mage::getModel('eb2cinventory/config'))
-				->addConfigModel(Mage::getModel('eb2ccore/config'));
-		}
-		return $this->configModel;
-	}
-
-	/**
-	 * Get Constants helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cInventory_Helper_Constants
-	 */
-	public function getConstantHelper()
-	{
-		if (!$this->constantHelper) {
-			$this->constantHelper = Mage::helper('eb2cinventory/constants');
-		}
-		return $this->constantHelper;
-	}
-
-	/**
-	 * Get core helper feed instantiated object.
-	 *
-	 * @return TrueAction_Eb2cCore_Helper_Feed
-	 */
-	public function getCoreFeed()
-	{
-		if (!$this->coreFeed) {
-			$this->coreFeed = Mage::helper('eb2ccore/feed');
-		}
-		return $this->coreFeed;
+		return Mage::getModel('eb2ccore/config_registry')
+			->setStore($store)
+			->addConfigModel(Mage::getModel('eb2cinventory/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
 	}
 
 	/**
@@ -102,8 +51,8 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getXmlNs()
 	{
-		$constantHelper = $this->getConstantHelper();
-		return $constantHelper::XMLNS;
+		$cfg = $this->getConfigModel(null);
+		return $cfg->apiXmlNs;
 	}
 
 	/**
@@ -118,11 +67,11 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		if (isset($this->_operation[$optIndex])) {
 			$operation = $this->_operation[$optIndex];
 		}
-		$constantHelper = $this->getConstantHelper();
+		$cfg = $this->getConfigModel(null);
 		$apiUri = $operation['dev'];
 		if (!(bool) $this->getConfigModel()->developerMode) {
-			$apiUri = $this->getCoreHelper()->getApiUri(
-				$constantHelper::SERVICE,
+			$apiUri = Mage::helper('eb2ccore')->getApiUri(
+				$cfg->apiService,
 				$operation['pro']
 			);
 		}
@@ -138,11 +87,8 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getRequestId($entityId)
 	{
-		return implode('-', array(
-			$this->getConfigModel()->clientId,
-			$this->getConfigModel()->storeId,
-			$entityId
-		));
+		$cfg = $this->getConfigModel(null);
+		return implode('-', array($cfg->clientId, $cfg->storeId, $entityId));
 	}
 
 	/**
@@ -154,21 +100,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getReservationId($entityId)
 	{
-		return implode('-', array(
-			$this->getConfigModel()->clientId,
-			$this->getConfigModel()->storeId,
-			$entityId
-		));
-	}
-
-	/**
-	 * Return the Core API model for issuing requests/ retrieving response:
-	 */
-	public function getApiModel()
-	{
-		if( !$this->apiModel ) {
-			$this->apiModel = Mage::getModel('eb2ccore/api');
-		}
-		return $this->apiModel;
+		$cfg = $this->getConfigModel(null);
+		return implode('-', array($cfg->clientId, $cfg->storeId, $entityId));
 	}
 }

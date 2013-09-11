@@ -301,16 +301,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			// setting Content object into the collection of Content objects.
 			$collectionOfContents[] = new Varien_Object(
 				array(
-					'catalog_id' => $catalogId, // Catalog ID of the client or shared catalog.
-					'gsi_client_id' => (string) $content->getAttribute('gsi_client_id'), // Client ID assigned by GSI
-					'gsi_store_id' => (string) $content->getAttribute('gsi_store_id'), // Client store/channel.
-					'unique_id' => $this->_extractUniqueId($feedXPath, $contentIndex, $catalogId), // Unique identifier for the item, SKU.
-					'style_id' => $this->_extractStyleID($feedXPath, $contentIndex, $catalogId), // the parent sku related to the this item
-					'product_links' => $this->_extractProductLinks($feedXPath, $contentIndex, $catalogId), // List of related products.
-					'category_links' => $this->_extractCategoryLinks($feedXPath, $contentIndex, $catalogId), // Link the product into categories.
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $contentIndex, $catalogId), // base product attributes (name/title)
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $contentIndex, $catalogId), // Attributes known to eb2c.
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $contentIndex, $catalogId), // additional attributes
+					// Catalog ID of the client or shared catalog.
+					'catalog_id' => $catalogId,
+					// Client ID assigned by GSI
+					'gsi_client_id' => (string) $content->getAttribute('gsi_client_id'),
+					// Client store/channel.
+					'gsi_store_id' => (string) $content->getAttribute('gsi_store_id'),
+					// Unique identifier for the item, SKU.
+					'unique_id' => $this->_extractUniqueId($feedXPath, $contentIndex, $catalogId),
+					// the parent sku related to the this item
+					'style_id' => $this->_extractStyleID($feedXPath, $contentIndex, $catalogId),
+					// List of related products.
+					'product_links' => $this->_extractProductLinks($feedXPath, $contentIndex, $catalogId),
+					// Link the product into categories.
+					'category_links' => $this->_extractCategoryLinks($feedXPath, $contentIndex, $catalogId),
+					// base product attributes (name/title)
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $contentIndex, $catalogId),
+					// Attributes known to eb2c.
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $contentIndex, $catalogId),
+					// additional attributes
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $contentIndex, $catalogId),
 				)
 			);
 

@@ -6,30 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_Abstract
 {
-	protected $_helper;
-
-	/**
-	 * Initialize resource model
-	 */
-	protected function _construct()
-	{
-		$this->_helper = $this->_getHelper();
-		return $this;
-	}
-
-	/**
-	 * Get helper instantiated object.
-	 *
-	 * @return TrueAction_Eb2cPayment_Helper_Data
-	 */
-	protected function _getHelper()
-	{
-		if (!$this->_helper) {
-			$this->_helper = Mage::helper('eb2cpayment');
-		}
-		return $this->_helper;
-	}
-
 	/**
 	 * Get gift card Redeem from eb2c.
 	 *
@@ -48,8 +24,8 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 			$storeValueRedeemRequest = $this->buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount);
 
 			// make request to eb2c for Gift Card Redeem
-			$storeValueRedeemReply = $this->_getHelper()->getApiModel()
-				->setUri($this->_getHelper()->getOperationUri('get_gift_card_redeem'))
+			$storeValueRedeemReply = Mage::getModel('eb2ccore/api')
+				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
 				->request($storeValueRedeemRequest);
 
 		}catch(Exception $e){
@@ -72,8 +48,8 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 	public function buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueRedeemRequest = $domDocument->addElement('StoreValueRedeemRequest', null, $this->_getHelper()->getXmlNs())->firstChild;
-		$storeValueRedeemRequest->setAttribute('requestId', $this->_getHelper()->getRequestId($entityId));
+		$storeValueRedeemRequest = $domDocument->addElement('StoreValueRedeemRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$storeValueRedeemRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($entityId));
 
 		// creating PaymentContent element
 		$paymentContext = $storeValueRedeemRequest->createChild(
@@ -124,32 +100,19 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($storeValueRedeemReply);
 			$redeemXpath = new DOMXPath($doc);
-			$redeemXpath->registerNamespace('a', $this->_getHelper()->getXmlNs());
-
-			$orderId = $redeemXpath->query('//a:PaymentContext/a:OrderId');
-			if ($orderId->length) {
-				$redeemData['orderId'] = (int) $orderId->item(0)->nodeValue;
-			}
-
-			$paymentAccountUniqueId = $redeemXpath->query('//a:PaymentContext/a:PaymentAccountUniqueId');
-			if ($paymentAccountUniqueId->length) {
-				$redeemData['paymentAccountUniqueId'] = (string) $paymentAccountUniqueId->item(0)->nodeValue;
-			}
-
-			$responseCode = $redeemXpath->query('//a:ResponseCode');
-			if ($responseCode->length) {
-				$redeemData['responseCode'] = (string) $responseCode->item(0)->nodeValue;
-			}
-
-			$amountRedeemed = $redeemXpath->query('//a:AmountRedeemed');
-			if ($amountRedeemed->length) {
-				$redeemData['amountRedeemed'] = (float) $amountRedeemed->item(0)->nodeValue;
-			}
-
-			$balanceAmount = $redeemXpath->query('//a:BalanceAmount');
-			if ($balanceAmount->length) {
-				$redeemData['balanceAmount'] = (float) $balanceAmount->item(0)->nodeValue;
-			}
+			$redeemXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getXmlNs());
+			$nodeOrderId = $redeemXpath->query('//a:PaymentContext/a:OrderId');
+			$nodePaymentAccountUniqueId = $redeemXpath->query('//a:PaymentContext/a:PaymentAccountUniqueId');
+			$nodeResponseCode = $redeemXpath->query('//a:ResponseCode');
+			$nodeAmountRedeemed = $redeemXpath->query('//a:AmountRedeemed');
+			$nodeBalanceAmount = $redeemXpath->query('//a:BalanceAmount');
+			$redeemData = array(
+				'orderId' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue: 0,
+				'paymentAccountUniqueId' => ($nodePaymentAccountUniqueId->length)? (string) $nodePaymentAccountUniqueId->item(0)->nodeValue : null,
+				'responseCode' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+				'amountRedeemed' => ($nodeAmountRedeemed->length)? (float) $nodeAmountRedeemed->item(0)->nodeValue : 0,
+				'balanceAmount' => ($nodeBalanceAmount->length)? (float) $nodeBalanceAmount->item(0)->nodeValue : 0,
+			);
 		}
 
 		return $redeemData;

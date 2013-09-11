@@ -22,7 +22,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  Varien_Object $itemSelector
 	 * @return float
 	 */
-	public function getDiscountTax(Varien_Object $itemSelector, $type = 'merchandise')
+	public function getDiscountTax(Varien_Object $itemSelector, $type='merchandise')
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
@@ -45,9 +45,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	public function getDiscountTaxForAmount(
 		$amount,
 		Varien_Object $itemSelector,
-		$type = 'merchandise',
-		$round = true
-	) {
+		$type='merchandise',
+		$round=true
+	)
+	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		if ($itemResponse) {
@@ -67,7 +68,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  Mage_Sales_Model_Quote $quote
 	 * @return TrueAction_Eb2cTax_Model_Request
 	 */
-	public function getTaxRequest(Mage_Sales_Model_Quote $quote = null)
+	public function getTaxRequest(Mage_Sales_Model_Quote $quote=null)
 	{
 		$response = $this->getTaxResponse();
 		$request = ($response && $response->getTaxRequest()) ?
@@ -80,7 +81,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * store the tax response from eb2c
 	 * @param TrueAction_Eb2cTax_Model_Response $response
 	 */
-	public function setTaxResponse(TrueAction_Eb2cTax_Model_Response $response = null)
+	public function setTaxResponse(TrueAction_Eb2cTax_Model_Response $response=null)
 	{
 		if (isset($response)) {
 			parent::setTaxResponse($response);
@@ -95,7 +96,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  string        $type
 	 * @return float
 	 */
-	public function getTax(Varien_Object $itemSelector, $type = 'merchandise')
+	public function getTax(Varien_Object $itemSelector, $type='merchandise')
 	{
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		$tax = 0.0;
@@ -121,7 +122,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  boolean       $round
 	 * @return float
 	 */
-	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type = 'merchandise', $round = true)
+	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type='merchandise', $round=true)
 	{
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		$tax = 0.0;
@@ -147,9 +148,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @return
 	 */
 	protected function _getItemResponse(
-		Mage_Sales_Model_Quote_Item $item = null,
-		Mage_Sales_Model_Quote_Address $address = null
-	) {
+		Mage_Sales_Model_Quote_Item $item=null,
+		Mage_Sales_Model_Quote_Address $address=null
+	)
+	{
 		$response = $this->getTaxResponse();
 		$itemResponse = $response && $response->isValid() ?
 			$response->getResponseForItem($item, $address) :
@@ -225,17 +227,16 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				foreach($itemResponse->getTaxQuoteDiscounts() as $index => $discountQuote) {
 					$taxRate = $discountQuote->getEffectiveRate();
 					$code    = $discountQuote->getCode();
-					$id      = $code . '-' . $taxRate;
+					$id      = "{$code}-{$taxRate}";
 					if (isset($result[$id])) {
 						$group = $result[$id];
 					} else {
-						Mage::log('[' . __CLASS__ . '] ' . 
-							sprintf(
-								'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
-								$code, $taxRate
-							),
-							Zend_Log::WARN
+						$msg = sprintf(
+							'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
+							$code,
+							$taxRate
 						);
+						Mage::log('[' . __CLASS__ . '] ' . $msg, Zend_Log::WARN);
 						continue;
 					}
 
@@ -255,11 +256,12 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @codeCoverageIgnore
 	 */
 	public function getRateRequest(
-		$shippingAddress = null,
-		$billingAddress = null,
-		$customerTaxClass = '',
-		$store = null
-	) {
+		$shippingAddress=null,
+		$billingAddress=null,
+		$customerTaxClass='',
+		$store=null
+	)
+	{
 		$quote = $billingAddress ? $billingAddress->getQuote() : null;
 		return $this->getTaxRequest($quote);
 	}

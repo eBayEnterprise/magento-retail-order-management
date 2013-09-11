@@ -62,19 +62,6 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		);
 	}
 
-	/**
-	 * testing getApiModel method
-	 *
-	 * @test
-	 */
-	public function testGetApiModel()
-	{
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cCore_Model_Api',
-			$this->_helper->getApiModel()
-		);
-	}
-
 	public function providerGetRequestId()
 	{
 		return array(

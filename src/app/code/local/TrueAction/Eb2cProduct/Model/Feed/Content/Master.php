@@ -18,7 +18,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
 		}
 
+		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+
+		// set base dir base on the config
+		$this->setBaseDir($cfg->contentFeedLocalPath);
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
@@ -32,8 +36,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			->setEavConfig(Mage::getModel('eav/config'))
 			->setCategory(Mage::getModel('catalog/category')) // magically setting catalog/category model object
 			->setDefaultStoreLanguageCode($storeLang) // setting default store language
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			->setBaseDir($cfg->contentFeedLocalPath);
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs));
 
 		return $this;
 	}
@@ -174,14 +177,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$this->_getContentMasterFeeds();
 		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundFolder() as $feed) {
+		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $productHelper->getConfigModel()->contentFeedEventType;
-			$expectHeaderVersion = $productHelper->getConfigModel()->contentFeedHeaderVersion;
+			$expectEventType = $cfg->contentFeedEventType;
+			$expectHeaderVersion = $cfg->contentFeedHeaderVersion;
 
 			// validate feed header
 			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
@@ -192,7 +196,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveFolder($feed);
+				$this->getFeedModel()->mvToArchiveDir($feed);
 			}
 		}
 
@@ -210,16 +214,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 	protected function _contentMasterActions($doc)
 	{
 		$productHelper = Mage::helper('eb2cproduct');
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$feedContentCollection = $this->getExtractor()->extractContentMasterFeed($doc);
 		if ($feedContentCollection){
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedContentCollection as $feedContent) {
 				// Ensure this matches the catalog id set in the Magento admin configuration.
 				// If different, do not update the Content and log at WARN level.
-				if ($feedContent->getCatalogId() !== $productHelper->getConfigModel()->catalogId) {
+				if ($feedContent->getCatalogId() !== $cfg->catalogId) {
 					Mage::log(
 						'Content Master Feed Catalog_id (' . $feedContent->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$productHelper->getConfigModel()->catalogId . ')',
+						$cfg->catalogId . ')',
 						Zend_Log::WARN
 					);
 					continue;
@@ -227,10 +232,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master extends Mage_Core_Model_A
 
 				// Ensure that the client_id field here matches the value supplied in the Magento admin.
 				// If different, do not update this Content and log at WARN level.
-				if ($feedContent->getGsiClientId() !== $productHelper->getConfigModel()->clientId) {
+				if ($feedContent->getGsiClientId() !== $cfg->clientId) {
 					Mage::log(
 						'Content Master Feed Client_id (' . $feedContent->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$productHelper->getConfigModel()->clientId . ')',
+						$cfg->clientId . ')',
 						Zend_Log::WARN
 					);
 					continue;

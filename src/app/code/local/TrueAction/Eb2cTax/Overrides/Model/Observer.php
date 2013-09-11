@@ -12,7 +12,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	protected function _getTaxHelper()
 	{
 		if (!$this->_tax) {
-			$this->_tax =Mage::helper('tax');
+			$this->_tax = Mage::helper('tax');
 		}
 		return $this->_tax;
 	}
@@ -185,8 +185,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 					Zend_Log::DEBUG
 				);
 				$response = $helper->sendRequest($request);
-				if (!$response->isValid())
-				{
+				if (!$response->isValid()) {
 					Mage::throwException('valid request recieved an invalid response');
 				}
 				$calc->setTaxResponse($response);
@@ -199,8 +198,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		}
 	}
 
-// place holder functions
-//
+	// place holder functions
+	//
 
 	/**
 	 * @codeCoverageIgnore
