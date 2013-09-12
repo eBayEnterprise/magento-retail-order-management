@@ -49,9 +49,29 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			->will($this->returnValue('19726')
 			);
 
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote')
+			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'getProduct', 'getIsVirtual')
 		);
 		$itemMock->expects($this->any())
 			->method('getQty')
@@ -68,6 +88,14 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$itemMock->expects($this->any())
 			->method('getItemId')
 			->will($this->returnValue(1)
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock)
+			);
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(
@@ -199,9 +227,29 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			->will($this->returnValue('19726')
 			);
 
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId')
+			array('getQty', 'getId', 'getSku', 'getItemId', 'getProduct', 'getIsVirtual')
 		);
 		$itemMock->expects($this->any())
 			->method('getQty')
@@ -217,6 +265,14 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$itemMock->expects($this->any())
 			->method('getItemId')
 			->will($this->returnValue(1)
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock)
+			);
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(

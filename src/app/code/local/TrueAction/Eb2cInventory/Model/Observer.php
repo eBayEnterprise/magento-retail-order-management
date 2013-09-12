@@ -42,38 +42,41 @@ class TrueAction_Eb2cInventory_Model_Observer
 		}
 
 		if ($productId) {
-			// We have a valid product, let's check Eb2c Quantity
-			$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
-			if ($availableStock < $requestedQty && $availableStock > 0) {
-				// Inventory Quantity is less in eb2c than what user requested from magento front-end
-				// then, remove item from cart, and then alert customers of the available stock number of this inventory
-				// set cart item to eb2c available qty
-				$quoteItem->setQty($availableStock);
+			// we only do quantity check for product with manage stock only
+			if (Mage::getModel('eb2cinventory/allocation')->filterInventoriedItems($quoteItem)) {
+				// We have a valid product, let's check Eb2c Quantity
+				$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
+				if ($availableStock < $requestedQty && $availableStock > 0) {
+					// Inventory Quantity is less in eb2c than what user requested from magento front-end
+					// then, remove item from cart, and then alert customers of the available stock number of this inventory
+					// set cart item to eb2c available qty
+					$quoteItem->setQty($availableStock);
 
-				// re-calculate totals
-				$quote->collectTotals();
+					// re-calculate totals
+					$quote->collectTotals();
 
-				// save the quote
-				$quote->save();
+					// save the quote
+					$quote->save();
 
-				$this->_getCart()->getCheckoutSession()->addNotice(
-					'Sorry for the inconvenience, however, the requested quantity ' .
-					$requestedQty . ' is greater than what we currently have in stock ' .
-					$availableStock . '.'
-				);
+					$this->_getCart()->getCheckoutSession()->addNotice(
+						'Sorry for the inconvenience, however, the requested quantity ' .
+						$requestedQty . ' is greater than what we currently have in stock ' .
+						$availableStock . '.'
+					);
 
-			} elseif ($availableStock <= 0) {
-				// Inventory Quantity is out of stock in eb2c
-				// then, remove item from cart, and then alert customer the inventory is out of stock.
-				$quoteItem->getQuote()->deleteItem($quoteItem);
-				$this->_getCart()->getCheckoutSession()->addNotice(
-					'Sorry for the inconvenience, however, this product is out of stock.'
-				);
-				// throwing an error to prevent the successful add to cart message
-				Mage::throwException('Cannot add the item to shopping cart.');
-				// @codeCoverageIgnoreStart
+				} elseif ($availableStock <= 0) {
+					// Inventory Quantity is out of stock in eb2c
+					// then, remove item from cart, and then alert customer the inventory is out of stock.
+					$quoteItem->getQuote()->deleteItem($quoteItem);
+					$this->_getCart()->getCheckoutSession()->addNotice(
+						'Sorry for the inconvenience, however, this product is out of stock.'
+					);
+					// throwing an error to prevent the successful add to cart message
+					Mage::throwException('Cannot add the item to shopping cart.');
+					// @codeCoverageIgnoreStart
+				}
+				// @codeCoverageIgnoreEnd
 			}
-			// @codeCoverageIgnoreEnd
 		}
 	}
 

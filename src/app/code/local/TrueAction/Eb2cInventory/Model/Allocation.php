@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory_Model_Abstract
 {
 	/**
 	 * Allocating all items brand new quote from eb2c.
@@ -45,7 +45,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 		if ($quote) {
 			foreach ($quote->getAllAddresses() as $addresses) {
 				if ($addresses) {
-					foreach ($addresses->getAllItems() as $item) {
+					foreach (array_filter($addresses->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
 						try {
 							// creating quoteItem element
 							$quoteItem = $allocationRequestMessage->createChild(
