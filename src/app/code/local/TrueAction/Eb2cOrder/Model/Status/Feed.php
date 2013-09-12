@@ -2,7 +2,7 @@
 /**
  * Order Status processing Class, gets Order Status feeds from remote
  */
-class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	private $_headerNodeNames = array('OrderStatusEventTimeStamp', 'StoreCode', 'OrderId', 'StatusId', 'ProcessTypeKey', 'StatusName');
 	private $_detailNodeNames = array('OrderLineId', 'ItemId', 'Qty');
