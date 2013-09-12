@@ -4,7 +4,9 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Model_Feed_I_Ship extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_I_Ship
+	extends Mage_Core_Model_Abstract
+	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	/**
 	 * Initialize model

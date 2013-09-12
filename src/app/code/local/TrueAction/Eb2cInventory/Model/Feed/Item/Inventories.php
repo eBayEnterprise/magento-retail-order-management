@@ -1,5 +1,7 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
+	extends Mage_Core_Model_Abstract
+	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	/**
 	 * Initialize model

@@ -2,7 +2,9 @@
 /**
  * Order Status processing Class, gets Order Status feeds from remote
  */
-class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract implements TrueAction_Eb2cCore_Model_Feed_Interface
+class TrueAction_Eb2cOrder_Model_Status_Feed
+	extends Mage_Core_Model_Abstract
+	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	private $_headerNodeNames = array('OrderStatusEventTimeStamp', 'StoreCode', 'OrderId', 'StatusId', 'ProcessTypeKey', 'StatusName');
 	private $_detailNodeNames = array('OrderLineId', 'ItemId', 'Qty');
@@ -174,7 +176,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract im
 
 	/**
 	 * Get the Magento order
-	 * 
+	 *
 	 * @return Mage_Sales_Model_Order
 	 */
 	private function _loadOrder()
@@ -184,7 +186,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract im
 
 	/**
 	 * Get a single magento order item
-	 * 
+	 *
 	 * @param which array element to get the item for.
 	 */
 	private function _loadOrderItem($lineId)
@@ -197,7 +199,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract im
 	/**
 	 * Process an Order Fulfillment Event
 	 * @todo Finish when ProcessKey 'ORDER_FULFILLMENT' spec'd
-	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping
 	 * @return bool
 	 */
 	private function _processOrderFulfillment()
@@ -209,7 +211,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract im
 	/**
 	 * Return Order
 	 * @todo Finish when ProcessKey 'Return Order' spec'd
-	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 *  See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping
 	 * @return bool
 	 */
 	private function _processReturnOrder()
@@ -221,7 +223,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends Mage_Core_Model_Abstract im
 	/**
 	 * Sales Order
 	 * @todo Finish when ProcessKey 'Sales Order' spec'd
-	 *   See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping 
+	 *   See: https://trueaction.atlassian.net/wiki/display/EBC/Orders#Orders-OrderStatusCodeMapping
 	 * @return bool
 	 */
 	private function _processSalesOrder()
