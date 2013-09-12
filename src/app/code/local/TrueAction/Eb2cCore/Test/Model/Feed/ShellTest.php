@@ -133,15 +133,62 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testRunFeedModel()
 	{
-		// Mock order status feeds so I can fake a call to processFeeds()
-		$mockOrderStatusFeed = $this->getMock(get_class(Mage::getModel('eb2corder/status_feed')), array(
-			'processFeeds',
+		$dummyReturnValue = 42;
+
+		// Mock the Varien_Io_File, need a mock file system
+		$mockFsTool = $this->getMock('Varien_Io_File', array(
+			'cd',
+			'checkAndCreateFolder',
+			'ls',
+			'mv',
+			'pwd',
+			'setAllowCreateFolders',
 		));
+		$mockFsTool
+			->expects($this->any())
+			->method('cd')
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('checkAndCreateFolder')
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('mv')
+			->will($this->returnValue(true));
+		$mockFsTool
+			->expects($this->any())
+			->method('ls')
+			->will($this->returnValue(array()));
+		$mockFsTool
+			->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue('doesnMatter'));
+		$mockFsTool
+			->expects($this->any())
+			->method('setAllowCreateFolders')
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
+			->will($this->returnSelf());
+
+		// Mock order status feeds so I can fake a call to processFeeds(), this is
+		// where I need a mock FS.
+		$mockOrderStatusFeed = $this->getModelMock(
+			'eb2corder/status_feed',
+			array(
+				'processFeeds',
+			),
+			false,
+			array(
+				array (
+					'fs_tool' => $mockFsTool,
+				)
+			)
+		);
 
 		$mockOrderStatusFeed
 			->expects($this->any())
 			->method('processFeeds')
-			->will($this->returnValue(1));
+			->will($this->returnValue($dummyReturnValue));
 
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
@@ -150,7 +197,10 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 				)
 			)
 		);
-		$fakeShell->runFeedModel('stat');
+
+		$this->replaceByMock('model', 'eb2corder/status_feed', $mockOrderStatusFeed);
+
+		$this->assertEquals($dummyReturnValue, $fakeShell->runFeedModel('stat'));
 	}
 
 	/**
