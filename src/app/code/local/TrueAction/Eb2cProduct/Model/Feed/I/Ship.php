@@ -289,7 +289,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship extends Mage_Core_Model_Abstract
 						Mage::logException($e);
 					}
 				} else {
-					// this item doesn't exists in magento let simply log it
+					// this item already exists in magento let simply log it
 					Mage::log('I Ship Feed Add Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), already exists in Magento', Zend_Log::WARN);
 				}
 			}
@@ -369,7 +369,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship extends Mage_Core_Model_Abstract
 						Mage::logException($e);
 					}
 				} else {
-					// this item doesn't exists in magento let simply log it
+					// this item doesn't exists in magento let's add it and then log it
+					$this->_addItem($dataObject);
 					Mage::log('I Ship Feed Update Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
 				}
 			}
