@@ -494,7 +494,10 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml'));
 		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
 
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'processAllocation', 'isExpired', 'allocateQuoteItems', 'filterInventoriedItems'))
+		$allocationMock = $this->getModelMockBuilder(
+			'eb2cinventory/allocation',
+			array('hasAllocation', 'processAllocation', 'isExpired', 'allocateQuoteItems', 'filterInventoriedItems')
+		)
 			->disableOriginalConstructor()
 			->getMock();
 		$allocationMock->expects($this->any())
