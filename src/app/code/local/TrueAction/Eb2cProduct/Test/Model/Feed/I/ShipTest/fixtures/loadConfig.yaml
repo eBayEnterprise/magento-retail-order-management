@@ -1,0 +1,12 @@
+config:
+  default/eb2c/product/developer_mode: 1
+  default/eb2ccore/general/store_id: "ABCD"
+  default/eb2ccore/general/client_id: "TAN-CLI"
+  default/eb2ccore/general/catalog_id: "70"
+  default/eb2c/product/allocation_expired: 60
+  default/eb2c/product/i_ship_feed_local_path: "var/TrueAction/Eb2c/Feed/I/Ship/"
+  default/eb2c/product/i_ship_feed_remote_received_path: "/I/Ship/"
+  default/eb2c/product/config_path: "eb2ccore/general"
+  default/eb2c/product/i_ship_feed_event_type: "iShip"
+  default/eb2c/product/i_ship_feed_header_version: "2.3.0"
+  default/eb2ccore/feed/destination_type: "MAILBOX"

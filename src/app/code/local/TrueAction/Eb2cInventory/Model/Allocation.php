@@ -227,6 +227,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	public function isExpired($quote)
 	{
 		$isExpired = false;
+		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 		foreach ($quote->getAllItems() as $item) {
 			// find the reservation data in the quote item
 			if (trim($item->getEb2cReservationExpires()) !== '') {
@@ -235,7 +236,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 				$interval = $reservedExpiredDateTime->diff($currentDateTime);
 				$differenceInMinutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
 				// check if the current date time exceed the maximum allocation expired in minutes
-				if ($differenceInMinutes > (int) Mage::helper('eb2cinventory')->getConfigModel()->allocation_expired) {
+				if ($differenceInMinutes > (int) $cfg->allocationExpired) {
 					$isExpired = true;
 					break;
 				}
