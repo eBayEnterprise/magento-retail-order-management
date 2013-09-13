@@ -26,7 +26,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -34,23 +34,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-invalid-catalog-id.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-invalid-catalog-id.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -90,7 +90,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -98,23 +98,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-invalid-client-id.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-invalid-client-id.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -154,7 +154,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -162,23 +162,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-invalid-item-type.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-invalid-item-type.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -218,7 +218,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -226,23 +226,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-bundle-product-add.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-add.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -282,7 +282,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -290,23 +290,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-bundle-product-add-nosale.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-add-nosale.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -346,7 +346,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -354,23 +354,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-bundle-product-update.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-update.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -410,7 +410,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -418,23 +418,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-bundle-product-update-nosale.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-update-nosale.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -474,7 +474,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -482,23 +482,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-bundle-product-delete.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-delete.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -538,7 +538,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -546,23 +546,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-configurable-product-add.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-configurable-product-add.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -602,7 +602,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		);
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -610,23 +610,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Item/sample-feed-grouped-product-add.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-grouped-product-add.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_item_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
