@@ -4,19 +4,22 @@
  */
 class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction_Eb2cCore_Test_Base
 {
-	const MAGE_MODEL_NAME = 'eb2cproduct/feed_image_master';
-	const VFS_ROOT        = 'testImageRoot';
+	const MAGE_MODEL_NAME       = 'eb2cproduct/feed_image_master';
+	const VFS_ROOT              = 'testImageRoot';
+	const NUMBER_OF_DUMMY_FILES = 2; // How many files I expect to process as found in vfs fixture
 
 	/**
 	 * Instantiate the Model, test we get the expected model back
 	 *
 	 * @test
+	 * @loadFixture mockFsTool
 	 */
 	public function testIsInstanceOf()
 	{
+		$this->_setMockFileTransfer($this->returnValue(true));
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed_Image_Master',
-			Mage::getModel(self::MAGE_MODEL_NAME)
+			$this->_getTestModel($this->getFixture()->getVfs())
 		);
 	}
 
@@ -24,12 +27,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	 * Feeds must implement 'TrueAction_Eb2cCore_Model_Feed_Interface'
 	 *
 	 * @test
+	 * @loadFixture mockFsTool
 	 */
 	public function testImplementsInterface()
 	{
+		$this->_setMockFileTransfer($this->returnValue(true));
 		$this->assertContains(
 			'TrueAction_Eb2cCore_Model_Feed_Interface',
-			class_implements(Mage::getModel(self::MAGE_MODEL_NAME))
+			class_implements($this->_getTestModel($this->getFixture()->getVfs()))
 		);
 	}
 
@@ -37,12 +42,116 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	 * Test with a mock'd up filesystem
 	 * 
 	 * @test
-	 * @loadFixture
+	 * @loadFixture mockFsTool
 	 */
 	public function testFeedProcess()
 	{
-		$vfs = $this->getFixture()->getVfs();
+		$this->_setMockFileTransfer($this->returnValue(true));
+		$this->assertSame(
+			self::NUMBER_OF_DUMMY_FILES,
+			$this->_getTestModel(
+				$this->getFixture()
+				->getVfs()
+			)
+			->processFeeds()
+		);
+	}
 
+	/**
+	 * Test that a FileTransfer Exception is caught correctly and we can still carry on
+	 *
+	 * @test
+	 * @loadFixture mockFsTool
+	 */
+	public function testFileTransferExceptionOk()
+	{
+		$this->_setMockFileTransfer($this->throwException(new Exception));
+		// Might also be able to returnCallback, using a closure
+		$this->assertSame(
+			self::NUMBER_OF_DUMMY_FILES,
+			$this->_getTestModel(
+				$this->getFixture()
+				->getVfs()
+			)
+			->processFeeds()
+		);
+	}
+
+	/**
+	 * Throw exception if remote_path isn't provided 
+	 * I don't need a MockFs, because I shouldn't get that far.
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testNeedsRemotePath()
+	{
+		Mage::getModel(
+			self::MAGE_MODEL_NAME,
+			array(
+				'local_path' => 'dummy_local_path',
+			)
+		);
+	}
+
+	/**
+	 * Throw exception if local_path isn't provided
+	 * I don't need a MockFs, because I shouldn't get that far.
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testNeedsLocalPath()
+	{
+		Mage::getModel(
+			self::MAGE_MODEL_NAME,
+			array(
+				'remote_path' => 'dummy_remote_path',
+			)
+		);
+	}
+
+	/**
+	 * Instantiate the test model, with phony remote and local paths and a mock fs
+	 *
+	 */
+	private function _getTestModel($vfs)
+	{
+		return Mage::getModel(
+			self::MAGE_MODEL_NAME,
+			array(
+				'remote_path' => 'dummy_remote_path',
+				'local_path'  => 'dummy_local_path',
+				'fs_tool'     => $this->_setMockFsTool($vfs),
+			)
+		);
+	}
+
+	/**
+	 * Replace file transfer mechanism
+	 *
+	 */
+	private function _setMockFileTransfer($will)
+	{
+		// Mock the transport  - to just pretend we got files
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$this->_buildModelMock(
+				'filetransfer/protocol_types_sftp',
+				array(
+					'getFile' => $will,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Instantiate a mock fs, it's necessary to invoke any instance of the image feed master for testing
+	 *
+	 */
+	private function _setMockFsTool($vfs)
+	{
 		// Set up a Varien_Io_File style array for dummy file listing.
 		$vfsDump = $vfs->dump();
 		$dummyFiles = array ();
@@ -66,12 +175,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 		$mockFsTool
 			->expects($this->any())
 			->method('checkAndCreateFolder')
-			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
 			->will($this->returnValue(true));
 		$mockFsTool
 			->expects($this->any())
 			->method('mv')
-			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
 			->will($this->returnValue(true));
 		$mockFsTool
 			->expects($this->any())
@@ -84,32 +191,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 		$mockFsTool
 			->expects($this->any())
 			->method('setAllowCreateFolders')
-			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
 
-		// Mock the transport  - to just pretend we got files
-		$this->replaceByMock(
-			'model',
-			'filetransfer/protocol_types_sftp',
-			$this->_buildModelMock(
-				'filetransfer/protocol_types_sftp',
-				array(
-					'getFile' => $this->returnValue(true),
-				)
-			)
-		);
-
-		// @todo: Mock the core config registry to know where our local files are to process
-
-		$this->assertSame(
-			1,
-			Mage::getModel(
-				'eb2cproduct/feed_image_master',
-				array(
-					'remote_path'  => 'dummy_remote_path',
-					'fs_tool'      => $mockFsTool
-				)
-			)->processFeeds()
-		);
+		return $mockFsTool;
 	}
 }

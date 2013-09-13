@@ -1,42 +1,59 @@
 <?php
 /**
- * Let's try to build an abstract feed class, shall we
+ * A feed class abstraction that we should be able to refactor and move to core, eventually
  */
 class TrueAction_Eb2cProduct_Model_Feed_Image_Abstract extends Mage_Core_Model_Abstract
 {
-	private $_localIo;
-	private $_remoteIo;
+	private $_coreFeed;
+	private $_fileTransferHelper;
 	private $_remotePath;
-
-	private $_fileInfo;
 
 	protected function _construct()
 	{
 		// Where is the remote path?
+		if( !$this->hasRemotePath() ) {
+			Mage::throwException( __CLASS__ . '::' . __FUNCTION__ . ' can\'t instantiate, no remote path given.');
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
 		$this->_remotePath = $this->getRemotePath();
+
+		// Where is the local path?
+		if( !$this->hasLocalPath() ) {
+			Mage::throwException( __CLASS__ . '::' . __FUNCTION__ . ' can\'t instantiate, no local path given.');
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array('base_dir' => $this->getLocalPath());
+
+		// FileSystem tool can be supplied, esp. for testing
 		if ($this->hasFsTool()) {
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
-		$this->_localIo = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
+
+		// Ready to set up the core feed helper, which manages files and directories:
+		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 
 		// Set up remote conduit:
-		$this->_remoteIo = Mage::helper('filetransfer');
+		$this->_fileTransferHelper = Mage::helper('filetransfer');
 	}
 
-	/**
-	 * Fetch the remote files.
+	/** * Fetch the remote files.
 	 */
 	private function _fetchFeedsFromRemote()
 	{
 		$cfg = Mage::helper('eb2ccore/feed');
-		$this->_remoteIo->getFile(
-			$this->_localIo->getInboundDir(),
-			$this->remotePath,
-			$cfg::FILETRANSFER_CONFIG_PATH
-		);
+		try {
+			$this->_fileTransferHelper->getFile(
+				$this->_coreFeed->getInboundDir(),
+				$this->remotePath,
+				$cfg::FILETRANSFER_CONFIG_PATH
+			);
+		} catch (Exception $e ) {
+			Mage::logException($e);
+		}
 	}
 
 	/**
@@ -48,7 +65,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Abstract extends Mage_Core_Model_A
 	{
 		$filesProcessed = 0;
 		$this->_fetchFeedsFromRemote();
-		foreach( $this->_localIo->lsInboundDir() as $xmlFeedFile ) {
+		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
 			$filesProcessed++;
 		}
@@ -62,8 +79,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Abstract extends Mage_Core_Model_A
 	 */
 	public function processFile($xmlFile)
 	{
-		// Load the XML:
-		$dom = new TrueAction_Dom_Document();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
 			$dom->load($xmlFile);
 		}
@@ -71,6 +87,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Abstract extends Mage_Core_Model_A
 			Mage::logException($e);
 			return 0;
 		}
-		return $this->processXmlDom($dom);
+		return $this->processDom($dom);
 	}
 }
