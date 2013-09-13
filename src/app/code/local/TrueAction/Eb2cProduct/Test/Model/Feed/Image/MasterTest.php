@@ -62,7 +62,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 		$mockFsTool
 			->expects($this->any())
 			->method('cd')
-			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
 			->will($this->returnValue(true));
 		$mockFsTool
 			->expects($this->any())
@@ -107,7 +106,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 			Mage::getModel(
 				'eb2cproduct/feed_image_master',
 				array(
-					'fs_tool' => $mockFsTool
+					'remote_path'  => 'dummy_remote_path',
+					'fs_tool'      => $mockFsTool
 				)
 			)->processFeeds()
 		);
