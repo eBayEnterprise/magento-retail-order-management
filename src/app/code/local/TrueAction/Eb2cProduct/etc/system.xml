@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<config>
+	<sections>
+		<eb2cproduct translate="label" module="eb2cproduct">
+			<label>Product</label>
+			<tab>eb2c</tab>
+			<frontend_type>text</frontend_type>
+			<sort_order>10</sort_order>
+			<show_in_default>1</show_in_default>
+			<show_in_website>1</show_in_website>
+			<show_in_store>1</show_in_store>
+			<groups>
+				<feed_image translate="label">
+					<label>Image Feed</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>100</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+					<fields>
+						<remote_import_path translate="label">
+							<label>Remote Import Path</label>
+							<comment>
+								<![CDATA[Remote <b>Import</b> Path - containing Image Feeds Imports to be retrieved. (<em>From</em> Eb2c &rarr; <em>to</em> Magento)]]>
+							</comment>
+							<sort_order>1000</sort_order>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</remote_import_path>
+						<remote_export_path translate="label">
+							<label>Remote Export Path</label>
+							<comment>
+								<![CDATA[Remote <b>Export</b> Path - where Image Feed Exports are placed. (<em>From</em> Magento &rarr; <em>to</em> Eb2c)]]>
+							</comment>
+							<sort_order>2000</sort_order>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</remote_export_path>
+						<local_path translate="label">
+							<label>Local Path</label>
+							<comment>
+								<![CDATA[Local working path for Image Feed Processing.]]>
+							</comment>
+							<sort_order>3000</sort_order>
+							<frontend_type>text</frontend_type>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</local_path>
+					</fields>
+				</feed_image>
+			</groups>
+		</eb2cproduct>
+	</sections>
+</config>
