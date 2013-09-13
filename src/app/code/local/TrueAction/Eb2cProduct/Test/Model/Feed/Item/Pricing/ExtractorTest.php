@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Test_Model_Feed_Pricing_ExtractorTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Model_Feed_Item_Pricing_ExtractorTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * verify an array is returned.
@@ -17,7 +17,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Pricing_ExtractorTest extends TrueA
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXml($xml);
 		$eventNode = $doc->documentElement;
-		$model = Mage::getModel('eb2cproduct/feed_pricing_extractor');
+		$model = Mage::getModel('eb2cproduct/feed_item_pricing_extractor');
 		$result = $this->_reflectMethod($model, '_extractEvent')->invoke($model, $eventNode);
 		$this->assertTrue(is_array($result), 'result is not an array');
 		$e = $this->expected($scenario);
@@ -35,7 +35,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Pricing_ExtractorTest extends TrueA
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXml($xml);
 		$eventNode = $doc->documentElement;
-		$model = Mage::getModel('eb2cproduct/feed_pricing_extractor');
+		$model = Mage::getModel('eb2cproduct/feed_item_pricing_extractor');
 		$result = $this->_reflectMethod($model, '_extractPricePerItem')->invoke($model, $eventNode);
 		$this->assertTrue(is_array($result), 'result is not an array');
 		$e = $this->expected($scenario);

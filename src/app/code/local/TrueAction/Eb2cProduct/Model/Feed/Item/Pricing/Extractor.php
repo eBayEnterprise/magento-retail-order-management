@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Model_Feed_Pricing_Extractor
+class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 {
 	/**
 	 * map an xpath to the name of the field the data will be extracted to.
