@@ -51,8 +51,16 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getProductId', 'getSku', 'getQuote', 'setQty')
+			array('getId', 'getQty', 'setQty', 'getProductId', 'getSku', 'getQuote')
 		);
+		$itemMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1)
+			);
+		$itemMock->expects($this->any())
+			->method('setQty')
+			->will($this->returnSelf()
+			);
 		$itemMock->expects($this->any())
 			->method('getQty')
 			->will($this->returnValue(1)
@@ -105,16 +113,29 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	public function testCheckEb2cInventoryQuantityOutOfStock($observer)
 	{
 		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Model_Quantity',
-			array('requestQuantity')
-		);
+		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity', array('requestQuantity'))
+			->disableOriginalConstructor()
+			->getMock();
 		$quantityMock->expects($this->any())
 			->method('requestQuantity')
-			->will($this->returnValue(0)
-			);
+			->will($this->returnValue(0));
 
-		$this->_observer->setQuantity($quantityMock);
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
+
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->disableOriginalConstructor()
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
 			$this->_observer->checkEb2cInventoryQuantity($observer)
@@ -132,16 +153,29 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	public function testCheckEb2cInventoryQuantityLessThanRequested($observer)
 	{
 		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Model_Quantity',
-			array('requestQuantity')
-		);
+		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity', array('requestQuantity'))
+			->disableOriginalConstructor()
+			->getMock();
 		$quantityMock->expects($this->any())
 			->method('requestQuantity')
-			->will($this->returnValue(0.5)
-			);
+			->will($this->returnValue(0.5));
 
-		$this->_observer->setQuantity($quantityMock);
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
+
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->disableOriginalConstructor()
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
 			$this->_observer->checkEb2cInventoryQuantity($observer)
@@ -158,26 +192,30 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	 */
 	public function testCheckEb2cInventoryQuantityRollbackExistingAllocation($observer)
 	{
-		$allocationMock = $this->getModelMock(
-			'eb2cinventory/allocation',
-			array('hasAllocation', 'rollbackAllocation')
-		);
-		$allocationMock->expects($this->once())
-			->method('hasAllocation')
-			->with($this->identicalTo($observer->getEvent()->getItem()->getQuote()))
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->once())
-			->method('rollbackAllocation')
-			->with($this->identicalTo($observer->getEvent()->getItem()->getQuote()));
-
 		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMock('eb2cinventory/quantity', array('requestQuantity'));
+		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity', array('requestQuantity'))
+			->disableOriginalConstructor()
+			->getMock();
 		$quantityMock->expects($this->any())
 			->method('requestQuantity')
 			->will($this->returnValue(1));
 
-		$this->_observer->setQuantity($quantityMock);
-		$this->_observer->setAllocation($allocationMock);
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
+
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->disableOriginalConstructor()
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
 			$this->_observer->checkEb2cInventoryQuantity($observer)
@@ -283,6 +321,21 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	 */
 	public function testProcessInventoryDetails($observer)
 	{
+		$detailsMock = $this->getModelMockBuilder('eb2cinventory/details', array('getInventoryDetails', 'parseResponse', 'processInventoryDetails'))
+			->disableOriginalConstructor()
+			->getMock();
+		$detailsMock->expects($this->any())
+			->method('getInventoryDetails')
+			->will($this->returnValue('<foo></foo>'));
+		$detailsMock->expects($this->any())
+			->method('processInventoryDetails')
+			->will($this->returnValue(array()));
+		$detailsMock->expects($this->any())
+			->method('processInventoryDetails')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('model', 'eb2cinventory/details', $detailsMock);
+
 		$this->assertNull(
 			$this->_observer->processInventoryDetails($observer)
 		);
@@ -394,8 +447,24 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	 */
 	public function testProcessEb2cAllocation($observer)
 	{
-		$quote = $observer->getEvent()->getQuote();
-		// testing when you can allocated inventory
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'processAllocation', 'isExpired', 'filterInventoriedItems'))
+			->disableOriginalConstructor()
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('processAllocation')
+			->will($this->returnValue(array()));
+		$allocationMock->expects($this->any())
+			->method('isExpired')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
+
 		$this->assertNull(
 			$this->_observer->processEb2cAllocation($observer)
 		);
@@ -425,23 +494,29 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml'));
 		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
 
-		$alloc = Mage::getModel('eb2cinventory/allocation');
-		$quote = $observer->getEvent()->getQuote();
-		$response = $alloc->allocateQuoteItems($quote);
-
-		// testing when allocation error occurred.
-		$allocationMock = $this->getModelMock(
+		$allocationMock = $this->getModelMockBuilder(
 			'eb2cinventory/allocation',
-			array('processAllocation', 'allocateQuoteItems')
-		);
+			array('hasAllocation', 'processAllocation', 'isExpired', 'allocateQuoteItems', 'filterInventoriedItems')
+		)
+			->disableOriginalConstructor()
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
 		$allocationMock->expects($this->any())
 			->method('processAllocation')
 			->will($this->returnValue(array(array('Sorry, item "2610" out of stock.'))));
 		$allocationMock->expects($this->any())
+			->method('isExpired')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
 			->method('allocateQuoteItems')
-			->will($this->returnValue($response));
+			->will($this->returnValue('<foo></foo>'));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
 
-		$this->_observer->setAllocation($allocationMock);
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
 			$this->_observer->processEb2cAllocation($observer)
@@ -575,16 +650,20 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			);
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		// mockup to allow rollback on event to occur.
-		$allocationMock = $this->getMock(
-			'TrueAction_Eb2cInventory_Model_Allocation',
-			array('hasAllocation')
-		);
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->disableOriginalConstructor()
+			->getMock();
 		$allocationMock->expects($this->any())
 			->method('hasAllocation')
 			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
 
-		$this->_observer->setAllocation($allocationMock);
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
 			$this->_observer->rollbackOnRemoveItemInReservedCart($observer)

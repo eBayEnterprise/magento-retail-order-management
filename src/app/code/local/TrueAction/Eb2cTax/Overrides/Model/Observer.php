@@ -183,7 +183,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 				);
 				$response = $helper->sendRequest($request);
 				if (!$response->isValid()) {
-					Mage::throwException('valid request recieved an invalid response');
+					Mage::throwException('valid request received an invalid response');
 				}
 				$calc->setTaxResponse($response);
 			}

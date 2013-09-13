@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Model_Abstract
 {
 	/**
 	 * Get the inventory details for all items in this quote from eb2c.
@@ -33,7 +33,7 @@ class TrueAction_Eb2cInventory_Model_Details extends Mage_Core_Model_Abstract
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		if ($quote) {
-			foreach($quote->getAllItems() as $item) {
+			foreach(array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
 				try {
 					// creating orderItem element
 					$orderItem = $inventoryDetailsRequestMessage->createChild(
