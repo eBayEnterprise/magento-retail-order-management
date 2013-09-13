@@ -6,6 +6,40 @@
  */
 class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_Test_Case
 {
+	const VFS_ROOT = 'testBase';
+
+	/**
+	 * Mock the Varien_Io_File object,
+	 * this is our FsTool for testing purposes
+	 */
+	private function _getMockFsTool($vfs, $sampleFiles)
+	{
+		$mockFsTool = $this->getMock('Varien_Io_File', array('cd', 'checkAndCreateFolder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders',));
+		$mockFsTool->expects($this->any())
+			->method('cd')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('checkAndCreateFolder')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('mv')
+			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('ls')
+			->will($this->returnValue($sampleFiles));
+		$mockFsTool->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue($vfs->url(self::VFS_ROOT . '/feed_i_ship/inbound')));
+		$mockFsTool->expects($this->any())
+			->method('setAllowCreateFolders')
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
+			->will($this->returnSelf());
+		// vfs setup ends
+		return $mockFsTool;
+	}
 	/**
 	 * testing loadProductBySku method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
@@ -15,6 +49,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testLoadProductBySku()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
+
 		$ship = new TrueAction_Eb2cProduct_Model_Feed_I_Ship();
 		$shipReflector = new ReflectionObject($ship);
 
@@ -34,6 +71,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testConstructor()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
+
 		$feedIShipMock = $this->getModelMockBuilder('eb2cproduct/feed_i_ship')
 			->setMethods(array('hasFsTool'))
 			->getMock();
@@ -65,16 +105,28 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsWithInvalidFeedCatalogId()
 	{
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -94,16 +146,28 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsWithInvalidFeedClientId()
 	{
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedClientId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithInvalidFeedClientId()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -123,16 +187,28 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsWithInvalidFeeditemType()
 	{
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedItemType());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithInvalidFeedItemType()); // give a feed with invalid catalog id
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -152,10 +228,25 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsWithInvalidSftpSettings()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -179,19 +270,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsAddProductWithInvalidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipAddProduct());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -211,19 +314,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsAddProductNosaleWithInvalidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsAddNosale());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsAddNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -243,19 +358,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductAddWithValidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithValidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipAddProduct());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -275,19 +402,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsBundleProductAddWithInvalidProductException()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductException();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipAddProduct());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -307,19 +446,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductUpdateWithInvalidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -339,19 +490,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductUpdateWithValidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithValidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -371,19 +534,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductUpdateNosaleWithValidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdateNosale());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithValidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsUpdateNosale());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -403,19 +578,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductUpdateWithValidProductException()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithValidProductException();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -435,19 +622,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductDeleteWithInvalidProductId()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsDelete());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithInvalidProductId();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -467,19 +666,31 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testProcessFeedsProductDeleteWhereDeleteThrowException()
 	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsDelete());
+
 		$mockIShip = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_I_Ship();
 		$mockIShip->replaceByMockWithValidProductException();
 
-		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_i_ship']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$ship = Mage::getModel(
+			'eb2cproduct/feed_i_ship',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_i_ship'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
 		$mockHelperObject->replaceByMockFileTransferHelper();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$ship->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForIShipWithProductsDelete());
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
