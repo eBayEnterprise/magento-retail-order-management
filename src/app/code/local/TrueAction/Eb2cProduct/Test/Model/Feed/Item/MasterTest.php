@@ -118,7 +118,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -162,7 +165,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -206,7 +212,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -253,7 +262,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -304,7 +316,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -355,7 +370,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -402,7 +420,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -449,7 +470,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -496,7 +520,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -551,7 +578,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -592,7 +622,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -639,7 +672,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -686,7 +722,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -733,7 +772,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -780,7 +822,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -827,7 +872,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -874,7 +922,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
@@ -921,7 +972,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master', array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles)));
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
