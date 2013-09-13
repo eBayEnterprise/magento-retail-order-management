@@ -6,3 +6,6 @@ config:
   default/eb2ccore/api/major_version: 1
   default/eb2ccore/api/minor_version: 10
   default/eb2c/inventory/developer_mode: 0
+  default/eb2ccore/general/sftp_username: ""
+  default/eb2ccore/general/sftp_password: ""
+  default/eb2ccore/general/sftp_location: ""

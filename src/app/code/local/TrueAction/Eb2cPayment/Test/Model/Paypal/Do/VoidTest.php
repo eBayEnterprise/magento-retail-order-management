@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUnit_Test_Case_Controller
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_void;
 
@@ -13,10 +13,14 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 	 */
 	public function setUp()
 	{
-		$_SESSION = array();
-		$_baseUrl = Mage::getStoreConfig('web/unsecure/base_url');
-		$this->app()->getRequest()->setBaseUrl($_baseUrl);
+		parent::setUp();
 		$this->_void = Mage::getModel('eb2cpayment/paypal_do_void');
+
+		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
+		$paymentHelperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoVoidReply.xml'));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function buildQuoteMock()
@@ -57,12 +61,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 	 */
 	public function testDoVoid($quote)
 	{
-		$paymentHelper = new TrueAction_Eb2cPayment_Helper_Data();
-		$voidReflector = new ReflectionObject($this->_void);
-		$helper = $voidReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_void, $paymentHelper);
-
 		$this->assertNotNull(
 			$this->_void->doVoid($quote)
 		);
@@ -77,30 +75,18 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 	 */
 	public function testDoVoidWithException($quote)
 	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will(
-				$this->throwException(new Exception)
-			);
+			->will($this->throwException(new Exception));
 
-		$paymentHelper = Mage::helper('eb2cpayment');
-		$paymentReflector = new ReflectionObject($paymentHelper);
-		$apiModel = $paymentReflector->getProperty('apiModel');
-		$apiModel->setAccessible(true);
-		$apiModel->setValue($paymentHelper, $apiModelMock);
-
-		$voidReflector = new ReflectionObject($this->_void);
-		$helper = $voidReflector->getProperty('_helper');
-		$helper->setAccessible(true);
-		$helper->setValue($this->_void, $paymentHelper);
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
 			'',

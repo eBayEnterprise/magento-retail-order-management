@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory_Model_Abstract
 {
 	/**
 	 * Allocating all items brand new quote from eb2c.
@@ -45,7 +45,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 		if ($quote) {
 			foreach ($quote->getAllAddresses() as $addresses) {
 				if ($addresses) {
-					foreach ($addresses->getAllItems() as $item) {
+					foreach (array_filter($addresses->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
 						try {
 							// creating quoteItem element
 							$quoteItem = $allocationRequestMessage->createChild(
@@ -227,6 +227,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 	public function isExpired($quote)
 	{
 		$isExpired = false;
+		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 		foreach ($quote->getAllItems() as $item) {
 			// find the reservation data in the quote item
 			if (trim($item->getEb2cReservationExpires()) !== '') {
@@ -235,7 +236,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends Mage_Core_Model_Abstract
 				$interval = $reservedExpiredDateTime->diff($currentDateTime);
 				$differenceInMinutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
 				// check if the current date time exceed the maximum allocation expired in minutes
-				if ($differenceInMinutes > (int) Mage::helper('eb2cinventory')->getConfigModel()->allocation_expired) {
+				if ($differenceInMinutes > (int) $cfg->allocationExpired) {
 					$isExpired = true;
 					break;
 				}

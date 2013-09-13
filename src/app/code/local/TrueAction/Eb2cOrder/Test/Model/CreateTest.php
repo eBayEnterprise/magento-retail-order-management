@@ -68,6 +68,7 @@ INVALID_XML;
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
 	 * Also covers the eb2c payments not enabled case
 	 *
+	 * @large
 	 * @test
 	 */
 	public function testObserverCreate()

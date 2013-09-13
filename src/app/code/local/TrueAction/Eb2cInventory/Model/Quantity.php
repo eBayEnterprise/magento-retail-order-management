@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Quantity extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_Model_Abstract
 {
 	/**
 	 * Get the stock value for a product added to the cart from eb2c.

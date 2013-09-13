@@ -49,9 +49,32 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->will($this->returnValue('19726')
 			);
 
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setEb2cReservationId', 'setEb2cReservationExpires', 'setEb2cQtyReserved')
+			array(
+				'getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setEb2cReservationId',
+				'setEb2cReservationExpires', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
+			)
 		);
 
 		$addressMock->expects($this->any())
@@ -91,6 +114,14 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$itemMock->expects($this->any())
 			->method('setEb2cQtyReserved')
 			->will($this->returnSelf()
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock)
+			);
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(
@@ -238,9 +269,29 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->will($this->returnValue('19726')
 			);
 
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId')
+			array('getQty', 'getId', 'getSku', 'getItemId', 'getProduct', 'getIsVirtual')
 		);
 
 		$addressMock->expects($this->any())
@@ -262,6 +313,13 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$itemMock->expects($this->any())
 			->method('getItemId')
 			->will($this->returnValue(1)
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(
@@ -342,9 +400,32 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerUpdateQuoteWithEb2cAllocation()
 	{
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setQty', 'setEb2cReservationId', 'setEb2cReservationExpires', 'setEb2cQtyReserved')
+			array(
+				'getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setQty', 'setEb2cReservationId',
+				'setEb2cReservationExpires', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
+			)
 		);
 		$itemMock->expects($this->any())
 			->method('getQty')
@@ -385,6 +466,13 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$itemMock->expects($this->any())
 			->method('setEb2cQtyReserved')
 			->will($this->returnSelf()
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteData = array(
@@ -465,14 +553,42 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerHasAllocation()
 	{
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getEb2cReservationId')
+			array('getEb2cReservationId', 'getProduct', 'getIsVirtual')
 		);
 		$itemMock->expects($this->any())
 			->method('getEb2cReservationId')
 			->will($this->returnValue('FAKE-RESERVATION-ID')
 			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
+			);
+
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array('getAllItems')
@@ -481,6 +597,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->method('getAllItems')
 			->will($this->returnValue(array($itemMock))
 			);
+
 		return array(
 			array($quoteMock)
 		);
@@ -504,13 +621,40 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerIsExpired()
 	{
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getEb2cReservationExpires')
+			array('getEb2cReservationExpires', 'getProduct', 'getIsVirtual')
 		);
 		$itemMock->expects($this->any())
 			->method('getEb2cReservationExpires')
 			->will($this->returnValue('2013-06-26 16:42:20')
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(
@@ -543,14 +687,41 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerIsExpiredReturnFalse()
 	{
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('getManageStock')
+		);
+
+		$stockItemMock->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue(true)
+			);
+
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('getStockItem')
+		);
+
+		$productMock->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stockItemMock)
+			);
+
 		$expiredDateTime = new DateTime(gmdate('c'));
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
-			array('getEb2cReservationExpires')
+			array('getEb2cReservationExpires', 'getProduct', 'getIsVirtual')
 		);
 		$itemMock->expects($this->any())
 			->method('getEb2cReservationExpires')
 			->will($this->returnValue($expiredDateTime->format('c'))
+			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
+		$itemMock->expects($this->any())
+			->method('getIsVirtual')
+			->will($this->returnValue(false)
 			);
 
 		$quoteMock = $this->getMock(
@@ -578,6 +749,33 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$this->assertSame(
 			false,
 			$this->_allocation->isExpired($quote)
+		);
+	}
+
+	public function providerParseResponse()
+	{
+		return array(
+			array(file_get_contents(__DIR__ . '/AllocationTest/fixtures/AllocationResponseMessage.xml', FILE_USE_INCLUDE_PATH))
+		);
+	}
+
+	/**
+	 * testing parseResponse
+	 *
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 * @dataProvider providerParseResponse
+	 */
+	public function testParseResponse($allocationResponseMessage)
+	{
+		$this->assertSame(
+			array(array('lineId' => '106',
+				'itemId' => '8525 PDA',
+				'qty' => 1,
+				'reservation_id' => 'TAN_DEV_CLI-ABC-44',
+				'reservation_expires' => Mage::getModel('core/date')->date('Y-m-d H:i:s')
+			)),
+			$this->_allocation->parseResponse($allocationResponseMessage)
 		);
 	}
 }
