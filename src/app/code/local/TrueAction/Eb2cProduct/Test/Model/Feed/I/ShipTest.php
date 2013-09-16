@@ -126,7 +126,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-		$mockHelperObject->replaceByMockFileTransferHelper();
+		$mockHelperObject->replaceByMockFileTransferHelperThrowException();
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());

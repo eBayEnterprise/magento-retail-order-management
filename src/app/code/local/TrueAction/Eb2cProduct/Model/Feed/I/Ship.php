@@ -101,12 +101,16 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 
 		// only attempt to transfer file when the FTP setting is valid
 		if ($coreHelper->isValidFtpSettings()) {
-			// Download feed from eb2c server to local server
-			Mage::helper('filetransfer')->getFile(
-				$this->getFeedModel()->getInboundDir(),
-				$remoteFile,
-				$feedHelper::FILETRANSFER_CONFIG_PATH
-			);
+			try{
+				// Download feed from eb2c server to local server
+				Mage::helper('filetransfer')->getFile(
+					$this->getFeedModel()->getInboundDir(),
+					$remoteFile,
+					$feedHelper::FILETRANSFER_CONFIG_PATH
+				);
+			} catch (Exception $e) {
+				Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			}
 		} else {
 			// log as a warning
 			Mage::log(
@@ -429,7 +433,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
 		}
 
 		return;
