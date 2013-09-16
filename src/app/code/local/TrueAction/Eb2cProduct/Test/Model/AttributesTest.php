@@ -182,7 +182,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 	 */
 	public function testGetMappedFieldName($fieldName, $expected)
 	{
-		$map   = array('field_in_map' => 'model_field_name');
+		$map = array('field_in_map' => 'model_field_name');
 		$model = Mage::getModel('eb2cproduct/attributes');
 		$this->_reflectProperty($model, '_fieldNameMap')->setValue($model, $map);
 		$modelFieldName = $this->_reflectMethod($model, '_getMappedFieldName')
@@ -233,31 +233,31 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		// end preconditions checks
 
 		$model = Mage::getModel('eb2cproduct/attributes');
- 		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
- 			->invoke($model, $taxCodeNode);
+		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
+			->invoke($model, $taxCodeNode);
 		$this->assertNotEmpty($attrData);
 		$e = $this->expected('tax_code');
 		$this->assertEquals($e->getData(), $attrData);
 	}
 
 	public function testGetPrototypeDataCache()
- 	{
- 		// setup input data
- 		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
+	{
+		// setup input data
+		$dataNode = new Varien_SimpleXml_Element(self::$configXml);
 		$result = $dataNode->xpath('/eb2cproduct_attributes/default/tax_code');
 		$this->assertSame(1, count($result));
 		list($taxCodeNode) = $result;
 		$this->assertInstanceOf('Varien_SimpleXml_Element', $taxCodeNode);
 		$this->assertSame('tax_code', $taxCodeNode->getName());
 
- 		// mock functions to make sure they're not called
- 		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
- 		// mock up the cache
- 		$dummyObject = new Varien_Object();
- 		$this->_reflectProperty($model, '_prototypeCache')
+		// mock functions to make sure they're not called
+		$model = $this->getModelMock('eb2cproduct/attributes', array('_getDefaultValueFieldName', '_getMappedFieldName', '_getMappedFieldValue'));
+		// mock up the cache
+		$dummyObject = new Varien_Object();
+		$this->_reflectProperty($model, '_prototypeCache')
 			->setValue($model, array('tax_code' => $dummyObject));
- 		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
- 			->invoke($model, $taxCodeNode);
+		$attrData = $this->_reflectMethod($model, '_getPrototypeData')
+			->invoke($model, $taxCodeNode);
 		$this->assertNotEmpty($attrData);
 		$this->assertInstanceOf('Varien_Object', $dummyObject);
 		$this->assertSame($dummyObject, $attrData);
@@ -318,7 +318,7 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		);
 	}
 
-	protected function _getOverrideXmlVfsStructure(array $etcContents = array())
+	protected function _getOverrideXmlVfsStructure(array $etcContents=array())
 	{
 		return array(
 			'app' => array(
@@ -327,10 +327,15 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 						'TrueAction' => array(
 							'Eb2cProduct' => array(
 								'etc' => $etcContents
-			))))));
+							)
+						)
+					)
+				)
+			)
+		);
 	}
 
-	public static $configXml  = '
+	public static $configXml = '
 		<eb2cproduct_attributes>
 			<default>
 				<tax_code>
