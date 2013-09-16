@@ -123,4 +123,19 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
+
+	/**
+	 * replacing by mock of the filetransfer helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockFileTransferHelperThrowException()
+	{
+		// with invalid ftp setting
+		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new Exception));
+		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
+	}
 }
