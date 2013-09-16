@@ -24,6 +24,21 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	}
 
 	/**
+	 * Replace the FileTransfer Helper with a mock object.
+	 */
+	private function _replaceFileTransferHelperThrowException()
+	{
+		$fileTransferHelperMock = $this->getMock(
+			'TrueAction_FileTransfer_Helper_Data',
+			array('getFile')
+		);
+		$fileTransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new Exception));
+		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
+	}
+
+	/**
 	 * Mock the Varien_Io_File object,
 	 * this is our FsTool for testing purposes
 	 */
@@ -166,7 +181,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			)
 		);
 
-		$this->_replaceFileTransferHelper();
+		$this->_replaceFileTransferHelperThrowException();
 
 		// test with mock product and stock item
 		$productMock = $this->getMock(
