@@ -266,7 +266,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	/**
 	 * @codeCoverageIgnore
 	 */
-	public function getRateRequest($shippingAddress=null, $billingAddress=null, $customerTaxClass='', $store=null) {
+	public function getRateRequest($shippingAddress=null, $billingAddress=null, $customerTaxClass='', $store=null)
+	{
 		$quote = $billingAddress ? $billingAddress->getQuote() : null;
 		return $this->getTaxRequest($quote);
 	}
