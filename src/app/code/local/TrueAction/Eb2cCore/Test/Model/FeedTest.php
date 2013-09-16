@@ -96,6 +96,23 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 	 */
 	public function testFeedMethods()
 	{
+		// The transport protocol is mocked - we just pretend we got files
+		$mockSftp = $this->getMock(
+			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
+			array( 'getFile')
+		);
+
+		$mockSftp
+			->expects($this->any())
+			->method('getFile')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$mockSftp
+		);
+
 		$feed = Mage::getModel('eb2ccore/feed', array(
 			'fs_tool' => $this->_mockFsTool,
 			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
@@ -115,5 +132,98 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$feed->mvToErrorDir('foo');
 		$feed->mvToTmpDir('foo');
 		$feed->mvToInboundDir('foo');
+
+		$feed->fetchFeedsFromRemote('abc');
+	}
+
+	/**
+	 * @large
+	 * @test
+	 */
+	public function testFetchFeedsFromRemoteConnectionException()
+	{
+		$mockSftp = $this->getMock(
+			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
+			array( 'getFile')
+		);
+
+		$mockSftp
+			->expects($this->any())
+			->method('getFile')
+			->will($this->throwException( new TrueAction_FileTransfer_Exception_Connection('connection exception error')));
+
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$mockSftp
+		);
+
+		$feed = Mage::getModel('eb2ccore/feed', array(
+			'fs_tool' => $this->_mockFsTool,
+			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
+		));
+
+		$feed->fetchFeedsFromRemote('foo');
+	}
+
+	/**
+	 * @large
+	 * @test
+	 */
+	public function testFetchFeedsFromRemoteOtherException()
+	{
+		$mockSftp = $this->getMock(
+			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
+			array( 'getFile')
+		);
+
+		$mockSftp
+			->expects($this->any())
+			->method('getFile')
+			->will($this->throwException( new TrueAction_FileTransfer_Exception_Authentication('connection exception error')));
+
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$mockSftp
+		);
+
+		$feed = Mage::getModel('eb2ccore/feed', array(
+			'fs_tool' => $this->_mockFsTool,
+			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
+		));
+
+		$feed->fetchFeedsFromRemote('foo');
+	}
+
+	/**
+	 * @large
+	 * @test
+	 */
+	public function testFetchFeedsFromRemoteIsOk()
+	{
+		// The transport protocol is mocked - we just pretend we got files
+		$mockSftp = $this->getMock(
+			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
+			array( 'getFile')
+		);
+
+		$mockSftp
+			->expects($this->any())
+			->method('getFile')
+			->will($this->returnValue(true));
+
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$mockSftp
+		);
+
+		$feed = Mage::getModel('eb2ccore/feed', array(
+			'fs_tool' => $this->_mockFsTool,
+			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
+		));
+
+		$feed->fetchFeedsFromRemote('foo');
 	}
 }
