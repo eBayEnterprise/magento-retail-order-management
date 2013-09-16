@@ -44,8 +44,12 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 					$remoteFile,
 					$feedHelper::FILETRANSFER_CONFIG_PATH
 				);
-			} catch (Exception $e) {
-				Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Connection $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Connection Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Authentication $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Authentication Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Transfer $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Transfer Exception: ' . $e->getMessage(), Zend_Log::WARN);
 			}
 		} else {
 			// log as a warning

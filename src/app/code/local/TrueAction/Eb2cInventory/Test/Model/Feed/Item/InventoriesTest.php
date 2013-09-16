@@ -26,7 +26,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	/**
 	 * Replace the FileTransfer Helper with a mock object.
 	 */
-	private function _replaceFileTransferHelperThrowException()
+	private function _replaceFileTransferHelperThrowConnectionException()
 	{
 		$fileTransferHelperMock = $this->getMock(
 			'TrueAction_FileTransfer_Helper_Data',
@@ -34,7 +34,37 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		);
 		$fileTransferHelperMock->expects($this->any())
 			->method('getFile')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Connection));
+		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
+	}
+
+	/**
+	 * Replace the FileTransfer Helper with a mock object.
+	 */
+	private function _replaceFileTransferHelperThrowAuthenticationException()
+	{
+		$fileTransferHelperMock = $this->getMock(
+			'TrueAction_FileTransfer_Helper_Data',
+			array('getFile')
+		);
+		$fileTransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Authentication));
+		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
+	}
+
+	/**
+	 * Replace the FileTransfer Helper with a mock object.
+	 */
+	private function _replaceFileTransferHelperThrowTransferException()
+	{
+		$fileTransferHelperMock = $this->getMock(
+			'TrueAction_FileTransfer_Helper_Data',
+			array('getFile')
+		);
+		$fileTransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Transfer));
 		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
 	}
 
@@ -156,13 +186,13 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	}
 
 	/**
-	 * testing processFeeds method, with valid ftp settings
+	 * testing processFeeds method, with valid ftp settings - throw connection exceptions
 	 *
 	 * @test
 	 * @medium
 	 * @loadFixture sample-data.yaml
 	 */
-	public function testProcessFeedsWithValidFtpSettings()
+	public function testProcessFeedsWithValidFtpSettingsButThrowConnectionException()
 	{
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
@@ -181,7 +211,145 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			)
 		);
 
-		$this->_replaceFileTransferHelperThrowException();
+		$this->_replaceFileTransferHelperThrowConnectionException();
+
+		// test with mock product and stock item
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('loadByAttribute', 'getId')
+		);
+		$productMock->expects($this->any())
+			->method('loadByAttribute')
+			->will($this->returnValue(true));
+		$productMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1));
+
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('loadByProduct', 'setQty', 'save')
+		);
+		$stockItemMock->expects($this->any())
+			->method('loadByProduct')
+			->will($this->returnSelf());
+		$stockItemMock->expects($this->any())
+			->method('setQty')
+			->will($this->returnSelf());
+		$stockItemMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf());
+
+		$inventoryFeedModel->setProduct($productMock);
+		$inventoryFeedModel->setStockItem($stockItemMock);
+
+		// with valid ftp setting
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$inventoryHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
+
+		$this->assertNull($inventoryFeedModel->processFeeds());
+
+		$vfs->discard();
+	}
+
+	/**
+	 * testing processFeeds method, with valid ftp settings - throw Authentication exceptions
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testProcessFeedsWithValidFtpSettingsButThrowAuthenticationException()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$inventoryFeedModel = Mage::getModel(
+			'eb2cinventory/feed_item_inventories',
+			array(
+				'base_dir' => $vfs->url(self::VFS_ROOT),
+				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+			)
+		);
+
+		$this->_replaceFileTransferHelperThrowAuthenticationException();
+
+		// test with mock product and stock item
+		$productMock = $this->getMock(
+			'Mage_Catalog_Model_Product',
+			array('loadByAttribute', 'getId')
+		);
+		$productMock->expects($this->any())
+			->method('loadByAttribute')
+			->will($this->returnValue(true));
+		$productMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1));
+
+		$stockItemMock = $this->getMock(
+			'Mage_CatalogInventory_Model_Stock_Item',
+			array('loadByProduct', 'setQty', 'save')
+		);
+		$stockItemMock->expects($this->any())
+			->method('loadByProduct')
+			->will($this->returnSelf());
+		$stockItemMock->expects($this->any())
+			->method('setQty')
+			->will($this->returnSelf());
+		$stockItemMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf());
+
+		$inventoryFeedModel->setProduct($productMock);
+		$inventoryFeedModel->setStockItem($stockItemMock);
+
+		// with valid ftp setting
+		$inventoryHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$inventoryHelperMock->expects($this->any())
+			->method('isValidFtpSettings')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore', $inventoryHelperMock);
+
+		$this->assertNull($inventoryFeedModel->processFeeds());
+
+		$vfs->discard();
+	}
+
+	/**
+	 * testing processFeeds method, with valid ftp settings - throw Transfer exceptions
+	 *
+	 * @test
+	 * @medium
+	 * @loadFixture sample-data.yaml
+	 */
+	public function testProcessFeedsWithValidFtpSettingsButThrowTransferException()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$inventoryFeedModel = Mage::getModel(
+			'eb2cinventory/feed_item_inventories',
+			array(
+				'base_dir' => $vfs->url(self::VFS_ROOT),
+				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+			)
+		);
+
+		$this->_replaceFileTransferHelperThrowTransferException();
 
 		// test with mock product and stock item
 		$productMock = $this->getMock(
