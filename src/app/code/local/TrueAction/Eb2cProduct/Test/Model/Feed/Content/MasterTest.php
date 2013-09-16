@@ -151,7 +151,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-		$mockHelperObject->replaceByMockFileTransferHelper();
+		$mockHelperObject->replaceByMockFileTransferHelperThrowException();
 
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
