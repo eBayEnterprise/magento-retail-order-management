@@ -129,13 +129,43 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 *
 	 * @return void
 	 */
-	public function replaceByMockFileTransferHelperThrowException()
+	public function replaceByMockFileTransferHelperThrowConnectionException()
 	{
 		// with invalid ftp setting
 		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
 		$filetransferHelperMock->expects($this->any())
 			->method('getFile')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Connection));
+		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
+	}
+
+	/**
+	 * replacing by mock of the filetransfer helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockFileTransferHelperThrowAuthenticationException()
+	{
+		// with invalid ftp setting
+		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Authentication));
+		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
+	}
+
+	/**
+	 * replacing by mock of the filetransfer helper class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockFileTransferHelperThrowTransferException()
+	{
+		// with invalid ftp setting
+		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock->expects($this->any())
+			->method('getFile')
+			->will($this->throwException(new TrueAction_FileTransfer_Exception_Transfer));
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 }

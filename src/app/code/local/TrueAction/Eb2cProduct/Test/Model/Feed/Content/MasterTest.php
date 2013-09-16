@@ -122,13 +122,13 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 	}
 
 	/**
-	 * testing processFeeds method - with invalid feed catalog id
+	 * testing processFeeds method - with invalid feed catalog id - throw connection exception
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsContentMasterWithInvalidFeedCatalogId()
+	public function testProcessFeedsContentMasterWithInvalidFeedCatalogIdThrowConnectionException()
 	{
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForContentMasterWithInvalidFeedCatalogId());
@@ -151,7 +151,83 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
 		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-		$mockHelperObject->replaceByMockFileTransferHelperThrowException();
+		$mockHelperObject->replaceByMockFileTransferHelperThrowConnectionException();
+
+		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
+		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
+
+		$this->assertNull($master->processFeeds());
+	}
+
+	/**
+	 * testing processFeeds method - with invalid feed catalog id - throw authentication exception
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testProcessFeedsContentMasterWithInvalidFeedCatalogIdThrowAuthenticationException()
+	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForContentMasterWithInvalidFeedCatalogId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_content_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_content_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
+
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelperThrowAuthenticationException();
+
+		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
+		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
+
+		$this->assertNull($master->processFeeds());
+	}
+
+	/**
+	 * testing processFeeds method - with invalid feed catalog id - throw transfer exception
+	 *
+	 * @test
+	 * @large
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testProcessFeedsContentMasterWithInvalidFeedCatalogIdThrowTransferException()
+	{
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForContentMasterWithInvalidFeedCatalogId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_content_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_content_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
+
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockFileTransferHelperThrowTransferException();
 
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());

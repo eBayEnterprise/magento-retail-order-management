@@ -163,8 +163,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					$remoteFile,
 					$feedHelper::FILETRANSFER_CONFIG_PATH
 				);
-			} catch (Exception $e) {
-				Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Connection $e) {
+				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Connection Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Authentication $e) {
+				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Authentication Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Transfer $e) {
+				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Transfer Exception: ' . $e->getMessage(), Zend_Log::WARN);
 			}
 		} else {
 			// log as a warning
