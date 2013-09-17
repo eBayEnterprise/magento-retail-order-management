@@ -9,6 +9,9 @@
  */
 class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_Case
 {
+	const FEED_FILE_PATTERN = 'ItemMaster*.xml';
+	const FEED_REMOTE_PATH = '/Item/Master/';
+
 	/**
 	 * return a mock of the TrueAction_Eb2cCore_Model_Config_Registry class
 	 *
@@ -26,7 +29,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$properties->contentFeedEventType = 'ContentMaster';
 		$properties->contentFeedHeaderVersion = '2.3.0';
 		$properties->itemFeedLocalPath = 'var/TrueAction/Eb2c/Feed/Item/Master/';
-		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
+		$properties->itemFeedRemoteReceivedPath = self::FEED_REMOTE_PATH;
+		$properties->itemFeedFilePattern = self::FEED_FILE_PATTERN;
 		$properties->itemFeedEventType = 'ItemMaster';
 		$properties->itemFeedHeaderVersion = '2.3.0';
 		$properties->iShipFeedLocalPath = 'var/TrueAction/Eb2c/Feed/I/Ship/';
@@ -102,10 +106,13 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function replaceByMockCoreHelperFeed()
 	{
-		$coreHelperFeedMock = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
+		$coreHelperFeedMock = $this->getHelperMock('eb2ccore/feed', array('validateHeader', 'fetchFeedsFromRemote'));
 		$coreHelperFeedMock->expects($this->any())
 			->method('validateHeader')
 			->will($this->returnValue(true));
+		$coreHelperFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->with($this->identicalTo(self::FEED_REMOTE_PATH), $this->identicalTo(self::FEED_FILE_PATTERN));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperFeedMock);
 	}
 
