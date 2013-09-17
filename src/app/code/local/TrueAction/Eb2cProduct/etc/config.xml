@@ -117,21 +117,46 @@
 				<api_uri_format>https://%s.%s.gsipartners.com/%s/stores/%s/%s/%s.%s</api_uri_format>
 				<api_return_format>xml</api_return_format>
 				<developer_mode>1</developer_mode>
-				<item_feed_local_path>var/TrueAction/Eb2c/Feed/Item/Master/</item_feed_local_path>
-				<item_feed_remote_received_path>/Item/Master/</item_feed_remote_received_path>
 				<config_path>eb2ccore/general</config_path>
-				<item_feed_event_type>ItemMaster</item_feed_event_type>
-				<item_feed_header_version>2.3.0</item_feed_header_version>
-				<content_feed_local_path>var/TrueAction/Eb2c/Feed/Content/Master/</content_feed_local_path>
-				<content_feed_remote_received_path>/Content/Master/</content_feed_remote_received_path>
-				<content_feed_event_type>ItemMaster</content_feed_event_type>
-				<content_feed_header_version>2.3.0</content_feed_header_version>
-				<i_ship_feed_local_path>var/TrueAction/Eb2c/Feed/I/Ship/</i_ship_feed_local_path>
-				<i_ship_feed_remote_received_path>/I/Ship/</i_ship_feed_remote_received_path>
-				<i_ship_feed_event_type>iShip</i_ship_feed_event_type>
-				<i_ship_feed_header_version>2.3.0</i_ship_feed_header_version>
 			</product>
 		</eb2c>
+		<eb2cproduct>
+			<item_master_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>ItemMaster*.xml</file_pattern>
+				<event_type>ItemMaster</event_type>
+				<header_version>2.3.0</header_version>
+			</item_master_feed>
+			<content_master_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>Content*.xml</file_pattern>
+				<event_type>ItemMaster</event_type>
+				<header_version>2.3.0</header_version>
+			</content_master_feed>
+			<i_ship_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Product/iShip/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>IShip*.xml</file_pattern>
+				<event_type>iShip</event_type>
+				<header_version>2.3.0</header_version>
+			</i_ship_feed>
+			<item_pricing_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>Price*.xml</file_pattern>
+				<event_type>ItemPricing</event_type>
+				<header_version>2.3.0</header_version>
+			</item_pricing_feed>
+			<image_master_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Product/ImageMaster/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>ImageMetaData*.xml</file_pattern>
+				<event_type>ImageMaster</event_type>
+				<header_version>2.3.0</header_version>
+			</image_master_feed>
+		</eb2cproduct>
 	</default>
 	<phpunit>
 		<suite>
