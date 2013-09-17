@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cTax_Overrides_Model_Observer
-	extends Mage_Tax_Model_Observer
+class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observer
 {
 	protected $_tax;
 
@@ -67,28 +66,29 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		}
 	}
 
+	private function _invalidateTaxRequest()
+	{
+		$req = $this->_getTaxHelper()->getCalculator()->getTaxRequest();
+		if ($req) {
+			$req->invalidate();
+		}
+	}
 	public function salesEventItemAdded(Varien_Event_Observer $observer)
 	{
 		Mage::log('[' . __CLASS__ . '] salesEventItemAdded');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		$this->_invalidateTaxRequest();
 	}
 
 	public function cartEventProductUpdated(Varien_Event_Observer $observer)
 	{
 		Mage::log('[' . __CLASS__ . '] cartEventProductUpdated');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		$this->_invalidateTaxRequest();
 	}
 
 	public function salesEventItemRemoved(Varien_Event_Observer $observer)
 	{
 		Mage::log('[' . __CLASS__ . '] salesEventItemRemoved');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		$this->_invalidateTaxRequest();
 	}
 
 	public function salesEventItemQtyUpdated(Varien_Event_Observer $observer)
@@ -183,7 +183,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 				);
 				$response = $helper->sendRequest($request);
 				if (!$response->isValid()) {
-					Mage::throwException('valid request recieved an invalid response');
+					Mage::throwException('valid request received an invalid response');
 				}
 				$calc->setTaxResponse($response);
 			}

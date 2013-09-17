@@ -19,5 +19,6 @@ class TrueAction_Eb2cCore_Model_Config
 		'store_id'                => 'eb2ccore/general/store_id',
 		'service_order_timeout'   => 'eb2ccore/service/order/timeout',
 		'service_payment_timeout' => 'eb2ccore/service/payment/timeout',
+		'feed_available_models'   => 'eb2ccore/feed/available_models',
 	);
 }

@@ -4,7 +4,9 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Item_Master
+	extends Mage_Core_Model_Abstract
+	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	/**
 	 * hold a collection of bundle operation data
@@ -694,7 +696,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master extends Mage_Core_Model_Abst
 						Mage::logException($e);
 					}
 				} else {
-					// this item doesn't exists in magento let simply log it
+					// this item doesn't exists in magento let's add it and then log it
+					$this->_addItem($dataObject);
 					Mage::log('Item Master Feed Update Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
 				}
 			}
