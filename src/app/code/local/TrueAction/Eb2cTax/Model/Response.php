@@ -47,7 +47,6 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 
 	/**
 	 * default length of the xml snippet to be reported with libxml errors.
-	 *
 	 */
 	protected $_responseSnippetLength = 40;
 
