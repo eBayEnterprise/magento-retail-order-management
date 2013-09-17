@@ -1,0 +1,9 @@
+vfs:
+  inbound:
+    incompleteXml.xml: '<?xml version="1.0" encoding="UTF-8"?> <OrderStatusUpdate> <MessageHeader>'
+    isCompleteXml.xml: '<?xml version="1.0" encoding="UTF-8"?> <WestFamily><Dad>Mike</Dad><Mom>Lisa</Mom><Son>Trent</Son></WestFamily>'
+    sample.txt: 'This is a sample text file.'
+  outbound:
+  archive:
+  error:
+  tmp:
