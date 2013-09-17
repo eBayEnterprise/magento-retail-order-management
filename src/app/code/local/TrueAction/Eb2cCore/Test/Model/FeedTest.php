@@ -99,12 +99,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		// The transport protocol is mocked - we just pretend we got files
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getFile')
+			array( 'getAllFiles')
 		);
 
 		$mockSftp
 			->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->returnValue(true));
 
 		$this->replaceByMock(
@@ -135,7 +135,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	}
 
 	/**
-	 * Test handling remote conneciton exception
+	 * Test providing coverage for remote connection exception handling
 	 * 
 	 * @large
 	 * @test
@@ -144,12 +144,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	{
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getFile')
+			array( 'getAllFiles')
 		);
 
 		$mockSftp
 			->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->throwException( new TrueAction_FileTransfer_Exception_Connection('connection exception error')));
 
 		$this->replaceByMock(
@@ -170,10 +170,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 				'fs_tool' => $this->_mockFsTool,
 				'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
 			)
-		)->fetchFeedsFromRemote('foo');
+		)->fetchFeedsFromRemote('foo', '*.xml');
 	}
 
 	/**
+	 * Test providing coverage for remote "any exception other than connection exception" handling
+	 * 
 	 * @large
 	 * @test
 	 */
@@ -181,12 +183,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	{
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getFile')
+			array( 'getAllFiles')
 		);
 
 		$mockSftp
 			->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->throwException( new TrueAction_FileTransfer_Exception_Authentication('connection exception error')));
 
 		$this->replaceByMock(
@@ -200,7 +202,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
 		));
 
-		$feed->fetchFeedsFromRemote('foo');
+		$feed->fetchFeedsFromRemote('foo', '*.foo');
 	}
 
 	/**
@@ -212,12 +214,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		// The transport protocol is mocked - we just pretend we got files
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getFile')
+			array( 'getAllFiles')
 		);
 
 		$mockSftp
 			->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->returnValue(true));
 
 		$this->replaceByMock(
@@ -231,6 +233,6 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
 		));
 
-		$feed->fetchFeedsFromRemote('foo');
+		$feed->fetchFeedsFromRemote('foo', '*.foo');
 	}
 }

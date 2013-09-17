@@ -5,7 +5,6 @@
 abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_Abstract
 {
 	private $_coreFeed;    // Handles file fetching, moving, listing, etc.
-	private $_remotePath;  // Where are your files on the remote?
 
 	/**
 	 * Processes the DOM loaded into xmlDom. At minimum, you'll have to implement this. You may
@@ -25,7 +24,13 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 			// @codeCoverageIgnoreStart
 		}
 		// @codeCoverageIgnoreEnd
-		$this->_remotePath = $this->getRemotePath();
+
+		// What is the file pattern for remote retrieval?
+		if( !$this->hasFilePattern() ) {
+			Mage::throwException( __CLASS__ . '::' . __FUNCTION__ . ' can\'t instantiate, no file pattern given.');
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
 
 		// Where is the local path?
 		if( !$this->hasLocalPath() ) {
@@ -54,7 +59,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 	public function processFeeds()
 	{
 		$filesProcessed = 0;
-		$this->_coreFeed->fetchFeedsFromRemote($this->_remotePath);
+		$this->_coreFeed->fetchFeedsFromRemote($this->getRemotePath(), $this->getFilePattern());
 		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
 			$filesProcessed++;

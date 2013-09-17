@@ -17,9 +17,10 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		$model = $this->getMockForAbstractClass(
 			'TrueAction_Eb2cCore_Model_Feed_Abstract',
 			array( 'param' => array(
-					'local_path'  => 'dummy_path',
-					'remote_path' => 'dummy_path'
-				)
+				'remote_path'  => 'dummy_path',
+				'file_pattern' => 'dummy_pattern',
+				'local_path'   => 'dummy_path',
+			)
 			)
 		);
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed_Abstract', $model);
@@ -77,33 +78,33 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		// The transport protocol is mocked - we just pretend we got files
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getFile')
+			array( 'getAllFiles')
 		);
 
 		$mockSftp
 			->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->returnValue(true));
 
 		$this->replaceByMock(
 			'model',
-			'filetransfer/protocol_types_sftp', 
+			'filetransfer/protocol_types_sftp',
 			$mockSftp
 		);
 
 		$model = $this->getMockForAbstractClass(
 			'TrueAction_Eb2cCore_Model_Feed_Abstract',
 			array( 'param' => array(
-					'remote_path' => 'dummy_path',
-					'local_path'  => $vfs->url('inbound'),
-					'fs_tool'  => $mockFsTool,
-				)
+				'remote_path'  => 'dummy_path',
+				'file_pattern' => 'dummy_pattern',
+				'local_path'   => $vfs->url('inbound'),
+				'fs_tool'      => $mockFsTool,
+			)
 			)
 		);
 
 		$model->processFeeds();
 	}
-
 
 	/**
 	 * Test Feed Abstract throws Exception without remote_path defined.
@@ -115,8 +116,11 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$model = $this->getMockForAbstractClass(
 			'TrueAction_Eb2cCore_Model_Feed_Abstract',
-			array( 'param' => array(
-					'local_path'  => 'dummy_path',
+			array(
+				'param' =>
+				array(
+					'local_path'   => 'dummy_path',
+					'file_pattern' => 'dummy_pattern',
 				)
 			)
 		);
@@ -132,8 +136,31 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$model = $this->getMockForAbstractClass(
 			'TrueAction_Eb2cCore_Model_Feed_Abstract',
-			array( 'param' => array(
+			array(
+				'param' =>
+				array(
 					'remote_path'  => 'dummy_path',
+					'file_pattern' => 'dummy_pattern',
+				)
+			)
+		);
+	}
+
+	/**
+	 * Test Feed Abstract throws Exception without local_path defined.
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testFilePatternException()
+	{
+		$model = $this->getMockForAbstractClass(
+			'TrueAction_Eb2cCore_Model_Feed_Abstract',
+			array(
+				'param' =>
+				array(
+					'remote_path' => 'dummy_path',
+					'local_path'  => 'dummy_path',
 				)
 			)
 		);
