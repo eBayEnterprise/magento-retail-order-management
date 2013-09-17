@@ -6,6 +6,7 @@ class TrueAction_Eb2cCore_Model_Config
 		'api_environment'             => 'eb2ccore/api/environment',
 		'api_key'                     => 'eb2ccore/api/key',
 		'api_major_version'           => 'eb2ccore/api/major_version',
+		'api_minor_version'           => 'eb2ccore/api/minor_version',
 		'api_region'                  => 'eb2ccore/api/region',
 		'api_timeout'                 => 'eb2ccore/api/timeout',
 		'test_mode'                   => 'eb2ccore/development/test_mode',
