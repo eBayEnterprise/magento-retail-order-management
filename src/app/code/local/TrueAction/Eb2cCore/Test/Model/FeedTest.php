@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const TESTBASE_DIR_NAME = 'testBase';
 	protected $_vfs;
@@ -132,11 +132,11 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$feed->mvToErrorDir('foo');
 		$feed->mvToTmpDir('foo');
 		$feed->mvToInboundDir('foo');
-
-		$feed->fetchFeedsFromRemote('abc');
 	}
 
 	/**
+	 * Test handling remote conneciton exception
+	 * 
 	 * @large
 	 * @test
 	 */
@@ -158,12 +158,19 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends EcomDev_PHPUnit_Test_Case
 			$mockSftp
 		);
 
-		$feed = Mage::getModel('eb2ccore/feed', array(
-			'fs_tool' => $this->_mockFsTool,
-			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
-		));
+		$this->replaceCoreConfigRegistry(
+			array(
+				'feedFetchRetryTimer'      => 0,
+				'feedFetchConnectAttempts' => 2,
+			)
+		);
 
-		$feed->fetchFeedsFromRemote('foo');
+		Mage::getModel('eb2ccore/feed',
+			array(
+				'fs_tool' => $this->_mockFsTool,
+				'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
+			)
+		)->fetchFeedsFromRemote('foo');
 	}
 
 	/**

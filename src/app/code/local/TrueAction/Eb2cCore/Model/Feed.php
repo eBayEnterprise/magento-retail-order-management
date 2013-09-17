@@ -102,7 +102,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 					break;
 				}
 				else {
-					Mage:log(
+					Mage::log(
 						sprintf('Connect failed, sleeping %d seconds (attempt %d of %d)',
 						$coreConfig->feedFetchRetryTimer, $attempts, $coreConfig->feedFetchConnectAttempts),
 						Zend_Log::DEBUG
