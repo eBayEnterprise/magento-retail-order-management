@@ -99,9 +99,11 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 				Zend_Log::WARN
 			);
 		} else {
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkItemQty($quoteItem);
+			$request = $this->_getTaxHelper()->getCalculator()
+				->getTaxRequest();
+			if ($request) {
+				$request->checkItemQty($quoteItem);
+			}
 		}
 	}
 
