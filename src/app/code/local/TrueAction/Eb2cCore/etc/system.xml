@@ -118,6 +118,10 @@
 							<show_in_default>0</show_in_default>
 							<show_in_website>0</show_in_website>
 						</filetransfer_sftp_auth_type>
+						<filetransfer_sftp_remote_path>
+							<show_in_default>0</show_in_default>
+							<show_in_website>0</show_in_website>
+						</filetransfer_sftp_remote_path>
 						<filetransfer_sftp_username>
 							<label>SFTP User Name</label>
 							<comment>The user name for authenticating to the feeds service.</comment>
