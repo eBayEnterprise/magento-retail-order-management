@@ -17,7 +17,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		$this->_helper = Mage::helper('eb2ccore');
 	}
 
-	/** 
+	/**
 	 * Test getNewDomDocument - although providerApiCall calls it, does not get noted as covered.
 	 *
 	 * @test
@@ -51,19 +51,12 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	/**
 	 * Mock out the config helper.
 	 */
-	protected function _mockConfig()
+	protected function _mockConfig($mockConfig)
 	{
 		$mock = $this->getModelMockBuilder('eb2ccore/config_registry')
 			->disableOriginalConstructor()
 			->setMethods(array('__get'))
 			->getMock();
-		$mockConfig = array(
-			array('apiEnvironment', 'prod'),
-			array('apiRegion', 'eu'),
-			array('apiMajorVersion', '1'),
-			array('apiMinorVersion', '10'),
-			array('storeId', 'store-123'),
-		);
 		$mock->expects($this->any())
 			->method('__get')
 			->will($this->returnValueMap($mockConfig));
@@ -76,7 +69,13 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	 */
 	public function testApiUriCreation()
 	{
-		$this->_mockConfig();
+		$this->_mockConfig(array(
+			array('apiEnvironment', 'prod'),
+			array('apiRegion', 'eu'),
+			array('apiMajorVersion', '1'),
+			array('apiMinorVersion', '10'),
+			array('storeId', 'store-123'),
+		));
 		$helper = Mage::helper('eb2ccore');
 		// simplest case - just a service and operation
 		$this->assertSame(
@@ -98,22 +97,22 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	/**
 	 * testing ftp settings - with valid sftp data will return true
 	 * @test
-	 * @loadFixture configFTPData.yaml
+	 * @dataProvider dataProvider
 	 */
-	public function testIsValidFtpSettingsWithSftpData()
+	public function testIsValidFtpSettingsWithSftpData($username, $host, $authType, $password, $pubKey, $privKey)
 	{
-		$helper = Mage::helper('eb2ccore');
-		$this->assertSame(true, $helper->isValidFtpSettings());
+		$this->_mockConfig(array(
+			array('sftpUsername', $username),
+			array('sftpLocation', $host),
+			array('sftpAuthType', $authType),
+			array('sftpPassword', $password),
+			array('sftpPublicKey', $pubKey),
+			array('sftpPrivateKey', $privKey),
+		));
+		$this->assertSame(
+			$this->expected('set-%s-%s-%s-%s-%s-%s', $username, $host, $authType, $password, $pubKey, $privKey)->getIsValid(),
+			Mage::helper('eb2ccore')->isValidFtpSettings()
+		);
 	}
 
-	/**
-	 * testing ftp settings - with no sftp data will return false
-	 * @test
-	 * @loadFixture configNoFTPData.yaml
-	 */
-	public function testIsValidFtpSettingsWithoutSftpData()
-	{
-		$helper = Mage::helper('eb2ccore');
-		$this->assertSame(false, $helper->isValidFtpSettings());
-	}
 }
