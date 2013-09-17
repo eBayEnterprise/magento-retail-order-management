@@ -4,15 +4,6 @@
  */
 class TrueAction_Eb2cCore_Test_Helper_Feed_ShellTest extends TrueAction_Eb2cCore_Test_Base
 {
-	protected $_helper;
-	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-	}
-
 	/**
 	 * Test loading of available models from (simluated) core etc/config.xml
 	 *
@@ -49,13 +40,10 @@ class TrueAction_Eb2cCore_Test_Helper_Feed_ShellTest extends TrueAction_Eb2cCore
 
 		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
 
-		$this->_helper = Mage::helper('eb2ccore/feed_shell');
-
-		$configuredFeeds = $this->_helper->getConfiguredFeedModels();
+		$configuredFeeds = Mage::helper('eb2ccore/feed_shell')->getConfiguredFeedModels();
 
 		$this->assertContains( 'eb2corder/status_feed', $configuredFeeds );
 		$this->assertContains( 'eb2cproduct/feed_content_master', $configuredFeeds );
 		$this->assertNotContains( 'eb2cproduct/feed_image_master', $configuredFeeds );
-		
 	}
 }

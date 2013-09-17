@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cTax_Overrides_Model_Observer
-	extends Mage_Tax_Model_Observer
+class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observer
 {
 	protected $_tax;
 
@@ -67,39 +66,36 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 		}
 	}
 
-	// TODO: ADD SHIPPING METHOD EVENT
-	// TODO: EACH OF THESE EVENTS SHOULD BOIL DOWN TO 3 CASES: 1 ITEM CHANGED FORCE RESEND; 2 ITEM CHANGED CHECKED RESEND; ADDRESS CHECK
+	private function _invalidateTaxRequest()
+	{
+		$req = $this->_getTaxHelper()->getCalculator()->getTaxRequest();
+		if ($req) {
+			$req->invalidate();
+		}
+	}
 	public function salesEventItemAdded(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] ' . 'salesEventItemAdded');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		Mage::log('[' . __CLASS__ . '] salesEventItemAdded');
+		$this->_invalidateTaxRequest();
 	}
 
 	public function cartEventProductUpdated(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] ' . 'cartEventProductUpdated');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		Mage::log('[' . __CLASS__ . '] cartEventProductUpdated');
+		$this->_invalidateTaxRequest();
 	}
 
 	public function salesEventItemRemoved(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] ' . 'salesEventItemRemoved');
-		$this->_getTaxHelper()->getCalculator()
-			->getTaxRequest()
-			->invalidate();
+		Mage::log('[' . __CLASS__ . '] salesEventItemRemoved');
+		$this->_invalidateTaxRequest();
 	}
 
 	public function salesEventItemQtyUpdated(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] ' . 'salesEventItemQtyUpdated');
 		$quoteItem = $observer->getEvent()->getItem();
 		if (!is_a($quoteItem, 'Mage_Sales_Model_Quote_Item')) {
-			Mage::log('[' . __CLASS__ . '] ' . 
-				'EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote_Item object',
+			Mage::log('[' . __CLASS__ . '] EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote_Item object',
 				Zend_Log::WARN
 			);
 		} else {
@@ -117,9 +113,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	 */
 	public function quoteCollectTotalsBefore(Varien_Event_Observer $observer)
 	{
-		// TODO: THIS CAN BE REMOVE THE PARENT'S VERSION DOES NOT NEED AN OVERRIDE.
-		Mage::log('[' . __CLASS__ . '] ' . 'send tax request event');
-		/* @var $quote Mage_Sales_Model_Quote */
 		$quote = $observer->getEvent()->getQuote();
 		if (is_a($quote, 'Mage_Sales_Model_Quote')) {
 			foreach ($quote->getAllAddresses() as $address) {
@@ -127,8 +120,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 				$address->setBaseExtraTaxAmount(0);
 			}
 		} else {
-			Mage::log('[' . __CLASS__ . '] ' . 
-				'EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote object',
+			Mage::log('[' . __CLASS__ . '] EB2C Tax Error: quoteCollectTotalsBefore: did not receive a Mage_Sales_Model_Quote object',
 				Zend_Log::WARN
 			);
 		}
@@ -143,26 +135,32 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 	 */
 	public function taxEventSendRequest(Varien_Event_Observer $observer)
 	{
-		Mage::log('[' . __CLASS__ . '] ' . 'send tax request event');
-		/* @var $quote Mage_Sales_Model_Quote */
 		$quote = $observer->getEvent()->getQuote();
 		if (is_a($quote, 'Mage_Sales_Model_Quote')) {
-			// checking address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkAddresses($quote);
-			// checking ShippingOrigin Address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkShippingOriginAddresses($quote);
-			// checking AdminOrigin Address
-			$this->_getTaxHelper()->getCalculator()
-				->getTaxRequest()
-				->checkAdminOriginAddresses();
-			$this->_fetchTaxDutyInfo($quote);
+			$request = $this->_getTaxHelper()
+				->getCalculator()
+				->getTaxRequest();
+			$isFetchNeeded = true;
+			// check for changes if the current request is valid
+			if ($request->isValid()) {
+				Mage::log('[' . __CLASS__ . '] checking quote for changes', Zend_Log::DEBUG);
+				// checking address
+	 			$request->checkAddresses($quote);
+				// checking ShippingOrigin Address
+				$request->checkShippingOriginAddresses($quote);
+				// checking AdminOrigin Address
+				$request->checkAdminOriginAddresses();
+				if ($request->isValid()) {
+					$isFetchNeeded = false;
+				} else {
+					Mage::log('[' . __CLASS__ . '] quote has changed', Zend_Log::DEBUG);
+				}
+			}
+			if ($isFetchNeeded) {
+				$this->_fetchTaxDutyInfo($quote);
+			}
 		} else {
-			Mage::log('[' . __CLASS__ . '] ' . 
-				'EB2C Tax Error: taxEventSendRequest: did not receive a Mage_Sales_Model_Quote object',
+			Mage::log('[' . __CLASS__ . '] EB2C Tax Error: taxEventSendRequest: did not receive a Mage_Sales_Model_Quote object',
 				Zend_Log::WARN
 			);
 		}
@@ -180,19 +178,17 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer
 			$calc = $helper->getCalculator();
 			$request = $calc->getTaxRequest($quote);
 			if ($request && $request->isValid()) {
-				Mage::log('[' . __CLASS__ . '] ' . 
-					'sending taxduty request for quote ' . $quote->getId(),
+				Mage::log('[' . __CLASS__ . '] sending taxduty request for quote ' . $quote->getId(),
 					Zend_Log::DEBUG
 				);
 				$response = $helper->sendRequest($request);
 				if (!$response->isValid()) {
-					Mage::throwException('valid request recieved an invalid response');
+					Mage::throwException('valid request received an invalid response');
 				}
 				$calc->setTaxResponse($response);
 			}
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . 
-				'Unsuccessful TaxDutyQuote request: ' . $e->getMessage(),
+			Mage::log('[' . __CLASS__ . '] Unsuccessful TaxDutyQuote request: ' . $e->getMessage(),
 				Zend_Log::WARN
 			);
 		}

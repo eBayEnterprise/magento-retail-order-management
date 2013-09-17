@@ -821,42 +821,52 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 
 	/**
 	 * Test test taxEventSendRequest method
-	 * @test
+	 * @loadExpectation
+	 * @dataProvider dataProvider
 	 */
-	public function testTaxEventSendRequest()
+	public function testTaxEventSendRequest($scenario, $validitySequence)
 	{
-		$taxObserver = Mage::getModel('tax/observer');
-
 		$quote = $this->getModelMock('sales/quote', array('getId'));
 		$quote->expects($this->any())
 			->method('getId')
 			->will($this->returnValue(1));
-
-		$observer = $this->_sendRequestObserverMockWithQuote($quote);
-
+		$event = $this->getMock('Varien_Event', array('getQuote'));
+		$event->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+		$eventObserver = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$eventObserver->expects($this->any())
+			->method('getEvent')
+			->will($this->returnValue($event));
 		$taxRequest = $this->getModelMock('eb2ctax/request', array(
 			'checkAddresses',
 			'checkShippingOriginAddresses',
 			'checkAdminOriginAddresses',
 			'isValid',
 		));
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkAddresses')
 			->with($this->equalTo($quote))
 			->will($this->returnSelf());
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkShippingOriginAddresses')
 			->with($this->equalTo($quote))
 			->will($this->returnSelf());
-		$taxRequest->expects($this->once())
+		$taxRequest->expects($this->any())
 			->method('checkAdminOriginAddresses')
 			->will($this->returnSelf());
-		$taxRequest->expects($this->once())
+
+		// this allows me to feed the $this->onConsecutiveCalls function an array of arguments
+		// instead of having to specify them individually
+		$onConsecutiveCalls = call_user_func_array(array($this, 'onConsecutiveCalls'), $validitySequence);
+		$e = $this->expected($scenario);
+		$invokeCondition = $this->exactly($e->getIsValidCallCount());
+		$taxRequest->expects($invokeCondition)
 			->method('isValid')
-			->will($this->returnValue(true));
+			->will($onConsecutiveCalls);
 
 		$taxResponse = $this->getModelMock('eb2ctax/response', array('isValid'));
-		$taxResponse->expects($this->once())
+		$taxResponse->expects($this->any())
 			->method('isValid')
 			->will($this->returnValue(true));
 
@@ -864,22 +874,24 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		$calculator->expects($this->any())
 			->method('getTaxRequest')
 			->will($this->returnValue($taxRequest));
-		$calculator->expects($this->once())
+		$calculator->expects($this->any())
 			->method('setTaxResponse')
-			->with($this->equalTo($taxResponse))
 			->will($this->returnSelf());
 
 		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator', 'sendRequest'));
 		$taxHelper->expects($this->any())
 			->method('getCalculator')
 			->will($this->returnValue($calculator));
-		$taxHelper->expects($this->once())
+		$invokeCondition = $e->getIsSendCalled() ? $this->once() : $this->never();
+		$taxHelper->expects($invokeCondition)
 			->method('sendRequest')
-			->with($this->equalTo($taxRequest))
 			->will($this->returnValue($taxResponse));
-		$this->_reflectProperty($taxObserver, '_tax')->setValue($taxObserver, $taxHelper);
 
-		$taxObserver->taxEventSendRequest($observer);
+		$taxObserver = $this->getModelMock('tax/observer', array('_getTaxHelper'));
+		$taxObserver->expects($this->any())
+			->method('_getTaxHelper')
+			->will($this->returnValue($taxHelper));
+		$taxObserver->taxEventSendRequest($eventObserver);
 	}
 
 	/**
