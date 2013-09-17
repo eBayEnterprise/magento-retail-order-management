@@ -48,7 +48,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * @see self::$_store
+	 * @return Mage_Core_Model_Store the underlying quote's store model.
 	 * @codeCoverageIgnore
 	 */
 	public function getStore()
