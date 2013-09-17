@@ -50,6 +50,8 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Mock out the config helper.
+	 *
+	 * @param  array $mockConfig Config data as nested arrays to be used for a returnValueMap
 	 */
 	protected function _mockConfig($mockConfig)
 	{
@@ -95,7 +97,15 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	}
 
 	/**
-	 * testing ftp settings - with valid sftp data will return true
+	 * Test checking validity of sftp settings
+	 *
+	 * @param  string $username SFTP username config setting
+	 * @param  string $host     SFTP host/location config setting
+	 * @param  string $authType SFTP auth type - password or pub_key config setting
+	 * @param  string $password SFTP password config setting
+	 * @param  string $pubKey   SFTP public key config setting
+	 * @param  string $privKey  SFTP private key config setting
+	 *
 	 * @test
 	 * @dataProvider dataProvider
 	 */
