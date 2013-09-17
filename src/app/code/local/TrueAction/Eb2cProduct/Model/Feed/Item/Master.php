@@ -209,7 +209,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
-		$coreHelperFeed->fetchFeedsFromRemote(
+		$this->getFeedModel()->fetchFeedsFromRemote(
 			$cfg->itemFeedRemoteReceivedPath,
 			$cfg->itemFeedFilePattern
 		);
