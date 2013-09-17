@@ -152,9 +152,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function checkItemQty($quoteItem)
 	{
 		$sku = $quoteItem->getSku();
+
 		$quantity = isset($this->_itemQuantities[$sku]) ?
-			$this->_itemQuantities[$sku] : !($this->_hasChanges = true);
-		$this->_hasChanges = $this->_hasChanges ||
+			$this->_itemQuantities[$sku] :
+			null;
+		$this->_hasChanges = is_null($quantity) ||
+			$this->_hasChanges ||
 			(float) $quantity !== (float) $quoteItem->getTotalQty();
 	}
 
