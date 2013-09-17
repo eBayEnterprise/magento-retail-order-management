@@ -92,7 +92,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$destinationId = $this->_getDestinationId($address, $item->getProduct()->isVirtual());
 					$orderItemId = $destinationId . '_' . $item->getSku();
 					$orderItem = isset($this->_orderItems[$orderItemId]) ?
-						$this->_orderItems[$orderItemId] : !($this->_hasChanges = true);
+						$this->_orderItems[$orderItemId] : null;
+					$this->_hasChanges = is_null($orderItem) ? true : $this->_hasChanges;
 					$this->_hasChanges = $this->_hasChanges ||
 						(isset($orderItem['merchandise_discount_amount'])? $orderItem['merchandise_discount_amount']: null) !== $item->getDiscountAmount();
 					$this->_hasChanges = $this->_hasChanges ||
