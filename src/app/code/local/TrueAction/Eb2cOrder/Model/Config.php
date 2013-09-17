@@ -9,10 +9,11 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'developer_create_uri'       => 'eb2c/order/developer_create_uri',
 		'developer_cancel_uri'       => 'eb2c/order/developer_cancel_uri',
 		'eb2c_payments_enabled'      => 'eb2c/order/payments_enabled',
+		'config_path'                => 'eb2c/order/config_path',
 		'status_feed_local_path'     => 'eb2corder/status_feed/local_path',
 		'status_feed_remote_path'    => 'eb2corder/status_feed/remote_path',
-		'file_transfer_config_path'  => 'eb2c/order/status_feed/file_transfer_config_path',
-		'status_feed_event_type'     => 'eb2c/order/status_feed/event_type',
-		'status_feed_header_version' => 'eb2c/order/status_feed/header_version',
+		'status_feed_file_pattern'   => 'eb2corder/status_feed/file_pattern',
+		'status_feed_event_type'     => 'eb2corder/status_feed/event_type',
+		'status_feed_header_version' => 'eb2corder/status_feed/header_version',
 	);
 }
