@@ -106,13 +106,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function replaceByMockCoreHelperFeed()
 	{
-		$coreHelperFeedMock = $this->getHelperMock('eb2ccore/feed', array('validateHeader', 'fetchFeedsFromRemote'));
+		$coreHelperFeedMock = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
 		$coreHelperFeedMock->expects($this->any())
 			->method('validateHeader')
 			->will($this->returnValue(true));
-		$coreHelperFeedMock->expects($this->any())
-			->method('fetchFeedsFromRemote')
-			->with($this->identicalTo(self::FEED_REMOTE_PATH), $this->identicalTo(self::FEED_FILE_PATTERN));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperFeedMock);
 	}
 
