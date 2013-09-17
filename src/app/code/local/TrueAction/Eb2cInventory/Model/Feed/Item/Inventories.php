@@ -75,10 +75,8 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 			$domDocument->load($feed);
 
 			$expectEventType = $cfg->feedEventType;
-			$expectHeaderVersion = $cfg->feedHeaderVersion;
-
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}
