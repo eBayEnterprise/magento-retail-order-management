@@ -37,12 +37,20 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 
 		// only attempt to transfer file when the ftp setting is valid
 		if (Mage::helper('eb2ccore')->isValidFtpSettings()) {
-			// Download feed from eb2c server to local server
-			Mage::helper('filetransfer')->getFile(
-				$this->getFeedModel()->getInboundDir(),
-				$remoteFile,
-				$feedHelper::FILETRANSFER_CONFIG_PATH
-			);
+			try {
+				// Download feed from eb2c server to local server
+				Mage::helper('filetransfer')->getFile(
+					$this->getFeedModel()->getInboundDir(),
+					$remoteFile,
+					$feedHelper::FILETRANSFER_CONFIG_PATH
+				);
+			} catch (TrueAction_FileTransfer_Exception_Connection $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Connection Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Authentication $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Authentication Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			} catch (TrueAction_FileTransfer_Exception_Transfer $e) {
+				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Transfer Exception: ' . $e->getMessage(), Zend_Log::WARN);
+			}
 		} else {
 			// log as a warning
 			Mage::log(
