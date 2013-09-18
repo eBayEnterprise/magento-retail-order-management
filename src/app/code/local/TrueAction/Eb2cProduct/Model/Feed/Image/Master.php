@@ -24,7 +24,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Master
 		parent::_construct();
 	}
 
-
 	/**
 	 * The abstract class will handle getting the files from remote, putting them into local directories, and handing 
 	 * us the DOM of the XML.
@@ -63,10 +62,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Master
 	{
 		$imagesProcessed = 0;
 
-		echo 'SKU: ' . $imageInfo['sku'] . "\n";
 		foreach( $imageInfo['images'] as $image ) {
 			$imagesProcessed++;
-			print_r($image);
 		}
+		return $imagesProcessed;
 	}
 }

@@ -4,6 +4,7 @@
  */
 class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction_Eb2cCore_Test_Base
 {
+	const CLASS_NAME            = 'TrueAction_Eb2cProduct_Model_Feed_Image_Master';
 	const MAGE_MODEL_NAME       = 'eb2cproduct/feed_image_master';
 	const VFS_ROOT              = 'testImageRoot';
 	const NUMBER_OF_DUMMY_FILES = 2; // How many files I expect to process as found in vfs fixture
@@ -18,7 +19,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	{
 		$this->_setMockFileTransfer($this->returnValue(true));
 		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Image_Master',
+			self::CLASS_NAME,
 			$this->_getTestModel($this->getFixture()->getVfs())
 		);
 	}
@@ -74,40 +75,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 				->getVfs()
 			)
 			->processFeeds()
-		);
-	}
-
-	/**
-	 * Throw exception if remote_path isn't provided 
-	 * I don't need a MockFs, because I shouldn't get that far.
-	 *
-	 * @test
-	 * @expectedException Mage_Core_Exception
-	 */
-	public function testNeedsRemotePath()
-	{
-		Mage::getModel(
-			self::MAGE_MODEL_NAME,
-			array(
-				'local_path' => 'dummy_local_path',
-			)
-		);
-	}
-
-	/**
-	 * Throw exception if local_path isn't provided
-	 * I don't need a MockFs, because I shouldn't get that far.
-	 *
-	 * @test
-	 * @expectedException Mage_Core_Exception
-	 */
-	public function testNeedsLocalPath()
-	{
-		Mage::getModel(
-			self::MAGE_MODEL_NAME,
-			array(
-				'remote_path' => 'dummy_remote_path',
-			)
 		);
 	}
 
