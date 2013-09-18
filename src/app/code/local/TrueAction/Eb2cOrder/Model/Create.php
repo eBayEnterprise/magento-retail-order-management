@@ -75,7 +75,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		}
 
 		try {
-			$response = $this->_helper->getApiModel()
+			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
 				->setTimeout($this->_config->serviceOrderTimeout)
 				->request($this->_domRequest);
