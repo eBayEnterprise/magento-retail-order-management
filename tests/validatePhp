@@ -57,12 +57,15 @@ gatherPhp() {
 # Lint all php files
 lint() {
 	local phpFile
+	local curSt=0
 	local st=0
 	mkdir -p build
 	pp 'Linting %d PHP files\n' "${#phpFiles[@]}"
 	for phpFile in "${phpFiles[@]}"; do
-		if ! php -l "$phpFile"; then
-			st=$?
+		php -l "$phpFile"
+		curSt=$?
+		if (( curSt != 0 )); then
+			st=$curSt
 			er 'php -l exited with a status code of %d.\n' "$st"
 		fi
 	done
