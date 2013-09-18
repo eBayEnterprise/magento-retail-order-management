@@ -65,6 +65,10 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 
-		return trim($cfg->sftpLocation) && trim($cfg->sftpUsername) && trim($cfg->sftpPassword);
+		return trim($cfg->sftpUsername) && trim($cfg->sftpLocation) && (
+			($cfg->sftpAuthType === 'password' && trim($cfg->sftpPassword)) ||
+			($cfg->sftpAuthType === 'pub_key' && trim($cfg->sftpPublicKey) && trim($cfg->sftpPrivateKey))
+		);
 	}
+
 }

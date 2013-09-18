@@ -143,10 +143,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			$domDocument->load($feed);
 
 			$expectEventType = $cfg->iShipFeedEventType;
-			$expectHeaderVersion = $cfg->iShipFeedHeaderVersion;
 
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
 				// processing feed items
 				$this->_iShipActions($domDocument);
 			}

@@ -3,19 +3,6 @@
  * This class is intended to simplify file movements during feed processing, and make sure
  * 	all dirs exists. Intended usage:
  *
- * $feed = Mage::getModel('eb2ccore/feed', array(
- *		'base_dir' => 'Your/Base/Dir/Here'
- *	));
- * // Here you'd run your file receiver 'into' feed->getInboundDir()
- * foreach( $feed->lsInboundDir() as $file ) {
- *		// Do feed things ...
- * 		if( ok ) {
- *			$feed->mvToArchiveDir($file);
- *		} else {
- *			$feed->mvToErrorDir($file);
- * 		}
- * }
- *
  * @method string getArchivePath()
  * @method string getBaseDir()
  * @method string getErrorPath()
@@ -84,6 +71,54 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$this->_setCheckAndCreateDir($this->getArchivePath());
 		$this->_setCheckAndCreateDir($this->getErrorPath());
 		$this->_setCheckAndCreateDir($this->getTmpPath());
+	}
+
+	/** 
+	 * Fetchs feeds from remote, places them into inBoundPath
+	 *
+	 * @param string $remotePath path on remote to pull from
+	 * @param string $filePattern filename pattern  to match
+	 */
+	public function fetchFeedsFromRemote($remotePath, $filePattern)
+	{
+		$connectionAttempts   = 0;
+		$cfg                  = Mage::helper('eb2ccore/feed');
+		$coreConfig           = Mage::getModel('eb2ccore/config_registry')
+			->setStore(null)
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
+
+		do {
+			try {
+				$connectionAttempts++;
+				Mage::helper('filetransfer')->getAllFiles(
+					$this->getInboundPath(),
+					$remotePath,
+					$filePattern,
+					$cfg::FILETRANSFER_CONFIG_PATH
+				);
+				break;
+			} catch( TrueAction_FileTransfer_Exception_Connection $e ) {
+				// Connection exceptions we'll retry, could be a temporary condition
+				Mage::logException($e);
+				if( $connectionAttempts >= $coreConfig->feedFetchConnectAttempts ) {
+					Mage::log('Connect failed, retry limit reached', Zend_Log::ERR);
+					break;
+				}
+				else {
+					Mage::log(
+						sprintf('Connect failed, sleeping %d seconds (attempt %d of %d)',
+						$coreConfig->feedFetchRetryTimer, $connectionAttempts, $coreConfig->feedFetchConnectAttempts),
+						Zend_Log::DEBUG
+					);
+					sleep($coreConfig->feedFetchRetryTimer);
+				}
+			} catch (Exception $e ) {
+				// Any other exception is failure, log and return
+				Mage::logException($e);
+				break;
+			}
+		} while(true);
+		return;
 	}
 
 	/**

@@ -17,13 +17,9 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 
 	public static function setUpBeforeClass()
 	{
-		self::$cls = new ReflectionClass(
-			'TrueAction_Eb2cTax_Model_Response'
-		);
-		$path = dirname(__FILE__) . '/ResponseTest/fixtures/response.xml';
-		self::$respXml = file_get_contents($path);
-		$path = dirname(__FILE__) . '/ResponseTest/fixtures/request.xml';
-		self::$reqXml = file_get_contents($path);
+		self::$cls = new ReflectionClass('TrueAction_Eb2cTax_Model_Response');
+		self::$respXml = file_get_contents(__DIR__ . '/ResponseTest/fixtures/response.xml');
+		self::$reqXml = file_get_contents(__DIR__ . '/ResponseTest/fixtures/request.xml');
 	}
 
 	/**
@@ -31,7 +27,16 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	 */
 	public function testGetFaultLogMessage()
 	{
-		$faultMessageXml = '<?xml version="1.0" encoding="UTF-8"?> <fault><faultstring>stuff happened</faultstring> <detail> <errorcode>someCode</errorcode> <trace>lots of details</trace> </detail> </fault>';
+		$faultMessageXml = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<fault>
+	<faultstring>stuff happened</faultstring>
+	<detail>
+		<errorcode>someCode</errorcode>
+		<trace>lots of details</trace>
+	</detail>
+</fault>
+XML;
 		$message = "Eb2cTax: Fault Message received: Code: (someCode) Description: 'stuff happened' Trace: 'lots of details'";
 		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$document->loadXML($faultMessageXml);
@@ -87,11 +92,11 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$item->expects($this->any())
 			->method('getSku')
 			->will($this->returnValue('gc_virtual1'));
-		$addressMock1 = $this->getModelMock('sales/quote_address');
-		$addressMock1->expects($this->any())
+		$addressMock = $this->getModelMock('sales/quote_address');
+		$addressMock->expects($this->any())
 			->method('getId')
 			->will($this->returnValue(1));
-		$responseItem = $response->getResponseForItem($item, $addressMock1);
+		$responseItem = $response->getResponseForItem($item, $addressMock);
 		$this->assertNotNull($responseItem);
 		$this->assertSame(3, count($responseItem->getTaxQuotes()));
 	}
@@ -270,12 +275,12 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$xmlPath  = __DIR__ . '/ResponseTest/fixtures/responseSplitAcrossShipGroups.xml';
 		$response = $this->_mockResponse(file_get_contents($xmlPath), $request);
 
-		$addressMock1 = $this->getModelMock('sales/quote_address', array('getId'));
-		$addressMock1->expects($this->any())
+		$addressMockA = $this->getModelMock('sales/quote_address', array('getId'));
+		$addressMockA->expects($this->any())
 			->method('getId')
 			->will($this->returnValue(1));
-		$addressMock2 = $this->getModelMock('sales/quote_address', array('getId'));
-		$addressMock2->expects($this->any())
+		$addressMockB = $this->getModelMock('sales/quote_address', array('getId'));
+		$addressMockB->expects($this->any())
 			->method('getId')
 			->will($this->returnValue(2));
 
@@ -286,10 +291,10 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		$responseItems = $response->getResponseItems();
 
 		$this->assertNotEmpty($response->getResponseItems());
-		$itemResponse = $response->getResponseForItem($itemMock, $addressMock1);
+		$itemResponse = $response->getResponseForItem($itemMock, $addressMockA);
 		$this->assertNotNull($itemResponse);
 		$this->assertSame('1', $itemResponse->getLineNumber());
-		$itemResponse = $response->getResponseForItem($itemMock, $addressMock2);
+		$itemResponse = $response->getResponseForItem($itemMock, $addressMockB);
 		$this->assertNotNull($itemResponse);
 		$this->assertSame('2', $itemResponse->getLineNumber());
 	}
@@ -492,29 +497,30 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 	/**
 	 * @dataProvider xmlProviderForValidateResponseItems
 	 */
-	public function testValidateResponseItems($path1, $path2, $expected)
+	public function testValidateResponseItems($pathA, $pathB, $expected)
 	{
 		$response = Mage::getModel('eb2ctax/response');
-		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc1->preserveWhiteSpace = false;
-		$doc1->loadXML(file_get_contents($path1));
-		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc2->preserveWhiteSpace = false;
-		$doc2->loadXML(file_get_contents($path2));
-		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $doc1, $doc2);
+		$docA = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$docB = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$docA->preserveWhiteSpace = false;
+		$docB->preserveWhiteSpace = false;
+		$docA->loadXML(file_get_contents($pathA));
+		$docB->loadXML(file_get_contents($pathB));
+		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $docA, $docB);
 		$this->assertSame($expected, $val);
 	}
 
 	public function testValidateResponseItemsWithEmptyDocs()
 	{
-		$response = $this->getModelMockBuilder('eb2ctax/response')
+		$response = $this
+			->getModelMockBuilder('eb2ctax/response')
 			->disableOriginalConstructor()
 			->getMock();
-		$doc1 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc1->preserveWhiteSpace = false;
-		$doc2 = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc2->preserveWhiteSpace = false;
-		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $doc1, $doc2);
+		$docA = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$docB = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$docA->preserveWhiteSpace = false;
+		$docB->preserveWhiteSpace = false;
+		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $docA, $docB);
 		$this->assertSame(false, $val);
 	}
 
