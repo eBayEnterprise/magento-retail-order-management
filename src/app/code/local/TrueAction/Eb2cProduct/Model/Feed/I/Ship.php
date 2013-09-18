@@ -401,7 +401,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
 		}
 
 		return;
