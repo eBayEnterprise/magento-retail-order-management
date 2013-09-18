@@ -141,37 +141,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	}
 
 	/**
-	 * Get the content inventory feed from eb2c.
-	 *
-	 * @return array, All the feed xml document, from eb2c server.
-	 */
-	protected function _getContentMasterFeeds()
-	{
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$coreHelper = Mage::helper('eb2ccore');
-		$remoteFile = $cfg->contentFeedRemoteReceivedPath;
-		$configPath = $cfg->configPath;
-		$feedHelper = Mage::helper('eb2ccore/feed');
-		$productHelper = Mage::helper('eb2cproduct');
-
-		// only attempt to transfer file when the FTP setting is valid
-		if ($coreHelper->isValidFtpSettings()) {
-			// Download feed from eb2c server to local server
-			Mage::helper('filetransfer')->getFile(
-				$this->getFeedModel()->getInboundDir(),
-				$remoteFile,
-				$feedHelper::FILETRANSFER_CONFIG_PATH
-			);
-		} else {
-			// log as a warning
-			Mage::log(
-				'[' . __CLASS__ . '] Content Master Feed: can\'t transfer file from eb2c server because of invalid FTP setting on the magento store.',
-				Zend_Log::WARN
-			);
-		}
-	}
-
-	/**
 	 * processing downloaded feeds from eb2c.
 	 *
 	 * @return void
@@ -182,7 +151,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$this->_getContentMasterFeeds();
+
+		$this->getFeedModel()->fetchFeedsFromRemote(
+			$cfg->contentFeedRemoteReceivedPath,
+			$cfg->contentFeedFilePattern
+		);
+
 		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
