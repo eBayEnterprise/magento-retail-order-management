@@ -68,7 +68,9 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 		// Mock the core config registry, only value passed is the vfs filename
 		$this->replaceCoreConfigRegistry(
 			array (
-				'statusFeedLocalPath' => $vfs->url(self::VFS_ROOT),
+				'statusFeedLocalPath'    => $vfs->url(self::VFS_ROOT),
+				'statusFeedRemotePath'   => 'dummy_path',
+				'statusFeedFilePattern'  => 'OrderStatus*.xml',
 			)
 		);
 
@@ -81,6 +83,5 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 				)
 			)->processFeeds()
 		);
-
 	}
 }
