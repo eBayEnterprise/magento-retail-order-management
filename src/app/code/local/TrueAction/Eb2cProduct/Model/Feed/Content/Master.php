@@ -141,48 +141,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	}
 
 	/**
-<<<<<<< HEAD
-	 * Get the content inventory feed from eb2c.
-	 *
-	 * @return array, All the feed xml document, from eb2c server.
-	 */
-	protected function _getContentMasterFeeds()
-	{
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$coreHelper = Mage::helper('eb2ccore');
-		$remoteFile = $cfg->contentFeedRemoteReceivedPath;
-		$configPath = $cfg->configPath;
-		$feedHelper = Mage::helper('eb2ccore/feed');
-		$productHelper = Mage::helper('eb2cproduct');
-
-		// only attempt to transfer file when the FTP setting is valid
-		if ($coreHelper->isValidFtpSettings()) {
-			try{
-				// Download feed from eb2c server to local server
-				Mage::helper('filetransfer')->getFile(
-					$this->getFeedModel()->getInboundDir(),
-					$remoteFile,
-					$feedHelper::FILETRANSFER_CONFIG_PATH
-				);
-			} catch (TrueAction_FileTransfer_Exception_Connection $e) {
-				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Connection Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			} catch (TrueAction_FileTransfer_Exception_Authentication $e) {
-				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Authentication Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			} catch (TrueAction_FileTransfer_Exception_Transfer $e) {
-				Mage::log('[' . __CLASS__ . '] Product Content Master Feed Transfer Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			}
-		} else {
-			// log as a warning
-			Mage::log(
-				'[' . __CLASS__ . '] Content Master Feed: can\'t transfer file from eb2c server because of invalid FTP setting on the magento store.',
-				Zend_Log::WARN
-			);
-		}
-	}
-
-	/**
-=======
->>>>>>> master
 	 * processing downloaded feeds from eb2c.
 	 *
 	 * @return void
