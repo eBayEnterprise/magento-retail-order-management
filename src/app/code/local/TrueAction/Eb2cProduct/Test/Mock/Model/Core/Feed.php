@@ -21,7 +21,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -85,7 +85,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -149,7 +149,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -213,7 +213,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -277,7 +277,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -341,7 +341,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -405,7 +405,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -469,7 +469,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -533,7 +533,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -597,7 +597,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -661,7 +661,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -725,7 +725,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -789,7 +789,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -853,7 +853,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -917,7 +917,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -981,7 +981,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1045,7 +1045,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1109,7 +1109,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1173,7 +1173,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1237,7 +1237,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1301,7 +1301,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1365,7 +1365,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1429,7 +1429,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1493,7 +1493,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1557,7 +1557,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1621,7 +1621,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1685,7 +1685,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())
@@ -1749,7 +1749,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir'
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
 			)
 		);
 		$coreModelFeedMock->expects($this->any())

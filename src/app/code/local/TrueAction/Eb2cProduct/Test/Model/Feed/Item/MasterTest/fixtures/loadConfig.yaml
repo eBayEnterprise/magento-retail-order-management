@@ -4,9 +4,9 @@ config:
   default/eb2ccore/general/client_id: "TAN-CLI"
   default/eb2ccore/general/catalog_id: "70"
   default/eb2c/product/allocation_expired: 60
-  default/eb2c/product/feed_local_path: "var/TrueAction/Eb2c/Feed/Item/Master/"
-  default/eb2c/product/feed_remote_received_path: "/Item/Master/"
   default/eb2c/product/config_path: "eb2ccore/general"
-  default/eb2c/product/feed_event_type: "ItemMaster"
-  default/eb2c/product/feed_header_version: "2.3.0"
+  default/eb2cproduct/item_master_feed/local_path: "var/TrueAction/Eb2c/Feed/Item/Master/"
+  default/eb2cproduct/item_master_feed/remote_path: "/Item/Master/"
+  default/eb2cproduct/item_master_feed/event_type: "ItemMaster"
+  default/eb2cproduct/item_master_feed/header_version: "2.3.0"
   default/eb2ccore/feed/destination_type: "MAILBOX"
