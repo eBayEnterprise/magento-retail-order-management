@@ -197,10 +197,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			$domDocument->load($feed);
 
 			$expectEventType = $cfg->contentFeedEventType;
-			$expectHeaderVersion = $cfg->contentFeedHeaderVersion;
-
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
 				// processing feed Contents
 				$this->_contentMasterActions($domDocument);
 			}

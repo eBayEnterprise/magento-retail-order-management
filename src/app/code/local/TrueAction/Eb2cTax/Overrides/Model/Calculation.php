@@ -1,26 +1,27 @@
 <?php
-/**
- *
- */
 class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calculation
 {
-	protected static $_typeMap = array(0 => 'merchandise', 1 => 'shipping', 2 => 'duty');
+	protected static $_typeMap = array(
+		0 => 'merchandise',
+		1 => 'shipping',
+		2 => 'duty'
+	);
 
-	public function __construct()
+	public function _construct()
 	{
-		parent::__construct();
+		parent::_construct();
 		if (!$this->hasTaxResponse()) {
 			$checkout = Mage::getSingleton('checkout/session');
 			if ($checkout->hasEb2cTaxResponse()) {
-				parent::setTaxResponse($checkout->getEb2cTaxResponse());
+				$this->setTaxResponse($checkout->getEb2cTaxResponse());
 			}
 		}
 	}
 
 	/**
-	 * return the total tax amount for any discounts.
-	 * @param  Varien_Object $itemSelector
-	 * @return float
+	 * @param Varien_Object $itemSelector
+	 * @param string $type One of the values in self::_typeMap
+	 * @return float the total tax amount for any discounts
 	 */
 	public function getDiscountTax(Varien_Object $itemSelector, $type='merchandise')
 	{
@@ -38,16 +39,13 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
-	 * return the total tax amount for any discounts.
-	 * @param  Varien_Object $itemSelector
-	 * @return float
+	 * @param float $amount The amount to calculate tax on
+	 * @param Varien_Object $itemSelector
+	 * @param string $type One of the values in self::_typeMap
+	 * @param boolean $round Whether to round the result
+	 * @return float the total tax amount for any discounts
 	 */
-	public function getDiscountTaxForAmount(
-		$amount,
-		Varien_Object $itemSelector,
-		$type='merchandise',
-		$round=true
-	)
+	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector, $type='merchandise', $round=true)
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
@@ -64,30 +62,42 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 
 	/**
-	 * get a request object for the quote.
-	 * @param  Mage_Sales_Model_Quote $quote
-	 * @return TrueAction_Eb2cTax_Model_Request
+	 * if $quote is null and a current request exists, return the existing request.
+	 * if $quote is not null return a new request using the quote's data.
+	 * otherwise return a new invalid request.
+	 * @param Mage_Sales_Model_Quote $quote
+	 * @return TrueAction_Eb2cTax_Model_Request a tax request object
 	 */
 	public function getTaxRequest(Mage_Sales_Model_Quote $quote=null)
 	{
+		if ($quote) {
+			// delete old response/request
+			$this->unsTaxResponse();
+			return Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		}
 		$response = $this->getTaxResponse();
-		$request = ($response && $response->getTaxRequest()) ?
-			$response->getRequest() :
-			Mage::getModel('eb2ctax/request', array('quote' => $quote));
-		return $request;
+		return $response ? $response->getRequest() : null;
 	}
 
 	/**
 	 * store the tax response from eb2c
 	 * @param TrueAction_Eb2cTax_Model_Response $response
+	 * @return self
 	 */
 	public function setTaxResponse(TrueAction_Eb2cTax_Model_Response $response=null)
 	{
-		if (isset($response)) {
-			parent::setTaxResponse($response);
-			Mage::getSingleton('checkout/session')->setEb2cTaxResponse($response);
-		}
-		return $this;
+		Mage::getSingleton('checkout/session')->setEb2cTaxResponse($response);
+		return $this->setData('tax_response', $response);
+	}
+
+	/**
+	 * Unset the tax response from eb2c
+	 * @return self
+	 */
+	public function unsTaxResponse()
+	{
+		Mage::getSingleton('checkout/session')->unsEb2cTaxResponse();
+		return $this->unsetData('tax_response');
 	}
 
 	/**
@@ -231,12 +241,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					if (isset($result[$id])) {
 						$group = $result[$id];
 					} else {
-						$msg = sprintf(
-							'Eb2cTax: Discount with no matching tax quote encountered. code = %s, rate = %1.4f',
-							$code,
-							$taxRate
-						);
-						Mage::log('[' . __CLASS__ . '] ' . $msg, Zend_Log::WARN);
 						continue;
 					}
 
@@ -255,12 +259,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	/**
 	 * @codeCoverageIgnore
 	 */
-	public function getRateRequest(
-		$shippingAddress=null,
-		$billingAddress=null,
-		$customerTaxClass='',
-		$store=null
-	)
+	public function getRateRequest($shippingAddress=null, $billingAddress=null, $customerTaxClass='', $store=null)
 	{
 		$quote = $billingAddress ? $billingAddress->getQuote() : null;
 		return $this->getTaxRequest($quote);

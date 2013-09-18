@@ -1,6 +1,9 @@
 <?php
 abstract class TrueAction_Eb2cCore_Test_Base
 	extends EcomDev_PHPUnit_Test_Case {
+
+	const EB2CCORE_CONFIG_REGISTRY_MODEL = 'eb2ccore/config_registry';
+
 	protected function _reflectProperty($object, $propName, $accessible=true)
 	{
 		$p = new ReflectionProperty($object, $propName);
@@ -26,6 +29,41 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			}
 		}
 		return $mock;
+	}
+
+	/**
+	 * Replaces the Magento eb2ccore/config_registry model.
+	 *
+	 * @param array name/ value map
+	 */
+	public function replaceCoreConfigRegistry($userConfigValuePairs=array())
+	{
+		$configValuePairs = array (
+			// Core Values:
+			'clientId'                => 'TAN-OS-CLI',
+			'feedDestinationType'     => 'MAILBOX',
+
+			// Sample non-core Values:
+			'developerMode' => true,
+		);
+
+		// Replace and/ or add to the default configValuePairs if the user has supplied some config values
+		foreach( $userConfigValuePairs as $configPath => $configValue ) {
+			$configValuePairs[$configPath] = $configValue;
+		}
+
+		// Build the array in the format returnValueMap wants
+		$valueMap = array();
+		foreach( $configValuePairs as $configPath => $configValue ) {
+			$valueMap[] = array($configPath, $configValue);
+		}
+
+		$mockConfig = $this->getModelMock(self::EB2CCORE_CONFIG_REGISTRY_MODEL, array('__get'));
+		$mockConfig->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap($valueMap));
+
+		$this->replaceByMock('model', self::EB2CCORE_CONFIG_REGISTRY_MODEL, $mockConfig);
 	}
 
 	protected function _setupBaseUrl()
