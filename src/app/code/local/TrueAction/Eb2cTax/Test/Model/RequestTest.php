@@ -1367,10 +1367,11 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	public function testBuildDiscountNode()
 	{
 		$request = Mage::getModel('eb2ctax/request');
-		$fn   = $this->_reflectMethod($request, '_buildDiscountNode');
-		$doc  = $request->getDocument();
-		$node = $doc->createElement('root', null, 'http:/www.example.com/foo');
-		$xpath = new DOMXPath($doc);
+		$fn      = $this->_reflectMethod($request, '_buildDiscountNode');
+		$doc     = $request->getDocument();
+		$node    = $doc->createElement('root', null, 'http:/www.example.com/foo');
+		$doc->appendChild($node);
+		$xpath   = new DOMXPath($doc);
 		$xpath->registerNamespace('a', $doc->documentElement->namespaceURI);
 		$discount = array(
 			'merchandise_discount_code'      => 'somediscount',
@@ -1842,7 +1843,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$itemA->setData(array('item_id' => 1,
+		$itemA->setData(array(
+			'item_id'                 => 1,
 			'quote_id'                => 1,
 			'product_id'              => 51,
 			'store_id'                => 2,
@@ -1874,7 +1876,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$itemB->setData(array('item_id' => 2,
+		$itemB->setData(array(
+			'item_id' => 2,
 			'quote_id'                => 1,
 			'product_id'              => 52,
 			'store_id'                => 2,
@@ -1906,7 +1909,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$itemC->setData(array('item_id' => 3,
+		$itemC->setData(array(
+			'item_id' => 3,
 			'quote_id'                => 1,
 			'product_id'              => 53,
 			'store_id'                => 2,
@@ -2178,7 +2182,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$itemC->setData(array('item_id' => 3,
+		$itemC->setData(array(
+			'item_id' => 3,
 			'quote_id'                => 1,
 			'product_id'              => 53,
 			'store_id'                => 2,
@@ -2254,57 +2259,57 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		// mock the quote
 		$quote = $this->_buildModelMock('sales/quote', array(
-			'getId'              => $this->returnValue(1),
-			'isVirtual'          => $this->returnValue(true),
-			'getStore'           => $this->returnValue($store),
-			'getBillingAddress'  => $this->returnValue($addressA),
-			'getAllAddresses'    => $this->returnValue(array($addressA)),
+			'getId'                   => $this->returnValue(1),
+			'isVirtual'               => $this->returnValue(true),
+			'getStore'                => $this->returnValue($store),
+			'getBillingAddress'       => $this->returnValue($addressA),
+			'getAllAddresses'         => $this->returnValue(array($addressA)),
 			'getAllShippingAddresses' => $this->returnValue(array()),
-			'getAllVisibleItems' => $this->returnValue($items),
-			'getItemById'        => $this->returnValueMap(array(array(1,
+			'getAllVisibleItems'      => $this->returnValue($items),
+			'getItemById'             => $this->returnValueMap(array(array(1,
 			$itemA), array(2,
 			$itemB), array(3,
 			$itemC),
 			))
 		));
 		$quote->setData(array(
-			'entity_id' => 1,
-			'store_id' => 0,
-			'created_at' => '2013-06-27 17:32:54',
-			'updated_at' => '2013-06-27 17:36:19',
-			'is_active' => 0,
-			'is_virtual' => 0,
-			'is_multi_shipping' => 0,
-			'items_count' => 3,
-			'items_qty' => 3.0000,
-			'orig_order_id' => 0,
-			'store_to_base_rate' => 1.0000,
-			'store_to_quote_rate' => 1.0000,
-			'base_to_global_rate' => 1.0000,
-			'base_to_quote_rate' => 1.0000,
-			'global_currency_code' => 'USD',
-			'base_currency_code' => 'USD',
-			'store_currency_code' => 'USD',
-			'quote_currency_code' => 'USD',
-			'grand_total' => 1044.9700,
-			'base_grand_total' => 1044.9700,
-			'customer_id' => 5,
-			'customer_tax_class_id' => 3,
-			'customer_group_id' => 1,
-			'customer_email' => 'foo@example.com',
-			'customer_firstname' => 'test',
-			'customer_lastname' => 'guy',
-			'customer_note_notify' => 1,
-			'customer_is_guest' => 0,
-			'remote_ip' => '192.168.56.1',
-			'reserved_order_id' => 100000050,
-			'subtotal' => 1029.9700,
-			'base_subtotal' => 1029.9700,
-			'subtotal_with_discount' => 1029.9700,
+			'entity_id'                   => 1,
+			'store_id'                    => 0,
+			'created_at'                  => '2013-06-27 17:32:54',
+			'updated_at'                  => '2013-06-27 17:36:19',
+			'is_active'                   => 0,
+			'is_virtual'                  => 0,
+			'is_multi_shipping'           => 0,
+			'items_count'                 => 3,
+			'items_qty'                   => 3.0000,
+			'orig_order_id'               => 0,
+			'store_to_base_rate'          => 1.0000,
+			'store_to_quote_rate'         => 1.0000,
+			'base_to_global_rate'         => 1.0000,
+			'base_to_quote_rate'          => 1.0000,
+			'global_currency_code'        => 'USD',
+			'base_currency_code'          => 'USD',
+			'store_currency_code'         => 'USD',
+			'quote_currency_code'         => 'USD',
+			'grand_total'                 => 1044.9700,
+			'base_grand_total'            => 1044.9700,
+			'customer_id'                 => 5,
+			'customer_tax_class_id'       => 3,
+			'customer_group_id'           => 1,
+			'customer_email'              => 'foo@example.com',
+			'customer_firstname'          => 'test',
+			'customer_lastname'           => 'guy',
+			'customer_note_notify'        => 1,
+			'customer_is_guest'           => 0,
+			'remote_ip'                   => '192.168.56.1',
+			'reserved_order_id'           => 100000050,
+			'subtotal'                    => 1029.9700,
+			'base_subtotal'               => 1029.9700,
+			'subtotal_with_discount'      => 1029.9700,
 			'base_subtotal_with_discount' => 1029.9700,
-			'is_changed' => 1,
-			'trigger_recollect' => 0,
-			'is_persistent' => 0,
+			'is_changed'                  => 1,
+			'trigger_recollect'           => 0,
+			'is_persistent'               => 0,
 		));
 		return $quote;
 	}
@@ -2328,29 +2333,29 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getStore'       => $this->returnValue($store),
 		));
 		$itemA->setData(array(
-			'item_id' => 1,
-			'quote_id' => 1,
-			'product_id' => 51,
-			'store_id' => 2,
-			'is_virtual' => 0,
-			'sku' => 1111,
-			'name' => 'Ottoman',
-			'free_shipping' => 0,
-			'is_qty_decimal' => 0,
-			'no_discount' => 0,
-			'weight' => 20.0000,
-			'qty' => 1.0000,
-			'price' => 299.9900,
-			'base_price' => 299.9900,
-			'row_total' => 299.9900,
-			'base_row_total' => 299.9900,
+			'item_id'                 => 1,
+			'quote_id'                => 1,
+			'product_id'              => 51,
+			'store_id'                => 2,
+			'is_virtual'              => 0,
+			'sku'                     => 1111,
+			'name'                    => 'Ottoman',
+			'free_shipping'           => 0,
+			'is_qty_decimal'          => 0,
+			'no_discount'             => 0,
+			'weight'                  => 20.0000,
+			'qty'                     => 1.0000,
+			'price'                   => 299.9900,
+			'base_price'              => 299.9900,
+			'row_total'               => 299.9900,
+			'base_row_total'          => 299.9900,
 			'row_total_with_discount' => 0.0000,
-			'row_weight' => 20.0000,
-			'product_type' => 'simple',
-			'base_cost' => 50.0000,
-			'price_incl_tax' => 299.9900,
-			'base_price_incl_tax' => 299.9900,
-			'row_total_incl_tax' => 299.9900,
+			'row_weight'              => 20.0000,
+			'product_type'            => 'simple',
+			'base_cost'               => 50.0000,
+			'price_incl_tax'          => 299.9900,
+			'base_price_incl_tax'     => 299.9900,
+			'row_total_incl_tax'      => 299.9900,
 			'base_row_total_incl_tax' => 299.9900,
 		));
 
@@ -2361,29 +2366,29 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getStore'       => $this->returnValue($store),
 		));
 		$itemB->setData(array(
-			'item_id' => 2,
-			'quote_id' => 1,
-			'product_id' => 52,
-			'store_id' => 2,
-			'is_virtual' => 1,
-			'sku' => 1112,
-			'name' => 'Chair',
-			'free_shipping' => 0,
-			'is_qty_decimal' => 0,
-			'no_discount' => 0,
-			'weight' => 50.0000,
-			'qty' => 1.0000,
-			'price' => 129.9900,
-			'base_price' => 129.9900,
-			'row_total' => 129.9900,
-			'base_row_total' => 129.9900,
+			'item_id'                 => 2,
+			'quote_id'                => 1,
+			'product_id'              => 52,
+			'store_id'                => 2,
+			'is_virtual'              => 1,
+			'sku'                     => 1112,
+			'name'                    => 'Chair',
+			'free_shipping'           => 0,
+			'is_qty_decimal'          => 0,
+			'no_discount'             => 0,
+			'weight'                  => 50.0000,
+			'qty'                     => 1.0000,
+			'price'                   => 129.9900,
+			'base_price'              => 129.9900,
+			'row_total'               => 129.9900,
+			'base_row_total'          => 129.9900,
 			'row_total_with_discount' => 0.0000,
-			'row_weight' => 50.0000,
-			'product_type' => 'simple',
-			'base_cost' => 50.0000,
-			'price_incl_tax' => 129.9900,
-			'base_price_incl_tax' => 129.9900,
-			'row_total_incl_tax' => 129.9900,
+			'row_weight'              => 50.0000,
+			'product_type'            => 'simple',
+			'base_cost'               => 50.0000,
+			'price_incl_tax'          => 129.9900,
+			'base_price_incl_tax'     => 129.9900,
+			'row_total_incl_tax'      => 129.9900,
 			'base_row_total_incl_tax' => 129.9900,
 		));
 
@@ -2427,7 +2432,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array()),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$addressA->setData(array('address_id' => 1,
+		$addressA->setData(array(
+			'address_id'                  => 1,
 			'quote_id'                    => 1,
 			'customer_id'                 => 5,
 			'save_in_address_book'        => 1,
@@ -2474,7 +2480,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array($itemA, $itemB, $itemC)),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$addressB->setData(array('address_id' => 2,
+		$addressB->setData(array(
+			'address_id'                    => 2,
 			'quote_id'                      => 1,
 			'customer_id'                   => 5,
 			'save_in_address_book'          => 0,
@@ -2536,7 +2543,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				array(3, $itemC),
 			))
 		));
-		$quote->setData(array('entity_id' => 1,
+		$quote->setData(array(
+			'entity_id'                   => 1,
 			'store_id'                    => 0,
 			'created_at'                  => '2013-06-27 17:32:54',
 			'updated_at'                  => '2013-06-27 17:36:19',
@@ -2596,7 +2604,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$store = $this->_mockStore();
 
 		$product = $this->_buildModelMock('catalog/product', array(
-			'isVirtual' => $this->returnValue(false),
+			'isVirtual'  => $this->returnValue(false),
 			'hasTaxCode' => $this->returnValue(true),
 			'getTaxCode' => $this->returnValue('12345'),
 		));
@@ -2608,7 +2616,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$item->setData(array('item_id' => 4,
+		$item->setData(array(
+			'item_id'                       => 4,
 			'quote_id'                      => 2,
 			'created_at'                    => '2013-06-27 17:41:05',
 			'updated_at'                    => '2013-06-27 17:41:37',
@@ -2658,7 +2667,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$addressItemA->setData(array('address_item_id' => 5,
+		$addressItemA->setData(array(
+			'address_item_id'         => 5,
 			'quote_address_id'        => 9,
 			'quote_item_id'           => 4,
 			'created_at'              => '2013-06-27 17:43:32',
@@ -2694,7 +2704,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
 		));
-		$addressItemB->setData(array('address_item_id' => 6,
+		$addressItemB->setData(array(
+			'address_item_id'         => 6,
 			'quote_address_id'        => 10,
 			'quote_item_id'           => 4,
 			'created_at'              => '2013-06-27 17:43:32',
@@ -2731,7 +2742,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array($addressItemA)),
 			'getGroupedAllShippingRates' => $this->returnValue(array('flatrate' => array($shippingRate))),
 		));
-		$addressA->setData(array('address_id' => 9,
+		$addressA->setData(array(
+			'address_id' => 9,
 			'quote_id'                      => 2,
 			'created_at'                    => '2013-06-27 17:43:32',
 			'updated_at'                    => '2013-06-27 17:45:05',
@@ -2880,7 +2892,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getAllNonNominalItems'      => $this->returnValue(array()),
 			'getGroupedAllShippingRates' => $this->returnValue(array()),
 		));
-		$addressC->setData(array('address_id' => 11,
+		$addressC->setData(array(
+			'address_id' => 11,
 			'quote_id'                     => 2,
 			'created_at'                   => '2013-06-27 17:43:32',
 			'updated_at'                   => '2013-06-27 17:45:05',
