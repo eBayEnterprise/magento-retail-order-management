@@ -23,7 +23,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 	 */
 	private function _missingConfigMessage($missingConfigName)
 	{
-		return __CLASS__ . ' can\'t be instantiated, \'' . $missingConfigName . '\' not configured.';
+		return __CLASS__ . " can't be instantiated, '$missingConfigName' not configured.";
 	}
 
 	protected function _construct()
