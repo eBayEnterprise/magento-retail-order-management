@@ -65,47 +65,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	}
 
 	/**
-	 * extract BundleContents data into a varien object
-	 *
-	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 *
-	 * @return Varien_Object
-	 */
-	protected function _extractBundleContents(DOMXPath $feedXPath, $itemIndex, $catalogId)
-	{
-		$bundleItemCollection = array();
-
-		// get all bundle items
-		$nodeBundleItems = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems");
-		if ($nodeBundleItems->length) {
-			$bundleItemIndex = 1;
-			foreach ($nodeBundleItems as $bundleItem) {
-				// Client or vendor id (SKU) for the item to be included in the bundle.
-				$nodeItemID = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems[$bundleItemIndex]/ItemID");
-
-				// How many of the child item come in the bundle.
-				$nodeQuantity = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BundleContents/BundleItems[$bundleItemIndex]/Quantity");
-
-				$bundleItemCollection[] = new Varien_Object(
-					array(
-						'ship_together' => (bool) $bundleItem->getAttribute('ship_together'), // All items in the bundle must ship together.
-						'operation_type' => (string) $bundleItem->getAttribute('operation_type'),
-						'catalog_id' => (string) $bundleItem->getAttribute('catalog_id'),
-						'item_id' => ($nodeItemID->length)? (string) $nodeItemID->item(0)->nodeValue : null,
-						'quantity' => ($nodeQuantity->length)? (int) $nodeQuantity->item(0)->nodeValue : null,
-					)
-				);
-
-				$bundleItemIndex++;
-			}
-		}
-
-		return new Varien_Object(array('bundle_items' => ($nodeBundleItems->length)? $bundleItemCollection : null));
-	}
-
-	/**
 	 * extract DropShipSupplierInformation data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
@@ -151,12 +110,30 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		// Item is able to be back ordered.
 		$nodeBackOrderable = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
 
-		// Color value/name with a locale specific description.
-		// Name of the color used as the default and in the admin.
-		$nodeColorCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
 
-		// Description of the color used for specific store views/languages.
-		$nodeColorDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
+		$colorData = array();
+		$nodeColorAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
+		$colorIndex = 1;
+		foreach ($nodeColorAttributes as $colorRecord) {
+			// Color value/name with a locale specific description.
+			// Name of the color used as the default and in the admin.
+			$nodeColorCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Code");
+
+			// Description of the color used for specific store views/languages.
+			$nodeColorDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Description");
+			$colorDescriptionData = array();
+			$colorDescriptionIndex = 1;
+			foreach ($nodeColorDescription as $colorDescriptionRecord) {
+				$colorDescriptionData[] = array('lang' => $colorDescriptionRecord->getAttribute('xml:lang'), 'description' => $colorDescriptionRecord->nodeValue);
+				$colorDescriptionIndex++;
+			}
+
+			$colorData[] = array(
+				'code' => ($nodeColorCode->length)? (string) $nodeColorCode->item(0)->nodeValue : null,
+				'description' => $colorDescriptionData,
+			);
+			$colorIndex++;
+		}
 
 		// Country in which goods were completely derived or manufactured.
 		$nodeCountryOfOrigin = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
@@ -199,18 +176,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			);
 		}
 
+		// Code that identifies the specific appearance type or variety in which the item is available.
+		$nodeStyleId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleID");
+
 		return new Varien_Object(
 			array(
 				'allow_gift_message' => ($nodeAllowGiftMessage->length)? (bool) $nodeAllowGiftMessage->item(0)->nodeValue : false,
 				'back_orderable' => ($nodeBackOrderable->length)? (string) $nodeBackOrderable->item(0)->nodeValue : null,
 				'color_attributes' => new Varien_Object(
 					array(
-						'color_code' => ($nodeColorCode->length)? (string) $nodeColorCode->item(0)->nodeValue : null,
-						'description' => ($nodeColorDescription->length)? (string) $nodeColorDescription->item(0)->nodeValue : null,
-						'country_of_origin' => ($nodeCountryOfOrigin->length)? (string) $nodeCountryOfOrigin->item(0)->nodeValue : null,
-						'gift_card_tender_code' => ($nodeGiftCardTenderCode->length)? (string) $nodeGiftCardTenderCode->item(0)->nodeValue : null,
+						'color' => $colorData,
 					)
 				),
+				'country_of_origin' => ($nodeCountryOfOrigin->length)? (string) $nodeCountryOfOrigin->item(0)->nodeValue : null,
+				'gift_card_tender_code' => ($nodeGiftCardTenderCode->length)? (string) $nodeGiftCardTenderCode->item(0)->nodeValue : null,
 				'item_dimensions_shipping' => new Varien_Object(
 					array(
 						'mass_unit_of_measure' => ($nodeMass->length)? (string) $nodeMass->item(0)->getAttribute('unit_of_measure') : null,
@@ -223,7 +202,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 					array(
 						'size' => $sizeData
 					)
-				)
+				),
+				'style_id' => ($nodeStyleId->length)? (string) $nodeStyleId->item(0)->nodeValue : null,
 			)
 		);
 	}
@@ -296,8 +276,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId),
 					// get varien object of base attributes node
 					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId),
-					// get varien object of bundle attributes node
-					'bundle_contents' => $this->_extractBundleContents($feedXPath, $itemIndex, $catalogId),
 					// get varien object of Drop Ship Supplier Information attribute node
 					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId),
 					// get varien object of Extended Attributes node
