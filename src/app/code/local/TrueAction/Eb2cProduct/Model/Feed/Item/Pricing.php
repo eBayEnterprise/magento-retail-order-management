@@ -5,7 +5,7 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
-	extends Mage_Core_Model_Abstract
+	extends TrueAction_Eb2cCore_Model_Feed_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	/**
