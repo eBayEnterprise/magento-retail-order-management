@@ -14,7 +14,7 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 	protected $_taxQuoteDiscounts = array();
 
 	/**
-	 * @see self::$_isValid
+	 * get whether the response is valid or not.
 	 * @return boolean
 	 */
 	public function isValid()
@@ -23,7 +23,7 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * @see self::$_taxQuotes
+	 * get array of tax quotes
 	 * @return array(TrueAction_Eb2cTax_Model_Response_Quote)
 	 */
 	public function getTaxQuotes()
@@ -32,7 +32,7 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * @see self::$_taxQuoteDiscounts
+	 * get array of tax quotes for discounts
 	 * @return array(TrueAction_Eb2cTax_Model_Response_Quote_Discount)
 	 */
 	public function getTaxQuoteDiscounts()
@@ -135,7 +135,6 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 		$type = TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING;
 		$taxNodes = $xpath->query('a:Pricing/a:Shipping/a:TaxData/a:Taxes/a:Tax', $itemNode);
 		foreach ($taxNodes as $taxNode) {
-			// foreach pricing/shipping/taxdata/
 			$this->_taxQuotes[] = Mage::getModel(
 				'eb2ctax/response_quote',
 				array(
@@ -147,7 +146,6 @@ class TrueAction_Eb2cTax_Model_Response_OrderItem extends Mage_Core_Model_Abstra
 		$type = TrueAction_Eb2cTax_Model_Response_Quote::DUTY;
 		$taxNodes = $xpath->query('a:Pricing/a:Duty/a:TaxData/a:Taxes/a:Tax', $itemNode);
 		foreach ($taxNodes as $taxNode) {
-			// foreach pricing/shipping/taxdata/
 			$this->_taxQuotes[] = Mage::getModel(
 				'eb2ctax/response_quote',
 				array(

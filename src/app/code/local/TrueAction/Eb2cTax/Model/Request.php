@@ -48,7 +48,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * @see self::$_store
+	 * @return Mage_Core_Model_Store the underlying quote's store model.
 	 * @codeCoverageIgnore
 	 */
 	public function getStore()
@@ -92,7 +92,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 					$destinationId = $this->_getDestinationId($address, $item->getProduct()->isVirtual());
 					$orderItemId = $destinationId . '_' . $item->getSku();
 					$orderItem = isset($this->_orderItems[$orderItemId]) ?
-						$this->_orderItems[$orderItemId] : !($this->_hasChanges = true);
+						$this->_orderItems[$orderItemId] : null;
+					$this->_hasChanges = is_null($orderItem) ? true : $this->_hasChanges;
 					$this->_hasChanges = $this->_hasChanges ||
 						(isset($orderItem['merchandise_discount_amount'])? $orderItem['merchandise_discount_amount']: null) !== $item->getDiscountAmount();
 					$this->_hasChanges = $this->_hasChanges ||
@@ -152,9 +153,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function checkItemQty($quoteItem)
 	{
 		$sku = $quoteItem->getSku();
+
 		$quantity = isset($this->_itemQuantities[$sku]) ?
-			$this->_itemQuantities[$sku] : !($this->_hasChanges = true);
-		$this->_hasChanges = $this->_hasChanges ||
+			$this->_itemQuantities[$sku] :
+			null;
+		$this->_hasChanges = is_null($quantity) ||
+			$this->_hasChanges ||
 			(float) $quantity !== (float) $quoteItem->getTotalQty();
 	}
 
