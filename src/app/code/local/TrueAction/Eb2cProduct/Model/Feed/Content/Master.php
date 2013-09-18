@@ -141,6 +141,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Get the content inventory feed from eb2c.
 	 *
 	 * @return array, All the feed xml document, from eb2c server.
@@ -180,6 +181,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	}
 
 	/**
+=======
+>>>>>>> master
 	 * processing downloaded feeds from eb2c.
 	 *
 	 * @return void
@@ -190,7 +193,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$this->_getContentMasterFeeds();
+
+		$this->getFeedModel()->fetchFeedsFromRemote(
+			$cfg->contentFeedRemoteReceivedPath,
+			$cfg->contentFeedFilePattern
+		);
+
 		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
