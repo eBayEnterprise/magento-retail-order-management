@@ -47,7 +47,7 @@
 		</eb2c>
 		<eb2corder>
 			<status_feed>
-				<local_path>var/TrueAction/Eb2c/Feed/Order/Status/</local_path>
+				<local_path>TrueAction/Eb2c/Feed/Order/Status/</local_path>
 				<remote_path></remote_path>
 				<file_pattern>OrderStatus*.xml</file_pattern>
 				<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
