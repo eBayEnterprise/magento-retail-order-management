@@ -10,6 +10,11 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 	{
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 
+		// set up base dir if it hasn't been during instantiation
+		if (!$this->hasBaseDir()) {
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->feedLocalPath);
+		}
+
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
 		if ($this->hasFsTool()) {
@@ -20,8 +25,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 			->setStockItem(Mage::getModel('cataloginventory/stock_item'))
 			->setProduct(Mage::getModel('catalog/product'))
 			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			->setBaseDir($cfg->feedLocalPath);
+			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs));
 
 		return $this;
 	}
