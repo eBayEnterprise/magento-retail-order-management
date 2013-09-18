@@ -175,11 +175,7 @@
 				<allocation_uri></allocation_uri>
 				<rollback_allocation_uri></rollback_allocation_uri>
 				<allocation_expired>60</allocation_expired>
-				<feed_local_path>var/TrueAction/Eb2c/Feed/Item/Inventories/</feed_local_path>
-				<feed_remote_received_path>/Item/Inventories/</feed_remote_received_path>
 				<config_path>eb2ccore/general</config_path>
-				<feed_event_type>ItemInventories</feed_event_type>
-				<feed_header_version>2.3.0</feed_header_version>
 				<api_xml_ns>http://api.gsicommerce.com/schema/checkout/1.0</api_xml_ns>
 				<api_env>developer</api_env>
 				<api_region>na</api_region>
@@ -193,6 +189,15 @@
 				<api_return_format>xml</api_return_format>
 			</inventory>
 		</eb2c>
+		<eb2cinventory>
+			<inventory_feed>
+				<local_path>var/TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
+				<remote_path></remote_path>
+				<file_pattern>ItemInventories*.xml</file_pattern>
+				<event_type>ItemInventories</event_type>
+				<header_version>2.3.0</header_version>
+			</inventory_feed>
+		</eb2cinventory>
 	</default>
 	<phpunit>
 		<suite>

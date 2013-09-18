@@ -2,18 +2,7 @@
 require_once 'abstract.php';
 
 /**
- * Runs the processor.
- *
- */
-function main()
-{
-	$feedProcessor = new TrueAction_Eb2c_Shell_Feed();
-	$feedProcessor->run();
-}
-
-/**
  * Eb2c Feed Shell
- *
  */
 class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 {
@@ -95,7 +84,7 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 		$msg = <<<USAGE
 
 Usage: php -f $scriptName -- [options]
-  -feed      list_of_feeds (Watch out for shell escapes) 
+  -feed      list_of_feeds (Watch out for shell escapes)
   -validate  config (Ensures all feeds configured are valid)
   help       This help
 
@@ -106,5 +95,5 @@ USAGE;
 	}
 }
 
-
-main();
+$feedProcessor = new TrueAction_Eb2c_Shell_Feed();
+$feedProcessor->run();

@@ -5,7 +5,7 @@
 			<label>Orders</label>
 			<tab>eb2c</tab>
 			<frontend_type>text</frontend_type>
-			<sort_order>10</sort_order>
+			<sort_order>400</sort_order>
 			<show_in_default>1</show_in_default>
 			<show_in_website>1</show_in_website>
 			<show_in_store>1</show_in_store>
@@ -29,17 +29,6 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</remote_path>
-						<local_path translate="label">
-							<label>Local Path</label>
-							<comment>
-								<![CDATA[Local working path containing Order Status Feeds. This is the root directory for all Status Feed Processing.]]>
-							</comment>
-							<sort_order>2000</sort_order>
-							<frontend_type>text</frontend_type>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>1</show_in_store>
-						</local_path>
 					</fields>
 				</status_feed>
 			</groups>

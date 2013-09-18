@@ -1,11 +1,10 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Attributes
-	extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 {
 	/**
 	 * @var string path of the attributes configuration in the global config.
 	 */
-	const ATTRIBUTES_CONFIG                            = 'global/eb2cproduct_attributes';
+	const ATTRIBUTES_CONFIG = 'global/eb2cproduct_attributes';
 
 	/**
 	 * name of the file containing overriding configuration.
@@ -31,9 +30,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 */
 	protected $_prototypeCache = array();
 
-	protected $_entityTypes    = array(
-		'catalog/product',
-	);
+	protected $_entityTypes = array('catalog/product');
 
 	/**
 	 * mapping of config field name to model field name
@@ -97,8 +94,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 */
 	protected function _isValidEntityType($typeId)
 	{
-		$result = in_array((int)$typeId, $this->_getTargetEntityTypeIds());
-		return $result;
+		return in_array((int) $typeId, $this->_getTargetEntityTypeIds());
 	}
 
 	/**
@@ -162,21 +158,11 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 */
 	protected function _formatBoolean($data)
 	{
-		$str = strtolower((string) $data);
-		switch ($str) {
-			case $str === true:
-			case $str == 1:
-			// case $str == '1': // no need for this, because we used
-								 // $val == 1 not $str === 1
-			case $str == 'true':
-			case $str == 'on':
-			case $str == 'yes':
-			case $str == 'y':
-				$out = '1';
-				break;
-			default: $out = '0';
-		}
-		return $out;
+		return in_array(
+			strtolower((string) $data),
+			array('true', '1', 'on', 'yes', 'y'),
+			true
+		) ? '1' : '0';
 	}
 
 	/**
@@ -205,32 +191,18 @@ class TrueAction_Eb2cProduct_Model_Attributes
 
 	/**
 	 * get the name of the default value field for based on the frontend type.
-	 * @param   string $frontendType
-	 * @return  string default value field name.
+	 * @param  string $frontendType
+	 * @return string default value field name.
 	 */
 	protected function _getDefaultValueFieldName($frontendType)
 	{
-		$frontendType = strtolower($frontendType);
-		$fieldName    = 'default_value_';
-		$suffix       = '';
-		switch ($frontendType) {
-			case $frontendType === 'boolean':
-				$suffix = 'yesno';
-			break;
-			case $frontendType === 'date':
-				$suffix = 'date';
-			break;
-			case $frontendType === 'select';
-			case $frontendType === 'multiselect';
-				$fieldName = 'option';
-				$suffix    = '';
-			break;
-			default:
-				$suffix = 'text';
-			break;
+		switch (strtolower($frontendType)) {
+			case 'boolean': return 'default_value_yesno';
+			case 'date': return 'default_value_date';
+			case 'select':
+			case 'multiselect': return 'option'; // No $fieldName here.
+			default: return 'default_value_text';
 		}
-		$fieldName .= $suffix;
-		return $fieldName;
 	}
 
 	/**
@@ -239,18 +211,18 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 * @param string $groupFilter
 	 * @return array
 	 */
-	public function getDefaultAttributesCodeList($groupFilter = null, $onlyUngrouped = false)
+	public function getDefaultAttributesCodeList($groupFilter=null, $onlyUngrouped=false)
 	{
-		Mage::log('getDefaultAttributesCodeList called with' . $groupFilter);
-		$result  = array();
+		Mage::log("getDefaultAttributesCodeList called with $groupFilter");
+		$result = array();
 		// load the attributes from the config.
-		$config  = $this->_loadDefaultAttributesConfig();
+		$config = $this->_loadDefaultAttributesConfig();
 		// loop through the attributes and return the list of attribute names as an array.
 		$default = $config->getNode('default');
 		foreach ($default->children() as $code => $node) {
 			if (!$groupFilter) {
 				$result[] = $code;
-			} elseif ($node->group && $groupFilter === (string)$node->group) {
+			} elseif ($node->group && $groupFilter === (string) $node->group) {
 				$result[] = $code;
 			}
 		}
@@ -271,8 +243,11 @@ class TrueAction_Eb2cProduct_Model_Attributes
 			foreach ($fieldCfg->children() as $cfgField => $data) {
 				$fieldName = '';
 				if ($cfgField === 'default') {
-					$input_type = (string) $fieldCfg->input_type;
-					$fieldName  = $this->_getDefaultValueFieldName($input_type);
+					// @hack: Code style checker doesn't like underscores. That's right,
+					// but sometimes we have to deal with data that has underscores.
+					$underScoreInputType = 'input_type';
+					$inputType = (string) $fieldCfg->$underScoreInputType;
+					$fieldName = $this->_getDefaultValueFieldName($inputType);
 				} else {
 					$fieldName = $this->_getMappedFieldName($cfgField);
 				}

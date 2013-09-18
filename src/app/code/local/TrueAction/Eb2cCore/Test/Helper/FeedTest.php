@@ -7,7 +7,17 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$sampleFeed = dirname(__FILE__) . '/FeedTest/fixtures/sample-feed.xml';
 		$domDocument->load($sampleFeed);
 		return array(
-			array($domDocument, 'ItemInventories', '2.3.0')
+			array($domDocument, 'ItemInventories')
+		);
+	}
+
+	public function providerWrongEventType()
+	{
+		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$sampleFeed = dirname(__FILE__) . '/FeedTest/fixtures/sample-feed.xml';
+		$domDocument->load($sampleFeed);
+		return array(
+			array($domDocument, 'WrongEventType97fbe606c22584e50a3df267ce5aa81d7407593c')
 		);
 	}
 
@@ -17,7 +27,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$sampleFeed = dirname(__FILE__) . '/FeedTest/fixtures/sample-feed-with-invalid-node.xml';
 		$domDocument->load($sampleFeed);
 		return array(
-			array($domDocument, 'ItemInventories', '2.3.0')
+			array($domDocument, 'ItemInventories')
 		);
 	}
 
@@ -27,7 +37,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$sampleFeed = dirname(__FILE__) . '/FeedTest/fixtures/sample-feed-with-feed-invalid-data.xml';
 		$domDocument->load($sampleFeed);
 		return array(
-			array($domDocument, 'ItemInventories', '2.3.0')
+			array($domDocument, 'ItemInventories')
 		);
 	}
 
@@ -38,11 +48,26 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	 * @dataProvider providerValidateHeader
 	 * @loadFixture configData.yaml
 	 */
-	public function testValidateHeader($doc, $expectEventType, $expectHeaderVersion)
+	public function testValidateHeader($doc, $expectEventType)
 	{
 		$this->assertSame(
 			true,
-			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType)
+		);
+	}
+
+	/**
+	 * test validateHeader method, when the header has wrong event type
+	 *
+	 * @test
+	 * @dataProvider providerWrongEventType
+	 * @loadFixture configData.yaml
+	 */
+	public function testWrongEventType($doc, $expectEventType)
+	{
+		$this->assertSame(
+			false,
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType)
 		);
 	}
 
@@ -53,11 +78,11 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	 * @dataProvider providerValidateHeaderWithInvalidNode
 	 * @loadFixture configData.yaml
 	 */
-	public function testValidateHeaderWithInvalidNode($doc, $expectEventType, $expectHeaderVersion)
+	public function testValidateHeaderWithInvalidNode($doc, $expectEventType)
 	{
 		$this->assertSame(
 			false,
-			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType)
 		);
 	}
 
@@ -68,11 +93,11 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 	 * @dataProvider providerValidateHeaderWithFeedInvalidData
 	 * @loadFixture configData.yaml
 	 */
-	public function testValidateHeaderWithFeedInvalidData($doc, $expectEventType, $expectHeaderVersion)
+	public function testValidateHeaderWithFeedInvalidData($doc, $expectEventType)
 	{
 		$this->assertSame(
 			false,
-			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType, $expectHeaderVersion)
+			Mage::helper('eb2ccore/feed')->validateHeader($doc, $expectEventType)
 		);
 	}
 
