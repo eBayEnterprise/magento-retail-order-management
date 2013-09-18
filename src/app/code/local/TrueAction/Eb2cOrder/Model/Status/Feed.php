@@ -34,19 +34,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 	}
 
 	/**
-	 * Fetch the remote files.
-	 */
-	private function _fetchFeedsFromRemote()
-	{
-		$cfg = Mage::helper('eb2ccore/feed');
-		$this->_remoteIo->getFile(
-			$this->_localIo->getInboundDir(),
-			$this->_config->statusFeedRemotePath,
-			$cfg::FILETRANSFER_CONFIG_PATH
-		);
-	}
-
-	/**
 	 * Loops through all files found in the Inbound Dir.
 	 *
 	 * @return int Number of files we looked at.
@@ -54,7 +41,9 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 	public function processFeeds()
 	{
 		$filesProcessed = 0;
-		$this->_fetchFeedsFromRemote();
+		$this->_localIo->fetchFeedsFromRemote(
+			$this->_config->statusFeedRemotePath, $this->_config->statusFeedFilePattern
+		);
 		foreach( $this->_localIo->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
 			$filesProcessed++;
