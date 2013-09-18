@@ -12,6 +12,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Master
 {
 	private $_imageAttrs = array('imagewidth', 'imageview', 'imageurl', 'imagename', 'imageheight');
 
+	protected function _construct()
+	{
+		$this->setFeedConfig(Mage::helper('eb2cproduct')->getConfigModel());
+
+		$this->setFeedRemotePath  ($this->getFeedConfig()->imageFeedRemoteReceivedPath);
+		$this->setFeedFilePattern ($this->getFeedConfig()->imageFeedFilePattern);
+		$this->setFeedLocalPath   ($this->getFeedConfig()->imageFeedLocalPath);
+		$this->setFeedEventType   ($this->getFeedConfig()->imageFeedEventType);
+
+		parent::_construct();
+	}
+
+
 	/**
 	 * The abstract class will handle getting the files from remote, putting them into local directories, and handing 
 	 * us the DOM of the XML.
