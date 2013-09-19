@@ -48,6 +48,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	public function testFeedProcess()
 	{
 		$this->_setMockFileTransfer($this->returnValue(true));
+
 		$this->assertSame(
 			self::NUMBER_OF_DUMMY_FILES,
 			$this->_getTestModel(
@@ -84,11 +85,19 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	 */
 	private function _getTestModel($vfs)
 	{
+		$this->replaceCoreConfigRegistry(
+			array(
+				'clientId'                    => 'MWS',
+				'imageFeedEventType'          => 'ImageMetaData',
+				'imageFeedFilePattern'        => 'dummy_feed_file_pattern',
+				'imageFeedLocalPath'          => 'dummy_feed_local_path',
+				'imageFeedRemoteReceivedPath' => 'dummy_feed_remote_received_path',
+			)
+		);
+
 		return Mage::getModel(
 			self::MAGE_MODEL_NAME,
 			array(
-				'remote_path' => 'dummy_remote_path',
-				'local_path'  => 'dummy_local_path',
 				'fs_tool'     => $this->_setMockFsTool($vfs),
 			)
 		);
