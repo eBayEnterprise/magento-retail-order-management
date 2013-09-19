@@ -1,7 +1,8 @@
 vfs:
   inbound:
     incompleteXml.xml: '<?xml version="1.0" encoding="UTF-8"?> <OrderStatusUpdate> <MessageHeader>'
-    isCompleteXml.xml: '<?xml version="1.0" encoding="UTF-8"?> <WestFamily><Dad>Mike</Dad><Mom>Lisa</Mom><Son>Trent</Son></WestFamily>'
+    isInvalidEb2c.xml: '<?xml version="1.0" encoding="UTF-8"?><WestFamily><Dad>Mike</Dad><Mom>Lisa</Mom><Son>Trent</Son></WestFamily>'
+    isValidEb2c.xml: '<OrderStatusUpdate fileType="Magento Order Status Update" fileStartTime="Mon Jan 01 00:00:00 UTC 1900" fileEndTime="2013-08-28 13:50:39.0" recordCount="102256"><MessageHeader><Standard>eBay_Enterprise</Standard><HeaderVersion>EWS_eb2c_1.0</HeaderVersion><VersionReleaseNumber>EWS_eb2c_1.0</VersionReleaseNumber><SourceData><SourceId>OMS</SourceId><SourceType>OrderManagementSystem</SourceType></SourceData><DestinationData><DestinationId>JUST_TESTING</DestinationId><DestinationType>MAILBOX</DestinationType></DestinationData><EventType>OrderStatus</EventType></MessageHeader></OrderStatusUpdate>'
     sample.txt: 'This is a sample text file.'
   outbound:
   archive:

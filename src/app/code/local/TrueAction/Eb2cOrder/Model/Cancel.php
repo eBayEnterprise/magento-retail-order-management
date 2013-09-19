@@ -60,7 +60,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 		}
 
 		try {
-			$response = $this->_helper->getApiModel()
+			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
 				->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
 				->request($this->_domRequest);
