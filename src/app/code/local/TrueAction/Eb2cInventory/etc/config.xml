@@ -191,7 +191,7 @@
 		</eb2c>
 		<eb2cinventory>
 			<inventory_feed>
-				<local_path>var/TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
+				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
 				<remote_path></remote_path>
 				<file_pattern>ItemInventories*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>

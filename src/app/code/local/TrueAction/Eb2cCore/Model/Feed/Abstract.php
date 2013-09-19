@@ -64,7 +64,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array(
-			'base_dir' => $this->getFeedLocalPath()
+			'base_dir' => Mage::getBaseDir('var') . DS . $this->getFeedLocalPath()
 		);
 
 		// FileSystem tool can be supplied, esp. for testing
