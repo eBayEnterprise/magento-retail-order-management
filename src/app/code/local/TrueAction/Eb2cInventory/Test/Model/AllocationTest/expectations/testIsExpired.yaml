@@ -1,0 +1,4 @@
+expired:
+  eb2c_is_expired: true
+not_expired:
+  eb2c_is_expired: false

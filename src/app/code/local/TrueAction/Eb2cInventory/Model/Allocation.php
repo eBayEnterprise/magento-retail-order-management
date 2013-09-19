@@ -146,7 +146,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 					'itemId' => $response->getAttribute('itemId'),
 					'qty' => (int) $allocationResponse->item($i)->nodeValue,
 					'reservation_id' => $allocationMessage->item(0)->getAttribute('reservationId'),
-					'reservation_expires' => Mage::getModel('core/date')->date('Y-m-d H:i:s')
+					'reserved_at' => Mage::getModel('core/date')->date('Y-m-d H:i:s'),
 				);
 				$i++;
 			}
@@ -192,9 +192,9 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	{
 		foreach ($quote->getAllItems() as $item) {
 			// emptying reservation data from quote item
-			$item->setEb2cReservationId(null)
-				->setEb2cReservationExpires(null)
-				->setEb2cQtyReserved(null)
+			$item->unsEb2cReservationId()
+				->unsEb2cReservedAt()
+				->unsEb2cQtyReserved()
 				->save();
 		}
 	}
@@ -207,42 +207,37 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function hasAllocation($quote)
 	{
-		$hasReservation = false;
 		foreach ($quote->getAllItems() as $item) {
 			// find the reservation data in the quote item
 			if (trim($item->getEb2cReservationId()) !== '') {
-				$hasReservation = true;
-				break;
+				return true;
 			}
 		}
-		return $hasReservation;
+		return false;
 	}
 
 	/**
 	 * Check if the reserved allocation exceed the maximum expired setting.
 	 *
-	 * @param Mage_Sales_Model_Order $quote the quote to check if it's items have any allocation data
-	 * @return boolean, true reserved allocation is found, false no allocation data found on any quote item
+	 * @param Mage_Sales_Model_Order $quote the quote to check if items have any allocation data
+	 * @return boolean, true if any item is expired; false otherwise
 	 */
 	public function isExpired($quote)
 	{
-		$isExpired = false;
-		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
+		$now = new DateTime(gmdate('c'));
+		$expireMins = (int) Mage::helper('eb2cinventory')->getConfigModel()->allocationExpired;
+		$expiredIfReservedBefore = $now->sub(DateInterval::createFromDateString(sprintf('%d minutes', $expireMins)));
+
 		foreach ($quote->getAllItems() as $item) {
 			// find the reservation data in the quote item
-			if (trim($item->getEb2cReservationExpires()) !== '') {
-				$reservedExpiredDateTime = new DateTime($item->getEb2cReservationExpires());
-				$currentDateTime = new DateTime(gmdate('c'));
-				$interval = $reservedExpiredDateTime->diff($currentDateTime);
-				$differenceInMinutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
-				// check if the current date time exceed the maximum allocation expired in minutes
-				if ($differenceInMinutes > (int) $cfg->allocationExpired) {
-					$isExpired = true;
-					break;
+			if ($item->hasEb2cReservedAt()) {
+				$reservedAt = new DateTime($item->getEb2cReservedAt());
+				if ($reservedAt < $expiredIfReservedBefore) {
+					return true;
 				}
 			}
 		}
-		return $isExpired;
+		return false;
 	}
 
 	/**
@@ -265,7 +260,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 			// save reservation data to inventory detail
 			$quoteItem->setQty($quoteData['qty'])
 				->setEb2cReservationId($quoteData['reservation_id'])
-				->setEb2cReservationExpires($quoteData['reservation_expires'])
+				->setEb2cReservedAt($quoteData['reserved_at'])
 				->setEb2cQtyReserved($quoteData['qty'])
 				->save();
 
