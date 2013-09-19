@@ -87,6 +87,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 		$this->_coreFeed->fetchFeedsFromRemote($this->getFeedRemotePath(), $this->getFeedFilePattern());
 		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
+			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
 			$filesProcessed++;
 		}
 		return $filesProcessed;
@@ -95,7 +96,6 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 	/**
 	 * Processes a single xml file.
 	 *
-	 * @return int number of Records we looked at.
 	 */
 	public function processFile($xmlFile)
 	{
@@ -105,7 +105,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 		}
 		catch(Exception $e) {
 			Mage::logException($e);
-			return 0;
+			return;
 		}
 
 		// Validate Eb2c Header Information
@@ -113,8 +113,8 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 			->validateHeader($dom, $this->getFeedEventType() )
 		) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
-			return 0;
+			return;
 		}
-		return $this->processDom($dom);
+		$this->processDom($dom);
 	}
 }
