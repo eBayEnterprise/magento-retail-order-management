@@ -62,7 +62,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Image_Master
 	{
 		$imagesProcessed = 0;
 
+		$mageProduct = Mage::getModel('catalog/product');
+		$productId = $mageProduct->getIdBySku($imageInfo['sku']);
+		if($productId) {
+			$mageProduct->load($productId);
+		}
+		else {
+			Mage::log( '[' . __CLASS__ . ']' . " SKU not found " . $imageInfo['sku']);
+			return 0;
+		}
+
 		foreach( $imageInfo['images'] as $image ) {
+			print_r($imageInfo);
+		/*
+			$mageProduct->addImageToMediaGallery(
+				$image['imageurl']
+			);
+		 */
 			$imagesProcessed++;
 		}
 		return $imagesProcessed;

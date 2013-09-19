@@ -98,7 +98,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 		return Mage::getModel(
 			self::MAGE_MODEL_NAME,
 			array(
-				'fs_tool'     => $this->_setMockFsTool($vfs),
+				'fs_tool' => $this->_setMockFsTool($vfs),
 			)
 		);
 	}
