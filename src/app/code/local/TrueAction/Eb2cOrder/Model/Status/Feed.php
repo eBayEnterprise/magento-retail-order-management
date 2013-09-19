@@ -27,33 +27,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 	}
 
 	/**
-	 * Processes a single xml file.
+	 * Process DOM, logs info and errors
 	 *
-	 * @return int number of Records we looked at.
-	 * @todo This is a bit awkward, now that the configs have all been normalized, we should revisit
-	 * the Abstract and clean up the constructor and the methods before we abstract all other feeds.
-	 */
-	public function processFile($xmlFile)
-	{
-		$rc = parent::processFile($xmlFile);
-
-		Mage::log('File ' . $xmlFile . sprintf(': Processed %d of %d, %d errors',
-			$this->_fileInfo['recordsProcessed'],
-			$this->_fileInfo['recordCount'],
-		$this->_fileInfo['recordsWithErrors']) );
-
-		if( $this->_fileInfo['recordsWithErrors'] ) {
-			$this->_coreFeed->mvToErrorDir($xmlFile);
-		} else {
-			$this->_coreFeed->mvToArchiveDir($xmlFile);
-		}
-		return $rc;
-	}
-
-	/**
-	 * Process DOM
-	 *
-	 * @return number of records processed
 	 */
 	public function processDom(TrueAction_Dom_Document $dom)
 	{
@@ -69,7 +44,11 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 			}
 		}
 
-		return $this->_fileInfo['recordsProcessed'];
+		Mage::log( '[' . __CLASS__ . ']' . sprintf(' %s, Processed %d of %d, %d errors',
+			$dom->documentURI,
+			$this->_fileInfo['recordsProcessed'],
+			$this->_fileInfo['recordCount'],
+		$this->_fileInfo['recordsWithErrors']), Zend_Log::INFO );
 	}
 
 	/**
@@ -106,7 +85,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		if (method_exists($this, $funcName) ) {
 			$this->$funcName();
 		} else {
-			Mage::log('Error: ' . $funcName . ' undefined, Can\'t process ' . print_r($this->_event['Header'], true), Zend_Log::ERR);
+			Mage::log("Error: $funcName undefined, Can't process " . print_r($this->_event['Header'], true), Zend_Log::ERR);
 			$this->_fileInfo['recordsWithErrors']++;
 		}
 		$this->_event = null;

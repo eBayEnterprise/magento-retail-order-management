@@ -43,7 +43,7 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 		if( $model ) {
 			$reflector = new ReflectionClass($model);
 			if( !$reflector->implementsInterface('TrueAction_Eb2cCore_Model_Feed_Interface')) {
-				Mage::log( '\'' . get_class($model) . '\' does not implement appropriate interface(s).', Zend_log::ERR);
+				Mage::log( '\'' . get_class($model) . '\' does not implement appropriate interface(s).', Zend_Log::ERR);
 				return false;
 			}
 		}
