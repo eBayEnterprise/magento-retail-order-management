@@ -15,6 +15,12 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	 */
 	public function testIsInstanceOf()
 	{
+		// kill core feed model's constructor so as to not inadvertently hit the file system
+		$this->replaceByMock(
+			'model',
+			'eb2ccore/feed',
+			$this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock()
+		);
 		$model = $this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array('param' => $this->_getDummyValueMap())
@@ -112,7 +118,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 				'feed_config'       => 'dummy_config',
 				'feed_event_type'   => 'OrderStatus',
 				'feed_file_pattern' => 'dummy_pattern',
-				'feed_local_path'   => $vfs->url('inbound'),
+				'feed_local_path'   => 'inbound',
 				'feed_remote_path'  => 'dummy_path',
 				'fs_tool'           => $mockFsTool,
 			)
@@ -120,6 +126,11 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		);
 
 		$model->processFeeds();
+
+		$feedModelProp = new ReflectionProperty($model, '_coreFeed');
+		$feedModelProp->setAccessible(true);
+		$coreFeed = $feedModelProp->getValue($model);
+		$this->assertSame(Mage::getBaseDir('var') . DS . 'inbound', $coreFeed->getBaseDir());
 	}
 
 	/**

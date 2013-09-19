@@ -27,8 +27,15 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	 * Mock the Varien_Io_File object,
 	 * this is our FsTool for testing purposes
 	 */
-	private function _getMockFsTool($vfs, $sampleFiles)
+	private function _getMockFsTool($vfs)
 	{
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		$sampleFiles = array();
+		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
 		$mockFsTool = $this->getMock('Varien_Io_File', array(
 			'cd',
 			'checkAndCreateFolder',
@@ -78,26 +85,43 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	 */
 	public function testConstructor()
 	{
-		$feedItemInventoriesMock = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
-			->setMethods(array('hasFsTool'))
-			->getMock();
-
-		$feedItemInventoriesMock->expects($this->any())
-			->method('hasFsTool')
+		// Setup a simple, but fairly useless stub of Varien_Io_File. I'm leaving testing of the interactions
+		// between Varien_Io_File and the Eb2cCore_Model_Feed up to Eb2cCore_Model_Feed so just looking to ensure
+		// no filesystem interactions take place.
+		$fsToolMock = $this->getMock('Varien_Io_File', array('cd', 'checkAndCreateFOlder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders'));
+		$fsToolMock->expects($this->any())
+			->method('cd')
 			->will($this->returnValue(true));
+		$fsToolMock->expects($this->any())
+			->method('checkAndCreateFOlder')
+			->will($this->returnValue(true));
+		$fsToolMock->expects($this->any())
+			->method('ls')
+			->will($this->returnValue(array()));
+		$fsToolMock->expects($this->any())
+			->method('mv')
+			->will($this->returnValue(true));
+		$fsToolMock->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue(''));
+		$fsToolMock->expects($this->any())
+			->method('setAllowCreateFolders')
+			->will($this->returnSelf());
 
-		$this->replaceByMock('model', 'eb2cinventory/feed_item_inventories', $feedItemInventoriesMock);
+		$feed = Mage::getModel('eb2cinventory/feed_item_inventories', array('fs_tool' => $fsToolMock));
 
-		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
-
-		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-		$constructMethod = $inventoriesReflector->getMethod('_construct');
-		$constructMethod->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cInventory_Model_Feed_Item_Inventories',
-			$constructMethod->invoke($inventoryFeedModel)
-		);
+		// test the setup
+		// when pulled from config, the base dir should be Mage::getBaseDir('var') followed by the configured
+		// local dir, in this case, set in the fixture
+		$this->assertSame(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Inventories/', $feed->getBaseDir());
+		$this->assertInstanceOf('TrueAction_Eb2cInventory_Model_Feed_Item_Extractor', $feed->getExtractor());
+		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Item', $feed->getStockItem());
+		$this->assertInstanceOf('Mage_Catalog_Model_Product', $feed->getProduct());
+		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Status', $feed->getStockStatus());
+		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed', $feed->getFeedModel());
+		// make sure the core feed model was instantiated with the proper magic data
+		$this->assertSame($feed->getBaseDir(), $feed->getFeedModel()->getBaseDir());
+		$this->assertSame($fsToolMock, $feed->getFeedModel()->getFsTool());
 	}
 
 	/**
@@ -112,17 +136,11 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
 
-		// Set up a Varien_Io_File style array for dummy file listing.
-		$vfsDump = $vfs->dump();
-		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
-			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
-		}
-
 		$inventoryFeedModel = Mage::getModel(
 			'eb2cinventory/feed_item_inventories',
 			array(
 				'base_dir' => $vfs->url(self::VFS_ROOT),
-				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+				'fs_tool'  => $this->_getMockFsTool($vfs)
 			)
 		);
 
@@ -158,17 +176,11 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
 
-		// Set up a Varien_Io_File style array for dummy file listing.
-		$vfsDump = $vfs->dump();
-		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
-			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
-		}
-
 		$inventoryFeedModel = Mage::getModel(
 			'eb2cinventory/feed_item_inventories',
 			array(
 				'base_dir' => $vfs->url(self::VFS_ROOT),
-				'fs_tool'  => $this->_getMockFsTool($vfs, $sampleFiles)
+				'fs_tool'  => $this->_getMockFsTool($vfs)
 			)
 		);
 
