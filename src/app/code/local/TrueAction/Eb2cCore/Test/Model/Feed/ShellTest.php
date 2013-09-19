@@ -57,13 +57,17 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 					'feed_item_Inventories' => 0
 				),
 				'eb2corder' => array(
-					'status_feed' => 1
+					'status_feed' => 1,
 				),
 				'eb2cproduct' => array(
 					'feed_content_master' => 1,
-					'feed_image_master' => 0,
+					'feed_image_master'   => 0,
 				),
 			),
+			'statusFeedLocalPath'   => 'dummy_remote_path',
+			'statusFeedRemotePath'  => 'dummy_local_path',
+			'statusFeedFilePattern' => 'OrderStatus*.xml',
+			'statusFeedEventType'   => 'OrderStatus*.xml',
 		);
 
 		// Build the array in the format returnValueMap wants

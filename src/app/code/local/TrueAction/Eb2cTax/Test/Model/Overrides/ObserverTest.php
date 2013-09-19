@@ -536,19 +536,19 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 	 */
 	protected function _orderSaveQuoteItemsMock($quoteItemIds)
 	{
-		$quoteItem1 = $this->getModelMock('sales/quote_item', array(
+		$quoteItemA = $this->getModelMock('sales/quote_item', array(
 			'getId',
 		));
-		$quoteItem1->expects($this->any())
+		$quoteItemA->expects($this->any())
 			->method('getId')
 			->will($this->returnValue($quoteItemIds[0]));
-		$quoteItem2 = $this->getModelMock('sales/quote_item', array(
+		$quoteItemB = $this->getModelMock('sales/quote_item', array(
 			'getId',
 		));
-		$quoteItem2->expects($this->any())
+		$quoteItemB->expects($this->any())
 			->method('getId')
 			->will($this->returnValue($quoteItemIds[1]));
-		return array($quoteItem1, $quoteItem2);
+		return array($quoteItemA, $quoteItemB);
 	}
 
 	/**

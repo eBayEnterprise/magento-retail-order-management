@@ -1,0 +1,14 @@
+set------:
+  is_valid: false
+set-test-test-password---:
+  is_valid: false
+set-test-test-password-test--:
+  is_valid: true
+set-test-test-pub_key---:
+  is_valid: false
+set-test-test-pub_key--pub-key-:
+  is_valid: false
+set-test-test-pub_key---priv-key:
+  is_valid: false
+set-test-test-pub_key--pub-key-priv-key:
+  is_valid: true

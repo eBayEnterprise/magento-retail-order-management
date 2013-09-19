@@ -27,58 +27,27 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 	}
 
 	/**
-	 * Get the item inventory feed from eb2c.
-	 */
-	protected function _getItemInventoriesFeeds()
-	{
-		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
-		$remoteFile = $cfg->feedRemoteReceivedPath;
-		$feedHelper = Mage::helper('eb2ccore/feed');
-
-		// only attempt to transfer file when the ftp setting is valid
-		if (Mage::helper('eb2ccore')->isValidFtpSettings()) {
-			try {
-				// Download feed from eb2c server to local server
-				Mage::helper('filetransfer')->getFile(
-					$this->getFeedModel()->getInboundDir(),
-					$remoteFile,
-					$feedHelper::FILETRANSFER_CONFIG_PATH
-				);
-			} catch (TrueAction_FileTransfer_Exception_Connection $e) {
-				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Connection Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			} catch (TrueAction_FileTransfer_Exception_Authentication $e) {
-				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Authentication Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			} catch (TrueAction_FileTransfer_Exception_Transfer $e) {
-				Mage::log('[' . __CLASS__ . '] Item Inventories Feed Transfer Exception: ' . $e->getMessage(), Zend_Log::WARN);
-			}
-		} else {
-			// log as a warning
-			Mage::log(
-				'[' . __CLASS__ . '] Item Inventories Feed: can\'t transfer file from eb2c server because of invalid ftp setting on the magento store.',
-				Zend_Log::WARN
-			);
-		}
-	}
-
-	/**
 	 * Process downloaded feeds from eb2c.
 	 * @return void
 	 */
 	public function processFeeds()
 	{
-		$this->_getItemInventoriesFeeds();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
+
+		$this->getFeedModel()->fetchFeedsFromRemote(
+			$cfg->feedRemoteReceivedPath,
+			$cfg->feedFilePattern
+		);
+
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
 			$domDocument->load($feed);
 
 			$expectEventType = $cfg->feedEventType;
-			$expectHeaderVersion = $cfg->feedHeaderVersion;
-
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType, $expectHeaderVersion)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}

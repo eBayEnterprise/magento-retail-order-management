@@ -150,30 +150,23 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 
 		if ($this->_helper->getApplyTaxAfterDiscount()) { // tax only what you pay
 			$baseDiscountAmount = $item->getBaseDiscountAmount();
-			// $discountAmount     = $item->getDiscountAmount();
 
 			// calculate the full tax amount
 			$baseRowTax = $this->_calculator->getTax($itemSelector, 'merchandise');
-			// $rowTax             = $this->_store->convertPrice($baseRowTax);
 
 			// amount to adjust tax due to discount.
 			$baseRowTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'merchandise');
-			// $rowTaxDiscount     = $this->_store->convertPrice($baseRowTaxDiscount);
 
 			// record the tax adjustment amounts
 			$this->_processItemHiddenTax($baseRowTaxDiscount, $item);
 
 			// adjust the tax amounts due to the discounts.
 			$baseRowTax = $baseRowTax - $baseRowTaxDiscount;
-			// $rowTax             = $rowTax - $rowTaxDiscount;
 
 			// adjust the subtotal due to the discount amounts
 			$baseSubtotal = $baseSubtotal - $baseDiscountAmount;
-			// $subtotal           = $subtotal - $discountAmount;
-
 		} else { // tax the full itemprice
 			$baseRowTax = $this->_calculator->getTax($itemSelector, 'merchandise');
-			// $rowTax     = $this->_store->convertPrice($baseRowTax);
 		}
 
 		$item->setBaseTaxAmount(max(0, $baseRowTax));
