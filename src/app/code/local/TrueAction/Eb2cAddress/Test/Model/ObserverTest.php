@@ -76,34 +76,6 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	}
 
 	/**
-	 * When the event already has errors in it, nothing should happen.
-	 * @test
-	 */
-	public function testValidateAddressExistingErrors()
-	{
-		$this->markTestSkipped('test may no longer be valid as this functionality may not be possible based on the proposed implementation of the validation event');
-		$errorContainer = $this->getMock('Varien_Object', array('getErrors'));
-		$errorContainer->expects($this->any())
-			->method('getErrors')
-			->will($this->returnValue(array('Previous error.')));
-		$event = $this->getMock('Varien_Event', array('getErrorContainer'));
-		$event->expects($this->any())
-			->method('getErrorContainer')
-			->will($this->returnValue($errorContainer));
-		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
-		$observer->expects($this->any())
-			->method('getEvent')
-			->will($this->returnValue($event));
-
-		$validator = $this->getModelMock('eb2caddress/validator', array('validateAddress'));
-		$validator->expects($this->never())
-			->method('validateAddress');
-
-		$addressObserver = Mage::getSingleton('eb2caddress/observer');
-		$addressObserver->validateAddress($observer);
-	}
-
-	/**
 	 * Test that when address validation fails, the errors are added to the address
 	 * object's set of errors.
 	 * @test
