@@ -16,10 +16,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 	 */
 	public function buildCatalogModelCategoryWithValidCategoryId()
 	{
-		$catalogModelCategoryMock = $this->getMock(
-			'Mage_Catalog_Model_Category',
-			array('getId', 'addData', 'save')
-		);
+		$catalogModelCategoryMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'addData', 'save', 'delete'))
+			->getMock();
 
 		$catalogModelCategoryMock->expects($this->any())
 			->method('getId')
@@ -29,6 +29,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 			->will($this->returnSelf());
 		$catalogModelCategoryMock->expects($this->any())
 			->method('save')
+			->will($this->returnSelf());
+		$catalogModelCategoryMock->expects($this->any())
+			->method('delete')
 			->will($this->returnSelf());
 
 		return $catalogModelCategoryMock;
@@ -41,10 +44,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 	 */
 	public function buildCatalogModelCategoryWithInvalidCategoryId()
 	{
-		$catalogModelCategoryMock = $this->getMock(
-			'Mage_Catalog_Model_Category',
-			array('getId', 'addData', 'save')
-		);
+		$catalogModelCategoryMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'addData', 'save', 'delete'))
+			->getMock();
 
 		$catalogModelCategoryMock->expects($this->any())
 			->method('getId')
@@ -54,6 +57,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 			->will($this->returnSelf());
 		$catalogModelCategoryMock->expects($this->any())
 			->method('save')
+			->will($this->returnSelf());
+		$catalogModelCategoryMock->expects($this->any())
+			->method('delete')
 			->will($this->returnSelf());
 
 		return $catalogModelCategoryMock;
@@ -66,10 +72,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 	 */
 	public function buildCatalogModelCategoryWithInvalidCategoryException()
 	{
-		$catalogModelCategoryMock = $this->getMock(
-			'Mage_Catalog_Model_Category',
-			array('getId', 'addData', 'save')
-		);
+		$catalogModelCategoryMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'addData', 'save', 'delete'))
+			->getMock();
 
 		$catalogModelCategoryMock->expects($this->any())
 			->method('getId')
@@ -80,6 +86,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 		$catalogModelCategoryMock->expects($this->any())
 			->method('save')
 			->will($this->throwException(new Mage_Core_Exception));
+		$catalogModelCategoryMock->expects($this->any())
+			->method('delete')
+			->will($this->returnSelf());
 
 		return $catalogModelCategoryMock;
 	}
@@ -91,10 +100,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 	 */
 	public function buildCatalogModelCategoryWithValidCategoryException()
 	{
-		$catalogModelCategoryMock = $this->getMock(
-			'Mage_Catalog_Model_Category',
-			array('getId', 'addData', 'save')
-		);
+		$catalogModelCategoryMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'addData', 'save', 'delete'))
+			->getMock();
 
 		$catalogModelCategoryMock->expects($this->any())
 			->method('getId')
@@ -105,6 +114,9 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 		$catalogModelCategoryMock->expects($this->any())
 			->method('save')
 			->will($this->throwException(new Mage_Core_Exception));
+		$catalogModelCategoryMock->expects($this->any())
+			->method('delete')
+			->will($this->returnSelf());
 
 		return $catalogModelCategoryMock;
 	}
@@ -116,10 +128,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Category extends EcomDev_PH
 	 */
 	public function buildCatalogModelCategoryWhereDeleteThrowException()
 	{
-		$catalogModelCategoryMock = $this->getMock(
-			'Mage_Catalog_Model_Category',
-			array('getId', 'addData', 'save', 'delete')
-		);
+		$catalogModelCategoryMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'addData', 'save', 'delete'))
+			->getMock();
 
 		$catalogModelCategoryMock->expects($this->any())
 			->method('getId')

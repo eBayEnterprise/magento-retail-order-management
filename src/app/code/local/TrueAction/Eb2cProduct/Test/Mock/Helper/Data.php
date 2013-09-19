@@ -9,7 +9,6 @@
  */
 class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * return a mock of the TrueAction_Eb2cCore_Model_Config_Registry class
 	 *
@@ -22,17 +21,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 		$properties->destinationType = 'MAILBOX';
 		$properties->catalogId = '70';
 		$properties->clientId = 'TAN-CLI';
-		$properties->contentFeedLocalPath = 'var/TrueAction/Eb2c/Feed/Content/Master/';
+		$properties->contentFeedLocalPath = 'vfs://testBase/feed_content_master/';
 		$properties->contentFeedRemoteReceivedPath = '/Content/Master/';
 		$properties->contentFeedFilePattern = 'Content*.xml';
 		$properties->contentFeedEventType = 'ContentMaster';
 		$properties->contentFeedHeaderVersion = '2.3.0';
-		$properties->itemFeedLocalPath = 'var/TrueAction/Eb2c/Feed/Item/Master/';
+		$properties->itemFeedLocalPath = 'vfs://testBase/feed_item_master/';
 		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
 		$properties->itemFeedFilePattern = 'ItemMaster*.xml';
 		$properties->itemFeedEventType = 'ItemMaster';
 		$properties->itemFeedHeaderVersion = '2.3.0';
-		$properties->iShipFeedLocalPath = 'var/TrueAction/Eb2c/Feed/I/Ship/';
+		$properties->iShipFeedLocalPath = 'vfs://testBase/feed_i_ship/';
 		$properties->iShipFeedRemoteReceivedPath = '/I/Ship/';
 		$properties->iShipFeedFilePattern = 'IShip*.xml';
 		$properties->iShipFeedEventType = 'IShip';
@@ -48,10 +47,11 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function buildEb2cProductHelper()
 	{
-		$helperMock = $this->getHelperMock(
-			'eb2cproduct/data',
-			array('getConfigModel')
-		);
+		$helperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+
 		$helperMock->expects($this->any())
 			->method('getConfigModel')
 			->will($this->returnValue($this->buildEb2cCoreModelConfigRegistry()));
@@ -77,10 +77,18 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockCoreHelperInvalidSftpSettings()
 	{
 		// with invalid ftp setting
-		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('isValidFtpSettings', 'getNewDomDocument'))
+			->getMock();
+
 		$coreHelperMock->expects($this->any())
 			->method('isValidFtpSettings')
 			->will($this->returnValue(false));
+		$coreHelperMock->expects($this->any())
+			->method('getNewDomDocument')
+			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 	}
 
@@ -92,10 +100,18 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockCoreHelperValidSftpSettings()
 	{
 		// with invalid ftp setting
-		$coreHelperMock = $this->getHelperMock('eb2ccore/data', array('isValidFtpSettings'));
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('isValidFtpSettings', 'getNewDomDocument'))
+			->getMock();
+
 		$coreHelperMock->expects($this->any())
 			->method('isValidFtpSettings')
 			->will($this->returnValue(true));
+		$coreHelperMock->expects($this->any())
+			->method('getNewDomDocument')
+			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 	}
 
@@ -106,10 +122,18 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 */
 	public function replaceByMockCoreHelperFeed()
 	{
-		$coreHelperFeedMock = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
+		$coreHelperFeedMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('validateHeader', '_construct'))
+			->getMock();
+
 		$coreHelperFeedMock->expects($this->any())
 			->method('validateHeader')
 			->will($this->returnValue(true));
+		$coreHelperFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
+
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperFeedMock);
 	}
 
@@ -121,10 +145,15 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockFileTransferHelper()
 	{
 		// with invalid ftp setting
-		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getAllFiles'));
+		$filetransferHelperMock = $this->getHelperMockBuilder('filetransfer/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllFiles'))
+			->getMock();
+
 		$filetransferHelperMock->expects($this->any())
 			->method('getAllFiles')
 			->will($this->returnValue(true));
+
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 
@@ -136,10 +165,15 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockFileTransferHelperThrowConnectionException()
 	{
 		// with invalid ftp setting
-		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock = $this->getHelperMockBuilder('filetransfer/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllFiles'))
+			->getMock();
+
 		$filetransferHelperMock->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->throwException(new TrueAction_FileTransfer_Exception_Connection));
+
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 
@@ -151,10 +185,15 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockFileTransferHelperThrowAuthenticationException()
 	{
 		// with invalid ftp setting
-		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock = $this->getHelperMockBuilder('filetransfer/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllFiles'))
+			->getMock();
+
 		$filetransferHelperMock->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->throwException(new TrueAction_FileTransfer_Exception_Authentication));
+
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 
@@ -166,10 +205,15 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	public function replaceByMockFileTransferHelperThrowTransferException()
 	{
 		// with invalid ftp setting
-		$filetransferHelperMock = $this->getHelperMock('filetransfer/data', array('getFile'));
+		$filetransferHelperMock = $this->getHelperMockBuilder('filetransfer/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllFiles'))
+			->getMock();
+
 		$filetransferHelperMock->expects($this->any())
-			->method('getFile')
+			->method('getAllFiles')
 			->will($this->throwException(new TrueAction_FileTransfer_Exception_Transfer));
+
 		$this->replaceByMock('helper', 'filetransfer', $filetransferHelperMock);
 	}
 }

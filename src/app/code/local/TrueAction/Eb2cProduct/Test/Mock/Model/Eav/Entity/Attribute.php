@@ -16,10 +16,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute extends EcomDe
 	 */
 	public function buildEavModelEntityAttribute()
 	{
-		$eavModelEntityAttributeMock = $this->getMock(
-			'Mage_Eav_Model_Entity_Attribute',
-			array('loadByCode', 'getPosition', 'getId', 'getAttributeCode', 'getFrontend', 'getLabel')
-		);
+		$eavModelEntityAttributeMock = $this->getModelMockBuilder('eav/entity_attribute')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByCode', 'getPosition', 'getId', 'getAttributeCode', 'getFrontend', 'getLabel'))
+			->getMock();
 
 		$eavModelEntityAttributeMock->expects($this->any())
 			->method('loadByCode')

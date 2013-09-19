@@ -42,15 +42,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			// set array of website ids
 			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
-		// initialize bundle queue with an empty array
-		$this->_bundleQueue = array();
-
-		// initialize configurable queue with an empty array
-		$this->_configurableQueue = array();
-
-		// initialize grouped queue with an empty array
-		$this->_groupedQueue = array();
-
 		return $this;
 	}
 
@@ -559,10 +550,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID); // This is neccessary to dynamically set value for attributes in different store view.
 			$allStores = Mage::app()->getStores();
 			foreach ($parentColorDescriptionData as $cfgColorData) {
-				foreach ($cfgColorData['description'] as $colorDescription) {
+				foreach ($cfgColorData->description as $colorDescription) {
 					foreach ($allStores as $eachStoreId => $val) {
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription['lang']))) { // assuming the storeview follow the locale convention.
-							$childProductObject->setStoreId($eachStoreId)->setColorDescription($colorDescription['description'])->save();
+						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) { // assuming the storeview follow the locale convention.
+							$childProductObject->setStoreId($eachStoreId)->setColorDescription($colorDescription->description)->save();
 						}
 					}
 				}

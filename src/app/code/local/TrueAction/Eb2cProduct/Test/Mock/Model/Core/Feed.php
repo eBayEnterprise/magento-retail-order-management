@@ -16,14 +16,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -69,6 +69,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -80,14 +86,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -133,6 +139,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -144,14 +156,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -197,6 +209,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -208,14 +226,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -261,6 +279,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -270,16 +294,16 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 *
 	 * @return Mock_TrueAction_Eb2cCore_Model_Feed
 	 */
-	public function buildEb2cCoreModelFeedForItemMasterWithBundleProductsAddNosale()
+	public function buildEb2cCoreModelFeedForItemMasterWithSimpleProductsAddNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -290,7 +314,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-add-nosale.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-simple-product-add-nosale.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
@@ -325,6 +349,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -336,14 +366,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -389,6 +419,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -400,14 +436,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdateNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -453,6 +489,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -462,16 +504,16 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 *
 	 * @return Mock_TrueAction_Eb2cCore_Model_Feed
 	 */
-	public function buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete()
+	public function buildEb2cCoreModelFeedForItemMasterWithProductsDelete()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -482,7 +524,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					'vfs://testBase/feed_item_master/inbound/sample-feed-bundle-product-delete.xml',
+					'vfs://testBase/feed_item_master/inbound/sample-feed-product-delete.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
@@ -517,6 +559,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -528,14 +576,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -581,6 +629,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -592,14 +646,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_item_master/'));
@@ -645,6 +699,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -656,14 +716,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithInvalidFeedCatalogId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_content_master/'));
@@ -709,6 +769,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -720,14 +786,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithInvalidFeedClientId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_content_master/'));
@@ -773,6 +839,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -784,17 +856,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithInvalidFeedContentType()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -802,23 +874,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-invalid-Content-type.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-invalid-Content-type.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -837,6 +909,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -848,14 +926,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithValidProduct()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_content_master/'));
@@ -901,6 +979,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -912,17 +996,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithBundleProductsAddNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -930,23 +1014,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-bundle-product-add-nosale.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-bundle-product-add-nosale.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -965,6 +1049,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -976,17 +1066,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithBundleProductsUpdate()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -994,23 +1084,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-bundle-product-update.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-bundle-product-update.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -1029,6 +1119,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1040,17 +1136,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithBundleProductsUpdateNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -1058,23 +1154,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-bundle-product-update-nosale.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-bundle-product-update-nosale.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -1093,6 +1189,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1104,17 +1206,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithBundleProductsDelete()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -1122,23 +1224,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-bundle-product-delete.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-bundle-product-delete.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -1157,6 +1259,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1168,17 +1276,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedFortContentMasterWithConfigurableProductsAdd()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -1186,23 +1294,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-configurable-product-add.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-configurable-product-add.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -1221,6 +1329,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1232,17 +1346,17 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForContentMasterWithGroupedProductsAdd()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/'));
 		$coreModelFeedMock->expects($this->any())
 			->method('setBaseDir')
 			->will($this->returnSelf());
@@ -1250,23 +1364,23 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 			->method('lsInboundDir')
 			->will($this->returnValue(
 				array(
-					__DIR__ . '/Xml/Content/sample-feed-grouped-product-add.xml',
+					'vfs://testBase/feed_content_master/inbound/sample-feed-grouped-product-add.xml',
 				)));
 		$coreModelFeedMock->expects($this->any())
 			->method('getInboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/inbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/inbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getOutboundDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/outbound'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/outbound'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getArchiveDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/archive'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/archive'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getErrorDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/error'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/error'));
 		$coreModelFeedMock->expects($this->any())
 			->method('getTmpDir')
-			->will($this->returnValue(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Content/Master/tmp'));
+			->will($this->returnValue('vfs://testBase/feed_content_master/tmp'));
 		$coreModelFeedMock->expects($this->any())
 			->method('_mvToDir')
 			->will($this->returnValue('anywhere'));
@@ -1285,6 +1399,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1296,14 +1416,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1349,6 +1469,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1360,14 +1486,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithInvalidFeedClientId()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1413,6 +1539,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1424,14 +1556,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithInvalidFeedItemType()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1477,6 +1609,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1488,14 +1626,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipAddProduct()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1541,6 +1679,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1552,14 +1696,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithProductsAddNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1605,6 +1749,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1616,14 +1766,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithProductsUpdate()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1669,6 +1819,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1680,14 +1836,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithProductsUpdateNosale()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1733,6 +1889,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
@@ -1744,14 +1906,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 	 */
 	public function buildEb2cCoreModelFeedForIShipWithProductsDelete()
 	{
-		$coreModelFeedMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Feed',
-			array(
+		$coreModelFeedMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
 				'_setCheckAndCreateDir', 'setBaseDir', 'lsInboundDir', 'getInboundDir', 'getOutboundDir',
 				'getArchiveDir', 'getErrorDir', 'getTmpDir', '_mvToDir', 'mvToInboundDir', 'mvToOutboundDir',
-				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote'
-			)
-		);
+				'mvToArchiveDir', 'mvToErrorDir', 'mvToTmpDir', 'fetchFeedsFromRemote', '_construct'
+			))
+			->getMock();
 		$coreModelFeedMock->expects($this->any())
 			->method('_setCheckAndCreateDir')
 			->will($this->returnValue('vfs://testBase/feed_i_ship/'));
@@ -1797,6 +1959,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed extends EcomDev_PHPUnit_T
 		$coreModelFeedMock->expects($this->any())
 			->method('mvToTmpDir')
 			->will($this->returnValue('tmp'));
+		$coreModelFeedMock->expects($this->any())
+			->method('fetchFeedsFromRemote')
+			->will($this->returnValue(null));
+		$coreModelFeedMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
 
 		return $coreModelFeedMock;
 	}
