@@ -25,7 +25,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		if (!$this->hasFsTool()) {
 			$this->setFsTool(new Varien_Io_File());
 		}
-		$this->getFsTool()->setAllowCreateFolders(true);
+		$this->getFsTool()->setAllowCreateFolders(true)->open();
 		if ($this->hasBaseDir()) {
 			$this->setUpDirs();
 		}
@@ -65,7 +65,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$this->_setCheckAndCreateDir($this->getArchivePath());
 	}
 
-	/** 
+	/**
 	 * Fetchs feeds from remote, places them into inBoundPath
 	 *
 	 * @param string $remotePath path on remote to pull from

@@ -147,6 +147,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open',
 		));
 		$mockFsTool
 			->expects($this->any())
@@ -173,6 +174,10 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 			->method('setAllowCreateFolders')
 			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+		$mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 
 		// Mock order status feeds so I can fake a call to processFeeds(), this is
 		// where I need a mock FS.
