@@ -126,7 +126,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				->setBalance((float) $balanceData['balanceAmount'])
 				->setIsRedeemable(1)
 				->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
-				->setDateExpries(null)
+				->setDateExpires(null)
 				->save();
 		}
 	}
@@ -150,7 +150,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 			->setBalance((float) $balanceData['balanceAmount'])
 			->setIsRedeemable(1)
 			->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
-			->setDateExpries(null)
+			->setDateExpires(null)
 			->setDateCreated(Mage::getModel('core/date')->date('Y-m-d'))
 			->save();
 	}

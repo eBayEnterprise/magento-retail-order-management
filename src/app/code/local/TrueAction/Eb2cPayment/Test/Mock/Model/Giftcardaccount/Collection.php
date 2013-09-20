@@ -20,7 +20,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection extends 
 			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
 			array(
 				'load', 'getEb2cPin', 'getGiftcardaccountId', 'setCode', 'setEb2cPan', 'setEb2cPin', 'setStatus', 'setState',
-				'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpries', 'save', 'setGiftcardaccountId',
+				'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpires', 'save', 'setGiftcardaccountId',
 				'setDateCreated'
 			)
 		);
@@ -59,7 +59,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection extends 
 			->method('setWebsiteId')
 			->will($this->returnSelf());
 		$giftCardAccountModelGiftcardaccount->expects($this->any())
-			->method('setDateExpries')
+			->method('setDateExpires')
 			->will($this->returnSelf());
 		$giftCardAccountModelGiftcardaccount->expects($this->any())
 			->method('save')
