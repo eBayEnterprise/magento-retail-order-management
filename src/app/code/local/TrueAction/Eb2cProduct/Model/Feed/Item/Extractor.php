@@ -110,7 +110,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		// Item is able to be back ordered.
 		$nodeBackOrderable = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
 
-
 		$colorData = array();
 		$nodeColorAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
 		$colorIndex = 1;

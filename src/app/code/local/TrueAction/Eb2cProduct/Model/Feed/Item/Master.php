@@ -245,6 +245,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						break;
 					default:
 						$this->_synchProduct($feedItem);
+						break;
 				}
 			}
 		}
@@ -397,11 +398,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject = $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
 					}
 
-					// we only set child product to parent configurable products products if we have a simple product that has a style_id that belong to a parent product.
+					// we only set child product to parent configurable products products if we
+					// have a simple product that has a style_id that belong to a parent product.
 					if (trim(strtoupper($dataObject->getBaseAttributes()->getItemType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
-						// when style id for an item doesn't match the item client_item_id (sku), then we have a potential child product that can be added to a configurable parent product
+						// when style id for an item doesn't match the item client_item_id (sku),
+						// then we have a potential child product that can be added to a configurable parent product
 						if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
-							// load the parent product using the child style id, because a child that belong to a parent product will have the parent product style id as the sku to link them together.
+							// load the parent product using the child style id, because a child that belong to a
+							// parent product will have the parent product style id as the sku to link them together.
 							$parentProduct = $this->_loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
 							// we have a valid parent configurable product
 							if ($parentProduct->getId()) {
@@ -458,7 +462,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					}
 				} else {
 					// this item doesn't exists in magento let simply log it
-					Mage::log('[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+					Mage::log(
+						'[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' .
+						$dataObject->getItemId()->getClientItemId() . '), does not exists in Magento',
+						Zend_Log::WARN
+					);
 				}
 			}
 		}
@@ -514,7 +522,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 			$parentProductObject->save();
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] The following error has occurred while linking child product to configurable parent product for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while linking
+				child product to configurable parent product for Item Master Feed (' .
+				$e->getMessage() . ')',
+				Zend_Log::ERR
+			);
 		}
 	}
 
@@ -549,22 +562,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorDescriptionToChildProduct($childProductObject, $parentColorDescriptionData)
 	{
 		try {
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID); // This is neccessary to dynamically set value for attributes in different store view.
+			// This is neccessary to dynamically set value for attributes in different store view.
+			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 			$allStores = Mage::app()->getStores();
 			foreach ($parentColorDescriptionData as $cfgColorData) {
 				foreach ($cfgColorData->description as $colorDescription) {
 					foreach ($allStores as $eachStoreId => $val) {
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) { // assuming the storeview follow the locale convention.
+						// assuming the storeview follow the locale convention.
+						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
 							$childProductObject->setStoreId($eachStoreId)->setColorDescription($colorDescription->description)->save();
 						}
 					}
 				}
 			}
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] The following error has occurred while adding configurable color data to child product for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while adding configurable
+				color data to child product for Item Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
 		}
 	}
-
 
 	/**
 	 * clear magento cache and rebuild inventory status.

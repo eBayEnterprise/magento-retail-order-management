@@ -148,7 +148,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
@@ -299,7 +302,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
@@ -450,7 +456,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
@@ -601,7 +610,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
@@ -752,7 +764,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
@@ -903,7 +918,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->method('getConfigurableColorData')
 			->will($this->returnValue(json_encode(array(array(
 				'code' => 'Red',
-				'description' => array(array('lang' => 'en', 'description' => 'Red'), array('lang' => 'fr', 'description' => 'Rouge')))
+				'description' => array(
+					array('lang' => 'en', 'description' => 'Red'),
+					array('lang' => 'fr', 'description' => 'Rouge')
+				))
 			))));
 		$catalogModelProductMock->expects($this->any())
 			->method('setStoreId')
