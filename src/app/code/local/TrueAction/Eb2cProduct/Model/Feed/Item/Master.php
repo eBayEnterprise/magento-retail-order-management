@@ -349,6 +349,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 					}
 
+					if ($this->_isAttributeExists('item_type')) {
+						// setting item_type attribute
+						$productObject->setItemType($dataObject->getBaseAttributes()->getItemType());
+					}
+
 					// adding custom attributes
 					$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 					if (!empty($customAttributes)) {

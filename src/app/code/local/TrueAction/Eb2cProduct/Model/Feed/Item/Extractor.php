@@ -220,22 +220,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		$attributeData = array();
 
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+		foreach ($nodeAttribute as $attributeRecord) {
+			$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
-				$attributeData[] = array(
-					// The name of the attribute.
-					'name' => (string) $attributeRecord->getAttribute('name'),
-					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
-					// Language code for the natural language or the <Value /> element.
-					'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
-					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
-				);
-			}
+			$attributeData[] = array(
+				// The name of the attribute.
+				'name' => (string) $attributeRecord->getAttribute('name'),
+				// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
+				// Language code for the natural language or the <Value /> element.
+				'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
+				'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
+			);
 		}
 
 		return new Varien_Object(
@@ -256,21 +254,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 */
 	protected function _extractProductType(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
-		$productType = '';
-
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
-					$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
-					$productType = ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
-					break;
-				}
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
 			}
 		}
 
-		return $productType;
+		return '';
 	}
 
 	/**
@@ -284,21 +277,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 */
 	protected function _extractConfigurableAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
-		$configurableAttributes = array();
-
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
-					$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
-					$configurableAttributes = ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
-					break;
-				}
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
 			}
 		}
 
-		return $configurableAttributes;
+		return array();
 	}
 
 	/**
