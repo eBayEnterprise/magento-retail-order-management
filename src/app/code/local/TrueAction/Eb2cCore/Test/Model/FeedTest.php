@@ -17,8 +17,6 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 					TrueAction_Eb2cCore_Model_Feed::INBOUND_DIR_NAME  => array(),
 					TrueAction_Eb2cCore_Model_Feed::OUTBOUND_DIR_NAME => array(),
 					TrueAction_Eb2cCore_Model_Feed::ARCHIVE_DIR_NAME  => array(),
-					TrueAction_Eb2cCore_Model_Feed::ERROR_DIR_NAME    => array(),
-					TrueAction_Eb2cCore_Model_Feed::TMP_DIR_NAME      => array(),
 				)
 			)
 		);
@@ -73,8 +71,6 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$this->assertEmpty($feed->getInboundPath()); // All these paths should be empty, as no base was provided.
 		$this->assertEmpty($feed->getOutboundPath());
 		$this->assertEmpty($feed->getArchivePath());
-		$this->assertEmpty($feed->getErrorPath());
-		$this->assertEmpty($feed->getTmpPath());
 	}
 
 	/**
@@ -124,13 +120,9 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$this->assertFileExists($feed->getInboundPath());
 		$this->assertFileExists($feed->getOutboundPath());
 		$this->assertFileExists($feed->getArchivePath());
-		$this->assertFileExists($feed->getErrorPath());
-		$this->assertFileExists($feed->getTmpPath());
 
 		$feed->mvToOutboundDir('foo');
 		$feed->mvToArchiveDir('foo');
-		$feed->mvToErrorDir('foo');
-		$feed->mvToTmpDir('foo');
 		$feed->mvToInboundDir('foo');
 	}
 

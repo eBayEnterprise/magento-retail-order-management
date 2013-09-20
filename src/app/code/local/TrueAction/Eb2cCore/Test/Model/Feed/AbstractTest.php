@@ -5,7 +5,8 @@
  */
 class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCore_Test_Base
 {
-	const VFS_ROOT = 'root';
+	const VFS_ROOT     = 'root';
+	const CLASS_TESTED = 'TrueAction_Eb2cCore_Model_Feed_Abstract';
 
 	/**
 	 * Test Feed Abstract
@@ -14,16 +15,17 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	 */
 	public function testIsInstanceOf()
 	{
-		$model = $this->getMockForAbstractClass(
-			'TrueAction_Eb2cCore_Model_Feed_Abstract',
-			array( 'param' => array(
-				'remote_path'  => 'dummy_path',
-				'file_pattern' => 'dummy_pattern',
-				'local_path'   => 'dummy_path',
-			)
-			)
+		// kill core feed model's constructor so as to not inadvertently hit the file system
+		$this->replaceByMock(
+			'model',
+			'eb2ccore/feed',
+			$this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock()
 		);
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed_Abstract', $model);
+		$model = $this->getMockForAbstractClass(
+			self::CLASS_TESTED,
+			array('param' => $this->_getDummyValueMap())
+		);
+		$this->assertInstanceOf(self::CLASS_TESTED, $model);
 	}
 
 	/**
@@ -92,76 +94,145 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			$mockSftp
 		);
 
+		// Mock the client_id, which exercises validateHeader
+		$configValuePairs = array (
+			'clientId' => 'JUST_TESTING',
+		);
+
+		// Build the array in the format returnValueMap wants
+		$valueMap = array();
+		foreach( $configValuePairs as $configPath => $configValue ) {
+			$valueMap[] = array($configPath, $configValue);
+		}
+
+		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
+		$mockConfig->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap($valueMap));
+
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+
 		$model = $this->getMockForAbstractClass(
-			'TrueAction_Eb2cCore_Model_Feed_Abstract',
+			self::CLASS_TESTED,
 			array( 'param' => array(
-				'remote_path'  => 'dummy_path',
-				'file_pattern' => 'dummy_pattern',
-				'local_path'   => $vfs->url('inbound'),
-				'fs_tool'      => $mockFsTool,
+				'feed_config'       => 'dummy_config',
+				'feed_event_type'   => 'OrderStatus',
+				'feed_file_pattern' => 'dummy_pattern',
+				'feed_local_path'   => 'inbound',
+				'feed_remote_path'  => 'dummy_path',
+				'fs_tool'           => $mockFsTool,
 			)
 			)
 		);
 
 		$model->processFeeds();
+
+		$feedModelProp = new ReflectionProperty($model, '_coreFeed');
+		$feedModelProp->setAccessible(true);
+		$coreFeed = $feedModelProp->getValue($model);
+		$this->assertSame(Mage::getBaseDir('var') . DS . 'inbound', $coreFeed->getBaseDir());
 	}
 
 	/**
-	 * Test Feed Abstract throws Exception without remote_path defined.
+	 * Return array of complete dummy values required to instantiate the abstract class
+	 */
+	private function _getDummyValueMap()
+	{
+		return array(
+			'feed_config'       => 'dummy_config',
+			'feed_event_type'   => 'dummy_event_type',
+			'feed_file_pattern' => 'dummy_pattern',
+			'feed_local_path'   => 'dummy_local_path',
+			'feed_remote_path'  => 'dummy_local_path',
+		);
+	}
+
+	/**
+	 * Test Feed Abstract throws Exception without feed_remote_path defined.
 	 *
 	 * @test
 	 * @expectedException Mage_Core_Exception
 	 */
-	public function testRemotePathException()
+	public function testFeedRemotePathException()
 	{
+		$args = $this->_getDummyValueMap();
+		unset($args['feed_remote_path']);
 		$model = $this->getMockForAbstractClass(
-			'TrueAction_Eb2cCore_Model_Feed_Abstract',
+			self::CLASS_TESTED,
 			array(
-				'param' =>
-				array(
-					'local_path'   => 'dummy_path',
-					'file_pattern' => 'dummy_pattern',
-				)
+				'param' => $args
 			)
 		);
 	}
 
 	/**
-	 * Test Feed Abstract throws Exception without local_path defined.
+	 * Test Feed Abstract throws Exception without feed_local_path defined.
 	 *
 	 * @test
 	 * @expectedException Mage_Core_Exception
 	 */
-	public function testLocalPathException()
+	public function testFeedLocalPathException()
 	{
+		$args = $this->_getDummyValueMap();
+		unset($args['feed_local_path']);
 		$model = $this->getMockForAbstractClass(
-			'TrueAction_Eb2cCore_Model_Feed_Abstract',
+			self::CLASS_TESTED,
 			array(
-				'param' =>
-				array(
-					'remote_path'  => 'dummy_path',
-					'file_pattern' => 'dummy_pattern',
-				)
+				'param' => $args
 			)
 		);
 	}
 
 	/**
-	 * Test Feed Abstract throws Exception without local_path defined.
+	 * Test Feed Abstract throws Exception without feed_file_pattern defined.
 	 *
 	 * @test
 	 * @expectedException Mage_Core_Exception
 	 */
-	public function testFilePatternException()
+	public function testFeedFilePatternException()
 	{
+		$args = $this->_getDummyValueMap();
+		unset($args['feed_file_pattern']);
 		$model = $this->getMockForAbstractClass(
-			'TrueAction_Eb2cCore_Model_Feed_Abstract',
+			self::CLASS_TESTED,
 			array(
-				'param' =>
-				array(
-					'remote_path' => 'dummy_path',
-					'local_path'  => 'dummy_path',
-				)
+				'param' => $args
+			)
+		);
+	}
+
+	/**
+	 * Test Feed Abstract throws Exception without feed_config defined.
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testFeedConfigException()
+	{
+		$args = $this->_getDummyValueMap();
+		unset($args['feed_config']);
+		$model = $this->getMockForAbstractClass(
+			self::CLASS_TESTED,
+			array(
+				'param' => $args
+			)
+		);
+	}
+
+	/**
+	 * Test Feed Abstract throws Exception without feed_event_type defined.
+	 *
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testFeedEventTypeException()
+	{
+		$args = $this->_getDummyValueMap();
+		unset($args['feed_event_type']);
+		$model = $this->getMockForAbstractClass(
+			self::CLASS_TESTED,
+			array(
+				'param' => $args
 			)
 		);
 	}
