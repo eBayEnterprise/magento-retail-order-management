@@ -74,40 +74,14 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 	 *
 	 * @return void
 	 */
-	public function replaceByMockCoreHelperInvalidSftpSettings()
+	public function replaceByMockCoreHelper()
 	{
 		// with invalid ftp setting
 		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
 			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings', 'getNewDomDocument'))
+			->setMethods(array('getNewDomDocument'))
 			->getMock();
 
-		$coreHelperMock->expects($this->any())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(false));
-		$coreHelperMock->expects($this->any())
-			->method('getNewDomDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
-
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
-	}
-
-	/**
-	 * replacing by mock of the eb2ccore helper class
-	 *
-	 * @return void
-	 */
-	public function replaceByMockCoreHelperValidSftpSettings()
-	{
-		// with invalid ftp setting
-		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings', 'getNewDomDocument'))
-			->getMock();
-
-		$coreHelperMock->expects($this->any())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(true));
 		$coreHelperMock->expects($this->any())
 			->method('getNewDomDocument')
 			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));

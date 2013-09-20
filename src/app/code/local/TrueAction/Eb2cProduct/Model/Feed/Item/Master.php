@@ -77,7 +77,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
 	 *
-	 * @return Mage_Eav_Model_Config
+	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
 	{
@@ -91,6 +91,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		}
 
 		return $optionId;
+	}
+
+	/**
+	 * add new attributes aptions and return the newly inserted option id
+	 *
+	 * @param string $attribute, the attribute to used to add the new option
+	 * @param string $newOption, the new option to be added for the attribute
+	 *
+	 * @return int, the newly inserted option id
+	 */
+	protected function _addAttributeOption($attribute, $newOption)
+	{
+		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+		$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
+
+		return $this->_getAttributeOptionId($attribute, $newOption);
 	}
 
 	/**
@@ -164,33 +181,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * extract configurable custom attributes feed item
-	 *
-	 * @param Varien_Object $feedItem, get configurable object from feed item
-	 *
-	 * @return array, all configurable attributes
-	 */
-	protected function _extractConfigurableAttributes(Varien_Object $feedItem)
-	{
-		$configurableAttributes = array();
-		// if this item has configurable attribute data let's extract it.
-		if (!is_null($feedItem->getCustomAttributes())) {
-			// adding custom attributes
-			$customAttributes = $feedItem->getCustomAttributes()->getAttributes();
-			if (!empty($customAttributes)) {
-				foreach ($customAttributes as $attribute) {
-					// only process custom attributes that mark is configurable
-					if (strtoupper(trim($attribute['name'])) === 'CONFIGURABLEATTRIBUTES') {
-						$configurableAttributes = explode(',', $attribute['value']);
-					}
-				}
-			}
-		}
-
-		return $configurableAttributes;
-	}
-
-	/**
 	 * determine which action to take for item master (add, update, delete.
 	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
@@ -229,9 +219,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 				// This will be mapped by the product hub to Magento product types.
 				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-				if (!$this->_isValidProductType($feedItem->getBaseAttributes()->getItemType())) {
+				if (!$this->_isValidProductType($feedItem->getProductType())) {
 					Mage::log(
-						'[' . __CLASS__ . '] Item Master Feed item_type (' . $feedItem->getBaseAttributes()->getItemType() . '), doesn\'t match Magento available Item Types (' .
+						'[' . __CLASS__ . '] Item Master Feed product_type (' . $feedItem->getProductType() . '), doesn\'t match Magento available Product Types (' .
 						implode(',', $this->getProductTypeId()) . ')',
 						Zend_Log::WARN
 					);
@@ -245,6 +235,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						break;
 					default:
 						$this->_synchProduct($feedItem);
+						break;
 				}
 			}
 		}
@@ -265,7 +256,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
 				try {
 					$productObject = $this->getProduct();
-					$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
+					$productObject->setTypeId($dataObject->getProductType());
 					$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
 					$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
 
@@ -283,18 +274,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						// only temporarily set color attribute to newly create product, content master feed will update the product with the color value
 						if ($this->_isAttributeExists('color')) {
 							// setting color attribute, with the first record
-							$productObject->setColor($this->_getAttributeOptionId('color', $this->_getFirstColorCode($colorData)));
+							$colorCode = $this->_getFirstColorCode($colorData);
+							$colorOptionId = $this->_getAttributeOptionId('color', $colorCode);
+							$productObject->setColor(($colorOptionId)? $colorOptionId : $this->_addAttributeOption('color', $colorCode));
 						}
 					} else {
 						// also, we want to se the color code to the configurable products as well
-						if (trim(strtoupper($dataObject->getBaseAttributes()->getItemType())) === 'CONFIGURABLE' && $this->_isAttributeExists('color')) {
+						if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $this->_isAttributeExists('color')) {
 							// setting color attribute, with the first record
-							$productObject->setColor($this->_getAttributeOptionId('color', $this->_getFirstColorCode($colorData)));
+							$colorCode = $this->_getFirstColorCode($colorData);
+							$colorOptionId = $this->_getAttributeOptionId('color', $colorCode);
+							$productObject->setColor(($colorOptionId)? $colorOptionId : $this->_addAttributeOption('color', $colorCode));
 						}
 					}
 
 					// setting configurable color data in the parent configurable product
-					if (trim(strtoupper($dataObject->getBaseAttributes()->getItemType())) === 'CONFIGURABLE') {
+					if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE') {
 						// This attribute hold a json color data, that will be used to for the child product storeview color_description.
 						if ($this->_isAttributeExists('configurable_color_data')) {
 							// setting configurable_color_data attribute
@@ -354,6 +349,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 					}
 
+					if ($this->_isAttributeExists('item_type')) {
+						// setting item_type attribute
+						$productObject->setItemType($dataObject->getBaseAttributes()->getItemType());
+					}
+
 					// adding custom attributes
 					$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 					if (!empty($customAttributes)) {
@@ -397,17 +397,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject = $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
 					}
 
-					// we only set child product to parent configurable products products if we have a simple product that has a style_id that belong to a parent product.
-					if (trim(strtoupper($dataObject->getBaseAttributes()->getItemType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
-						// when style id for an item doesn't match the item client_item_id (sku), then we have a potential child product that can be added to a configurable parent product
+					// we only set child product to parent configurable products products if we
+					// have a simple product that has a style_id that belong to a parent product.
+					if (trim(strtoupper($dataObject->getProductType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
+						// when style id for an item doesn't match the item client_item_id (sku),
+						// then we have a potential child product that can be added to a configurable parent product
 						if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
-							// load the parent product using the child style id, because a child that belong to a parent product will have the parent product style id as the sku to link them together.
+							// load the parent product using the child style id, because a child that belong to a
+							// parent product will have the parent product style id as the sku to link them together.
 							$parentProduct = $this->_loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
 							// we have a valid parent configurable product
 							if ($parentProduct->getId()) {
 								if (trim(strtoupper($parentProduct->getTypeId())) === 'CONFIGURABLE') {
 									// We have a valid configurable parent product to set this child to
-									$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $this->_extractConfigurableAttributes($dataObject));
+									$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
 
 									// We can get color description save in the parent product to be saved to this child product.
 									$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
@@ -458,7 +461,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					}
 				} else {
 					// this item doesn't exists in magento let simply log it
-					Mage::log('[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+					Mage::log(
+						'[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' .
+						$dataObject->getItemId()->getClientItemId() . '), does not exists in Magento',
+						Zend_Log::WARN
+					);
 				}
 			}
 		}
@@ -514,7 +521,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 			$parentProductObject->save();
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] The following error has occurred while linking child product to configurable parent product for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while linking
+				child product to configurable parent product for Item Master Feed (' .
+				$e->getMessage() . ')',
+				Zend_Log::ERR
+			);
 		}
 	}
 
@@ -549,22 +561,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorDescriptionToChildProduct($childProductObject, $parentColorDescriptionData)
 	{
 		try {
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID); // This is neccessary to dynamically set value for attributes in different store view.
+			// This is neccessary to dynamically set value for attributes in different store view.
+			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 			$allStores = Mage::app()->getStores();
 			foreach ($parentColorDescriptionData as $cfgColorData) {
 				foreach ($cfgColorData->description as $colorDescription) {
 					foreach ($allStores as $eachStoreId => $val) {
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) { // assuming the storeview follow the locale convention.
+						// assuming the storeview follow the locale convention.
+						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
 							$childProductObject->setStoreId($eachStoreId)->setColorDescription($colorDescription->description)->save();
 						}
 					}
 				}
 			}
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] The following error has occurred while adding configurable color data to child product for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while adding configurable
+				color data to child product for Item Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
 		}
 	}
-
 
 	/**
 	 * clear magento cache and rebuild inventory status.

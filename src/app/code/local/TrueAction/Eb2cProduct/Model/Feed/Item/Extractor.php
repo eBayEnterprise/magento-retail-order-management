@@ -110,7 +110,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		// Item is able to be back ordered.
 		$nodeBackOrderable = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
 
-
 		$colorData = array();
 		$nodeColorAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
 		$colorIndex = 1;
@@ -221,22 +220,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		$attributeData = array();
 
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+		foreach ($nodeAttribute as $attributeRecord) {
+			$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
-				$attributeData[] = array(
-					// The name of the attribute.
-					'name' => (string) $attributeRecord->getAttribute('name'),
-					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
-					// Language code for the natural language or the <Value /> element.
-					'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
-					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
-				);
-			}
+			$attributeData[] = array(
+				// The name of the attribute.
+				'name' => (string) $attributeRecord->getAttribute('name'),
+				// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
+				// Language code for the natural language or the <Value /> element.
+				'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
+				'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
+			);
 		}
 
 		return new Varien_Object(
@@ -244,6 +241,52 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				'attributes' => $attributeData
 			)
 		);
+	}
+
+	/**
+	 * extract productType from CustomAttributes data
+	 *
+	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
+	 *
+	 * @return string, the productType
+	 */
+	protected function _extractProductType(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	{
+		// Name value pairs of additional attributes for the product.
+		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * extract ConfigurableAttributes from CustomAttributes data
+	 *
+	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param int $itemIndex, the current item position
+	 * @param string $catalogId, the catalog id for the current xml node
+	 *
+	 * @return array, the configurable attribute sets
+	 */
+	protected function _extractConfigurableAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	{
+		// Name value pairs of additional attributes for the product.
+		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
+			}
+		}
+
+		return array();
 	}
 
 	/**
@@ -282,6 +325,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId),
 					// get varien object of Custom Attributes node
 					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId),
+					// get product type from Custom Attributes node
+					'product_type' => $this->_extractProductType($feedXPath, $itemIndex, $catalogId),
+					// get configurable attributes from Custom Attributes node
+					'configurable_attributes' => $this->_extractConfigurableAttributes($feedXPath, $itemIndex, $catalogId),
 				)
 			);
 

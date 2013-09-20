@@ -6,13 +6,6 @@
  */
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	public $configModel;
-
-	public function __construct()
-	{
-		$this->getConfigModel(null);
-	}
-
 	/**
 	 * Get Product config instantiated object.
 	 *
@@ -20,10 +13,9 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getConfigModel($store=null)
 	{
-		$this->configModel = Mage::getModel('eb2ccore/config_registry');
-		$this->configModel->setStore($store)
+		return Mage::getModel('eb2ccore/config_registry')
+			->setStore($store)
 			->addConfigModel(Mage::getModel('eb2cproduct/config'))
 			->addConfigModel(Mage::getModel('eb2ccore/config'));
-		return $this->configModel;
 	}
 }

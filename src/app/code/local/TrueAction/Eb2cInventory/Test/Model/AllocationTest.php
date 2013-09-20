@@ -73,7 +73,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			'Mage_Sales_Model_Quote_Item',
 			array(
 				'getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setEb2cReservationId',
-				'setEb2cReservationExpires', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
+				'setEb2cReservedAt', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
 			)
 		);
 
@@ -108,7 +108,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->will($this->returnSelf()
 			);
 		$itemMock->expects($this->any())
-			->method('setEb2cReservationExpires')
+			->method('setEb2cReservedAt')
 			->will($this->returnSelf()
 			);
 		$itemMock->expects($this->any())
@@ -373,8 +373,8 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			array(
 				'lineId' => 1,
 				'reservation_id' => 'TAN_DEV_CLI-ABC-44',
-				'reservation_expires' => '2013-06-20 15:02:20',
-				'qty' => 0
+				'reserved_at' => '2013-06-20 15:02:20',
+				'qty' => 0,
 			)
 		);
 
@@ -424,7 +424,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			'Mage_Sales_Model_Quote_Item',
 			array(
 				'getQty', 'getId', 'getSku', 'getItemId', 'getQuote', 'save', 'setQty', 'setEb2cReservationId',
-				'setEb2cReservationExpires', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
+				'setEb2cReservedAt', 'setEb2cQtyReserved', 'getProduct', 'getIsVirtual'
 			)
 		);
 		$itemMock->expects($this->any())
@@ -460,7 +460,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->will($this->returnSelf()
 			);
 		$itemMock->expects($this->any())
-			->method('setEb2cReservationExpires')
+			->method('setEb2cReservedAt')
 			->will($this->returnSelf()
 			);
 		$itemMock->expects($this->any())
@@ -478,8 +478,8 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$quoteData = array(
 			'lineId' => 1,
 			'reservation_id' => 'TAN_DEV_CLI-ABC-44',
-			'reservation_expires' => '2013-06-20 15:02:20',
-			'qty' => 1
+			'reserved_at' => '2013-06-20 15:02:20',
+			'qty' => 1,
 		);
 
 		return array(
@@ -619,54 +619,62 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		);
 	}
 
+	/**
+	 * @todo Check the configured expiration period and don't use hard-coded dates in this provider.
+	 */
 	public function providerIsExpired()
 	{
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('getManageStock')
-		);
-
+		$stockItemMock = $this->getModelMock('cataloginventory/stock_item', array('getManageStock'));
 		$stockItemMock->expects($this->any())
 			->method('getManageStock')
-			->will($this->returnValue(true)
-			);
+			->will($this->returnValue(true));
 
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('getStockItem')
-		);
-
+		$productMock = $this->getModelMock('catalog/product', array('getStockItem'));
 		$productMock->expects($this->any())
 			->method('getStockItem')
-			->will($this->returnValue($stockItemMock)
-			);
+			->will($this->returnValue($stockItemMock));
 
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getEb2cReservationExpires', 'getProduct', 'getIsVirtual')
-		);
-		$itemMock->expects($this->any())
-			->method('getEb2cReservationExpires')
-			->will($this->returnValue('2013-06-26 16:42:20')
-			);
-		$itemMock->expects($this->any())
-			->method('getProduct')
-			->will($this->returnValue($productMock));
-		$itemMock->expects($this->any())
-			->method('getIsVirtual')
-			->will($this->returnValue(false)
-			);
+		$notExpiredItem = $this->getModelMock('sales/quote_item', array('hasEb2cReservedAt', 'getEb2cReservedAt'));
+		$notExpiredItem->setData(array(
+			'is_virtual' => false,
+			'product' => $productMock,
+		));
+		$notExpiredItem
+			->expects($this->once())
+			->method('getEb2cReservedAt')
+			->will($this->returnValue('2050-01-01 00:00:00 +0'));
+		$notExpiredItem
+			->expects($this->once())
+			->method('hasEb2cReservedAt')
+			->will($this->returnValue(true));
 
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems')
-		);
-		$quoteMock->expects($this->any())
+		$expiredItem = $this->getModelMock('sales/quote_item', array('hasEb2cReservedAt', 'getEb2cReservedAt'));
+		$expiredItem->setData(array(
+			'is_virtual' => false,
+			'product' => $productMock,
+		));
+		$expiredItem
+			->expects($this->once())
+			->method('getEb2cReservedAt')
+			->will($this->returnValue('2000-01-01 00:00:00 +0'));
+		$expiredItem
+			->expects($this->once())
+			->method('hasEb2cReservedAt')
+			->will($this->returnValue(true));
+
+		$notExpiredQuote = $this->getModelMock('sales/quote', array('getAllItems'));
+		$notExpiredQuote->expects($this->any())
 			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
+			->will($this->returnValue(array($notExpiredItem)));
+
+		$expiredQuote = $this->getModelMock('sales/quote', array('getAllItems'));
+		$expiredQuote->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array($expiredItem, $notExpiredItem)));
+
 		return array(
-			array($quoteMock)
+			array($notExpiredQuote->setId('not_expired')),
+			array($expiredQuote->setId('expired')),
 		);
 	}
 
@@ -679,77 +687,13 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 */
 	public function testIsExpired($quote)
 	{
-		$this->assertSame(
-			true,
-			$this->_allocation->isExpired($quote)
-		);
-	}
-
-	public function providerIsExpiredReturnFalse()
-	{
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('getManageStock')
-		);
-
-		$stockItemMock->expects($this->any())
-			->method('getManageStock')
-			->will($this->returnValue(true)
-			);
-
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('getStockItem')
-		);
-
-		$productMock->expects($this->any())
-			->method('getStockItem')
-			->will($this->returnValue($stockItemMock)
-			);
-
-		$expiredDateTime = new DateTime(gmdate('c'));
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getEb2cReservationExpires', 'getProduct', 'getIsVirtual')
-		);
-		$itemMock->expects($this->any())
-			->method('getEb2cReservationExpires')
-			->will($this->returnValue($expiredDateTime->format('c'))
-			);
-		$itemMock->expects($this->any())
-			->method('getProduct')
-			->will($this->returnValue($productMock));
-		$itemMock->expects($this->any())
-			->method('getIsVirtual')
-			->will($this->returnValue(false)
-			);
-
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems')
-		);
-		$quoteMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-		return array(
-			array($quoteMock)
-		);
-	}
-
-	/**
-	 * testing isExpired method
-	 *
-	 * @test
-	 * @dataProvider providerIsExpiredReturnFalse
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testIsExpiredReturnFalse($quote)
-	{
-		$this->assertSame(
-			false,
-			$this->_allocation->isExpired($quote)
-		);
+		// If the quote has at least one managed-stock item that is expired, isExpired should be false.
+		// If the quote has no managed-stock items, or no managed-stock items are expired, isExpired should be true.
+		$isExpired = $this->expected($quote->getId())->getEb2cIsExpired();
+		foreach($quote->getAllItems() as $item) {
+			// var_dump($item->getEb2cReservedAt());
+		}
+		$this->assertSame($isExpired, $this->_allocation->isExpired($quote));
 	}
 
 	public function providerParseResponse()
@@ -768,14 +712,21 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 */
 	public function testParseResponse($allocationResponseMessage)
 	{
-		$this->assertSame(
-			array(array('lineId' => '106',
-				'itemId' => '8525 PDA',
-				'qty' => 1,
-				'reservation_id' => 'TAN_DEV_CLI-ABC-44',
-				'reservation_expires' => Mage::getModel('core/date')->date('Y-m-d H:i:s')
-			)),
-			$this->_allocation->parseResponse($allocationResponseMessage)
+		$mageDate = $this->getModelMock('core/date', array('date'));
+		$mageDate->expects($this->any())
+			->method('date')
+			->will($this->returnValue('flub'));
+		$this->replaceByMock('model', 'core/date', $mageDate);
+		$parsedResponse = $this->_allocation->parseResponse($allocationResponseMessage);
+		$itemResponse = $parsedResponse[0]; // Expecting a nested array with one array in it.
+
+		$expected = array(
+			'lineId' => '106',
+			'itemId' => '8525 PDA',
+			'qty' => 1,
+			'reservation_id' => 'TAN_DEV_CLI-ABC-44',
+			'reserved_at' => Mage::getModel('core/date')->date('Y-m-d H:i:s')
 		);
+		$this->assertSame($expected, $itemResponse);
 	}
 }

@@ -49,10 +49,22 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testLoadProductBySku()
 	{
-		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
+		$mockModelCatalogProduct = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProduct();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProductCollection();
 
-		$ship = new TrueAction_Eb2cProduct_Model_Feed_I_Ship();
+		$feedIShipMock = $this->getModelMockBuilder('eb2cproduct/feed_i_ship')
+			->disableOriginalConstructor()
+			->setMethods(array('_construct'))
+			->getMock();
+
+		$feedIShipMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('model', 'eb2cproduct/feed_i_ship', $feedIShipMock);
+
+		$ship = Mage::getModel('eb2cproduct/feed_i_ship');
 		$shipReflector = new ReflectionObject($ship);
 
 		$loadProductBySku = $shipReflector->getMethod('_loadProductBySku');
@@ -71,6 +83,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 	 */
 	public function testConstructor()
 	{
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
+
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
 
@@ -108,6 +125,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedCatalogId());
@@ -147,6 +165,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedClientId());
@@ -186,6 +205,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithInvalidFeedItemType());
@@ -225,6 +245,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
@@ -265,6 +286,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
@@ -307,6 +329,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsAddNosale());
@@ -349,6 +372,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
@@ -391,6 +415,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipAddProduct());
@@ -433,6 +458,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
@@ -475,6 +501,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
@@ -517,6 +544,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdateNosale());
@@ -559,6 +587,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsUpdate());
@@ -601,6 +630,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsDelete());
@@ -643,6 +673,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
 
 		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForIShipWithProductsDelete());
