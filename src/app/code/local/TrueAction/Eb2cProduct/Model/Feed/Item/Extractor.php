@@ -19,7 +19,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		// SKU used to identify this item from the client system.
 		$nodeClientItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientItemId");
-		return new Varien_Object(array('client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null));
+
+		// Alternative identifier provided by the client.
+		$nodeClientAltItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientAltItemId");
+
+		// Code assigned to the item by the manufacturer to identify the item.
+		$nodeManufacturerItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ManufacturerItemId");
+		return new Varien_Object(array(
+			'client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null,
+			'client_alt_item_id' => ($nodeClientAltItemId->length)? (string) $nodeClientAltItemId->item(0)->nodeValue : null,
+			'manufacturer_item_id' => ($nodeManufacturerItemId->length)? (string) $nodeManufacturerItemId->item(0)->nodeValue : null,
+		));
 	}
 
 	/**
@@ -134,6 +144,29 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$colorIndex++;
 		}
 
+		// Selling name and description used to identify a product for advertising purposes
+		// Selling/promotional name.
+		$nodeBrandName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Name");
+
+		// Short description of the selling/promotional name.
+		$brandDescriptionData = array();
+		$nodeBrandDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
+		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
+			$brandDescriptionData[] = array('lang' => $brandDescriptionRecord->getAttribute('xml:lang'), 'description' =>  $brandDescriptionRecord->nodeValue);
+		}
+
+		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
+		$nodeBuyerName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/Name");
+		$nodeBuyerId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/BuyerId");
+
+		/*
+		 * Whether the item is a "companion" (must ship with another product) or can ship alone. ENUM: ("Yes", No", "Maybe")
+		 *    Yes - may ship alone
+		 *    No - cancelled if not shipped with companion
+		 *    Maybe - other factors decide
+		 */
+		$nodeCompanionFlag = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CompanionFlag");
+
 		// Country in which goods were completely derived or manufactured.
 		$nodeCountryOfOrigin = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
 
@@ -146,6 +179,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		 *		SX - SmartClixx Gift Card
 		 */
 		$nodeGiftCardTenderCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
+
+		// Indicates if the item is considered hazardous material.
+		$nodeHazardousMaterialCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/HazardousMaterialCode");
+
+		// Not included in display or in emails. Default to false.
+		$nodeIsHiddenProduct = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/IsHiddenProduct");
 
 		// Shipping weight of the item.
 		$nodeMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimensions/Shipping/Mass");
@@ -203,6 +242,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 					)
 				),
 				'style_id' => ($nodeStyleId->length)? (string) $nodeStyleId->item(0)->nodeValue : null,
+				'brand_name' => ($nodeBrandName->length)? (string) $nodeBrandName->item(0)->nodeValue : null,
+				'brand_description' => $brandDescriptionData,
+				'buyer_name' => ($nodeBuyerName->length)? (string) $nodeBuyerName->item(0)->nodeValue : null,
+				'buyer_id' => ($nodeBuyerId->length)? (string) $nodeBuyerId->item(0)->nodeValue : null,
+				'companion_flag' => ($nodeCompanionFlag->length)? (string) $nodeCompanionFlag->item(0)->nodeValue : null,
+				'hazardous_material_code' => ($nodeHazardousMaterialCode->length)? (string) $nodeHazardousMaterialCode->item(0)->nodeValue : null,
+				'is_hidden_product' => ($nodeIsHiddenProduct->length)? (bool) $nodeIsHiddenProduct->item(0)->nodeValue : false,
 			)
 		);
 	}

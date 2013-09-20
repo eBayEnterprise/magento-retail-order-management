@@ -13,6 +13,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _construct()
 	{
+		// getting the default magento language
+		$storeLocaleData = explode('_', Mage::app()->getLocale()->getLocaleCode());
+		$storeLang = 'EN-GB'; // this is the default store language
+		if (sizeof($storeLocaleData) > 1) {
+			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
+		}
+
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -41,6 +48,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'))
 			// set the default store id
 			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
+			// setting default store language
+			->setDefaultStoreLanguageCode($storeLang)
 			// set array of website ids
 			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
@@ -352,6 +361,62 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					if ($this->_isAttributeExists('item_type')) {
 						// setting item_type attribute
 						$productObject->setItemType($dataObject->getBaseAttributes()->getItemType());
+					}
+
+					if ($this->_isAttributeExists('client_alt_item_id')) {
+						// setting client_alt_item_id attribute
+						$productObject->setClientAltItemId($dataObject->getItemId()->getClientAltItemId());
+					}
+
+					if ($this->_isAttributeExists('manufacturer_item_id')) {
+						// setting manufacturer_item_id attribute
+						$productObject->setManufacturerItemId($dataObject->getItemId()->getManufacturerItemId());
+					}
+
+					if ($this->_isAttributeExists('style_id')) {
+						// setting style_id attribute
+						$productObject->setStyleId($dataObject->getExtendedAttributes()->getStyleId());
+					}
+
+					if ($this->_isAttributeExists('brand_name')) {
+						// setting brand_name attribute
+						$productObject->setBrandName($dataObject->getExtendedAttributes()->getBrandName());
+					}
+
+					if ($this->_isAttributeExists('brand_description')) {
+						// setting brand_description attribute
+						$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
+						foreach ($brandDescription as $bDesc) {
+							if (trim(strtoupper($bDesc['lang'])) === $this->getDefaultStoreLanguageCode()) {
+								$productObject->setBrandDescription($bDesc['description']);
+								break;
+							}
+						}
+					}
+
+					if ($this->_isAttributeExists('buyer_name')) {
+						// setting buyer_name attribute
+						$productObject->setBuyerName($dataObject->getExtendedAttributes()->getBuyerName());
+					}
+
+					if ($this->_isAttributeExists('buyer_id')) {
+						// setting buyer_id attribute
+						$productObject->setBuyerId($dataObject->getExtendedAttributes()->getBuyerId());
+					}
+
+					if ($this->_isAttributeExists('companion_flag')) {
+						// setting companion_flag attribute
+						$productObject->setCompanionFlag($dataObject->getExtendedAttributes()->getCompanionFlag());
+					}
+
+					if ($this->_isAttributeExists('hazardous_material_code')) {
+						// setting hazardous_material_code attribute
+						$productObject->setHazardousMaterialCode($dataObject->getExtendedAttributes()->getHazardousMaterialCode());
+					}
+
+					if ($this->_isAttributeExists('is_hidden_product')) {
+						// setting is_hidden_product attribute
+						$productObject->setIsHiddenProduct($dataObject->getExtendedAttributes()->getIsHiddenProduct());
 					}
 
 					// adding custom attributes
