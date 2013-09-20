@@ -4,73 +4,53 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-abstract class TrueAction_Eb2cProduct_Model_Feed_Abstract
-	extends TrueAction_Eb2cCore_Model_Feed_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Abstract
+	extends Mage_Core_Model_Abstract
 {
 	/**
 	 * feed data broken out into individually processable chunks.
 	 * @var array
 	 */
-	protected $_chuncks = array();
+	protected $_chunks = array();
 
 	private $_doc = null;
 
 	/**
-	 * the signature of the callback function used to process a chunk
-	 * override this if there's a lot of simple attributes that don't warrant their own callback
-	 * @param  string $attribute name of the attribute (as per the mapping)
-	 * @param  TrueAction_Dom_Element $chunkNode the current node being processed.
-	 * @param  TrueAction_Dom_Document $doc       the dom document
-	 * @return mixed standardized value for the attribute.
-	 * @throws TrueAction_Eb2cProduct_Feed_Documenterror If an error is encountered that invalidates the document.
-	 * @throws TrueAction_Eb2cProduct_Feed_Chunkerror If an error is encountered that skips the chunk.
+	 * set the xpath used to break the dom into processable chuncks.
+	 * @param $xpath
+	 * @return self
 	 */
-	//public function chunkCallback($attribute, TrueAction_Dom_Element $chunkNode=null, TrueAction_Dom_Document $doc=null);
+	// public function setBaseXpath(string $xpath)
 
 	/**
-	 * @return string xpath to the node that represents a unit of processing for the feed
+	 * set the mapping array used to extract data from each chunk.
+	 * @return self
 	 */
-	abstract public function getBasePath();
-
-	/**
-	 * @return array mapping of product attribute to either an xpath string or a callback function
-	 */
-	abstract public function getMapping();
-
-	/**
-	 * get an xpath usable with $doc.
-	 * @param  TrueAction_Dom_Document $doc
-	 * @return DomXPath      xpath object configured to work with the document.
-	 * @codeCoverageIgnore
-	 */
-	public function getNewXpath(TrueAction_Dom_Document $doc)
-	{
-		return new DomXpath($doc);
-	}
+	// public function setMapping(array $mapping)
 
 	public function getChunks(TrueAction_Dom_Document $doc=null)
 	{
 		if ((!$this->_chunks && $doc) || $doc) {
 			$this->_doc = $doc;
-			$this->setXpath($this->getNewXpath());
-			$rawChunks = $this->split($doc);
+			$this->setXpath($this->getNewXpath($doc));
+			$rawChunks = $this->_split($doc);
 			$this->_processChunks($rawChunks);
 			$this->_doc = null;
 		}
 		return $this->_chunks;
 	}
 
-	protected function _split($doc)
+	protected function _split(TrueAction_Dom_Document $doc)
 	{
 		$xpath = $this->getXpath();
-		$nodeList = $xpath->query($this->getBasePath());
+		$nodeList = $xpath->query($this->getExtractionModel()->getBaseXpath());
 		return $nodeList;
 	}
 
 	protected function _processChunks($rawChunks)
 	{
 		$xpath = $this->getXpath();
-		$this->_mapping = $this->getMapping();
+		$this->_mapping = $this->getExtractionModel()->getMapping();
 		foreach ($rawChunks as $chunk) {
 			$chunkData = array();
 			foreach ($this->_mapping as $attribute => $valueSource) {
