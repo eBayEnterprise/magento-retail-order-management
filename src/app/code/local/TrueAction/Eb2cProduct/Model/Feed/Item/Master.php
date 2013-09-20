@@ -77,7 +77,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
 	 *
-	 * @return Mage_Eav_Model_Config
+	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
 	{
