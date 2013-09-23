@@ -43,6 +43,52 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	}
 
 	/**
+	 * Wrapper function/scaffolding for calls that involve remote connections and
+	 * should be retried. Will retry up to a configured number of times. Meant to be used
+	 * with TrueAction/FileTransfer's helper methods.
+	 *
+	 * @param  callable $callable Callback to be tried each time.
+	 * @param  array    $argArray Arguments that should be passed to the callable.
+	 * @return void
+	 */
+	private function _remoteCall($callable, $argArray)
+	{
+		$connectionAttempts = 0;
+		$cfg                = Mage::helper('eb2ccore/feed');
+		$coreConfig         = Mage::getModel('eb2ccore/config_registry')
+			->setStore(null)
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
+
+		do {
+			try {
+				$connectionAttempts++;
+				call_user_func_array($callable, $argArray);
+				break;
+			} catch( TrueAction_FileTransfer_Exception_Connection $e ) {
+				// Connection exceptions we'll retry, could be a temporary condition
+				Mage::logException($e);
+				if( $connectionAttempts >= $coreConfig->feedFetchConnectAttempts ) {
+					Mage::log('Connect failed, retry limit reached', Zend_Log::ERR);
+					break;
+				}
+				else {
+					Mage::log(
+						sprintf('Connect failed, sleeping %d seconds (attempt %d of %d)',
+						$coreConfig->feedFetchRetryTimer, $connectionAttempts, $coreConfig->feedFetchConnectAttempts),
+						Zend_Log::DEBUG
+					);
+					sleep($coreConfig->feedFetchRetryTimer);
+				}
+			} catch (Exception $e ) {
+				// Any other exception is failure, log and return
+				Mage::logException($e);
+				break;
+			}
+		} while(true);
+		return;
+	}
+
+	/**
 	 * For feeds, just configure a base folder, and you'll get the rest.
 	 */
 	public function setUpDirs()
@@ -73,44 +119,30 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	 */
 	public function fetchFeedsFromRemote($remotePath, $filePattern)
 	{
-		$connectionAttempts = 0;
-		$cfg                = Mage::helper('eb2ccore/feed');
-		$coreConfig         = Mage::getModel('eb2ccore/config_registry')
-			->setStore(null)
-			->addConfigModel(Mage::getModel('eb2ccore/config'));
+		$cfg = Mage::helper('eb2ccore/feed');
+		$this->_remoteCall(
+			array(Mage::helper('filetransfer'), 'getAllFiles'),
+			array(
+				$this->getInboundPath(),
+				$remotePath,
+				$filePattern,
+				$cfg::FILETRANSFER_CONFIG_PATH,
+			)
+		);
+	}
 
-		do {
-			try {
-				$connectionAttempts++;
-				Mage::helper('filetransfer')->getAllFiles(
-					$this->getInboundPath(),
-					$remotePath,
-					$filePattern,
-					$cfg::FILETRANSFER_CONFIG_PATH
-				);
-				break;
-			} catch( TrueAction_FileTransfer_Exception_Connection $e ) {
-				// Connection exceptions we'll retry, could be a temporary condition
-				Mage::logException($e);
-				if( $connectionAttempts >= $coreConfig->feedFetchConnectAttempts ) {
-					Mage::log('Connect failed, retry limit reached', Zend_Log::ERR);
-					break;
-				}
-				else {
-					Mage::log(
-						sprintf('Connect failed, sleeping %d seconds (attempt %d of %d)',
-						$coreConfig->feedFetchRetryTimer, $connectionAttempts, $coreConfig->feedFetchConnectAttempts),
-						Zend_Log::DEBUG
-					);
-					sleep($coreConfig->feedFetchRetryTimer);
-				}
-			} catch (Exception $e ) {
-				// Any other exception is failure, log and return
-				Mage::logException($e);
-				break;
-			}
-		} while(true);
-		return;
+	/**
+	 * Remote the file from the remote.
+	 * @param  string $remotePath Directory the file resides in.
+	 * @param  string $fileName   Name of the file to remove
+	 * @return void
+	 */
+	public function removeFromRemote($remotePath, $fileName)
+	{
+		$this->_remoteCall(
+			array(Mage::helper('filetransfer'), 'deleteFile'),
+			array($remotePath . DS . $fileName)
+		);
 	}
 
 	/**
