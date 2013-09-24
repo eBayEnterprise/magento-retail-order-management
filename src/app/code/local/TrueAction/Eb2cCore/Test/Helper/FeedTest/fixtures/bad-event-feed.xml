@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ItemInventories>
+	<MessageHeader>
+		<DestinationData>
+			<DestinationId>MWS</DestinationId>
+		</DestinationData>
+		<EventType>BadEvent</EventType>
+	</MessageHeader>
+</ItemInventories>

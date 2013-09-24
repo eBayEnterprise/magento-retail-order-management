@@ -5,93 +5,33 @@
  */
 class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_Test_Base
 {
+	const FAKE_PROCESS_FEEDS_RETURN = 42;
 	private $_shellCore;
 	private $_config;
 
 	public function setUp()
 	{
-		$this->_shellCore = Mage::getModel('eb2ccore/feed_shell');
+		$this->_mockOrderStatusFeedModel(self::FAKE_PROCESS_FEEDS_RETURN);
+		$this->_shellCore = Mage::getModel('eb2ccore/feed_shell',
+			array (
+				'feed_set' => array(
+					'eb2corder/status_feed'
+				)
+			)
+		);
 	}
 
 	/**
-	 * Is our _shellCore is the correct object
-	 *
-	 * @test
-	 */
-	public function testObjectInstance()
-	{
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed_Shell', $this->_shellCore);
-	}
-
-	/**
-	 * Status should match Eb2cOrder Status Feed
+	 * The shorter term 'status' should match Eb2cOrder Status Feed, we should get that model back
 	 *
 	 * @test
 	 */
 	public function testMatchFeedNames()
 	{
-		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->getFeedModel('status'));
-	}
-
-	/**
-	 * Status should match Eb2cOrder Status Feed given short name
-	 *
-	 * @test
-	 */
-	public function testMatchShortName()
-	{
-		$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $this->_shellCore->getFeedModel('sta'));
-	}
-
-	/**
-	 * Loop over an array of names, should get valid runners
-	 *
-	 * @test
-	 */
-	public function testMultipleNames()
-	{
-		// This mocks the available nodes construct, as found in config.xml
-		$configValuePairs = array (
-			'feedAvailableModels' => array(
-				'eb2cinventory' => array(
-					'feed_item_Inventories' => 0
-				),
-				'eb2corder' => array(
-					'status_feed' => 1,
-				),
-				'eb2cproduct' => array(
-					'feed_content_master' => 1,
-					'feed_image_master'   => 0,
-				),
-			),
-			'statusFeedLocalPath'   => 'dummy_remote_path',
-			'statusFeedRemotePath'  => 'dummy_local_path',
-			'statusFeedFilePattern' => 'OrderStatus*.xml',
-			'statusFeedEventType'   => 'OrderStatus*.xml',
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cOrder_Model_Status_Feed',
+			$this->_shellCore->getFeedModel('status')
 		);
-
-		// Build the array in the format returnValueMap wants
-		$valueMap = array();
-		foreach( $configValuePairs as $configPath => $configValue ) {
-			$valueMap[] = array($configPath, $configValue);
-		}
-
-		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
-		$mockConfig->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap($valueMap));
-
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
-
-		$multipleFeeds = array( 'status', 'content', );
-		foreach( $multipleFeeds as $aFeed ) {
-			$model = $this->_shellCore->getFeedModel($aFeed);
-			if( $aFeed === 'status' ) {
-				$this->assertInstanceOf(get_class(Mage::getModel('eb2corder/status_feed')), $model);
-			} else {
-				$this->assertInstanceOf(get_class(Mage::getModel('eb2cproduct/feed_content_master')), $model);
-			}
-		}
 	}
 
 	/**
@@ -105,7 +45,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
-					'eb2ccore/feed',
+					'eb2ccore/feed_shell', // Purposely NOT a valid feed model, may as well be me myself, I KNOW I'm not.
 				)
 			)
 		);
@@ -123,22 +63,94 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
-					'someGarbageName43346dfbdc2c57f0889d37ce061e58c57daffe6e/some_invalid_model',
+					'someGarbageModule43346dfbdc2c57f0889d37ce061e58c57daffe6e/some_invalid_feed',
 				)
 			)
 		);
-		$rc = $fakeShell->runFeedModel('GarbageName');
+		$rc = $fakeShell->runFeedModel('Garbage');
 	}
 
 	/**
-	 * Test that we can really call processFeeds()
+	 * Test that we'll find a valid model, and call its processFeeds() method,
+	 * which in setup we mocked it up to return FAKE_PROCESS_FEEDS_RETURN
 	 *
 	 * @test
 	 */
 	public function testRunFeedModel()
 	{
-		$dummyReturnValue = 42;
+		$this->assertEquals(
+			self::FAKE_PROCESS_FEEDS_RETURN,
+			$this->_shellCore->runFeedModel('status')
+		);
+	}
 
+	/**
+	 * Non-matches are invalid. If you ask for a feed that producese no match, should return false.
+	 *
+	 * @test
+	 */
+	public function testInvalidFeedIsFalse()
+	{
+		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
+			array (
+				'feed_set' => array(
+					'scott_b',
+					'scott_s',
+					'scott_v',
+				)
+			)
+		);
+		$this->assertFalse($fakeShell->getFeedModel('michael'));
+	}
+
+	/**
+	 * Multiple matches are invalid. If I pass an ambiguous feed name, I should see false returned.
+	 *
+	 * @test
+	 */
+	public function testMultipleMatchesIsFalse()
+	{
+		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
+			array (
+				'feed_set' => array(
+					'michael_p',
+					'michael_s',
+					'michael_w',
+				)
+			)
+		);
+		$this->assertFalse($this->_shellCore->getFeedModel('michael'));
+	}
+
+	/**
+	 * test listAvailable returns all the feeds we configured
+	 *
+	 * @test
+	 * @loadFixture listAvailableFeeds
+	 */
+	public function testListAvailableFeeds()
+	{
+		$fakeShell = Mage::getModel('eb2ccore/feed_shell');
+
+		$feedSet = array(
+			'module/adam',
+			'module/mike',
+			'module/reggie',
+			'module/scott',
+		);
+
+		$availableFeeds = $fakeShell->listAvailableFeeds();
+		foreach( $feedSet as $aFeed ) {
+			$this->assertContains($aFeed, $availableFeeds);
+		}
+	}
+
+	/**
+	 * Set up an Order Status Feed as the 'dummy', and he mocks his fs_tool
+	 *
+	 */
+	private function _mockOrderStatusFeedModel($dummyReturnValue)
+	{
 		// Mock the Varien_Io_File, need a mock file system
 		$mockFsTool = $this->getMock('Varien_Io_File', array(
 			'cd',
@@ -147,6 +159,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open',
 		));
 		$mockFsTool
 			->expects($this->any())
@@ -173,6 +186,10 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 			->method('setAllowCreateFolders')
 			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+		$mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 
 		// Mock order status feeds so I can fake a call to processFeeds(), this is
 		// where I need a mock FS.
@@ -194,46 +211,6 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 			->method('processFeeds')
 			->will($this->returnValue($dummyReturnValue));
 
-		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
-			array (
-				'feed_set' => array(
-					'eb2corder/status_feed'
-				)
-			)
-		);
-
 		$this->replaceByMock('model', 'eb2corder/status_feed', $mockOrderStatusFeed);
-
-		$this->assertEquals($dummyReturnValue, $fakeShell->runFeedModel('stat'));
-	}
-
-	/**
-	 * Non-matches are invalid. If you ask for some nonsense name, should be false
-	 *
-	 * @test
-	 */
-	public function testInvalidFeedIsFalse()
-	{
-		$this->assertfalse($this->_shellCore->getFeedModel('2d9af10bd2a388151591c37f100d72d731ba1427'));
-	}
-
-	/**
-	 * Multiple matches are invalid. If you just say 'feed' that matches all of them, so should be false
-	 *
-	 * @test
-	 */
-	public function testMultipleMatchesIsFalse()
-	{
-		$this->assertfalse($this->_shellCore->getFeedModel('feed'));
-	}
-
-	/**
-	 * Just make sure we get a string back from listAvailableFeeds
-	 *
-	 * @test
-	 */
-	public function testListAvailableString()
-	{
-		$this->assertNotEmpty( $this->_shellCore->listAvailableFeeds() );
 	}
 }
