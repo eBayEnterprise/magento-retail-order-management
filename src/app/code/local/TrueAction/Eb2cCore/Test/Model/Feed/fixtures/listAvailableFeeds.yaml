@@ -1,0 +1,5 @@
+config:
+  default/eb2ccore/feed/available_models/module/mike: 1
+  default/eb2ccore/feed/available_models/module/scott: 1
+  default/eb2ccore/feed/available_models/module/adam: 1
+  default/eb2ccore/feed/available_models/module/reggie: 1
