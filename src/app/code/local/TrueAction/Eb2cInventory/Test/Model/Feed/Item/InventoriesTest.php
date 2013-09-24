@@ -43,6 +43,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open',
 		));
 		$mockFsTool
 			->expects($this->any())
@@ -72,6 +73,11 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->method('setAllowCreateFolders')
 			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+		$mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
+
 		// vfs setup ends
 		return $mockFsTool;
 	}
@@ -88,7 +94,9 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// Setup a simple, but fairly useless stub of Varien_Io_File. I'm leaving testing of the interactions
 		// between Varien_Io_File and the Eb2cCore_Model_Feed up to Eb2cCore_Model_Feed so just looking to ensure
 		// no filesystem interactions take place.
-		$fsToolMock = $this->getMock('Varien_Io_File', array('cd', 'checkAndCreateFOlder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders'));
+		$fsToolMock = $this->getMock('Varien_Io_File', array(
+			'cd', 'checkAndCreateFOlder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders', 'open',
+		));
 		$fsToolMock->expects($this->any())
 			->method('cd')
 			->will($this->returnValue(true));
@@ -107,6 +115,9 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$fsToolMock->expects($this->any())
 			->method('setAllowCreateFolders')
 			->will($this->returnSelf());
+		$fsToolMock->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 
 		$feed = Mage::getModel('eb2cinventory/feed_item_inventories', array('fs_tool' => $fsToolMock));
 

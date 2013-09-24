@@ -29,6 +29,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open'
 		));
 		$this->_mockFsTool
 			->expects($this->any())
@@ -58,6 +59,10 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			->method('setAllowCreateFolders')
 			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+		$this->_mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 	}
 
 	/**
@@ -84,6 +89,25 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	{
 		$feed = Mage::getModel('eb2ccore/feed'); // No args will ensure coverage
 		$feed->setUpDirs();
+	}
+
+	/**
+	 * Make sure the fs tool being used (Varien_Io_File) is "open"ed when instantitated.
+	 *
+	 * @test
+	 */
+	public function testOpenVarienIoFile()
+	{
+		$mockFs = $this->getMock('Varien_Io_File', array('open', 'setAllowCreateFolders'));
+		// Make sure the open method is called once. This is the actual test.
+		$mockFs->expects($this->once())
+			->method('open')
+			->will($this->returnValue(true));
+		$mockFs->expects($this->once())
+			->method('setAllowCreateFolders')
+			->with($this->isTrue())
+			->will($this->returnSelf());
+		Mage::getModel('eb2ccore/feed', array('fs_tool' => $mockFs));
 	}
 
 	/**
@@ -128,7 +152,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 
 	/**
 	 * Test providing coverage for remote connection exception handling
-	 * 
+	 *
 	 * @large
 	 * @test
 	 */
@@ -167,7 +191,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 
 	/**
 	 * Test providing coverage for remote "any exception other than connection exception" handling
-	 * 
+	 *
 	 * @large
 	 * @test
 	 */

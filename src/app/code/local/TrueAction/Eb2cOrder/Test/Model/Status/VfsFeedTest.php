@@ -32,6 +32,7 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open',
 		));
 		$mockFsTool
 			->expects($this->any())
@@ -61,6 +62,10 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 			->method('setAllowCreateFolders')
 			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
 			->will($this->returnSelf());
+		$mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 
 		// The transport protocol is mocked - we just pretend we got files
 		$this->replaceModel('filetransfer/protocol_types_sftp', array('getAllFiles' => true,));
