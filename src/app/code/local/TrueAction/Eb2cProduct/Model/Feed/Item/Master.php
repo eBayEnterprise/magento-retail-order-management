@@ -429,7 +429,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 					if ($this->_isAttributeExists('item_dimension_display_packaging_unit_of_measure')) {
 						// setting item_dimension_display_packaging_unit_of_measure attribute
-						$productObject->setItemDimensionDisplayPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getUnitOfMeasure());
+						$productObject->setItemDimensionDisplayPackagingUnitOfMeasure(
+							$dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getUnitOfMeasure()
+						);
 					}
 
 					if ($this->_isAttributeExists('item_dimension_display_packaging_width')) {
@@ -449,7 +451,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 					if ($this->_isAttributeExists('item_dimension_shipping_packaging_unit_of_measure')) {
 						// setting item_dimension_shipping_packaging_unit_of_measure attribute
-						$productObject->setItemDimensionhippingPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getUnitOfMeasure());
+						$productObject->setItemDimensionhippingPackagingUnitOfMeasure(
+							$dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getUnitOfMeasure()
+						);
 					}
 
 					if ($this->_isAttributeExists('item_dimension_shipping_packaging_width')) {
@@ -479,7 +483,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 					if ($this->_isAttributeExists('item_dimension_carton_packaging_unit_of_measure')) {
 						// setting item_dimension_carton_packaging_unit_of_measure attribute
-						$productObject->setItemDimensionCartonPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getUnitOfMeasure());
+						$productObject->setItemDimensionCartonPackagingUnitOfMeasure(
+							$dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getUnitOfMeasure()
+						);
 					}
 
 					if ($this->_isAttributeExists('item_dimension_carton_packaging_width')) {

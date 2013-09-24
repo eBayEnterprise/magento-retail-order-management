@@ -145,7 +145,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$colorDescriptionData = array();
 			$colorDescriptionIndex = 1;
 			foreach ($nodeColorDescription as $colorDescriptionRecord) {
-				$colorDescriptionData[] = array('lang' => $this->_languageFormat($colorDescriptionRecord->getAttribute('xml:lang')), 'description' => $colorDescriptionRecord->nodeValue);
+				$colorDescriptionData[] = array(
+					'lang' => $this->_languageFormat($colorDescriptionRecord->getAttribute('xml:lang')),
+					'description' => $colorDescriptionRecord->nodeValue
+				);
 				$colorDescriptionIndex++;
 			}
 
@@ -164,7 +167,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		$brandDescriptionData = array();
 		$nodeBrandDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
 		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
-			$brandDescriptionData[] = array('lang' => $this->_languageFormat($brandDescriptionRecord->getAttribute('xml:lang')), 'description' =>  $brandDescriptionRecord->nodeValue);
+			$brandDescriptionData[] = array(
+				'lang' => $this->_languageFormat($brandDescriptionRecord->getAttribute('xml:lang')),
+				'description' => $brandDescriptionRecord->nodeValue
+			);
 		}
 
 		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
