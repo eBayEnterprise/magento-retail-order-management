@@ -12,6 +12,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 	 */
 	public function testGetChunks()
 	{
+		$feedAbstractModel = $this->getModelMockBuilder('eb2cproduct/feed_abstract')
+			->setMethods(array('_construct'))
+			->getMock();
+		$feedAbstractModel->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/feed_abstract', $feedAbstractModel);
+
 		$this->markTestSkipped('the "superfeed" code needs to be debugged.');
 		$mapping = array('sku' => 'sku/text()', 'other' => 'sku@attr');
 		$basePath = '/root/foo';
@@ -21,6 +29,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 		$extractionModel->setBaseXpath($basePath)
 			->setMapping($mapping);
 		$model = Mage::getModel('eb2cproduct/feed_abstract');
+
+
 		$model->setExtractionModel($extractionModel)
 			->setXpath(new DomXPath($doc));
 		$result = $model->getChunks($doc);

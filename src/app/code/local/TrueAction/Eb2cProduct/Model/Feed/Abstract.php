@@ -5,7 +5,7 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cProduct_Model_Feed_Abstract
-	extends Mage_Core_Model_Abstract
+	extends TrueAction_Eb2cCore_Model_Feed_Abstract
 {
 	/**
 	 * feed data broken out into individually processable chunks.
@@ -14,6 +14,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	protected $_chunks = array();
 
 	private $_doc = null;
+	protected $_xpath = null;
 
 	/**
 	 * set the xpath used to break the dom into processable chuncks.
@@ -32,7 +33,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	{
 		if ((!$this->_chunks && $doc) || $doc) {
 			$this->_doc = $doc;
-			$this->setXpath($this->getNewXpath($doc));
+			$this->_xpath = $this->getNewDomXpath($doc);
 			$rawChunks = $this->_split($doc);
 			$this->_processChunks($rawChunks);
 			$this->_doc = null;
@@ -40,16 +41,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 		return $this->_chunks;
 	}
 
+	/**
+	 * retuns a new instantiated DOMXPath object loaded with the DOMDocument
+	 *
+	 * @param DOMDocument $doc, the dom document with the loaded feed data
+	 *
+	 * @return DOMXPath, the new DOMXPath object
+	 */
+	public function getNewDomXpath(DOMDocument $doc)
+	{
+		return new DOMXPath($doc);
+	}
+
 	protected function _split(TrueAction_Dom_Document $doc)
 	{
-		$xpath = $this->getXpath();
+		$xpath = $this->getNewDomXpath($doc);
 		$nodeList = $xpath->query($this->getExtractionModel()->getBaseXpath());
 		return $nodeList;
 	}
 
 	protected function _processChunks($rawChunks)
 	{
-		$xpath = $this->getXpath();
+		// $xpath = $this->getNewDomXpath(); --- not sure why you need this here
 		$this->_mapping = $this->getExtractionModel()->getMapping();
 		foreach ($rawChunks as $chunk) {
 			$chunkData = array();
@@ -72,12 +85,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	protected function _extractAttribute($attribute, $valueSource, $chunk)
 	{
 		$value = null;
+		$xpath = $this->_xpath;
 		// if an xpath
 		if (is_string($valueSource)) {
-			$nodeList = $xpath->query($valueSource, $chunk);
-			$node = $nodeList->item(0);
-			if ($node) {
-				$value = $node->nodeValue;
+			try{
+				$nodeList = $xpath->query($valueSource, $chunk);
+				$node = $nodeList->item(0);
+				if ($node) {
+					$value = $node->nodeValue;
+				}
+			} catch(Exception $e) {
+				Mage::log('[' . __CLASS__ . '] the following error while extract feed attributes: ' . $e->getMessage(), Zend_Log::DEBUG);
 			}
 		} elseif (is_array($valueSource)) {
 			$args = array($attribute, $chunk, $this->_doc);
@@ -90,5 +108,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 		}
 		// @codeCoverageIgnoreEnd
 		return $value;
+	}
+
+	/**
+	 * Implementing eb2ccore/feed_abstract method
+	 *
+	 * @return void
+	 */
+	public function processDom(TrueAction_Dom_Document $xmlDom)
+	{
+		return;
 	}
 }

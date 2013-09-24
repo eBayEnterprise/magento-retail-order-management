@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-interface TrueAction_Eb2cProduct_Model_Feed_Extraction_Interface {
+interface TrueAction_Eb2cProduct_Model_Feed_Extract_Interface {
 	/**
 	 * the signature of the callback function used to process a chunk
 	 * override this if there's a lot of simple attributes that don't warrant their own callback
