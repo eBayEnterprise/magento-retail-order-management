@@ -13,13 +13,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _construct()
 	{
-		// getting the default magento language
-		$storeLocaleData = explode('_', Mage::app()->getLocale()->getLocaleCode());
-		$storeLang = 'EN-GB'; // this is the default store language
-		if (sizeof($storeLocaleData) > 1) {
-			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
-		}
-
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -49,7 +42,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			// set the default store id
 			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
 			// setting default store language
-			->setDefaultStoreLanguageCode($storeLang)
+			->setDefaultStoreLanguageCode(Mage::app()->getLocale()->getLocaleCode())
 			// set array of website ids
 			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
 
@@ -266,8 +259,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				try {
 					$productObject = $this->getProduct();
 					$productObject->setTypeId($dataObject->getProductType());
-					$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
-					$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
+					$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getWeight());
+					$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 
 					// get color attribute data
 					$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
@@ -373,11 +366,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setManufacturerItemId($dataObject->getItemId()->getManufacturerItemId());
 					}
 
-					if ($this->_isAttributeExists('style_id')) {
-						// setting style_id attribute
-						$productObject->setStyleId($dataObject->getExtendedAttributes()->getStyleId());
-					}
-
 					if ($this->_isAttributeExists('brand_name')) {
 						// setting brand_name attribute
 						$productObject->setBrandName($dataObject->getExtendedAttributes()->getBrandName());
@@ -387,7 +375,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						// setting brand_description attribute
 						$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
 						foreach ($brandDescription as $bDesc) {
-							if (trim(strtoupper($bDesc['lang'])) === $this->getDefaultStoreLanguageCode()) {
+							if (trim(strtoupper($bDesc['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
 								$productObject->setBrandDescription($bDesc['description']);
 								break;
 							}
@@ -419,6 +407,201 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setIsHiddenProduct($dataObject->getExtendedAttributes()->getIsHiddenProduct());
 					}
 
+					if ($this->_isAttributeExists('item_dimension_shipping_mass_unit_of_measure')) {
+						// setting item_dimension_shipping_mass_unit_of_measure attribute
+						$productObject->setItemDimensionhippingMassUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_shipping_mass_weight')) {
+						// setting item_dimension_shipping_mass_weight attribute
+						$productObject->setItemDimensionhippingMassWeight($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getWeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_mass_unit_of_measure')) {
+						// setting item_dimension_display_mass_unit_of_measure attribute
+						$productObject->setItemDimensionDisplayMassUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getMassUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_mass_weight')) {
+						// setting item_dimension_display_mass_weight attribute
+						$productObject->setItemDimensionDisplayMassWeight($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getWeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_packaging_unit_of_measure')) {
+						// setting item_dimension_display_packaging_unit_of_measure attribute
+						$productObject->setItemDimensionDisplayPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_packaging_width')) {
+						// setting item_dimension_display_packaging_width attribute
+						$productObject->setItemDimensionDisplayPackagingWidth($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getWidth());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_packaging_length')) {
+						// setting item_dimension_display_packaging_length attribute
+						$productObject->setItemDimensionDisplayPackagingLength($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getLength());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_display_packaging_height')) {
+						// setting item_dimension_display_packaging_height attribute
+						$productObject->setItemDimensionDisplayPackagingHeight($dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getHeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_shipping_packaging_unit_of_measure')) {
+						// setting item_dimension_shipping_packaging_unit_of_measure attribute
+						$productObject->setItemDimensionhippingPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_shipping_packaging_width')) {
+						// setting item_dimension_shipping_packaging_width attribute
+						$productObject->setItemDimensionhippingPackagingWidth($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getWidth());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_shipping_packaging_length')) {
+						// setting item_dimension_shipping_packaging_length attribute
+						$productObject->setItemDimensionhippingPackagingLength($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getLength());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_shipping_packaging_height')) {
+						// setting item_dimension_shipping_packaging_height attribute
+						$productObject->setItemDimensionhippingPackagingHeight($dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getHeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_mass_unit_of_measure')) {
+						// setting item_dimension_carton_mass_unit_of_measure attribute
+						$productObject->setItemDimensionCartonMassUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getMassUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_mass_weight')) {
+						// setting item_dimension_carton_mass_weight attribute
+						$productObject->setItemDimensionCartonMassWeight($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getWeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_packaging_unit_of_measure')) {
+						// setting item_dimension_carton_packaging_unit_of_measure attribute
+						$productObject->setItemDimensionCartonPackagingUnitOfMeasure($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getUnitOfMeasure());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_packaging_width')) {
+						// setting item_dimension_carton_packaging_width attribute
+						$productObject->setItemDimensionCartonPackagingWidth($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getWidth());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_packaging_length')) {
+						// setting item_dimension_carton_packaging_length attribute
+						$productObject->setItemDimensionCartonPackagingLength($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getLength());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_packaging_height')) {
+						// setting item_dimension_carton_packaging_height attribute
+						$productObject->setItemDimensionCartonPackagingHeight($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getHeight());
+					}
+
+					if ($this->_isAttributeExists('item_dimension_carton_type')) {
+						// setting item_dimension_carton_type attribute
+						$productObject->setItemDimensionCartonType($dataObject->getExtendedAttributes()->getItemDimensionCarton()->getType());
+					}
+
+					if ($this->_isAttributeExists('lot_tracking_indicator')) {
+						// setting lot_tracking_indicator attribute
+						$productObject->setLotTrackingIndicator($dataObject->getExtendedAttributes()->getLotTrackingIndicator());
+					}
+
+					if ($this->_isAttributeExists('ltl_freight_cost')) {
+						// setting ltl_freight_cost attribute
+						$productObject->setLtlFreightCost($dataObject->getExtendedAttributes()->getLtlFreightCost());
+					}
+
+					if ($this->_isAttributeExists('manufacturing_date')) {
+						// setting manufacturing_date attribute
+						$productObject->setManufacturingDate($dataObject->getExtendedAttributes()->getManufacturer()->getDate());
+					}
+
+					if ($this->_isAttributeExists('manufacturer_name')) {
+						// setting manufacturer_name attribute
+						$productObject->setManufacturerName($dataObject->getExtendedAttributes()->getManufacturer()->getName());
+					}
+
+					if ($this->_isAttributeExists('manufacturer_manufacturer_id')) {
+						// setting manufacturer_manufacturer_id attribute
+						$productObject->setManufacturerManufacturerId($dataObject->getExtendedAttributes()->getManufacturer()->getId());
+					}
+
+					if ($this->_isAttributeExists('may_ship_expedite')) {
+						// setting may_ship_expedite attribute
+						$productObject->setMayShipExpedite($dataObject->getExtendedAttributes()->getMayShipExpedite());
+					}
+
+					if ($this->_isAttributeExists('may_ship_international')) {
+						// setting may_ship_international attribute
+						$productObject->setMayShipInternational($dataObject->getExtendedAttributes()->getMayShipInternational());
+					}
+
+					if ($this->_isAttributeExists('may_ship_usps')) {
+						// setting may_ship_usps attribute
+						$productObject->setMayShipUsps($dataObject->getExtendedAttributes()->getMayShipUsps());
+					}
+
+					if ($this->_isAttributeExists('safety_stock')) {
+						// setting safety_stock attribute
+						$productObject->setSafetyStock($dataObject->getExtendedAttributes()->getSafetyStock());
+					}
+
+					if ($this->_isAttributeExists('sales_class')) {
+						// setting sales_class attribute
+						$productObject->setSalesClass($dataObject->getExtendedAttributes()->getSalesClass());
+					}
+
+					if ($this->_isAttributeExists('serial_number_type')) {
+						// setting serial_number_type attribute
+						$productObject->setSerialNumberType($dataObject->getExtendedAttributes()->getSerialNumberType());
+					}
+
+					if ($this->_isAttributeExists('service_indicator')) {
+						// setting service_indicator attribute
+						$productObject->setServiceIndicator($dataObject->getExtendedAttributes()->getServiceIndicator());
+					}
+
+					if ($this->_isAttributeExists('ship_group')) {
+						// setting ship_group attribute
+						$productObject->setShipGroup($dataObject->getExtendedAttributes()->getShipGroup());
+					}
+
+					if ($this->_isAttributeExists('ship_window_min_hour')) {
+						// setting ship_window_min_hour attribute
+						$productObject->setShipWindowMinHour($dataObject->getExtendedAttributes()->getShipWindowMinHour());
+					}
+
+					if ($this->_isAttributeExists('ship_window_max_hour')) {
+						// setting ship_window_max_hour attribute
+						$productObject->setShipWindowMaxHour($dataObject->getExtendedAttributes()->getShipWindowMaxHour());
+					}
+
+					if ($this->_isAttributeExists('street_date')) {
+						// setting street_date attribute
+						$productObject->setStreetDate($dataObject->getExtendedAttributes()->getStreetDate());
+					}
+
+					if ($this->_isAttributeExists('style_id')) {
+						// setting style_id attribute
+						$productObject->setStyleId($dataObject->getExtendedAttributes()->getStyleId());
+					}
+
+					if ($this->_isAttributeExists('style_description')) {
+						// setting style_description attribute
+						$productObject->setStyleDescription($dataObject->getExtendedAttributes()->getStyleDescription());
+					}
+
+					if ($this->_isAttributeExists('supplier_name')) {
+						// setting supplier_name attribute
+						$productObject->setSupplierName($dataObject->getExtendedAttributes()->getSupplierName());
+					}
+
+					if ($this->_isAttributeExists('supplier_supplier_id')) {
+						// setting supplier_supplier_id attribute
+						$productObject->setSupplierSupplierId($dataObject->getExtendedAttributes()->getSupplierSupplierId());
+					}
+
 					// adding custom attributes
 					$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 					if (!empty($customAttributes)) {
@@ -446,7 +629,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$size = null;
 						if (!empty($sizeAttributes)){
 							foreach ($sizeAttributes as $sizeData) {
-								if (strtoupper(trim($sizeData['lang'])) === 'EN-GB') {
+								if (strtoupper(trim($sizeData['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
 									$size = $sizeData['description'];
 								}
 							}

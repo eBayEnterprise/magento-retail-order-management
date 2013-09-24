@@ -60,7 +60,7 @@
 					<Description xml:lang="en-GB">WHITE</Description>
 				</Color>
 			</ColorAttributes>
-			<ItemDimensions>
+			<ItemDimension>
 				<Display>
 					<Mass unit_of_measure="kg">
 						<Weight>1</Weight>
@@ -91,7 +91,7 @@
 						<Height>1</Height>
 					</Packaging>
 				</Carton>
-			</ItemDimensions>
+			</ItemDimension>
 			<SalesClass>stock</SalesClass>
 			<SizeAttributes>
 				<Size xml:lang="en-GB">
