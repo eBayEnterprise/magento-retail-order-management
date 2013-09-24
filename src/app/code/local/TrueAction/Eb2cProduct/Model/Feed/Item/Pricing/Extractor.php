@@ -53,7 +53,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 		$path = 'ClientItemId/text()';
 		$node = $x->query($path, $pricePerItemNode)->item(0);
 		if ($node && $node->nodeValue) {
-			$result['client_item_id'] = (float) $node->nodeValue;
+			$result['client_item_id'] = $node->nodeValue;
 		}
 		$path = 'Event';
 		$eventNodes = $x->query($path, $pricePerItemNode);
