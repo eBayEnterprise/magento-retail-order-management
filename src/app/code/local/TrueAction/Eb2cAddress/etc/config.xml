@@ -33,7 +33,7 @@
 			</modules>
 		</translate>
 		<events>
-			<address_validate>
+			<customer_address_validation_after>
 				<observers>
 					<eb2caddress_validate_address>
 						<type>singleton</type>
@@ -41,7 +41,7 @@
 						<method>validateAddress</method>
 					</eb2caddress_validate_address>
 				</observers>
-			</address_validate>
+			</customer_address_validation_after>
 			<controller_action_postdispatch_checkout_onepage_saveBilling>
 				<observers>
 					<eb2caddress_add_suggestions_to_billing_response>

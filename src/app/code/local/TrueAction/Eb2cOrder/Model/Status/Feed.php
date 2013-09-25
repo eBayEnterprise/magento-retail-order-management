@@ -44,7 +44,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 			}
 		}
 
-		Mage::log( '[' . __CLASS__ . ']' . sprintf(' %s, Processed %d of %d, %d errors',
+		Mage::log( sprintf('[ %s ] %s, Processed %d of %d, %d errors',
+			__CLASS__,
 			$dom->documentURI,
 			$this->_fileInfo['recordsProcessed'],
 			$this->_fileInfo['recordCount'],
@@ -85,7 +86,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		if (method_exists($this, $funcName) ) {
 			$this->$funcName();
 		} else {
-			Mage::log("Error: $funcName undefined, Can't process " . print_r($this->_event['Header'], true), Zend_Log::ERR);
+			Mage::log( '[' . __CLASS__ . "] Error: $funcName undefined, Can't process " . print_r($this->_event['Header'], true), Zend_Log::ERR);
 			$this->_fileInfo['recordsWithErrors']++;
 		}
 		$this->_event = null;

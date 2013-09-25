@@ -43,7 +43,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Request
 	 */
 	public function getMessage()
 	{
-		$this->_dom = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$this->_dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		if ($this->hasData('address')) {
 			$this->_dom->addElement(self::DOM_ROOT_NODE_NAME, null, $this->_config->apiNamespace);
 			$this->_dom->documentElement->appendChild($this->_createMessageHeader());
