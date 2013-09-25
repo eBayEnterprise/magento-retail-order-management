@@ -10,3 +10,28 @@ config:
   default/eb2cproduct/content_master_feed/event_type: "ContentMaster"
   default/eb2cproduct/content_master_feed/header_version: "2.3.0"
   default/eb2ccore/feed/destination_type: "MAILBOX"
+scope:
+  website:
+    - website_id: 1
+      code: main
+      name: Main Website
+      default_group_id: 1
+  group:
+    - group_id: 1
+      website_id: 1
+      name: Main Website Store
+      root_category_id: 8
+      default_store_id: 1
+  store:
+    - store_id: 1
+      code: en
+      website_id: 1
+      group_id: 1
+      name: English Store View
+      is_active: 1
+    - store_id: 2
+      code: fr
+      website_id: 1
+      group_id: 1
+      name: French Store View
+      is_active: 1
