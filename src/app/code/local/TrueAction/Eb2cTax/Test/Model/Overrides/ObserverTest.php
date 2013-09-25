@@ -895,6 +895,45 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 	}
 
 	/**
+	 * Ensure that when no request exists, no attempt is made at validating the request.
+	 * @test
+	 */
+	public function onlyCheckRequestValidityWhenRequestExists()
+	{
+		$quote = $this->getModelMock('sales/quote', array('getId'));
+		$quote->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(1));
+		$event = $this->getMock('Varien_Event', array('getQuote'));
+		$event->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+		$eventObserver = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$eventObserver->expects($this->any())
+			->method('getEvent')
+			->will($this->returnValue($event));
+
+		// set up the calculator to return a null tax request and a helper to return the calculator
+		$calculator = $this->getModelMock('tax/calculation', array('getTaxRequest'));
+		$calculator->expects($this->any())
+			->method('getTaxRequest')
+			->will($this->returnValue(null));
+		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator'));
+		$taxHelper->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculator));
+
+		$observer = $this->getModelMock('tax/observer', array('_getTaxHelper', '_fetchTaxDutyInfo'));
+		$observer->expects($this->any())
+			->method('_getTaxHelper')
+			->will($this->returnValue($taxHelper));
+		$observer->expects($this->once())
+			->method('_fetchTaxDutyInfo')
+			->with($this->identicalTo($quote));
+		$observer->taxEventSendRequest($eventObserver);
+	}
+
+	/**
 	 * Test that the tax request is only sent when the observer has a quote object
 	 */
 	public function testTaxEventSendRequestNoQuote()

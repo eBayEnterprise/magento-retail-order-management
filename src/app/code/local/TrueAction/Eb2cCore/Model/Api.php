@@ -42,11 +42,21 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 				'adapter' => $this->getAdapter(),
 				'timeout' => $this->getTimeout()
 			));
-		Mage::log('[' . __CLASS__ . ']: Making API request to ' . $client->getUri(), Zend_Log::DEBUG);
+		Mage::log(sprintf('[ %s ] Making API request to %s', __CLASS__, $client->getUri()), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
-		return $response->isSuccessful() ?
-			$response->getBody() :
-			'';
+		if ($response->isSuccessful()) {
+			return $response->getBody();
+		} else {
+			Mage::log(
+				sprintf('[ %s ] Received unsuccessful response from %s with status %s', __CLASS__, $client->getUri(), $response->getStatus()),
+				Zend_Log::WARN
+			);
+			Mage::log(
+				sprintf("[ %s ] Received unsuccessful response headers:\n%s", __CLASS__, $response->getHeadersAsString()),
+				Zend_Log::DEBUG
+			);
+			return '';
+		}
 	}
 
 	protected function _construct()
