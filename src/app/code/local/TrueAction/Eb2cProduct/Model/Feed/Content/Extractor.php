@@ -7,6 +7,18 @@
 class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Model_Abstract
 {
 	/**
+	 * convert feed lang data to match magento expected format (en-US => en_US)
+	 *
+	 * @param string $langCode, the language code
+	 *
+	 * @return string, the magento expected format
+	 */
+	protected function _languageFormat($langCode)
+	{
+		return str_replace('-', '_', $langCode);
+	}
+
+	/**
 	 * extract UniqueId data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
@@ -137,7 +149,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 				foreach ($nodeTitle as $titleContent) {
 					$baseAttributes[] = new Varien_Object(
 						array(
-							'lang' => (string) $titleContent->getAttribute('xml:lang'), // Targeted store language
+							'lang' => $this->_languageFormat($titleContent->getAttribute('xml:lang')), // Targeted store language
 							'title' => (string) $titleContent->nodeValue, // Localized product title
 						)
 					);
@@ -184,7 +196,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 					foreach ($nodeDescription as $attributeColorContent) {
 						$colorDescriptionCollection = new Varien_Object(
 							array(
-								'lang' => (string) $attributeColorContent->getAttribute('xml:lang'), // Targeted store language
+								'lang' => $this->_languageFormat($attributeColorContent->getAttribute('xml:lang')), // Targeted store language
 								'description' => (string) $attributeColorContent->nodeValue, // Localized descriptive name of the color.
 							)
 						);
@@ -205,7 +217,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 				foreach ($nodeLongDescription as $attributeLongContent) {
 					$extendedAttributes['long_description'][] = new Varien_Object(
 						array(
-							'lang' => (string) $attributeLongContent->getAttribute('xml:lang'), // Targeted store language
+							'lang' => $this->_languageFormat($attributeLongContent->getAttribute('xml:lang')), // Targeted store language
 							'long_description' => (string) $attributeLongContent->nodeValue, // Long description of the item.
 						)
 					);
@@ -218,7 +230,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 				foreach ($nodeShortDescription as $attributeShortContent) {
 					$extendedAttributes['short_description'][] = new Varien_Object(
 						array(
-							'lang' => (string) $attributeShortContent->getAttribute('xml:lang'), // Targeted store language
+							'lang' => $this->_languageFormat($attributeShortContent->getAttribute('xml:lang')), // Targeted store language
 							'short_description' => (string) $attributeShortContent->nodeValue, // short description of the item.
 						)
 					);
@@ -231,7 +243,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 				foreach ($nodeSearchKeywords as $attributeSearchContent) {
 					$extendedAttributes['search_keywords'][] = new Varien_Object(
 						array(
-							'lang' => (string) $attributeSearchContent->getAttribute('xml:lang'), // Targeted store language
+							'lang' => $this->_languageFormat($attributeSearchContent->getAttribute('xml:lang')), // Targeted store language
 							'search_keywords' => (string) $attributeSearchContent->nodeValue, // search keywords of the item.
 						)
 					);
@@ -268,7 +280,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 						array(
 							'name' => (string) $customContent->getAttribute('name'), // Custom attribute name.
 							'operation_type' => (string) $customContent->getAttribute('operation_type'), // Operation to take with the attribute. ("Add", "Change", "Delete")
-							'lang' => (string) $customContent->getAttribute('xml:lang'), // Operation to take with the product link. ("Add", "Delete")
+							'lang' => $this->_languageFormat($customContent->getAttribute('xml:lang')), // Operation to take with the product link. ("Add", "Delete")
 							'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null, // Unique ID (SKU) for the linked product.
 						)
 					);

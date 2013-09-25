@@ -13,13 +13,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _construct()
 	{
-		// getting the default magento language
-		$storeLocaleData = explode('_', Mage::app()->getLocale()->getLocaleCode());
-		$storeLang = 'EN-GB'; // this is the default store language
-		if (sizeof($storeLocaleData) > 1) {
-			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
-		}
-
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -39,7 +32,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
 			->setEavConfig(Mage::getModel('eav/config'))
 			->setCategory(Mage::getModel('catalog/category')) // magically setting catalog/category model object
-			->setDefaultStoreLanguageCode($storeLang) // setting default store language
+			->setDefaultStoreLanguageCode(Mage::app()->getLocale()->getLocaleCode()) // setting default store language
+			->setDefaultRootCategoryId($this->_getDefaultParentCategoryId()) // default root category id
+			->setDefaultCategoryAttributeSetId($this->_getCategoryAttributeSetId()) // default category attribute set
+			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId()) // default store id
 			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
 			// setting default attribute set id
 			->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId());
@@ -57,6 +53,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _isAttributeExists($attribute)
 	{
 		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
+	}
+
+	/**
+	 * getting category attribute set id.
+	 *
+	 * @return int, the category attribute set id
+	 */
+	protected function _getCategoryAttributeSetId()
+	{
+		return (int) Mage::getModel('eav/config')->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
+			->getEntityType()
+			->getDefaultAttributeSetId();
 	}
 
 	/**
@@ -140,6 +148,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			->load();
 
 		return $categories->getFirstItem();
+	}
+
+	/**
+	 * get parent default category id
+	 *
+	 * @return int, default parent category id
+	 */
+	protected function _getDefaultParentCategoryId()
+	{
+		$categories = Mage::getModel('catalog/category')->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('parent_id', array('eq' => 0))
+			->load();
+
+		return $categories->getFirstItem()->getId();
 	}
 
 	/**
@@ -278,7 +301,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	{
 		// Product Category Link
 		$categoryLinks = $dataObject->getCategoryLinks();
-		$fullPath = '0';
+		$fullPath = 0;
 
 		if (!empty($categoryLinks)) {
 			foreach ($categoryLinks as $link) {
@@ -294,7 +317,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						}
 					} else {
 						// adding or changing category import mode
-						$path = '';
+						$path = $this->getDefaultRootCategoryId();
 						foreach($categories as $category) {
 							$path .= '/' . $this->_addCategory(ucwords($category), $path);
 						}
@@ -358,9 +381,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					if ($baseAttributes) {
 						foreach ($baseAttributes as $baseAttribute) {
 							if ($baseAttribute instanceof Varien_Object) {
-								if (trim(strtoupper($baseAttribute->getLang())) === $this->getDefaultStoreLanguageCode()) {
+								if (trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 									// setting the product title according to the store language setting
-									$productObject->setName($baseAttribute->getTitle());
+									if (trim($baseAttribute->getTitle()) !== '') {
+										$productObject->setName($baseAttribute->getTitle());
+									}
 								}
 							}
 						}
@@ -368,37 +393,43 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 
 					// Setting product short/long description from extended attributes
 					$extendedAttributes = $dataObject->getExtendedAttributes();
-					if ($extendedAttributes) {
+					if (!empty($extendedAttributes)) {
 						$giftWrap = $extendedAttributes['gift_wrap'];
 						if ($giftWrap instanceof Varien_Object) {
 							// setting gift_wrapping_available
 							$productObject->setGiftWrappingAvailable((trim(strtoupper($giftWrap->getGiftWrap())) === 'Y')? 1 : 0);
 						}
 
-						$colorAttributes = $extendedAttributes['color_attributes'];
-						if ($colorAttributes instanceof Varien_Object) {
-							// setting color attribute
-							$productObject->setColor($this->_getAttributeOptionId('color', $colorAttributes->getCode()));
+						if (isset($extendedAttributes['color_attributes'])) {
+							$colorAttributes = $extendedAttributes['color_attributes'];
+							if ($colorAttributes instanceof Varien_Object) {
+								// setting color attribute
+								$productObject->setColor($this->_getAttributeOptionId('color', $colorAttributes->getCode()));
+							}
 						}
 
-						// get long description data
-						$longDescriptions = $extendedAttributes['long_description'];
-						foreach ($longDescriptions as $longDescription) {
-							if ($longDescription instanceof Varien_Object) {
-								if (trim(strtoupper($longDescription->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// setting the product long description according to the store language setting
-									$productObject->setDescription($longDescription->getLongDescription());
+						if (isset($extendedAttributes['long_description'])) {
+							// get long description data
+							$longDescriptions = $extendedAttributes['long_description'];
+							foreach ($longDescriptions as $longDescription) {
+								if ($longDescription instanceof Varien_Object) {
+									if (trim(strtoupper($longDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+										// setting the product long description according to the store language setting
+										$productObject->setDescription($longDescription->getLongDescription());
+									}
 								}
 							}
 						}
 
-						// get short description data
-						$shortDescriptions = $extendedAttributes['short_description'];
-						foreach ($shortDescriptions as $shortDescription) {
-							if ($shortDescription instanceof Varien_Object) {
-								if (trim(strtoupper($shortDescription->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// setting the product short description according to the store language setting
-									$productObject->setShortDescription($shortDescription->getShortDescription());
+						if (isset($extendedAttributes['short_description'])) {
+							// get short description data
+							$shortDescriptions = $extendedAttributes['short_description'];
+							foreach ($shortDescriptions as $shortDescription) {
+								if ($shortDescription instanceof Varien_Object) {
+									if (trim(strtoupper($shortDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+										// setting the product short description according to the store language setting
+										$productObject->setShortDescription($shortDescription->getShortDescription());
+									}
 								}
 							}
 						}
@@ -406,10 +437,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 
 					// Setting product custom attributes
 					$customAttributes = $dataObject->getCustomAttributes();
-					if ($customAttributes) {
+					if (!empty($customAttributes)) {
 						foreach ($customAttributes as $customAttribute) {
 							if ($customAttribute instanceof Varien_Object) {
-								if (trim(strtoupper($customAttribute->getLang())) === $this->getDefaultStoreLanguageCode()) {
+								if (trim(strtoupper($customAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 									// getting the custom attribute into a valid magento attribute format
 									$attributeName = $this->_attributeFormat($customAttribute->getName());
 									if ($this->_isAttributeExists($attributeName)) {
@@ -456,18 +487,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			if (!$categoryId) {
 				// category doesn't currently exists let's add it.
 				try {
-					$categoryData = array(
-						'name' => $categoryName,
-						'path' => $path, // parent relationship..
-						'description' => $categoryName,
-						'is_active' => 1,
-						'is_anchor' => 0, //for layered navigation
-						'page_layout' => 'default',
-						'url_key' => Mage::helper('catalog/product_url')->format($categoryName) // URL to access this category
-					);
+					$this->getCategory()->setAttributeSetId($this->getDefaultCategoryAttributeSetId())
+						->setStoreId($this->getDefaultStoreId())
+						->addData(
+							array(
+								'name' => $categoryName,
+								'path' => $path, // parent relationship..
+								'description' => $categoryName,
+								'is_active' => 1,
+								'is_anchor' => 0, //for layered navigation
+								'page_layout' => 'default',
+								'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
+								'image' => null,
+								'thumbnail' => null,
+							)
+						)
+						->save();
 
-					$this->getCategory()->addData($categoryData);
-					$this->getCategory()->save();
 					$categoryId = $this->getCategory()->getId();
 				} catch (Mage_Core_Exception $e) {
 					Mage::logException($e);
