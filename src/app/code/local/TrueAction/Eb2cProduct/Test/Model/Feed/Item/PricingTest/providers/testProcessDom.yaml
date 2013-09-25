@@ -1,0 +1,69 @@
+-
+  - singleitem-nospecialprice
+  - |
+    <PricePerItem gsi_store_id="MAGT1" gsi_client_id="MAGTNA" catalog_id="45" >
+        <ClientItemId>45-000906011391</ClientItemId>
+        <Event>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>67.98</Price>
+            <MSRP>100.77</MSRP>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+    </PricePerItem>
+-
+  - singleitem-specialprice
+  - |
+    <PricePerItem gsi_store_id="MAGT1" gsi_client_id="MAGTNA" catalog_id="45" >
+        <ClientItemId>45-000906011391</ClientItemId>
+        <Event>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>67.98</Price>
+            <MSRP>100.77</MSRP>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+        <Event>
+            <EventNumber>19780816</EventNumber>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>50.98</Price>
+            <MSRP>100.77</MSRP>
+            <AlternatePrice1>80.00</AlternatePrice1>
+            <StartDate>2012-10-10T00:00:00-05:00</StartDate>
+            <EndDate>2014-08-20T00:00:00-05:00</EndDate>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+    </PricePerItem>
+-
+  - singleitem-multispecialprice
+  - |
+    <PricePerItem gsi_store_id="MAGT1" gsi_client_id="MAGTNA" catalog_id="45" >
+        <ClientItemId>45-000906011391</ClientItemId>
+        <Event>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>67.98</Price>
+            <MSRP>100.77</MSRP>
+            <AlternatePrice1>86.38</AlternatePrice1>
+            <StartDate>2012-10-04T00:00:00-05:00</StartDate>
+            <EndDate>2014-08-17T00:00:00-05:00</EndDate>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+        <Event>
+            <EventNumber>19780815</EventNumber>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>67.98</Price>
+            <MSRP>100.77</MSRP>
+            <AlternatePrice1>86.38</AlternatePrice1>
+            <StartDate>2012-10-04T00:00:00-05:00</StartDate>
+            <EndDate>2014-08-17T00:00:00-05:00</EndDate>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+        <Event>
+            <EventNumber>19780816</EventNumber>
+            <EventDescription>Price Event for MAGT1</EventDescription>
+            <Price>50.98</Price>
+            <MSRP>100.77</MSRP>
+            <AlternatePrice1>80.00</AlternatePrice1>
+            <StartDate>2012-10-10T00:00:00-05:00</StartDate>
+            <EndDate>2014-08-20T00:00:00-05:00</EndDate>
+            <PriceVatInclusive>false</PriceVatInclusive>
+        </Event>
+    </PricePerItem>

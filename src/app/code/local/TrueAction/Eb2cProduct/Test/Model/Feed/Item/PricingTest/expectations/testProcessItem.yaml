@@ -1,0 +1,16 @@
+product-exists:
+  sku: somesku
+  price: 67.98
+  msrp: 100.77
+  special_price: ~
+  special_from_date: ~
+  special_to_date: ~
+  price_is_vat_inclusive: false
+product-notexist:
+  sku: somesku
+  price: 67.98
+  msrp: 100.77
+  special_price: 80.00
+  special_from_date: '2012-10-04 00:00:00'
+  special_to_date: '2014-08-17 00:00:00'
+  price_is_vat_inclusive: false
