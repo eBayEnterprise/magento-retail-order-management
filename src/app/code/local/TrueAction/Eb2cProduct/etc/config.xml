@@ -17,8 +17,28 @@
 		<models>
 			<eb2cproduct>
 				<class>TrueAction_Eb2cProduct_Model</class>
+				<resourceModel>eb2cproduct_resource</resourceModel>
 			</eb2cproduct>
+            <eb2cproduct_resource>
+                <class>TrueAction_Eb2cProduct_Model_Resource</class>
+                <entities>
+                    <images>
+                        <table>eb2cproduct_images</table>
+                    </images>
+                </entities>
+            </eb2cproduct_resource>
 		</models>
+		<events>
+			<catalog_product_media_save_before>
+				<observers>
+					<eb2c_catalog_product_media_save_before>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cProduct_Model_Feed_Image_Master</class>
+						<method>catalogProductMediaSaveBeforeObserver</method>
+					</eb2c_catalog_product_media_save_before>
+				</observers>
+			</catalog_product_media_save_before>
+		</events>
 		<helpers>
 			<eb2cproduct>
 				<class>TrueAction_Eb2cProduct_Helper</class>
@@ -30,6 +50,11 @@
 					<module>TrueAction_Eb2cProduct</module>
 				</setup>
 			</eb2cproduct_attributes_setup>
+			<eb2cproduct_images_setup>
+				<setup>
+					<module>TrueAction_Eb2cProduct</module>
+				</setup>
+			</eb2cproduct_images_setup>
 		</resources>
 		<eb2cproduct_attributes>
 			<default>
