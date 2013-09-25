@@ -59,6 +59,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_Pricing_ExtractorTest extends 
 	 * verify an array is returned.
 	 * verify correct data is extracted.
 	 * @dataProvider dataProvider
+	 * @loadExpectation
 	 */
 	public function testExtractPricePerItem($scenario, $xml)
 	{
@@ -70,6 +71,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_Pricing_ExtractorTest extends 
 		$result = $this->_reflectMethod($model, '_extractPricePerItem')->invoke($model, $eventNode);
 		$this->assertTrue(is_array($result), 'result is not an array');
 		$e = $this->expected($scenario);
-		$this->assertEquals($e->getResult(), $result);
+		$obj = new Varien_Object($result);
+		$this->assertInstanceOf('Varien_Object', $obj);
+		$this->assertSame($e->getGsiStoreId(), $obj->getGsiStoreId());
+		$this->assertSame($e->getGsiClientId(), $obj->getGsiClientId());
+		$this->assertSame($e->getCatalogId(), $obj->getCatalogId());
+		$this->assertSame($e->getClientItemId(), $obj->getClientItemId());
+		$this->assertSame($e->getEventsCount(), count($obj->getEvents()));
 	}
 }

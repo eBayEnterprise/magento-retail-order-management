@@ -32,7 +32,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 		foreach ($this->_extractionMap as $path => $fieldName) {
 			$node = $x->query($path, $eventNode)->item(0);
 			if ($node && $node->nodeValue) {
-				$result[$fieldName] = $node->nodeValue;
+				$value = trim($node->nodeValue);
+				if ($fieldName === 'price_vat_inclusive') {
+					$value = (strtoupper($value) === 'TRUE') ? true : false;
+				}
+				$result[$fieldName] = $value;
 			}
 		}
 		return $result;
@@ -46,19 +50,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 	protected function _extractPricePerItem(TrueAction_Dom_Element $pricePerItemNode)
 	{
 		$result = array();
-		$result['gsi_store_id'] = $pricePerItemNode->getAttribute('gsi_store_id');
-		$result['gsi_client_id'] = $pricePerItemNode->getAttribute('gsi_client_id');
-		$result['catalog_id'] = $pricePerItemNode->getAttribute('catalog_id');
+		$result['gsi_store_id'] = trim($pricePerItemNode->getAttribute('gsi_store_id'));
+		$result['gsi_client_id'] = trim($pricePerItemNode->getAttribute('gsi_client_id'));
+		$result['catalog_id'] = trim($pricePerItemNode->getAttribute('catalog_id'));
 		$x = new DOMXPath($pricePerItemNode->ownerDocument);
 		$path = 'ClientItemId/text()';
 		$node = $x->query($path, $pricePerItemNode)->item(0);
 		if ($node && $node->nodeValue) {
-			$result['client_item_id'] = $node->nodeValue;
+			$result['client_item_id'] = trim($node->nodeValue);
 		}
 		$path = 'Event';
 		$eventNodes = $x->query($path, $pricePerItemNode);
+		$result['events'] = array();
 		foreach ($eventNodes as $eventNode) {
-			$result['events'][] = $this->_extractEvent($eventNode);
+			$result['events'][] = new Varien_Object($this->_extractEvent($eventNode));
 		}
 		return $result;
 	}

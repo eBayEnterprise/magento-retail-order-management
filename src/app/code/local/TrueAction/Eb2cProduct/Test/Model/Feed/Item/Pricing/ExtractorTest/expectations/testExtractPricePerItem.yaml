@@ -1,22 +1,18 @@
 no-price-events:
-  result:
-    gsi_store_id: 'clientstoreid'
-    gsi_client_id: 'clientid'
-    catalog_id: 'catalog_id'
-    client_item_id: '1233441526'
+  gsi_store_id: 'clientstoreid'
+  gsi_client_id: 'clientid'
+  catalog_id: 'catalog_id'
+  client_item_id: '1233441526'
+  events_count: 0
 1-price-events:
-  result:
-    gsi_store_id: 'clientstoreid'
-    gsi_client_id: 'clientid'
-    catalog_id: 'catalog_id'
-    client_item_id: '1233441526'
-    events: [ [] ]
+  gsi_store_id: 'clientstoreid'
+  gsi_client_id: 'clientid'
+  catalog_id: 'catalog_id'
+  client_item_id: '1233441526'
+  events_count: 1
 2-price-events:
-  result:
-    gsi_store_id: 'clientstoreid'
-    gsi_client_id: 'clientid'
-    catalog_id: 'catalog_id'
-    client_item_id: '1233441526'
-    events: [ [], [] ]
-
-
+  gsi_store_id: 'clientstoreid'
+  gsi_client_id: 'clientid'
+  catalog_id: 'catalog_id'
+  client_item_id: '1233441526'
+  events_count: 2
