@@ -7,6 +7,18 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_Abstract
 {
 	/**
+	 * convert feed lang data to match magento expected format (en-US => en_US)
+	 *
+	 * @param string $langCode, the language code
+	 *
+	 * @return string, the magento expected format
+	 */
+	protected function _languageFormat($langCode)
+	{
+		return str_replace('-', '_', $langCode);
+	}
+
+	/**
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
@@ -19,7 +31,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		// SKU used to identify this item from the client system.
 		$nodeClientItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientItemId");
-		return new Varien_Object(array('client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null));
+
+		// Alternative identifier provided by the client.
+		$nodeClientAltItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientAltItemId");
+
+		// Code assigned to the item by the manufacturer to identify the item.
+		$nodeManufacturerItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ManufacturerItemId");
+		return new Varien_Object(array(
+			'client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null,
+			'client_alt_item_id' => ($nodeClientAltItemId->length)? (string) $nodeClientAltItemId->item(0)->nodeValue : null,
+			'manufacturer_item_id' => ($nodeManufacturerItemId->length)? (string) $nodeManufacturerItemId->item(0)->nodeValue : null,
+		));
 	}
 
 	/**
@@ -123,7 +145,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$colorDescriptionData = array();
 			$colorDescriptionIndex = 1;
 			foreach ($nodeColorDescription as $colorDescriptionRecord) {
-				$colorDescriptionData[] = array('lang' => $colorDescriptionRecord->getAttribute('xml:lang'), 'description' => $colorDescriptionRecord->nodeValue);
+				$colorDescriptionData[] = array(
+					'lang' => $this->_languageFormat($colorDescriptionRecord->getAttribute('xml:lang')),
+					'description' => $colorDescriptionRecord->nodeValue
+				);
 				$colorDescriptionIndex++;
 			}
 
@@ -133,6 +158,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			);
 			$colorIndex++;
 		}
+
+		// Selling name and description used to identify a product for advertising purposes
+		// Selling/promotional name.
+		$nodeBrandName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Name");
+
+		// Short description of the selling/promotional name.
+		$brandDescriptionData = array();
+		$nodeBrandDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
+		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
+			$brandDescriptionData[] = array(
+				'lang' => $this->_languageFormat($brandDescriptionRecord->getAttribute('xml:lang')),
+				'description' => $brandDescriptionRecord->nodeValue
+			);
+		}
+
+		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
+		$nodeBuyerName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/Name");
+		$nodeBuyerId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/BuyerId");
+
+		/*
+		 * Whether the item is a "companion" (must ship with another product) or can ship alone. ENUM: ("Yes", No", "Maybe")
+		 *    Yes - may ship alone
+		 *    No - cancelled if not shipped with companion
+		 *    Maybe - other factors decide
+		 */
+		$nodeCompanionFlag = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CompanionFlag");
 
 		// Country in which goods were completely derived or manufactured.
 		$nodeCountryOfOrigin = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
@@ -147,17 +198,119 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		 */
 		$nodeGiftCardTenderCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
 
-		// Shipping weight of the item.
-		$nodeMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimensions/Shipping/Mass");
+		// Indicates if the item is considered hazardous material.
+		$nodeHazardousMaterialCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/HazardousMaterialCode");
+
+		// Not included in display or in emails. Default to false.
+		$nodeIsHiddenProduct = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/IsHiddenProduct");
 
 		// Shipping weight of the item.
-		$nodeWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimensions/Shipping/Mass/Weight");
+		$nodeShippingMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass");
+
+		// Shipping weight of the item.
+		$nodeShippingWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass/Weight");
+
+		// Unit of measure used for these dimensions.
+		$nodeDisplayMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass");
+
+		// Item's weight using the above unit of measure.
+		$nodeDisplayWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass/Weight");
+
+		// Unit of measure used for these dimensions.
+		$nodeDisplayPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging");
+
+		// Item's width.
+		$nodeDisplayPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Width");
+
+		// Item's length.
+		$nodeDisplayPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Length");
+
+		// Item's height.
+		$nodeDisplayPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Height");
+
+		// Unit of measure used for these dimensions.
+		$nodeShippingPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging");
+
+		// Item's width.
+		$nodeShippingPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Width");
+
+		// Item's length.
+		$nodeShippingPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Length");
+
+		// Item's height.
+		$nodeShippingPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Height");
+
+		// Unit of measure used for these dimensions.
+		$nodeCartonMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass");
+
+		// Weight of the carton.
+		$nodeCartonWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass/Weight");
+
+		// Unit of measure used for these dimensions.
+		$nodeCartonPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging");
+
+		// Item's width.
+		$nodeCartonPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Width");
+
+		// Item's length.
+		$nodeCartonPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Length");
+
+		// Item's height.
+		$nodeCartonPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Height");
+
+		// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
+		$nodeCartonType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/CartonType");
+
+		// Indicates if the item's lot assignment is required to be tracked.
+		$nodeLotTrackingIndicator = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/LotTrackingIndicator");
+
+		// LTL freight cost for the item.
+		$nodeLtlFreightCost = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/LTLFreightCost");
+
+		// Date the item was build by the manufacturer.
+		$nodeManufacturingDate = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ManufacturingDate");
+
+		// Company name of manufacturer.
+		$nodeManufacturerName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/Name");
+
+		// Unique identifier to denote the item manufacturer.
+		$nodeManufacturerId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/ManufacturerId");
+
+		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
+		$nodeMayShipExpedite = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipExpedite");
+
+		// Indicates if the item may be shipped internationally.
+		$nodeMayShipInternational = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipInternational");
+
+		// Indicates if the item may be shipped via USPS.
+		$nodeMayShipUsps = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipUSPS");
 
 		// Manufacturers suggested retail price. Not used for actual price calculations.
 		$nodeMsrp = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MSRP");
 
 		// Default price item is sold at. Required only if the item is new.
 		$nodePrice = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Price");
+
+		// Amount used for safety stock calculations.
+		$nodeSafetyStock = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SafetyStock");
+
+		// Determines behavior on the live system when the item is backordered.
+		$nodeSalesClass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SalesClass");
+
+		// Type of serial number to be scanned.
+		$nodeSerialNumberType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SerialNumberType");
+
+		// Identifies the item as a service, e.g. clothing monogramming or hemming.
+		$nodeServiceIndicator = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ServiceIndicator");
+
+		// Distinguishes items that can be shipped together with those in the same group.
+		$nodeShipGroup = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipGroup");
+
+		// Minimum number of hours before the item may ship.
+		$nodeShipWindowMinHour = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMinHour");
+
+		// Maximum number of hours before the item may ship.
+		$nodeShipWindowMaxHour = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMaxHour");
 
 		$sizeData = array();
 		$nodeSizeAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size");
@@ -169,14 +322,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$nodeSizeDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
 
 			$sizeData[] = array(
-				'lang' => $sizeRecord->getAttribute('xml:lang'), // Language code for the natural language of the size data.
+				'lang' => $this->_languageFormat($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
 				'code' => ($nodeSizeCode->length)? (string) $nodeSizeCode->item(0)->nodeValue : null,
 				'description' => ($nodeSizeDescription->length)? (string) $nodeSizeDescription->item(0)->nodeValue : null,
 			);
 		}
 
+		// Earliest date the product can be shipped.
+		$nodeStreetDate = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/StreetDate");
+
 		// Code that identifies the specific appearance type or variety in which the item is available.
 		$nodeStyleId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleID");
+
+		// Short description or title of the style for the item.
+		$nodeStyleDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleDescription");
+
+		// Name of the individual or organization providing the merchandise.
+		$nodeSupplierName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/Name");
+
+		// Identifier for the supplier.
+		$nodeSupplierId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/SupplierId");
 
 		return new Varien_Object(
 			array(
@@ -189,20 +354,87 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				),
 				'country_of_origin' => ($nodeCountryOfOrigin->length)? (string) $nodeCountryOfOrigin->item(0)->nodeValue : null,
 				'gift_card_tender_code' => ($nodeGiftCardTenderCode->length)? (string) $nodeGiftCardTenderCode->item(0)->nodeValue : null,
-				'item_dimensions_shipping' => new Varien_Object(
+				'item_dimension_shipping' => new Varien_Object(
 					array(
-						'mass_unit_of_measure' => ($nodeMass->length)? (string) $nodeMass->item(0)->getAttribute('unit_of_measure') : null,
-						'weight' => ($nodeWeight->length)? (float) $nodeWeight->item(0)->nodeValue : 0,
+						'mass_unit_of_measure' => ($nodeShippingMass->length)? (string) $nodeShippingMass->item(0)->getAttribute('unit_of_measure') : null,
+						'weight' => ($nodeShippingWeight->length)? (float) $nodeShippingWeight->item(0)->nodeValue : 0,
+						'packaging' => new Varien_Object(
+							array(
+								'unit_of_measure' => ($nodeShippingPackaging->length)? (string) $nodeShippingPackaging->item(0)->getAttribute('unit_of_measure') : null,
+								'width' => ($nodeShippingPackagingWidth->length)? (float) $nodeShippingPackagingWidth->item(0)->nodeValue : 0,
+								'length' => ($nodeShippingPackagingLength->length)? (float) $nodeShippingPackagingLength->item(0)->nodeValue : 0,
+								'height' => ($nodeShippingPackagingHeight->length)? (float) $nodeShippingPackagingHeight->item(0)->nodeValue : 0,
+							)
+						),
 					)
 				),
+				'item_dimension_display' => new Varien_Object(
+					array(
+						'mass_unit_of_measure' => ($nodeDisplayMass->length)? (string) $nodeDisplayMass->item(0)->getAttribute('unit_of_measure') : null,
+						'weight' => ($nodeDisplayWeight->length)? (float) $nodeDisplayWeight->item(0)->nodeValue : 0,
+						'packaging' => new Varien_Object(
+							array(
+								'unit_of_measure' => ($nodeDisplayPackaging->length)? (string) $nodeDisplayPackaging->item(0)->getAttribute('unit_of_measure') : null,
+								'width' => ($nodeDisplayPackagingWidth->length)? (float) $nodeDisplayPackagingWidth->item(0)->nodeValue : 0,
+								'length' => ($nodeDisplayPackagingLength->length)? (float) $nodeDisplayPackagingLength->item(0)->nodeValue : 0,
+								'height' => ($nodeDisplayPackagingHeight->length)? (float) $nodeDisplayPackagingHeight->item(0)->nodeValue : 0,
+							)
+						),
+					)
+				),
+				'item_dimension_carton' => new Varien_Object(
+					array(
+						'mass_unit_of_measure' => ($nodeCartonMass->length)? (string) $nodeCartonMass->item(0)->getAttribute('unit_of_measure') : null,
+						'weight' => ($nodeCartonWeight->length)? (float) $nodeCartonWeight->item(0)->nodeValue : 0,
+						'packaging' => new Varien_Object(
+							array(
+								'unit_of_measure' => ($nodeCartonPackaging->length)? (string) $nodeCartonPackaging->item(0)->getAttribute('unit_of_measure') : null,
+								'width' => ($nodeCartonPackagingWidth->length)? (float) $nodeCartonPackagingWidth->item(0)->nodeValue : 0,
+								'length' => ($nodeCartonPackagingLength->length)? (float) $nodeCartonPackagingLength->item(0)->nodeValue : 0,
+								'height' => ($nodeCartonPackagingHeight->length)? (float) $nodeCartonPackagingHeight->item(0)->nodeValue : 0,
+							)
+						),
+						'type' => ($nodeCartonType->length)? (string) $nodeCartonType->item(0)->nodeValue : null,
+					)
+				),
+				'lot_tracking_indicator' => ($nodeLotTrackingIndicator->length)? (string) $nodeLotTrackingIndicator->item(0)->nodeValue : null,
+				'ltl_freight_cost' => ($nodeLtlFreightCost->length)? (string) $nodeLtlFreightCost->item(0)->nodeValue : null,
+				'manufacturer' => new Varien_Object(
+					array(
+						'date' => ($nodeManufacturingDate->length)? (string) $nodeManufacturingDate->item(0)->nodeValue : null,
+						'name' => ($nodeManufacturerName->length)? (string) $nodeManufacturerName->item(0)->nodeValue : null,
+						'id' => ($nodeManufacturerId->length)? (string) $nodeManufacturerId->item(0)->nodeValue : null,
+					)
+				),
+				'may_ship_expedite' => ($nodeMayShipExpedite->length)? (bool) $nodeMayShipExpedite->item(0)->nodeValue : false,
+				'may_ship_international' => ($nodeMayShipInternational->length)? (bool) $nodeMayShipInternational->item(0)->nodeValue : false,
+				'may_ship_usps' => ($nodeMayShipUsps->length)? (bool) $nodeMayShipUsps->item(0)->nodeValue : false,
 				'msrp' => ($nodeMsrp->length)? (string) $nodeMsrp->item(0)->nodeValue : null,
 				'price' => ($nodePrice->length)? (float) $nodePrice->item(0)->nodeValue : 0,
+				'safety_stock' => ($nodeSafetyStock->length)? (int) $nodeSafetyStock->item(0)->nodeValue : 0,
+				'sales_class' => ($nodeSalesClass->length)? (string) $nodeSalesClass->item(0)->nodeValue : null,
+				'serial_number_type' => ($nodeSerialNumberType->length)? (string) $nodeSerialNumberType->item(0)->nodeValue : null,
+				'service_indicator' => ($nodeServiceIndicator->length)? (bool) $nodeServiceIndicator->item(0)->nodeValue : false,
+				'ship_group' => ($nodeShipGroup->length)? (string) $nodeShipGroup->item(0)->nodeValue : null,
+				'ship_window_min_hour' => ($nodeShipWindowMinHour->length)? (int) $nodeShipWindowMinHour->item(0)->nodeValue : 0,
+				'ship_window_max_hour' => ($nodeShipWindowMaxHour->length)? (int) $nodeShipWindowMaxHour->item(0)->nodeValue : 0,
 				'size_attributes' => new Varien_Object(
 					array(
 						'size' => $sizeData
 					)
 				),
+				'street_date' => ($nodeStreetDate->length)? (string) $nodeStreetDate->item(0)->nodeValue : null,
 				'style_id' => ($nodeStyleId->length)? (string) $nodeStyleId->item(0)->nodeValue : null,
+				'style_description' => ($nodeStyleDescription->length)? (string) $nodeStyleDescription->item(0)->nodeValue : null,
+				'supplier_name' => ($nodeSupplierName->length)? (string) $nodeSupplierName->item(0)->nodeValue : null,
+				'supplier_supplier_id' => ($nodeSupplierId->length)? (string) $nodeSupplierId->item(0)->nodeValue : null,
+				'brand_name' => ($nodeBrandName->length)? (string) $nodeBrandName->item(0)->nodeValue : null,
+				'brand_description' => $brandDescriptionData,
+				'buyer_name' => ($nodeBuyerName->length)? (string) $nodeBuyerName->item(0)->nodeValue : null,
+				'buyer_id' => ($nodeBuyerId->length)? (string) $nodeBuyerId->item(0)->nodeValue : null,
+				'companion_flag' => ($nodeCompanionFlag->length)? (string) $nodeCompanionFlag->item(0)->nodeValue : null,
+				'hazardous_material_code' => ($nodeHazardousMaterialCode->length)? (string) $nodeHazardousMaterialCode->item(0)->nodeValue : null,
+				'is_hidden_product' => ($nodeIsHiddenProduct->length)? (bool) $nodeIsHiddenProduct->item(0)->nodeValue : false,
 			)
 		);
 	}
@@ -220,22 +452,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		$attributeData = array();
 
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+		foreach ($nodeAttribute as $attributeRecord) {
+			$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
-				$attributeData[] = array(
-					// The name of the attribute.
-					'name' => (string) $attributeRecord->getAttribute('name'),
-					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
-					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
-					// Language code for the natural language or the <Value /> element.
-					'lang' => (string) $attributeRecord->getAttribute('xml:lang'),
-					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
-				);
-			}
+			$attributeData[] = array(
+				// The name of the attribute.
+				'name' => (string) $attributeRecord->getAttribute('name'),
+				// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
+				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
+				// Language code for the natural language or the <Value /> element.
+				'lang' => $this->_languageFormat($attributeRecord->getAttribute('xml:lang')),
+				'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
+			);
 		}
 
 		return new Varien_Object(
@@ -256,21 +486,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 */
 	protected function _extractProductType(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
-		$productType = '';
-
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
-					$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
-					$productType = ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
-					break;
-				}
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
 			}
 		}
 
-		return $productType;
+		return '';
 	}
 
 	/**
@@ -284,21 +509,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 */
 	protected function _extractConfigurableAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
 	{
-		$configurableAttributes = array();
-
-		// Name value paris of additional attributes for the product.
+		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
-		if ($nodeAttribute->length) {
-			foreach ($nodeAttribute as $attributeRecord) {
-				if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
-					$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
-					$configurableAttributes = ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
-					break;
-				}
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
+				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				return ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
 			}
 		}
 
-		return $configurableAttributes;
+		return array();
 	}
 
 	/**
