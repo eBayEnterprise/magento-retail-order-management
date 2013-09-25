@@ -1,0 +1,36 @@
+product-exists: [ ]
+  attribute_set_id: 10
+  type_id: simple
+  sku: 'somesku'
+  name: 'Product somesku'
+  url_key: 'somesku'
+  category_ids: [ 1, 2, 3 ]
+  website_ids: [ 1, 2 ]
+  description: 'the description'
+  short_description: 'short description'
+  price: 0
+  weight: 0
+  visibility: 0
+  status: 0
+  tax_class_id: 0
+  stock:
+    is_in_stock: 0
+    qty: 0
+product-not-exist:
+  attribute_set_id: 10
+  type_id: simple
+  sku: 'somesku2'
+  name: 'Invalid Product somesku2'
+  url_key: 'somesku2'
+  category_ids: [ 1, 2, 3 ]
+  website_ids: [ 1, 2 ]
+  description: 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.'
+  short_description: 'Invalid product. Please do not attempt to purchase.'
+  price: 0
+  weight: 0
+  visibility: 0
+  status: 0
+  tax_class_id: 0
+  stock:
+    is_in_stock: 0
+    qty: 0
