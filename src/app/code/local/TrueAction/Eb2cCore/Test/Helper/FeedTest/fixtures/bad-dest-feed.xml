@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ItemInventories>
+	<MessageHeader>
+		<DestinationData>
+			<DestinationId>SWM</DestinationId>
+		</DestinationData>
+		<DestinationData>
+			<DestinationId>SWM</DestinationId>
+		</DestinationData>
+		<DestinationData>
+			<DestinationId>MISS</DestinationId>
+		</DestinationData>
+		<EventType>GoodEvent</EventType>
+	</MessageHeader>
+</ItemInventories>

@@ -51,6 +51,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			'mv',
 			'pwd',
 			'setAllowCreateFolders',
+			'open',
 		));
 		$mockFsTool
 			->expects($this->any())
@@ -76,6 +77,10 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			->expects($this->any())
 			->method('setAllowCreateFolders')
 			->will($this->returnSelf());
+		$mockFsTool
+			->expects($this->any())
+			->method('open')
+			->will($this->returnValue(true));
 
 		// The transport protocol is mocked - we just pretend we got files
 		$mockSftp = $this->getMock(

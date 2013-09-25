@@ -24,9 +24,16 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	 */
 	private function _validateConfig()
 	{
+		$invalidFeeds = 0;
 		foreach( $this->_feedCore->listAvailableFeeds() as $aFeed ) {
-			echo "\t$aFeed " . ($this->_feedCore->getFeedModel($aFeed) ? 'valid' : '*INVALID*') . "\n";
+			if($this->_feedCore->getFeedModel($aFeed)) {
+				echo "$aFeed is valid\n";
+			} else {
+				$invalidFeeds++;
+				echo "$aFeed is *INVALID*\n";
+			}
 		}
+		return $invalidFeeds;
 	}
 
 	/**
@@ -38,27 +45,28 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	{
 		if( !count($this->_args) ) {
 			echo $this->usageHelp();
-			return;
+			return 0;
 		}
 
 		if( $this->getArg('validate') === 'config' ) {
-			$this->_validateConfig();
-			return;
+			return $this->_validateConfig();
 		}
 
+		$errors = 0;
 		$this->_log( 'Script Started', Zend_log::DEBUG );
 		$feeds = preg_split('/[\s,]+/', $this->getArg('feeds')); // Split feeds on whitespace
 		foreach( $feeds as $feedName ) {
-			$this->_log("Feed begins: $feedName", Zend_log::DEBUG);
+			$this->_log("Feed begins: $feedName");
 			try {
 				$rc = $this->_feedCore->runFeedModel($feedName);
+				$this->_log("Feed ends: $feedName return = $rc");
 			} catch(Exception $e) {
-				Mage::logException($e);
-				$rc = false;
+				$this->_log("Feed exception $feedName - " . $e->getMessage());
+				$errors++;
 			}
-			$this->_log( "Feed ends: $feedName, rc is $rc", Zend_log::DEBUG );
 		}
-		$this->_log( 'Script Ended', Zend_log::DEBUG );
+		$this->_log('Script Ended');
+		return $errors;
 	}
 
 	/**
@@ -67,10 +75,9 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 	 * @param string $message to log
 	 * @param log level
 	 */
-	private function _log($message, $level)
+	private function _log($message)
 	{
-		$message = '[' . __CLASS__ . '] ' . basename(__FILE__) . ': ' . $message;
-		Mage::log($message, $level);
+		echo '[' . __CLASS__ . '] ' . basename(__FILE__) . ': ' . $message . "\n";
 	}
 
 	/**
@@ -84,7 +91,7 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 		$msg = <<<USAGE
 
 Usage: php -f $scriptName -- [options]
-  -feed      list_of_feeds (Watch out for shell escapes)
+  -feeds     list_of_feeds (Watch out for shell escapes)
   -validate  config (Ensures all feeds configured are valid)
   help       This help
 
@@ -96,4 +103,4 @@ USAGE;
 }
 
 $feedProcessor = new TrueAction_Eb2c_Shell_Feed();
-$feedProcessor->run();
+exit($feedProcessor->run());

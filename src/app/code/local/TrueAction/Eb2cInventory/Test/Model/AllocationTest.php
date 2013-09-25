@@ -690,9 +690,6 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// If the quote has at least one managed-stock item that is expired, isExpired should be false.
 		// If the quote has no managed-stock items, or no managed-stock items are expired, isExpired should be true.
 		$isExpired = $this->expected($quote->getId())->getEb2cIsExpired();
-		foreach($quote->getAllItems() as $item) {
-			// var_dump($item->getEb2cReservedAt());
-		}
 		$this->assertSame($isExpired, $this->_allocation->isExpired($quote));
 	}
 
