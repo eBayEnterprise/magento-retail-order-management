@@ -52,12 +52,12 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	public function testGetOperationUri()
 	{
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/payments/storevalue/balance/GS.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storevalue/balance/GS.xml',
 			$this->_helper->getOperationUri('get_gift_card_balance')
 		);
 
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/payments/storevalue/redeem/GS.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storevalue/redeem/GS.xml',
 			$this->_helper->getOperationUri('get_gift_card_redeem')
 		);
 	}
@@ -79,7 +79,7 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	public function testGetRequestId($incrementId)
 	{
 		$this->assertSame(
-			'TAN-CLI-ABCD-100000060',
+			'client_id-store_id-100000060',
 			$this->_helper->getRequestId($incrementId)
 		);
 	}
