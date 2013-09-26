@@ -232,7 +232,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$product->setCategoryIds($this->_getDefaultCategoryIds());
 		$product->setWebsiteIds($this->getWebsiteIds());
 		$product->setDescription('This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.');
-		$product->setShortDescription('Invalid. Please do not attempt to purchase.');
+		$product->setShortDescription('Invalid product. Please do not attempt to purchase.');
 		$product->setPrice(0); # Set some price
 
 		//Default Magento attribute
