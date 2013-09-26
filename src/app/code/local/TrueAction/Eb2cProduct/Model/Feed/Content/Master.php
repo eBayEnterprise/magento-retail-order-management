@@ -13,13 +13,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _construct()
 	{
-		// getting the default magento language
-		$storeLocaleData = explode('_', Mage::app()->getLocale()->getLocaleCode());
-		$storeLang = 'EN-GB'; // this is the default store language
-		if (sizeof($storeLocaleData) > 1) {
-			$storeLang = strtoupper($storeLocaleData[0]) . '-GB';
-		}
-
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -34,15 +27,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setExtractor(Mage::getModel('eb2cproduct/feed_content_extractor')) // Magically setting an instantiated extractor object
-			->setProduct(Mage::getModel('catalog/product'))
-			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
-			->setEavConfig(Mage::getModel('eav/config'))
-			->setCategory(Mage::getModel('catalog/category')) // magically setting catalog/category model object
-			->setDefaultStoreLanguageCode($storeLang) // setting default store language
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			// setting default attribute set id
-			->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId());
+		$this->setData(
+			array(
+				'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
+				'product' => Mage::getModel('catalog/product'),
+				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+				'eav_config' => Mage::getModel('eav/config'),
+				'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
+				'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(), // setting default store language
+				'default_root_category_id' => $this->_getDefaultParentCategoryId(), // default root category id
+				'default_category_attribute_set_id' => $this->_getCategoryAttributeSetId(), // default category attribute set
+				'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(), // default store id
+				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+				// setting default attribute set id
+				'default_attribute_set_id' => Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			)
+		);
 
 		return $this;
 	}
@@ -57,6 +57,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _isAttributeExists($attribute)
 	{
 		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
+	}
+
+	/**
+	 * getting category attribute set id.
+	 *
+	 * @return int, the category attribute set id
+	 */
+	protected function _getCategoryAttributeSetId()
+	{
+		return (int) Mage::getModel('eav/config')->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
+			->getEntityType()
+			->getDefaultAttributeSetId();
 	}
 
 	/**
@@ -143,6 +155,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	}
 
 	/**
+	 * get parent default category id
+	 *
+	 * @return int, default parent category id
+	 */
+	protected function _getDefaultParentCategoryId()
+	{
+		$categories = Mage::getModel('catalog/category')->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('parent_id', array('eq' => 0))
+			->load();
+
+		return $categories->getFirstItem()->getId();
+	}
+
+	/**
 	 * processing downloaded feeds from eb2c.
 	 *
 	 * @return void
@@ -189,7 +216,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @return void
 	 */
-	protected function _contentMasterActions($doc)
+	protected function _contentMasterActions(DOMDocument $doc)
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
@@ -220,7 +247,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				}
 
 				// process content feed data
-				$this->_updateContent($feedContent);
+				$this->_synchProduct($feedContent);
 			}
 		}
 	}
@@ -232,7 +259,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @return array, composite array contain key for related, crosssell, and upsell data
 	 */
-	protected function _preparedProductLinkData	($dataObject)
+	protected function _preparedProductLinkData(Varien_Object $dataObject)
 	{
 		// Product Link
 		$relatedLink = array();
@@ -274,11 +301,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @return array, category data
 	 */
-	protected function _preparedCategoryLinkData($dataObject)
+	protected function _preparedCategoryLinkData(Varien_Object $dataObject)
 	{
 		// Product Category Link
 		$categoryLinks = $dataObject->getCategoryLinks();
-		$fullPath = '0';
+		$fullPath = 0;
 
 		if (!empty($categoryLinks)) {
 			foreach ($categoryLinks as $link) {
@@ -294,7 +321,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						}
 					} else {
 						// adding or changing category import mode
-						$path = '';
+						$path = $this->getDefaultRootCategoryId();
 						foreach($categories as $category) {
 							$path .= '/' . $this->_addCategory(ucwords($category), $path);
 						}
@@ -313,129 +340,203 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @return void
 	 */
-	protected function _updateContent($dataObject)
+	protected function _synchProduct(Varien_Object $dataObject)
 	{
-		if ($dataObject) {
-			if (trim($dataObject->getUniqueID()) !== '') {
-				$this->setProduct($this->_loadProductBySku($dataObject->getUniqueID()));
-				try {
-					$productObject = $this->getProduct();
+		if (trim($dataObject->getUniqueID()) !== '') {
+			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueID()));
+			if (!$this->getProduct()->getId()){
+				// this is new product let's set default value for it in order to create it successfully.
+				$productObject = $this->_getDummyProduct($dataObject);
+			} else {
+				$productObject = $this->getProduct();
+			}
 
-					if (!$productObject->getId()){
-						// this is new product let's set default value for it in order to create it successfully.
-						$productObject->setId(null);
-						$productObject->setTypeId('simple'); // default product type
-						$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE); // default not visible
-						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
-						$productObject->setName('temporary-name - ' . uniqid());
-						$productObject->setStatus(0); // default - disabled
-						$productObject->setSku($dataObject->getUniqueID());
+			try {
+				// get product link data
+				$linkData = $this->_preparedProductLinkData($dataObject);
+
+				// get extended attributes data containing (gift wrap, color, long/short descriptions)
+				$extendedData = $this->_getExtendAttributeData($dataObject);
+
+				$productObject->addData(
+					array(
+						// setting related data
+						'related_link_data' => (!empty($linkData['related']))? $linkData['related'] : array(),
+						// setting upsell data
+						'up_sell_link_data' => (!empty($linkData['upsell']))? $linkData['upsell'] : array(),
+						// setting crosssell data
+						'cross_sell_link_data' => (!empty($linkData['crosssell']))? $linkData['crosssell'] : array(),
+						// setting category data
+						'category_ids' => $this->_preparedCategoryLinkData($dataObject),
+						// Setting product name/title from base attributes
+						'name' => ($this->_getDefaultLocaleTitle($dataObject) !== '')? $this->_getDefaultLocaleTitle($dataObject) : $productObject->getName(),
+						// setting gift_wrapping_available
+						'gift_wrapping_available' => $extendedData['gift_wrap'],
+						// setting color attribute
+						'color' => $extendedData['color_attributes'],
+						// setting the product long description according to the store language setting
+						'description' => $extendedData['long_description'],
+						// setting the product short description according to the store language setting
+						'short_description' => $extendedData['short_description'],
+					)
+				)->save(); // saving the product
+			} catch (Mage_Core_Exception $e) {
+				Mage::logException($e);
+			}
+
+			// adding product custom attributes
+			$this->_addCustomAttributeToProduct($dataObject, $productObject);
+		}
+
+		return ;
+	}
+
+	/**
+	 * Create dummy products and return new dummy product object
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
+	 *
+	 * @return Mage_Catalog_Model_Product
+	 */
+	protected function _getDummyProduct(Varien_Object $dataObject)
+	{
+		$productObject = $this->getProduct()->load(0);
+		$productObject->setId(null)
+			->addData(
+				array(
+					'type_id' => 'simple', // default product type
+					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+					'attribute_set_id' => $this->getDefaultAttributeSetId(),
+					'name' => 'temporary-name - ' . uniqid(),
+					'status' => 0, // default - disabled
+					'sku' => $dataObject->getUniqueID(),
+				)
+			)
+			->save();
+
+		return $this->_loadProductBySku($dataObject->getUniqueID());
+	}
+
+	/**
+	 * getting default locale title that match magento default locale
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve the default product title
+	 *
+	 * @return string
+	 */
+	protected function _getDefaultLocaleTitle(Varien_Object $dataObject)
+	{
+		$title = '';
+		// Setting product name/title from base attributes
+		$baseAttributes = $dataObject->getBaseAttributes();
+		foreach ($baseAttributes as $baseAttribute) {
+			if ($baseAttribute instanceof Varien_Object && trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode())) &&
+			trim($baseAttribute->getTitle()) !== '') {
+				// setting the product title according to the store language setting
+				$title = $baseAttribute->getTitle();
+			}
+		}
+		return $title;
+	}
+
+	/**
+	 * extract extended attribute data such as (gift_wrap
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
+	 *
+	 * @return array, composite array containing description data, gift wrap, color... etc
+	 */
+	protected function _getExtendAttributeData(Varien_Object $dataObject)
+	{
+		$data = array('gift_wrap' => 0, 'color_attributes' => 0, 'long_description' => null, 'short_description' => null);
+
+		$extendedAttributes = $dataObject->getExtendedAttributes();
+		if (!empty($extendedAttributes)) {
+			$giftWrap = $extendedAttributes['gift_wrap'];
+			if ($giftWrap instanceof Varien_Object) {
+				// extracting gift_wrapping_available
+				$data['gift_wrap'] = (trim(strtoupper($giftWrap->getGiftWrap())) === 'Y')? 1 : 0;
+			}
+
+			if (isset($extendedAttributes['color_attributes'])) {
+				$colorAttributes = $extendedAttributes['color_attributes'];
+				if ($colorAttributes instanceof Varien_Object) {
+					// extracting color attribute
+					$data['color_attributes'] = $this->_getAttributeOptionId('color', $colorAttributes->getCode());
+				}
+			}
+
+			if (isset($extendedAttributes['long_description'])) {
+				// get long description data
+				$longDescriptions = $extendedAttributes['long_description'];
+				foreach ($longDescriptions as $longDescription) {
+					if ($longDescription instanceof Varien_Object &&
+					trim(strtoupper($longDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+						// extracting the product long description according to the store language setting
+						$data['long_description'] = $longDescription->getLongDescription();
 					}
+				}
+			}
 
-					// get product link data
-					$linkData = $this->_preparedProductLinkData($dataObject);
-
-					// setting related data
-					if (!empty($linkData['related'])) {
-						$productObject->setRelatedLinkData($linkData['related']);
+			if (isset($extendedAttributes['short_description'])) {
+				// get short description data
+				$shortDescriptions = $extendedAttributes['short_description'];
+				foreach ($shortDescriptions as $shortDescription) {
+					if ($shortDescription instanceof Varien_Object &&
+					trim(strtoupper($shortDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+						// setting the product short description according to the store language setting
+						$data['short_description'] = $shortDescription->getShortDescription();
 					}
-
-					// setting upsell data
-					if (!empty($linkData['upsell'])) {
-						$productObject->setUpSellLinkData($linkData['upsell']);
-					}
-
-					// setting crosssell data
-					if (!empty($linkData['crosssell'])) {
-						$productObject->setCrossSellLinkData($linkData['crosssell']);
-					}
-
-					// setting category data
-					$productObject->setCategoryIds($this->_preparedCategoryLinkData($dataObject));
-
-					// Setting product name/title from base attributes
-					$baseAttributes = $dataObject->getBaseAttributes();
-					if ($baseAttributes) {
-						foreach ($baseAttributes as $baseAttribute) {
-							if ($baseAttribute instanceof Varien_Object) {
-								if (trim(strtoupper($baseAttribute->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// setting the product title according to the store language setting
-									$productObject->setName($baseAttribute->getTitle());
-								}
-							}
-						}
-					}
-
-					// Setting product short/long description from extended attributes
-					$extendedAttributes = $dataObject->getExtendedAttributes();
-					if ($extendedAttributes) {
-						$giftWrap = $extendedAttributes['gift_wrap'];
-						if ($giftWrap instanceof Varien_Object) {
-							// setting gift_wrapping_available
-							$productObject->setGiftWrappingAvailable((trim(strtoupper($giftWrap->getGiftWrap())) === 'Y')? 1 : 0);
-						}
-
-						$colorAttributes = $extendedAttributes['color_attributes'];
-						if ($colorAttributes instanceof Varien_Object) {
-							// setting color attribute
-							$productObject->setColor($this->_getAttributeOptionId('color', $colorAttributes->getCode()));
-						}
-
-						// get long description data
-						$longDescriptions = $extendedAttributes['long_description'];
-						foreach ($longDescriptions as $longDescription) {
-							if ($longDescription instanceof Varien_Object) {
-								if (trim(strtoupper($longDescription->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// setting the product long description according to the store language setting
-									$productObject->setDescription($longDescription->getLongDescription());
-								}
-							}
-						}
-
-						// get short description data
-						$shortDescriptions = $extendedAttributes['short_description'];
-						foreach ($shortDescriptions as $shortDescription) {
-							if ($shortDescription instanceof Varien_Object) {
-								if (trim(strtoupper($shortDescription->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// setting the product short description according to the store language setting
-									$productObject->setShortDescription($shortDescription->getShortDescription());
-								}
-							}
-						}
-					}
-
-					// Setting product custom attributes
-					$customAttributes = $dataObject->getCustomAttributes();
-					if ($customAttributes) {
-						foreach ($customAttributes as $customAttribute) {
-							if ($customAttribute instanceof Varien_Object) {
-								if (trim(strtoupper($customAttribute->getLang())) === $this->getDefaultStoreLanguageCode()) {
-									// getting the custom attribute into a valid magento attribute format
-									$attributeName = $this->_attributeFormat($customAttribute->getName());
-									if ($this->_isAttributeExists($attributeName)) {
-										// attribute does exists in magento store, let check it's operation type
-										if (trim(strtoupper($customAttribute->getOperationType())) === 'DELETE') {
-											// set the attribute value to null to remove it
-											$productObject->setData($attributeName, null);
-										} else {
-											// for add an change operation type just set the attribute value
-											$productObject->setData($attributeName, $customAttribute->getValue());
-										}
-									}
-								}
-							}
-						}
-					}
-
-					// saving the product
-					$productObject->save();
-				} catch (Mage_Core_Exception $e) {
-					Mage::logException($e);
 				}
 			}
 		}
 
-		return ;
+		return $data;
+	}
+
+	/**
+	 * adding custom attributes to a product
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
+	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
+	 *
+	 * @return void
+	 */
+	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		$customData = array();
+		$customAttributes = $dataObject->getCustomAttributes();
+		if (!empty($customAttributes)) {
+			foreach ($customAttributes as $customAttribute) {
+				if ($customAttribute instanceof Varien_Object && trim(strtoupper($customAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+					// getting the custom attribute into a valid magento attribute format
+					$attributeName = $this->_attributeFormat($customAttribute->getName());
+					if ($this->_isAttributeExists($attributeName)) {
+						// attribute does exists in magento store, let check it's operation type
+						if (trim(strtoupper($customAttribute->getOperationType())) === 'DELETE') {
+							// set the attribute value to null to remove it
+							$customData[$attributeName] = null;
+						} else {
+							// for add an change operation type just set the attribute value
+							$customData[$attributeName] = $customAttribute->getValue();
+						}
+					}
+				}
+			}
+		}
+
+		// we have valid custom data let's add it and save it to the product object
+		if (!empty($customData)) {
+			try{
+				$productObject->addData($customData)->save();
+			} catch (Mage_Core_Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			}
+		}
 	}
 
 	/**
@@ -456,18 +557,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			if (!$categoryId) {
 				// category doesn't currently exists let's add it.
 				try {
-					$categoryData = array(
-						'name' => $categoryName,
-						'path' => $path, // parent relationship..
-						'description' => $categoryName,
-						'is_active' => 1,
-						'is_anchor' => 0, //for layered navigation
-						'page_layout' => 'default',
-						'url_key' => Mage::helper('catalog/product_url')->format($categoryName) // URL to access this category
-					);
+					$this->getCategory()->setAttributeSetId($this->getDefaultCategoryAttributeSetId())
+						->setStoreId($this->getDefaultStoreId())
+						->addData(
+							array(
+								'name' => $categoryName,
+								'path' => $path, // parent relationship..
+								'description' => $categoryName,
+								'is_active' => 1,
+								'is_anchor' => 0, //for layered navigation
+								'page_layout' => 'default',
+								'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
+								'image' => null,
+								'thumbnail' => null,
+							)
+						)
+						->save();
 
-					$this->getCategory()->addData($categoryData);
-					$this->getCategory()->save();
 					$categoryId = $this->getCategory()->getId();
 				} catch (Mage_Core_Exception $e) {
 					Mage::logException($e);
@@ -492,7 +598,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
 
 		return;

@@ -7,6 +7,18 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_Abstract
 {
 	/**
+	 * Initialize model
+	 */
+	protected function _construct()
+	{
+		$this->setData(
+			array(
+				'feed_base_node' => 'Item', // Magically setting feed base node
+			)
+		);
+	}
+
+	/**
 	 * convert feed lang data to match magento expected format (en-US => en_US)
 	 *
 	 * @param string $langCode, the language code
@@ -22,21 +34,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractItemId(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractItemId(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// SKU used to identify this item from the client system.
-		$nodeClientItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientItemId");
+		$nodeClientItemId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientItemId");
 
 		// Alternative identifier provided by the client.
-		$nodeClientAltItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ClientAltItemId");
+		$nodeClientAltItemId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientAltItemId");
 
 		// Code assigned to the item by the manufacturer to identify the item.
-		$nodeManufacturerItemId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ItemId/ManufacturerItemId");
+		$nodeManufacturerItemId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ManufacturerItemId");
 		return new Varien_Object(array(
 			'client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null,
 			'client_alt_item_id' => ($nodeClientAltItemId->length)? (string) $nodeClientAltItemId->item(0)->nodeValue : null,
@@ -48,31 +61,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract BaseAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractBaseAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractBaseAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// Allows for control of the web store display.
-		$nodeCatalogClass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
+		$nodeCatalogClass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
 
 		// Indicates the item if fulfilled by a drop shipper.
 		// New attribute.
-		$nodeIsDropShipped = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
+		$nodeIsDropShipped = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
 
 		// Short description in the catalog's base language.
-		$nodeItemDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
+		$nodeItemDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
 
 		// Identifies the type of item.
-		$nodeItemType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemType");
+		$nodeItemType = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemType");
 
 		// Indicates whether an item is active, inactive or other various states.
-		$nodeItemStatus = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
+		$nodeItemStatus = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
 
 		// Tax group the item belongs to.
-		$nodeTaxCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
+		$nodeTaxCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
 
 		return new Varien_Object(
 			array(
@@ -80,7 +94,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				'drop_shipped' => ($nodeIsDropShipped->length)? (bool) $nodeIsDropShipped->item(0)->nodeValue : false,
 				'item_description' => ($nodeItemDescription->length)? (string) $nodeItemDescription->item(0)->nodeValue : null,
 				'item_type' => ($nodeItemType->length)? strtolower(trim($nodeItemType->item(0)->nodeValue)) : null,
-				'item_status' => (strtoupper(trim($nodeItemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0,
+				'item_status' => ($nodeItemStatus->length > 0 && strtoupper(trim($nodeItemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0,
 				'tax_code' => ($nodeTaxCode->length)? (string) $nodeTaxCode->item(0)->nodeValue : null,
 			)
 		);
@@ -90,21 +104,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract DropShipSupplierInformation data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractDropShipSupplierInformation(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractDropShipSupplierInformation(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// Name of the Drop Ship Supplier fulfilling the item
-		$nodeSupplierName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierName");
+		$nodeSupplierName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierName");
 
 		// Unique code assigned to this supplier.
-		$nodeSupplierNumber = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierNumber");
+		$nodeSupplierNumber = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierNumber");
 
 		// Id or SKU used by the drop shipper to identify this item.
-		$nodeSupplierPartNumber = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierPartNumber");
+		$nodeSupplierPartNumber = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierPartNumber");
 
 		return new Varien_Object(
 			array(
@@ -119,29 +134,30 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract ExtendedAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// If false, customer cannot add a gift message to the item.
-		$nodeAllowGiftMessage = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/AllowGiftMessage");
+		$nodeAllowGiftMessage = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/AllowGiftMessage");
 
 		// Item is able to be back ordered.
-		$nodeBackOrderable = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
+		$nodeBackOrderable = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
 
 		$colorData = array();
-		$nodeColorAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
+		$nodeColorAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
 		$colorIndex = 1;
 		foreach ($nodeColorAttributes as $colorRecord) {
 			// Color value/name with a locale specific description.
 			// Name of the color used as the default and in the admin.
-			$nodeColorCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Code");
+			$nodeColorCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Code");
 
 			// Description of the color used for specific store views/languages.
-			$nodeColorDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Description");
+			$nodeColorDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Description");
 			$colorDescriptionData = array();
 			$colorDescriptionIndex = 1;
 			foreach ($nodeColorDescription as $colorDescriptionRecord) {
@@ -161,11 +177,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 
 		// Selling name and description used to identify a product for advertising purposes
 		// Selling/promotional name.
-		$nodeBrandName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Name");
+		$nodeBrandName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Name");
 
 		// Short description of the selling/promotional name.
 		$brandDescriptionData = array();
-		$nodeBrandDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
+		$nodeBrandDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
 		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
 			$brandDescriptionData[] = array(
 				'lang' => $this->_languageFormat($brandDescriptionRecord->getAttribute('xml:lang')),
@@ -174,8 +190,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		}
 
 		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
-		$nodeBuyerName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/Name");
-		$nodeBuyerId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/BuyerId");
+		$nodeBuyerName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/Name");
+		$nodeBuyerId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/BuyerId");
 
 		/*
 		 * Whether the item is a "companion" (must ship with another product) or can ship alone. ENUM: ("Yes", No", "Maybe")
@@ -183,10 +199,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		 *    No - cancelled if not shipped with companion
 		 *    Maybe - other factors decide
 		 */
-		$nodeCompanionFlag = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CompanionFlag");
+		$nodeCompanionFlag = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/CompanionFlag");
 
 		// Country in which goods were completely derived or manufactured.
-		$nodeCountryOfOrigin = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
+		$nodeCountryOfOrigin = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
 
 		/*
 		 *  Type of gift card to be used for activation.
@@ -196,130 +212,130 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		 *		SV - SVS Virtual Gift Card
 		 *		SX - SmartClixx Gift Card
 		 */
-		$nodeGiftCardTenderCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
+		$nodeGiftCardTenderCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
 
 		// Indicates if the item is considered hazardous material.
-		$nodeHazardousMaterialCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/HazardousMaterialCode");
+		$nodeHazardousMaterialCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/HazardousMaterialCode");
 
 		// Not included in display or in emails. Default to false.
-		$nodeIsHiddenProduct = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/IsHiddenProduct");
+		$nodeIsHiddenProduct = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/IsHiddenProduct");
 
 		// Shipping weight of the item.
-		$nodeShippingMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass");
+		$nodeShippingMass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass");
 
 		// Shipping weight of the item.
-		$nodeShippingWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass/Weight");
+		$nodeShippingWeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass/Weight");
 
 		// Unit of measure used for these dimensions.
-		$nodeDisplayMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass");
+		$nodeDisplayMass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass");
 
 		// Item's weight using the above unit of measure.
-		$nodeDisplayWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass/Weight");
+		$nodeDisplayWeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass/Weight");
 
 		// Unit of measure used for these dimensions.
-		$nodeDisplayPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging");
+		$nodeDisplayPackaging = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging");
 
 		// Item's width.
-		$nodeDisplayPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Width");
+		$nodeDisplayPackagingWidth = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Width");
 
 		// Item's length.
-		$nodeDisplayPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Length");
+		$nodeDisplayPackagingLength = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Length");
 
 		// Item's height.
-		$nodeDisplayPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Height");
+		$nodeDisplayPackagingHeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Height");
 
 		// Unit of measure used for these dimensions.
-		$nodeShippingPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging");
+		$nodeShippingPackaging = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging");
 
 		// Item's width.
-		$nodeShippingPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Width");
+		$nodeShippingPackagingWidth = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Width");
 
 		// Item's length.
-		$nodeShippingPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Length");
+		$nodeShippingPackagingLength = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Length");
 
 		// Item's height.
-		$nodeShippingPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Height");
+		$nodeShippingPackagingHeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Height");
 
 		// Unit of measure used for these dimensions.
-		$nodeCartonMass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass");
+		$nodeCartonMass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass");
 
 		// Weight of the carton.
-		$nodeCartonWeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass/Weight");
+		$nodeCartonWeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass/Weight");
 
 		// Unit of measure used for these dimensions.
-		$nodeCartonPackaging = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging");
+		$nodeCartonPackaging = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging");
 
 		// Item's width.
-		$nodeCartonPackagingWidth = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Width");
+		$nodeCartonPackagingWidth = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Width");
 
 		// Item's length.
-		$nodeCartonPackagingLength = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Length");
+		$nodeCartonPackagingLength = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Length");
 
 		// Item's height.
-		$nodeCartonPackagingHeight = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Height");
+		$nodeCartonPackagingHeight = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Height");
 
 		// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
-		$nodeCartonType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/CartonType");
+		$nodeCartonType = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/CartonType");
 
 		// Indicates if the item's lot assignment is required to be tracked.
-		$nodeLotTrackingIndicator = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/LotTrackingIndicator");
+		$nodeLotTrackingIndicator = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LotTrackingIndicator");
 
 		// LTL freight cost for the item.
-		$nodeLtlFreightCost = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/LTLFreightCost");
+		$nodeLtlFreightCost = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LTLFreightCost");
 
 		// Date the item was build by the manufacturer.
-		$nodeManufacturingDate = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ManufacturingDate");
+		$nodeManufacturingDate = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ManufacturingDate");
 
 		// Company name of manufacturer.
-		$nodeManufacturerName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/Name");
+		$nodeManufacturerName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/Name");
 
 		// Unique identifier to denote the item manufacturer.
-		$nodeManufacturerId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/ManufacturerId");
+		$nodeManufacturerId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/ManufacturerId");
 
 		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-		$nodeMayShipExpedite = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipExpedite");
+		$nodeMayShipExpedite = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipExpedite");
 
 		// Indicates if the item may be shipped internationally.
-		$nodeMayShipInternational = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipInternational");
+		$nodeMayShipInternational = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipInternational");
 
 		// Indicates if the item may be shipped via USPS.
-		$nodeMayShipUsps = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MayShipUSPS");
+		$nodeMayShipUsps = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipUSPS");
 
 		// Manufacturers suggested retail price. Not used for actual price calculations.
-		$nodeMsrp = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/MSRP");
+		$nodeMsrp = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MSRP");
 
 		// Default price item is sold at. Required only if the item is new.
-		$nodePrice = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Price");
+		$nodePrice = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Price");
 
 		// Amount used for safety stock calculations.
-		$nodeSafetyStock = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SafetyStock");
+		$nodeSafetyStock = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SafetyStock");
 
 		// Determines behavior on the live system when the item is backordered.
-		$nodeSalesClass = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SalesClass");
+		$nodeSalesClass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SalesClass");
 
 		// Type of serial number to be scanned.
-		$nodeSerialNumberType = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SerialNumberType");
+		$nodeSerialNumberType = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SerialNumberType");
 
 		// Identifies the item as a service, e.g. clothing monogramming or hemming.
-		$nodeServiceIndicator = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ServiceIndicator");
+		$nodeServiceIndicator = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ServiceIndicator");
 
 		// Distinguishes items that can be shipped together with those in the same group.
-		$nodeShipGroup = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipGroup");
+		$nodeShipGroup = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipGroup");
 
 		// Minimum number of hours before the item may ship.
-		$nodeShipWindowMinHour = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMinHour");
+		$nodeShipWindowMinHour = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMinHour");
 
 		// Maximum number of hours before the item may ship.
-		$nodeShipWindowMaxHour = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMaxHour");
+		$nodeShipWindowMaxHour = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMaxHour");
 
 		$sizeData = array();
-		$nodeSizeAttributes = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size");
+		$nodeSizeAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size");
 		foreach ($nodeSizeAttributes as $sizeRecord) {
 			// Size code.
-			$nodeSizeCode = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Code");
+			$nodeSizeCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Code");
 
 			// Size Description.
-			$nodeSizeDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
+			$nodeSizeDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
 
 			$sizeData[] = array(
 				'lang' => $this->_languageFormat($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
@@ -329,19 +345,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		}
 
 		// Earliest date the product can be shipped.
-		$nodeStreetDate = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/StreetDate");
+		$nodeStreetDate = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/StreetDate");
 
 		// Code that identifies the specific appearance type or variety in which the item is available.
-		$nodeStyleId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleID");
+		$nodeStyleId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleID");
 
 		// Short description or title of the style for the item.
-		$nodeStyleDescription = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleDescription");
+		$nodeStyleDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleDescription");
 
 		// Name of the individual or organization providing the merchandise.
-		$nodeSupplierName = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/Name");
+		$nodeSupplierName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/Name");
 
 		// Identifier for the supplier.
-		$nodeSupplierId = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/SupplierId");
+		$nodeSupplierId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/SupplierId");
 
 		return new Varien_Object(
 			array(
@@ -443,19 +459,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract CustomAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractCustomAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractCustomAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		$attributeData = array();
 
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 		foreach ($nodeAttribute as $attributeRecord) {
-			$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+			$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
 			$attributeData[] = array(
 				// The name of the attribute.
@@ -479,18 +496,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract productType from CustomAttributes data
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return string, the productType
 	 */
-	protected function _extractProductType(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractProductType(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
-				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 				return ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
 			}
 		}
@@ -502,18 +520,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	 * extract ConfigurableAttributes from CustomAttributes data
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $itemIndex, the current item position
+	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, the configurable attribute sets
 	 */
-	protected function _extractConfigurableAttributes(DOMXPath $feedXPath, $itemIndex, $catalogId)
+	protected function _extractConfigurableAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
 	{
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
-				$nodeValue = $feedXPath->query("//Item[$itemIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 				return ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
 			}
 		}
@@ -532,9 +551,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	{
 		$collectionOfItems = array();
 		$feedXPath = new DOMXPath($doc);
+		$baseNode = $this->getFeedBaseNode();
 
-		$master = $feedXPath->query('//Item');
-		$itemIndex = 1; // start index
+		$master = $feedXPath->query("//$baseNode");
+		$idx = 1; // start index
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
 
@@ -548,24 +568,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 					// Defines the action requested for this item. enum:("Add", "Change", "Delete")
 					'operation_type' => (string) $item->getAttribute('operation_type'),
 					// get varien object of item id node
-					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $catalogId),
+					'item_id' => $this->_extractItemId($feedXPath, $idx, $catalogId, $baseNode),
 					// get varien object of base attributes node
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $itemIndex, $catalogId),
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $idx, $catalogId, $baseNode),
 					// get varien object of Drop Ship Supplier Information attribute node
-					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $itemIndex, $catalogId),
+					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($feedXPath, $idx, $catalogId, $baseNode),
 					// get varien object of Extended Attributes node
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $itemIndex, $catalogId),
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $idx, $catalogId, $baseNode),
 					// get varien object of Custom Attributes node
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $itemIndex, $catalogId),
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $idx, $catalogId, $baseNode),
 					// get product type from Custom Attributes node
-					'product_type' => $this->_extractProductType($feedXPath, $itemIndex, $catalogId),
+					'product_type' => $this->_extractProductType($feedXPath, $idx, $catalogId, $baseNode),
 					// get configurable attributes from Custom Attributes node
-					'configurable_attributes' => $this->_extractConfigurableAttributes($feedXPath, $itemIndex, $catalogId),
+					'configurable_attributes' => $this->_extractConfigurableAttributes($feedXPath, $idx, $catalogId, $baseNode),
 				)
 			);
 
 			// increment item index
-			$itemIndex++;
+			$idx++;
 		}
 
 		return $collectionOfItems;

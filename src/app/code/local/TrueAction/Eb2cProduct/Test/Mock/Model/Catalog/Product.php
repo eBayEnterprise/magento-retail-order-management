@@ -24,7 +24,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -158,6 +159,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -178,7 +185,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -312,6 +320,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -332,7 +346,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -467,6 +482,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
 			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
+			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
 	}
@@ -486,7 +507,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -620,6 +642,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -640,7 +668,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -774,6 +803,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 			->will($this->returnSelf());
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
 			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
@@ -794,7 +829,8 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 				'setMsrp', 'setPrice', 'setIsDropShipped', 'setTaxCode', 'setDropShipSupplierName', 'setDropShipSupplierNumber',
 				'setDropShipSupplierPart', 'setGiftMessageAvailable', 'setUseConfigGiftMessageAvailable', 'setStockData',
 				'setCountryOfManufacture', 'setConfigurableProductsData', 'setConfigurableAttributesData', 'setCanSaveConfigurableAttributes',
-				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription'
+				'getData', 'setData', 'setGroupedLinkData', 'getResource', 'getTypeId', 'getConfigurableColorData', 'setStoreId', 'setColorDescription',
+				'addData', 'load',
 			))
 			->getMock();
 
@@ -929,6 +965,12 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product extends EcomDev_PHP
 		$catalogModelProductMock->expects($this->any())
 			->method('setColorDescription')
 			->will($this->throwException(new Mage_Core_Exception));
+		$catalogModelProductMock->expects($this->any())
+			->method('addData')
+			->will($this->throwException(new Mage_Core_Exception));
+		$catalogModelProductMock->expects($this->any())
+			->method('load')
+			->will($this->returnSelf());
 
 		return $catalogModelProductMock;
 	}
