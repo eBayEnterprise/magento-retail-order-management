@@ -1,9 +1,15 @@
 <?php
 $installer = $this;
 
+$eb2cNameViewIndexColumns = array(
+	'product_id',
+	'view',
+	'name',
+);
+
 $table = $installer->getConnection()
-	->newTable($installer->getTable('eb2cproduct/images'))
-	->addColumn('value_id',
+	->newTable($installer->getTable('eb2cmedia/images'))
+	->addColumn('id',
 		Varien_Db_Ddl_Table::TYPE_INTEGER,
 		null,
 		array(
@@ -12,12 +18,31 @@ $table = $installer->getConnection()
 			'nullable' => false,
 			'primary'  => true,
 		),
-		'Image id')
+		'Image id'
+	)
 	->addColumn('product_id',
 		Varien_Db_Ddl_Table::TYPE_INTEGER,
 		null,
 		array(),
-		'Product Id')
+		'Product Id'
+	)
+	->addColumn('created_at',
+		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
+		null,
+		array(
+			'nullable' => false,
+			'default'  => Varien_Db_Ddl_Table::TIMESTAMP_INIT
+		),
+		'Created At'
+	)
+	->addColumn('updated_at',
+		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
+		null,
+		array(
+			'nullable' => true
+		),
+		'Updated At'
+	)
 	->addColumn('view',
 		Varien_Db_Ddl_Table::TYPE_TEXT,
 		128,
@@ -32,7 +57,7 @@ $table = $installer->getConnection()
 	)
 	->addColumn('url',
 		Varien_Db_Ddl_Table::TYPE_TEXT,
-		255,
+		1024,
 		array( 'nullable' => true,),
 		'Image URL'
 	)
@@ -47,6 +72,16 @@ $table = $installer->getConnection()
 		null,
 		array(),
 		'Image Width'
+	)
+	->addIndex(
+		$installer->getIdxName(
+			'eb2cmedia/images',
+			$eb2cNameViewIndexColumns
+		),
+		$eb2cNameViewIndexColumns,
+		array (
+			'type' => Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE
+		)
 	);
 
 $installer->getConnection()->createTable($table);

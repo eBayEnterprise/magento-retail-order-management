@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+	<modules>
+		<TrueAction_Eb2cMedia>
+			<version>1.0.0</version>
+		</TrueAction_Eb2cMedia>
+	</modules>
+	<global>
+		<models>
+			<eb2cmedia>
+				<class>TrueAction_Eb2cMedia_Model</class>
+				<resourceModel>eb2cmedia_resource</resourceModel>
+			</eb2cmedia>
+            <eb2cmedia_resource>
+                <class>TrueAction_Eb2cMedia_Model_Resource</class>
+                <entities>
+                    <images>
+                        <table>eb2cmedia_images</table>
+                    </images>
+                </entities>
+            </eb2cmedia_resource>
+		</models>
+		<helpers>
+			<eb2cmedia>
+				<class>TrueAction_Eb2cMedia_Helper</class>
+			</eb2cmedia>
+		</helpers>
+		<resources>
+			<eb2cmedia_setup>
+				<setup>
+					<module>TrueAction_Eb2cMedia</module>
+				</setup>
+			</eb2cmedia_setup>
+		</resources>
+	</global>
+	<default>
+		<eb2cmedia>
+			<config_path>eb2ccore/general</config_path>
+			<images_feed>
+				<local_path>Eb2cMedia/Images/Feed</local_path>
+				<remote_path>Unknown</remote_path>
+				<file_pattern>Image*.xml</file_pattern>
+				<event_type>ImageMetaData</event_type>
+				<header_version>1.0.0</header_version>
+			</images_feed>
+		</eb2cmedia>
+	</default>
+	<phpunit>
+		<suite>
+			<modules>
+				<TrueAction_Eb2cMedia />
+			</modules>
+		</suite>
+	</phpunit>
+</config>

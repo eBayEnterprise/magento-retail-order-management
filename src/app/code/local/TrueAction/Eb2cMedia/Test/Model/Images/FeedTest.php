@@ -2,10 +2,10 @@
 /**
  * 
  */
-class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCore_Test_Base
 {
-	const CLASS_NAME            = 'TrueAction_Eb2cProduct_Model_Feed_Image_Master';
-	const MAGE_MODEL_NAME       = 'eb2cproduct/feed_image_master';
+	const CLASS_NAME            = 'TrueAction_Eb2cMedia_Model_Images_Feed';
+	const MAGE_MODEL_NAME       = 'eb2cmedia/images_feed';
 	const VFS_ROOT              = 'testImageRoot';
 	const NUMBER_OF_DUMMY_FILES = 2; // How many files I expect to process as found in vfs fixture
 
@@ -87,11 +87,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Image_MasterTest extends TrueAction
 	{
 		$this->replaceCoreConfigRegistry(
 			array(
-				'clientId'                    => 'MWS',
-				'imageFeedEventType'          => 'ImageMetaData',
-				'imageFeedFilePattern'        => 'dummy_feed_file_pattern',
-				'imageFeedLocalPath'          => 'dummy_feed_local_path',
-				'imageFeedRemoteReceivedPath' => 'dummy_feed_remote_received_path',
+				'clientId'              => 'MWS',
+				'imagesFeedEventType'   => 'ImageMetaData',
+				'imagesFeedFilePattern' => 'dummy_feed_file_pattern',
+				'imagesFeedLocalPath'   => 'dummy_feed_local_path',
+				'imagesFeedRemotePath'  => 'dummy_feed_remote_path',
 			)
 		);
 

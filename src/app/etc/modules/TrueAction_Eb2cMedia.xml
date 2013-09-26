@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config>
+	<modules>
+		<TrueAction_Eb2cMedia>
+			<active>true</active>
+			<codePool>local</codePool>
+			<depends>
+				<TrueAction_Eb2cProduct />
+			</depends>
+		</TrueAction_Eb2cMedia>
+	</modules>
+</config>
