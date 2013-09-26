@@ -109,7 +109,6 @@
 	<default>
 		<eb2c>
 			<product>
-				<api_xml_ns>http://api.gsicommerce.com/schema/checkout/1.0</api_xml_ns>
 				<api_service>product</api_service>
 				<api_return_format>xml</api_return_format>
 				<config_path>eb2ccore/general</config_path>

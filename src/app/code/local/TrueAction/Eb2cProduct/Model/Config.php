@@ -7,7 +7,7 @@
 class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Config_Abstract
 {
 	protected $_configPaths = array(
-		'api_xml_ns'        => 'eb2c/product/api_xml_ns',
+		'api_xml_ns'        => 'eb2ccore/api/xml_namespace',
 		'api_service'       => 'eb2c/product/api_service',
 		'api_return_format' => 'eb2c/product/api_return_format',
 		'config_path'       => 'eb2c/product/config_path',

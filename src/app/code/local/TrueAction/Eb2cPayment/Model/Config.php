@@ -22,7 +22,7 @@ class TrueAction_Eb2cPayment_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'enabled_eb2c_paypal_do_authorization' => 'eb2c/payment/enabled_eb2c_paypal_do_authorization',
 		'enabled_eb2c_paypal_do_void' => 'eb2c/payment/enabled_eb2c_paypal_do_void',
 		'enabled_eb2c_debug' => 'eb2c/payment/enabled_eb2c_debug',
-		'api_xml_ns' => 'eb2c/payment/api_xml_ns',
+		'api_xml_ns' => 'eb2ccore/api/xml_namespace',
 		'api_payment_xml_ns' => 'eb2c/payment/api_payment_xml_ns',
 		'api_service' => 'eb2c/payment/api_service',
 		'api_opt_stored_value_balance' => 'eb2c/payment/api_opt_stored_value_balance',

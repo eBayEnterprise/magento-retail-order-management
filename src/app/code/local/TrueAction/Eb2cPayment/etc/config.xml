@@ -138,7 +138,6 @@
 				<enabled_eb2c_paypal_do_void>1</enabled_eb2c_paypal_do_void>
 				<enabled_eb2c_debug>1</enabled_eb2c_debug>
 
-				<api_xml_ns>http://api.gsicommerce.com/schema/checkout/1.0</api_xml_ns>
 				<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>
 				<api_service>payments</api_service>
 				<api_opt_stored_value_balance>storevalue/balance/GS</api_opt_stored_value_balance>

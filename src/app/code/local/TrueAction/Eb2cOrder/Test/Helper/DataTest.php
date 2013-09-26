@@ -23,7 +23,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 		$this->assertSame($consts::CANCEL_OPERATION, 'cancel');
 		$this->assertSame($consts::CREATE_DOM_ROOT_NODE_NAME, 'OrderCreateRequest');
 		$this->assertSame($consts::CANCEL_DOM_ROOT_NODE_NAME, 'OrderCancelRequest');
-		$this->assertSame($consts::DOM_ROOT_NS, 'http://api.gsicommerce.com/schema/checkout/1.0');
 	}
 
 	/**
