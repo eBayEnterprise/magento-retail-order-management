@@ -83,7 +83,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		if ($itemData) {
 			$this->_queue[] = $itemData;
 		}
-		return ;
+		return $this;
 	}
 
 	/**
@@ -99,6 +99,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 				Mage::logException($e);
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -120,7 +121,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		if (!$product->getId()) {
 			$this->applyDummyData($product, $sku);
 		}
-		return ;
+		return $product;
 	}
 
 	/**
@@ -161,6 +162,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$this->_processQueue();
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
+		return $this;
 	}
 
 	/**
@@ -202,6 +204,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 				$this->_queueData($feedItem);
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -281,7 +284,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			// saving the product
 			$productObject->save();
 		}
-		return ;
+		return $this;
 	}
 
 	/**
@@ -301,6 +304,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
 
-		return;
+		return $this;
 	}
 }
