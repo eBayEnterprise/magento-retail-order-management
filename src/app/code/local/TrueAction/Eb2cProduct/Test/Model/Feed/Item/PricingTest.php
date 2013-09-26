@@ -120,13 +120,16 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->method('getId')
 			->will($this->returnValue($productId));
 
-		$collection = $this->getResourceModelMock('catalog/product_collection', array(
-			'addAttributeToSelect',
-			'getSelect',
-			'where',
-			'load',
-			'getFirstItem',
-		));
+		$collection = $this->getResourceModelMockBuilder('catalog/product_collection');
+		$collection = $collection->disableOriginalConstructor()
+			->setMethods(array(
+				'addAttributeToSelect',
+				'getSelect',
+				'where',
+				'load',
+				'getFirstItem',
+			))
+			->getMock();
 		$collection->expects($this->any())
 			->method('addAttributeToSelect')
 			->will($this->returnSelf());
