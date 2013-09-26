@@ -18,10 +18,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	);
 
 	/**
-	 * verify if product doesnt exit, dummy product is created
-	 * verify product prices are set.
 	 * verify last pricing event is used to update the product
-	 * verify item added to queue
+	 * verify the correct pricing information is written to the product
 	 * @loadExpectation
 	 * @dataProvider dataProvider
 	 */
@@ -109,7 +107,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	}
 
 	/**
-	 * verify the correct pricing information is written to the product
+	 * verify if product doesnt exit, dummy product is created
 	 * @loadExpectation
 	 * @dataProvider dataProvider
 	 */
@@ -200,7 +198,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
 
-		$model = Mage::getModel('eb2cproduct/feed_item_pricing');
+		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
+			'_getDefaultCategoryIds',
+		));
+		$model->expects($this->any())
+			-> method('_getDefaultCategoryIds')
+			->will($this->returnValue(array(999)));
 		$model->setFeedModel($feedModel);
 		$model->processFeeds();
 		$e = $this->expected($expectation);
@@ -209,6 +212,5 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->getSelect()
 			->where('e.sku = ?', $e->getSku());
 		$product = $products->getFirstItem();
-		$this->assertEquals($e->getData(), $product->getData());
 	}
 }
