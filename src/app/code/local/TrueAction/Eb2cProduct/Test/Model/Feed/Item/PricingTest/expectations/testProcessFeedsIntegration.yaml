@@ -11,7 +11,12 @@ product-exists:
     qty: 100.00
   website_ids: [ 0 ]
   category_ids: [ 999 ]
-  price: 12.99
+  special_price: 50.98
+  special_from_date: '2012-10-10 00:00:00'
+  special_to_date: '2014-08-80 00:00:00'
+  price_is_vat_inclusive: 0
+  price: 80.00
+  msrp: 100.77
   tax_class_id: 2
   status: 1
   visibility: 4
@@ -24,7 +29,12 @@ product-not-exist:
   website_ids: [ 0 ]
   description: 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.'
   short_description: 'Invalid product. Please do not attempt to purchase.'
-  price: 0
+  special_price: 50.98
+  special_from_date: '2012-10-10 00:00:00'
+  special_to_date: '2014-08-80 00:00:00'
+  price_is_vat_inclusive: 0
+  price: 80.00
+  msrp: 100.77
   weight: 0
   visibility: 0
   status: 0
