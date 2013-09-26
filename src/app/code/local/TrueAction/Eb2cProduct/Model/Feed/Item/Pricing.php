@@ -30,9 +30,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
-		if ($this->hasFsTool()) {
-			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-		}
 
 		$this->setExtractor(Mage::getModel('eb2cproduct/feed_item_pricing_extractor'))
 			->setProduct(Mage::getModel('catalog/product'))
@@ -49,7 +46,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		// initialize bundle queue with an empty array
 		$this->_queue = array();
-		return $this;
 	}
 
 	/**
