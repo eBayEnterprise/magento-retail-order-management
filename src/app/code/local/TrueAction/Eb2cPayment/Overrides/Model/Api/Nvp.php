@@ -84,7 +84,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
 			Mage::log(
 				'[' . __CLASS__ . '] ' .
-				"\n\rDEDUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" .
+				"\n\rDEBUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" .
 				print_r($response, true) . "\n\r",
 				Zend_Log::DEBUG
 			);
@@ -150,7 +150,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
 			Mage::log(
 				'[' . __CLASS__ . '] ' .
-				"\n\rDEDUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" .
+				"\n\rDEBUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" .
 				print_r($response, true) . "\n\r",
 				Zend_Log::DEBUG
 			);
@@ -215,7 +215,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
 			Mage::log(
 				'[' . __CLASS__ . '] ' .
-				"\n\rDEDUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" .
+				"\n\rDEBUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" .
 				print_r($response, true) . "\n\r",
 				Zend_Log::DEBUG
 			);
@@ -271,7 +271,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
 			Mage::log(
 				'[' . __CLASS__ . '] ' .
-				"\n\rDEDUG:\n\r________________________\n\rcallDoAuthorization:\n\r" .
+				"\n\rDEBUG:\n\r________________________\n\rcallDoAuthorization:\n\r" .
 				print_r($response, true) . "\n\r",
 				Zend_Log::DEBUG
 			);
@@ -320,7 +320,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 		}
 
 		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEDUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
+			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEBUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
 		}
 	}
 
