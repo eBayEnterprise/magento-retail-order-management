@@ -11,14 +11,14 @@
 				<class>TrueAction_Eb2cMedia_Model</class>
 				<resourceModel>eb2cmedia_resource</resourceModel>
 			</eb2cmedia>
-            <eb2cmedia_resource>
-                <class>TrueAction_Eb2cMedia_Model_Resource</class>
-                <entities>
-                    <images>
-                        <table>eb2cmedia_images</table>
-                    </images>
-                </entities>
-            </eb2cmedia_resource>
+			<eb2cmedia_resource>
+				<class>TrueAction_Eb2cMedia_Model_Resource</class>
+				<entities>
+					<images>
+						<table>eb2cmedia_images</table>
+					</images>
+				</entities>
+			</eb2cmedia_resource>
 		</models>
 		<helpers>
 			<eb2cmedia>

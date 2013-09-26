@@ -1,7 +1,7 @@
 <?php
 $installer = $this;
 
-$eb2cNameViewIndexColumns = array(
+$productIdViewNameIndexColumns = array(
 	'product_id',
 	'view',
 	'name',
@@ -76,9 +76,9 @@ $table = $installer->getConnection()
 	->addIndex(
 		$installer->getIdxName(
 			'eb2cmedia/images',
-			$eb2cNameViewIndexColumns
+			$productIdViewNameIndexColumns
 		),
-		$eb2cNameViewIndexColumns,
+		$productIdViewNameIndexColumns,
 		array (
 			'type' => Varien_Db_Adapter_Interface::INDEX_TYPE_UNIQUE
 		)
