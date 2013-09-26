@@ -7,6 +7,7 @@
 class TrueAction_Eb2cPayment_Model_Config extends TrueAction_Eb2cCore_Model_Config_Abstract
 {
 	protected $_configPaths = array(
+		'is_payment_enabled' => 'eb2cpayment/general/enabled',
 		'stored_value_balance_api_uri' => 'eb2c/payment/stored_value_balance_api_uri',
 		'stored_value_redeem_api_uri' => 'eb2c/payment/stored_value_redeem_api_uri',
 		'stored_value_redeem_void_api_uri' => 'eb2c/payment/stored_value_redeem_void_api_uri',
@@ -16,11 +17,6 @@ class TrueAction_Eb2cPayment_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'paypal_do_authorization_api_uri' => 'eb2c/payment/paypal_do_authorization_api_uri',
 		'paypal_do_void_api_uri' => 'eb2c/payment/paypal_do_void_api_uri',
 		'developer_mode' => 'eb2c/payment/developer_mode',
-		'enabled_eb2c_paypal_set_express_checkout' => 'eb2c/payment/enabled_eb2c_paypal_set_express_checkout',
-		'enabled_eb2c_paypal_get_express_checkout' => 'eb2c/payment/enabled_eb2c_paypal_get_express_checkout',
-		'enabled_eb2c_paypal_do_express_checkout' => 'eb2c/payment/enabled_eb2c_paypal_do_express_checkout',
-		'enabled_eb2c_paypal_do_authorization' => 'eb2c/payment/enabled_eb2c_paypal_do_authorization',
-		'enabled_eb2c_paypal_do_void' => 'eb2c/payment/enabled_eb2c_paypal_do_void',
 		'enabled_eb2c_debug' => 'eb2c/payment/enabled_eb2c_debug',
 		'api_xml_ns' => 'eb2c/payment/api_xml_ns',
 		'api_payment_xml_ns' => 'eb2c/payment/api_payment_xml_ns',
