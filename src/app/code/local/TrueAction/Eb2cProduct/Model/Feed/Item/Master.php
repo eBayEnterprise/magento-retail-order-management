@@ -337,7 +337,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	{
 		$productObject = $this->getProduct()->load(0);
 		try{
-			$productObject->setId(null)
+			$productObject->unsId()
 				->addData(
 					array(
 						'type_id' => 'simple', // default product type
