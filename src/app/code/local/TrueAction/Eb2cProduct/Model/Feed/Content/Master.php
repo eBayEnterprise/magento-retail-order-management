@@ -299,8 +299,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _synchProduct(Varien_Object $dataObject)
 	{
-		if (trim($dataObject->getUniqueID()) !== '') {
-			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueID()));
+		if (trim($dataObject->getUniqueId()) !== '') {
+			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueId()));
 			if (!$this->getProduct()->getId()){
 				// this is new product let's set default value for it in order to create it successfully.
 				$productObject = $this->_getDummyProduct($dataObject);
@@ -367,11 +367,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
 					'name' => 'temporary-name - ' . uniqid(),
 					'status' => 0, // default - disabled
-					'sku' => $dataObject->getUniqueID(),
+					'sku' => $dataObject->getUniqueId(),
 				)
 			)
 			->save();
-		return $this->_loadProductBySku($dataObject->getUniqueID());
+		return $this->_loadProductBySku($dataObject->getUniqueId());
 	}
 
 	/**

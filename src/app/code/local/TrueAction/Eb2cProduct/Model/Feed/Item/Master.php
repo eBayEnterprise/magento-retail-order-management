@@ -301,9 +301,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _getDummyProduct(Varien_Object $dataObject)
 	{
 		// get color attribute data
-		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
-		$colorCode = $this->_getFirstColorCode($colorData);
-		$colorOptionId = $this->_getAttributeOptionId('color', $colorCode);
+//		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
+//		$colorCode = $this->_getFirstColorCode($colorData);
+//		$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
 
 		$productObject = $this->getProduct()->load(0);
 		try{
@@ -315,8 +315,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						'attribute_set_id' => $this->getDefaultAttributeSetId(),
 						'name' => 'temporary-name - ' . uniqid(),
 						'status' => 0, // default - disabled
-						'sku' => $dataObject->getUniqueID(),
-						'color' => ($colorOptionId)? $colorOptionId : $this->_addAttributeOption('color', $colorCode),
+						'sku' => $dataObject->getUniqueId(),
+//						'color' => ($colorOptionId)? $colorOptionId : (int) $this->_addAttributeOption('color', $colorCode),
 					)
 				)
 				->save();
@@ -327,7 +327,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				Zend_Log::ERR
 			);
 		}
-		return $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
+		return $productObject; // $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
 	}
 
 	/**
