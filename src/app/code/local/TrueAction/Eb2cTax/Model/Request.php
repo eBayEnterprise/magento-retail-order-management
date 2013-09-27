@@ -635,13 +635,15 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _checkLength($string, $minLength=null, $maxLength=null, $truncate=true)
 	{
 		$result = null;
-		$len = strlen($string);
-		if (is_null($minLength) || $len >= $minLength) {
-			$result = $string;
-		}
-		if ($result && !is_null($maxLength)) {
-			if (($len > $maxLength)) {
-				$result = ($truncate) ? substr($string, 0, $maxLength) : null;
+		if (!is_null($string)) {
+			$len = strlen($string);
+			if (is_null($minLength) || $len >= $minLength) {
+				$result = $string;
+			}
+			if ($result && !is_null($maxLength)) {
+				if (($len > $maxLength)) {
+					$result = ($truncate) ? substr($string, 0, $maxLength) : null;
+				}
 			}
 		}
 		return $result;
