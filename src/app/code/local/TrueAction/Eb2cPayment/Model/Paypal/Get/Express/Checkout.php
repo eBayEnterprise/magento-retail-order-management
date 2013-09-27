@@ -15,24 +15,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	 */
 	public function getExpressCheckout($quote)
 	{
-		$paypalGetExpressCheckoutResponseMessage = '';
+		$responseMessage = '';
 		try{
 			// build request
-			$payPalGetExpressCheckoutRequest = $this->buildPayPalGetExpressCheckoutRequest($quote);
+			$requestDoc = $this->buildPayPalGetExpressCheckoutRequest($quote);
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
 			// make request to eb2c for quote items PaypalGetExpressCheckout
-			$paypalGetExpressCheckoutResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_get_express_checkout'))
-				->request($payPalGetExpressCheckoutRequest);
+				->request($requestDoc);
 
 		}catch(Exception $e){
 			Mage::logException($e);
 		}
 
 		// Save payment data
-		$this->_savePaymentData($this->parseResponse($paypalGetExpressCheckoutResponseMessage), $quote);
+		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
 
-		return $paypalGetExpressCheckoutResponseMessage;
+		return $responseMessage;
 	}
 
 	/**

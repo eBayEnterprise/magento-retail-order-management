@@ -165,7 +165,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		Mage::helper('eb2cproduct')->clean();
+		//Mage::helper('eb2cproduct')->clean();
 
 		return $this;
 	}
@@ -299,8 +299,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _synchProduct(Varien_Object $dataObject)
 	{
-		if (trim($dataObject->getUniqueID()) !== '') {
-			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueID()));
+		if (trim($dataObject->getUniqueId()) !== '') {
+			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueId()));
 			if (!$this->getProduct()->getId()){
 				// this is new product let's set default value for it in order to create it successfully.
 				$productObject = $this->_getDummyProduct($dataObject);
@@ -315,6 +315,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				// get extended attributes data containing (gift wrap, color, long/short descriptions)
 				$extendedData = $this->_getExtendAttributeData($dataObject);
 
+				// getting product name/title
+				$productTitle = $this->_getDefaultLocaleTitle($dataObject);
+
 				$productObject->addData(
 					array(
 						// setting related data
@@ -326,7 +329,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						// setting category data
 						'category_ids' => $this->_preparedCategoryLinkData($dataObject),
 						// Setting product name/title from base attributes
-						'name' => ($this->_getDefaultLocaleTitle($dataObject) !== '')? $this->_getDefaultLocaleTitle($dataObject) : $productObject->getName(),
+						'name' => (trim($productTitle) !== '')? $productTitle : $productObject->getName(),
 						// setting gift_wrapping_available
 						'gift_wrapping_available' => $extendedData['gift_wrap'],
 						// setting color attribute
@@ -339,7 +342,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				)->save(); // saving the product
 
 			} catch (Mage_Core_Exception $e) {
-				Mage::logException($e);
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while updating the
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while updating the
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
 			}
 
 			// adding product custom attributes
@@ -358,20 +371,36 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getDummyProduct(Varien_Object $dataObject)
 	{
+		// getting product name/title
+		$productTitle = $this->_getDefaultLocaleTitle($dataObject);
 		$productObject = $this->getProduct()->load(0);
-		$productObject->unsId()
-			->addData(
-				array(
-					'type_id' => 'simple', // default product type
-					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
-					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name' => 'temporary-name - ' . uniqid(),
-					'status' => 0, // default - disabled
-					'sku' => $dataObject->getUniqueID(),
+		try {
+			$productObject->unsId()
+				->addData(
+					array(
+						'type_id' => 'simple', // default product type
+						'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+						'attribute_set_id' => $this->getDefaultAttributeSetId(),
+						'name' => (trim($productTitle) !== '')? $productTitle : 'temporary-name - ' . uniqid(),
+						'status' => 0, // default - disabled
+						'sku' => $dataObject->getUniqueId(),
+					)
 				)
-			)
-			->save();
-		return $this->_loadProductBySku($dataObject->getUniqueID());
+				->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
+				for Content Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
+				for Content Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		}
+		return $productObject;
 	}
 
 	/**
@@ -492,6 +521,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					product for Content Master Feed (' . $e->getMessage() . ')',
 					Zend_Log::ERR
 				);
+			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+					Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
 			}
 		}
 	}
@@ -534,6 +569,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					$categoryId = $this->getCategory()->getId();
 				} catch (Mage_Core_Exception $e) {
 					Mage::logException($e);
+				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+						Mage::log(
+						'[' . __CLASS__ . '] The following error has occurred while adding categories
+						product for Content Master Feed (' . $e->getMessage() . ')',
+						Zend_Log::ERR
+					);
 				}
 			}
 		}
