@@ -58,8 +58,8 @@ class TrueAction_Eb2c_Shell_Feed extends Mage_Shell_Abstract
 		foreach( $feeds as $feedName ) {
 			$this->_log("Feed begins: $feedName");
 			try {
-				$rc = $this->_feedCore->runFeedModel($feedName);
-				$this->_log("Feed ends: $feedName return = $rc");
+				$this->_feedCore->runFeedModel($feedName);
+				$this->_log("Feed ends: $feedName");
 			} catch(Exception $e) {
 				$this->_log("Feed exception $feedName - " . $e->getMessage());
 				$errors++;
