@@ -119,13 +119,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	 */
 	public function testGetProductBySku($expectation, $productId)
 	{
-		$this->markTestIncomplete('not finished');
-		$product = $this->getModelMock('catalog/product', array(
-			'getId',
-		));
-		$product->expects($this->any())
+		$productMock->expects($this->any())
 			->method('getId')
 			->will($this->returnValue($productId));
+		$productMock->setData(array());
 
 		$collection = $this->getResourceModelMockBuilder('catalog/product_collection');
 		$collection = $collection->disableOriginalConstructor()
@@ -151,36 +148,55 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->will($this->returnSelf());
 		$collection->expects($this->any())
 			->method('getFirstItem')
-			->will($this->returnValue(array($product)));
+			->will($this->returnValue($productMock));
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $collection);
 
 		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
 			'getDefaultAttributeSetId',
-			'_getDefaultCategotyIds',
+			'_getDefaultCategoryIds',
 			'getWebsiteIds',
 		));
-		$collection->expects($this->any())
+		$model->expects($productId ? $this->never() : $this->once())
 			->method('getDefaultAttributeSetId')
 			->will($this->returnValue(10));
-		$collection->expects($this->any())
-			->method('_getDefaultCategotyIds')
-			->will($this->returnValue(array(1, 2, 3)));
-		$collection->expects($this->any())
+		$model->expects($productId ? $this->never() : $this->once())
+			->method('_getDefaultCategoryIds')
+			->will($this->returnValue(array(999)));
+		$model->expects($productId ? $this->never() : $this->once())
 			->method('getWebsiteIds')
-			->will($this->returnValue(array(1, 2)));
+			->will($this->returnValue(array(0)));
 
-		$this->_reflectMethod($model, '_getProductBySku')->invoke($model, 'somesku');
+		$product = $this->_reflectMethod($model, '_getProductBySku')->invoke($model, 'somesku');
+		$this->assertSame($productMock, $product);
 		$e = $this->expected($expectation);
-		$this->assertNotNull($e->getClientItemId());
+		$this->assertSame($e->getTypeId(), $product->getTypeId());
+		$this->assertSame($e->getSku(), $product->getSku());
+		$this->assertSame($e->getName(), $product->getName());
+		$this->assertSame($e->getDescription(), $product->getDescription());
+		$this->assertSame($e->getShortDescription(), $product->getShortDescription());
+		$this->assertSame($e->getWeight(), $product->getWeight());
+		$this->assertSame($e->getUrlKey(), $product->getUrlKey());
+		$this->assertEquals($e->getWebsiteIds(), $product->getWebsiteIds());
+		$this->assertEquals($e->getCategoryIds(), $product->getCategoryIds());
+		$this->assertSame($e->getSpecialPrice(), $product->getSpecialPrice());
+		$this->assertSame($e->getSpecialFromDate(), $product->getSpecialFromDate());
+		$this->assertSame($e->getSpecialToDate(), $product->getSpecialToDate());
+		$this->assertSame($e->getPrice(), $product->getPrice());
+		$this->assertSame($e->getMsrp(), $product->getMsrp());
+		$this->assertSame($e->getTaxClassId(), $product->getTaxClassId());
+		$this->assertSame($e->getStatus(), $product->getStatus());
+		$this->assertSame($e->getVisibility(), $product->getVisibility());
+		$this->assertSame($e->getPriceIsVatInclusive(), $product->getAttributeValue('price_is_vat_inclusive'));
 	}
 
 	/**
 	 * @large
 	 * @loadExpectation
+	 * @loadFixture
 	 * @dataProvider dataProvider
 	 */
 	public function testProcessFeedsIntegration($expectation, $xml)
 	{
-		$this->markTestIncomplete('not finished');
 		$vfs = $this->getFixture()->getVfs();
 		$vfs->apply(array('var' => array('eb2c' => array('foo.txt' => $xml))));
 		$this->replaceCoreConfigRegistry(array(
@@ -210,10 +226,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 
 		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
 			'_getDefaultCategoryIds',
+			'getWebsiteIds',
 		));
 		$model->expects($this->any())
 			-> method('_getDefaultCategoryIds')
 			->will($this->returnValue(array(999)));
+		$model->expects($this->any())
+			-> method('getWebsiteIds')
+			->will($this->returnValue(array(0)));
 		$model->setFeedModel($feedModel);
 		$model->processFeeds();
 		$e = $this->expected($expectation);
@@ -222,5 +242,26 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->getSelect()
 			->where('e.sku = ?', $e->getSku());
 		$product = $products->getFirstItem();
+
+		$this->assertSame($e->getTypeId(), $product->getTypeId());
+		$this->assertSame($e->getSku(), $product->getSku());
+		$this->assertSame($e->getName(), $product->getName());
+		$this->assertSame($e->getDescription(), $product->getDescription());
+		$this->assertSame($e->getShortDescription(), $product->getShortDescription());
+		$this->assertSame($e->getWeight(), $product->getWeight());
+		$this->assertSame($e->getUrlKey(), $product->getUrlKey());
+		$this->assertEquals($e->getWebsiteIds(), $product->getWebsiteIds());
+		$this->assertEquals($e->getCategoryIds(), $product->getCategoryIds());
+		$this->assertSame($e->getSpecialPrice(), $product->getSpecialPrice());
+		$this->assertSame($e->getSpecialFromDate(), $product->getSpecialFromDate());
+		$this->assertSame($e->getSpecialToDate(), $product->getSpecialToDate());
+		$this->assertSame($e->getPrice(), $product->getPrice());
+		$this->assertSame($e->getMsrp(), $product->getMsrp());
+		$this->assertSame($e->getTaxClassId(), $product->getTaxClassId());
+		$this->assertSame($e->getStatus(), $product->getStatus());
+		$this->assertSame($e->getVisibility(), $product->getVisibility());
+		$this->assertSame($e->getPriceIsVatInclusive(), $product->getPriceIsVatInclusive());
+
+		// /var/www/eb2c/src/app/code/core/Mage/Eav/Model/Entity/Setup.php, line 1406
 	}
 }
