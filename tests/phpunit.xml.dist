@@ -11,7 +11,7 @@
 	stopOnSkipped="false"
 	strict="true"
 	verbose="true"
-	timeoutForSmallTests="2"
+	timeoutForSmallTests="3"
 	bootstrap="app/code/community/EcomDev/PHPUnit/bootstrap.php">
 	<listeners>
 		<listener file="app/code/community/EcomDev/PHPUnit/Test/Listener.php" class="EcomDev_PHPUnit_Test_Listener" />
