@@ -259,7 +259,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 			$event = $this->_selectEvent($dataObject->getEvents());
 			$price = $event->getPrice();
-			$priceVatInlcusive = $event->getPriceVatInclusive();
+			$priceVatInclusive = $event->getPriceVatInclusive();
 			$specialPrice = null;
 			$startDate = null;
 			$endDate = null;
@@ -275,7 +275,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$productObject->setSpecialToDate($endDate);
 			$productObject->setMsrp($event->getMsrp());
 			if ($this->_isAttributeExists('price_is_vat_inclusive')) {
-				$productObject->setPriceIsVatInclusive($priceVatInlcusive);
+				$productObject->setPriceIsVatInclusive($priceVatInclusive);
 			}
 			// saving the product
 			$productObject->save();
