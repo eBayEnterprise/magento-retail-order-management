@@ -7,30 +7,27 @@
 class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Model_Abstract
 {
 	/**
-	 * convert feed lang data to match magento expected format (en-US => en_US)
-	 *
-	 * @param string $langCode, the language code
-	 *
-	 * @return string, the magento expected format
+	 * Initialize model
 	 */
-	protected function _languageFormat($langCode)
+	protected function _construct()
 	{
-		return str_replace('-', '_', $langCode);
+		$this->setFeedBaseNode('Content'); // Magically setting feed base node
 	}
 
 	/**
 	 * extract UniqueId data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractUniqueId(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractUniqueId(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		// Unique identifier for the item, SKU.
-		$nodeUniqueID = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/UniqueID");
+		$nodeUniqueID = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/UniqueID");
 		return ($nodeUniqueID->length)? (string) $nodeUniqueID->item(0)->nodeValue : null;
 	}
 
@@ -38,16 +35,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract StyleID data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractStyleID(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractStyleID(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		// The parent SKU, associated with this child item
 		// should be the same as UniqueID if this item doesn't have a parent product.
-		$nodeStyleID = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/StyleID");
+		$nodeStyleID = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/StyleID");
 
 		return ($nodeStyleID->length)? (string) $nodeStyleID->item(0)->nodeValue : null;
 	}
@@ -56,24 +54,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract ProductLinks data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractProductLinks(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractProductLinks(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		$productLinks = array();
 
 		// Contents included if this Content is a link product.
-		$nodeProductLinks = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ProductLinks");
+		$nodeProductLinks = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks");
 		if ($nodeProductLinks->length) {
 			// Child Content of this Content
-			$nodeProductLink = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ProductLinks/ProductLink");
+			$nodeProductLink = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink");
 			if ($nodeProductLink->length) {
 				$productContentIndex = 1;
 				foreach ($nodeProductLink as $productContent) {
-					$linkToUniqueId = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ProductLinks/ProductLink[$productContentIndex]/LinkToUniqueId");
+					$linkToUniqueId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink[$productContentIndex]/LinkToUniqueId");
 					$productLinks[] = new Varien_Object(
 						array(
 							'link_type' => (string) $productContent->getAttribute('link_type'), // Type of link relationship.
@@ -93,24 +92,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract CategoryLinks data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCategoryLinks(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractCategoryLinks(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		$categoryLinks = array();
 
 		// Link the product into categories.
-		$nodeCategoryLinks = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CategoryLinks");
+		$nodeCategoryLinks = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks");
 		if ($nodeCategoryLinks->length) {
 			// Child Content of this Content
-			$nodeCategoryLink = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CategoryLinks/CategoryLink");
+			$nodeCategoryLink = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink");
 			if ($nodeCategoryLink->length) {
 				$categoryContentIndex = 1;
 				foreach ($nodeCategoryLink as $categoryContent) {
-					$categoryName = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CategoryLinks/CategoryLink[$categoryContentIndex]/Name");
+					$categoryName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink[$categoryContentIndex]/Name");
 					$categoryLinks[] = new Varien_Object(
 						array(
 							'default' => (bool) $categoryContent->getAttribute('default'), // if category is the default
@@ -131,25 +131,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract BaseAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractBaseAttributes(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractBaseAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		$baseAttributes = array();
 
 		// Link the product into categories.
-		$nodeBaseAttributes = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/BaseAttributes");
+		$nodeBaseAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes");
 		if ($nodeBaseAttributes->length) {
 			// Child Content of this Content
-			$nodeTitle = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/BaseAttributes/Title");
+			$nodeTitle = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/Title");
 			if ($nodeTitle->length) {
 				foreach ($nodeTitle as $titleContent) {
 					$baseAttributes[] = new Varien_Object(
 						array(
-							'lang' => $this->_languageFormat($titleContent->getAttribute('xml:lang')), // Targeted store language
+							'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($titleContent->getAttribute('xml:lang')), // Targeted store language
 							'title' => (string) $titleContent->nodeValue, // Localized product title
 						)
 					);
@@ -164,20 +165,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract ExtendedAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		$extendedAttributes = array();
 
 		// Link the product into categories.
-		$nodeExtendedAttributes = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes");
+		$nodeExtendedAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes");
 		if ($nodeExtendedAttributes->length) {
 			// extract Gift Wrap attributes
-			$nodeGiftWrap = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/GiftWrap");
+			$nodeGiftWrap = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/GiftWrap");
 			$extendedAttributes['gift_wrap'] = new Varien_Object(
 				array(
 					'gift_wrap' => ($nodeGiftWrap->length)? (string) $nodeGiftWrap->item(0)->nodeValue : null, // Can this item be gift wrapped? ("Y", "N")
@@ -185,18 +187,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			);
 
 			// extract color attributes
-			$nodeColor = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
+			$nodeColor = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
 			if ($nodeColor->length) {
-				$nodeCode = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
-				$nodeDescription = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
-				$nodeSequence = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Sequence");
+				$nodeCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
+				$nodeDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
+				$nodeSequence = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Sequence");
 
 				$colorDescriptionCollection = array();
 				if ($nodeDescription->length) {
 					foreach ($nodeDescription as $attributeColorContent) {
 						$colorDescriptionCollection = new Varien_Object(
 							array(
-								'lang' => $this->_languageFormat($attributeColorContent->getAttribute('xml:lang')), // Targeted store language
+								'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeColorContent->getAttribute('xml:lang')), // Targeted store language
 								'description' => (string) $attributeColorContent->nodeValue, // Localized descriptive name of the color.
 							)
 						);
@@ -212,12 +214,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			}
 
 			// extract long description attributes
-			$nodeLongDescription = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/LongDescription");
+			$nodeLongDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LongDescription");
 			if ($nodeLongDescription->length) {
 				foreach ($nodeLongDescription as $attributeLongContent) {
 					$extendedAttributes['long_description'][] = new Varien_Object(
 						array(
-							'lang' => $this->_languageFormat($attributeLongContent->getAttribute('xml:lang')), // Targeted store language
+							'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeLongContent->getAttribute('xml:lang')), // Targeted store language
 							'long_description' => (string) $attributeLongContent->nodeValue, // Long description of the item.
 						)
 					);
@@ -225,12 +227,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			}
 
 			// extract short description attributes
-			$nodeShortDescription = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/ShortDescription");
+			$nodeShortDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShortDescription");
 			if ($nodeShortDescription->length) {
 				foreach ($nodeShortDescription as $attributeShortContent) {
 					$extendedAttributes['short_description'][] = new Varien_Object(
 						array(
-							'lang' => $this->_languageFormat($attributeShortContent->getAttribute('xml:lang')), // Targeted store language
+							'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeShortContent->getAttribute('xml:lang')), // Targeted store language
 							'short_description' => (string) $attributeShortContent->nodeValue, // short description of the item.
 						)
 					);
@@ -238,12 +240,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 			}
 
 			// extract short SearchKeywords attributes
-			$nodeSearchKeywords = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/ExtendedAttributes/SearchKeywords");
+			$nodeSearchKeywords = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SearchKeywords");
 			if ($nodeSearchKeywords->length) {
 				foreach ($nodeSearchKeywords as $attributeSearchContent) {
 					$extendedAttributes['search_keywords'][] = new Varien_Object(
 						array(
-							'lang' => $this->_languageFormat($attributeSearchContent->getAttribute('xml:lang')), // Targeted store language
+							'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeSearchContent->getAttribute('xml:lang')), // Targeted store language
 							'search_keywords' => (string) $attributeSearchContent->nodeValue, // search keywords of the item.
 						)
 					);
@@ -258,29 +260,30 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 * extract CustomAttributes data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
-	 * @param int $contentIndex, the current content position
+	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
+	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCustomAttributes(DOMXPath $feedXPath, $contentIndex, $catalogId)
+	protected function _extractCustomAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
 	{
 		$customAttributes = array();
 
 		// List of additional attributes that may be used by the client system/Magento.
-		$nodeCustomAttributes = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CustomAttributes");
+		$nodeCustomAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes");
 		if ($nodeCustomAttributes->length) {
 			// attribute list
-			$nodeAttribute = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+			$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 			if ($nodeAttribute->length) {
 				$attributeContentIndex = 1;
 				foreach ($nodeAttribute as $customContent) {
-					$nodeValue = $feedXPath->query("//Content[$contentIndex][@catalog_id='$catalogId']/CustomAttributes/Attribute[$attributeContentIndex]/Value");
+					$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute[$attributeContentIndex]/Value");
 					$customAttributes[] = new Varien_Object(
 						array(
 							'name' => (string) $customContent->getAttribute('name'), // Custom attribute name.
 							'operation_type' => (string) $customContent->getAttribute('operation_type'), // Operation to take with the attribute. ("Add", "Change", "Delete")
-							'lang' => $this->_languageFormat($customContent->getAttribute('xml:lang')), // Operation to take with the product link. ("Add", "Delete")
+							'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($customContent->getAttribute('xml:lang')), // Operation to take with the product link. ("Add", "Delete")
 							'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null, // Unique ID (SKU) for the linked product.
 						)
 					);
@@ -303,9 +306,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	{
 		$collectionOfContents = array();
 		$feedXPath = new DOMXPath($doc);
+		$baseNode = $this->getFeedBaseNode();
 
-		$nodeContent = $feedXPath->query('//Content');
-		$contentIndex = 1; // start index
+		$nodeContent = $feedXPath->query("//$baseNode");
+		$idx = 1; // start index
 		foreach ($nodeContent as $content) {
 			// setting catalog id
 			$catalogId = (string) $content->getAttribute('catalog_id');
@@ -320,24 +324,24 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 					// Client store/channel.
 					'gsi_store_id' => (string) $content->getAttribute('gsi_store_id'),
 					// Unique identifier for the item, SKU.
-					'unique_id' => $this->_extractUniqueId($feedXPath, $contentIndex, $catalogId),
+					'unique_id' => $this->_extractUniqueId($feedXPath, $idx, $catalogId, $baseNode),
 					// the parent sku related to the this item
-					'style_id' => $this->_extractStyleID($feedXPath, $contentIndex, $catalogId),
+					'style_id' => $this->_extractStyleID($feedXPath, $idx, $catalogId, $baseNode),
 					// List of related products.
-					'product_links' => $this->_extractProductLinks($feedXPath, $contentIndex, $catalogId),
+					'product_links' => $this->_extractProductLinks($feedXPath, $idx, $catalogId, $baseNode),
 					// Link the product into categories.
-					'category_links' => $this->_extractCategoryLinks($feedXPath, $contentIndex, $catalogId),
+					'category_links' => $this->_extractCategoryLinks($feedXPath, $idx, $catalogId, $baseNode),
 					// base product attributes (name/title)
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $contentIndex, $catalogId),
+					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $idx, $catalogId, $baseNode),
 					// Attributes known to eb2c.
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $contentIndex, $catalogId),
+					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $idx, $catalogId, $baseNode),
 					// additional attributes
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $contentIndex, $catalogId),
+					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $idx, $catalogId, $baseNode),
 				)
 			);
 
 			// increment Content index
-			$contentIndex++;
+			$idx++;
 		}
 
 		return $collectionOfContents;
