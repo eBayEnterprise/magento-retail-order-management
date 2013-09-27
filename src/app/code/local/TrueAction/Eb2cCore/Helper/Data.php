@@ -71,4 +71,15 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		);
 	}
 
+	/**
+	 * convert feed lang data to match magento expected format (en-US => en_US)
+	 *
+	 * @param string $langCode, the language code
+	 *
+	 * @return string, the magento expected format
+	 */
+	public static function xmlToMageLangFrmt($langCode)
+	{
+		return str_replace('-', '_', $langCode);
+	}
 }
