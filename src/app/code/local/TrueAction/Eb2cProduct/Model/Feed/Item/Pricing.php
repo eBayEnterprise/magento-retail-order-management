@@ -115,7 +115,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$products->addAttributeToSelect('*');
 		$products->getSelect()
 			->where('e.sku = ?', $sku);
-
 		$products->load();
 		$product = $products->getFirstItem();
 		if (!$product->getId()) {
@@ -241,10 +240,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$product->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
 		$product->setStatus(0);
 		$product->setTaxClassId(0); # default tax class
-		$product->setStockData(array(
-			'is_in_stock' => 0,
-			'qty' => 0
-		));
+		return $product;
 	}
 
 	/**
