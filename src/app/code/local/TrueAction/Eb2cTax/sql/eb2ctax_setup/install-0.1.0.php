@@ -1,15 +1,12 @@
 <?php
 Mage::log(sprintf('[ %s ] Installing Eb2cTax 0.1.0', get_class($this)), Zend_Log::DEBUG);
 
-$conn = $this->getConnection();
-$name = $this->getTable('eb2ctax/response_quote');
-
-try {
-	$table = $conn->newTable($name);
-} catch (Exception $e) {
-	Mage::log(sprintf('[ %s ] %s', get_class($this), $e->getMessage()), Zend_Log::CRIT);
-}
-$table
+$installer = $this;
+$installer->startSetup();
+$conn = $conn;
+$conn->dropTable($installer->getTable('eb2ctax/response_quote'));
+$table = $conn
+	->newTable($installer->getTable('eb2ctax/response_quote'))
 	->addColumn('id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(
 		'unsigned' => true,
 		'identity' => true,
@@ -32,3 +29,4 @@ $table
 	->addColumn('quote_address_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(), 'Quote Address Item Id');
 
 $conn->createTable($table);
+$installer->endSetup();
