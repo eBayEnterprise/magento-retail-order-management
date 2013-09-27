@@ -11,11 +11,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor extends Mage_Core_Model_Abst
 	 */
 	protected function _construct()
 	{
-		$this->setData(
-			array(
-				'feed_base_node' => 'Item', // Magically setting feed base node
-			)
-		);
+		$this->setFeedBaseNode('Item'); // Magically setting feed base node
 	}
 
 	/**
