@@ -125,4 +125,23 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		);
 	}
 
+	public function providerXmlToMageLangFrmt()
+	{
+		return array(
+			array('en-US'),
+		);
+	}
+
+	/**
+	 * Test xmlToMageLangFrmt static method
+	 *
+	 * @param  string $langCode, the language code
+	 *
+	 * @test
+	 * @dataProvider providerXmlToMageLangFrmt
+	 */
+	public function testXmlToMageLangFrmt($langCode)
+	{
+		$this->assertSame('en_US', Mage::helper('eb2ccore')->xmlToMageLangFrmt($langCode));
+	}
 }
