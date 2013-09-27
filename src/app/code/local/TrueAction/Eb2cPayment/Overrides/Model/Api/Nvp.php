@@ -52,7 +52,6 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$request["L_BILLINGAGREEMENTDESCRIPTION{$i}"] = $profile->getScheduleDescription();
 			$i++;
 		}
-
 		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
 			// Eb2c PaypalSetExpressCheckout is enabled
 			// Removing direct call to PayPal, Make Eb2c PayPalSetExpressCheckout call here.

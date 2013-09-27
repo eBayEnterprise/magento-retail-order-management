@@ -38,15 +38,6 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 		);
 	}
 
-	public function expectedBuildQuantityRequestMessage()
-	{
-		return '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL .
-			preg_replace('/[\t\n\r]/', '', '<QuantityRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<QuantityRequest lineId="1" itemId="SKU_TEST_1"/><QuantityRequest lineId="2" itemId="SKU_TEST_2"/>
-				<QuantityRequest lineId="3" itemId="SKU_TEST_3"/></QuantityRequestMessage>'
-			);
-	}
-
 	/**
 	 * testing Building Quantity Request Message
 	 *
@@ -55,9 +46,12 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 	 */
 	public function testBuildQuantityRequestMessage($items)
 	{
+		$qtyRequestMsg = Mage::helper('eb2ccore')->getNewDomDocument();
+		$qtyRequestMsg->loadXML('<?xml version="1.0" encoding="UTF-8"?>
+<QuantityRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><QuantityRequest lineId="1" itemId="SKU_TEST_1"/><QuantityRequest lineId="2" itemId="SKU_TEST_2"/><QuantityRequest lineId="3" itemId="SKU_TEST_3"/></QuantityRequestMessage>');
 		$this->assertSame(
-			trim($this->expectedBuildQuantityRequestMessage()),
-			trim($this->_quantity->buildQuantityRequestMessage($items)->saveXML())
+			$qtyRequestMsg->saveXML(),
+			$this->_quantity->buildQuantityRequestMessage($items)->saveXML()
 		);
 	}
 
