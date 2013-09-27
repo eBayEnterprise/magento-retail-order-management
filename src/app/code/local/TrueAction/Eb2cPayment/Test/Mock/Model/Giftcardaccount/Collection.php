@@ -59,7 +59,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection extends 
 			->method('setWebsiteId')
 			->will($this->returnSelf());
 		$giftCardAccountModelGiftcardaccount->expects($this->any())
-			->method('setDateExpries')
+			->method('setDateExpires')
 			->will($this->returnSelf());
 		$giftCardAccountModelGiftcardaccount->expects($this->any())
 			->method('save')

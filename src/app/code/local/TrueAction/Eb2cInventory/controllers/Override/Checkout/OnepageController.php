@@ -96,7 +96,7 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 			$gotoSection = $this->getOnepage()->getCheckout()->getGotoSection();
 			if ($gotoSection) {
 				$result['goto_section'] = $gotoSection;
-				$this->getOnepage()->getCheckout()->setGotoSection(null);
+				$this->getOnepage()->getCheckout()->unsGotoSection();
 			}
 			$updateSection = $this->getOnepage()->getCheckout()->getUpdateSection();
 			if ($updateSection) {
@@ -107,7 +107,7 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 						'html' => $this->$updateSectionFunction()
 					);
 				}
-				$this->getOnepage()->getCheckout()->setUpdateSection(null);
+				$this->getOnepage()->getCheckout()->unsUpdateSection(null);
 			}
 		} catch (Exception $e) {
 			Mage::logException($e);

@@ -23,7 +23,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 		$this->assertSame($consts::CANCEL_OPERATION, 'cancel');
 		$this->assertSame($consts::CREATE_DOM_ROOT_NODE_NAME, 'OrderCreateRequest');
 		$this->assertSame($consts::CANCEL_DOM_ROOT_NODE_NAME, 'OrderCancelRequest');
-		$this->assertSame($consts::DOM_ROOT_NS, 'http://api.gsicommerce.com/schema/checkout/1.0');
 	}
 
 	/**
@@ -36,8 +35,8 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	{
 		$config = $this->_helper->getConfig();
 		$this->assertSame(get_class($config), 'TrueAction_Eb2cCore_Model_Config_Registry');
-		$this->assertSame($config->apiRegion, 'na' );
-		$this->assertSame($config->clientId, 'TAN-CLI');
+		$this->assertSame($config->apiRegion, 'api_rgn');
+		$this->assertSame($config->clientId, 'client_id');
 	}
 
 	/**
@@ -50,12 +49,12 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	{
 		$consts = $this->_helper->getConstHelper();
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/9999/orders/create.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/orders/create.xml',
 			$this->_helper->getOperationUri($consts::CREATE_OPERATION)
 		);
 
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/9999/orders/cancel.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/orders/cancel.xml',
 			$this->_helper->getOperationUri($consts::CANCEL_OPERATION)
 		);
 	}
