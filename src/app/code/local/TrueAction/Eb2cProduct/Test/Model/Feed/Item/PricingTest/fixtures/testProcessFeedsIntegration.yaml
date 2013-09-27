@@ -4,7 +4,7 @@ eav:
       name: mytestcategory
       path: 1/999
   catalog_product:
-    - entity_id: 1
+    - entity_id: 100
       type_id: simple
       sku: somesku
       name: 'Product somesku'
@@ -13,8 +13,8 @@ eav:
       weight: 1.0
       url_key: somesku
       stock:
-        is_in_stock: 1
         qty: 100.00
+        is_in_stock: 1
       website_ids:
         - 0
       category_ids:
