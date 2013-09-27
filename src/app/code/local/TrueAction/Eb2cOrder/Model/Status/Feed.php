@@ -3,15 +3,11 @@
  * Order Status processing Class, gets Order Status feeds from remote
  */
 class TrueAction_Eb2cOrder_Model_Status_Feed
-	extends Mage_Core_Model_Abstract
+	extends TrueAction_Eb2cCore_Model_Feed_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	private $_headerNodeNames = array('OrderStatusEventTimeStamp', 'StoreCode', 'OrderId', 'StatusId', 'ProcessTypeKey', 'StatusName');
 	private $_detailNodeNames = array('OrderLineId', 'ItemId', 'Qty');
-
-	private $_config;
-	private $_localIo;
-	private $_remoteIo;
 
 	private $_fileInfo;
 	private $_event;
@@ -20,63 +16,22 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 
 	protected function _construct()
 	{
-		$this->_config = Mage::helper('eb2corder')->getConfig();
+		$this->setFeedConfig(Mage::helper('eb2corder')->getConfig());
 
-		// Set up local folders for receiving, processing
-		$coreFeedConstructorArgs = array('base_dir' => $this->_config->statusFeedLocalPath);
-		if ($this->hasFsTool()) {
-			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-		}
-		$this->_localIo = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
+		$this->setFeedRemotePath  ($this->getFeedConfig()->statusFeedRemotePath);
+		$this->setFeedFilePattern ($this->getFeedConfig()->statusFeedFilePattern);
+		$this->setFeedLocalPath   ($this->getFeedConfig()->statusFeedLocalPath);
+		$this->setFeedEventType   ($this->getFeedConfig()->statusFeedEventType);
 
-		// Set up remote conduit:
-		$this->_remoteIo = Mage::helper('filetransfer');
+		parent::_construct();
 	}
 
 	/**
-	 * Loops through all files found in the Inbound Dir.
+	 * Process DOM, logs info and errors
 	 *
-	 * @return int Number of files we looked at.
 	 */
-	public function processFeeds()
+	public function processDom(TrueAction_Dom_Document $dom)
 	{
-		$filesProcessed = 0;
-		$this->_localIo->fetchFeedsFromRemote(
-			$this->_config->statusFeedRemotePath, $this->_config->statusFeedFilePattern
-		);
-		foreach( $this->_localIo->lsInboundDir() as $xmlFeedFile ) {
-			$this->processFile($xmlFeedFile);
-			$filesProcessed++;
-		}
-		return $filesProcessed;
-	}
-
-	/**
-	 * Processes a single xml file.
-	 *
-	 * @return int number of Records we looked at.
-	 */
-	public function processFile($xmlFile)
-	{
-		// Load the XML:
-		$dom = new TrueAction_Dom_Document();
-		try {
-			$dom->load($xmlFile);
-		}
-		catch(Exception $e) {
-			Mage::logException($e);
-			return 0;
-		}
-
-		// Validate Eb2c Header Information (FWIW, CodeSniff liked this indentation and if parens and bracing):
-		if ( !Mage::helper('eb2corder')
-			->getCoreFeedHelper()
-			->validateHeader($dom, $this->_config->statusFeedEventType, $this->_config->statusFeedHeaderVersion)
-		) {
-			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
-			return 0;
-		}
-
 		// OrderStatusUpdate is the root node of each Status Feed file:
 		foreach( $dom->getElementsByTagName('OrderStatusUpdate') as $orderStatusUpdate) {
 			// Load the attributes into the _fileInfo array, not yet well defined, but recordCount, for example, seems useful.
@@ -89,18 +44,12 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 			}
 		}
 
-		Mage::log('File ' . $xmlFile . sprintf(': Processed %d of %d, %d errors',
+		Mage::log( sprintf('[ %s ] %s, Processed %d of %d, %d errors',
+			__CLASS__,
+			$dom->documentURI,
 			$this->_fileInfo['recordsProcessed'],
 			$this->_fileInfo['recordCount'],
-		$this->_fileInfo['recordsWithErrors']) );
-
-		if( $this->_fileInfo['recordsWithErrors'] ) {
-			$this->_localIo->mvToErrorDir($xmlFile);
-		} else {
-			$this->_localIo->mvToArchiveDir($xmlFile);
-		}
-
-		return $this->_fileInfo['recordsProcessed'];
+		$this->_fileInfo['recordsWithErrors']), Zend_Log::INFO );
 	}
 
 	/**
@@ -137,7 +86,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		if (method_exists($this, $funcName) ) {
 			$this->$funcName();
 		} else {
-			Mage::log('Error: ' . $funcName . ' undefined, Can\'t process ' . print_r($this->_event['Header'], true), Zend_Log::ERR);
+			Mage::log( '[' . __CLASS__ . "] Error: $funcName undefined, Can't process " . print_r($this->_event['Header'], true), Zend_Log::ERR);
 			$this->_fileInfo['recordsWithErrors']++;
 		}
 		$this->_event = null;

@@ -16,7 +16,7 @@ config:
   default/eb2c/inventory/rollback_allocation_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/RollbackAllocationResponseMessage.xml"
   default/eb2c/inventory/allocation_expired: 60
   default/eb2c/inventory/config_path: "eb2ccore/general"
-  default/eb2cinventory/inventory_feed_feed/local_path: "var/TrueAction/Eb2c/Feed/Item/Inventories/"
+  default/eb2cinventory/inventory_feed/local_path: "TrueAction/Eb2c/Feed/Item/Inventories/"
   default/eb2cinventory/inventory_feed/remote_path: "/Item/Inventories/"
   default/eb2cinventory/inventory_feed/event_type: "ItemInventories"
   default/eb2cinventory/inventory_feed/header_version: "2.3.0"

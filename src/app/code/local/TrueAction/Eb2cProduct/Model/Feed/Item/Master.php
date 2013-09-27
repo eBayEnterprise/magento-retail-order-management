@@ -37,8 +37,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
-		// set base dir base on the config
-		$this->setBaseDir($cfg->itemFeedLocalPath);
+		// set up base dir if it hasn't been during instantiation
+		if (!$this->hasBaseDir()) {
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->itemFeedLocalPath);
+		}
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();

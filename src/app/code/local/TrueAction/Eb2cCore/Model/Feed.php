@@ -5,11 +5,9 @@
  *
  * @method string getArchivePath()
  * @method string getBaseDir()
- * @method string getErrorPath()
  * @method string getFsTool()
  * @method string getInboundPath()
  * @method string getOutboundPath()
- * @method string getTmpPath()
  * @method string setBaseDir(string pathName)
  */
 class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
@@ -17,8 +15,6 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	const INBOUND_DIR_NAME  = 'inbound';
 	const OUTBOUND_DIR_NAME = 'outbound';
 	const ARCHIVE_DIR_NAME  = 'archive';
-	const ERROR_DIR_NAME    = 'error';
-	const TMP_DIR_NAME      = 'tmp';
 
 	/**
 	 * Turn on allow create folders; it's off by default in the base Varien_Io_File. Set up
@@ -29,7 +25,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		if (!$this->hasFsTool()) {
 			$this->setFsTool(new Varien_Io_File());
 		}
-		$this->getFsTool()->setAllowCreateFolders(true);
+		$this->getFsTool()->setAllowCreateFolders(true)->open();
 		if ($this->hasBaseDir()) {
 			$this->setUpDirs();
 		}
@@ -62,18 +58,14 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 			'inbound_path'  => $base . DS . self::INBOUND_DIR_NAME,
 			'outbound_path' => $base . DS . self::OUTBOUND_DIR_NAME,
 			'archive_path'  => $base . DS . self::ARCHIVE_DIR_NAME,
-			'error_path'    => $base . DS . self::ERROR_DIR_NAME,
-			'tmp_path'      => $base . DS . self::TMP_DIR_NAME,
 		));
 
 		$this->_setCheckAndCreateDir($this->getInboundPath());
 		$this->_setCheckAndCreateDir($this->getOutboundPath());
 		$this->_setCheckAndCreateDir($this->getArchivePath());
-		$this->_setCheckAndCreateDir($this->getErrorPath());
-		$this->_setCheckAndCreateDir($this->getTmpPath());
 	}
 
-	/** 
+	/**
 	 * Fetchs feeds from remote, places them into inBoundPath
 	 *
 	 * @param string $remotePath path on remote to pull from
@@ -184,27 +176,5 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	public function mvToArchiveDir($filePath)
 	{
 		return $this->_mvToDir($filePath, $this->getArchivePath());
-	}
-
-	/**
-	 * mv file to Error Dir
-	 *
-	 * @param string $filePath to move
-	 * @return boolean
-	 */
-	public function mvToErrorDir($filePath)
-	{
-		return $this->_mvToDir($filePath, $this->getErrorPath());
-	}
-
-	/**
-	 * mv file to Tmp Dir
-	 *
-	 * @param string $filePath to move
-	 * @return boolean
-	 */
-	public function mvToTmpDir($filePath)
-	{
-		return $this->_mvToDir($filePath, $this->getTmpPath());
 	}
 }
