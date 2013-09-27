@@ -13,50 +13,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _construct()
 	{
-		// get config
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->contentFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->contentFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
+		$coreFeedConstructorArgs = array();
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
 		if ($this->hasFsTool()) {
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setData(
-			array(
-				'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
-				'product' => Mage::getModel('catalog/product'),
-				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-				'eav_config' => Mage::getModel('eav/config'),
-				'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
-				'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(), // setting default store language
-				'default_root_category_id' => $this->_getDefaultParentCategoryId(), // default root category id
-				'default_category_attribute_set_id' => $this->_getCategoryAttributeSetId(), // default category attribute set
-				'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(), // default store id
-				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-				// setting default attribute set id
-				'default_attribute_set_id' => Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId(),
-			)
-		);
-
-		return $this;
-	}
-
-	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
+		$prod = Mage::getModel('catalog/product');
+		return $this->addData(array(
+			'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
+			'product' => $prod,
+			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+			'eav_config' => Mage::getModel('eav/config'),
+			'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
+			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(), // setting default store language
+			'default_root_category_id' => $this->_getDefaultParentCategoryId(), // default root category id
+			'default_category_attribute_set_id' => $this->_getCategoryAttributeSetId(), // default category attribute set
+			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(), // default store id
+			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			// setting default attribute set id
+			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+		));
 	}
 
 	/**
@@ -66,34 +49,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getCategoryAttributeSetId()
 	{
-		return (int) Mage::getModel('eav/config')->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
+		return (int) Mage::getModel('eav/config')
+			->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
 			->getEntityType()
 			->getDefaultAttributeSetId();
-	}
-
-	/**
-	 * helper method to get attribute into the right format.
-	 *
-	 * @param string $attribute, the string attribute
-	 *
-	 * @return string, the correct attribute format
-	 */
-	protected function _attributeFormat($attribute)
-	{
-		$attributeData = preg_split('/(?=[A-Z])/', trim($attribute));
-		$correctFormat = '';
-		$index = 0;
-		$size = sizeof($attributeData);
-		foreach ($attributeData as $attr) {
-			if (trim($attr) !== '') {
-				$correctFormat .= strtolower($attr);
-				if ($index < $size) {
-					$correctFormat .= '_';
-				}
-			}
-			$index++;
-		}
-		return $correctFormat;
 	}
 
 	/**
@@ -127,14 +86,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _loadProductBySku($sku)
 	{
-		$products = Mage::getResourceModel('catalog/product_collection');
-		$products->addAttributeToSelect('*');
+		$products = Mage::getResourceModel('catalog/product_collection')
+			->addAttributeToSelect('*');
 		$products->getSelect()
 			->where('e.sku = ?', $sku);
 
-		$products->load();
-
-		return $products->getFirstItem();
+		return $products
+			->load()
+			->getFirstItem();
 	}
 
 	/**
@@ -146,12 +105,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _loadCategoryByName($categoryName)
 	{
-		$categories = Mage::getModel('catalog/category')->getCollection()
+		return Mage::getModel('catalog/category')
+			->getCollection()
 			->addAttributeToSelect('*')
 			->addAttributeToFilter('name', array('eq' => $categoryName))
-			->load();
-
-		return $categories->getFirstItem();
+			->load()
+			->getFirstItem();
 	}
 
 	/**
@@ -161,23 +120,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getDefaultParentCategoryId()
 	{
-		$categories = Mage::getModel('catalog/category')->getCollection()
+		return Mage::getModel('catalog/category')->getCollection()
 			->addAttributeToSelect('*')
 			->addAttributeToFilter('parent_id', array('eq' => 0))
-			->load();
-
-		return $categories->getFirstItem()->getId();
+			->load()
+			->getFirstItem()
+			->getId();
 	}
 
 	/**
 	 * processing downloaded feeds from eb2c.
 	 *
-	 * @return void
+	 * @return self
 	 */
 	public function processFeeds()
 	{
-		$productHelper = Mage::helper('eb2cproduct');
-		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -186,16 +143,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			$cfg->contentFeedFilePattern
 		);
 
-		$domDocument = $coreHelper->getNewDomDocument();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
-			$domDocument->load($feed);
-
+			$doc->load($feed);
 			$expectEventType = $cfg->contentFeedEventType;
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
+			if ($coreHelperFeed->validateHeader($doc, $expectEventType)) {
 				// processing feed Contents
-				$this->_contentMasterActions($domDocument);
+				$this->_contentMasterActions($doc);
 			}
 
 			// Remove feed file from local server after finishing processing it.
@@ -206,7 +162,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		return $this->_clean();
 	}
 
 	/**
@@ -218,7 +174,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _contentMasterActions(DOMDocument $doc)
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$feedContentCollection = $this->getExtractor()->extractContentMasterFeed($doc);
 		if ($feedContentCollection){
@@ -261,37 +216,34 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _preparedProductLinkData(Varien_Object $dataObject)
 	{
-		// Product Link
-		$relatedLink = array();
-		$upsellLink = array();
-		$crosssellLink = array();
-		$relatedPosition = 0;
-		$upsellPosition = 0;
-		$crosssellPosition = 0;
-		$productLinks = $dataObject->getProductLinks();
-		if (!empty($productLinks)) {
-			foreach ($productLinks as $link) {
-				if ($link instanceof Varien_Object) {
-					if (strtoupper(trim($link->getOperationType())) === 'ADD') {
-						$linkProductObject = $this->_loadProductBySku($dataObject->getLinkToUniqueId());
-						if ($linkProductObject->getId()) {
-							if (strtoupper(trim($link->getLinkType())) === 'RELATED') {
-								$relatedLink[$linkProductObject->getId()]['position'] = $relatedPosition;
-								$relatedPosition++;
-							} elseif (strtoupper(trim($link->getLinkType())) === 'UPSELL') {
-								$upsellLink[$linkProductObject->getId()]['position'] = $upsellPosition;
-								$upsellPosition++;
-							} elseif (strtoupper(trim($link->getLinkType())) === 'CROSSSELL') {
-								$crosssellLink[$linkProductObject->getId()]['position'] = $crosssellPosition;
-								$crosssellPosition++;
-							}
-						}
+		// Product Links
+		$links = array(
+			'related' => array(),
+			'upsell' => array(),
+			'crosssell' => array(),
+		);
+		$pos = array(
+			'related' => 0,
+			'upsell' => 0,
+			'crosssell' => 0,
+		);
+		foreach ($dataObject->getProductLinks() as $link) {
+			if ($link instanceof Varien_Object && strtoupper(trim($link->getOperationType())) === 'ADD') {
+				$linkId = $this->_loadProductBySku($dataObject->getLinkToUniqueId())->getId();
+				$linkType = strtolower(trim($link->getLinkType()));
+				if ($linkId) {
+					if (isset($pos[$linkType])) {
+						$links[$linkType][$linkId]['position'] = $pos[$linkType]++;
+					} else {
+						Mage::log(
+							sprintf('[ %s ] Encountered unknown link type "%s".', __CLASS__, $linkType),
+							Zend_Log::WARN
+						);
 					}
 				}
 			}
 		}
-
-		return array('related' => $relatedLink, 'upsell' => $upsellLink, 'crosssell' => $crosssellLink);
+		return $links;
 	}
 
 	/**
@@ -402,7 +354,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _getDummyProduct(Varien_Object $dataObject)
 	{
 		$productObject = $this->getProduct()->load(0);
-		$productObject->setId(null)
+		$productObject->unsId()
 			->addData(
 				array(
 					'type_id' => 'simple', // default product type
@@ -507,8 +459,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			foreach ($customAttributes as $customAttribute) {
 				if ($customAttribute instanceof Varien_Object && trim(strtoupper($customAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 					// getting the custom attribute into a valid magento attribute format
-					$attributeName = $this->_attributeFormat($customAttribute->getName());
-					if ($this->_isAttributeExists($attributeName)) {
+					$attributeName = $this->_underscore($customAttribute->getName());
+					if (Mage::helper('eb2cproduct')->hasEavAttr($this, $attributeName)) {
 						// attribute does exists in magento store, let check it's operation type
 						if (trim(strtoupper($customAttribute->getOperationType())) === 'DELETE') {
 							// set the attribute value to null to remove it
@@ -580,16 +532,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _clean()
 	{
+		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
 		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
 			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
-
-		return;
+		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
+		return $this;
 	}
 }
