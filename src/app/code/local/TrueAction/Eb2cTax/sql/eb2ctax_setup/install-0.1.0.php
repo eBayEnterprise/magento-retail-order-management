@@ -1,7 +1,11 @@
 <?php
-$installer = $this;
+Mage::log(sprintf('[ %s ] Installing Eb2cTax 0.1.0', get_class($this)), Zend_Log::DEBUG);
 
-$table = $installer->getConnection()
+$installer = $this;
+$installer->startSetup();
+$conn = $conn;
+$conn->dropTable($installer->getTable('eb2ctax/response_quote'));
+$table = $conn
 	->newTable($installer->getTable('eb2ctax/response_quote'))
 	->addColumn('id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(
 		'unsigned' => true,
@@ -24,4 +28,5 @@ $table = $installer->getConnection()
 	->addColumn('calculated_tax', Varien_Db_Ddl_Table::TYPE_DECIMAL, array(20, 6), array(), 'Calculated Tax')
 	->addColumn('quote_address_id', Varien_Db_Ddl_Table::TYPE_INTEGER, null, array(), 'Quote Address Item Id');
 
-$installer->getConnection()->createTable($table);
+$conn->createTable($table);
+$installer->endSetup();

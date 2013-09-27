@@ -1,4 +1,8 @@
 eav:
+  catalog_category:
+    - entity_id: 999
+      name: mytestcategory
+      path: 1/999
   catalog_product:
     - entity_id: 1
       type_id: simple
@@ -15,7 +19,7 @@ eav:
       website_ids:
         - 0
       category_ids:
-        - 1 # Default Category
+        - 999 # Default Category
       price: 12.99
       tax_class_id: 2 # Taxable Goods
       status: 1             # Enabled

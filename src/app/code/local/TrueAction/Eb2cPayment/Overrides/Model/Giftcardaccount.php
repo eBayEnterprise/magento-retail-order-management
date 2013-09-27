@@ -126,7 +126,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				->setBalance((float) $balanceData['balanceAmount'])
 				->setIsRedeemable(1)
 				->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
-				->setDateExpires(null)
+				->unsDateExpires()
 				->save();
 		}
 	}
@@ -141,7 +141,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	protected function _addGiftCardWithEb2cData(array $balanceData)
 	{
 		$giftCard = Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->load(null);
-		$giftCard->setGiftcardaccountId(null)
+		$giftCard->unsGiftcardaccountId()
 			->setCode($balanceData['paymentAccountUniqueId'])
 			->setEb2cPan($balanceData['paymentAccountUniqueId'])
 			->setEb2cPin($balanceData['pin'])
@@ -150,7 +150,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 			->setBalance((float) $balanceData['balanceAmount'])
 			->setIsRedeemable(1)
 			->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
-			->setDateExpires(null)
+			->unsDateExpires()
 			->setDateCreated(Mage::getModel('core/date')->date('Y-m-d'))
 			->save();
 	}
@@ -184,17 +184,11 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				// @codeCoverageIgnoreEnd
 			}
 			$cards[] = array(
-				// id
 				'i' => $this->getId(),
-				// code
 				'c' => $this->getCode(),
-				// amount
-				'a' => $this->getBalance(),
-				// base amount
-				'ba' => $this->getBalance(),
-				// eb2c pan
+				'a' => $this->getBalance(), // amount
+				'ba' => $this->getBalance(), // base amount
 				'pan' => $this->getEb2cPan(),
-				// eb2c pin
 				'pin' => $this->getEb2cPin(),
 			);
 			Mage::helper('enterprise_giftcardaccount')->setCards($quote, $cards);

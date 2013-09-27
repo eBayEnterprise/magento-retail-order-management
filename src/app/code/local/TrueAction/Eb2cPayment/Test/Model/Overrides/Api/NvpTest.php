@@ -105,7 +105,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 *
 	 * @test
 	 * @medium
-	 * @loadFixture loadConfigWithPaypalSetExpressCheckoutDisabled.yaml
+	 * @loadFixture loadConfigPaymentsDisabled.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testCallSetExpressCheckoutDisabled()
@@ -163,7 +163,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 *
 	 * @test
 	 * @medium
-	 * @loadFixture loadConfigWithPaypalGetExpressCheckoutDisabled.yaml
+	 * @loadFixture loadConfigPaymentsDisabled.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testCallGetExpressCheckoutDetailsDisabled()
@@ -219,7 +219,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 *
 	 * @test
 	 * @medium
-	 * @loadFixture loadConfigWithPaypalDoExpressCheckoutDisabled.yaml
+	 * @loadFixture loadConfigPaymentsDisabled.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testCallDoExpressCheckoutPaymentDisabled()
@@ -276,7 +276,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 *
 	 * @test
 	 * @medium
-	 * @loadFixture loadConfigWithPaypalDoAuthorizationDisabled.yaml
+	 * @loadFixture loadConfigPaymentsDisabled.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testCallDoAuthorizationDisabled()
@@ -333,7 +333,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	 *
 	 * @test
 	 * @medium
-	 * @loadFixture loadConfigWithPaypalDoVoidDisabled.yaml
+	 * @loadFixture loadConfigPaymentsDisabled.yaml
 	 * @expectedException Mage_Core_Exception
 	 */
 	public function testCallDoVoidDisabled()
@@ -354,4 +354,18 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 
 		$this->assertNull($this->_nvp->callDoVoid());
 	}
+
+	/**
+	 * Test that when any non-overridden API call tries to get through the call
+	 * method while Eb2cPayments is enabled, an exception is thrown.
+	 *
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCallExceptions()
+	{
+		$this->setExpectedException('Mage_Core_Exception', 'Non-EB2C PayPal API call attempted for UnsupportedPayPalMethod');
+		Mage::getModel('paypal/api_nvp')->call('UnsupportedPayPalMethod', array());
+	}
+
 }

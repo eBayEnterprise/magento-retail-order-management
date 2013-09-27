@@ -6,5 +6,3 @@ vfs:
     sample.txt: 'This is a sample text file.'
   outbound:
   archive:
-  error:
-  tmp:

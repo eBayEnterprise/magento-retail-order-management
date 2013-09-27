@@ -110,7 +110,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_domRequest->formatOutput = true;
-		$orderCreateRequest = $this->_domRequest->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $consts::DOM_ROOT_NS)->firstChild;
+		$orderCreateRequest = $this->_domRequest->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
 		$orderCreateRequest->setAttribute('orderType', $consts::ORDER_TYPE);
 		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
 
@@ -187,7 +187,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	/**
 	 * Builds a single Order Item node inside the Order Items array
 	 *
-	 * @todo support > 1 tax 
+	 * @todo support > 1 tax
 	 * @todo get taxType, taxability, Jurisdiction, Situs, EffectiveRate, TaxClass from correct fields
 	 * @param DomElement orderItem
 	 * @param Mage_Sales_Model_Order_Item item

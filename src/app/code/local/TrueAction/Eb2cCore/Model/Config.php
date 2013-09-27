@@ -9,6 +9,7 @@ class TrueAction_Eb2cCore_Model_Config
 		'api_minor_version'           => 'eb2ccore/api/minor_version',
 		'api_region'                  => 'eb2ccore/api/region',
 		'api_timeout'                 => 'eb2ccore/api/timeout',
+		'api_namespace'               => 'eb2ccore/api/xml_namespace',
 		'test_mode'                   => 'eb2ccore/development/test_mode',
 		'feed_destination_type'       => 'eb2ccore/feed/destination_type',
 		'sftp_location'               => 'eb2ccore/feed/filetransfer_sftp_host',
