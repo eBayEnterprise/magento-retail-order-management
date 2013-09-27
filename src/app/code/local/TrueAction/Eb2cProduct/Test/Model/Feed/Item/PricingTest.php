@@ -17,6 +17,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 		'price_is_vat_inclusive',
 	);
 
+	public static function tearDownAfterClass()
+	{
+		$write = Mage::getSingleton('core/resource')->getConnection('core_write');
+		$write->query('truncate table catalog_product_entity_url_key');
+	}
+
 	/**
 	 * verify last pricing event is used to update the product
 	 * verify the correct pricing information is written to the product
