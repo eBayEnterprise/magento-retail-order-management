@@ -373,6 +373,35 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		return $data;
 	}
 
+	/**
+	 * validate the data extracted from an address.
+	 * @param  array   $destData   extracted data from an address
+	 * @param  boolean $isVirtual  true if the destination is virtual; false otherwise
+	 * @return self
+	 */
+	protected function _validateDestData($destData, $isVirtual)
+	{
+		if ($isVirtual) {
+			$fields = array('email_address');
+		} else {
+			$fields = array(
+				'last_name',
+				'first_name',
+				'city',
+				'line1',
+				'country_code',
+			);
+		}
+		foreach ($fields as $field) {
+			$value = isset($destData[$field]) ? $destData[$field] : null;
+			if (is_null($value)) {
+				$message = sprintf('field %s: value [%s] is invalid length', $field, $value);
+				throw new Mage_Core_Exception($message);
+			}
+		}
+		return $this;
+	}
+
 	protected function _extractItemData($item, $address)
 	{
 		$data = array(
