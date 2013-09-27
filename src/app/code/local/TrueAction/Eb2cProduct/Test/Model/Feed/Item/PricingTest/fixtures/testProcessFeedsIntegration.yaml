@@ -1,0 +1,25 @@
+eav:
+  catalog_category:
+    - entity_id: 999
+      name: mytestcategory
+      path: 1/999
+  catalog_product:
+    - entity_id: 1
+      type_id: simple
+      sku: somesku
+      name: 'Product somesku'
+      description: 'the description'
+      short_description: 'short description'
+      weight: 1.0
+      url_key: somesku
+      stock:
+        is_in_stock: 1
+        qty: 100.00
+      website_ids:
+        - 0
+      category_ids:
+        - 999 # Default Category
+      price: 12.99
+      tax_class_id: 2 # Taxable Goods
+      status: 1             # Enabled
+      visibility: 4         # Visible in Catalog & Search

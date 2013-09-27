@@ -29,8 +29,7 @@ class TrueAction_Eb2cTax_Test_Model_Response_OrderItemTest extends EcomDev_PHPUn
 		$validateMethod = $orderItemReflector->getMethod('_validate');
 		$validateMethod->setAccessible(true);
 
-		$this->_orderItem->setSku(null);
-		$this->_orderItem->setLineNumber(null);
+		$this->_orderItem->unsSku()->unsLineNumber();
 
 		$this->assertNull(
 			$validateMethod->invoke($this->_orderItem)

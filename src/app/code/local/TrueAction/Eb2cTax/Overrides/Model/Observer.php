@@ -144,7 +144,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 				->getTaxRequest();
 			$isFetchNeeded = true;
 			// check for changes if the current request is valid
-			if ($request->isValid()) {
+			if ($request && $request->isValid()) {
 				Mage::log('[' . __CLASS__ . '] checking quote for changes', Zend_Log::DEBUG);
 				// checking address
 	 			$request->checkAddresses($quote);

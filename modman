@@ -18,3 +18,7 @@ src/app/design/frontend/base/default/layout/eb2caddress_frontend.xml app/design/
 src/app/design/frontend/enterprise/default/template/eb2caddress_frontend app/design/frontend/enterprise/default/template/eb2caddress_frontend
 src/skin/frontend/base/default/css/* skin/frontend/base/default/css/
 src/skin/frontend/base/default/js/* skin/frontend/base/default/js/
+
+# TrueAction_Eb2c_Payment
+src/app/design/frontend/enterprise/default/template/eb2cpayment app/design/frontend/enterprise/default/template/eb2cpayment
+src/app/design/frontend/enterprise/default/layout/eb2cpayment.xml app/design/frontend/enterprise/default/layout/eb2cpayment.xml

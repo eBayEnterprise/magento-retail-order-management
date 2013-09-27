@@ -78,18 +78,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
-	}
-
-	/**
 	 * getting the eav attribute object.
 	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
@@ -206,7 +194,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	public function processFeeds()
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
@@ -338,7 +325,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _itemMasterActions($doc)
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
 		if ($feedItemCollection = $this->getExtractor()->extractItemMasterFeed($doc)){
@@ -421,7 +407,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					try {
 						// adding new product to magento
 						$productObject = $this->getProduct();
-						$productObject->setId(null);
+						$productObject->unsId();
 						$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
 						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
 						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
@@ -441,46 +427,47 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
 						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
 						$productObject->setSku($dataObject->getItemId()->getClientItemId());
-						if ($this->_isAttributeExists('msrp')) {
+						$prodHlpr = Mage::helper('eb2cproduct');
+						if ($prodHlpr->hasEavAttr($this, 'msrp')) {
 							// setting msrp attribute
 							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
 						}
 						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
 						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
+						if ($prodHlpr->hasEavAttr($this, 'is_drop_shipped')) {
 							// setting is_drop_shipped attribute
 							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
 						}
-						if ($this->_isAttributeExists('tax_code')) {
+						if ($prodHlpr->hasEavAttr($this, 'tax_code')) {
 							// setting tax_code attribute
 							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_name')) {
 							// setting drop_ship_supplier_name attribute
 							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_number')) {
 							// setting drop_ship_supplier_number attribute
 							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_part')) {
 							// setting drop_ship_supplier_part attribute
 							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
 						}
-						if ($this->_isAttributeExists('gift_message_available')) {
+						if ($prodHlpr->hasEavAttr($this, 'gift_message_available')) {
 							// setting gift_message_available attribute
 							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
 							$productObject->setUseConfigGiftMessageAvailable(false);
 						}
-						if ($this->_isAttributeExists('country_of_manufacture')) {
+						if ($prodHlpr->hasEavAttr($this, 'country_of_manufacture')) {
 							// setting country_of_manufacture attribute
 							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
 						}
-						if ($this->_isAttributeExists('color')) {
+						if ($prodHlpr->hasEavAttr($this, 'color')) {
 							// setting color attribute
 							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
-						if ($this->_isAttributeExists('gift_card_tender_code')) {
+						if ($prodHlpr->hasEavAttr($this, 'gift_card_tender_code')) {
 							// setting gift_card_tender_code attribute
 							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 						}
@@ -490,13 +477,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						if (!empty($customAttributes)) {
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
+								if ($prodHlpr->hasEavAttr($this, $attributeCode)) {
 									// only process custom attributes that not mark is configurable
 									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 										// setting custom attributes
 										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
+											$productObject->unsetData($attributeCode);
 										} else {
 											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
@@ -506,7 +493,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 							}
 						}
 
-						if ($this->_isAttributeExists('size')) {
+						if ($prodHlpr->hasEavAttr($this, 'size')) {
 							// setting size attribute
 							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
 							$size = null;
@@ -575,46 +562,47 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
 						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
 						$productObject->setSku($dataObject->getItemId()->getClientItemId());
-						if ($this->_isAttributeExists('msrp')) {
+						$prodHlpr = Mage::helper('eb2cproduct');
+						if ($prodHlpr->hasEavAttr($this, 'msrp')) {
 							// setting msrp attribute
 							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
 						}
 						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
 						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
+						if ($prodHlpr->hasEavAttr($this, 'is_drop_shipped')) {
 							// setting is_drop_shipped attribute
 							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
 						}
-						if ($this->_isAttributeExists('tax_code')) {
+						if ($prodHlpr->hasEavAttr($this, 'tax_code')) {
 							// setting tax_code attribute
 							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_name')) {
 							// setting drop_ship_supplier_name attribute
 							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_number')) {
 							// setting drop_ship_supplier_number attribute
 							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
 						}
-						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
+						if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_part')) {
 							// setting drop_ship_supplier_part attribute
 							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
 						}
-						if ($this->_isAttributeExists('gift_message_available')) {
+						if ($prodHlpr->hasEavAttr($this, 'gift_message_available')) {
 							// setting gift_message_available attribute
 							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
 							$productObject->setUseConfigGiftMessageAvailable(false);
 						}
-						if ($this->_isAttributeExists('country_of_manufacture')) {
+						if ($prodHlpr->hasEavAttr($this, 'country_of_manufacture')) {
 							// setting country_of_manufacture attribute
 							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
 						}
-						if ($this->_isAttributeExists('color')) {
+						if ($prodHlpr->hasEavAttr($this, 'color')) {
 							// setting color attribute
 							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
 						}
-						if ($this->_isAttributeExists('gift_card_tender_code')) {
+						if ($prodHlpr->hasEavAttr($this, 'gift_card_tender_code')) {
 							// setting gift_card_tender_code attribute
 							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
 						}
@@ -624,13 +612,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						if (!empty($customAttributes)) {
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
+								if ($prodHlpr->hasEavAttr($this, $attributeCode)) {
 									// only process custom attributes that not mark is configurable
 									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 										// setting custom attribute
 										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
+											$productObject->unsetData($attributeCode);
 										} else {
 											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
@@ -640,7 +628,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 							}
 						}
 
-						if ($this->_isAttributeExists('size')) {
+						if ($prodHlpr->hasEavAttr($this, 'size')) {
 							// setting size attribute
 							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
 							$size = null;

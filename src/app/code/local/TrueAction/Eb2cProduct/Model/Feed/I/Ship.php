@@ -45,18 +45,6 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	}
 
 	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
-	}
-
-	/**
 	 * load product by sku
 	 *
 	 * @param string $sku, the product sku to filter the product table
@@ -225,11 +213,11 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
 						$productObject->setSku($dataObject->getItemId()->getClientItemId());
 						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'is_drop_shipped')) {
 							// setting is_drop_shipped attribute
 							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
 						}
-						if ($this->_isAttributeExists('tax_code')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'tax_code')) {
 							// setting tax_code attribute
 							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
 						}
@@ -238,13 +226,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						if (!empty($customAttributes)) {
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
+								if (Mage::helper('eb2cproduct')->hasEavAttr($this, $attributeCode)) {
 									// only process custom attributes that not mark is configurable
 									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 										// setting custom attribute
 										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
+											$productObject->unsetData($attributeCode);
 										} else {
 											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
@@ -254,7 +242,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 							}
 						}
 
-						if ($this->_isAttributeExists('hts_codes')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'hts_codes')) {
 							// setting hts_codes attribute
 							$productObject->setHtsCodes($dataObject->getHtsCodes());
 						}
@@ -305,11 +293,11 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
 						$productObject->setSku($dataObject->getItemId()->getClientItemId());
 						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'is_drop_shipped')) {
 							// setting is_drop_shipped attribute
 							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
 						}
-						if ($this->_isAttributeExists('tax_code')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'tax_code')) {
 							// setting tax_code attribute
 							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
 						}
@@ -318,13 +306,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						if (!empty($customAttributes)) {
 							foreach ($customAttributes as $attribute) {
 								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
+								if (Mage::helper('eb2cproduct')->hasEavAttr($this, $attributeCode)) {
 									// only process custom attributes that not mark is configurable
 									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 										// setting custom attribute
 										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
+											$productObject->unsetData($attributeCode);
 										} else {
 											// setting custom value whenever the operation type is 'add', or 'change'
 											$productObject->setData($attributeCode, $attribute['value']);
@@ -334,7 +322,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 							}
 						}
 
-						if ($this->_isAttributeExists('hts_codes')) {
+						if (Mage::helper('eb2cproduct')->hasEavAttr($this, 'hts_codes')) {
 							// setting hts_codes attribute
 							$productObject->setHtsCodes($dataObject->getHtsCodes());
 						}

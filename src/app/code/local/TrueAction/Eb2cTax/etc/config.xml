@@ -107,9 +107,6 @@
 	</global>
 	<default>
 		<eb2ctax>
-			<api>
-				<namespace_uri><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></namespace_uri>
-			</api>
 			<calculation>
 				<apply_after_discount>1</apply_after_discount>
 				<vat_inclusive_pricing>0</vat_inclusive_pricing>
