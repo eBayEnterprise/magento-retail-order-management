@@ -54,18 +54,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
-	}
-
-	/**
 	 * getting the eav attribute object.
 	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
@@ -179,7 +167,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	public function processFeeds()
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
@@ -220,7 +207,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _itemMasterActions(DOMDocument $doc)
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$feedItemCollection = $this->getExtractor()->extractItemMasterFeed($doc);
 
@@ -399,10 +385,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
+		$prodHlpr = Mage::helper('eb2cproduct');
+
 		// get color attribute data
 		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
 
-		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $this->_isAttributeExists('color')) {
+		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $prodHlpr->hasEavAttr($this, 'color')) {
 			// setting color attribute, with the first record
 			$colorCode = $this->_getFirstColorCode($colorData);
 			$colorOptionId = $this->_getAttributeOptionId('color', $colorCode);
@@ -593,61 +581,63 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	{
 		$data = array();
 
-		if ($this->_isAttributeExists('is_drop_shipped')) {
+		$prodHlpr = Mage::helper('eb2cproduct');
+
+		if ($prodHlpr->hasEavAttr($this, 'is_drop_shipped')) {
 			// setting is_drop_shipped attribute
 			$data['is_drop_shipped'] = $dataObject->getBaseAttributes()->getDropShipped();
 		}
-		if ($this->_isAttributeExists('tax_code')) {
+		if ($prodHlpr->hasEavAttr($this, 'tax_code')) {
 			// setting tax_code attribute
 			$data['tax_code'] = $dataObject->getBaseAttributes()->getTaxCode();
 		}
-		if ($this->_isAttributeExists('drop_ship_supplier_name')) {
+		if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_name')) {
 			// setting drop_ship_supplier_name attribute
 			$data['drop_ship_supplier_name'] = $dataObject->getDropShipSupplierInformation()->getSupplierName();
 		}
-		if ($this->_isAttributeExists('drop_ship_supplier_number')) {
+		if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_number')) {
 			// setting drop_ship_supplier_number attribute
 			$data['drop_ship_supplier_number'] = $dataObject->getDropShipSupplierInformation()->getSupplierNumber();
 		}
-		if ($this->_isAttributeExists('drop_ship_supplier_part')) {
+		if ($prodHlpr->hasEavAttr($this, 'drop_ship_supplier_part')) {
 			// setting drop_ship_supplier_part attribute
 			$data['drop_ship_supplier_part'] = $dataObject->getDropShipSupplierInformation()->getSupplierPartNumber();
 		}
-		if ($this->_isAttributeExists('gift_message_available')) {
+		if ($prodHlpr->hasEavAttr($this, 'gift_message_available')) {
 			// setting gift_message_available attribute
 			$data['gift_message_available'] = $dataObject->getExtendedAttributes()->getAllowGiftMessage();
 			$data['use_config_gift_message_available'] = false;
 		}
-		if ($this->_isAttributeExists('country_of_manufacture')) {
+		if ($prodHlpr->hasEavAttr($this, 'country_of_manufacture')) {
 			// setting country_of_manufacture attribute
 			$data['country_of_manufacture'] = $dataObject->getExtendedAttributes()->getCountryOfOrigin();
 		}
-		if ($this->_isAttributeExists('gift_card_tender_code')) {
+		if ($prodHlpr->hasEavAttr($this, 'gift_card_tender_code')) {
 			// setting gift_card_tender_code attribute
 			$data['gift_card_tender_code'] = $dataObject->getExtendedAttributes()->getGiftCardTenderCode();
 		}
 
-		if ($this->_isAttributeExists('item_type')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_type')) {
 			// setting item_type attribute
 			$data['item_type'] = $dataObject->getBaseAttributes()->getItemType();
 		}
 
-		if ($this->_isAttributeExists('client_alt_item_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'client_alt_item_id')) {
 			// setting client_alt_item_id attribute
 			$data['client_alt_item_id'] = $dataObject->getItemId()->getClientAltItemId();
 		}
 
-		if ($this->_isAttributeExists('manufacturer_item_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'manufacturer_item_id')) {
 			// setting manufacturer_item_id attribute
 			$data['manufacturer_item_id'] = $dataObject->getItemId()->getManufacturerItemId();
 		}
 
-		if ($this->_isAttributeExists('brand_name')) {
+		if ($prodHlpr->hasEavAttr($this, 'brand_name')) {
 			// setting brand_name attribute
 			$data['brand_name'] = $dataObject->getExtendedAttributes()->getBrandName();
 		}
 
-		if ($this->_isAttributeExists('brand_description')) {
+		if ($prodHlpr->hasEavAttr($this, 'brand_description')) {
 			// setting brand_description attribute
 			$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
 			foreach ($brandDescription as $bDesc) {
@@ -658,230 +648,230 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			}
 		}
 
-		if ($this->_isAttributeExists('buyer_name')) {
+		if ($prodHlpr->hasEavAttr($this, 'buyer_name')) {
 			// setting buyer_name attribute
 			$data['buyer_name'] = $dataObject->getExtendedAttributes()->getBuyerName();
 		}
 
-		if ($this->_isAttributeExists('buyer_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'buyer_id')) {
 			// setting buyer_id attribute
 			$data['buyer_id'] = $dataObject->getExtendedAttributes()->getBuyerId();
 		}
 
-		if ($this->_isAttributeExists('companion_flag')) {
+		if ($prodHlpr->hasEavAttr($this, 'companion_flag')) {
 			// setting companion_flag attribute
 			$data['companion_flag'] = $dataObject->getExtendedAttributes()->getCompanionFlag();
 		}
 
-		if ($this->_isAttributeExists('hazardous_material_code')) {
+		if ($prodHlpr->hasEavAttr($this, 'hazardous_material_code')) {
 			// setting hazardous_material_code attribute
 			$data['hazardous_material_code'] = $dataObject->getExtendedAttributes()->getHazardousMaterialCode();
 		}
 
-		if ($this->_isAttributeExists('is_hidden_product')) {
+		if ($prodHlpr->hasEavAttr($this, 'is_hidden_product')) {
 			// setting is_hidden_product attribute
 			$data['is_hidden_product'] = $dataObject->getExtendedAttributes()->getIsHiddenProduct();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_mass_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_mass_unit_of_measure')) {
 			// setting item_dimension_shipping_mass_unit_of_measure attribute
 			$data['item_dimension_shipping_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_mass_weight')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_mass_weight')) {
 			// setting item_dimension_shipping_mass_weight attribute
 			$data['item_dimension_shipping_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getWeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_mass_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_mass_unit_of_measure')) {
 			// setting item_dimension_display_mass_unit_of_measure attribute
 			$data['item_dimension_display_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getMassUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_mass_weight')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_mass_weight')) {
 			// setting item_dimension_display_mass_weight attribute
 			$data['item_dimension_display_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getWeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_packaging_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_packaging_unit_of_measure')) {
 			// setting item_dimension_display_packaging_unit_of_measure attribute
 			$data['item_dimension_display_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()
 				->getPackaging()->getUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_packaging_width')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_packaging_width')) {
 			// setting item_dimension_display_packaging_width attribute
 			$data['item_dimension_display_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getWidth();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_packaging_length')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_packaging_length')) {
 			// setting item_dimension_display_packaging_length attribute
 			$data['item_dimension_display_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getLength();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_display_packaging_height')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_display_packaging_height')) {
 			// setting item_dimension_display_packaging_height attribute
 			$data['item_dimension_display_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getHeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_packaging_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_packaging_unit_of_measure')) {
 			// setting item_dimension_shipping_packaging_unit_of_measure attribute
 			$data['item_dimension_shipping_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()
 				->getPackaging()->getUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_packaging_width')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_packaging_width')) {
 			// setting item_dimension_shipping_packaging_width attribute
 			$data['item_dimension_shipping_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getWidth();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_packaging_length')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_packaging_length')) {
 			// setting item_dimension_shipping_packaging_length attribute
 			$data['item_dimension_shipping_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getLength();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_shipping_packaging_height')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_shipping_packaging_height')) {
 			// setting item_dimension_shipping_packaging_height attribute
 			$data['item_dimension_shipping_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getHeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_mass_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_mass_unit_of_measure')) {
 			// setting item_dimension_carton_mass_unit_of_measure attribute
 			$data['item_dimension_carton_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getMassUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_mass_weight')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_mass_weight')) {
 			// setting item_dimension_carton_mass_weight attribute
 			$data['item_dimension_carton_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getWeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_packaging_unit_of_measure')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_packaging_unit_of_measure')) {
 			// setting item_dimension_carton_packaging_unit_of_measure attribute
 			$data['item_dimension_carton_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()
 				->getPackaging()->getUnitOfMeasure();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_packaging_width')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_packaging_width')) {
 			// setting item_dimension_carton_packaging_width attribute
 			$data['item_dimension_carton_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getWidth();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_packaging_length')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_packaging_length')) {
 			// setting item_dimension_carton_packaging_length attribute
 			$data['item_dimension_carton_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getLength();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_packaging_height')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_packaging_height')) {
 			// setting item_dimension_carton_packaging_height attribute
 			$data['item_dimension_carton_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getHeight();
 		}
 
-		if ($this->_isAttributeExists('item_dimension_carton_type')) {
+		if ($prodHlpr->hasEavAttr($this, 'item_dimension_carton_type')) {
 			// setting item_dimension_carton_type attribute
 			$data['item_dimension_carton_type'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getType();
 		}
 
-		if ($this->_isAttributeExists('lot_tracking_indicator')) {
+		if ($prodHlpr->hasEavAttr($this, 'lot_tracking_indicator')) {
 			// setting lot_tracking_indicator attribute
 			$data['lot_tracking_indicator'] = $dataObject->getExtendedAttributes()->getLotTrackingIndicator();
 		}
 
-		if ($this->_isAttributeExists('ltl_freight_cost')) {
+		if ($prodHlpr->hasEavAttr($this, 'ltl_freight_cost')) {
 			// setting ltl_freight_cost attribute
 			$data['ltl_freight_cost'] = $dataObject->getExtendedAttributes()->getLtlFreightCost();
 		}
 
-		if ($this->_isAttributeExists('manufacturing_date')) {
+		if ($prodHlpr->hasEavAttr($this, 'manufacturing_date')) {
 			// setting manufacturing_date attribute
 			$data['manufacturing_date'] = $dataObject->getExtendedAttributes()->getManufacturer()->getDate();
 		}
 
-		if ($this->_isAttributeExists('manufacturer_name')) {
+		if ($prodHlpr->hasEavAttr($this, 'manufacturer_name')) {
 			// setting manufacturer_name attribute
 			$data['manufacturer_name'] = $dataObject->getExtendedAttributes()->getManufacturer()->getName();
 		}
 
-		if ($this->_isAttributeExists('manufacturer_manufacturer_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'manufacturer_manufacturer_id')) {
 			// setting manufacturer_manufacturer_id attribute
 			$data['manufacturer_manufacturer_id'] = $dataObject->getExtendedAttributes()->getManufacturer()->getId();
 		}
 
-		if ($this->_isAttributeExists('may_ship_expedite')) {
+		if ($prodHlpr->hasEavAttr($this, 'may_ship_expedite')) {
 			// setting may_ship_expedite attribute
 			$data['may_ship_expedite'] = $dataObject->getExtendedAttributes()->getMayShipExpedite();
 		}
 
-		if ($this->_isAttributeExists('may_ship_international')) {
+		if ($prodHlpr->hasEavAttr($this, 'may_ship_international')) {
 			// setting may_ship_international attribute
 			$data['may_ship_international'] = $dataObject->getExtendedAttributes()->getMayShipInternational();
 		}
 
-		if ($this->_isAttributeExists('may_ship_usps')) {
+		if ($prodHlpr->hasEavAttr($this, 'may_ship_usps')) {
 			// setting may_ship_usps attribute
 			$data['may_ship_usps'] = $dataObject->getExtendedAttributes()->getMayShipUsps();
 		}
 
-		if ($this->_isAttributeExists('safety_stock')) {
+		if ($prodHlpr->hasEavAttr($this, 'safety_stock')) {
 			// setting safety_stock attribute
 			$data['safety_stock'] = $dataObject->getExtendedAttributes()->getSafetyStock();
 		}
 
-		if ($this->_isAttributeExists('sales_class')) {
+		if ($prodHlpr->hasEavAttr($this, 'sales_class')) {
 			// setting sales_class attribute
 			$data['sales_class'] = $dataObject->getExtendedAttributes()->getSalesClass();
 		}
 
-		if ($this->_isAttributeExists('serial_number_type')) {
+		if ($prodHlpr->hasEavAttr($this, 'serial_number_type')) {
 			// setting serial_number_type attribute
 			$data['serial_number_type'] = $dataObject->getExtendedAttributes()->getSerialNumberType();
 		}
 
-		if ($this->_isAttributeExists('service_indicator')) {
+		if ($prodHlpr->hasEavAttr($this, 'service_indicator')) {
 			// setting service_indicator attribute
 			$data['service_indicator'] = $dataObject->getExtendedAttributes()->getServiceIndicator();
 		}
 
-		if ($this->_isAttributeExists('ship_group')) {
+		if ($prodHlpr->hasEavAttr($this, 'ship_group')) {
 			// setting ship_group attribute
 			$data['ship_group'] = $dataObject->getExtendedAttributes()->getShipGroup();
 		}
 
-		if ($this->_isAttributeExists('ship_window_min_hour')) {
+		if ($prodHlpr->hasEavAttr($this, 'ship_window_min_hour')) {
 			// setting ship_window_min_hour attribute
 			$data['ship_window_min_hour'] = $dataObject->getExtendedAttributes()->getShipWindowMinHour();
 		}
 
-		if ($this->_isAttributeExists('ship_window_max_hour')) {
+		if ($prodHlpr->hasEavAttr($this, 'ship_window_max_hour')) {
 			// setting ship_window_max_hour attribute
 			$data['ship_window_max_hour'] = $dataObject->getExtendedAttributes()->getShipWindowMaxHour();
 		}
 
-		if ($this->_isAttributeExists('street_date')) {
+		if ($prodHlpr->hasEavAttr($this, 'street_date')) {
 			// setting street_date attribute
 			$data['street_date'] = $dataObject->getExtendedAttributes()->getStreetDate();
 		}
 
-		if ($this->_isAttributeExists('style_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'style_id')) {
 			// setting style_id attribute
 			$data['style_id'] = $dataObject->getExtendedAttributes()->getStyleId();
 		}
 
-		if ($this->_isAttributeExists('style_description')) {
+		if ($prodHlpr->hasEavAttr($this, 'style_description')) {
 			// setting style_description attribute
 			$data['style_description'] = $dataObject->getExtendedAttributes()->getStyleDescription();
 		}
 
-		if ($this->_isAttributeExists('supplier_name')) {
+		if ($prodHlpr->hasEavAttr($this, 'supplier_name')) {
 			// setting supplier_name attribute
 			$data['supplier_name'] = $dataObject->getExtendedAttributes()->getSupplierName();
 		}
 
-		if ($this->_isAttributeExists('supplier_supplier_id')) {
+		if ($prodHlpr->hasEavAttr($this, 'supplier_supplier_id')) {
 			// setting supplier_supplier_id attribute
 			$data['supplier_supplier_id'] = $dataObject->getExtendedAttributes()->getSupplierSupplierId();
 		}
 
-		if ($this->_isAttributeExists('size')) {
+		if ($prodHlpr->hasEavAttr($this, 'size')) {
 			// setting size attribute
 			$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
 			$size = null;
@@ -933,12 +923,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
+		$prodHlpr = Mage::helper('eb2cproduct');
 		$customData = array();
 		$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 		if (!empty($customAttributes)) {
 			foreach ($customAttributes as $attribute) {
 				$attributeCode = $this->_attributeFormat($attribute['name']);
-				if ($this->_isAttributeExists($attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+				if ($prodHlpr->hasEavAttr($this, $attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 					// setting custom attributes
 					if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 						// setting custom attributes to null on operation type 'delete'
@@ -1008,16 +999,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _clean()
 	{
+		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
 		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
-
-		return;
+		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
+		return $this;
 	}
 }

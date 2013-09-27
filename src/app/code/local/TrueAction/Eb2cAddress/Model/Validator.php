@@ -384,10 +384,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 			$addressCollection->setResponseMessage($response);
 			$addressCollection->setHasFreshSuggestions(true);
 		} else {
-			$addressCollection->setOriginalAddress(null);
-			$addressCollection->setSuggestedAddresses(null);
-			$addressCollection->setResponseMessage(null);
-			$addressCollection->setHasFreshSuggestions(false);
+			$addressCollection->unsOriginalAddress();
+			$addressCollection->unsSuggestedAddresses();
+			$addressCollection->unsResponseMessage();
+			$addressCollection->unsHasFreshSuggestions();
 		}
 
 		$validationAddressExtract = $this->_extractValidatedAddressData($requestAddress);

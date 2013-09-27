@@ -68,9 +68,6 @@
 				<enabled>1</enabled>
 				<max_suggestions>3</max_suggestions>
 			</general>
-			<api>
-				<namespace_uri><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></namespace_uri>
-			</api>
 			<address_suggestion_templates>
 				<full_html><![CDATA[{{depend prefix}}{{var prefix}} {{/depend}}{{var firstname}} {{depend middlename}}{{var middlename}} {{/depend}}{{var lastname}}{{depend suffix}} {{var suffix}}{{/depend}}<br/>
 {{depend company}}{{var company}}<br/>{{/depend}}

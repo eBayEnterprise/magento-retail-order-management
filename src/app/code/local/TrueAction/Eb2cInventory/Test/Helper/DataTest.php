@@ -41,22 +41,22 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 	public function testGetOperationUri()
 	{
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/inventory/quantity/get.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/quantity/get.xml',
 			$this->_helper->getOperationUri('check_quantity')
 		);
 
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/inventory/details/get.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/details/get.xml',
 			$this->_helper->getOperationUri('get_inventory_details')
 		);
 
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/inventory/allocations/create.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/create.xml',
 			$this->_helper->getOperationUri('allocate_inventory')
 		);
 
 		$this->assertSame(
-			'https://developer-na.gsipartners.com/v1.10/stores/ABCD/inventory/allocations/delete.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
 		);
 	}
@@ -78,7 +78,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 	public function testGetRequestId($entityId)
 	{
 		$this->assertSame(
-			'TAN-CLI-ABCD-43',
+			'client_id-store_id-43',
 			$this->_helper->getRequestId($entityId)
 		);
 	}
@@ -100,7 +100,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 	public function testGetReservationId($entityId)
 	{
 		$this->assertSame(
-			'TAN-CLI-ABCD-43',
+			'client_id-store_id-43',
 			$this->_helper->getReservationId($entityId)
 		);
 	}

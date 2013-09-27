@@ -138,7 +138,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 			->method('setWebsiteId')
 			->will($this->returnSelf());
 		$mock->expects($this->any())
-			->method('setDateExpries')
+			->method('setDateExpires')
 			->will($this->returnSelf());
 		$mock->expects($this->any())
 			->method('save')

@@ -450,16 +450,14 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	 */
 	protected function _clean()
 	{
+		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
 		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
 			// STOCK STATUS
 			$this->getStockStatus()->rebuild();
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
-
-		return;
+		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
+		return $this;
 	}
 }
