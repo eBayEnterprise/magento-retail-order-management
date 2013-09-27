@@ -80,14 +80,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::SET_EXPRESS_CHECKOUT, $request);
 		}
 
-		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log(
-				'[' . __CLASS__ . '] ' .
-				"\n\rDEBUG:\n\r________________________\n\rcallSetExpressCheckout:\n\r" .
-				print_r($response, true) . "\n\r",
-				Zend_Log::DEBUG
-			);
-		}
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
 
 		$this->_importFromResponse($this->_setExpressCheckoutResponse, $response);
 	}
@@ -146,14 +139,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::GET_EXPRESS_CHECKOUT_DETAILS, $request);
 		}
 
-		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log(
-				'[' . __CLASS__ . '] ' .
-				"\n\rDEBUG:\n\r________________________\n\rcallGetExpressCheckoutDetails:\n\r" .
-				print_r($response, true) . "\n\r",
-				Zend_Log::DEBUG
-			);
-		}
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
 		$this->_exportAddressses($response);
@@ -211,14 +197,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::DO_EXPRESS_CHECKOUT_PAYMENT, $request);
 		}
 
-		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log(
-				'[' . __CLASS__ . '] ' .
-				"\n\rDEBUG:\n\r________________________\n\rcallDoExpressCheckoutPayment:\n\r" .
-				print_r($response, true) . "\n\r",
-				Zend_Log::DEBUG
-			);
-		}
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
 		$this->_importFromResponse($this->_doExpressCheckoutPaymentResponse, $response);
@@ -267,14 +246,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::DO_AUTHORIZATION, $request);
 		}
 
-		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log(
-				'[' . __CLASS__ . '] ' .
-				"\n\rDEBUG:\n\r________________________\n\rcallDoAuthorization:\n\r" .
-				print_r($response, true) . "\n\r",
-				Zend_Log::DEBUG
-			);
-		}
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
 
 		$this->_importFromResponse($this->_paymentInformationResponse, $response);
 		$this->_importFromResponse($this->_doAuthorizationResponse, $response);
@@ -318,9 +290,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			$response = $this->call(self::DO_VOID, $request);
 		}
 
-		if (Mage::helper('eb2cpayment')->getConfigModel()->enabledEb2cDebug){
-			Mage::log('[' . __CLASS__ . '] ' . "\n\rDEBUG:\n\r________________________\n\rcallDoVoid:\n\r" . print_r($response, true) . "\n\r", Zend_Log::DEBUG);
-		}
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
 	}
 
 	/**
