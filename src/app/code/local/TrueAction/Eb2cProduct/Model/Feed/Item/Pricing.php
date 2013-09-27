@@ -25,7 +25,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->itemFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->pricingFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
@@ -124,7 +124,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		if (!$product->getId()) {
 			$this->applyDummyData($product, $sku);
 		}
-		return ;
+		return $product;
 	}
 
 	/**
@@ -140,15 +140,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
 		$this->getFeedModel()->fetchFeedsFromRemote(
-			$cfg->itemFeedRemoteReceivedPath,
-			$cfg->itemFeedFilePattern
+			$cfg->pricingFeedRemoteReceivedPath,
+			$cfg->pricingFeedFilePattern
 		);
 		$domDocument = $coreHelper->getNewDomDocument();
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to Dom object
 			$domDocument->load($feed);
 
-			$expectEventType = $cfg->itemFeedEventType;
+			$expectEventType = $cfg->pricingFeedEventType;
 			// validate feed header
 			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
 				// processing feed items
