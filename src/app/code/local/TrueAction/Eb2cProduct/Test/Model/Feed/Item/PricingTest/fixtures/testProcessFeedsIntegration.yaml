@@ -6,16 +6,15 @@ eav:
   catalog_product:
     - entity_id: 1
       type_id: simple
-      sku: book
-      name: Book
-      short_description: Book
-      description: Book
+      sku: somesku
+      name: 'Product somesku'
+      description: 'the description'
+      short_description: 'short description'
       weight: 1.0
-      url_key: book
-      tax_code: 'thecode'
+      url_key: somesku
       stock:
-        qty: 100.00
         is_in_stock: 1
+        qty: 100.00
       website_ids:
         - 0
       category_ids:
