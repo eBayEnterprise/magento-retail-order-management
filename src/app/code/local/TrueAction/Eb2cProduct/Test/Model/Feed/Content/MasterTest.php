@@ -205,8 +205,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -243,53 +245,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
-	}
-
-	/**
-	 * testing processFeeds method - product with invalid sftp settings
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsContentMasterProductWithValidSftpSetting()
-	{
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelper();
-
-		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForContentMasterWithValidProduct());
-
-		$mockContentMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Content_Master();
-		$mockContentMaster->replaceByMockWithValidProductId();
-
-		// Begin vfs Setup:
-		$vfs = $this->getFixture()->getVfs();
-
-		// Set up a Varien_Io_File style array for dummy file listing.
-		$vfsDump = $vfs->dump();
-		foreach($vfsDump['root'][self::VFS_ROOT]['feed_content_master']['inbound'] as $filename => $contents ) {
-			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
-		}
-
-		$master = Mage::getModel(
-			'eb2cproduct/feed_content_master',
-			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
 		);
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		// to make the _clean method throw an exception we must mock it
-		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
-		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
-
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
 	}
 
 	/**
@@ -329,12 +288,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		// to make the _clean method throw an exception we must mock it
-		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
-		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
-
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -374,8 +331,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -415,8 +374,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -456,7 +417,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
 		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
 
-		$master->processFeeds(); // This should not error out, at least.
-		$this->markTestIncomplete('Need a real test here.');
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
+			$master->processFeeds()
+		);
 	}
 }

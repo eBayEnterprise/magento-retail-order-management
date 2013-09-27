@@ -27,7 +27,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setData(
+		$this->addData(
 			array(
 				'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
 				'stock_item' => Mage::getModel('cataloginventory/stock_item'),
@@ -105,31 +105,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * helper method to get attribute into the right format.
-	 *
-	 * @param string $attribute, the string attribute
-	 *
-	 * @return string, the correct attribute format
-	 */
-	protected function _attributeFormat($attribute)
-	{
-		$attributeData = preg_split('/(?=[A-Z])/', trim($attribute));
-		$correctFormat = '';
-		$index = 0;
-		$size = sizeof($attributeData);
-		foreach ($attributeData as $attr) {
-			if (trim($attr) !== '') {
-				$correctFormat .= strtolower($attr);
-				if ($index < $size) {
-					$correctFormat .= '_';
-				}
-			}
-			$index++;
-		}
-		return $correctFormat;
-	}
-
-	/**
 	 * load product by sku
 	 *
 	 * @param string $sku, the product sku to filter the product table
@@ -195,7 +170,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		Mage::helper('eb2cproduct')->clean();
+
+		return $this;
 	}
 
 	/**
@@ -928,7 +905,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 		if (!empty($customAttributes)) {
 			foreach ($customAttributes as $attribute) {
-				$attributeCode = $this->_attributeFormat($attribute['name']);
+				$attributeCode = $this->_underscore($attribute['name']);
 				if ($prodHlpr->hasEavAttr($this, $attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 					// setting custom attributes
 					if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
@@ -990,23 +967,5 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				}
 			}
 		}
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
 	}
 }

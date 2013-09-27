@@ -15,18 +15,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	}
 
 	/**
-	 * convert feed lang data to match magento expected format (en-US => en_US)
-	 *
-	 * @param string $langCode, the language code
-	 *
-	 * @return string, the magento expected format
-	 */
-	protected function _languageFormat($langCode)
-	{
-		return str_replace('-', '_', $langCode);
-	}
-
-	/**
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
@@ -158,7 +146,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$colorDescriptionIndex = 1;
 			foreach ($nodeColorDescription as $colorDescriptionRecord) {
 				$colorDescriptionData[] = array(
-					'lang' => $this->_languageFormat($colorDescriptionRecord->getAttribute('xml:lang')),
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($colorDescriptionRecord->getAttribute('xml:lang')),
 					'description' => $colorDescriptionRecord->nodeValue
 				);
 				$colorDescriptionIndex++;
@@ -180,7 +168,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		$nodeBrandDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
 		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
 			$brandDescriptionData[] = array(
-				'lang' => $this->_languageFormat($brandDescriptionRecord->getAttribute('xml:lang')),
+				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($brandDescriptionRecord->getAttribute('xml:lang')),
 				'description' => $brandDescriptionRecord->nodeValue
 			);
 		}
@@ -334,7 +322,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			$nodeSizeDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
 
 			$sizeData[] = array(
-				'lang' => $this->_languageFormat($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
+				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
 				'code' => ($nodeSizeCode->length)? (string) $nodeSizeCode->item(0)->nodeValue : null,
 				'description' => ($nodeSizeDescription->length)? (string) $nodeSizeDescription->item(0)->nodeValue : null,
 			);
@@ -476,7 +464,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 				// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
 				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
 				// Language code for the natural language or the <Value /> element.
-				'lang' => $this->_languageFormat($attributeRecord->getAttribute('xml:lang')),
+				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeRecord->getAttribute('xml:lang')),
 				'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
 			);
 		}

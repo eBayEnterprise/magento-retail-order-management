@@ -15,18 +15,6 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor extends Mage_Core_Model_Abst
 	}
 
 	/**
-	 * convert feed lang data to match magento expected format (en-US => en_US)
-	 *
-	 * @param string $langCode, the language code
-	 *
-	 * @return string, the magento expected format
-	 */
-	protected function _languageFormat($langCode)
-	{
-		return str_replace('-', '_', $langCode);
-	}
-
-	/**
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
@@ -112,7 +100,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor extends Mage_Core_Model_Abst
 					// Type of operation to take with this attribute. enum: ("Add", "Change", "Delete")
 					'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
 					// Language code for the natural language or the <Value /> element.
-					'lang' => $this->_languageFormat($attributeRecord->getAttribute('xml:lang')),
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeRecord->getAttribute('xml:lang')),
 					'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
 				);
 			}

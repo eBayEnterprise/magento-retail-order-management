@@ -27,7 +27,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setData(
+		$this->addData(
 			array(
 				'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
 				'product' => Mage::getModel('catalog/product'),
@@ -46,43 +46,6 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		);
 
 		return $this;
-	}
-
-	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
-	}
-
-	/**
-	 * helper method to get attribute into the right format.
-	 *
-	 * @param string $attribute, the string attribute
-	 *
-	 * @return string, the correct attribute format
-	 */
-	protected function _attributeFormat($attribute)
-	{
-		$attributeData = preg_split('/(?=[A-Z])/', trim($attribute));
-		$correctFormat = '';
-		$index = 0;
-		$size = sizeof($attributeData);
-		foreach ($attributeData as $attr) {
-			if (trim($attr) !== '') {
-				$correctFormat .= strtolower($attr);
-				if ($index < $size) {
-					$correctFormat .= '_';
-				}
-			}
-			$index++;
-		}
-		return $correctFormat;
 	}
 
 	/**
@@ -154,7 +117,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		Mage::helper('eb2cproduct')->clean();
+
+		return $this;
 	}
 
 	/**
@@ -357,18 +322,19 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	protected function _getEb2cSpecificAttributeData(Varien_Object $dataObject)
 	{
 		$data = array();
+		$prodHlpr = Mage::helper('eb2cproduct');
 
-		if ($this->_isAttributeExists('is_drop_shipped')) {
+		if ($prodHlpr->hasEavAttr($this, 'is_drop_shipped')) {
 			// setting is_drop_shipped attribute
 			$data['is_drop_shipped'] = $dataObject->getBaseAttributes()->getDropShipped();
 		}
 
-		if ($this->_isAttributeExists('tax_code')) {
+		if ($prodHlpr->hasEavAttr($this, 'tax_code')) {
 			// setting tax_code attribute
 			$data['tax_code'] = $dataObject->getBaseAttributes()->getTaxCode();
 		}
 
-		if ($this->_isAttributeExists('hts_codes')) {
+		if ($prodHlpr->hasEavAttr($this, 'hts_codes')) {
 			// setting hts_codes attribute
 			$data['hts_codes'] = $dataObject->getHtsCodes();
 		}
@@ -411,12 +377,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	 */
 	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
+		$prodHlpr = Mage::helper('eb2cproduct');
 		$customData = array();
 		$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
 		if (!empty($customAttributes)) {
 			foreach ($customAttributes as $attribute) {
-				$attributeCode = $this->_attributeFormat($attribute['name']);
-				if ($this->_isAttributeExists($attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+				$attributeCode = $this->_underscore($attribute['name']);
+				if ($prodHlpr->hasEavAttr($this, $attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 					// setting custom attributes
 					if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 						// setting custom attributes to null on operation type 'delete'
@@ -441,23 +408,5 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				);
 			}
 		}
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
 	}
 }

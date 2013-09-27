@@ -13,7 +13,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _construct()
 	{
-
 		// get config
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 
@@ -166,7 +165,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		return $this->_clean();
+		Mage::helper('eb2cproduct')->clean();
+
+		return $this;
 	}
 
 	/**
@@ -538,23 +539,5 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		return $categoryId;
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
 	}
 }
