@@ -97,11 +97,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addAttributeOption($attribute, $newOption)
 	{
-		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
-		$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
-		$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
-
-		return $this->_getAttributeOptionId($attribute, $newOption);
+		$newOptionId = 0;
+		try{
+			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+			$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+			$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
+			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating new option "' . $newOption . '" for attribute: ' . $attribute . ' in Item Master Feed (' .
+				$e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		}
+		return $newOptionId;
 	}
 
 	/**
@@ -292,6 +301,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
+	 * getting the color option, create it if id doesn't exist or just fetch it from magento db
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
+	 *
+	 * @return int, the option id
+	 */
+	protected function _getProductColorOptionId(Varien_Object $dataObject)
+	{
+		$colorOptionId = 0;
+
+		// get color attribute data
+		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
+		if (!empty($colorData)) {
+			$colorCode = $this->_getFirstColorCode($colorData);
+			if(trim($colorCode) !== '') {
+				$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
+				if (!$colorOptionId) {
+					$colorOptionId = (int) $this->_addAttributeOption('color', $colorCode);
+				}
+			}
+		}
+
+		return $colorOptionId;
+	}
+
+	/**
 	 * Create dummy products and return new dummy product object
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
@@ -300,11 +335,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _getDummyProduct(Varien_Object $dataObject)
 	{
-		// get color attribute data
-//		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
-//		$colorCode = $this->_getFirstColorCode($colorData);
-//		$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
-
 		$productObject = $this->getProduct()->load(0);
 		try{
 			$productObject->setId(null)
@@ -316,7 +346,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 						'name' => 'temporary-name - ' . uniqid(),
 						'status' => 0, // default - disabled
 						'sku' => $dataObject->getUniqueId(),
-//						'color' => ($colorOptionId)? $colorOptionId : (int) $this->_addAttributeOption('color', $colorCode),
+						'color' => $this->_getProductColorOptionId($dataObject),
 					)
 				)
 				->save();
@@ -327,7 +357,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				Zend_Log::ERR
 			);
 		}
-		return $productObject; // $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
+		return $productObject;
 	}
 
 	/**
@@ -363,18 +393,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
 		$prodHlpr = Mage::helper('eb2cproduct');
-
-		// get color attribute data
-		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
-
 		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $prodHlpr->hasEavAttr($this, 'color')) {
 			// setting color attribute, with the first record
-			$colorCode = $this->_getFirstColorCode($colorData);
-			$colorOptionId = $this->_getAttributeOptionId('color', $colorCode);
 			$productObject->addData(
 				array(
-					'color' => ($colorOptionId)? $colorOptionId : $this->_addAttributeOption('color', $colorCode),
-					'configurable_color_data' => json_encode($colorData),
+					'color' => $this->_getProductColorOptionId($dataObject),
+					'configurable_color_data' => json_encode($dataObject->getExtendedAttributes()->getColorAttributes()->getColor()),
 				)
 			)->save();
 		}
