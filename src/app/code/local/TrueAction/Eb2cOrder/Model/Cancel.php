@@ -33,7 +33,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	{
 		$consts = $this->_helper->getConstHelper();
 		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
-		$cancelRequest = $this->_domRequest->addElement($consts::CANCEL_DOM_ROOT_NODE_NAME, null, $consts::DOM_ROOT_NS)->firstChild;
+		$cancelRequest = $this->_domRequest->addElement($consts::CANCEL_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
 		$cancelRequest->addAttribute('orderType', $args['order_type']);
 
 		$this->_orderId = $args['order_id'];

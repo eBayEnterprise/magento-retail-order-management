@@ -81,7 +81,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 
 		$this->assertEquals(
 			$ns,
-			Mage::getStoreConfig('eb2caddress/api/namespace_uri')
+			Mage::getStoreConfig('eb2ccore/api/xml_namespace')
 		);
 		$maxSuggestions = $xpath
 			->query('x:AddressValidationRequest/Header/MaxAddressSuggestions', $message)
