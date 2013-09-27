@@ -346,10 +346,10 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$address = $this->getBillingAddress();
 		}
 		$data = array(
-			'id'         => $id,
+			'id' => $id,
 			'is_virtual' => $isVirtual,
-			'last_name'  => $address->getLastname(),
-			'first_name' => $address->getFirstname()
+			'last_name'  => $this->_checkLength($address->getLastname(), 1, 64),
+			'first_name' => $this->_checkLength($address->getFirstname(), 1, 64),
 		);
 		$honorific = $address->getPrefix();
 		if ($honorific) {
@@ -362,14 +362,18 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		// if this is a virtual destination, then only extract the
 		// email address
 		if ($isVirtual) {
-			$data['email_address'] = $address->getEmail();
+			$data['email_address'] = $this->_checkLength($address->getEmail(), 1, 70, false);
 		} else {
-			$data['city'] = $address->getCity();
+			$data['city'] = $this->_checkLength($address->getCity(), 1, 35);
 			$data['main_division'] = $address->getRegionModel()->getCode();
-			$data['country_code'] = $address->getCountryId();
+			$data['country_code'] = $this->_checkLength($address->getCountryId(), 2, 2, false);
 			$data['postal_code'] = $address->getPostcode();
-			$data['street'] = $address->getStreet();
+			$data['line1'] = $this->_checkLength($address->getStreet1(), 1, 70);
+			for ($i = 2; $i <= 4; ++$i) {
+				$data['line' . $i] = $address->getStreet($i);
+			}
 		}
+		$this->_validateDestData($data, $isVirtual);
 		return $data;
 	}
 
