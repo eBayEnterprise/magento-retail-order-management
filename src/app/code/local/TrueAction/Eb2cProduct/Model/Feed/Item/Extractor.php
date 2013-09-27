@@ -15,6 +15,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 	}
 
 	/**
+	 * convert feed lang data to match magento expected format (en-US => en_US)
+	 *
+	 * @param string $langCode, the language code
+	 *
+	 * @return string, the magento expected format
+	 */
+	protected function _languageFormat($langCode)
+	{
+		return str_replace('-', '_', $langCode);
+	}
+
+	/**
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $feedXPath, the xpath object
