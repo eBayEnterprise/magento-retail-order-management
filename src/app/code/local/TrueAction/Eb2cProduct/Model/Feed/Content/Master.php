@@ -497,7 +497,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				if ($customAttribute instanceof Varien_Object && trim(strtoupper($customAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 					// getting the custom attribute into a valid magento attribute format
 					$attributeName = $this->_underscore($customAttribute->getName());
-					if (Mage::helper('eb2cproduct')->hasEavAttr($this, $attributeName)) {
+					if (Mage::helper('eb2cproduct')->hasEavAttr($attributeName)) {
 						// attribute does exists in magento store, let check it's operation type
 						if (trim(strtoupper($customAttribute->getOperationType())) === 'DELETE') {
 							// set the attribute value to null to remove it

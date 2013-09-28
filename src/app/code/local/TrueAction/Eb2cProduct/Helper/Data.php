@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	/**
@@ -20,19 +15,9 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * @return true if a feed model's eav config has at least one instance of the given attribute.
-	 * @param TrueAction_Eb2cCore_Model_Feed_Interface $feed
-	 * @param string $attr
-	 */
-	public function hasEavAttr(TrueAction_Eb2cCore_Model_Feed_Interface $feed, $attr)
-	{
-		return 0 < (int) $feed->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attr)->getId();
-	}
-
-	/**
 	 * clear magento cache and rebuild inventory status.
 	 *
-	 * @return void
+	 * @return TrueAction_Eb2cProduct_Helper_Data
 	 */
 	public function clean()
 	{
@@ -41,10 +26,20 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			// STOCK STATUS
 			Mage::getSingleton('cataloginventory/stock_status')->rebuild();
 		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
 		}
 		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-
 		return $this;
+	}
+
+	/**
+	 * @return bool true if the eav config has at least one instance of the given attribute.
+	 * @param string $attr
+	 */
+	public function hasEavAttr($at)
+	{
+		return 0 < (int) Mage::getModel('eav/config')
+			->getAttribute(Mage_Catalog_Model_Product::ENTITY, $at)
+			->getId();
 	}
 }

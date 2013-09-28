@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
@@ -13,12 +8,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	 */
 	protected function _construct()
 	{
-		// get config
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->iShipFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->iShipFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
@@ -27,15 +19,16 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
+		$prod = Mage::getModel('catalog/product');
 		$this->addData(
 			array(
 				'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
-				'product' => Mage::getModel('catalog/product'),
+				'product' => $prod,
 				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
 				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
 				'eav_config' => Mage::getModel('eav/config'),
 				// setting default attribute set id
-				'default_attribute_set_id' => Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId(),
+				'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
 				// Magento product type ids
 				'product_type_id' => array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'),
 				// set the default store id
@@ -316,29 +309,17 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve eb2c specific attribute product data
-	 *
 	 * @return array, composite array containing eb2c specific attribute to be set to a product
 	 */
 	protected function _getEb2cSpecificAttributeData(Varien_Object $dataObject)
 	{
 		$data = array();
-		$prodHlpr = Mage::helper('eb2cproduct');
-
-		if ($prodHlpr->hasEavAttr($this, 'is_drop_shipped')) {
-			// setting is_drop_shipped attribute
-			$data['is_drop_shipped'] = $dataObject->getBaseAttributes()->getDropShipped();
+		$hlpr = Mage::helper('eb2cproduct');
+		foreach (array('is_drop_shipped', 'tax_code', 'hts_codes') as $at) {
+			if ($hlpr->hasEavAttr($at)) {
+				$data[$at] = $dataObject->getBaseAttributes()->getData($at);
+			}
 		}
-
-		if ($prodHlpr->hasEavAttr($this, 'tax_code')) {
-			// setting tax_code attribute
-			$data['tax_code'] = $dataObject->getBaseAttributes()->getTaxCode();
-		}
-
-		if ($prodHlpr->hasEavAttr($this, 'hts_codes')) {
-			// setting hts_codes attribute
-			$data['hts_codes'] = $dataObject->getHtsCodes();
-		}
-
 		return $data;
 	}
 
@@ -383,7 +364,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		if (!empty($customAttributes)) {
 			foreach ($customAttributes as $attribute) {
 				$attributeCode = $this->_underscore($attribute['name']);
-				if ($prodHlpr->hasEavAttr($this, $attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+				if ($prodHlpr->hasEavAttr($attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
 					// setting custom attributes
 					if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
 						// setting custom attributes to null on operation type 'delete'
