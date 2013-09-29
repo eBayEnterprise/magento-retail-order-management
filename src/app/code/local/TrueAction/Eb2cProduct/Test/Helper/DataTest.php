@@ -1,14 +1,8 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
 	 * testing getConfigModel method
-	 *
 	 * @test
 	 */
 	public function testGetConfigModel()
@@ -157,5 +151,18 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 
 		// If $atId > 0, the result should be true
 		$this->assertSame($atId > 0, Mage::helper('eb2cproduct')->hasEavAttr($name));
+	}
+
+	/**
+	 * Test that a known product type is validated and an unknown is rejected.
+	 */
+	public function testHasProdType()
+	{
+		$this->assertSame(false, Mage::helper('eb2cproduct')->hasProdType('alien'));
+		// Normally I would inject a known value into Mage_Catalog_Model_Product_Type::getTypes()
+		// so that this test is a true "unit" test and doesn't depend on the environment
+		// at all, but getTypes is static, and you can bet there's gonna be a "simple"
+		// type in every environment.
+		$this->assertSame(true, Mage::helper('eb2cproduct')->hasProdType('simple'));
 	}
 }

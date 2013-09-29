@@ -70,10 +70,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$loadProductBySku = $shipReflector->getMethod('_loadProductBySku');
 		$loadProductBySku->setAccessible(true);
 
-		$this->assertInstanceOf(
-			'Mage_Catalog_Model_Product',
-			$loadProductBySku->invoke($ship, '123')
-		);
+		$this->assertInstanceOf('Mage_Catalog_Model_Product', $loadProductBySku->invoke($ship, '123'));
 	}
 
 	/**
@@ -107,10 +104,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$constructMethod = $shipReflector->getMethod('_construct');
 		$constructMethod->setAccessible(true);
 
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$constructMethod->invoke($productFeedModel)
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $constructMethod->invoke($productFeedModel));
 	}
 
 	/**
@@ -147,13 +142,17 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
+	}
 
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+	private function _mockEavConfig()
+	{
+		$eav = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
+		$this->replaceByMock('singleton', 'eav/config', $eav->buildEavModelConfig());
+		return $this;
 	}
 
 	/**
@@ -190,13 +189,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -233,13 +229,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -279,13 +272,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -325,13 +315,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -371,13 +358,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -417,13 +401,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -463,13 +444,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -509,13 +487,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -555,13 +530,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -601,13 +573,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -647,13 +616,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 
 	/**
@@ -693,12 +659,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ShipTest extends EcomDev_PHPUnit_
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$ship->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$ship->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_I_Ship',
-			$ship->processFeeds()
-		);
+		$this->markTestIncomplete('Just tests that the function runs without raising exceptions. Does not adequately test interaction points.');
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_I_Ship', $ship->processFeeds());
 	}
 }

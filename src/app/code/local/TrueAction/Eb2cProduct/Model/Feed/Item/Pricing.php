@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
@@ -20,12 +15,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	protected function _construct()
 	{
-		// get config
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->itemFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->itemFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
@@ -34,18 +26,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setExtractor(Mage::getModel('eb2cproduct/feed_item_pricing_extractor'))
-			->setProduct(Mage::getModel('catalog/product'))
-			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			->setEavConfig(Mage::getModel('eav/config'))
-			->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId())
-			// Magento product type ids
-			->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'))
-			// set the default store id
-			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
-			// set array of website ids
-			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
+		$prod = Mage::getModel('catalog/product');
+		$this->addData(array(
+			'extractor' => Mage::getModel('eb2cproduct/feed_item_pricing_extractor'),
+			'product' => $prod,
+			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
+			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
+		));
 
 		// initialize bundle queue with an empty array
 		$this->_queue = array();
@@ -63,18 +53,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$selectedEvent = $event;
 		}
 		return $selectedEvent;
-	}
-
-	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
 	}
 
 	/**
@@ -279,7 +257,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$productObject->setSpecialFromDate($startDate);
 			$productObject->setSpecialToDate($endDate);
 			$productObject->setMsrp($event->getMsrp());
-			if ($this->_isAttributeExists('price_is_vat_inclusive')) {
+			if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {
 				$productObject->setPriceIsVatInclusive($priceVatInlcusive);
 			}
 			// saving the product

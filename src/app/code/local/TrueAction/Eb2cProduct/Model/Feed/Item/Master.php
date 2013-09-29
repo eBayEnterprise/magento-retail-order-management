@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
@@ -13,12 +8,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _construct()
 	{
-		// get config
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->itemFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->itemFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
@@ -27,30 +19,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->addData(
-			array(
-				'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
-				'stock_item' => Mage::getModel('cataloginventory/stock_item'),
-				'product' => Mage::getModel('catalog/product'),
-				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-				'eav_config' => Mage::getModel('eav/config'),
-				'eav_entity_attribute' => Mage::getModel('eav/entity_attribute'),
-				'product_type_configurable_attribute' => Mage::getModel('catalog/product_type_configurable_attribute'),
-				// setting default attribute set id
-				'default_attribute_set_id' => Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId(),
-				// Magento product type ids
-				'product_type_id' => array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'),
-				// set the default store id
-				'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
-				// setting default store language
-				'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(),
-				// set array of website ids
-				'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
-			)
-		);
-
-		return $this;
+		$prod = Mage::getModel('catalog/product');
+		return $this->addData(array(
+			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
+			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(),
+			'eav_entity_attribute' => Mage::getModel('eav/entity_attribute'),
+			'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
+			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			'product' => $prod,
+			'product_type_configurable_attribute' => Mage::getModel('catalog/product_type_configurable_attribute'),
+			'stock_item' => Mage::getModel('cataloginventory/stock_item'),
+			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
+		));
 	}
 
 	/**
@@ -62,7 +44,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _getAttribute($attribute)
 	{
-		return $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		return Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 	}
 
 	/**
@@ -76,7 +58,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _getAttributeOptionId($attribute, $option)
 	{
 		$optionId = 0;
-		$attributes = $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
@@ -130,18 +112,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$products->load();
 
 		return $products->getFirstItem();
-	}
-
-	/**
-	 * validating the product type
-	 *
-	 * @param string $type, the product type to validated
-	 *
-	 * @return bool, true the inputed type match what's in magento else doesn't match
-	 */
-	protected function _isValidProductType($type)
-	{
-		return in_array($type, $this->getProductTypeId());
 	}
 
 	/**
@@ -229,12 +199,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 			// This will be mapped by the product hub to Magento product types.
 			// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-			if (!$this->_isValidProductType($feedItem->getProductType())) {
-				Mage::log(
-					'[' . __CLASS__ . '] Item Master Feed product_type (' . $feedItem->getProductType() . '), doesn\'t match Magento available Product Types (' .
-					implode(',', $this->getProductTypeId()) . ')',
-					Zend_Log::WARN
-				);
+			$prodType = $feedItem->getProductType();
+			if (!Mage::helper('eb2cproduct')->hasProdType($prodType)) {
+				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
 				continue;
 			}
 

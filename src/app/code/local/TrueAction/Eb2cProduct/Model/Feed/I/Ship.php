@@ -20,24 +20,15 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		}
 
 		$prod = Mage::getModel('catalog/product');
-		$this->addData(
-			array(
+		$this->addData(array(
 				'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
 				'product' => $prod,
 				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
 				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-				'eav_config' => Mage::getModel('eav/config'),
-				// setting default attribute set id
 				'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
-				// Magento product type ids
-				'product_type_id' => array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'),
-				// set the default store id
 				'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
-				// set array of website ids
 				'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
-			)
-		);
-
+		));
 		return $this;
 	}
 
@@ -58,18 +49,6 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		$products->load();
 
 		return $products->getFirstItem();
-	}
-
-	/**
-	 * validating the product type
-	 *
-	 * @param string $type, the product type to validated
-	 *
-	 * @return bool, true the inputed type match what's in magento else doesn't match
-	 */
-	protected function _isValidProductType($type)
-	{
-		return in_array($type, $this->getProductTypeId());
 	}
 
 	/**
@@ -116,7 +95,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	}
 
 	/**
-	 * determine which action to take for I Ship (add, update, delete.
+	 * determine which action to take for iShip (add, update, delete.
 	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
@@ -135,7 +114,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				// If different, do not update the item and log at WARN level.
 				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
 					Mage::log(
-						'I Ship Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
+						'iShip Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
 						$cfg->catalogId . ')',
 						Zend_Log::WARN
 					);
@@ -146,7 +125,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				// If different, do not update this item and log at WARN level.
 				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
 					Mage::log(
-						'I Ship Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
+						'iShip Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
 						$cfg->clientId . ')',
 						Zend_Log::WARN
 					);
@@ -155,12 +134,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 
 				// This will be mapped by the product hub to Magento product types.
 				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-				if (!$this->_isValidProductType($feedItem->getBaseAttributes()->getItemType())) {
-					Mage::log(
-						'I Ship Feed item_type (' . $feedItem->getBaseAttributes()->getItemType() . '), doesn\'t match Magento available Item Types (' .
-						implode(',', $this->getProductTypeId()) . ')',
-						Zend_Log::WARN
-					);
+				$itemType = $feedItem->getBaseAttributes()->getItemType();
+				if (!Mage::helper('eb2cproduct')->hasProdType($itemType)) {
+					Mage::log(sprintf('[ %s ] unrecognized item_type "%s"', __CLASS__, $itemType), Zend_Log::WARN);
 					continue;
 				}
 
@@ -189,26 +165,15 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
 			// we have a valid item, let's check if this product already exists in Magento
 			$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
-			if (!$this->getProduct()->getId()){
-				// this is new product let's set default value for it in order to create it successfully.
-				$productObject = $this->_getDummyProduct($dataObject);
-			} else {
-				$productObject = $this->getProduct();
-			}
+			$productObject = $this->getProduct()->getId() ? $this->getProduct() : $this->_getDummyProduct($dataObject);
 
-			try {
-				$productObject->addData(
-					array(
-						'type_id' => $dataObject->getProductType(),
-						'visibility' => $this->_getVisibilityData($dataObject),
-						'attribute_set_id' => $this->getDefaultAttributeSetId(),
-						'status' => $dataObject->getBaseAttributes()->getItemStatus(),
-						'sku' => $dataObject->getItemId()->getClientItemId(),
-					)
-				)->save(); // saving the product
-			} catch (Mage_Core_Exception $e) {
-				Mage::logException($e);
-			}
+			$productObject->addData(array(
+				'type_id' => $dataObject->getProductType(),
+				'visibility' => $this->_getVisibilityData($dataObject),
+				'attribute_set_id' => $this->getDefaultAttributeSetId(),
+				'status' => $dataObject->getBaseAttributes()->getItemStatus(),
+				'sku' => $dataObject->getItemId()->getClientItemId(),
+			))->save(); // saving the product
 
 			// adding new attributes
 			$this->_addEb2cSpecificAttributeToProduct($dataObject, $productObject);
@@ -298,7 +263,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				}
 			} else {
 				// this item doesn't exists in magento let simply log it
-				Mage::log('I Ship Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+				Mage::log('iShip Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
 			}
 		}
 

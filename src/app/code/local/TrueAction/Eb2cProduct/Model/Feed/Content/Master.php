@@ -33,7 +33,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
 			'product' => $prod,
 			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-			'eav_config' => Mage::getModel('eav/config'),
 			'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
 			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(), // setting default store language
 			'default_root_category_id' => $this->_getDefaultParentCategoryId(), // default root category id
@@ -52,7 +51,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getCategoryAttributeSetId()
 	{
-		return (int) Mage::getModel('eav/config')
+		return (int) Mage::getSingleton('eav/config')
 			->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
 			->getEntityType()
 			->getDefaultAttributeSetId();
@@ -69,7 +68,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _getAttributeOptionId($attribute, $option)
 	{
 		$optionId = 0;
-		$attributes = $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
