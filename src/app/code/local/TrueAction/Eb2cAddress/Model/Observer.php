@@ -56,7 +56,7 @@ class TrueAction_Eb2cAddress_Model_Observer
 		$validator = Mage::getModel('eb2caddress/validator');
 		$controller = $observer->getEvent()->getControllerAction();
 		$body = Mage::helper('core')->jsonDecode($controller->getResponse()->getBody());
-		if (isset($body['error']) && $validator->hasSuggestions()) {
+		if (isset($body['error']) && !$validator->isValid()) {
 			$body['suggestions'] = $this->_getAddressBlockHtml($controller);
 			$controller->getResponse()->setBody(Mage::helper('core')->jsonEncode($body));
 		}
