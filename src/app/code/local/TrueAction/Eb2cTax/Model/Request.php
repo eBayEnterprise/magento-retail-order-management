@@ -6,6 +6,7 @@
 class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 {
 	const EMAIL_MAX_LENGTH         = 70;
+	const NUM_STREET_LINES         = 4;
 	protected $_helper             = null;
 	protected $_xml                = '';
 	protected $_doc                = null;
@@ -369,7 +370,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$data['country_code'] = $this->_checkLength($address->getCountryId(), 2, 2, false);
 			$data['postal_code'] = $address->getPostcode();
 			$data['line1'] = $this->_checkLength($address->getStreet1(), 1, 70);
-			for ($i = 2; $i <= 4; ++$i) {
+			for ($i = 2; $i <= self::NUM_STREET_LINES; ++$i) {
 				$data['line' . $i] = $address->getStreet($i);
 			}
 		}
@@ -569,14 +570,19 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _buildAddressNode(TrueAction_Dom_Element $parent, $address)
 	{
 		// loop through to get all of the street lines.
-		$streetLines = $address['street'];
-		foreach ($streetLines as $streetIndex => $street) {
-			$parent->createChild('Line' . ($streetIndex + 1), $street);
+		for ($i = 1; $i <= self::NUM_STREET_LINES; ++$i) {
+			if ($address['line' . $i]) {
+				$parent->createChild('Line' . $i, $address['line' . $i]);
+			}
 		}
 		$parent->createChild('City', $address['city']);
-		$parent->createChild('MainDivision', $address['main_division']);
+		if ($address['main_division']) {
+			$parent->createChild('MainDivision', $address['main_division']);
+		}
 		$parent->createChild('CountryCode', $address['country_code']);
-		$parent->createChild('PostalCode', $address['postal_code']);
+		if ($address['postal_code']) {
+			$parent->createChild('PostalCode', $address['postal_code']);
+		}
 	}
 
 	/**
