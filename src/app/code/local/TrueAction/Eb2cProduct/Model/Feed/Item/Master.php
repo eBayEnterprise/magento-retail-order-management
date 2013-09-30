@@ -277,7 +277,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				))
 				->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::logException(sprintf('[ %s ] %s', __CLASS__, $e-getMessage()));
+			Mage::logException(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()));
 		}
 		return $prd;
 	}
