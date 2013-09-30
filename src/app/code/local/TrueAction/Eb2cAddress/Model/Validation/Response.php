@@ -3,7 +3,7 @@
  * Responsible for handling the AddressValidationResponse message from EB2C.
  */
 class TrueAction_Eb2cAddress_Model_Validation_Response
-	extends Mage_Core_Model_Abstract
+	extends Varien_Object
 {
 
 	/**
@@ -31,7 +31,6 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 
 	protected function _construct()
 	{
-		$this->_helper = Mage::helper('eb2caddress');
 		$this->_doc = new TrueAction_Dom_Document();
 	}
 
@@ -56,7 +55,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 	 */
 	protected function _lookupPath($pathKey, DOMNode $context=null)
 	{
-		return $this->_helper
+		return Mage::helper('eb2caddress')
 			->getTextValueByXPath(self::$_paths[$pathKey], $context ?: $this->_doc);
 	}
 
@@ -101,7 +100,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 			)->item(0);
 			$this->setData(
 				'original_address',
-				$this->_helper->physicalAddressXmlToAddress($physicalAddressElement)->setHasBeenValidated(true)
+				Mage::helper('eb2caddress')->physicalAddressXmlToAddress($physicalAddressElement)->setHasBeenValidated(true)
 			);
 		}
 		return $this->getData('original_address');
@@ -136,7 +135,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 			$physicalAddressElements = $xpath->query(self::$_paths['suggestions'], $this->_doc);
 			$suggestionAddresses = array();
 			foreach ($physicalAddressElements as $physicalAddress) {
-				$suggestionAddresses[] = $this->_helper
+				$suggestionAddresses[] = Mage::helper('eb2caddress')
 					->physicalAddressXmlToAddress($physicalAddress)
 					->setHasBeenValidated(true);
 			}
@@ -173,21 +172,21 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 					break;
 				case 'U':
 					Mage::log(
-						'[' . __CLASS__ . '] EB2C Address Validation: Unable to contact provider',
+						'[' . __CLASS__ . ']: Unable to contact provider',
 						Zend_Log::WARN
 					);
 					$validity = true;
 					break;
 				case 'T':
 					Mage::log(
-						'[' . __CLASS__ . '] EB2C Address Validation: Provider timed out',
+						'[' . __CLASS__ . ']: Provider timed out',
 						Zend_Log::WARN
 					);
 					$validity = true;
 					break;
 				case 'P':
 					Mage::log(
-						'[' . __CLASS__ . '] EB2C Address Validation: Provider returned a system error',
+						'[' . __CLASS__ . ']: Provider returned a system error',
 						Zend_Log::WARN
 					);
 					Mage::log(
@@ -198,20 +197,24 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 					break;
 				case 'M':
 					Mage::log(
-						'[' . __CLASS__ . '] EB2C Address Validation: The request message was malformed or contained invalid data',
+						'[' . __CLASS__ . ']: The request message was malformed or contained invalid data',
 						Zend_Log::WARN
 					);
 					$validity = true;
 					break;
 				default:
 					Mage::log(
-						'[' . __CLASS__ . '] ' . sprintf('EB2C Address Validation: The response message did not contain a known result code. Result Code: %s', $resultCode),
+						sprintf('[ %s ]: The response message did not contain a known result code. Result Code: %s', __CLASS__, $resultCode),
 						Zend_Log::WARN
 					);
 					$validity = true;
 					break;
 			}
 			$this->setData('is_valid', $validity);
+			Mage::log(
+				sprintf('[ %s ]: Response with status code "%s" is %s.', __CLASS__, $resultCode, ($validity ? 'valid' : 'invalid')),
+				Zend_Log::DEBUG
+			);
 		}
 		return $this->getData('is_valid');
 	}

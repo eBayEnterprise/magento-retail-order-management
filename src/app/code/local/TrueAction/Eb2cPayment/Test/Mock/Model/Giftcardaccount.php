@@ -103,7 +103,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount extends EcomDev_PHP
 			->setMethods(
 				array(
 					'getGiftcardaccountId', 'setGiftcardaccountId', 'setCode', 'setEb2cPan', 'setEb2cPin', 'setStatus',
-					'setState', 'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpries', 'save', 'load'
+					'setState', 'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpires', 'save', 'load'
 				))
 			->getMock();
 

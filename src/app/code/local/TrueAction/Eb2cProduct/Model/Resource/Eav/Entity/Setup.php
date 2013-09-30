@@ -18,18 +18,18 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 		$entityTypeIds  = $attrInfo->getTargetEntityTypeIds();
 		$attributesData = $attrInfo->getAttributesData();
 		foreach ($entityTypeIds as $entityTypeId) {
-			$message = 'applying default attributes to entity type id(%s)';
-			$this->_logDebug(sprintf($message, $entityTypeId));
+			$msg = 'applying default attributes to entity type id(%s)';
+			$this->_logErr(sprintf($msg, $entityTypeId));
 			foreach ($attributesData as $attrCode => $attrConfig) {
 				$attrId = $this->getAttribute($entityTypeId, $attrCode, 'attribute_id');
 				if ($attrId) {
-					$message = 'existing attribute with id=\'%s\' will be replaced';
-					$this->_logDebug(sprintf($message, $attrId));
+					$msg = 'existing attribute with id="%s" will be replaced';
+					$this->_logErr(sprintf($msg, $attrId));
 				}
 				$this->addAttribute($entityTypeId, $attrCode, $attrConfig);
 				if ($attrId) {
-					$message = 'existing attribute with id=\'%s\' was replaced';
-					$this->_logWarn(sprintf($message, $attrId));
+					$msg = 'existing attribute with id="%s" was replaced';
+					$this->_logWarn(sprintf($msg, $attrId));
 				}
 			}
 		}
@@ -38,21 +38,21 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 
 	/**
 	 * log a warning message
-	 * @param  string $message
+	 * @param string $msg
 	 * @codeCoverageIgnore
 	 */
-	protected function _logWarn($message)
+	protected function _logWarn($msg)
 	{
-		Mage::log($message, Zend_Log::WARN);
+		Mage::log(sprintf('[ %s ] %s', __CLASS__, $msg), Zend_Log::WARN);
 	}
 
 	/**
 	 * log an error message
-	 * @param  string $message
+	 * @param string $msg
 	 * @codeCoverageIgnore
 	 */
-	protected function _logDebug($message)
+	protected function _logErr($msg)
 	{
-		Mage::log($message, Zend_Log::ERR);
+		Mage::log(sprintf('[ %s ] %s', __CLASS__, $msg), Zend_Log::ERR);
 	}
 }

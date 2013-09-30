@@ -23,7 +23,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if ($matches->length) {
 			return true;
 		} else {
-			Mage::log(sprintf('[ %s ] Feed does not have "%s" DestinationId node.', __CLASS__, self::DEST_ID), Zend_Log::DEBUG);
+			Mage::log(sprintf('[ %s ] Feed does not have "%s" DestinationId node.', __CLASS__, self::DEST_ID), Zend_Log::WARN);
 			return false;
 		}
 	}
@@ -38,7 +38,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if ($matches->length) {
 			return true;
 		} else {
-			Mage::log(sprintf('[ %s ] Feed does not have "%s" EventType node.', __CLASS__, $eventType), Zend_Log::DEBUG);
+			Mage::log(sprintf('[ %s ] Feed does not have "%s" EventType node.', __CLASS__, $eventType), Zend_Log::WARN);
 			return false;
 		}
 	}

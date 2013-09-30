@@ -6,7 +6,7 @@
  * @method TrueAction_Eb2cAddress_Model_Validation_Request setADdress(Mage_Customer_Model_Address_Abstract $address)
  */
 class TrueAction_Eb2cAddress_Model_Validation_Request
-	extends Mage_Core_Model_Abstract
+	extends Varien_Object
 {
 
 	const API_SERVICE = 'address';

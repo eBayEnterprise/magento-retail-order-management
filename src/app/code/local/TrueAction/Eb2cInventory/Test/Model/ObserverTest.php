@@ -343,8 +343,8 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 
 	public function providerProcessEb2cAllocation()
 	{
-		$addressMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Address',
+		$addressMock = $this->getModelMock(
+			'sales/quote_address',
 			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
 		);
 		$addressMock->expects($this->any())
@@ -372,9 +372,11 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->will($this->returnValue('19726')
 			);
 
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'save')
+		$procuctMock = $this->getModelMock('catalog/product', array());
+
+		$itemMock = $this->getModelMock(
+			'sales/quote_item',
+			array('getQty', 'getId', 'getSku', 'save', 'getProduct')
 		);
 		$itemMock->expects($this->any())
 			->method('getQty')
@@ -392,14 +394,17 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->method('save')
 			->will($this->returnValue(1)
 			);
+		$itemMock->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productMock));
 
 		$addressMock->expects($this->any())
 			->method('getAllItems')
 			->will($this->returnValue(array($itemMock))
 			);
 
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
+		$quoteMock = $this->getModelMock(
+			'sales/quote',
 			array('getAllItems', 'getShippingAddress', 'getItemById', 'getAllAddresses')
 		);
 		$quoteMock->expects($this->any())
@@ -447,18 +452,15 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	 */
 	public function testProcessEb2cAllocation($observer)
 	{
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'processAllocation', 'isExpired', 'filterInventoriedItems'))
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('requiresAllocation', 'processAllocation', 'filterInventoriedItems'))
 			->disableOriginalConstructor()
 			->getMock();
 		$allocationMock->expects($this->any())
-			->method('hasAllocation')
+			->method('requiresAllocation')
 			->will($this->returnValue(true));
 		$allocationMock->expects($this->any())
 			->method('processAllocation')
 			->will($this->returnValue(array()));
-		$allocationMock->expects($this->any())
-			->method('isExpired')
-			->will($this->returnValue(true));
 		$allocationMock->expects($this->any())
 			->method('filterInventoriedItems')
 			->will($this->returnValue(true));
@@ -496,19 +498,16 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 
 		$allocationMock = $this->getModelMockBuilder(
 			'eb2cinventory/allocation',
-			array('hasAllocation', 'processAllocation', 'isExpired', 'allocateQuoteItems', 'filterInventoriedItems')
+			array('requiresAllocation', 'processAllocation', 'allocateQuoteItems', 'filterInventoriedItems')
 		)
 			->disableOriginalConstructor()
 			->getMock();
 		$allocationMock->expects($this->any())
-			->method('hasAllocation')
+			->method('requiresAllocation')
 			->will($this->returnValue(true));
 		$allocationMock->expects($this->any())
 			->method('processAllocation')
 			->will($this->returnValue(array(array('Sorry, item "2610" out of stock.'))));
-		$allocationMock->expects($this->any())
-			->method('isExpired')
-			->will($this->returnValue(true));
 		$allocationMock->expects($this->any())
 			->method('allocateQuoteItems')
 			->will($this->returnValue('<foo></foo>'));
@@ -521,6 +520,28 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$this->assertNull(
 			$this->_observer->processEb2cAllocation($observer)
 		);
+	}
+
+	/**
+	 * When a quote does not have any items that have managed stock, no allocation
+	 * request should be made.
+	 * @param  Varien_Event_Observer $observer
+	 * @test
+	 * @dataProvider providerProcessEb2cAllocation
+	 */
+	public function testNoAllocationRequestWhenNotRequired($observer)
+	{
+		$allocationMock = $this->getModelMock('eb2cinventory/allocation', array('requiresAllocation', 'allocateQuoteItems'));
+		// make requiresAllocation fail
+		$allocationMock->expects($this->once())
+			->method('requiresAllocation')
+			->with($this->identicalTo($observer->getEvent()->getQuote()))
+			->will($this->returnValue(false));
+		// ensure allocateQuoteItems is not called
+		$allocationMock->expects($this->never())
+			->method('allocateQuoteItems');
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
+		Mage::getModel('eb2cinventory/observer')->processEb2cAllocation($observer);
 	}
 
 	public function providerRollbackOnRemoveItemInReservedCart()
