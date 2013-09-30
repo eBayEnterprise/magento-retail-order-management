@@ -184,7 +184,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					case self::OPERATION_TYPE_UPDATE:
 						$this->_synchProduct($item);
 						break;
-					case SELF::OPERATION_TYPE_DELETE:
+					case self::OPERATION_TYPE_DELETE:
 						$this->_deleteItem($item);
 						break;
 					default:
