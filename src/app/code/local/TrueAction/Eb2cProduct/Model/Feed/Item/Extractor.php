@@ -6,13 +6,7 @@
  */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_Abstract
 {
-	/**
-	 * Initialize model
-	 */
-	protected function _construct()
-	{
-		$this->setFeedBaseNode('Item'); // Magically setting feed base node
-	}
+	const FEED_BASE_NODE = 'Item';
 
 	/**
 	 * extract item id data into a varien object
@@ -526,19 +520,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 
 	/**
 	 * extract feed data into a collection of varien objects
-	 *
 	 * @param DOMDocument $doc, the dom document with the loaded feed data
-	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extractItemMasterFeed(DOMDocument $doc)
+	public function extract(DOMDocument $doc)
 	{
 		$collectionOfItems = array();
 		$feedXPath = new DOMXPath($doc);
-		$baseNode = $this->getFeedBaseNode();
+		$baseNode = self::FEED_BASE_NODE;
 
 		$master = $feedXPath->query("//$baseNode");
 		$idx = 1; // start index
+		Mage::log(sprintf('[ %s ] Found %d items to extract', __CLASS__, $master->length), Zend_Log::DEBUG);
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
 
@@ -570,8 +563,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 
 			// increment item index
 			$idx++;
+			Mage::log(sprintf('[ %s ] Extracted %d of %d items', __CLASS__, $idx, $master->length), Zend_Log::DEBUG);
 		}
-
 		return $collectionOfItems;
 	}
 }

@@ -65,7 +65,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				$optionId = $attrOption['value'];
 			}
 		}
-
 		return $optionId;
 	}
 
@@ -115,61 +114,50 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * processing downloaded feeds from eb2c.
-	 *
-	 * @return void
+	 * Process downloaded feeds from eb2c.
+	 * @return self
 	 */
 	public function processFeeds()
 	{
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$feedModel = $this->getFeedModel();
 
-		$this->getFeedModel()->fetchFeedsFromRemote(
+		$feedModel->fetchFeedsFromRemote(
 			$cfg->itemFeedRemoteReceivedPath,
 			$cfg->itemFeedFilePattern
 		);
-		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
-			// load feed files to Dom object
-			$domDocument->load($feed);
-
-			Mage::log(sprintf('[ %s ] Loaded xml file %s.', __CLASS__, $feed), Zend_Log::DEBUG);
-
-			$expectEventType = $cfg->itemFeedEventType;
-			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
-				// processing feed items
-				$this->_itemMasterActions($domDocument);
+		$doc = $coreHelper->getNewDomDocument();
+		$feeds = $feedModel->lsInboundDir();
+		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
+		foreach ($feeds as $feed) {
+			$doc->load($feed);
+			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
+			if ($coreHelperFeed->validateHeader($doc, $cfg->itemFeedEventType)) {
+				$this->_itemMasterActions($doc); // Process feed data
 			}
-
-			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
-				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveDir($feed);
+				$feedModel->mvToArchiveDir($feed);
 			}
 		}
-
-		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		Mage::helper('eb2cproduct')->clean();
-
+		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
+		Mage::helper('eb2cproduct')->clean(); // reindex
 		return $this;
 	}
 
 	/**
 	 * determine which action to take for item master (add, update, delete.
-	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _itemMasterActions(DOMDocument $doc)
 	{
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedItemCollection = $this->getExtractor()->extractItemMasterFeed($doc);
+		$feedItemCollection = $this->getExtractor()->extract($doc);
 
 		if (!$feedItemCollection) {
-			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__, $numFeedItems), Zend_Log::WARN);
+			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
 			return $this;
 		}
 
@@ -215,6 +203,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					break;
 			}
 		}
+
+		return $this;
 	}
 
 	/**
