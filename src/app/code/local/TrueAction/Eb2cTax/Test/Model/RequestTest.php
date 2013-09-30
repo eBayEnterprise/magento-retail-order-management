@@ -2389,9 +2389,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		$this->assertSame(array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2446,9 +2443,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		$this->assertSame(array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2462,9 +2456,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		return array(array($parent, array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
