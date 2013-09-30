@@ -26,6 +26,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_addresses          = array();
 	protected $_itemQuantities     = array();
 
+	private $_requiredAddressFields = array(
+		'line1',
+		'city',
+		'country_code'
+	);
+
 	/**
 	 * map skus to a quote item
 	 * @var array('string' => Mage_Sales_Model_Quote_Item_Abstract)
@@ -851,6 +857,25 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		);
 
 		return $data;
+	}
+
+	/**
+	 * validate extracted data.
+	 * @param  array   $data   extracted data as an array
+	 * @param  array   $fields keys to check
+	 * @return self
+	 * @throws Mage_Core_Exception If any key maps to a null value
+	 */
+	protected function _validateData($data, $fields=array())
+	{
+		foreach ($fields as $field) {
+			$value = isset($destData[$field]) ? $destData[$field] : null;
+			if (is_null($value)) {
+				$message = sprintf('field %s: value [%s] is invalid length', $field, $value);
+				throw new Mage_Core_Exception($message);
+			}
+		}
+		return $this;
 	}
 
 	/**
