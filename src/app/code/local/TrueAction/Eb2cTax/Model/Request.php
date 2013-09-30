@@ -165,40 +165,46 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _processQuote()
 	{
-		$quote = $this->getQuote();
-		// track if this is a multishipping quote or not.
-		$this->_isMultiShipping = (bool) $quote->getIsMultiShipping();
-		// create the billing address destination node(s)
-		$billAddress = $quote->getBillingAddress();
-		$this->_billingInfoRef = $this->_getDestinationId($billAddress);
-		$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
-			$billAddress
-		);
-		foreach ($quote->getAllAddresses() as $address) {
-			// keep a serialized copy of each address for use when looking for changes.
-			$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
-			$items = $this->_getItemsForAddress($address);
-			foreach ($items as $item) {
-				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-					foreach ($item->getChildren() as $child) {
-						$isVirtual = $child->getProduct()->isVirtual();
-						$this->_addToDestination($child, $address, $isVirtual);
-						$sku = $child->getSku();
+		try {
+			$quote = $this->getQuote();
+			// track if this is a multishipping quote or not.
+			$this->_isMultiShipping = (bool) $quote->getIsMultiShipping();
+			// create the billing address destination node(s)
+			$billAddress = $quote->getBillingAddress();
+			$this->_billingInfoRef = $this->_getDestinationId($billAddress);
+			$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
+				$billAddress
+			);
+			foreach ($quote->getAllAddresses() as $address) {
+				// keep a serialized copy of each address for use when looking for changes.
+				$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
+				$items = $this->_getItemsForAddress($address);
+				foreach ($items as $item) {
+					if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+						foreach ($item->getChildren() as $child) {
+							$isVirtual = $child->getProduct()->isVirtual();
+							$this->_addToDestination($child, $address, $isVirtual);
+							$sku = $child->getSku();
+							if (!isset($this->_itemQuantities[$sku])) {
+								$this->_itemQuantities[$sku] = 0;
+							}
+							$this->_itemQuantities[$sku] += $child->getTotalQty();
+						}
+					} else {
+						$isVirtual = $item->getProduct()->isVirtual();
+						$this->_addToDestination($item, $address, $isVirtual);
+						$sku = $item->getSku();
 						if (!isset($this->_itemQuantities[$sku])) {
 							$this->_itemQuantities[$sku] = 0;
 						}
-						$this->_itemQuantities[$sku] += $child->getTotalQty();
+						$this->_itemQuantities[$sku] += $item->getTotalQty();
 					}
-				} else {
-					$isVirtual = $item->getProduct()->isVirtual();
-					$this->_addToDestination($item, $address, $isVirtual);
-					$sku = $item->getSku();
-					if (!isset($this->_itemQuantities[$sku])) {
-						$this->_itemQuantities[$sku] = 0;
-					}
-					$this->_itemQuantities[$sku] += $item->getTotalQty();
 				}
 			}
+		}
+		catch (Mage_Core_Exception $e) {
+			Mage::log($message, Zend_Log::DEBUG);
+			$this->invalidate();
 		}
 	}
 
