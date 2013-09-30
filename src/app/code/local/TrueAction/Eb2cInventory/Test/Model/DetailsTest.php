@@ -18,6 +18,22 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$this->_details = Mage::getModel('eb2cinventory/details');
 	}
 
+	/**
+	 * Get a simple address object.
+	 * @param  array $data If specified, address object will be created with the given data. Otherwise with some sample data.
+	 * @return Mage_Sales_Model_Quote_Address
+	 */
+	protected function _createAddressObject($data=array())
+	{
+		$addressData = empty($data) ?
+			array('firstname' => 'Foo', 'lastname' => 'Bar', 'street' => 'One Bagshot Row',
+				'city' => 'Bag End', 'region_id' => '51', 'region' => 'PA', 'country_id' => 'US',
+				'telephone' => '555-555-5555', 'postcode' => '19123', 'shipping_method' => 'USPSStandard'
+			) :
+			$data;
+		return Mage::getModel('sales/quote_address', $addressData);
+	}
+
 	public function buildQuoteMock()
 	{
 		$addressMock = $this->getMock(
@@ -394,70 +410,44 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	 * Create a quote and items that will create a given request message
 	 * @return array
 	 */
-	public function inventoryDetailsQuote()
+	public function providerInventoryDetailsQuote()
 	{
-		$address = Mage::getModel('sales/quote_address', array(
-			'firstname' => 'Foo',
-			'lastname' => 'Bar',
-			'street' => 'One Bagshot Row',
-			'city' => 'Bag End',
-			'region_id' => '51',
-			'region' => 'PA',
-			'country_id' => 'US',
-			'telephone' => '555-555-5555',
-			'postcode' => '19123',
-			'shipping_method' => 'USPSStandard'
-		));
+		$address = $this->_createAddressObject();
 
 		$products = array();
-		$products[] = Mage::getModel('catalog/product', array(
-			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
-		));
-		$products[] = Mage::getModel('catalog/product', array(
-			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
-		));
-		$products[] = Mage::getModel('catalog/product', array(
-			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => false,)),
-		));
-		$products[] = Mage::getModel('catalog/product', array(
-			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
-		));
+		for ($i = 0; $i < 4; $i++) {
+			$products[] = Mage::getModel('catalog/product', array(
+				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
+					// first three items should all be managed stock
+					'manage_stock' => !($i > 0 && $i % 3 === 0),
+				)),
+			));
+		}
 
 		$items = array();
-		$items[] = Mage::getModel('sales/quote_item', array(
-			'product' => $products[0],
-			'is_virtual' => false,
-			'sku' => 'item1',
-			'qty' => 5,
-		));
-		$items[] = Mage::getModel('sales/quote_item', array(
-			'product' => $products[1],
-			'is_virtual' => false,
-			'sku' => 'item2',
-			'qty' => 7,
-		));
-		$items[] = Mage::getModel('sales/quote_item', array(
-			'product' => $products[2],
-			'is_virtual' => false,
-			'sku' => 'item3',
-			'qty' => 5,
-		));
-		$items[] = Mage::getModel('sales/quote_item', array(
-			'product' => $products[3],
-			'is_virtual' => true,
-			'sku' => 'item4',
-			'qty' => 5,
-		));
+		foreach ($products as $idx => $product) {
+			$items[] = Mage::getModel('sales/quote_item', array(
+				'product' => $product,
+				// first, second and fourth should be non-virtual, third should be
+				'is_virtual' => ($idx > 0 && $idx % 2 === 0),
+				'sku' => sprintf('item%s', $idx),
+				'qty' => $idx + 1,
+			));
+		}
 
 		$quote = Mage::getModel('sales/quote');
 		$quote->setShippingAddress($address);
-		$quote->addItem($items[0])->addItem($items[1])->addItem($items[2])->addItem($items[3]);
-		$items[0]->setId(0);
-		$items[1]->setId(1);
-		$items[2]->setId(2);
-		$items[3]->setId(3);
-		$request = '<?xml version="1.0" encoding="UTF-8"?>
-<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item1" lineId="0"><Quantity><![CDATA[5]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item2" lineId="1"><Quantity><![CDATA[7]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem></InventoryDetailsRequestMessage>';
+		// Add each item to the quote.
+		foreach ($items as $idx => $item) {
+			$quote->addItem($item);
+			// Give the item in id, this normally happens when saving the quote, which
+			// would have happened by now, but as this is being avoided here it needs to be
+			// manually assigned.
+			$item->setId($idx);
+		}
+		// This should be moved to an expectation.
+		$request = new DOMDocument();
+		$request->loadXML('<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item0" lineId="0"><Quantity><![CDATA[1]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity><![CDATA[2]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem></InventoryDetailsRequestMessage>');
 		return array(
 			array($quote, $request),
 		);
@@ -468,7 +458,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	 * @param  Mage_Sales_Model_Quote $quote
 	 * @param  string $request The request XML that should be created for the given quote
 	 *
-	 * @dataProvider inventoryDetailsQuote
+	 * @dataProvider providerInventoryDetailsQuote
 	 * @test
 	 */
 	public function testGetInventoryDetails($quote, $request)
@@ -484,17 +474,9 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$api->expects($this->once())
 			->method('request')
 			->with($this->callback(function ($arg) use ($request) {
-				$x = new TrueAction_Dom_Document();
-				$arg->preserveWhiteSpace = false;
-				$arg->normalizeDocument();
-				$x->loadXML($request);
-				$x->normalizeDocument();
-				var_dump($x->saveXml());
-				var_dump($arg->saveXml());
-
-				var_dump(md5($x->saveXml()));
-				var_dump(md5($arg->saveXml()));
-				return $x->documentElement === $arg->documentElement;
+				// compare the canonicalized XML of the TrueAction_Dom_Document
+				// passed to the request method to the expected XML for this quote
+				return $request->C14N() === $arg->C14N();
 			}))
 			->will($this->returnValue($response));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
