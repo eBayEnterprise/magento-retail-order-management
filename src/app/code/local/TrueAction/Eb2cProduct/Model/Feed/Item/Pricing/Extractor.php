@@ -79,7 +79,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 		$feedXPath = new DOMXPath($doc);
 		$nodeList = $feedXPath->query('//PricePerItem');
 		foreach ($nodeList as $item) {
-			// setting item object into the colelction of item objects.
+			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object($this->_extractPricePerItem($item));
 		}
 		return $collectionOfItems;

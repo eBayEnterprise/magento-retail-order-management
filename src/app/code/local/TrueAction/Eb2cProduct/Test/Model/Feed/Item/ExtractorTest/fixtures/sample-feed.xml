@@ -52,12 +52,12 @@
 			<AllowGiftMessage>false</AllowGiftMessage>
 			<BackOrderable>true</BackOrderable>
 			<Brand>
-				<Description xml:lang="en-GB"/>
+				<Description xml:lang="en-US"/>
 			</Brand>
 			<ColorAttributes>
 				<Color>
 					<Code>100</Code>
-					<Description xml:lang="en-GB">WHITE</Description>
+					<Description xml:lang="en-US">WHITE</Description>
 				</Color>
 			</ColorAttributes>
 			<ItemDimensions>
@@ -94,7 +94,7 @@
 			</ItemDimensions>
 			<SalesClass>stock</SalesClass>
 			<SizeAttributes>
-				<Size xml:lang="en-GB">
+				<Size xml:lang="en-US">
 					<Code>S</Code>
 					<Description>S</Description>
 				</Size>
@@ -120,7 +120,7 @@
 			</Style>
 		</ExtendedAttributes>
 		<CustomAttributes>
-			<Attribute name="Gender" xml:lang="en-GB">
+			<Attribute name="Gender" xml:lang="en-US">
 				<Value>W</Value>
 			</Attribute>
 			<Attribute name="GII">

@@ -49,7 +49,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Extractor extends Mage_Core_Model
 		$itemIndex = 1; // start index
 		foreach ($inventory as $item) {
 			$gsiClientId = $item->getAttribute('gsi_client_id');
-			// setting item object into the colelction of item objects.
+			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
 					'gsi_client_id' => $gsiClientId, // setting gsi_client_id id

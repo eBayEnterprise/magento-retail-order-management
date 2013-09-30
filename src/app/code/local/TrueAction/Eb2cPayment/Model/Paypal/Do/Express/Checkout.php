@@ -15,24 +15,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	 */
 	public function doExpressCheckout($quote)
 	{
-		$paypalDoExpressCheckoutResponseMessage = '';
+		$responseMessage = '';
 		try{
 			// build request
-			$payPalDoExpressCheckoutRequest = $this->buildPayPalDoExpressCheckoutRequest($quote);
+			$requestDoc = $this->buildPayPalDoExpressCheckoutRequest($quote);
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
 			// make request to eb2c for quote items PaypalDoExpressCheckout
-			$paypalDoExpressCheckoutResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_express_checkout'))
-				->request($payPalDoExpressCheckoutRequest);
+				->request($requestDoc);
 
 		}catch(Exception $e){
 			Mage::logException($e);
 		}
 
 		// Save payment data
-		$this->_savePaymentData($this->parseResponse($paypalDoExpressCheckoutResponseMessage), $quote);
+		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
 
-		return $paypalDoExpressCheckoutResponseMessage;
+		return $responseMessage;
 	}
 
 	/**
@@ -64,7 +65,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 
 		$payPalDoExpressCheckoutRequest->createChild(
 			'Amount',
-			(string) $quote->getBaseGrandTotal(),
+			sprintf('%.02f', $quote->getBaseGrandTotal()),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
@@ -137,21 +138,21 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 		// add LineItemsTotal
 		$lineItems->createChild(
 			'LineItemsTotal',
-			(string) $quote->getSubTotal(), // integer value doesn't get added only string
+			sprintf('%.02f', $quote->getSubtotal()), // integer value doesn't get added only string
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
 		// add ShippingTotal
 		$lineItems->createChild(
 			'ShippingTotal',
-			(string) $quote->getShippingAmount(),
+			sprintf('%.02f', $quote->getShippingAddress()->getShippingAmount()),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
 		// add TaxTotal
 		$lineItems->createChild(
 			'TaxTotal',
-			(string) $quote->getTaxAmount(),
+			sprintf('%.02f', $quote->getTaxAmount()),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 		if ($quote) {
@@ -179,7 +180,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 						// add UnitAmount
 						$lineItem->createChild(
 							'UnitAmount',
-							(string) $item->getPrice(),
+							sprintf('%.02f', $item->getPrice()),
 							array('currencyCode' => $quote->getQuoteCurrencyCode())
 						);
 					}

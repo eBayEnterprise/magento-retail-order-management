@@ -13,6 +13,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _construct()
 	{
+		// get config
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
 			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->contentFeedLocalPath);
@@ -30,7 +33,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
 			'product' => $prod,
 			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-			'eav_config' => Mage::getModel('eav/config'),
 			'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
 			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(), // setting default store language
 			'default_root_category_id' => $this->_getDefaultParentCategoryId(), // default root category id
@@ -49,7 +51,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getCategoryAttributeSetId()
 	{
-		return (int) Mage::getModel('eav/config')
+		return (int) Mage::getSingleton('eav/config')
 			->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
 			->getEntityType()
 			->getDefaultAttributeSetId();
@@ -66,7 +68,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _getAttributeOptionId($attribute, $option)
 	{
 		$optionId = 0;
-		$attributes = $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
@@ -162,7 +164,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		return $this->_clean();
+		//Mage::helper('eb2cproduct')->clean();
+
+		return $this;
 	}
 
 	/**
@@ -202,7 +206,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				}
 
 				// process content feed data
-				$this->_updateContent($feedContent);
+				$this->_synchProduct($feedContent);
 			}
 		}
 	}
@@ -292,23 +296,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @return void
 	 */
-	protected function _updateContent(Varien_Object $dataObject)
+	protected function _synchProduct(Varien_Object $dataObject)
 	{
-		if (trim($dataObject->getUniqueID()) !== '') {
-			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueID()));
-			try {
-				if (!$this->getProduct()->getId()){
-					// this is new product let's set default value for it in order to create it successfully.
-					$productObject = $this->_getDummyProduct($dataObject);
-				} else {
-					$productObject = $this->getProduct();
-				}
+		if (trim($dataObject->getUniqueId()) !== '') {
+			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueId()));
+			if (!$this->getProduct()->getId()){
+				// this is new product let's set default value for it in order to create it successfully.
+				$productObject = $this->_getDummyProduct($dataObject);
+			} else {
+				$productObject = $this->getProduct();
+			}
 
+			try {
 				// get product link data
 				$linkData = $this->_preparedProductLinkData($dataObject);
 
 				// get extended attributes data containing (gift wrap, color, long/short descriptions)
 				$extendedData = $this->_getExtendAttributeData($dataObject);
+
+				// getting product name/title
+				$productTitle = $this->_getDefaultLocaleTitle($dataObject);
 
 				$productObject->addData(
 					array(
@@ -321,7 +328,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						// setting category data
 						'category_ids' => $this->_preparedCategoryLinkData($dataObject),
 						// Setting product name/title from base attributes
-						'name' => ($this->_getDefaultLocaleTitle($dataObject) !== '')? $this->_getDefaultLocaleTitle($dataObject) : $productObject->getName(),
+						'name' => (trim($productTitle) !== '')? $productTitle : $productObject->getName(),
 						// setting gift_wrapping_available
 						'gift_wrapping_available' => $extendedData['gift_wrap'],
 						// setting color attribute
@@ -333,12 +340,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					)
 				)->save(); // saving the product
 
-				// adding product custom attributes
-				$this->_addCustomAttributeToProduct($dataObject, $productObject);
-
 			} catch (Mage_Core_Exception $e) {
-				Mage::logException($e);
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while updating the
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while updating the
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
 			}
+
+			// adding product custom attributes
+			$this->_addCustomAttributeToProduct($dataObject, $productObject);
 		}
 
 		return ;
@@ -353,20 +370,36 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 */
 	protected function _getDummyProduct(Varien_Object $dataObject)
 	{
+		// getting product name/title
+		$productTitle = $this->_getDefaultLocaleTitle($dataObject);
 		$productObject = $this->getProduct()->load(0);
-		$productObject->unsId()
-			->addData(
-				array(
-					'type_id' => 'simple', // default product type
-					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
-					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name' => 'temporary-name - ' . uniqid(),
-					'status' => 0, // default - disabled
-					'sku' => $dataObject->getUniqueID(),
+		try {
+			$productObject->unsId()
+				->addData(
+					array(
+						'type_id' => 'simple', // default product type
+						'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+						'attribute_set_id' => $this->getDefaultAttributeSetId(),
+						'name' => (trim($productTitle) !== '')? $productTitle : 'temporary-name - ' . uniqid(),
+						'status' => 0, // default - disabled
+						'sku' => $dataObject->getUniqueId(),
+					)
 				)
-			)
-			->save();
-		return $this->_loadProductBySku($dataObject->getUniqueID());
+				->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
+				for Content Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
+				for Content Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		}
+		return $productObject;
 	}
 
 	/**
@@ -382,7 +415,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		// Setting product name/title from base attributes
 		$baseAttributes = $dataObject->getBaseAttributes();
 		foreach ($baseAttributes as $baseAttribute) {
-			if ($baseAttribute instanceof Varien_Object && trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode())) && trim($baseAttribute->getTitle()) !== '') {
+			if ($baseAttribute instanceof Varien_Object && trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode())) &&
+			trim($baseAttribute->getTitle()) !== '') {
 				// setting the product title according to the store language setting
 				$title = $baseAttribute->getTitle();
 			}
@@ -421,7 +455,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				// get long description data
 				$longDescriptions = $extendedAttributes['long_description'];
 				foreach ($longDescriptions as $longDescription) {
-					if ($longDescription instanceof Varien_Object && trim(strtoupper($longDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+					if ($longDescription instanceof Varien_Object &&
+					trim(strtoupper($longDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 						// extracting the product long description according to the store language setting
 						$data['long_description'] = $longDescription->getLongDescription();
 					}
@@ -432,7 +467,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				// get short description data
 				$shortDescriptions = $extendedAttributes['short_description'];
 				foreach ($shortDescriptions as $shortDescription) {
-					if ($shortDescription instanceof Varien_Object && trim(strtoupper($shortDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
+					if ($shortDescription instanceof Varien_Object &&
+					trim(strtoupper($shortDescription->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 						// setting the product short description according to the store language setting
 						$data['short_description'] = $shortDescription->getShortDescription();
 					}
@@ -460,7 +496,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				if ($customAttribute instanceof Varien_Object && trim(strtoupper($customAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode()))) {
 					// getting the custom attribute into a valid magento attribute format
 					$attributeName = $this->_underscore($customAttribute->getName());
-					if (Mage::helper('eb2cproduct')->hasEavAttr($this, $attributeName)) {
+					if (Mage::helper('eb2cproduct')->hasEavAttr($attributeName)) {
 						// attribute does exists in magento store, let check it's operation type
 						if (trim(strtoupper($customAttribute->getOperationType())) === 'DELETE') {
 							// set the attribute value to null to remove it
@@ -476,7 +512,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 
 		// we have valid custom data let's add it and save it to the product object
 		if (!empty($customData)) {
-			$productObject->addData($customData)->save();
+			try{
+				$productObject->addData($customData)->save();
+			} catch (Mage_Core_Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+					Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
+					product for Content Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			}
 		}
 	}
 
@@ -518,28 +568,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					$categoryId = $this->getCategory()->getId();
 				} catch (Mage_Core_Exception $e) {
 					Mage::logException($e);
+				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+						Mage::log(
+						'[' . __CLASS__ . '] The following error has occurred while adding categories
+						product for Content Master Feed (' . $e->getMessage() . ')',
+						Zend_Log::ERR
+					);
 				}
 			}
 		}
 
 		return $categoryId;
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
 	}
 }

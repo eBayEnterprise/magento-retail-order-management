@@ -184,17 +184,11 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				// @codeCoverageIgnoreEnd
 			}
 			$cards[] = array(
-				// id
 				'i' => $this->getId(),
-				// code
 				'c' => $this->getCode(),
-				// amount
-				'a' => $this->getBalance(),
-				// base amount
-				'ba' => $this->getBalance(),
-				// eb2c pan
+				'a' => $this->getBalance(), // amount
+				'ba' => $this->getBalance(), // base amount
 				'pan' => $this->getEb2cPan(),
-				// eb2c pin
 				'pin' => $this->getEb2cPin(),
 			);
 			Mage::helper('enterprise_giftcardaccount')->setCards($quote, $cards);
