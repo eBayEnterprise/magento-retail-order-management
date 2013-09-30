@@ -16,10 +16,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_A
 	 */
 	public function buildCatalogModelProductTypeConfigurableAttribute()
 	{
-		$catalogModelProductTypeConfigurableAttributeMock = $this->getMock(
-			'Mage_Catalog_Model_Product_Type_Configurable_Attribute',
-			array('setProductAttribute', 'getId', 'getLabel')
-		);
+		$catalogModelProductTypeConfigurableAttributeMock = $this->getModelMockBuilder('catalog/product_type_configurable_attribute')
+			->disableOriginalConstructor()
+			->setMethods(array('setProductAttribute', 'getId', 'getLabel'))
+			->getMock();
 
 		$catalogModelProductTypeConfigurableAttributeMock->expects($this->any())
 			->method('setProductAttribute')

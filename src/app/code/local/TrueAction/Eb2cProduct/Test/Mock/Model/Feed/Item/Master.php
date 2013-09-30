@@ -52,6 +52,25 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master extends EcomDev_PH
 	 *
 	 * @return void
 	 */
+	public function replaceByMockWithValidProductIdSetColorDescriptionThrowException()
+	{
+		$mock = $this->getModelMockBuilder('eb2cproduct/feed_item_master')
+			->setMethods(array('_loadProductBySku'))
+			->getMock();
+
+		$mockCatalogModelProduct = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product();
+		$mock->expects($this->any())
+			->method('_loadProductBySku')
+			->will($this->returnValue($mockCatalogModelProduct->buildCatalogModelProductWithValidProductIdSetColorDescriptionThrowException()));
+
+		$this->replaceByMock('model', 'eb2cproduct/feed_item_master', $mock);
+	}
+
+	/**
+	 * replacing by mock of the TrueAction_Eb2cProduct_Model_Feed_Item_Master class
+	 *
+	 * @return void
+	 */
 	public function replaceByMockWithInvalidProductException()
 	{
 		$mock = $this->getModelMockBuilder('eb2cproduct/feed_item_master')

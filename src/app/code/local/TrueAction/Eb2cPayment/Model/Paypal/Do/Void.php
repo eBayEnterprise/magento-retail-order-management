@@ -15,21 +15,22 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	 */
 	public function doVoid($quote)
 	{
-		$paypalDoVoidResponseMessage = '';
+		$responseMessage = '';
 		try{
 			// build request
-			$payPalDoVoidRequest = $this->buildPayPalDoVoidRequest($quote);
+			$requestDoc = $this->buildPayPalDoVoidRequest($quote);
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
 			// make request to eb2c for quote items PaypalDoVoid
-			$paypalDoVoidResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_void'))
-				->request($payPalDoVoidRequest);
+				->request($requestDoc);
 
 		}catch(Exception $e){
 			Mage::logException($e);
 		}
 
-		return $paypalDoVoidResponseMessage;
+		return $responseMessage;
 	}
 
 	/**

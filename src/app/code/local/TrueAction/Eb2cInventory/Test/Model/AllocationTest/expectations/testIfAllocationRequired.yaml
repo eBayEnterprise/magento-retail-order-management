@@ -1,0 +1,16 @@
+noManaged-nAlloc-stale:
+  is_required: false
+noManaged-nAlloc-fresh:
+  is_required: false
+noManaged-yAlloc-stale:
+  is_required: false
+noManaged-yAlloc-fresh:
+  is_required: false
+isManaged-nAlloc-stale:
+  is_required: true
+isManaged-nAlloc-fresh:
+  is_required: true
+isManaged-yAlloc-stale:
+  is_required: true
+isManaged-yAlloc-fresh:
+  is_required: false

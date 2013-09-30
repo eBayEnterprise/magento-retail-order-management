@@ -6,6 +6,41 @@
  */
 class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHPUnit_Test_Case
 {
+	const VFS_ROOT = 'testBase';
+
+	/**
+	 * Mock the Varien_Io_File object,
+	 * this is our FsTool for testing purposes
+	 */
+	private function _getMockFsTool($vfs, $sampleFiles)
+	{
+		$mockFsTool = $this->getMock('Varien_Io_File', array('cd', 'checkAndCreateFolder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders',));
+		$mockFsTool->expects($this->any())
+			->method('cd')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('checkAndCreateFolder')
+			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('mv')
+			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
+			->will($this->returnValue(true));
+		$mockFsTool->expects($this->any())
+			->method('ls')
+			->will($this->returnValue($sampleFiles));
+		$mockFsTool->expects($this->any())
+			->method('pwd')
+			->will($this->returnValue($vfs->url(self::VFS_ROOT . '/feed_item_master/inbound')));
+		$mockFsTool->expects($this->any())
+			->method('setAllowCreateFolders')
+			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
+			->will($this->returnSelf());
+		// vfs setup ends
+		return $mockFsTool;
+	}
+
 	/**
 	 * testing loadProductBySku method - the reason for this test is because the method will be replace by a mock on all the other tests
 	 *
@@ -15,7 +50,22 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 */
 	public function testLoadProductBySku()
 	{
-		$master = new TrueAction_Eb2cProduct_Model_Feed_Item_Master();
+		$mockModelCatalogProduct = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProduct();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProductCollection();
+
+		$feedItemMasterMock = $this->getModelMockBuilder('eb2cproduct/feed_item_master')
+			->disableOriginalConstructor()
+			->setMethods(array('_construct'))
+			->getMock();
+
+		$feedItemMasterMock->expects($this->any())
+			->method('_construct')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('model', 'eb2cproduct/feed_item_master', $feedItemMasterMock);
+
+		$master = Mage::getModel('eb2cproduct/feed_item_master');
 		$masterReflector = new ReflectionObject($master);
 
 		$loadProductBySku = $masterReflector->getMethod('_loadProductBySku');
@@ -34,7 +84,25 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 */
 	public function testConstructor()
 	{
+		$mockModelCatalogProduct = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProduct();
+		$mockModelCatalogProduct->replaceByMockCatalogModelProductCollection();
+
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelper();
+
+		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
+		$mockCatalogInventoryModelStockItem->replaceByMockCatalogInventoryModelStockItem();
+
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$mockCatalogInventoryModelStockStatus->replaceByMockCatalogInventoryModelStockStatus();
+
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId());
+
 		$feedItemMasterMock = $this->getModelMockBuilder('eb2cproduct/feed_item_master')
+			->disableOriginalConstructor()
 			->setMethods(array('hasFsTool'))
 			->getMock();
 
@@ -43,6 +111,17 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 			->will($this->returnValue(true));
 
 		$this->replaceByMock('model', 'eb2cproduct/feed_item_master', $feedItemMasterMock);
+
+		$feedItemExtractorMock = $this->getModelMockBuilder('eb2cproduct/feed_item_extractor')
+			->disableOriginalConstructor()
+			->setMethods(array('extract'))
+			->getMock();
+
+		$feedItemExtractorMock->expects($this->any())
+			->method('extract')
+			->will($this->returnValue(new Varien_Object()));
+
+		$this->replaceByMock('model', 'eb2cproduct/feed_item_extractor', $feedItemExtractorMock);
 
 		$productFeedModel = Mage::getModel('eb2cproduct/feed_item_master');
 
@@ -57,7 +136,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	}
 
 	/**
-	 * testing processFeeds method - with invalid feed catalog id
+	 * testing processFeeds method - with invalid feed catalog id - but throw Connection Exception
 	 *
 	 * @test
 	 * @large
@@ -65,15 +144,27 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 */
 	public function testProcessFeedsWithInvalidFeedCatalogId()
 	{
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId()); // give a feed with invalid catalog id
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedCatalogId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -87,7 +178,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		// to make the _clean method throw an exception we must mock it
+		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
+		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -99,15 +197,27 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 */
 	public function testProcessFeedsWithInvalidFeedClientId()
 	{
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId()); // give a feed with invalid catalog id
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedClientId());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -121,7 +231,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -131,17 +244,29 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsWithInvalidFeeditemType()
+	public function testProcessFeedsWithInvalidFeedItemType()
 	{
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType()); // give a feed with invalid catalog id
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithInvalidFeedItemType());
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -155,30 +280,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
-	 * testing processFeeds method - when sftp setting is invalid
+	 * testing processFeeds method - product with invalid product id where operation type is 'Delete'
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsWithInvalidSftpSettings()
+	public function testProcessFeedsProductDeleteWithInvalidProductId()
 	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithInvalidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperInvalidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithProductsDelete());
+
+		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
+		$mockItemMaster->replaceByMockWithInvalidProductId();
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -192,34 +332,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		// to make the _clean method throw an exception we must mock it
-		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
-		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
-
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
-	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Add'
+	 * testing processFeeds method - product where delete a product will throw an exception where operation type is 'Delete'
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsBundleProductAddWithInvalidProductId()
+	public function testProcessFeedsProductDeleteWhereDeleteThrowException()
 	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithInvalidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithProductsDelete());
+
+		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
+		$mockItemMaster->replaceByMockWhereDeleteThrowException();
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -233,11 +384,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		// to make the _clean method throw an exception we must mock it
-		$mockCatalogInventoryModelStockStatus = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Status();
-		$master->setStockStatus($mockCatalogInventoryModelStockStatus->buildCatalogInventoryModelStockStatusWithException());
-
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -247,57 +397,32 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsBundleProductAddNosaleWithInvalidProductId()
+	public function testProcessFeedsSimpleProductAddNosaleWithInvalidProductId()
 	{
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
+
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithSimpleProductsAddNosale());
+
 		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
 		$mockItemMaster->replaceByMockWithInvalidProductId();
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
 
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAddNosale());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - bundle product with valid product id where operation type is 'Add'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsBundleProductAddWithValidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -311,67 +436,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
-	 * testing processFeeds method - bundle product invalid product throw an exception where operation type is 'Add'
+	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Add' and Catalog Class 'nosale'
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsBundleProductAddWithInvalidProductException()
+	public function testProcessFeedsSimpleProductWithInvalidProductIdThrowException()
 	{
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
+
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithSimpleProductsAddNosale());
+
 		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
 		$mockItemMaster->replaceByMockWithInvalidProductException();
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
 
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsAdd());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Change'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsBundleProductUpdateWithInvalidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithInvalidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -385,30 +488,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
-	 * testing processFeeds method - bundle product with valid product id where operation type is 'Change'
+	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Add' and Catalog Class 'nosale'
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsBundleProductUpdateWithValidProductId()
+	public function testProcessFeedsSimpleProductAddNosaleWithValidProductId()
 	{
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
+
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithSimpleProductsAddNosale());
+
 		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
 		$mockItemMaster->replaceByMockWithValidProductId();
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
 
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -422,30 +540,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
-	 * testing processFeeds method - bundle product with valid product id where operation type is 'Change' Catalog Class 'nosale'
+	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Add' and Catalog Class 'nosale'
 	 *
 	 * @test
 	 * @large
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testProcessFeedsBundleProductUpdateNosaleWithValidProductId()
+	public function testProcessFeedsSimpleProductWithValidProductIdSetColorDescriptionThrowException()
 	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
 		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
 		$mockHelperObject->replaceByMockProductHelper();
 		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		$mockHelperObject->replaceByMockCoreHelper();
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdateNosale());
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedForItemMasterWithSimpleProductsAddNosale());
+
+		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
+		$mockItemMaster->replaceByMockWithValidProductIdSetColorDescriptionThrowException();
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
+
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -459,118 +592,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - bundle product with valid product throwing exception where operation type is 'Change'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsBundleProductUpdateWithValidProductException()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductException();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsUpdate());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - bundle product with invalid product id where operation type is 'Delete'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsBundleProductDeleteWithInvalidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithInvalidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - bundle product where delete a product will throw an exception where operation type is 'Delete'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsBundleProductDeleteWhereDeleteThrowException()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWhereDeleteThrowException();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithBundleProductsDelete());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 
 	/**
@@ -582,55 +607,30 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 	 */
 	public function testProcessFeedsConfigurableProductAddWithValidProductId()
 	{
+		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
+		$mockHelperObject->replaceByMockProductHelper();
+		$mockHelperObject->replaceByMockCoreHelperFeed();
+		$mockHelperObject->replaceByMockCoreHelper();
+
+		$coreFeedModel = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModel->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
+
 		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
 		$mockItemMaster->replaceByMockWithValidProductId();
 
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
 
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
+		// Set up a Varien_Io_File style array for dummy file listing.
+		$vfsDump = $vfs->dump();
+		foreach($vfsDump['root'][self::VFS_ROOT]['feed_item_master']['inbound'] as $filename => $contents ) {
+			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
+		}
 
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - configurable product with invalid product id where operation type is 'Add'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsConfigurableProductAddWithInvalidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductException();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedFortItemMasterWithConfigurableProductsAdd());
+		$master = Mage::getModel(
+			'eb2cproduct/feed_item_master',
+			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_item_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
+		);
 
 		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
 		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
@@ -644,80 +644,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
 		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
 
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - grouped product with invalid product id where operation type is 'Add'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsGroupedProductAddWithValidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductId();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
-	}
-
-	/**
-	 * testing processFeeds method - grouped product with invalid product id where operation type is 'Add'
-	 *
-	 * @test
-	 * @large
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessFeedsGroupedProductAddWithInvalidProductId()
-	{
-		$mockItemMaster = new TrueAction_Eb2cProduct_Test_Mock_Model_Feed_Item_Master();
-		$mockItemMaster->replaceByMockWithValidProductException();
-
-		$master = Mage::getModel('eb2cproduct/feed_item_master');
-
-		$mockHelperObject = new TrueAction_Eb2cProduct_Test_Mock_Helper_Data();
-		$mockHelperObject->replaceByMockProductHelper();
-		$mockHelperObject->replaceByMockCoreHelperFeed();
-		$mockHelperObject->replaceByMockCoreHelperValidSftpSettings();
-
-		$mockCoreModelFeed = new TrueAction_Eb2cProduct_Test_Mock_Model_Core_Feed();
-		$master->setFeedModel($mockCoreModelFeed->buildEb2cCoreModelFeedForItemMasterWithGroupedProductsAdd());
-
-		$mockCatalogInventoryModelStockItem = new TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item();
-		$master->setStockItem($mockCatalogInventoryModelStockItem->buildCatalogInventoryModelStockItem());
-
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$mockEavModelEntityAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Entity_Attribute();
-		$master->setEavEntityAttribute($mockEavModelEntityAttribute->buildEavModelEntityAttribute());
-
-		$mockCalogModelProductTypeConfigurableAttribute = new TrueAction_Eb2cProduct_Test_Mock_Model_Catalog_Product_Type_Configurable_Attribute();
-		$master->setProductTypeConfigurableAttribute($mockCalogModelProductTypeConfigurableAttribute->buildCatalogModelProductTypeConfigurableAttribute());
-
-		$this->assertNull($master->processFeeds());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Item_Master',
+			$master->processFeeds()
+		);
 	}
 }
