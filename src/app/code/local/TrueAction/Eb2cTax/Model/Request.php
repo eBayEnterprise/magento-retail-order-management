@@ -363,7 +363,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		// if this is a virtual destination, then only extract the
 		// email address
 		if ($isVirtual) {
-			$data['email_address'] = $this->_checkLength($address->getEmail(), 1, 70, false);
+			$data['email_address'] = $this->_checkLength($address->getEmail(), 1, null, false);
 		} else {
 			$data['city'] = $this->_checkLength($address->getCity(), 1, 35);
 			$data['main_division'] = $address->getRegionModel()->getCode();
