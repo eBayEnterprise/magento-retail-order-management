@@ -161,7 +161,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			return $this;
 		}
 		foreach ($items as $i => $item) {
-			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', $i, $numItems), Zend_Log::DEBUG);
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
 			$catId = $item->getCatalogId();
 			$clientId = $item->getGsiClientId();
 			$prodType = $item->getProductType();
