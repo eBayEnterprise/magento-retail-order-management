@@ -15,4 +15,9 @@ class TrueAction_Eb2cInventory_Model_Abstract extends Varien_Object
 	{
 		return (!$item->getProduct()->getStockItem()->getManageStock() || $item->getIsVirtual())? false : true;
 	}
+
+	public function getInventoriedItems(Mage_Sales_Model_Quote $quote)
+	{
+		return array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems'));
+	}
 }

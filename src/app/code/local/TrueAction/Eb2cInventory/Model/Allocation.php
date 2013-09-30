@@ -15,7 +15,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function requiresAllocation(Mage_Sales_Model_Quote $quote)
 	{
-		$managedStockItems = array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems'));
+		$managedStockItems = $this->getInventoriedItems($quote);
 		return !empty($managedStockItems) && (!$this->hasAllocation($quote) || $this->isExpired($quote));
 	}
 
@@ -180,7 +180,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		$allocationResult = array();
 
 		foreach ($allocationData as $data) {
-			foreach ($quote->getAllItems() as $item) {
+			foreach ($this->getInventoriedItems($quote) as $item) {
 				// find the item in the quote
 				if ((int) $item->getItemId() === (int) $data['lineId']) {
 					// update quote with eb2c data.
@@ -203,7 +203,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	protected function _emptyQuoteAllocation($quote)
 	{
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote) as $item) {
 			// emptying reservation data from quote item
 			$item->unsEb2cReservationId()
 				->unsEb2cReservedAt()
@@ -220,7 +220,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function hasAllocation($quote)
 	{
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote) as $item) {
 			// find the reservation data in the quote item
 			if (trim($item->getEb2cReservationId()) !== '') {
 				return true;
@@ -241,7 +241,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		$expireMins = (int) Mage::helper('eb2cinventory')->getConfigModel()->allocationExpired;
 		$expiredIfReservedBefore = $now->sub(DateInterval::createFromDateString(sprintf('%d minutes', $expireMins)));
 
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote) as $item) {
 			// find the reservation data in the quote item
 			if ($item->hasEb2cReservedAt()) {
 				$reservedAt = new DateTime($item->getEb2cReservedAt());

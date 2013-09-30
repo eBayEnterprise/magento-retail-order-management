@@ -8,19 +8,18 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	 */
 	public function getInventoryDetails($quote)
 	{
-		$inventoryDetailsResponseMessage = '';
+		$responseMessage = '';
 		try {
 			// build request
-			$inventoryDetailsRequestMessage = $this->buildInventoryDetailsRequestMessage($quote);
-
+			$requestMessage = $this->buildInventoryDetailsRequestMessage($quote);
 			// make request to eb2c for inventory details
-			$inventoryDetailsResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cinventory')->getOperationUri('get_inventory_details'))
-				->request($inventoryDetailsRequestMessage);
+				->request($requestMessage);
 		} catch (Exception $e) {
 			Mage::logException($e);
 		}
-		return $inventoryDetailsResponseMessage;
+		return $responseMessage;
 	}
 
 	/**
@@ -31,12 +30,12 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	public function buildInventoryDetailsRequestMessage($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
+		$requestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		if ($quote) {
-			foreach(array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
+			foreach($this->getInventoriedItems($quote) as $item) {
 				try {
 					// creating orderItem element
-					$orderItem = $inventoryDetailsRequestMessage->createChild(
+					$orderItem = $requestMessage->createChild(
 						'OrderItem',
 						null,
 						array('lineId' => $item->getId(), 'itemId' => $item->getSku())
@@ -87,7 +86,7 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 					// add ship to address MainDivision
 					$shipToAddress->createChild(
 						'MainDivision',
-						$shippingAddress->getRegion()
+						$shippingAddress->getRegionCode()
 					);
 
 					// add ship to address CountryCode
@@ -111,17 +110,17 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 
 	/**
 	 * Parse inventory details response xml.
-	 * @param string $inventoryDetailsResponseMessage the xml response from eb2c
+	 * @param string $responseMessage the xml response from eb2c
 	 * @return array, an associative array of response data
 	 */
-	public function parseResponse($inventoryDetailsResponseMessage)
+	public function parseResponse($responseMessage)
 	{
 		$inventoryData = array();
-		if (trim($inventoryDetailsResponseMessage) !== '') {
+		if (trim($responseMessage) !== '') {
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string xml from eb2c
-			$doc->loadXML($inventoryDetailsResponseMessage);
+			$doc->loadXML($responseMessage);
 			$i = 0;
 			$inventoryDetails = $doc->getElementsByTagName('InventoryDetails');
 			foreach($inventoryDetails as $response) {
@@ -177,7 +176,7 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	{
 
 		foreach ($inventoryData as $data) {
-			foreach ($quote->getAllItems() as $item) {
+			foreach ($this->getInventoriedItems($quote) as $item) {
 				// find the item in the quote
 				if ((int) $item->getItemId() === (int) $data['lineId']) {
 					// update quote with eb2c data.

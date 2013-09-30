@@ -128,193 +128,193 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		return $quoteMock;
 	}
 
-	public function providerGetInventoryDetails()
-	{
-		return array(
-			array($this->buildQuoteMock())
-		);
-	}
+	// public function providerGetInventoryDetails()
+	// {
+	// 	return array(
+	// 		array($this->buildQuoteMock())
+	// 	);
+	// }
 
-	/**
-	 * testing getting inventory details
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerGetInventoryDetails
-	 */
-	public function testGetInventoryDetails($quote)
-	{
-		// testing when you can allocated inventory
-		$this->assertNotNull(
-			$this->_details->getInventoryDetails($quote)
-		);
-	}
+	// /**
+	//  * testing getting inventory details
+	//  *
+	//  * @test
+	//  * @loadFixture loadConfig.yaml
+	//  * @dataProvider providerGetInventoryDetails
+	//  */
+	// public function testGetInventoryDetails($quote)
+	// {
+	// 	// testing when you can allocated inventory
+	// 	$this->assertNotNull(
+	// 		$this->_details->getInventoryDetails($quote)
+	// 	);
+	// }
 
-	/**
-	 * testing when getting inventory details API call throw an exception
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerGetInventoryDetails
-	 */
-	public function testGetInventoryDetailsWithApiCallException($quote)
-	{
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Exception));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+	// /**
+	//  * testing when getting inventory details API call throw an exception
+	//  *
+	//  * @test
+	//  * @loadFixture loadConfig.yaml
+	//  * @dataProvider providerGetInventoryDetails
+	//  */
+	// public function testGetInventoryDetailsWithApiCallException($quote)
+	// {
+	// 	$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+	// 	$apiModelMock->expects($this->any())
+	// 		->method('setUri')
+	// 		->will($this->returnSelf());
+	// 	$apiModelMock->expects($this->any())
+	// 		->method('request')
+	// 		->will($this->throwException(new Exception));
+	// 	$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$this->assertSame(
-			'',
-			trim($this->_details->getInventoryDetails($quote))
-		);
-	}
+	// 	$this->assertSame(
+	// 		'',
+	// 		trim($this->_details->getInventoryDetails($quote))
+	// 	);
+	// }
 
-	public function providerBuildInventoryDetailsRequestMessage()
-	{
-		return array(
-			array($this->buildQuoteMock())
-		);
-	}
+	// public function providerBuildInventoryDetailsRequestMessage()
+	// {
+	// 	return array(
+	// 		array($this->buildQuoteMock())
+	// 	);
+	// }
 
-	/**
-	 * testing building inventory details request message
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerBuildInventoryDetailsRequestMessage
-	 */
-	public function testBuildInventoryDetailsRequestMessage($quote)
-	{
-		// testing when you can allocated inventory
-		$this->assertNotNull(
-			$this->_details->buildInventoryDetailsRequestMessage($quote)
-		);
-	}
+	// /**
+	//  * testing building inventory details request message
+	//  *
+	//  * @test
+	//  * @loadFixture loadConfig.yaml
+	//  * @dataProvider providerBuildInventoryDetailsRequestMessage
+	//  */
+	// public function testBuildInventoryDetailsRequestMessage($quote)
+	// {
+	// 	// testing when you can allocated inventory
+	// 	$this->assertNotNull(
+	// 		$this->_details->buildInventoryDetailsRequestMessage($quote)
+	// 	);
+	// }
 
-	public function providerBuildInventoryDetailsRequestMessageWithException()
-	{
-		$addressMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
-		);
-		$addressMock->expects($this->any())
-			->method('getShippingMethod')
-			->will($this->returnValue('USPS: 3 Day Select')
-			);
-		$addressMock->expects($this->any())
-			->method('getStreet')
-			->will($this->returnValue(array('1938 Some Street'))
-			);
-		$addressMock->expects($this->any())
-			->method('getCity')
-			->will($this->returnValue('King of Prussia')
-			);
-		$addressMock->expects($this->any())
-			->method('getRegion')
-			->will($this->returnValue('Pennsylvania')
-			);
-		$addressMock->expects($this->any())
-			->method('getCountryId')
-			->will($this->returnValue('US')
-			);
-		$addressMock->expects($this->any())
-			->method('getPostcode')
-			->will($this->returnValue('19726')
-			);
+	// public function providerBuildInventoryDetailsRequestMessageWithException()
+	// {
+	// 	$addressMock = $this->getMock(
+	// 		'Mage_Sales_Model_Quote_Address',
+	// 		array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode')
+	// 	);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getShippingMethod')
+	// 		->will($this->returnValue('USPS: 3 Day Select')
+	// 		);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getStreet')
+	// 		->will($this->returnValue(array('1938 Some Street'))
+	// 		);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getCity')
+	// 		->will($this->returnValue('King of Prussia')
+	// 		);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getRegion')
+	// 		->will($this->returnValue('Pennsylvania')
+	// 		);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getCountryId')
+	// 		->will($this->returnValue('US')
+	// 		);
+	// 	$addressMock->expects($this->any())
+	// 		->method('getPostcode')
+	// 		->will($this->returnValue('19726')
+	// 		);
 
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('getManageStock')
-		);
+	// 	$stockItemMock = $this->getMock(
+	// 		'Mage_CatalogInventory_Model_Stock_Item',
+	// 		array('getManageStock')
+	// 	);
 
-		$stockItemMock->expects($this->any())
-			->method('getManageStock')
-			->will($this->returnValue(true)
-			);
+	// 	$stockItemMock->expects($this->any())
+	// 		->method('getManageStock')
+	// 		->will($this->returnValue(true)
+	// 		);
 
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('getStockItem')
-		);
+	// 	$productMock = $this->getMock(
+	// 		'Mage_Catalog_Model_Product',
+	// 		array('getStockItem')
+	// 	);
 
-		$productMock->expects($this->any())
-			->method('getStockItem')
-			->will($this->returnValue($stockItemMock)
-			);
+	// 	$productMock->expects($this->any())
+	// 		->method('getStockItem')
+	// 		->will($this->returnValue($stockItemMock)
+	// 		);
 
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId', 'getProduct', 'getIsVirtual')
-		);
-		$itemMock->expects($this->any())
-			->method('getQty')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue($this->throwException(new Exception)));
-		$itemMock->expects($this->any())
-			->method('getItemId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getProduct')
-			->will($this->returnValue($productMock)
-			);
-		$itemMock->expects($this->any())
-			->method('getIsVirtual')
-			->will($this->returnValue(false)
-			);
+	// 	$itemMock = $this->getMock(
+	// 		'Mage_Sales_Model_Quote_Item',
+	// 		array('getQty', 'getId', 'getSku', 'getItemId', 'getProduct', 'getIsVirtual')
+	// 	);
+	// 	$itemMock->expects($this->any())
+	// 		->method('getQty')
+	// 		->will($this->returnValue(1)
+	// 		);
+	// 	$itemMock->expects($this->any())
+	// 		->method('getId')
+	// 		->will($this->returnValue(1)
+	// 		);
+	// 	$itemMock->expects($this->any())
+	// 		->method('getSku')
+	// 		->will($this->returnValue($this->throwException(new Exception)));
+	// 	$itemMock->expects($this->any())
+	// 		->method('getItemId')
+	// 		->will($this->returnValue(1)
+	// 		);
+	// 	$itemMock->expects($this->any())
+	// 		->method('getProduct')
+	// 		->will($this->returnValue($productMock)
+	// 		);
+	// 	$itemMock->expects($this->any())
+	// 		->method('getIsVirtual')
+	// 		->will($this->returnValue(false)
+	// 		);
 
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems', 'getShippingAddress', 'getItemById', 'save')
-		);
-		$quoteMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAddress')
-			->will($this->returnValue($addressMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('getItemById')
-			->will($this->returnValue($itemMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('save')
-			->will($this->returnValue(1)
-			);
+	// 	$quoteMock = $this->getMock(
+	// 		'Mage_Sales_Model_Quote',
+	// 		array('getAllItems', 'getShippingAddress', 'getItemById', 'save')
+	// 	);
+	// 	$quoteMock->expects($this->any())
+	// 		->method('getAllItems')
+	// 		->will($this->returnValue(array($itemMock))
+	// 		);
+	// 	$quoteMock->expects($this->any())
+	// 		->method('getShippingAddress')
+	// 		->will($this->returnValue($addressMock)
+	// 		);
+	// 	$quoteMock->expects($this->any())
+	// 		->method('getItemById')
+	// 		->will($this->returnValue($itemMock)
+	// 		);
+	// 	$quoteMock->expects($this->any())
+	// 		->method('save')
+	// 		->will($this->returnValue(1)
+	// 		);
 
-		return array(
-			array($quoteMock)
-		);
-	}
+	// 	return array(
+	// 		array($quoteMock)
+	// 	);
+	// }
 
-	/**
-	 * testing building inventory details request message
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerBuildInventoryDetailsRequestMessageWithException
-	 */
-	public function testBuildInventoryDetailsRequestMessageWithException($quote)
-	{
-		// testing when building the inventory details message throw an exception
-		$this->assertNotNull(
-			$this->_details->buildInventoryDetailsRequestMessage($quote)
-		);
-	}
+	// /**
+	//  * testing building inventory details request message
+	//  *
+	//  * @test
+	//  * @loadFixture loadConfig.yaml
+	//  * @dataProvider providerBuildInventoryDetailsRequestMessageWithException
+	//  */
+	// public function testBuildInventoryDetailsRequestMessageWithException($quote)
+	// {
+	// 	// testing when building the inventory details message throw an exception
+	// 	$this->assertNotNull(
+	// 		$this->_details->buildInventoryDetailsRequestMessage($quote)
+	// 	);
+	// }
 
 	public function providerProcessInventoryDetails()
 	{
@@ -389,4 +389,117 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			$this->_details->parseResponse($inventoryDetailsResponseMessage)
 		);
 	}
+
+	/**
+	 * Create a quote and items that will create a given request message
+	 * @return array
+	 */
+	public function inventoryDetailsQuote()
+	{
+		$address = Mage::getModel('sales/quote_address', array(
+			'firstname' => 'Foo',
+			'lastname' => 'Bar',
+			'street' => 'One Bagshot Row',
+			'city' => 'Bag End',
+			'region_id' => '51',
+			'region' => 'PA',
+			'country_id' => 'US',
+			'telephone' => '555-555-5555',
+			'postcode' => '19123',
+			'shipping_method' => 'USPSStandard'
+		));
+
+		$products = array();
+		$products[] = Mage::getModel('catalog/product', array(
+			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
+		));
+		$products[] = Mage::getModel('catalog/product', array(
+			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
+		));
+		$products[] = Mage::getModel('catalog/product', array(
+			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => false,)),
+		));
+		$products[] = Mage::getModel('catalog/product', array(
+			'stock_item' => Mage::getModel('cataloginventory/stock_item', array('manage_stock' => true,)),
+		));
+
+		$items = array();
+		$items[] = Mage::getModel('sales/quote_item', array(
+			'product' => $products[0],
+			'is_virtual' => false,
+			'sku' => 'item1',
+			'qty' => 5,
+		));
+		$items[] = Mage::getModel('sales/quote_item', array(
+			'product' => $products[1],
+			'is_virtual' => false,
+			'sku' => 'item2',
+			'qty' => 7,
+		));
+		$items[] = Mage::getModel('sales/quote_item', array(
+			'product' => $products[2],
+			'is_virtual' => false,
+			'sku' => 'item3',
+			'qty' => 5,
+		));
+		$items[] = Mage::getModel('sales/quote_item', array(
+			'product' => $products[3],
+			'is_virtual' => true,
+			'sku' => 'item4',
+			'qty' => 5,
+		));
+
+		$quote = Mage::getModel('sales/quote');
+		$quote->setShippingAddress($address);
+		$quote->addItem($items[0])->addItem($items[1])->addItem($items[2])->addItem($items[3]);
+		$items[0]->setId(0);
+		$items[1]->setId(1);
+		$items[2]->setId(2);
+		$items[3]->setId(3);
+		$request = '<?xml version="1.0" encoding="UTF-8"?>
+<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item1" lineId="0"><Quantity><![CDATA[5]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item2" lineId="1"><Quantity><![CDATA[7]]></Quantity><ShipmentDetails><ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod><ShipToAddress><Line1><![CDATA[One Bagshot Row]]></Line1><City><![CDATA[Bag End]]></City><MainDivision><![CDATA[PA]]></MainDivision><CountryCode><![CDATA[US]]></CountryCode><PostalCode><![CDATA[19123]]></PostalCode></ShipToAddress></ShipmentDetails></OrderItem></InventoryDetailsRequestMessage>';
+		return array(
+			array($quote, $request),
+		);
+	}
+
+	/**
+	 * Test getting inventory details
+	 * @param  Mage_Sales_Model_Quote $quote
+	 * @param  string $request The request XML that should be created for the given quote
+	 *
+	 * @dataProvider inventoryDetailsQuote
+	 * @test
+	 */
+	public function testGetInventoryDetails($quote, $request)
+	{
+		$response = '<What>Ever</What>';
+		$api = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+		$api->expects($this->once())
+			->method('setUri')
+			->will($this->returnSelf());
+		$api->expects($this->once())
+			->method('request')
+			->with($this->callback(function ($arg) use ($request) {
+				$x = new TrueAction_Dom_Document();
+				$arg->preserveWhiteSpace = false;
+				$arg->normalizeDocument();
+				$x->loadXML($request);
+				$x->normalizeDocument();
+				var_dump($x->saveXml());
+				var_dump($arg->saveXml());
+
+				var_dump(md5($x->saveXml()));
+				var_dump(md5($arg->saveXml()));
+				return $x->documentElement === $arg->documentElement;
+			}))
+			->will($this->returnValue($response));
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+
+		$this->assertSame($response, $this->_details->getInventoryDetails($quote));
+	}
+
 }
