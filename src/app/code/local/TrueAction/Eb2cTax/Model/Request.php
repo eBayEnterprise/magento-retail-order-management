@@ -812,9 +812,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		}
 		$data = array(
 			'Line1' => $lineAddress,
-			'Line2' => 'Line2',
-			'Line3' => 'Line3',
-			'Line4' => 'Line4',
 			'City' => $city,
 			'MainDivision' => $state,
 			'CountryCode' => $countryCode,
@@ -835,9 +832,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$data = array(
 			'Line1'        => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
 			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
 			'CountryCode'  => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
@@ -859,9 +853,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		return $parent->createChild('AdminOrigin')
 			->addChild('Line1', $adminOrigin['Line1'])
-			->addChild('Line2', $adminOrigin['Line2'])
-			->addChild('Line3', $adminOrigin['Line3'])
-			->addChild('Line4', $adminOrigin['Line4'])
 			->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])
@@ -880,9 +871,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		return $parent->createChild('ShippingOrigin')
 			->addChild('Line1', $shippingOrigin['Line1'])
-			->addChild('Line2', $shippingOrigin['Line2'])
-			->addChild('Line3', $shippingOrigin['Line3'])
-			->addChild('Line4', $shippingOrigin['Line4'])
 			->addChild('City', $shippingOrigin['City'])
 			->addChild('MainDivision', $shippingOrigin['MainDivision'])
 			->addChild('CountryCode', $shippingOrigin['CountryCode'])
