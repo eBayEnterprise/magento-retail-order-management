@@ -16,8 +16,13 @@ class TrueAction_Eb2cInventory_Model_Abstract extends Varien_Object
 		return (!$item->getProduct()->getStockItem()->getManageStock() || $item->getIsVirtual())? false : true;
 	}
 
-	public function getInventoriedItems(Mage_Sales_Model_Quote $quote)
+	/**
+	 * Filter the array of quote items down to only those that have managed stock
+	 * @param  Mage_Sales_Model_Quote_Item[]  $quoteItems Items to filter
+	 * @return Mage_Sales_Model_Quote_Item[]  Filtered items
+	 */
+	public function getInventoriedItems(array $quoteItems)
 	{
-		return array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems'));
+		return array_filter($quoteItems, array($this, 'filterInventoriedItems'));
 	}
 }
