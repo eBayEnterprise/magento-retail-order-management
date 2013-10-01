@@ -530,12 +530,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 		$baseNode = self::FEED_BASE_NODE;
 
 		$master = $feedXPath->query("//$baseNode");
-		$idx = 1; // start index
+		$idx = 1; // xpath uses 1-based indexing
 		Mage::log(sprintf('[ %s ] Found %d items to extract', __CLASS__, $master->length), Zend_Log::DEBUG);
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
 
-			// setting item object into the colelction of item objects.
+			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
 					// setting catalog id
@@ -562,8 +562,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor extends Mage_Core_Model_A
 			);
 
 			// increment item index
-			$idx++;
 			Mage::log(sprintf('[ %s ] Extracted %d of %d items', __CLASS__, $idx, $master->length), Zend_Log::DEBUG);
+			$idx++;
 		}
 		return $collectionOfItems;
 	}

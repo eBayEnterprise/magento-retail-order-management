@@ -6,6 +6,7 @@
 class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 {
 	const EMAIL_MAX_LENGTH         = 70;
+	const NUM_STREET_LINES         = 4;
 	protected $_helper             = null;
 	protected $_xml                = '';
 	protected $_doc                = null;
@@ -24,6 +25,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_shipGroupIds       = array();
 	protected $_addresses          = array();
 	protected $_itemQuantities     = array();
+
+	private $_requiredAddressFields = array(
+		'line1',
+		'city',
+		'country_code'
+	);
 
 	/**
 	 * map skus to a quote item
@@ -164,40 +171,46 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _processQuote()
 	{
-		$quote = $this->getQuote();
-		// track if this is a multishipping quote or not.
-		$this->_isMultiShipping = (bool) $quote->getIsMultiShipping();
-		// create the billing address destination node(s)
-		$billAddress = $quote->getBillingAddress();
-		$this->_billingInfoRef = $this->_getDestinationId($billAddress);
-		$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
-			$billAddress
-		);
-		foreach ($quote->getAllAddresses() as $address) {
-			// keep a serialized copy of each address for use when looking for changes.
-			$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
-			$items = $this->_getItemsForAddress($address);
-			foreach ($items as $item) {
-				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-					foreach ($item->getChildren() as $child) {
-						$isVirtual = $child->getProduct()->isVirtual();
-						$this->_addToDestination($child, $address, $isVirtual);
-						$sku = $child->getSku();
+		try {
+			$quote = $this->getQuote();
+			// track if this is a multishipping quote or not.
+			$this->_isMultiShipping = (bool) $quote->getIsMultiShipping();
+			// create the billing address destination node(s)
+			$billAddress = $quote->getBillingAddress();
+			$this->_billingInfoRef = $this->_getDestinationId($billAddress);
+			$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
+				$billAddress
+			);
+			foreach ($quote->getAllAddresses() as $address) {
+				// keep a serialized copy of each address for use when looking for changes.
+				$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
+				$items = $this->_getItemsForAddress($address);
+				foreach ($items as $item) {
+					if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+						foreach ($item->getChildren() as $child) {
+							$isVirtual = $child->getProduct()->isVirtual();
+							$this->_addToDestination($child, $address, $isVirtual);
+							$sku = $child->getSku();
+							if (!isset($this->_itemQuantities[$sku])) {
+								$this->_itemQuantities[$sku] = 0;
+							}
+							$this->_itemQuantities[$sku] += $child->getTotalQty();
+						}
+					} else {
+						$isVirtual = $item->getProduct()->isVirtual();
+						$this->_addToDestination($item, $address, $isVirtual);
+						$sku = $item->getSku();
 						if (!isset($this->_itemQuantities[$sku])) {
 							$this->_itemQuantities[$sku] = 0;
 						}
-						$this->_itemQuantities[$sku] += $child->getTotalQty();
+						$this->_itemQuantities[$sku] += $item->getTotalQty();
 					}
-				} else {
-					$isVirtual = $item->getProduct()->isVirtual();
-					$this->_addToDestination($item, $address, $isVirtual);
-					$sku = $item->getSku();
-					if (!isset($this->_itemQuantities[$sku])) {
-						$this->_itemQuantities[$sku] = 0;
-					}
-					$this->_itemQuantities[$sku] += $item->getTotalQty();
 				}
 			}
+		}
+		catch (Mage_Core_Exception $e) {
+			Mage::log($e->getMessage(), Zend_Log::DEBUG);
+			$this->invalidate();
 		}
 	}
 
@@ -346,10 +359,10 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$address = $this->getBillingAddress();
 		}
 		$data = array(
-			'id'         => $id,
+			'id' => $id,
 			'is_virtual' => $isVirtual,
-			'last_name'  => $address->getLastname(),
-			'first_name' => $address->getFirstname()
+			'last_name'  => $this->_checkLength($address->getLastname(), 1, 64),
+			'first_name' => $this->_checkLength($address->getFirstname(), 1, 64),
 		);
 		$honorific = $address->getPrefix();
 		if ($honorific) {
@@ -362,15 +375,48 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		// if this is a virtual destination, then only extract the
 		// email address
 		if ($isVirtual) {
-			$data['email_address'] = $address->getEmail();
+			$data['email_address'] = $this->_checkLength($address->getEmail(), 1, null, false);
 		} else {
-			$data['city'] = $address->getCity();
+			$data['city'] = $this->_checkLength($address->getCity(), 1, 35);
 			$data['main_division'] = $address->getRegionModel()->getCode();
-			$data['country_code'] = $address->getCountryId();
+			$data['country_code'] = $this->_checkLength($address->getCountryId(), 2, 2, false);
 			$data['postal_code'] = $address->getPostcode();
-			$data['street'] = $address->getStreet();
+			$data['line1'] = $this->_checkLength($address->getStreet1(), 1, 70);
+			for ($i = 2; $i <= self::NUM_STREET_LINES; ++$i) {
+				$data['line' . $i] = $address->getStreet($i);
+			}
 		}
+		$this->_validateDestData($data, $isVirtual);
 		return $data;
+	}
+
+	/**
+	 * validate the data extracted from an address.
+	 * @param  array   $destData   extracted data from an address
+	 * @param  boolean $isVirtual  true if the destination is virtual; false otherwise
+	 * @return self
+	 */
+	protected function _validateDestData($destData, $isVirtual)
+	{
+		if ($isVirtual) {
+			$fields = array('email_address');
+		} else {
+			$fields = array(
+				'last_name',
+				'first_name',
+				'city',
+				'line1',
+				'country_code',
+			);
+		}
+		foreach ($fields as $field) {
+			$value = isset($destData[$field]) ? $destData[$field] : null;
+			if (is_null($value)) {
+				$message = sprintf('field %s: value [%s] is invalid length', $field, $value);
+				throw new Mage_Core_Exception($message);
+			}
+		}
+		return $this;
 	}
 
 	protected function _extractItemData($item, $address)
@@ -536,14 +582,19 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _buildAddressNode(TrueAction_Dom_Element $parent, $address)
 	{
 		// loop through to get all of the street lines.
-		$streetLines = $address['street'];
-		foreach ($streetLines as $streetIndex => $street) {
-			$parent->createChild('Line' . ($streetIndex + 1), $street);
+		for ($i = 1; $i <= self::NUM_STREET_LINES; ++$i) {
+			if ($address['line' . $i]) {
+				$parent->createChild('Line' . $i, $address['line' . $i]);
+			}
 		}
 		$parent->createChild('City', $address['city']);
-		$parent->createChild('MainDivision', $address['main_division']);
+		if ($address['main_division']) {
+			$parent->createChild('MainDivision', $address['main_division']);
+		}
 		$parent->createChild('CountryCode', $address['country_code']);
-		$parent->createChild('PostalCode', $address['postal_code']);
+		if ($address['postal_code']) {
+			$parent->createChild('PostalCode', $address['postal_code']);
+		}
 	}
 
 	/**
@@ -635,13 +686,15 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _checkLength($string, $minLength=null, $maxLength=null, $truncate=true)
 	{
 		$result = null;
-		$len = strlen($string);
-		if (is_null($minLength) || $len >= $minLength) {
-			$result = $string;
-		}
-		if ($result && !is_null($maxLength)) {
-			if (($len > $maxLength)) {
-				$result = ($truncate) ? substr($string, 0, $maxLength) : null;
+		if (!is_null($string)) {
+			$len = strlen($string);
+			if (is_null($minLength) || $len >= $minLength) {
+				$result = $string;
+			}
+			if ($result && !is_null($maxLength)) {
+				if (($len > $maxLength)) {
+					$result = ($truncate) ? substr($string, 0, $maxLength) : null;
+				}
 			}
 		}
 		return $result;
@@ -777,9 +830,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		}
 		$data = array(
 			'Line1' => $lineAddress,
-			'Line2' => 'Line2',
-			'Line3' => 'Line3',
-			'Line4' => 'Line4',
 			'City' => $city,
 			'MainDivision' => $state,
 			'CountryCode' => $countryCode,
@@ -800,9 +850,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$data = array(
 			'Line1'        => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
 			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
 			'CountryCode'  => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
@@ -810,6 +857,25 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		);
 
 		return $data;
+	}
+
+	/**
+	 * validate extracted data.
+	 * @param  array   $data   extracted data as an array
+	 * @param  array   $fields keys to check
+	 * @return self
+	 * @throws Mage_Core_Exception If any key maps to a null value
+	 */
+	protected function _validateData($data, $fields=array())
+	{
+		foreach ($fields as $field) {
+			$value = isset($destData[$field]) ? $destData[$field] : null;
+			if (is_null($value)) {
+				$message = sprintf('field %s: value [%s] is invalid length', $field, $value);
+				throw new Mage_Core_Exception($message);
+			}
+		}
+		return $this;
 	}
 
 	/**
@@ -824,9 +890,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		return $parent->createChild('AdminOrigin')
 			->addChild('Line1', $adminOrigin['Line1'])
-			->addChild('Line2', $adminOrigin['Line2'])
-			->addChild('Line3', $adminOrigin['Line3'])
-			->addChild('Line4', $adminOrigin['Line4'])
 			->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])
@@ -845,9 +908,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		return $parent->createChild('ShippingOrigin')
 			->addChild('Line1', $shippingOrigin['Line1'])
-			->addChild('Line2', $shippingOrigin['Line2'])
-			->addChild('Line3', $shippingOrigin['Line3'])
-			->addChild('Line4', $shippingOrigin['Line4'])
 			->addChild('City', $shippingOrigin['City'])
 			->addChild('MainDivision', $shippingOrigin['MainDivision'])
 			->addChild('CountryCode', $shippingOrigin['CountryCode'])

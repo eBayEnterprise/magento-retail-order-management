@@ -13,3 +13,21 @@
 -
   - 1
   - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>N</ResultCode></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>U</ResultCode></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>T</ResultCode></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>P</ResultCode><ProviderErrorText>Provider Error Message</ProviderErrorText></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>M</ResultCode></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>Unknown</ResultCode></Result></AddressValidationResponse>
+-
+  - 1
+  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result></Result></AddressValidationResponse>

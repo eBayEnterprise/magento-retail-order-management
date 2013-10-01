@@ -58,6 +58,23 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * verify extracted data causes an exception when required fields have incorrect length
+	 * @dataProvider dataProvider
+	 */
+	public function testExtractDestDataException($function, $value='', $isVirtual=false)
+	{
+		$this->setExpectedException('Mage_Core_Exception');
+		$address = $this->_stubSimpleAddress();
+		$address->$function($value);
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$this->_reflectMethod($request, '_extractDestData')
+			->invoke($request, $address, $isVirtual);
+	}
+
+	/**
 	 * Mock the core store model with the given code and id
 	 * @param  string  $code Expected store code
 	 * @param  integer $id   Expected store id
@@ -2372,9 +2389,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		$this->assertSame(array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2429,9 +2443,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		$this->assertSame(array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2445,9 +2456,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		return array(array($parent, array(
 			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',

@@ -3,6 +3,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
+	const OPERATION_TYPE_DELETE = 'DELETE';
+	const OPERATION_TYPE_ADD = 'ADD';
+	const OPERATION_TYPE_UPDATE = 'UPDATE';
+
 	/**
 	 * Initialize model
 	 */
@@ -37,9 +41,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * getting the eav attribute object.
-	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
-	 *
 	 * @return Mage_Eav_Model_Config
 	 */
 	protected function _getAttribute($attribute)
@@ -49,10 +51,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * getting the attribute selected option.
-	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
-	 *
 	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
@@ -70,10 +70,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * add new attributes aptions and return the newly inserted option id
-	 *
 	 * @param string $attribute, the attribute to used to add the new option
 	 * @param string $newOption, the new option to be added for the attribute
-	 *
 	 * @return int, the newly inserted option id
 	 */
 	protected function _addAttributeOption($attribute, $newOption)
@@ -96,9 +94,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * load product by sku
-	 *
 	 * @param string $sku, the product sku to filter the product table
-	 *
 	 * @return catalog/product
 	 */
 	protected function _loadProductBySku($sku)
@@ -153,120 +149,92 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _itemMasterActions(DOMDocument $doc)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedItemCollection = $this->getExtractor()->extract($doc);
+		$cfgCatId = $cfg->catalogId;
+		$cfgClientId = $cfg->clientId;
+		$items = $this->getExtractor()->extract($doc);
+		$numItems = count($items);
 
-		if (!$feedItemCollection) {
+		if (!$numItems) {
 			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
 			return $this;
 		}
-
-		// we've import our feed data in a varien object we can work with
-		foreach ($feedItemCollection as $feedItem) {
-			// Ensure this matches the catalog id set in the Magento admin configuration.
-			// If different, do not update the item and log at WARN level.
-			if ($feedItem->getCatalogId() !== $cfg->catalogId) {
+		foreach ($items as $i => $item) {
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
+			$catId = $item->getCatalogId();
+			$clientId = $item->getGsiClientId();
+			$prodType = $item->getProductType();
+			$opType = trim(strtoupper($item->getOperationType()));
+			if ($catId !== $cfgCatId) {
 				Mage::log(
-					'[' . __CLASS__ . '] Item Master Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-					$cfg->catalogId . ')',
+					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
 					Zend_Log::WARN
 				);
-				continue;
-			}
-
-			// Ensure that the client_id field here matches the value supplied in the Magento admin.
-			// If different, do not update this item and log at WARN level.
-			if ($feedItem->getGsiClientId() !== $cfg->clientId) {
+			} elseif ($clientId !== $cfgClientId) {
 				Mage::log(
-					'[' . __CLASS__ . '] Item Master Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-					$cfg->clientId . ')',
+					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
 					Zend_Log::WARN
 				);
-				continue;
-			}
-
-			// This will be mapped by the product hub to Magento product types.
-			// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-			$prodType = $feedItem->getProductType();
-			if (!Mage::helper('eb2cproduct')->hasProdType($prodType)) {
+			} elseif (!$prdHlpr->hasProdType($prodType)) {
 				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
-				continue;
-			}
-
-			// process feed data according to their operations
-			switch (trim(strtoupper($feedItem->getOperationType()))) {
-				case 'DELETE':
-					$this->_deleteItem($feedItem);
-					break;
-				default:
-					$this->_synchProduct($feedItem);
-					break;
+			} else {
+				switch ($opType) {
+					case self::OPERATION_TYPE_ADD:
+					case self::OPERATION_TYPE_UPDATE:
+						$this->_synchProduct($item);
+						break;
+					case self::OPERATION_TYPE_DELETE:
+						$this->_deleteItem($item);
+						break;
+					default:
+						Mage::log(sprintf('[ %s ] Unrecognized operation type "%s"', __CLASS__, $opType), Zend_Log::WARN);
+						break;
+				}
 			}
 		}
-
 		return $this;
 	}
 
 	/**
 	 * add/update magento product with eb2c data
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to add/update a magento product
-	 *
-	 * @return void
+	 * @param Varien_Object $item, the object with data needed to add/update a magento product
+	 * @return self
 	 */
-	protected function _synchProduct(Varien_Object $dataObject)
+	protected function _synchProduct(Varien_Object $item)
 	{
-		if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
+		if (trim($item->getItemId()->getClientItemId()) === '') {
+			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
+		} else {
 			// we have a valid item, let's check if this product already exists in Magento
-			$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
-			if (!$this->getProduct()->getId()){
-				// this is new product let's set default value for it in order to create it successfully.
-				$productObject = $this->_getDummyProduct($dataObject);
-			} else {
-				$productObject = $this->getProduct();
-			}
-			try {
-				$productObject->addData(
-					array(
-						'type_id' => $dataObject->getProductType(),
-						'weight' => $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getWeight(),
-						'mass' => $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure(),
-						'visibility' => $this->_getVisibilityData($dataObject),
-						'attribute_set_id' => $this->getDefaultAttributeSetId(),
-						'status' => $dataObject->getBaseAttributes()->getItemStatus(),
-						'sku' => $dataObject->getItemId()->getClientItemId(),
-						'msrp' => $dataObject->getExtendedAttributes()->getMsrp(),
-						'price' => $dataObject->getExtendedAttributes()->getPrice(),
-					)
-				)->save(); // saving the product
-			} catch (Mage_Core_Exception $e) {
-				Mage::logException($e);
-			}
+			$prd = $this->_loadProductBySku($item->getItemId()->getClientItemId());
+			$this->setProduct($prd);
+			$prdObj = $prd->getId() ? $prd : $this->_getDummyProduct($item);
+			$prdObj->addData(array(
+				'type_id' => $item->getProductType(),
+				'weight' => $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight(),
+				'mass' => $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure(),
+				'visibility' => $this->_getVisibilityData($item),
+				'attribute_set_id' => $this->getDefaultAttributeSetId(),
+				'status' => $item->getBaseAttributes()->getItemStatus(),
+				'sku' => $item->getItemId()->getClientItemId(),
+				'msrp' => $item->getExtendedAttributes()->getMsrp(),
+				'price' => $item->getExtendedAttributes()->getPrice(),
+			))->save(); // saving the product
 
-			// adding color data to product
-			$this->_addColorToProduct($dataObject, $productObject);
-
-			// adding new attributes
-			$this->_addEb2cSpecificAttributeToProduct($dataObject, $productObject);
-
-			// adding custom attributes
-			$this->_addCustomAttributeToProduct($dataObject, $productObject);
-
-			// adding configurable data to product
-			$this->_addConfigurableDataToProduct($dataObject, $productObject);
-
-			// adding product stock item data
-			$this->_addStockItemDataToProduct($dataObject, $productObject);
+			$this
+				->_addColorToProduct($item, $prdObj)
+				->_addEb2cSpecificAttributeToProduct($item, $prdObj)
+				->_addCustomAttributeToProduct($item, $prdObj)
+				->_addConfigurableDataToProduct($item, $prdObj)
+				->_addStockItemDataToProduct($item, $prdObj);
 		}
-
-		return ;
+		return $this;
 	}
 
 	/**
 	 * getting the color option, create it if id doesn't exist or just fetch it from magento db
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
-	 *
 	 * @return int, the option id
 	 */
 	protected function _getProductColorOptionId(Varien_Object $dataObject)
@@ -284,51 +252,41 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				}
 			}
 		}
-
 		return $colorOptionId;
 	}
 
 	/**
 	 * Create dummy products and return new dummy product object
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
-	 *
 	 * @return Mage_Catalog_Model_Product
 	 */
-	protected function _getDummyProduct(Varien_Object $dataObject)
+	protected function _getDummyProduct(Varien_Object $item)
 	{
-		$productObject = $this->getProduct()->load(0);
-		try{
-			$productObject->unsId()
-				->addData(
-					array(
-						'type_id' => 'simple', // default product type
-						'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
-						'attribute_set_id' => $this->getDefaultAttributeSetId(),
-						'name' => 'temporary-name - ' . uniqid(),
-						'status' => 0, // default - disabled
-						'sku' => $dataObject->getUniqueId(),
-						'color' => $this->_getProductColorOptionId($dataObject),
-					)
-				)
+		$prd = $this->getProduct()->load(0);
+		try {
+			$prd
+				->unsId()
+				->addData(array(
+					'type_id' => 'simple', // default product type
+					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+					'attribute_set_id' => $this->getDefaultAttributeSetId(),
+					'name' => 'temporary-name - ' . uniqid(),
+					'status' => 0, // default - disabled
+					'sku' => $item->getUniqueId(),
+					'color' => $this->_getProductColorOptionId($item),
+				))
 				->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while creating dummy product for Item Master Feed (' .
-				$e->getMessage() . ')',
-				Zend_Log::ERR
-			);
+			Mage::logException(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()));
 		}
-		return $productObject;
+		return $prd;
 	}
 
 	/**
 	 * adding stock item data to a product.
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add the stock data to the product
 	 * @param Mage_Catalog_Model_Product $parentProductObject, the product object to set stock item data to
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -342,15 +300,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				)
 			)
 			->save();
+		return $this;
 	}
 
 	/**
 	 * adding color data product configurable products
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -364,14 +321,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				)
 			)->save();
 		}
+		return $this;
 	}
 
 	/**
 	 * delete product.
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to delete the product
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _deleteItem(Varien_Object $dataObject)
 	{
@@ -396,17 +352,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			}
 		}
 
-		return ;
+		return $this;
 	}
 
 	/**
 	 * link child product to parent configurable product.
-	 *
 	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
 	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
 	 * @param array $confAttr, collection of configurable attribute
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
 	{
@@ -456,33 +410,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				Zend_Log::ERR
 			);
 		}
+		return $this;
 	}
 
 	/**
 	 * getting the first color code from an array of color attributes.
-	 *
 	 * @param array $colorData, collection of color data
-	 *
-	 * @return string, the first color code
+	 * @return string|null, the first color code
 	 */
 	protected function _getFirstColorCode(array $colorData)
 	{
-		$colorCode = null;
 		if (!empty($colorData)) {
 			foreach ($colorData as $color) {
-				$colorCode = $color['code'];
-				break;
+				return $color['code'];
 			}
 		}
-
-		return $colorCode ;
+		return null;
 	}
 
 	/**
 	 * mapped the correct visibility data from eb2c feed with magento's visibility expected values
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the CatalogClass to determine the proper Magento visibility value
-	 *
 	 * @return string, the correct visibility value
 	 */
 	protected function _getVisibilityData(Varien_Object $dataObject)
@@ -502,11 +450,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * add color description per locale to a child product of using parent configurable store color attribute data.
-	 *
 	 * @param Mage_Catalog_Model_Product $childProductObject, the child product object
 	 * @param array $parentColorDescriptionData, collection of configurable color description data
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
 	{
@@ -531,21 +477,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				Zend_Log::ERR
 			);
 		}
+		return $this;
 	}
 
 	/**
 	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve eb2c specific attribute product data
-	 *
 	 * @return array, composite array containing eb2c specific attribute to be set to a product
 	 */
 	protected function _getEb2cSpecificAttributeData(Varien_Object $dataObject)
 	{
 		$data = array();
-
 		$prodHlpr = Mage::helper('eb2cproduct');
-
 		if ($prodHlpr->hasEavAttr('is_drop_shipped')) {
 			// setting is_drop_shipped attribute
 			$data['is_drop_shipped'] = $dataObject->getBaseAttributes()->getDropShipped();
@@ -853,11 +796,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * adding eb2c specific attributes to a product
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add eb2c specific attributes to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set attributes data to
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addEb2cSpecificAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -874,15 +815,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				);
 			}
 		}
+		return $this;
 	}
 
 	/**
 	 * adding custom attributes to a product
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -917,15 +857,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				);
 			}
 		}
+		return $this;
 	}
 
 	/**
 	 * adding configurable data to a product
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add configurable data to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set configurable data to
-	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addConfigurableDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -953,5 +892,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				}
 			}
 		}
+		return $this;
 	}
 }
