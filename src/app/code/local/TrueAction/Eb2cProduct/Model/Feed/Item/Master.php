@@ -153,7 +153,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$cfgCatId = $cfg->catalogId;
 		$cfgClientId = $cfg->clientId;
-		$items = $this->getExtractor()->extract($doc);
+		$items = $this->getExtractor()->extract(new DOMXPath($doc));
 		$numItems = count($items);
 
 		if (!$numItems) {

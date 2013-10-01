@@ -105,7 +105,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedItemCollection = $this->getExtractor()->extract($doc);
+		$feedItemCollection = $this->getExtractor()->extract(new DOMXPath($doc));
 
 		if ($feedItemCollection){
 			// we've import our feed data in a varien object we can work with

@@ -12,35 +12,35 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract UniqueId data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractUniqueId(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractUniqueId(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		// Unique identifier for the item, SKU.
-		$nodeUniqueID = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/UniqueID");
+		$nodeUniqueID = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/UniqueID");
 		return ($nodeUniqueID->length)? (string) $nodeUniqueID->item(0)->nodeValue : null;
 	}
 
 	/**
 	 * extract StyleID data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractStyleID(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractStyleID(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		// The parent SKU, associated with this child item
 		// should be the same as UniqueID if this item doesn't have a parent product.
-		$nodeStyleID = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/StyleID");
+		$nodeStyleID = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/StyleID");
 
 		return ($nodeStyleID->length)? (string) $nodeStyleID->item(0)->nodeValue : null;
 	}
@@ -48,26 +48,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract ProductLinks data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractProductLinks(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractProductLinks(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		$productLinks = array();
 
 		// Contents included if this Content is a link product.
-		$nodeProductLinks = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks");
+		$nodeProductLinks = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks");
 		if ($nodeProductLinks->length) {
 			// Child Content of this Content
-			$nodeProductLink = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink");
+			$nodeProductLink = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink");
 			if ($nodeProductLink->length) {
 				$productContentIndex = 1;
 				foreach ($nodeProductLink as $productContent) {
-					$linkToUniqueId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink[$productContentIndex]/LinkToUniqueId");
+					$linkToUniqueId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ProductLinks/ProductLink[$productContentIndex]/LinkToUniqueId");
 					$productLinks[] = new Varien_Object(
 						array(
 							'link_type' => (string) $productContent->getAttribute('link_type'), // Type of link relationship.
@@ -86,26 +86,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract CategoryLinks data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCategoryLinks(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractCategoryLinks(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		$categoryLinks = array();
 
 		// Link the product into categories.
-		$nodeCategoryLinks = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks");
+		$nodeCategoryLinks = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks");
 		if ($nodeCategoryLinks->length) {
 			// Child Content of this Content
-			$nodeCategoryLink = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink");
+			$nodeCategoryLink = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink");
 			if ($nodeCategoryLink->length) {
 				$categoryContentIndex = 1;
 				foreach ($nodeCategoryLink as $categoryContent) {
-					$categoryName = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink[$categoryContentIndex]/Name");
+					$categoryName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CategoryLinks/CategoryLink[$categoryContentIndex]/Name");
 					$categoryLinks[] = new Varien_Object(
 						array(
 							'default' => (bool) $categoryContent->getAttribute('default'), // if category is the default
@@ -125,22 +125,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract BaseAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractBaseAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractBaseAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		$baseAttributes = array();
 
 		// Link the product into categories.
-		$nodeBaseAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes");
+		$nodeBaseAttributes = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes");
 		if ($nodeBaseAttributes->length) {
 			// Child Content of this Content
-			$nodeTitle = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/Title");
+			$nodeTitle = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/Title");
 			if ($nodeTitle->length) {
 				foreach ($nodeTitle as $titleContent) {
 					$baseAttributes[] = new Varien_Object(
@@ -159,22 +159,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract ExtendedAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractExtendedAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractExtendedAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		$extendedAttributes = array();
 
 		// Link the product into categories.
-		$nodeExtendedAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes");
+		$nodeExtendedAttributes = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes");
 		if ($nodeExtendedAttributes->length) {
 			// extract Gift Wrap attributes
-			$nodeGiftWrap = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/GiftWrap");
+			$nodeGiftWrap = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/GiftWrap");
 			$extendedAttributes['gift_wrap'] = new Varien_Object(
 				array(
 					'gift_wrap' => ($nodeGiftWrap->length)? (string) $nodeGiftWrap->item(0)->nodeValue : null, // Can this item be gift wrapped? ("Y", "N")
@@ -182,11 +182,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			);
 
 			// extract color attributes
-			$nodeColor = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
+			$nodeColor = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
 			if ($nodeColor->length) {
-				$nodeCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
-				$nodeDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
-				$nodeSequence = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Sequence");
+				$nodeCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Code");
+				$nodeDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Description");
+				$nodeSequence = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color/Sequence");
 
 				$colorDescriptionCollection = array();
 				if ($nodeDescription->length) {
@@ -209,7 +209,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			}
 
 			// extract long description attributes
-			$nodeLongDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LongDescription");
+			$nodeLongDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LongDescription");
 			if ($nodeLongDescription->length) {
 				foreach ($nodeLongDescription as $attributeLongContent) {
 					$extendedAttributes['long_description'][] = new Varien_Object(
@@ -222,7 +222,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			}
 
 			// extract short description attributes
-			$nodeShortDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShortDescription");
+			$nodeShortDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShortDescription");
 			if ($nodeShortDescription->length) {
 				foreach ($nodeShortDescription as $attributeShortContent) {
 					$extendedAttributes['short_description'][] = new Varien_Object(
@@ -235,7 +235,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			}
 
 			// extract short SearchKeywords attributes
-			$nodeSearchKeywords = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SearchKeywords");
+			$nodeSearchKeywords = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SearchKeywords");
 			if ($nodeSearchKeywords->length) {
 				foreach ($nodeSearchKeywords as $attributeSearchContent) {
 					$extendedAttributes['search_keywords'][] = new Varien_Object(
@@ -254,26 +254,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract CustomAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current content position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return array, a collection of Varien_Object
 	 */
-	protected function _extractCustomAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Content')
+	protected function _extractCustomAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Content')
 	{
 		$customAttributes = array();
 
 		// List of additional attributes that may be used by the client system/Magento.
-		$nodeCustomAttributes = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes");
+		$nodeCustomAttributes = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes");
 		if ($nodeCustomAttributes->length) {
 			// attribute list
-			$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+			$nodeAttribute = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 			if ($nodeAttribute->length) {
 				$attributeContentIndex = 1;
 				foreach ($nodeAttribute as $customContent) {
-					$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute[$attributeContentIndex]/Value");
+					$nodeValue = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute[$attributeContentIndex]/Value");
 					$customAttributes[] = new Varien_Object(
 						array(
 							'name' => (string) $customContent->getAttribute('name'), // Custom attribute name.
@@ -293,17 +293,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	/**
 	 * extract feed data into a collection of varien objects
 	 *
-	 * @param DOMDocument $doc, the Dom document with the loaded feed data
+	 * @param DOMXPath $xpath, the DOMXPath with the loaded feed data
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extract(DOMDocument $doc)
+	public function extract(DOMXPath $xpath)
 	{
 		$collectionOfContents = array();
-		$feedXPath = new DOMXPath($doc);
 		$baseNode = self::FEED_BASE_NODE;
 
-		$nodeContent = $feedXPath->query("//$baseNode");
+		$nodeContent = $xpath->query("//$baseNode");
 		$idx = 1; // start index
 		foreach ($nodeContent as $content) {
 			// setting catalog id
@@ -319,19 +318,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 					// Client store/channel.
 					'gsi_store_id' => (string) $content->getAttribute('gsi_store_id'),
 					// Unique identifier for the item, SKU.
-					'unique_id' => $this->_extractUniqueId($feedXPath, $idx, $catalogId, $baseNode),
+					'unique_id' => $this->_extractUniqueId($xpath, $idx, $catalogId, $baseNode),
 					// the parent sku related to the this item
-					'style_id' => $this->_extractStyleID($feedXPath, $idx, $catalogId, $baseNode),
+					'style_id' => $this->_extractStyleID($xpath, $idx, $catalogId, $baseNode),
 					// List of related products.
-					'product_links' => $this->_extractProductLinks($feedXPath, $idx, $catalogId, $baseNode),
+					'product_links' => $this->_extractProductLinks($xpath, $idx, $catalogId, $baseNode),
 					// Link the product into categories.
-					'category_links' => $this->_extractCategoryLinks($feedXPath, $idx, $catalogId, $baseNode),
+					'category_links' => $this->_extractCategoryLinks($xpath, $idx, $catalogId, $baseNode),
 					// base product attributes (name/title)
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $idx, $catalogId, $baseNode),
+					'base_attributes' => $this->_extractBaseAttributes($xpath, $idx, $catalogId, $baseNode),
 					// Attributes known to eb2c.
-					'extended_attributes' => $this->_extractExtendedAttributes($feedXPath, $idx, $catalogId, $baseNode),
+					'extended_attributes' => $this->_extractExtendedAttributes($xpath, $idx, $catalogId, $baseNode),
 					// additional attributes
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $idx, $catalogId, $baseNode),
+					'custom_attributes' => $this->_extractCustomAttributes($xpath, $idx, $catalogId, $baseNode),
 				)
 			);
 

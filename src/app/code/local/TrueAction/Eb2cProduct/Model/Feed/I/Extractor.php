@@ -12,50 +12,50 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	/**
 	 * extract item id data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractItemId(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractItemId(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
 	{
 		// SKU used to identify this item from the client system.
-		$nodeClientItemId = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientItemId");
+		$nodeClientItemId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientItemId");
 		return new Varien_Object(array('client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null));
 	}
 
 	/**
 	 * extract BaseAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractBaseAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractBaseAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
 	{
 		// Allows for control of the web store display.
-		$nodeCatalogClass = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
+		$nodeCatalogClass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
 
 		// Indicates the item if fulfilled by a drop shipper.
 		// New attribute.
-		$nodeIsDropShipped = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
+		$nodeIsDropShipped = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
 
 		// Short description in the catalog's base language.
-		$nodeItemDescription = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
+		$nodeItemDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
 
 		// Identifies the type of item.
-		$nodeItemType = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemType");
+		$nodeItemType = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemType");
 
 		// Indicates whether an item is active, inactive or other various states.
-		$nodeItemStatus = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
+		$nodeItemStatus = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
 
 		// Tax group the item belongs to.
-		$nodeTaxCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
+		$nodeTaxCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
 
 		return new Varien_Object(
 			array(
@@ -72,22 +72,22 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	/**
 	 * extract CustomAttributes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractCustomAttributes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractCustomAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
 	{
 		$attributeData = array();
 
 		// Name value paris of additional attributes for the product.
-		$nodeAttribute = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
 		if ($nodeAttribute->length) {
 			foreach ($nodeAttribute as $attributeRecord) {
-				$nodeValue = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				$nodeValue = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
 
 				$attributeData[] = array(
 					// The name of the attribute.
@@ -111,19 +111,19 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	/**
 	 * extract HTSCodes data into a varien object
 	 *
-	 * @param DOMXPath $feedXPath, the xpath object
+	 * @param DOMXPath $xpath, the xpath object
 	 * @param int $idx, the current item position
 	 * @param string $catalogId, the catalog id for the current xml node
 	 * @param string $baseNode, the feed base node
 	 *
 	 * @return string, json encoded content string
 	 */
-	protected function _extractHtsCodes(DOMXPath $feedXPath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractHtsCodes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
 	{
 		$htsCodesData = array();
 
 		// Name value paris of additional htsCodess for the product.
-		$nodeHtsCode = $feedXPath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/HTSCodes/HTSCode");
+		$nodeHtsCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/HTSCodes/HTSCode");
 		if ($nodeHtsCode->length) {
 			foreach ($nodeHtsCode as $htsCodeRecord) {
 				$htsCodesData[] = array(
@@ -145,17 +145,16 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	/**
 	 * extract feed data into a collection of varien objects
 	 *
-	 * @param DOMDocument $doc, the dom document with the loaded feed data
+	 * @param DOMXPath $xpath, the DOMXPath with the loaded feed data
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extract(DOMDocument $doc)
+	public function extract(DOMXPath $xpath)
 	{
 		$collectionOfItems = array();
-		$feedXPath = new DOMXPath($doc);
 		$baseNode = self::FEED_BASE_NODE;
 
-		$master = $feedXPath->query("//$baseNode");
+		$master = $xpath->query("//$baseNode");
 		$idx = 1; // start index
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
@@ -170,13 +169,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 					// Defines the action requested for this item. enum:("Add", "Change", "Delete")
 					'operation_type' => (string) $item->getAttribute('operation_type'),
 					// get varien object of item id node
-					'item_id' => $this->_extractItemId($feedXPath, $idx, $catalogId, $baseNode),
+					'item_id' => $this->_extractItemId($xpath, $idx, $catalogId, $baseNode),
 					// get varien object of base attributes node
-					'base_attributes' => $this->_extractBaseAttributes($feedXPath, $idx, $catalogId, $baseNode),
+					'base_attributes' => $this->_extractBaseAttributes($xpath, $idx, $catalogId, $baseNode),
 					// get varien object of Custom Attributes node
-					'custom_attributes' => $this->_extractCustomAttributes($feedXPath, $idx, $catalogId, $baseNode),
+					'custom_attributes' => $this->_extractCustomAttributes($xpath, $idx, $catalogId, $baseNode),
 					// get varien object of HTSCode node
-					'hts_codes' => $this->_extractHtsCodes($feedXPath, $idx, $catalogId, $baseNode),
+					'hts_codes' => $this->_extractHtsCodes($xpath, $idx, $catalogId, $baseNode),
 				)
 			);
 

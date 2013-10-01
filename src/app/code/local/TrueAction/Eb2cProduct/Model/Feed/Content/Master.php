@@ -179,7 +179,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _contentMasterActions(DOMDocument $doc)
 	{
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedContentCollection = $this->getExtractor()->extract($doc);
+		$feedContentCollection = $this->getExtractor()->extract(new DOMXPath($doc));
 		if ($feedContentCollection){
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedContentCollection as $feedContent) {
