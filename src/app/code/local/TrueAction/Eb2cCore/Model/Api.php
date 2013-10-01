@@ -23,6 +23,46 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	const DEFAULT_ADAPTER = 'Zend_Http_Client_Adapter_Socket';
 
 	/**
+	 * Placeholder for validation errors if we are doing schema validation
+	 */
+	private $_schemaValidationErrors;
+
+	/**
+	 * Used by set_error_handler() to capture array of errors during schema validation
+	 *
+	 */
+	public function schemaValidationErrorHandler($errno , $errstr, $errfile, $errline)
+	{
+		$this->_schemaValidationErrors[] = "'$errstr' [Errno $errno]";
+	}
+
+	/**
+	 * Validates the DOM against a magically-set Validation Schema, which should be a full path
+	 * to a sensbile .xsd for this DOMDocument.
+	 *
+	 * @return boolean true valid false otherwise
+	 */
+	private function _schemaValidate(DOMDocument $doc)
+	{
+		$this->_schemaValiationErrors = array();
+		set_error_handler(
+			array(
+				$this,
+				'schemaValidationErrorHandler'
+			)
+		);
+		chdir(Mage::getModuleDir('', 'TrueAction_Eb2cCore') . DS . 'xsd');
+		$validationResult = $doc->schemaValidate($this->getXsd());
+		restore_error_handler();
+		if( !$validationResult ) {
+			foreach( $this->_schemaValidationErrors as $error ) {
+				Mage::log( '[ ' . __CLASS__ . ' ]' . $error, Zend_Log::ERR );
+			}
+		}
+		return $validationResult;
+	}
+
+	/**
 	 * Call the API.
 	 *
 	 * @param DOMDocument $doc The document to send in the request body
@@ -30,6 +70,14 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	 */
 	public function request(DOMDocument $doc)
 	{
+		if (!$this->hasXsd()) {
+			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation not configured.');
+		}
+
+		if (!$this->_schemaValidate($doc)) {
+			Mage::throwException('[ ' . __CLASS__ . ' ] Schema validation failed.');
+		}
+
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server
 		// by default, curl will be used as the default adapter
 		$client = $this->getHttpClient();

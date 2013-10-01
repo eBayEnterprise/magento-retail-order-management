@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://api.gsicommerce.com/schema/checkout/1.0" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0">
+	<xsd:simpleType name="AmountBaseType">
+		<xsd:annotation>
+			<xsd:documentation>Represents a decimal currency with two decimal points. Sample value: 4.75.
+Allowable Values: Two integers separated by a decimal point. .The second integer must be two characters in length.
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: Note that this indicates only a quantity, not the type of currency being used.
+Aliases: N/A			
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal">
+			<xsd:fractionDigits value="2"/>
+			<xsd:minInclusive value="0"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ItemId">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+Represents the identifier for an inventoriable product.  a.k.a. SKU
+Allowable Values: Text string
+Required: Yes
+Length: 20
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="20"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="EmailAddress">
+		<xsd:annotation>
+			<xsd:documentation>
+The email address associated with a person or enterprise. 
+Allowable Values: Text string
+Required: Yes
+Length: 70 characters
+Default Value: blank
+Restrictions:  This field is restricted to a valid email address containing an at sign (@) and a period (.).
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="70"/>
+			<xsd:pattern value="([a-zA-Z0-9_\-])([a-zA-Z0-9_\-\.]*)@(\[((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}|((([a-zA-Z0-9\-]+)\.)+))([a-zA-Z]{2,}|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\])"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="IPv4Address">
+		<xsd:annotation>
+			<xsd:documentation>
+                IPv4 address in the dotted-decimal notation.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:pattern value="((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="AddressLineType">
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="70"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="PhysicalAddressType">
+		<xsd:annotation>
+			<xsd:documentation>The street, city, state and country of a location.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Line1" type="AddressLineType">
+				<xsd:annotation>
+					<xsd:documentation>
+The "Line#" components contain the street address and, if necessary, suite and building identifiers for the physical address. 
+Allowable Values: Text string
+Required: Line1 is required. Other Line# components are optional.
+Length: 70
+Default Value: blank
+Restrictions: For U.S. addresses, the last Line# component valued before the U.S. state must contain the number and street. Additional address information, such as a building name or a department mustt precede it.
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Line2" type="AddressLineType" minOccurs="0"/>
+			<xsd:element name="Line3" type="AddressLineType" minOccurs="0"/>
+			<xsd:element name="Line4" type="AddressLineType" minOccurs="0"/>
+			<xsd:element name="City">
+				<xsd:annotation>
+					<xsd:documentation>
+Name of the city.
+Allowable Values: Text string
+Required: Yes
+Length: 35
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:minLength value="1"/>
+						<xsd:maxLength value="35"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="MainDivision" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+Typically a two- or three-digit postal abbreviation for the state or province. .
+Allowable Values: Text string
+Required: Yes
+Length: 35
+Default Value: blank
+Restrictions:  Use of the ISO 3166-2 code is recommended, but not required..See http://en.wikipedia.org/wiki/ISO_3166-2.
+Aliases: N/A 
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:minLength value="1"/>
+						<xsd:maxLength value="35"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="CountryCode">
+				<xsd:annotation>
+					<xsd:documentation>
+Two digit country code. 
+Allowable Values: Text string
+Required: Yes
+Length: 2-40 characters
+Default Value: blank
+Restrictions: Use of  ISO 3166 alpha 2 code is recommended, but not required. See: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:minLength value="2"/>
+						<xsd:maxLength value="40"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="PostalCode" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+Typically, the string of letters and/or numbers that more closely specifies the delivery area than just the City component alone, for example, the Zip Code in the U.S.
+Allowable Values: Text string
+Required: Yes
+Length: 15
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A. 
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:minLength value="1"/>
+						<xsd:maxLength value="15"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PersonNameType">
+		<xsd:sequence>
+			<xsd:element name="Honorific" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>A title you can assign to a person. Typically "Dr.", "Mr.", "Ms." etc.
+Allowable Values: Text string.
+Required: No
+Length: 10
+Default Value: blank
+Restrictions: N/A
+Aliases: Salutation</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="10"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="LastName">
+				<xsd:annotation>
+					<xsd:documentation>The surname of the person.
+Allowable Values: Text string.
+Required: Yes
+Length: 64
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                 </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="64"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="MiddleName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The middle name or names of the person.
+Allowable Values: Text string.
+Required: No
+Length: 40
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="40"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="FirstName">
+				<xsd:annotation>
+					<xsd:documentation>
+The first name of the person.
+Allowable Values: Text string.
+Required: Yes
+Length: 64
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="64"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="minStringLength1">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+            simple type to validate string elements are not empty
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="String40">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+                simple type to validate string elements are not empty
+                and are at most 40 characters long
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="40"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="RequestId">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+                RequestId is used to globally identify a request message and is used
+                for duplicate request protection.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="40"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="ReservationId">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+                Identifier for an available to promise inventory reservation.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="40"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="DateRange">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+A period of time. The "From" date must precede the "To" date. You must specify both values. Used, for example, to represent an estimated delivery date range.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="From" type="xsd:date"/>
+			<xsd:element name="To" type="xsd:date"/>
+		</xsd:sequence>
+	</xsd:complexType>
+    <xsd:complexType name="DateRangeType">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                A period of time. The "From" date must precede the "To" date. You must specify both values. Used, for example, to represent an estimated delivery date range.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="From" type="xsd:dateTime"/>
+            <xsd:element name="To" type="xsd:dateTime"/>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:complexType name="CarrierType">
+		<xsd:simpleContent>
+			<xsd:annotation>
+				<xsd:documentation>
+                    Shipping Carrier such as "UPS" or "FEDEX"
+                    Carrier mode is such as 1Day or Ground, etc.
+
+                    Represents the
+                    logical Carriers (SCAC) and modes (CarrierServiceCode)
+                </xsd:documentation>
+			</xsd:annotation>
+			<xsd:extension base="String40">
+				<xsd:attribute name="mode" type="String40" use="optional"/>
+				<xsd:attribute name="displayText" type="xsd:string" use="optional"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Imposition">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="impositionType" type="xsd:string"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="InvoiceTextCodes">
+		<xsd:annotation>
+			<xsd:documentation>
+               This type maps to Tax response Invoice Text Codes.
+           </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="InvoiceTextCode" type="xsd:string" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Jurisdiction">
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="jurisdictionLevel" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>Identifies the jurisdiction's common classification based on its geopolitical and/or taxing context. 
+Allowable Values: The following values are recommended and commonly used. 
+ - APO   
+ - BOROUGH   
+ - CITY   
+ - COUNTRY   
+ - COUNTY   
+ - DISTRICT   
+ - FPO   
+ - LOCAL_IMPROVEMENT_DISTRICT   
+ - PARISH   
+ - PROVINCE   
+ - SPECIAL_PURPOSE_DISTRICT   
+ - STATE   
+ - TERRITORY   
+ - TOWNSHIP   
+ - TRADE_BLOCK   
+ - TRANSIT_DISTRICT
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+				<xsd:attribute name="jurisdictionId" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>Jurisdiction code assigned by the relevant governmental authority.
+Allowable Values: Text string
+Required: No
+Length: 20
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Tax">
+		<xsd:sequence>
+			<xsd:element name="Situs" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The situs or taxing location as determined by the calculation engine for the line item.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Jurisdiction" type="Jurisdiction" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The name of jurisdiction to which a tax is applied.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Imposition" type="Imposition" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The name of the imposition to which the relevant tax rule belongs.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EffectiveRate" type="xsd:decimal" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        For Buyer Input tax and Seller Import tax, this rate is calculated based on the Extended Price
+                        and Tax Amount (Import or Input) passed in the Request message.
+                        If you total the Extended Price and Tax Amounts before passing them in,
+                        this rate is an average.
+                        For all other message types, this is the effective rate the system used to calculate tax.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxableAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The amount for which tax is calculated.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ExemptAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Amount of the line item not subject to tax due to exempt status.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="NonTaxableAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Amount of the line item not subject to tax due to nontaxable status.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CalculatedTax" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Amount of tax calculated by the calculation engine.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SellerRegistrationId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The Registration ID for the Seller associated with this line item tax.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="InvoiceTextCodes" type="InvoiceTextCodes" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="taxType" type="TaxType"/>
+		<xsd:attribute name="taxability" type="Taxability"/>
+	</xsd:complexType>
+	<xsd:simpleType name="Taxability">
+		<xsd:annotation>
+			<xsd:documentation>
+                System determination of taxable status based on situs and item type.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="TAXABLE"/>
+			<xsd:enumeration value="NONTAXABLE"/>
+			<xsd:enumeration value="EXEMPT"/>
+			<xsd:enumeration value="DPPAPPLIED"/>
+			<xsd:enumeration value="NO_TAX"/>
+			<xsd:enumeration value="DEFERRED"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="TaxData">
+		<xsd:sequence>
+			<xsd:element name="TaxClass" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                       This type represents class for Tax calculation purposes. Typically the default tax class for shipping is 93000.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Taxes" type="TaxGroup" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TaxGroup">
+		<xsd:sequence>
+			<xsd:element name="Tax" type="Tax" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="TaxType">
+		<xsd:annotation>
+			<xsd:documentation>
+                System determined tax type, based on situs, transaction type, and party role type (perspective).
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="SALES"/>
+			<xsd:enumeration value="SELLER_USE"/>
+			<xsd:enumeration value="CONSUMERS_USE"/>
+			<xsd:enumeration value="VAT"/>
+			<xsd:enumeration value="IMPORT_VAT"/>
+			<xsd:enumeration value="NONE"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+    <xsd:complexType name="DestinationTargetType">
+        <xsd:attribute name="ref" type="xsd:IDREF"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="MailingAddress">
+        <xsd:annotation>
+            <xsd:documentation>Combines a name with a physical address.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PersonName" type="PersonNameType"/>
+            <xsd:element name="Address" type="PhysicalAddressType">
+                <xsd:annotation>
+                    <xsd:documentation>The number, street, city state, postal code and country that define a location.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

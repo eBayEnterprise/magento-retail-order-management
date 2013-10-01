@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OrderCancelRequest
+	xmlns="http://api.gsicommerce.com/schema/checkout/1.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="Order-Service-Cancel-1.0.xsd"
+	orderType="RETURN">
+<CustomerOrderId>1234</CustomerOrderId>
+	<ReasonCode>TestReasonCode</ReasonCode>
+	<Reason>TestReason</Reason>
+</OrderCancelRequest>
