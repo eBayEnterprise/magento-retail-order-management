@@ -20,8 +20,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	protected function _extractItemId(DOMXPath $xpath, DOMElement $item)
 	{
 		// SKU used to identify this item from the client system.
-		$nodeClientItemId = $xpath->query("ItemId/ClientItemId/text()", $item);
-		return new Varien_Object(array('client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null));
+		return new Varien_Object(array(
+			'client_item_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ItemId/ClientItemId/text()', $item))
+		));
 	}
 
 	/**
@@ -34,33 +35,21 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	 */
 	protected function _extractBaseAttributes(DOMXPath $xpath, DOMElement $item)
 	{
-		// Allows for control of the web store display.
-		$nodeCatalogClass = $xpath->query("BaseAttributes/CatalogClass/text()", $item);
-
-		// Indicates the item if fulfilled by a drop shipper.
-		// New attribute.
-		$nodeIsDropShipped = $xpath->query("BaseAttributes/IsDropShipped/text()", $item);
-
-		// Short description in the catalog's base language.
-		$nodeItemDescription = $xpath->query("BaseAttributes/ItemDescription/text()", $item);
-
-		// Identifies the type of item.
-		$nodeItemType = $xpath->query("BaseAttributes/ItemType/text()", $item);
-
-		// Indicates whether an item is active, inactive or other various states.
-		$nodeItemStatus = $xpath->query("BaseAttributes/ItemStatus/text()", $item);
-
-		// Tax group the item belongs to.
-		$nodeTaxCode = $xpath->query("BaseAttributes/TaxCode/text()", $item);
 
 		return new Varien_Object(
 			array(
-				'catalog_class' => ($nodeCatalogClass->length)? (string) $nodeCatalogClass->item(0)->nodeValue : null,
-				'drop_shipped' => ($nodeIsDropShipped->length)? (bool) $nodeIsDropShipped->item(0)->nodeValue : false,
-				'item_description' => ($nodeItemDescription->length)? (string) $nodeItemDescription->item(0)->nodeValue : null,
-				'item_type' => ($nodeItemType->length)? strtolower(trim($nodeItemType->item(0)->nodeValue)) : null,
-				'item_status' => (strtoupper(trim($nodeItemStatus->item(0)->nodeValue)) === 'ACTIVE')? 1 : 0,
-				'tax_code' => ($nodeTaxCode->length)? (string) $nodeTaxCode->item(0)->nodeValue : null,
+				// Allows for control of the web store display.
+				'catalog_class' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
+				// Indicates the item if fulfilled by a drop shipper. New attribute.
+				'drop_shipped' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
+				// Short description in the catalog's base language.
+				'item_description' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
+				// Identifies the type of item.
+				'item_type' => strtolower(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemType/text()', $item)))),
+				// Indicates whether an item is active, inactive or other various states.
+				'item_status' => (strtoupper(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
+				// Tax group the item belongs to.
+				'tax_code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/TaxCode/text()', $item)),
 			)
 		);
 	}
@@ -78,10 +67,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 		$attributeData = array();
 
 		// Name value paris of additional attributes for the product.
-		$nodeAttribute = $xpath->query("CustomAttributes/Attribute", $item);
+		$nodeAttribute = $xpath->query('CustomAttributes/Attribute', $item);
 		foreach ($nodeAttribute as $attributeRecord) {
-			$nodeValue = $xpath->query("Value/text()", $attributeRecord);
-
 			$attributeData[] = array(
 				// The name of the attribute.
 				'name' => (string) $attributeRecord->getAttribute('name'),
@@ -89,7 +76,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
 				// Language code for the natural language or the <Value /> element.
 				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeRecord->getAttribute('xml:lang')),
-				'value' => ($nodeValue->length)? (string) $nodeValue->item(0)->nodeValue : null,
+				'value' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $attributeRecord)),
 			);
 		}
 
@@ -113,7 +100,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 		$htsCodesData = array();
 
 		// Name value paris of additional htsCodess for the product.
-		$nodeHtsCode = $xpath->query("HTSCodes/HTSCode", $item);
+		$nodeHtsCode = $xpath->query('HTSCodes/HTSCode', $item);
 		foreach ($nodeHtsCode as $htsCodeRecord) {
 			$htsCodesData[] = array(
 				// The mfn_duty_rate attributes.
@@ -142,8 +129,9 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 		$collectionOfItems = array();
 		$baseNode = self::FEED_BASE_NODE;
 
-		$master = $xpath->query("//$baseNode");
+		$master = $xpath->query('//$baseNode');
 		$idx = 1; // start index
+		Mage::log(sprintf('[ %s ] Found %d items to extract', __CLASS__, $master->length), Zend_Log::DEBUG);
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
 
@@ -168,6 +156,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 			);
 
 			// increment item index
+			Mage::log(sprintf('[ %s ] Extracted %d of %d items', __CLASS__, $idx, $master->length), Zend_Log::DEBUG);
 			$idx++;
 		}
 

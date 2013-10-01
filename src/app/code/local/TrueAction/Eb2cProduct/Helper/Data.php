@@ -57,4 +57,60 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return in_array($type, $this->_types);
 	}
+
+	/**
+	 * extract node value content to string
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeToString(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? (string) $nodeList->item(0)->nodeValue : null;
+	}
+
+	/**
+	 * extract node attribute value content to string
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 * @param string $attributeName
+	 */
+	public function extractNodeAttributeToString(DOMNodeList $nodeList, $attributeName)
+	{
+		return ($nodeList->length)? (string) $nodeList->item(0)->getAttribute($attributeName) : null;
+	}
+
+	/**
+	 * extract node value content to boolean
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeToBoolean(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? (bool) $nodeList->item(0)->nodeValue : false;
+	}
+
+	/**
+	 * extract node value content to float
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeToFloat(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? (float) $nodeList->item(0)->nodeValue : 0;
+	}
+
+	/**
+	 * extract node value content to integer
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeToInt(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? (int) $nodeList->item(0)->nodeValue : 0;
+	}
 }
