@@ -253,7 +253,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$productObject->setSpecialToDate($endDate);
 			$productObject->setMsrp($event->getMsrp());
 			if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {
-				$productObject->setPriceIsVatInclusive($priceVatInlcusive);
+				$productObject->setPriceIsVatInclusive($priceVatInclusive);
 			}
 			// saving the product
 			$productObject->save();
