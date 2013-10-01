@@ -63,6 +63,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
 				->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
+				->setXsd($this->_config->xsdCancelFile)
 				->request($this->_domRequest);
 
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
