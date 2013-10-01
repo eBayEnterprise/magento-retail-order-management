@@ -1,8 +1,8 @@
 config:
-  default/eb2ccore/general/store_id: "ABCD"
-  default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2ccore/api/environment: "developer"
-  default/eb2ccore/api/region: "na"
-  default/eb2ccore/api/major_version: 1
-  default/eb2ccore/api/minor_version: 10
+  default/eb2ccore/general/store_id: store_id
+  default/eb2ccore/general/client_id: client_id
+  default/eb2ccore/api/environment: api_env
+  default/eb2ccore/api/region: api_rgn
+  default/eb2ccore/api/major_version: M
+  default/eb2ccore/api/minor_version: m
   default/eb2c/payment/developer_mode: 0

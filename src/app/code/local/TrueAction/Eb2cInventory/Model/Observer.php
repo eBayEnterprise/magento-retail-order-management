@@ -35,15 +35,16 @@ class TrueAction_Eb2cInventory_Model_Observer
 		// get quote from quote item
 		$quote = $quoteItem->getQuote();
 
+		$allocation = Mage::getModel('eb2cinventory/allocation');
 		// check allocation and rollback on the cart quote item adding/editing event
-		if (Mage::getModel('eb2cinventory/allocation')->hasAllocation($quote)) {
+		if ($allocation->hasAllocation($quote)) {
 			// this cart quote has allocation data, therefore, rollback eb2c inventory allocation
-			Mage::getModel('eb2cinventory/allocation')->rollbackAllocation($quote);
+			$allocation->rollbackAllocation($quote);
 		}
 
 		if ($productId) {
 			// we only do quantity check for product with manage stock only
-			if (Mage::getModel('eb2cinventory/allocation')->filterInventoriedItems($quoteItem)) {
+			if ($allocation->filterInventoriedItems($quoteItem)) {
 				// We have a valid product, let's check Eb2c Quantity
 				$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
 				if ($availableStock < $requestedQty && $availableStock > 0) {
@@ -93,10 +94,10 @@ class TrueAction_Eb2cInventory_Model_Observer
 
 		// get quote from quote item
 		$quote = $quoteItem->getQuote();
-
-		if (Mage::getModel('eb2cinventory/allocation')->hasAllocation($quote)) {
+		$allocation = Mage::getModel('eb2cinventory/allocation');
+		if ($allocation->hasAllocation($quote)) {
 			// this cart quote has allocation data, therefore, rollback eb2c inventory allocation
-			Mage::getModel('eb2cinventory/allocation')->rollbackAllocation($quote);
+			$allocation->rollbackAllocation($quote);
 		}
 	}
 
@@ -138,19 +139,20 @@ class TrueAction_Eb2cInventory_Model_Observer
 		// get the event response object
 		$response = $observer->getEvent()->getResponse();
 
+		$allocation = Mage::getModel('eb2cinventory/allocation');
 		// only allow allocation only when, there's no previous allocation or the previous allocation expired
-		if (!Mage::getModel('eb2cinventory/allocation')->hasAllocation($quote) || Mage::getModel('eb2cinventory/allocation')->isExpired($quote)) {
+		if ($allocation->requiresAllocation($quote)) {
 			// flag for failure or success allocation
 			$isAllocated = true;
 
 			// generate request and send request to eb2c allocation
-			$allocationResponseMessage = Mage::getModel('eb2cinventory/allocation')->allocateQuoteItems($quote);
+			$allocationResponseMessage = $allocation->allocateQuoteItems($quote);
 			if ($allocationResponseMessage) {
 				// parse allocation response
-				$allocationData = Mage::getModel('eb2cinventory/allocation')->parseResponse($allocationResponseMessage);
+				$allocationData = $allocation->parseResponse($allocationResponseMessage);
 
 				// got a valid response from eb2c, then go ahead and update the quote with the eb2c information
-				$allocatedErr = Mage::getModel('eb2cinventory/allocation')->processAllocation($quote, $allocationData);
+				$allocatedErr = $allocation->processAllocation($quote, $allocationData);
 
 				// Got an allocation failure
 				if (!empty($allocatedErr)) {

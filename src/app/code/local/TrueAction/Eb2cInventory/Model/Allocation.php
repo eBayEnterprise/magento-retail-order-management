@@ -6,6 +6,19 @@
  */
 class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory_Model_Abstract
 {
+
+	/**
+	 * A quote only requires an allocation if it has items with managed stock, does not already have
+	 * an allocation or has an allocation that has expired.
+	 * @param  Mage_Sales_Model_Quote $quote The quote that may be allocation
+	 * @return boolean                       True if the quote needs an allocation. False if it does not.
+	 */
+	public function requiresAllocation(Mage_Sales_Model_Quote $quote)
+	{
+		$managedStockItems = array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems'));
+		return !empty($managedStockItems) && (!$this->hasAllocation($quote) || $this->isExpired($quote));
+	}
+
 	/**
 	 * Allocating all items brand new quote from eb2c.
 	 * @param Mage_Sales_Model_Quote $quote, the quote to allocate inventory items in eb2c for

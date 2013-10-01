@@ -236,10 +236,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
 			);
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] EB2C Address: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . ']: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
 		}
 		if (empty($apiResponse)) {
-			Mage::log('[' . __CLASS__ . '] EB2C Address: Empty reponse returned from address validation service.', Zend_Log::WARN);
+			Mage::log('[' . __CLASS__ . ']: Empty reponse returned from address validation service.', Zend_Log::WARN);
 			return null;
 		} else {
 			return Mage::getModel('eb2caddress/validation_response')
@@ -384,10 +384,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 			$addressCollection->setResponseMessage($response);
 			$addressCollection->setHasFreshSuggestions(true);
 		} else {
-			$addressCollection->setOriginalAddress(null);
-			$addressCollection->setSuggestedAddresses(null);
-			$addressCollection->setResponseMessage(null);
-			$addressCollection->setHasFreshSuggestions(false);
+			$addressCollection->unsOriginalAddress();
+			$addressCollection->unsSuggestedAddresses();
+			$addressCollection->unsResponseMessage();
+			$addressCollection->unsHasFreshSuggestions();
 		}
 
 		$validationAddressExtract = $this->_extractValidatedAddressData($requestAddress);

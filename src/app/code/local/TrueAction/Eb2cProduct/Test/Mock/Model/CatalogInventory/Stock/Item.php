@@ -16,10 +16,10 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item extends
 	 */
 	public function buildCatalogInventoryModelStockItem()
 	{
-		$catalogInventoryModelStockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('loadByProduct', 'setUseConfigBackorders', 'setBackorders', 'setProductId', 'setStockId', 'save')
-		);
+		$catalogInventoryModelStockItemMock = $this->getModelMockBuilder('cataloginventory/stock_item')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByProduct', 'setUseConfigBackorders', 'setBackorders', 'setProductId', 'setStockId', 'save', 'canSubtractQty'))
+			->getMock();
 
 		$catalogInventoryModelStockItemMock->expects($this->any())
 			->method('loadByProduct')
@@ -39,7 +39,20 @@ class TrueAction_Eb2cProduct_Test_Mock_Model_CatalogInventory_Stock_Item extends
 		$catalogInventoryModelStockItemMock->expects($this->any())
 			->method('save')
 			->will($this->returnSelf());
+		$catalogInventoryModelStockItemMock->expects($this->any())
+			->method('canSubtractQty')
+			->will($this->returnValue(false));
 
 		return $catalogInventoryModelStockItemMock;
+	}
+
+	/**
+	 * replacing by mock of the cataloginventory/stock_status model class
+	 *
+	 * @return void
+	 */
+	public function replaceByMockCatalogInventoryModelStockItem()
+	{
+		$this->replaceByMock('model', 'cataloginventory/stock_item', $this->buildCatalogInventoryModelStockItem());
 	}
 }

@@ -73,9 +73,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	 */
 	public function fetchFeedsFromRemote($remotePath, $filePattern)
 	{
-		$connectionAttempts   = 0;
-		$cfg                  = Mage::helper('eb2ccore/feed');
-		$coreConfig           = Mage::getModel('eb2ccore/config_registry')
+		$connectionAttempts = 0;
+		$cfg                = Mage::helper('eb2ccore/feed');
+		$coreConfig         = Mage::getModel('eb2ccore/config_registry')
 			->setStore(null)
 			->addConfigModel(Mage::getModel('eb2ccore/config'));
 

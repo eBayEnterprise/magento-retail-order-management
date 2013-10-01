@@ -72,26 +72,26 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	public function testApiUriCreation()
 	{
 		$this->_mockConfig(array(
-			array('apiEnvironment', 'prod'),
-			array('apiRegion', 'eu'),
-			array('apiMajorVersion', '1'),
-			array('apiMinorVersion', '10'),
-			array('storeId', 'store-123'),
+			array('apiEnvironment', 'api_env'),
+			array('apiRegion', 'api_rgn'),
+			array('apiMajorVersion', 'M'),
+			array('apiMinorVersion', 'm'),
+			array('storeId', 'store_id'),
 		));
 		$helper = Mage::helper('eb2ccore');
 		// simplest case - just a service and operation
 		$this->assertSame(
-			'https://prod-eu.gsipartners.com/v1.10/stores/store-123/address/validate.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/address/validate.xml',
 			$helper->getApiUri('address', 'validate')
 		);
 		// service, operation and params
 		$this->assertSame(
-			'https://prod-eu.gsipartners.com/v1.10/stores/store-123/payments/creditcard/auth/VC.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/creditcard/auth/VC.xml',
 			$helper->getApiUri('payments', 'creditcard', array('auth', 'VC'))
 		);
 		// service, operation, params and type
 		$this->assertSame(
-			'https://prod-eu.gsipartners.com/v1.10/stores/store-123/inventory/allocations/delete.json',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
@@ -125,4 +125,23 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		);
 	}
 
+	public function providerXmlToMageLangFrmt()
+	{
+		return array(
+			array('en-US'),
+		);
+	}
+
+	/**
+	 * Test xmlToMageLangFrmt static method
+	 *
+	 * @param  string $langCode, the language code
+	 *
+	 * @test
+	 * @dataProvider providerXmlToMageLangFrmt
+	 */
+	public function testXmlToMageLangFrmt($langCode)
+	{
+		$this->assertSame('en_US', Mage::helper('eb2ccore')->xmlToMageLangFrmt($langCode));
+	}
 }

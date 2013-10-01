@@ -1,45 +1,20 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
-	/**
-	 * hold a collection of bundle operation data
-	 *
-	 * @var array
-	 */
-	protected $_bundleQueue;
-
-	/**
-	 * hold a collection of configurable operation data
-	 *
-	 * @var array
-	 */
-	protected $_configurableQueue;
-
-	/**
-	 * hold a collection of grouped operation data
-	 *
-	 * @var array
-	 */
-	protected $_groupedQueue;
+	const OPERATION_TYPE_DELETE = 'DELETE';
+	const OPERATION_TYPE_ADD = 'ADD';
+	const OPERATION_TYPE_UPDATE = 'UPDATE';
 
 	/**
 	 * Initialize model
 	 */
 	protected function _construct()
 	{
-		// get config
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . $cfg->itemFeedLocalPath);
+			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->itemFeedLocalPath);
 		}
 
 		// Set up local folders for receiving, processing
@@ -48,131 +23,78 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
 		}
 
-		$this->setExtractor(Mage::getModel('eb2cproduct/feed_item_extractor'))
-			->setStockItem(Mage::getModel('cataloginventory/stock_item'))
-			->setProduct(Mage::getModel('catalog/product'))
-			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
-			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs))
-			->setEavConfig(Mage::getModel('eav/config'))
-			->setEavEntityAttribute(Mage::getModel('eav/entity_attribute'))
-			->setProductTypeConfigurableAttribute(Mage::getModel('catalog/product_type_configurable_attribute'))
-			// setting default attribute set id
-			->setDefaultAttributeSetId(Mage::getModel('catalog/product')->getResource()->getEntityType()->getDefaultAttributeSetId())
-			// Magento product type ids
-			->setProductTypeId(array('simple', 'grouped', 'giftcard', 'downloadable', 'virtual', 'configurable', 'bundle'))
-			// set the default store id
-			->setDefaultStoreId(Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId())
-			// set array of website ids
-			->setWebsiteIds(Mage::getModel('core/website')->getCollection()->getAllIds());
-
-		// initialize bundle queue with an empty array
-		$this->_bundleQueue = array();
-
-		// initialize configurable queue with an empty array
-		$this->_configurableQueue = array();
-
-		// initialize grouped queue with an empty array
-		$this->_groupedQueue = array();
-
-		return $this;
-	}
-
-	/**
-	 * checking product catalog eav config attributes.
-	 *
-	 * @param string $attribute, the string attribute code to check if exists for the catalog_product
-	 *
-	 * @return bool, true the attribute exists, false otherwise
-	 */
-	protected function _isAttributeExists($attribute)
-	{
-		return ((int) $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute)->getId() > 0)? true : false;
+		$prod = Mage::getModel('catalog/product');
+		return $this->addData(array(
+			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
+			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(),
+			'eav_entity_attribute' => Mage::getModel('eav/entity_attribute'),
+			'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
+			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			'product' => $prod,
+			'product_type_configurable_attribute' => Mage::getModel('catalog/product_type_configurable_attribute'),
+			'stock_item' => Mage::getModel('cataloginventory/stock_item'),
+			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
+		));
 	}
 
 	/**
 	 * getting the eav attribute object.
-	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
-	 *
 	 * @return Mage_Eav_Model_Config
 	 */
 	protected function _getAttribute($attribute)
 	{
-		return $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		return Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 	}
 
 	/**
 	 * getting the attribute selected option.
-	 *
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
-	 *
-	 * @return Mage_Eav_Model_Config
+	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
 	{
 		$optionId = 0;
-		$attributes = $this->getEavConfig()->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
 				$optionId = $attrOption['value'];
 			}
 		}
-
 		return $optionId;
 	}
 
 	/**
-	 * add bundle product to a queue to be process later.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to process bundle products
-	 *
-	 * @return void
+	 * add new attributes aptions and return the newly inserted option id
+	 * @param string $attribute, the attribute to used to add the new option
+	 * @param string $newOption, the new option to be added for the attribute
+	 * @return int, the newly inserted option id
 	 */
-	protected function _queueBundleData($bundleDataObject)
+	protected function _addAttributeOption($attribute, $newOption)
 	{
-		if ($bundleDataObject) {
-			$this->_bundleQueue[] = $bundleDataObject;
+		$newOptionId = 0;
+		try{
+			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+			$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+			$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
+			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while creating new option "' . $newOption . '" for attribute: ' . $attribute . ' in Item Master Feed (' .
+				$e->getMessage() . ')',
+				Zend_Log::ERR
+			);
 		}
-		return ;
-	}
-
-	/**
-	 * add configurable product to a queue to be process later.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to process configured products
-	 *
-	 * @return void
-	 */
-	protected function _queueConfigurableData($configurableDataObject)
-	{
-		if ($configurableDataObject) {
-			$this->_configurableQueue[] = $configurableDataObject;
-		}
-		return ;
-	}
-
-	/**
-	 * add grouped product to a queue to be process later.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to process grouped products
-	 *
-	 * @return void
-	 */
-	protected function _queueGroupedData($groupedDataObject)
-	{
-		if ($groupedDataObject) {
-			$this->_groupedQueue[] = $groupedDataObject;
-		}
-		return ;
+		return $newOptionId;
 	}
 
 	/**
 	 * load product by sku
-	 *
 	 * @param string $sku, the product sku to filter the product table
-	 *
 	 * @return catalog/product
 	 */
 	protected function _loadProductBySku($sku)
@@ -188,745 +110,788 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * validating the product type
-	 *
-	 * @param string $type, the product type to validated
-	 *
-	 * @return bool, true the inputed type match what's in magento else doesn't match
-	 */
-	protected function _isValidProductType($type)
-	{
-		return in_array($type, $this->getProductTypeId());
-	}
-
-	/**
-	 * processing downloaded feeds from eb2c.
-	 *
-	 * @return void
+	 * Process downloaded feeds from eb2c.
+	 * @return self
 	 */
 	public function processFeeds()
 	{
-		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$feedModel = $this->getFeedModel();
 
-		$this->getFeedModel()->fetchFeedsFromRemote(
+		$feedModel->fetchFeedsFromRemote(
 			$cfg->itemFeedRemoteReceivedPath,
 			$cfg->itemFeedFilePattern
 		);
-		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
-			// load feed files to Dom object
-			$domDocument->load($feed);
-
-			$expectEventType = $cfg->itemFeedEventType;
-			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
-				// processing feed items
-				$this->_itemMasterActions($domDocument);
+		$doc = $coreHelper->getNewDomDocument();
+		$feeds = $feedModel->lsInboundDir();
+		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
+		foreach ($feeds as $feed) {
+			$doc->load($feed);
+			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
+			if ($coreHelperFeed->validateHeader($doc, $cfg->itemFeedEventType)) {
+				$this->_itemMasterActions($doc); // Process feed data
 			}
-
-			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
-				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveDir($feed);
+				$feedModel->mvToArchiveDir($feed);
 			}
 		}
-
-		// let's process any bundle product that were added to the queue
-		$this->processBundleQueue();
-
-		// let's process any configurable product that were added to the queue
-		$this->processConfigurableQueue();
-
-		// let's process any grouped product that were added to the queue
-		$this->processGroupedQueue();
-
-		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
-	}
-
-	/**
-	 * add bundle object to queue
-	 *
-	 * @param Varien_Object $feedItem, get bundle object from feed item
-	 *
-	 * @return void
-	 */
-	protected function _addBundleToQueue(Varien_Object $feedItem)
-	{
-		// if this item has bundle data let's queue it, so that we can process later.
-		if (!is_null($feedItem->getBundleContents())) {
-			$queueBundleObject = new Varien_Object();
-			$queueBundleObject->setBundleData($feedItem->getBundleContents());
-			$queueBundleObject->setParentSku($feedItem->getItemId()->getClientItemId());
-			$this->_queueBundleData($queueBundleObject);
-		}
-	}
-
-	/**
-	 * add configurable object to queue
-	 *
-	 * @param Varien_Object $feedItem, get configurable object from feed item
-	 *
-	 * @return void
-	 */
-	protected function _addConfigurableToQueue(Varien_Object $feedItem)
-	{
-		// if this item has configurable data let's queue it, so that we can process later.
-		if (!is_null($feedItem->getBundleContents())) {
-			$queueConfigurableObject = new Varien_Object();
-			$queueConfigurableObject->setConfigurableData($feedItem->getBundleContents());
-			$queueConfigurableObject->setParentSku($feedItem->getItemId()->getClientItemId());
-			$queueConfigurableObject->setConfigurableAttributes($this->_extractConfigurableAttributes($feedItem));
-			$this->_queueConfigurableData($queueConfigurableObject);
-		}
-	}
-
-	/**
-	 * add Grouped object to queue
-	 *
-	 * @param Varien_Object $feedItem, get Grouped object from feed item
-	 *
-	 * @return void
-	 */
-	protected function _addGroupedToQueue(Varien_Object $feedItem)
-	{
-		// if this item has Grouped data let's queue it, so that we can process later.
-		if (!is_null($feedItem->getBundleContents())) {
-			$queueGroupedObject = new Varien_Object();
-			$queueGroupedObject->setGroupedData($feedItem->getBundleContents());
-			$queueGroupedObject->setParentSku($feedItem->getItemId()->getClientItemId());
-			$this->_queueGroupedData($queueGroupedObject);
-		}
-	}
-
-	/**
-	 * extract configurable custom attributes feed item
-	 *
-	 * @param Varien_Object $feedItem, get configurable object from feed item
-	 *
-	 * @return array, all configurable attributes
-	 */
-	protected function _extractConfigurableAttributes(Varien_Object $feedItem)
-	{
-		$configurableAttributes = array();
-		// if this item has configurable attribute data let's extract it.
-		if (!is_null($feedItem->getCustomAttributes())) {
-			// adding custom attributes
-			$customAttributes = $feedItem->getCustomAttributes()->getAttributes();
-			if (!empty($customAttributes)) {
-				foreach ($customAttributes as $attribute) {
-					// only process custom attributes that mark is configurable
-					if (strtoupper(trim($attribute['name'])) === 'CONFIGURABLEATTRIBUTES') {
-						$configurableAttributes = explode(',', $attribute['value']);
-					}
-				}
-			}
-		}
-
-		return $configurableAttributes;
+		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
+		Mage::helper('eb2cproduct')->clean(); // reindex
+		return $this;
 	}
 
 	/**
 	 * determine which action to take for item master (add, update, delete.
-	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
-	 *
-	 * @return void
+	 * @return self
 	 */
-	protected function _itemMasterActions($doc)
+	protected function _itemMasterActions(DOMDocument $doc)
 	{
-		$productHelper = Mage::helper('eb2cproduct');
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$cfgCatId = $cfg->catalogId;
+		$cfgClientId = $cfg->clientId;
+		$items = $this->getExtractor()->extract($doc);
+		$numItems = count($items);
 
-		if ($feedItemCollection = $this->getExtractor()->extractItemMasterFeed($doc)){
-			// we've import our feed data in a varien object we can work with
-			foreach ($feedItemCollection as $feedItem) {
-				// Ensure this matches the catalog id set in the Magento admin configuration.
-				// If different, do not update the item and log at WARN level.
-				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
-					Mage::log(
-						'Item Master Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$cfg->catalogId . ')',
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				// Ensure that the client_id field here matches the value supplied in the Magento admin.
-				// If different, do not update this item and log at WARN level.
-				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
-					Mage::log(
-						'Item Master Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$cfg->clientId . ')',
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				// This will be mapped by the product hub to Magento product types.
-				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-				if (!$this->_isValidProductType($feedItem->getBaseAttributes()->getItemType())) {
-					Mage::log(
-						'Item Master Feed item_type (' . $feedItem->getBaseAttributes()->getItemType() . '), doesn\'t match Magento available Item Types (' .
-						implode(',', $this->getProductTypeId()) . ')',
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				if (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'BUNDLE') {
-					// queue bundle data
-					$this->_addBundleToQueue($feedItem);
-				} elseif (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'CONFIGURABLE') {
-					// queue configurable data
-					$this->_addConfigurableToQueue($feedItem);
-				} elseif (strtoupper(trim($feedItem->getBaseAttributes()->getItemType())) === 'GROUPED') {
-					// queue Grouped data
-					$this->_addGroupedToQueue($feedItem);
-				}
-
-				// process feed data according to their operations
-				switch (trim(strtoupper($feedItem->getOperationType()))) {
-					case 'ADD':
-						$this->_addItem($feedItem);
+		if (!$numItems) {
+			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
+			return $this;
+		}
+		foreach ($items as $i => $item) {
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
+			$catId = $item->getCatalogId();
+			$clientId = $item->getGsiClientId();
+			$prodType = $item->getProductType();
+			$opType = trim(strtoupper($item->getOperationType()));
+			if ($catId !== $cfgCatId) {
+				Mage::log(
+					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
+					Zend_Log::WARN
+				);
+			} elseif ($clientId !== $cfgClientId) {
+				Mage::log(
+					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
+					Zend_Log::WARN
+				);
+			} elseif (!$prdHlpr->hasProdType($prodType)) {
+				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
+			} else {
+				switch ($opType) {
+					case self::OPERATION_TYPE_ADD:
+					case self::OPERATION_TYPE_UPDATE:
+						$this->_synchProduct($item);
 						break;
-					case 'CHANGE':
-						$this->_updateItem($feedItem);
+					case self::OPERATION_TYPE_DELETE:
+						$this->_deleteItem($item);
 						break;
-					case 'DELETE':
-						$this->_deleteItem($feedItem);
+					default:
+						Mage::log(sprintf('[ %s ] Unrecognized operation type "%s"', __CLASS__, $opType), Zend_Log::WARN);
 						break;
 				}
 			}
 		}
+		return $this;
 	}
 
 	/**
-	 * add product to magento
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to add the product
-	 *
-	 * @return void
+	 * add/update magento product with eb2c data
+	 * @param Varien_Object $item, the object with data needed to add/update a magento product
+	 * @return self
 	 */
-	protected function _addItem($dataObject)
+	protected function _synchProduct(Varien_Object $item)
 	{
-		if ($dataObject) {
-			if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
-				// we have a valid item, let's check if this product already exists in Magento
-				$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
-				if (!$this->getProduct()->getId()) {
-					try {
-						// adding new product to magento
-						$productObject = $this->getProduct();
-						$productObject->setId(null);
-						$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
-						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
-						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
+		if (trim($item->getItemId()->getClientItemId()) === '') {
+			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
+		} else {
+			// we have a valid item, let's check if this product already exists in Magento
+			$prd = $this->_loadProductBySku($item->getItemId()->getClientItemId());
+			$this->setProduct($prd);
+			$prdObj = $prd->getId() ? $prd : $this->_getDummyProduct($item);
+			$prdObj->addData(array(
+				'type_id' => $item->getProductType(),
+				'weight' => $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight(),
+				'mass' => $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure(),
+				'visibility' => $this->_getVisibilityData($item),
+				'attribute_set_id' => $this->getDefaultAttributeSetId(),
+				'status' => $item->getBaseAttributes()->getItemStatus(),
+				'sku' => $item->getItemId()->getClientItemId(),
+				'msrp' => $item->getExtendedAttributes()->getMsrp(),
+				'price' => $item->getExtendedAttributes()->getPrice(),
+			))->save(); // saving the product
 
-						// Temporary fix
-						$productObject->setName($dataObject->getBaseAttributes()->getItemDescription());
-
-						// nosale should map to not visible individually.
-						// Both regular and always should map to catalog/search.
-						// Assume there can be a custom Visibility field. As always, the last node wins.
-						$catalogClass = strtoupper(trim($dataObject->getBaseAttributes()->getCatalogClass()));
-						if ($catalogClass === '' || $catalogClass === 'NOSALE') {
-							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
-						} elseif ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
-							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH);
-						}
-						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
-						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
-						$productObject->setSku($dataObject->getItemId()->getClientItemId());
-						if ($this->_isAttributeExists('msrp')) {
-							// setting msrp attribute
-							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
-						}
-						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
-						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
-							// setting is_drop_shipped attribute
-							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
-						}
-						if ($this->_isAttributeExists('tax_code')) {
-							// setting tax_code attribute
-							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
-							// setting drop_ship_supplier_name attribute
-							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
-							// setting drop_ship_supplier_number attribute
-							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
-							// setting drop_ship_supplier_part attribute
-							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
-						}
-						if ($this->_isAttributeExists('gift_message_available')) {
-							// setting gift_message_available attribute
-							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
-							$productObject->setUseConfigGiftMessageAvailable(false);
-						}
-						if ($this->_isAttributeExists('country_of_manufacture')) {
-							// setting country_of_manufacture attribute
-							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
-						}
-						if ($this->_isAttributeExists('color')) {
-							// setting color attribute
-							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
-						}
-						if ($this->_isAttributeExists('gift_card_tender_code')) {
-							// setting gift_card_tender_code attribute
-							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
-						}
-
-						// adding custom attributes
-						$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
-						if (!empty($customAttributes)) {
-							foreach ($customAttributes as $attribute) {
-								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
-									// only process custom attributes that not mark is configurable
-									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
-										// setting custom attributes
-										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
-											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
-										} else {
-											// setting custom value whenever the operation type is 'add', or 'change'
-											$productObject->setData($attributeCode, $attribute['value']);
-										}
-									}
-								}
-							}
-						}
-
-						if ($this->_isAttributeExists('size')) {
-							// setting size attribute
-							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
-							$size = null;
-							if (!empty($sizeAttributes)){
-								foreach ($sizeAttributes as $sizeData) {
-									if (strtoupper(trim($sizeData['lang'])) === 'EN-GB') {
-										$size = $sizeData['description'];
-									}
-								}
-							}
-							$productObject->setSize($size);
-						}
-
-						// saving the product
-						$productObject->save();
-
-						// adding product stock item data
-						$this->getStockItem()->loadByProduct($this->getProduct())
-							->setUseConfigBackorders(false)
-							->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
-							->setProductId($this->getProduct()->getId())
-							->setStockId(Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID)
-							->save();
-					} catch (Mage_Core_Exception $e) {
-						Mage::logException($e);
-					}
-				} else {
-					// this item currently exists in magento let simply log it
-					Mage::log('Item Master Feed Add Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), already exists in Magento', Zend_Log::WARN);
-				}
-			}
+			$this
+				->_addColorToProduct($item, $prdObj)
+				->_addEb2cSpecificAttributeToProduct($item, $prdObj)
+				->_addCustomAttributeToProduct($item, $prdObj)
+				->_addConfigurableDataToProduct($item, $prdObj)
+				->_addStockItemDataToProduct($item, $prdObj);
 		}
-
-		return ;
+		return $this;
 	}
 
 	/**
-	 * update product.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to update the product
-	 *
-	 * @return void
+	 * getting the color option, create it if id doesn't exist or just fetch it from magento db
+	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
+	 * @return int, the option id
 	 */
-	protected function _updateItem($dataObject)
+	protected function _getProductColorOptionId(Varien_Object $dataObject)
 	{
-		if ($dataObject) {
-			if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
-				// we have a valid item, let's check if this product already exists in Magento
-				$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
+		$colorOptionId = 0;
 
-				if ($this->getProduct()->getId()) {
-					try {
-						$productObject = $this->getProduct();
-						$productObject->setTypeId($dataObject->getBaseAttributes()->getItemType());
-						$productObject->setWeight($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getWeight());
-						$productObject->setMass($dataObject->getExtendedAttributes()->getItemDimensionsShipping()->getMassUnitOfMeasure());
-						// nosale should map to not visible individually.
-						// Both regular and always should map to catalog/search.
-						// Assume there can be a custom Visibility field. As always, the last node wins.
-						$catalogClass = strtoupper(trim($dataObject->getBaseAttributes()->getCatalogClass()));
-						if ($catalogClass === '' || $catalogClass === 'NOSALE') {
-							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
-						} elseif ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
-							$productObject->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH);
-						}
-						$productObject->setAttributeSetId($this->getDefaultAttributeSetId());
-						$productObject->setStatus($dataObject->getBaseAttributes()->getItemStatus());
-						$productObject->setSku($dataObject->getItemId()->getClientItemId());
-						if ($this->_isAttributeExists('msrp')) {
-							// setting msrp attribute
-							$productObject->setMsrp($dataObject->getExtendedAttributes()->getMsrp());
-						}
-						$productObject->setPrice($dataObject->getExtendedAttributes()->getPrice());
-						// adding new attributes
-						if ($this->_isAttributeExists('is_drop_shipped')) {
-							// setting is_drop_shipped attribute
-							$productObject->setIsDropShipped($dataObject->getBaseAttributes()->getDropShipped());
-						}
-						if ($this->_isAttributeExists('tax_code')) {
-							// setting tax_code attribute
-							$productObject->setTaxCode($dataObject->getBaseAttributes()->getTaxCode());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_name')) {
-							// setting drop_ship_supplier_name attribute
-							$productObject->setDropShipSupplierName($dataObject->getDropShipSupplierInformation()->getSupplierName());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_number')) {
-							// setting drop_ship_supplier_number attribute
-							$productObject->setDropShipSupplierNumber($dataObject->getDropShipSupplierInformation()->getSupplierNumber());
-						}
-						if ($this->_isAttributeExists('drop_ship_supplier_part')) {
-							// setting drop_ship_supplier_part attribute
-							$productObject->setDropShipSupplierPart($dataObject->getDropShipSupplierInformation()->getSupplierPartNumber());
-						}
-						if ($this->_isAttributeExists('gift_message_available')) {
-							// setting gift_message_available attribute
-							$productObject->setGiftMessageAvailable($dataObject->getExtendedAttributes()->getAllowGiftMessage());
-							$productObject->setUseConfigGiftMessageAvailable(false);
-						}
-						if ($this->_isAttributeExists('country_of_manufacture')) {
-							// setting country_of_manufacture attribute
-							$productObject->setCountryOfManufacture($dataObject->getExtendedAttributes()->getCountryOfOrigin());
-						}
-						if ($this->_isAttributeExists('color')) {
-							// setting color attribute
-							$productObject->setColor($this->_getAttributeOptionId('color', $dataObject->getExtendedAttributes()->getColorAttributes()->getColorDescription()));
-						}
-						if ($this->_isAttributeExists('gift_card_tender_code')) {
-							// setting gift_card_tender_code attribute
-							$productObject->setGiftCardTenderCode($dataObject->getExtendedAttributes()->getGiftCardTenderCode());
-						}
-
-						// adding custom attributes
-						$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
-						if (!empty($customAttributes)) {
-							foreach ($customAttributes as $attribute) {
-								$attributeCode = $attribute['name'];
-								if ($this->_isAttributeExists($attributeCode)) {
-									// only process custom attributes that not mark is configurable
-									if (strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
-										// setting custom attribute
-										if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
-											// setting custom attributes to null on operation type 'delete'
-											$productObject->setData($attributeCode, null);
-										} else {
-											// setting custom value whenever the operation type is 'add', or 'change'
-											$productObject->setData($attributeCode, $attribute['value']);
-										}
-									}
-								}
-							}
-						}
-
-						if ($this->_isAttributeExists('size')) {
-							// setting size attribute
-							$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
-							$size = null;
-							if (!empty($sizeAttributes)){
-								foreach ($sizeAttributes as $sizeData) {
-									if (strtoupper(trim($sizeData['lang'])) === 'EN-GB') {
-										$size = $sizeData['description'];
-									}
-								}
-							}
-							$productObject->setSize($size);
-						}
-
-						// saving the product
-						$productObject->save();
-
-						// updating product stock item data
-						$this->getStockItem()->loadByProduct($this->getProduct())
-							->setUseConfigBackorders(false)
-							->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
-							->setProductId($this->getProduct()->getId())
-							->setStockId(Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID)
-							->save();
-					} catch (Mage_Core_Exception $e) {
-						Mage::logException($e);
-					}
-				} else {
-					// this item doesn't exists in magento let's add it and then log it
-					$this->_addItem($dataObject);
-					Mage::log('Item Master Feed Update Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+		// get color attribute data
+		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
+		if (!empty($colorData)) {
+			$colorCode = $this->_getFirstColorCode($colorData);
+			if(trim($colorCode) !== '') {
+				$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
+				if (!$colorOptionId) {
+					$colorOptionId = (int) $this->_addAttributeOption('color', $colorCode);
 				}
 			}
 		}
+		return $colorOptionId;
+	}
 
-		return ;
+	/**
+	 * Create dummy products and return new dummy product object
+	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
+	 * @return Mage_Catalog_Model_Product
+	 */
+	protected function _getDummyProduct(Varien_Object $item)
+	{
+		$prd = $this->getProduct()->load(0);
+		try {
+			$prd
+				->unsId()
+				->addData(array(
+					'type_id' => 'simple', // default product type
+					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+					'attribute_set_id' => $this->getDefaultAttributeSetId(),
+					'name' => 'temporary-name - ' . uniqid(),
+					'status' => 0, // default - disabled
+					'sku' => $item->getUniqueId(),
+					'color' => $this->_getProductColorOptionId($item),
+				))
+				->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::logException(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()));
+		}
+		return $prd;
+	}
+
+	/**
+	 * adding stock item data to a product.
+	 * @param Varien_Object $dataObject, the object with data needed to add the stock data to the product
+	 * @param Mage_Catalog_Model_Product $parentProductObject, the product object to set stock item data to
+	 * @return self
+	 */
+	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		$this->getStockItem()->loadByProduct($productObject)
+			->addData(
+				array(
+					'use_config_backorders' => false,
+					'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
+					'product_id' => $productObject->getId(),
+					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+				)
+			)
+			->save();
+		return $this;
+	}
+
+	/**
+	 * adding color data product configurable products
+	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
+	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
+	 * @return self
+	 */
+	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		$prodHlpr = Mage::helper('eb2cproduct');
+		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $prodHlpr->hasEavAttr('color')) {
+			// setting color attribute, with the first record
+			$productObject->addData(
+				array(
+					'color' => $this->_getProductColorOptionId($dataObject),
+					'configurable_color_data' => json_encode($dataObject->getExtendedAttributes()->getColorAttributes()->getColor()),
+				)
+			)->save();
+		}
+		return $this;
 	}
 
 	/**
 	 * delete product.
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to delete the product
-	 *
-	 * @return void
+	 * @return self
 	 */
-	protected function _deleteItem($dataObject)
+	protected function _deleteItem(Varien_Object $dataObject)
 	{
-		if ($dataObject) {
-			if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
-				// we have a valid item, let's check if this product already exists in Magento
-				$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
+		if (trim($dataObject->getItemId()->getClientItemId()) !== '') {
+			// we have a valid item, let's check if this product already exists in Magento
+			$this->setProduct($this->_loadProductBySku($dataObject->getItemId()->getClientItemId()));
 
-				if ($this->getProduct()->getId()) {
-					try {
-						// deleting the product from magento
-						$this->getProduct()->delete();
-					} catch (Mage_Core_Exception $e) {
-						Mage::logException($e);
-					}
-				} else {
-					// this item doesn't exists in magento let simply log it
-					Mage::log('Item Master Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+			if ($this->getProduct()->getId()) {
+				try {
+					// deleting the product from magento
+					$this->getProduct()->delete();
+				} catch (Mage_Core_Exception $e) {
+					Mage::logException($e);
 				}
+			} else {
+				// this item doesn't exists in magento let simply log it
+				Mage::log(
+					'[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' .
+					$dataObject->getItemId()->getClientItemId() . '), does not exists in Magento',
+					Zend_Log::WARN
+				);
 			}
 		}
 
-		return ;
+		return $this;
 	}
 
 	/**
-	 * processing bundle queue.
-	 *
-	 * @return void
+	 * link child product to parent configurable product.
+	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
+	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
+	 * @param array $confAttr, collection of configurable attribute
+	 * @return self
 	 */
-	public function processBundleQueue()
-	{
-		// process bundle only when the queue has actual data
-		if (!empty($this->_bundleQueue)) {
-			// loop through all queued items
-			foreach ($this->_bundleQueue as $bundleObject) {
-				// only process when there's a parent sku related to the bundle object
-				if (trim($bundleObject->getParentSku()) !== '') {
-					// we have a valid item, let's check if this parent product already exists in Magento
-					$parentProductObject = $this->_loadProductBySku($bundleObject->getParentSku());
-					if ($parentProductObject->getId()) {
-						// we have a valid parent product
-						try {
-							// get all the bundle object and set them as bundle product for the parent product.
-							if ($bundleItemCollection = $bundleObject->getBundleData()->getBundleItems()) {
-								// before registering product to Mage registry let's unregister first
-								Mage::unregister('product');
-								Mage::unregister('current_product');
-
-								// registering the product to Mage registry
-								Mage::register('product', $parentProductObject);
-								Mage::register('current_product', $parentProductObject);
-
-								// we have our collection of bundle items
-								$optionRawData = array();
-								$optionRawData[0] = array(
-									'required' => 0,
-									'position' => 0,
-									'type' => 'radio',
-									'title' => 'Eb2c Bundle',
-									'delete' => ''
-								);
-								$selectionRawData = array();
-								$bundlePositionIndex = 0;
-								foreach ($bundleItemCollection as $bundleItemObject) {
-									// we have a valid item, let's check if this child bundle product already exists in Magento
-									$bundleProductObject = $this->_loadProductBySku($bundleItemObject->getItemId());
-									if ($bundleProductObject->getId()) {
-										$selectionRawData[0][] = array(
-											'product_id' => $bundleProductObject->getId(),
-											'position' => $bundlePositionIndex,
-											'is_default' => 0,
-											'selection_price_type' => '',
-											'selection_price_value' => '',
-											'selection_qty' => $bundleItemObject->getQuantity(),
-											'selection_can_change_qty' => 1,
-											'delete' => (trim(strtoupper($bundleItemObject->getOperationType())) === 'DELETE')? 'delete' : ''
-										);
-									}
-									$bundlePositionIndex++;
-								}
-
-								$parentProductObject->setBundleOptionsData($optionRawData);
-								$parentProductObject->setBundleSelectionsData($selectionRawData);
-
-								$parentProductObject->setCanSaveBundleSelections(true);
-								$parentProductObject->setAffectBundleProductSelections(true);
-
-								$parentProductObject->save();
-							}
-						} catch (Exception $e) {
-							Mage::log('The following error has occurred while processing the bundle queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
-						}
-					}
-				}
-			}
-
-			// after looping through the queue, let's reset the bundle queue
-			$this->_bundleQueue = array();
-		}
-	}
-
-	/**
-	 * processing Configurable queue.
-	 *
-	 * @return void
-	 */
-	public function processConfigurableQueue()
-	{
-		// process Configurable only when the queue has actual data
-		if (!empty($this->_configurableQueue)) {
-			// loop through all queued items
-			foreach ($this->_configurableQueue as $configurableObject) {
-				// only process when there's a parent sku related to the configurable object
-				if (trim($configurableObject->getParentSku()) !== '') {
-					// we have a valid item, let's check if this parent product already exists in Magento
-					$parentProductObject = $this->_loadProductBySku($configurableObject->getParentSku());
-					if ($parentProductObject->getId()) {
-						// we have a valid parent product
-						try {
-							// get all the configurable object and set them as configurable product for the parent product.
-							if ($configurableItemCollection = $configurableObject->getConfigurableData()->getBundleItems()) {
-
-								$configurableData = array();
-
-								// all configurable attributes for this configurable parent product
-								$configurableAttributes = $configurableObject->getConfigurableAttributes();
-
-								foreach ($configurableItemCollection as $children) {
-									$childProduct = $this->_loadProductBySku($children->getItemId());
-									if ($childProduct->getId()) {
-										foreach ($configurableAttributes as $configAttribute) {
-											$attributeObject = $this->_getAttribute($configAttribute);
-											$attributeOptions = $attributeObject->getSource()->getAllOptions();
-											foreach ($attributeOptions as $option) {
-												if ((int) $childProduct->getData(strtolower($configAttribute)) === (int) $option['value']) {
-													$configurableData[$childProduct->getId()][] = array(
-														'attribute_id' => $attributeObject->getId(),
-														'label' => $option['label'],
-														'value_index' => $option['value'],
-													);
-												}
-											}
-										}
-									}
-								}
-
-								$configurableAttributeData = array();
-								foreach ($configurableAttributes as $attrCode) {
-									$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
-									$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
-									$configurableAttributeData[] = array(
-										'id' => $configurableAtt->getId(),
-										'label' => $configurableAtt->getLabel(),
-										'position' => $superAttribute->getPosition(),
-										'values' => array(),
-										'attribute_id' => $superAttribute->getId(),
-										'attribute_code' => $superAttribute->getAttributeCode(),
-										'frontend_label' => $superAttribute->getFrontend()->getLabel(),
-									);
-								}
-
-								$parentProductObject->setConfigurableProductsData($configurableData);
-								$parentProductObject->setConfigurableAttributesData($configurableAttributeData);
-								$parentProductObject->setCanSaveConfigurableAttributes(true);
-
-								$parentProductObject->save();
-							}
-						} catch (Exception $e) {
-							Mage::log('The following error has occurred while processing the configurable queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
-						}
-					}
-				}
-			}
-
-			// after looping through the queue, let's reset the configurable queue
-			$this->_configurableQueue = array();
-		}
-	}
-
-	/**
-	 * processing Grouped queue.
-	 *
-	 * @return void
-	 */
-	public function processGroupedQueue()
-	{
-		// process Grouped only when the queue has actual data
-		if (!empty($this->_groupedQueue)) {
-			// loop through all queued items
-			foreach ($this->_groupedQueue as $groupedObject) {
-				// only process when there's a parent sku related to the grouped object
-				if (trim($groupedObject->getParentSku()) !== '') {
-					// we have a valid item, let's check if this parent product already exists in Magento
-					$parentProductObject = $this->_loadProductBySku($groupedObject->getParentSku());
-					if ($parentProductObject->getId()) {
-						// we have a valid parent product
-						try {
-							// get all the grouped object and set them as grouped product for the parent product.
-							if ($groupedItemCollection = $groupedObject->getGroupedData()->getBundleItems()) {
-
-								$groupedData = array();
-
-								$groupedItemIndex = 0;
-								foreach ($groupedItemCollection as $children) {
-									$childProduct = $this->_loadProductBySku($children->getItemId());
-									if ($childProduct->getId()) {
-										$groupedData[$childProduct->getId()] = array('position' => $groupedItemIndex, 'qty' => $children->getQuantity());
-									}
-									$groupedItemIndex++;
-								}
-								$parentProductObject->setGroupedLinkData($groupedData);
-								$parentProductObject->save();
-							}
-						} catch (Exception $e) {
-							Mage::log('The following error has occurred while processing the grouped queue for Item Master Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
-						}
-					}
-				}
-			}
-
-			// after looping through the queue, let's reset the grouped queue
-			$this->_groupedQueue = array();
-		}
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
+	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
 	{
 		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
+			$configurableData = array();
+			foreach ($confAttr as $configAttribute) {
+				$attributeObject = $this->_getAttribute($configAttribute);
+				$attributeOptions = $attributeObject->getSource()->getAllOptions();
+				foreach ($attributeOptions as $option) {
+					if ((int) $pCObj->getData(strtolower($configAttribute)) === (int) $option['value']) {
+						$configurableData[$pCObj->getId()][] = array(
+							'attribute_id' => $attributeObject->getId(),
+							'label' => $option['label'],
+							'value_index' => $option['value'],
+						);
+					}
+				}
+			}
 
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+			$configurableAttributeData = array();
+			foreach ($confAttr as $attrCode) {
+				$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
+				$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
+				$configurableAttributeData[] = array(
+					'id' => $configurableAtt->getId(),
+					'label' => $configurableAtt->getLabel(),
+					'position' => $superAttribute->getPosition(),
+					'values' => array(),
+					'attribute_id' => $superAttribute->getId(),
+					'attribute_code' => $superAttribute->getAttributeCode(),
+					'frontend_label' => $superAttribute->getFrontend()->getLabel(),
+				);
+			}
+
+			$pPObj->addData(
+				array(
+					'configurable_products_data' => $configurableData,
+					'configurable_attributes_data' => $configurableAttributeData,
+					'can_save_configurable_attributes' => true,
+				)
+			)->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while linking
+				child product to configurable parent product for Item Master Feed (' .
+				$e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		}
+		return $this;
+	}
+
+	/**
+	 * getting the first color code from an array of color attributes.
+	 * @param array $colorData, collection of color data
+	 * @return string|null, the first color code
+	 */
+	protected function _getFirstColorCode(array $colorData)
+	{
+		if (!empty($colorData)) {
+			foreach ($colorData as $color) {
+				return $color['code'];
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * mapped the correct visibility data from eb2c feed with magento's visibility expected values
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve the CatalogClass to determine the proper Magento visibility value
+	 * @return string, the correct visibility value
+	 */
+	protected function _getVisibilityData(Varien_Object $dataObject)
+	{
+		// nosale should map to not visible individually.
+		$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
+
+		// Both regular and always should map to catalog/search.
+		// Assume there can be a custom Visibility field. As always, the last node wins.
+		$catalogClass = strtoupper(trim($dataObject->getBaseAttributes()->getCatalogClass()));
+		if ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
+			$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH;
 		}
 
-		return;
+		return $visibility;
+	}
+
+	/**
+	 * add color description per locale to a child product of using parent configurable store color attribute data.
+	 * @param Mage_Catalog_Model_Product $childProductObject, the child product object
+	 * @param array $parentColorDescriptionData, collection of configurable color description data
+	 * @return self
+	 */
+	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
+	{
+		try {
+			// This is neccessary to dynamically set value for attributes in different store view.
+			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+			$allStores = Mage::app()->getStores();
+			foreach ($parentColorDescriptionData as $cfgColorData) {
+				foreach ($cfgColorData->description as $colorDescription) {
+					foreach ($allStores as $eachStoreId => $val) {
+						// assuming the storeview follow the locale convention.
+						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
+							$childProductObject->setStoreId($eachStoreId)->addData(array('color_description' => $colorDescription->description))->save();
+						}
+					}
+				}
+			}
+		} catch (Exception $e) {
+			Mage::log(
+				'[' . __CLASS__ . '] The following error has occurred while adding configurable
+				color data to child product for Item Master Feed (' . $e->getMessage() . ')',
+				Zend_Log::ERR
+			);
+		}
+		return $this;
+	}
+
+	/**
+	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve eb2c specific attribute product data
+	 * @return array, composite array containing eb2c specific attribute to be set to a product
+	 */
+	protected function _getEb2cSpecificAttributeData(Varien_Object $dataObject)
+	{
+		$data = array();
+		$prodHlpr = Mage::helper('eb2cproduct');
+		if ($prodHlpr->hasEavAttr('is_drop_shipped')) {
+			// setting is_drop_shipped attribute
+			$data['is_drop_shipped'] = $dataObject->getBaseAttributes()->getDropShipped();
+		}
+		if ($prodHlpr->hasEavAttr('tax_code')) {
+			// setting tax_code attribute
+			$data['tax_code'] = $dataObject->getBaseAttributes()->getTaxCode();
+		}
+		if ($prodHlpr->hasEavAttr('drop_ship_supplier_name')) {
+			// setting drop_ship_supplier_name attribute
+			$data['drop_ship_supplier_name'] = $dataObject->getDropShipSupplierInformation()->getSupplierName();
+		}
+		if ($prodHlpr->hasEavAttr('drop_ship_supplier_number')) {
+			// setting drop_ship_supplier_number attribute
+			$data['drop_ship_supplier_number'] = $dataObject->getDropShipSupplierInformation()->getSupplierNumber();
+		}
+		if ($prodHlpr->hasEavAttr('drop_ship_supplier_part')) {
+			// setting drop_ship_supplier_part attribute
+			$data['drop_ship_supplier_part'] = $dataObject->getDropShipSupplierInformation()->getSupplierPartNumber();
+		}
+		if ($prodHlpr->hasEavAttr('gift_message_available')) {
+			// setting gift_message_available attribute
+			$data['gift_message_available'] = $dataObject->getExtendedAttributes()->getAllowGiftMessage();
+			$data['use_config_gift_message_available'] = false;
+		}
+		if ($prodHlpr->hasEavAttr('country_of_manufacture')) {
+			// setting country_of_manufacture attribute
+			$data['country_of_manufacture'] = $dataObject->getExtendedAttributes()->getCountryOfOrigin();
+		}
+		if ($prodHlpr->hasEavAttr('gift_card_tender_code')) {
+			// setting gift_card_tender_code attribute
+			$data['gift_card_tender_code'] = $dataObject->getExtendedAttributes()->getGiftCardTenderCode();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_type')) {
+			// setting item_type attribute
+			$data['item_type'] = $dataObject->getBaseAttributes()->getItemType();
+		}
+
+		if ($prodHlpr->hasEavAttr('client_alt_item_id')) {
+			// setting client_alt_item_id attribute
+			$data['client_alt_item_id'] = $dataObject->getItemId()->getClientAltItemId();
+		}
+
+		if ($prodHlpr->hasEavAttr('manufacturer_item_id')) {
+			// setting manufacturer_item_id attribute
+			$data['manufacturer_item_id'] = $dataObject->getItemId()->getManufacturerItemId();
+		}
+
+		if ($prodHlpr->hasEavAttr('brand_name')) {
+			// setting brand_name attribute
+			$data['brand_name'] = $dataObject->getExtendedAttributes()->getBrandName();
+		}
+
+		if ($prodHlpr->hasEavAttr('brand_description')) {
+			// setting brand_description attribute
+			$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
+			foreach ($brandDescription as $bDesc) {
+				if (trim(strtoupper($bDesc['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
+					$data['brand_description'] = $bDesc['description'];
+					break;
+				}
+			}
+		}
+
+		if ($prodHlpr->hasEavAttr('buyer_name')) {
+			// setting buyer_name attribute
+			$data['buyer_name'] = $dataObject->getExtendedAttributes()->getBuyerName();
+		}
+
+		if ($prodHlpr->hasEavAttr('buyer_id')) {
+			// setting buyer_id attribute
+			$data['buyer_id'] = $dataObject->getExtendedAttributes()->getBuyerId();
+		}
+
+		if ($prodHlpr->hasEavAttr('companion_flag')) {
+			// setting companion_flag attribute
+			$data['companion_flag'] = $dataObject->getExtendedAttributes()->getCompanionFlag();
+		}
+
+		if ($prodHlpr->hasEavAttr('hazardous_material_code')) {
+			// setting hazardous_material_code attribute
+			$data['hazardous_material_code'] = $dataObject->getExtendedAttributes()->getHazardousMaterialCode();
+		}
+
+		if ($prodHlpr->hasEavAttr('is_hidden_product')) {
+			// setting is_hidden_product attribute
+			$data['is_hidden_product'] = $dataObject->getExtendedAttributes()->getIsHiddenProduct();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_mass_unit_of_measure')) {
+			// setting item_dimension_shipping_mass_unit_of_measure attribute
+			$data['item_dimension_shipping_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_mass_weight')) {
+			// setting item_dimension_shipping_mass_weight attribute
+			$data['item_dimension_shipping_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getWeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_mass_unit_of_measure')) {
+			// setting item_dimension_display_mass_unit_of_measure attribute
+			$data['item_dimension_display_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getMassUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_mass_weight')) {
+			// setting item_dimension_display_mass_weight attribute
+			$data['item_dimension_display_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getWeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_packaging_unit_of_measure')) {
+			// setting item_dimension_display_packaging_unit_of_measure attribute
+			$data['item_dimension_display_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()
+				->getPackaging()->getUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_packaging_width')) {
+			// setting item_dimension_display_packaging_width attribute
+			$data['item_dimension_display_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getWidth();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_packaging_length')) {
+			// setting item_dimension_display_packaging_length attribute
+			$data['item_dimension_display_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getLength();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_display_packaging_height')) {
+			// setting item_dimension_display_packaging_height attribute
+			$data['item_dimension_display_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionDisplay()->getPackaging()->getHeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_packaging_unit_of_measure')) {
+			// setting item_dimension_shipping_packaging_unit_of_measure attribute
+			$data['item_dimension_shipping_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()
+				->getPackaging()->getUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_packaging_width')) {
+			// setting item_dimension_shipping_packaging_width attribute
+			$data['item_dimension_shipping_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getWidth();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_packaging_length')) {
+			// setting item_dimension_shipping_packaging_length attribute
+			$data['item_dimension_shipping_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getLength();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_shipping_packaging_height')) {
+			// setting item_dimension_shipping_packaging_height attribute
+			$data['item_dimension_shipping_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionShipping()->getPackaging()->getHeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_mass_unit_of_measure')) {
+			// setting item_dimension_carton_mass_unit_of_measure attribute
+			$data['item_dimension_carton_mass_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getMassUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_mass_weight')) {
+			// setting item_dimension_carton_mass_weight attribute
+			$data['item_dimension_carton_mass_weight'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getWeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_packaging_unit_of_measure')) {
+			// setting item_dimension_carton_packaging_unit_of_measure attribute
+			$data['item_dimension_carton_packaging_unit_of_measure'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()
+				->getPackaging()->getUnitOfMeasure();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_packaging_width')) {
+			// setting item_dimension_carton_packaging_width attribute
+			$data['item_dimension_carton_packaging_width'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getWidth();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_packaging_length')) {
+			// setting item_dimension_carton_packaging_length attribute
+			$data['item_dimension_carton_packaging_length'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getLength();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_packaging_height')) {
+			// setting item_dimension_carton_packaging_height attribute
+			$data['item_dimension_carton_packaging_height'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getPackaging()->getHeight();
+		}
+
+		if ($prodHlpr->hasEavAttr('item_dimension_carton_type')) {
+			// setting item_dimension_carton_type attribute
+			$data['item_dimension_carton_type'] = $dataObject->getExtendedAttributes()->getItemDimensionCarton()->getType();
+		}
+
+		if ($prodHlpr->hasEavAttr('lot_tracking_indicator')) {
+			// setting lot_tracking_indicator attribute
+			$data['lot_tracking_indicator'] = $dataObject->getExtendedAttributes()->getLotTrackingIndicator();
+		}
+
+		if ($prodHlpr->hasEavAttr('ltl_freight_cost')) {
+			// setting ltl_freight_cost attribute
+			$data['ltl_freight_cost'] = $dataObject->getExtendedAttributes()->getLtlFreightCost();
+		}
+
+		if ($prodHlpr->hasEavAttr('manufacturing_date')) {
+			// setting manufacturing_date attribute
+			$data['manufacturing_date'] = $dataObject->getExtendedAttributes()->getManufacturer()->getDate();
+		}
+
+		if ($prodHlpr->hasEavAttr('manufacturer_name')) {
+			// setting manufacturer_name attribute
+			$data['manufacturer_name'] = $dataObject->getExtendedAttributes()->getManufacturer()->getName();
+		}
+
+		if ($prodHlpr->hasEavAttr('manufacturer_manufacturer_id')) {
+			// setting manufacturer_manufacturer_id attribute
+			$data['manufacturer_manufacturer_id'] = $dataObject->getExtendedAttributes()->getManufacturer()->getId();
+		}
+
+		if ($prodHlpr->hasEavAttr('may_ship_expedite')) {
+			// setting may_ship_expedite attribute
+			$data['may_ship_expedite'] = $dataObject->getExtendedAttributes()->getMayShipExpedite();
+		}
+
+		if ($prodHlpr->hasEavAttr('may_ship_international')) {
+			// setting may_ship_international attribute
+			$data['may_ship_international'] = $dataObject->getExtendedAttributes()->getMayShipInternational();
+		}
+
+		if ($prodHlpr->hasEavAttr('may_ship_usps')) {
+			// setting may_ship_usps attribute
+			$data['may_ship_usps'] = $dataObject->getExtendedAttributes()->getMayShipUsps();
+		}
+
+		if ($prodHlpr->hasEavAttr('safety_stock')) {
+			// setting safety_stock attribute
+			$data['safety_stock'] = $dataObject->getExtendedAttributes()->getSafetyStock();
+		}
+
+		if ($prodHlpr->hasEavAttr('sales_class')) {
+			// setting sales_class attribute
+			$data['sales_class'] = $dataObject->getExtendedAttributes()->getSalesClass();
+		}
+
+		if ($prodHlpr->hasEavAttr('serial_number_type')) {
+			// setting serial_number_type attribute
+			$data['serial_number_type'] = $dataObject->getExtendedAttributes()->getSerialNumberType();
+		}
+
+		if ($prodHlpr->hasEavAttr('service_indicator')) {
+			// setting service_indicator attribute
+			$data['service_indicator'] = $dataObject->getExtendedAttributes()->getServiceIndicator();
+		}
+
+		if ($prodHlpr->hasEavAttr('ship_group')) {
+			// setting ship_group attribute
+			$data['ship_group'] = $dataObject->getExtendedAttributes()->getShipGroup();
+		}
+
+		if ($prodHlpr->hasEavAttr('ship_window_min_hour')) {
+			// setting ship_window_min_hour attribute
+			$data['ship_window_min_hour'] = $dataObject->getExtendedAttributes()->getShipWindowMinHour();
+		}
+
+		if ($prodHlpr->hasEavAttr('ship_window_max_hour')) {
+			// setting ship_window_max_hour attribute
+			$data['ship_window_max_hour'] = $dataObject->getExtendedAttributes()->getShipWindowMaxHour();
+		}
+
+		if ($prodHlpr->hasEavAttr('street_date')) {
+			// setting street_date attribute
+			$data['street_date'] = $dataObject->getExtendedAttributes()->getStreetDate();
+		}
+
+		if ($prodHlpr->hasEavAttr('style_id')) {
+			// setting style_id attribute
+			$data['style_id'] = $dataObject->getExtendedAttributes()->getStyleId();
+		}
+
+		if ($prodHlpr->hasEavAttr('style_description')) {
+			// setting style_description attribute
+			$data['style_description'] = $dataObject->getExtendedAttributes()->getStyleDescription();
+		}
+
+		if ($prodHlpr->hasEavAttr('supplier_name')) {
+			// setting supplier_name attribute
+			$data['supplier_name'] = $dataObject->getExtendedAttributes()->getSupplierName();
+		}
+
+		if ($prodHlpr->hasEavAttr('supplier_supplier_id')) {
+			// setting supplier_supplier_id attribute
+			$data['supplier_supplier_id'] = $dataObject->getExtendedAttributes()->getSupplierSupplierId();
+		}
+
+		if ($prodHlpr->hasEavAttr('size')) {
+			// setting size attribute
+			$sizeAttributes = $dataObject->getExtendedAttributes()->getSizeAttributes()->getSize();
+			$size = null;
+			if (!empty($sizeAttributes)){
+				foreach ($sizeAttributes as $sizeData) {
+					if (strtoupper(trim($sizeData['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
+						$data['size'] = $sizeData['description'];
+						break;
+					}
+				}
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * adding eb2c specific attributes to a product
+	 * @param Varien_Object $dataObject, the object with data needed to add eb2c specific attributes to a product
+	 * @param Mage_Catalog_Model_Product $productObject, the product object to set attributes data to
+	 * @return self
+	 */
+	protected function _addEb2cSpecificAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		$newAttributeData = $this->_getEb2cSpecificAttributeData( $dataObject);
+		// we have valid eb2c specific attribute data let's add it and save it to the product object
+		if (!empty($newAttributeData)) {
+			try{
+				$productObject->addData($newAttributeData)->save();
+			} catch (Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding eb2c
+					specific attributes to product for Item Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * adding custom attributes to a product
+	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
+	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
+	 * @return self
+	 */
+	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		$prodHlpr = Mage::helper('eb2cproduct');
+		$customData = array();
+		$customAttributes = $dataObject->getCustomAttributes()->getAttributes();
+		if (!empty($customAttributes)) {
+			foreach ($customAttributes as $attribute) {
+				$attributeCode = $this->_underscore($attribute['name']);
+				if ($prodHlpr->hasEavAttr($attributeCode) && strtoupper(trim($attribute['name'])) !== 'CONFIGURABLEATTRIBUTES') {
+					// setting custom attributes
+					if (strtoupper(trim($attribute['operationType'])) === 'DELETE') {
+						// setting custom attributes to null on operation type 'delete'
+						$customData[$attributeCode] = null;
+					} else {
+						// setting custom value whenever the operation type is 'add', or 'change'
+						$customData[$attributeCode] = $attribute['value'];
+					}
+				}
+			}
+		}
+
+		// we have valid custom data let's add it and save it to the product object
+		if (!empty($customData)) {
+			try{
+				$productObject->addData($customData)->save();
+			} catch (Exception $e) {
+				Mage::log(
+					'[' . __CLASS__ . '] The following error has occurred while adding
+					custom attributes to product for Item Master Feed (' . $e->getMessage() . ')',
+					Zend_Log::ERR
+				);
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * adding configurable data to a product
+	 * @param Varien_Object $dataObject, the object with data needed to add configurable data to a product
+	 * @param Mage_Catalog_Model_Product $productObject, the product object to set configurable data to
+	 * @return self
+	 */
+	protected function _addConfigurableDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	{
+		// we only set child product to parent configurable products products if we
+		// have a simple product that has a style_id that belong to a parent product.
+		if (trim(strtoupper($dataObject->getProductType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
+			// when style id for an item doesn't match the item client_item_id (sku),
+			// then we have a potential child product that can be added to a configurable parent product
+			if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
+				// load the parent product using the child style id, because a child that belong to a
+				// parent product will have the parent product style id as the sku to link them together.
+				$parentProduct = $this->_loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
+				// we have a valid parent configurable product
+				if ($parentProduct->getId()) {
+					if (trim(strtoupper($parentProduct->getTypeId())) === 'CONFIGURABLE') {
+						// We have a valid configurable parent product to set this child to
+						$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
+
+						// We can get color description save in the parent product to be saved to this child product.
+						$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
+						if (!empty($configurableColorData)) {
+							$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
+						}
+					}
+				}
+			}
+		}
+		return $this;
 	}
 }
