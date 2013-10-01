@@ -4,15 +4,10 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
+	implements TrueAction_Eb2cProduct_Model_Feed_IExtractor
 {
-	/**
-	 * Initialize model
-	 */
-	protected function _construct()
-	{
-		$this->setFeedBaseNode('Content'); // Magically setting feed base node
-	}
+	const FEED_BASE_NODE = 'Content';
 
 	/**
 	 * extract UniqueId data into a varien object
@@ -302,11 +297,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor extends Mage_Core_Mode
 	 *
 	 * @return array, an collection of varien objects
 	 */
-	public function extractContentMasterFeed(DOMDocument $doc)
+	public function extract(DOMDocument $doc)
 	{
 		$collectionOfContents = array();
 		$feedXPath = new DOMXPath($doc);
-		$baseNode = $this->getFeedBaseNode();
+		$baseNode = self::FEED_BASE_NODE;
 
 		$nodeContent = $feedXPath->query("//$baseNode");
 		$idx = 1; // start index

@@ -37,6 +37,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_I_ExtractorTest extends EcomDev_PHP
 	 */
 	public function testExtractIShipFeed($doc)
 	{
-		$this->assertCount(1, $this->_extractor->extractIShipFeed($doc));
+		$this->assertCount(1, $this->_extractor->extract($doc));
 	}
 }

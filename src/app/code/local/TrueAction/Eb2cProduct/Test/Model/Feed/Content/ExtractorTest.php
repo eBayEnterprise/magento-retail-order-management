@@ -37,6 +37,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_ExtractorTest extends EcomD
 	 */
 	public function testExtractContentMasterFeed($doc)
 	{
-		$this->assertCount(1, $this->_extractor->extractContentMasterFeed($doc));
+		$this->assertCount(1, $this->_extractor->extract($doc));
 	}
 }
