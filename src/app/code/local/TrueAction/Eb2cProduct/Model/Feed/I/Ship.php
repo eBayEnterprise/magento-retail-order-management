@@ -89,7 +89,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		Mage::helper('eb2cproduct')->clean();
+		Mage::helper('eb2ccore')->clean();
 
 		return $this;
 	}

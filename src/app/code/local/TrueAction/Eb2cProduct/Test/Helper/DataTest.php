@@ -77,48 +77,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Config_Registry', $productHelper->getConfigModel());
 	}
 
-	/**
-	 * testing clean method
-	 *
-	 * @test
-	 */
-	public function testClean()
-	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cProduct_Helper_Data', Mage::helper('eb2cproduct')->clean());
-	}
-
-	/**
-	 * testing clean method - when rebuild method throw an exception
-	 *
-	 * @test
-	 */
-	public function testCleanWithExceptionThrowCaught()
-	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Mage_Core_Exception));
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cProduct_Helper_Data', Mage::helper('eb2cproduct')->clean());
-	}
-
 	public function providerHasEavAttr()
 	{
 		return array(

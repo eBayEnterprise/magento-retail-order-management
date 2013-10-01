@@ -16,26 +16,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return TrueAction_Eb2cProduct_Helper_Data
-	 */
-	public function clean()
-	{
-		Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-		return;
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			Mage::getSingleton('cataloginventory/stock_status')->rebuild();
-		} catch (Exception $e) {
-			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
-	}
-
-	/**
 	 * @return bool true if the eav config has at least one instance of the given attribute.
 	 * @param string $attr
 	 */

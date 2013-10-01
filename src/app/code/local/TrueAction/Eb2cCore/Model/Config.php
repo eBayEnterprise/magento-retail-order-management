@@ -26,5 +26,6 @@ class TrueAction_Eb2cCore_Model_Config
 		'feed_available_models'       => 'eb2ccore/feed/available_models',
 		'feed_fetch_retry_timer'      => 'eb2ccore/feed/filetransfer_remote_retry_timer',
 		'feed_fetch_connect_attempts' => 'eb2ccore/feed/filetransfer_remote_connect_attempts',
+		'feed_enabled_reindex'       => 'eb2ccore/feed/enabled_reindex',
 	);
 }

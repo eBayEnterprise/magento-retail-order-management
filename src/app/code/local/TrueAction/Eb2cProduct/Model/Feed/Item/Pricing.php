@@ -142,7 +142,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		$this->_processQueue();
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		Mage::helper('eb2ccore')->clean(); // reindex
 	}
 
 	/**
@@ -264,27 +264,5 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$productObject->save();
 		}
 		return ;
-	}
-
-	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-		return;
-		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
-		}
-
-		return;
 	}
 }
