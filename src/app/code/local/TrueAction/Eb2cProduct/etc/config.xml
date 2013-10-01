@@ -84,7 +84,7 @@
 					<group>Prices</group>
 					<input_type>boolean</input_type>
 					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default>N</default>
 				</price_is_vat_inclusive>
 			</default>
