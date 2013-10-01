@@ -119,6 +119,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	 */
 	public function testGetProductBySku($expectation, $productId)
 	{
+		$productMock = $this->getModelMock('catalog/product', array(
+			'getId',
+		));
+
 		$productMock->expects($this->any())
 			->method('getId')
 			->will($this->returnValue($productId));
