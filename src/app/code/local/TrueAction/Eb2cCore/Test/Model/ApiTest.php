@@ -29,8 +29,16 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			array('lineId' => 2, 'itemId' => 'SKU-4321')
 		);
 		return array(
-			array($domDocument, 'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd'),
-			array($domDocument, 'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd'),
+			array(
+				$domDocument,
+				'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd',
+				'Inventory-Service-Quantity-1.0.xsd'
+			),
+			array(
+				$domDocument,
+				'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd',
+				'Inventory-Service-Quantity-1.0.xsd'
+			),
 		);
 	}
 
@@ -40,7 +48,7 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 	 * @test
 	 * @dataProvider providerApiCall
 	 */
-	public function testRequest($request, $apiUri)
+	public function testRequest($request, $apiUri, $xsdName)
 	{
 		$strType = gettype('');
 
@@ -86,6 +94,7 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 
 		$api = Mage::getModel('eb2ccore/api')
 			->setHttpClient($httpClient)
+			->setXsd($xsdName)
 			->setUri($apiUri);
 		$this->assertNotEmpty($api->request($request));
 	}

@@ -36,7 +36,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	public function request(DOMDocument $doc)
 	{
 		if (!$this->hasXsd()) {
-			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation not configured.');
+			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation has not been set.');
 		}
 
 		if (!$this->_schemaValidate($doc)) {
