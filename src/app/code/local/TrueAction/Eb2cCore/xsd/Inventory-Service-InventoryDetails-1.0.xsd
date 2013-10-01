@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <xsd:include schemaLocation="Inventory-Datatypes-1.0.xsd" />
+
+  <xsd:complexType name="InventoryDetailsRequestMessage">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      The EB2C inventory details operation is used to fetch a fulfillment 
+      delivery estimate and ship from address for one or more line items based
+      on the ship-to address and shipping method on each line item.  The request
+      message consists of a list of one or more line items (order items) each of
+      which has either shipment information (ship-to address and shipping method)
+      or in store pickup information (store front address).
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="OrderItem" type="InventoryLine"
+                   maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:element name="InventoryDetailsRequestMessage"
+               type="InventoryDetailsRequestMessage"
+               nillable="false"/>
+
+  <xsd:element name="InventoryDetailsResponseMessage">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      This type defines the syntax of a response message sent by the EB2C
+      inventory details operation.  The response message consists a list of one
+      or more inventory detail elements (wrapped in an InventoryDetails element) 
+      each holding inventory detail information for a line item.  Each inventory 
+      detail line contains the item identifier, the line id, the delivery estimate 
+      and the ship-from address for the line.
+      The response message might also contain a second list of unavailable items.  
+      Each entry in this list represents a line item for which there is no 
+      available to sell inventory.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="InventoryDetails" 
+                     type="InventoryDetails"
+                     />
+        <xsd:element name="UnavailableItems" 
+                     type="UnavailableItems"
+                     minOccurs="0"
+                     />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:complexType name="InventoryDetails">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      This type represents a collection of inventory delivery details for items
+       which can be fulfilled.
+      NOTE: this collection may be empty if none of the items in the request
+      are available to sell.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="InventoryDetail" type="InventoryDetail"
+                   minOccurs="0"
+                   maxOccurs="unbounded"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="InventoryDetail">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      This type represents inventory delivery details for an item which can be
+      fulfilled.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="DeliveryEstimate" type="DeliveryEstimate"/>
+      <xsd:element name="ShipFromAddress" type="PhysicalAddressType"/>
+        <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                    This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+                    responses returned from the service.
+                    The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+                    to the service's responses without the service clients' code throwing exceptions.
+                    The client code for this service call should be written to not break if new optional XML elements show up in this part
+                    of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+                    (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+                    if new optional elements appear within the xsd:any section of the XML document).
+                    Developers' unit tests of their service client code should include a test case where this reply message
+                    contains one or more new elements in this location of the XML document.
+                    If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+                    and you will have the option to modify your service client code to process and use the new elements.
+                    If there is no need/desire to process the new optional elements, your service client should continue to run
+                    uninterrupted as long as it is built to honor this xsd:any element.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:any>
+    </xsd:sequence>
+    <xsd:attribute name="lineId" type="xsd:string" use="required"/>
+    <xsd:attribute name="itemId" type="ItemId" use="required"/>
+    <xsd:anyAttribute namespace="##any" processContents="skip"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="UnavailableItems">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      This type represents a collection of line item identification information 
+      for items which cannot be fulfilled.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+  <xsd:element name="UnavailableItem" type="UnavailableItem"
+    minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="UnavailableItem">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+      This type represents line item identification information for an item 
+      which cannot be fulfilled.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:attribute name="lineId" type="xsd:string" use="required"/>
+    <xsd:attribute name="itemId" type="ItemId" use="required"/>
+    <xsd:anyAttribute namespace="##any" processContents="skip"/>
+  </xsd:complexType>
+
+</xsd:schema>

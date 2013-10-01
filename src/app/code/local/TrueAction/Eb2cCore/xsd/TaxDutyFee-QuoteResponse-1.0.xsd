@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:include schemaLocation="TaxDutyFee-Datatypes-1.0.xsd" />
+    <xsd:complexType name="CustomFeatureResponse">
+        <xsd:sequence>
+            <xsd:element name="CustomizationId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional value used to group customization instructions into logical sets.
+                        Examples may be: "Stone2", "Left Shoulder"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ItemId" type="ItemId" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional item identifier (SKU) used to identify an inventory item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ItemDesc" type="ItemDescription" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional item description (SKU) used to identify an inventory item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Upcharge" type="MerchandisePriceGroupResponse" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional charge associated to the given Customization.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ReferenceId" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomFeatureListResponse">
+        <xsd:sequence>
+            <xsd:element name="CustomFeature" type="CustomFeatureResponse" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomizationServiceResponse">
+        <xsd:sequence>
+            <xsd:element name="CustomFeatureList" type="CustomFeatureListResponse"/>
+            <xsd:element name="BasePrice" type="MerchandisePriceGroupResponse" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TdfShipGroupResponseType">
+        <xsd:sequence>
+            <xsd:element name="DestinationTarget" type="DestinationTargetType"/>
+            <xsd:element name="Items" type="OrderItemListResponse" nillable="false"/>
+            <xsd:element name="Gifting" type="GiftPackagingResponse" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The id field is used to uniquely identify the shipgroup within an XML document
+                    to allow XML references.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="taxDutyDisplayPrefCode" type="TaxDutyDisplayPrefCodeType" use="optional" />
+        <xsd:attribute name="chargeType" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The type of shipping charge. i.e. - FLAT, WEIGHT
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="TdfShippingResponseType">
+        <xsd:sequence>
+            <xsd:element name="ShipGroups" minOccurs="0">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ShipGroup" type="TdfShipGroupResponseType" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Destinations" type="TdfDestinationsType" nillable="false" maxOccurs="1" minOccurs="1">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DiscountResponse">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType"/>
+            <xsd:element name="Taxes" type="TaxGroup" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ReferenceId" use="optional"/>
+        <xsd:attribute name="calculateDuty" type="xsd:boolean" use="optional">
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                    This type represents whether duty needs to be calculated for particular discount.
+                    It will be ignored for all other line items except 'Merchandise' and 'Shipping', (Cost Including Freight calculation only).
+                    If overall duty is not present in input, then this flag will be ignored and duty will be calculated for all available discounts.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="DutyPriceGroupResponse">
+        <xsd:complexContent>
+            <xsd:extension base="PriceGroupResponse">
+                <xsd:sequence>
+                    <xsd:element name="CalculationError" type="CalculationError" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GiftPackagingResponse">
+        <xsd:complexContent>
+            <xsd:extension base="GiftPackagingBase">
+                <xsd:sequence>
+                    <xsd:element name="Pricing" type="MerchandisePriceGroupResponse"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MerchandisePriceGroupResponse">
+        <xsd:complexContent>
+            <xsd:extension base="PriceGroupResponse">
+                <xsd:sequence>
+                    <xsd:element name="UnitPrice" type="AmountBaseType">
+		                 <xsd:annotation>
+		                    <xsd:documentation>
+		                       This type represents Unit Price Amount for particular line item.
+		                    </xsd:documentation>
+		                 </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemResponse">
+        <xsd:sequence>
+            <xsd:element name="ItemId" type="ItemId"/>
+            <xsd:element name="ItemDesc" type="ItemDescription" minOccurs="0"/>
+            <xsd:element name="HTSCode" type="HTSCode" minOccurs="0"/>
+            <xsd:element name="Quantity" type="xsd:int"/>
+            <xsd:element name="Pricing" type="OrderItemPricingResponse"/>
+            <xsd:element name="Gifting" type="GiftPackagingResponse" minOccurs="0"/>
+            <xsd:element name="Customization" type="CustomizationServiceResponse" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="lineNumber" type="LineNumber" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemListResponse">
+        <xsd:sequence>
+            <xsd:element name="OrderItem" type="OrderItemResponse" nillable="false" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemPricingResponse">
+        <xsd:sequence>
+            <xsd:element name="Merchandise" type="MerchandisePriceGroupResponse"/>
+            <xsd:element name="Shipping" type="PriceGroupResponse" minOccurs="0"/>
+            <xsd:element name="Duty" type="DutyPriceGroupResponse" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PriceGroupResponse">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType" nillable="true" minOccurs="0">
+                 <xsd:annotation>
+                    <xsd:documentation>
+                       This type represents Amount for Tax calculation purposes.
+                       Merchandise amount is set as flexible number field 4 on Tax Quote request for Shipping line item.
+                    </xsd:documentation>
+                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="TaxData" type="TaxData" minOccurs="0"/>
+            <xsd:element name="PromotionalDiscounts" type="PromotionalDiscountsResponse" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PromotionalDiscountsResponse">
+        <xsd:sequence>
+            <xsd:element name="Discount" type="DiscountResponse" nillable="false" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="TaxDutyDisplayPrefCodeType">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Tax and duty display preference code used to display tax and duty consistently across all down stream systems.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+        <xsd:maxLength value="64"/>
+             <xsd:enumeration value="CONSOLIDATED_TAXES_ONLY">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            This means that a single tax line is displayed to consumers with no duties line displayed, e.g. Sales Tax in the US
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:enumeration>
+                <xsd:enumeration value="INDIVIDUAL_TAXES_ONLY">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            This means that one or more tax lines are displayed to consumers based on the taxes returned from Vertex with
+                            no duties line displayed, e.g. GST, HST, PST, QST in Canada
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:enumeration>
+                <xsd:enumeration value="NO_TAXES_OR_DUTIES">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            This is the default when none is configured for destination country.
+                            This provides a way to message to consumers that no taxes or duties are being charged as part of their purchase
+                            but that they may be responsible for payment of taxes and/or duties upon delivery. NOTE - This does not stop the
+                            TDF service from calculating taxes and duties so it is important that if you don't want to charge taxes and duties
+                            that the TDF is not returning taxes and duties.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:enumeration>
+                <xsd:enumeration value="TAXES_AND_DUTIES_CONSOLIDATED_SINGLE_AMOUNT">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            This provides a way to roll all tax and duty amounts into a single amount and display that amount to a user utilizing a
+                            single label. Historically, at GSI, this has been referred to as the "International Handling Fee"
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TaxDutyQuoteResponse">
+        <xsd:sequence>
+            <xsd:element name="Shipping" type="TdfShippingResponseType"/>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+                        responses returned from the service.
+                        The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+                        to the service's responses without the service clients' code throwing exceptions.
+                        The client code for this service call should be written to not break if new optional XML elements show up in this part
+                        of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+                        (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+                        if new optional elements appear within the xsd:any section of the XML document).
+                        Developers' unit tests of their service client code should include a test case where this reply message
+                        contains one or more new elements in this location of the XML document.
+                        If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+                        and you will have the option to modify your service client code to process and use the new elements.
+                        If there is no need/desire to process the new optional elements, your service client should continue to run
+                        uninterrupted as long as it is built to honor this xsd:any element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="TaxDutyQuoteResponse" type="TaxDutyQuoteResponse" nillable="false"/>
+
+</xsd:schema>

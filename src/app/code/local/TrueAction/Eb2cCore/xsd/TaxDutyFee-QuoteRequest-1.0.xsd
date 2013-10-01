@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:include schemaLocation="TaxDutyFee-Datatypes-1.0.xsd" />
+
+    <xsd:complexType name="CustomFeature">
+        <xsd:sequence>
+            <xsd:element name="CustomizationId" type="ReferenceId" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional value used to group customization instructions into logical sets.
+                        Examples may be: "Stone2", "Left Shoulder"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ItemId" type="ItemId" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional item identifier (SKU) used to identify an inventory item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ItemDesc" type="ItemDescription" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional item description (SKU) used to identify an inventory item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Upcharge" type="MerchandisePriceGroup" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional charge associated to the given Customization.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ReferenceId" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomFeatureList">
+        <xsd:sequence>
+            <xsd:element name="CustomFeature" type="CustomFeature" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomizationService">
+        <xsd:sequence>
+            <xsd:element name="CustomFeatureList" type="CustomFeatureList"/>
+            <xsd:element name="BasePrice" type="MerchandisePriceGroup" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Destination">
+        <xsd:sequence>
+            <xsd:element name="DestinationTarget" type="DestinationTargetType"/>
+            <xsd:element name="Items" type="OrderItemList" nillable="false"/>
+            <xsd:element name="DestinationLevelGifting" type="GiftPackaging" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DestinationList">
+        <xsd:sequence>
+            <xsd:element name="Destination" type="Destination" nillable="false"
+                        maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="Discount">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ReferenceId" use="optional"/>
+        <xsd:attribute name="calculateDuty" type="xsd:boolean" use="optional">
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                    This type represents whether duty needs to be calculated for particular discount.
+                    It will be ignored for all other line items except 'Merchandise' and 'Shipping', (Cost Including Freight calculation only).
+                    If overall duty is not present in input, then this flag will be ignored and duty will be calculated for all available discounts.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="DutyPriceGroup">
+        <xsd:complexContent>
+            <xsd:extension base="PriceGroup">
+                <xsd:sequence>
+                    <xsd:element name="CalculationError" type="CalculationError" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="GiftPackaging">
+        <xsd:complexContent>
+            <xsd:extension base="GiftPackagingBase">
+                <xsd:sequence>
+                    <xsd:element name="Pricing" type="MerchandisePriceGroup"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MerchandisePriceGroup">
+        <xsd:complexContent>
+            <xsd:extension base="PriceGroup">
+                <xsd:sequence>
+                    <xsd:element name="UnitPrice" type="AmountBaseType">
+		                 <xsd:annotation>
+		                    <xsd:documentation>
+		                       This type represents Unit Price Amount for particular line item.
+		                    </xsd:documentation>
+		                 </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItem">
+        <xsd:sequence>
+            <xsd:element name="ItemId" type="ItemId"/>
+            <xsd:element name="ItemDesc" type="ItemDescription" minOccurs="0"/>
+            <xsd:element name="HTSCode" type="HTSCode" minOccurs="0"/>
+            <xsd:element name="Origins" type="Origins"/>
+            <xsd:element name="Quantity" type="xsd:int"/>
+            <xsd:element name="Pricing" type="OrderItemPricing"/>
+            <xsd:element name="Gifting" type="GiftPackaging" minOccurs="0"/>
+            <xsd:element name="Customization" type="CustomizationService" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="lineNumber" type="LineNumber" use="required"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemList">
+        <xsd:sequence>
+            <xsd:element name="OrderItem" type="OrderItem" nillable="false" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemPricing">
+        <xsd:sequence>
+            <xsd:element name="Merchandise" type="MerchandisePriceGroup"/>
+            <xsd:element name="Shipping" type="PriceGroup" minOccurs="0"/>
+            <xsd:element name="Duty" type="DutyPriceGroup" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PriceGroup">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType" nillable="true">
+                 <xsd:annotation>
+                    <xsd:documentation>
+                       This type represents Amount for Tax calculation purposes.
+                    </xsd:documentation>
+                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="TaxClass" type="String40" minOccurs="0">
+                 <xsd:annotation>
+                    <xsd:documentation>
+                       This type represents class for Tax calculation purposes. Typically the default tax class for shipping is 93000.
+                    </xsd:documentation>
+                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PromotionalDiscounts" type="PromotionalDiscounts" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PromotionalDiscounts">
+        <xsd:sequence>
+            <xsd:element name="Discount" type="Discount" nillable="false" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShipGroupType" >
+        <xsd:sequence>
+            <xsd:element name="DestinationTarget" type="DestinationTargetType"/>
+            <xsd:element name="Items" type="OrderItemList" nillable="false"/>
+            <xsd:element name="Gifting" type="GiftPackaging" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The id field is used to uniquely identify the shipgroup within an XML document
+                    to allow XML references.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="chargeType" type="xsd:string" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The type of shipping charge. i.e. - FLAT, WEIGHT
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="TdfShippingRequestType">
+        <xsd:sequence>
+            <xsd:element name="ShipGroups" nillable="false">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ShipGroup" type="ShipGroupType" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Destinations" type="TdfDestinationsType" nillable="false" maxOccurs="1" minOccurs="1">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="TaxDutyQuoteRequest">
+        <xsd:sequence>
+            <xsd:element name="Currency" type="ISOCurrencyCodeType"/>
+            <xsd:element name="VATInclusivePricing" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="CustomerTaxId" type="CustomerTaxId" minOccurs="0"/>
+            <xsd:element name="BillingInformation" type="DestinationTargetType"/>
+            <xsd:element name="Shipping" type="TdfShippingRequestType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="TaxDutyQuoteRequest" type="TaxDutyQuoteRequest" nillable="false"/>
+
+</xsd:schema>

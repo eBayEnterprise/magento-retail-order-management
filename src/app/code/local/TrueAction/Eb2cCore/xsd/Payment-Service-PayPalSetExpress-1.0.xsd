@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+            xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+            version="1.0">
+
+    <xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+    <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+    <xsd:complexType name="PayPalSetExpressCheckoutRequestType">
+        <xsd:sequence>
+            <xsd:element name="OrderId" type="OrderIdType">
+                 <xsd:annotation>
+                      <xsd:documentation xml:lang="en">
+                          A unique identifier for the order.<br/>
+                          The client is responsible for ensuring uniqueness across all transactions the client initiates with this service.
+                      </xsd:documentation>
+                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReturnUrl" type="minStringLength1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                       URL to which the customer's browser is returned after choosing to pay with PayPal.<br/>
+                       PayPal recommends that the value of ReturnURL be the final review page on which the customer
+                       confirms the order and payment.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CancelUrl" type="minStringLength1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        URL to which the customer is returned if the customer does not approve the use of PayPal to pay you.<br/>
+                        PayPal recommends that the value of CancelURL be the original page on which the customer
+                        chose to pay with PayPal.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LocaleCode" type="minStringLength1"/>
+            <xsd:element name="Amount" type="AmountType">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Represents order total amount; the calculation works as follows order total= LineItemsTotal +
+                        ShippingTotal + TaxTotal;<br/>
+                        PayPal validates above calculation and throws error message for incorrect order total;<br/>
+                        See LineItems element below for LineItemsTotal, ShippingTotal and TaxTotal.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AddressOverride" type="minStringLength1" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Set to 0 if the buyer is checking out from the cart page (express checkout).<br/>
+                        Set to 1 if the buyer is checking out from the payment page (standard checkout). <br/>
+                        The value 1 indicates that the PayPal pages should display the shipping address set by you in the Address element<br/>
+                        on this PayPalSetExpressCheckoutRequest, not the shipping address on file with PayPal for this customer. Displaying the<br/>
+                        PayPal street address on file does not allow the customer to edit that address.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ShippingAddress" type="PhysicalAddressType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Address the order will be shipped to.<br/>
+                        Notes about state code - use two chars state code for US like "PA" for Pennsylvania;<br/>
+                        For rest of the countries, use full state name like "British Columbia" in Canada.<br/>
+                        Notes about country code - always use valid ISO country code; see http://countrycode.org like US, CA etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LineItems" type="LineItemsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        LineItems that represents details like LineItemsTotal, ShippingTotal, TaxTotal
+                        and list of line items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="PayPalSetExpressCheckoutRequest" type="PayPalSetExpressCheckoutRequestType"/>
+
+    <xsd:complexType name="PayPalSetExpressCheckoutReplyType">
+        <xsd:sequence>
+            <xsd:element name="OrderId" type="OrderIdType" />
+            <xsd:element name="ResponseCode" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                         Response code like Success,Failure etc
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Token" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        The timestamped token value that was returned by PayPalSetExpressCheckoutReply and
+                        passed on PayPalGetExpressCheckoutRequest.<br/>
+                        Character length and limitations: 20 single-byte characters
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ErrorMessage" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        The description of error like "10413:The totals of the cart item amounts do not match order amounts".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="PayPalSetExpressCheckoutReply" type="PayPalSetExpressCheckoutReplyType"/>
+    
+</xsd:schema>

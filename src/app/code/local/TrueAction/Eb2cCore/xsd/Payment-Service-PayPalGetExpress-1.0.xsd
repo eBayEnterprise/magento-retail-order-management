@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+  targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+  xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+  version="1.0" >
+
+<xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+<xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+<xsd:complexType name="PayPalGetExpressCheckoutRequestType" >
+  <xsd:sequence>
+      <xsd:element name="OrderId" type="OrderIdType">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    A unique identifier for the order.<br/>
+                    The client is responsible for ensuring uniqueness across all transactions the client initiates with this service.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="Token" type="xsd:string" >
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    The timestamped token value that was returned by PayPalSetExpressCheckoutReply and
+                    passed on PayPalGetExpressCheckoutRequest.<br/>
+                    Character length and limitations: 20 single-byte characters
+                </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="CurrencyCode" type="ISOCurrencyCodeType" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:element name="PayPalGetExpressCheckoutRequest" type="PayPalGetExpressCheckoutRequestType" />
+
+<xsd:complexType name="PayPalGetExpressCheckoutReplyType" >
+  <xsd:sequence>
+      <xsd:element name="OrderId" type="OrderIdType"/>
+      <xsd:element name="ResponseCode" type="xsd:string" >
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Response code like Success, Failure etc
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerEmail" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Email address of the payer.<br/>
+                   Character length and limitations: 127 single-byte characters
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerId" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Unique identifier of the customer's PayPal account.<br/>
+                   Character length and limitations: 17 single-byte characters
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerStatus" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Status of payer's email address.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerName" type="PersonNameType" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Name of payer.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerCountry" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    Payment sender's country of residence using standard two-character ISO 3166 country codes.<br/>
+                    Character length and limitations: Two single-byte characters.<br/>
+                    see http://countrycode.org
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="BillingAddress" type="PayPalAddressType" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    Payer's business address on file with PayPal.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PayerPhone" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    Payer's phone on file with PayPal.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="ShippingAddress" type="PayPalAddressType" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                    Shipping address selected by Payer on PayPal pages.
+               </xsd:documentation>
+           </xsd:annotation>
+      </xsd:element>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:element name="PayPalGetExpressCheckoutReply" type="PayPalGetExpressCheckoutReplyType" />
+    
+</xsd:schema>

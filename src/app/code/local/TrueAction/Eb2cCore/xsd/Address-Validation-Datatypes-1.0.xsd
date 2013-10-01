@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+            targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+    <xsd:complexType name="Header">
+        <xsd:sequence>
+            <xsd:element name="MaxAddressSuggestions" type="xsd:integer" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The maximum number of suggested addresses which should be returned
+                        in the response.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResultAddress">
+        <xsd:complexContent>
+            <xsd:extension base="PhysicalAddressType">
+                <xsd:sequence>
+                    <xsd:element name="FormattedAddress" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                String of the complete address, formatted according to the address format of 
+                                the target country.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="ErrorLocations" type="ErrorLocations" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Contains the full set of errors available on the returned suggested addresses 
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ErrorLocations">
+        <xsd:sequence>
+            <xsd:element name="ErrorLocation" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                         Contains the name of the field which may have an error – this will
+                        be the name of the xml tag. It will appear multiple times based on the
+                        number of responses. Each tag will contain one field name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="Result">
+        <xsd:sequence>
+            <xsd:element name="ResultCode" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One letter result of the verification
+
+                        V – the address was verified – either the submitted address was correct
+                        or the address was standardized.
+
+                        C – data was corrected and there are suggested addresses
+
+                        K – address was checked but could not be definitively corrected. Suggested 
+                        addresses that have a higher probability of deliverability may or may not 
+                        be returned.
+
+                        N – address could not be verified by the service because the address
+                        verifier does not support the country of the address
+
+                        U – unable to contact provider
+
+                        T – provider timed out
+
+                        P – provider returned a system error – only if a P is returned will the
+                        providerErrorText field be populated.
+
+                        M – the request message was malformed or contained invalid data, such 
+                        as a non-existent country code
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ErrorLocations" type="ErrorLocations" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Contains the full set of errors available on the returned suggested addresses 
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ResultSuggestionCount" type="xsd:integer" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The number of "suggested" address returned in the result
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SuggestedAddresses" type="SuggestedAddresses" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Set of suggested addresses
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SuggestedAddresses">
+        <xsd:sequence>
+            <xsd:element name="SuggestedAddress" type="ResultAddress" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A suggested address
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+</xsd:schema>

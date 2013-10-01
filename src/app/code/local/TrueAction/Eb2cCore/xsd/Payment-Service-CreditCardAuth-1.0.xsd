@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+  targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+  xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+  version="1.0" >
+  
+<xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+<xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+  <xsd:element name="CreditCardAuthRequest" type="CreditCardAuthRequestType" >
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        The Request Message for the Credit Card Authorization Operation
+      </xsd:documentation>
+    </xsd:annotation>  
+    
+  </xsd:element>
+  <xsd:element name="CreditCardAuthReply" type="CreditCardAuthReplyType" >
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        The Reply Message for the Credit Card Authorization Operation
+      </xsd:documentation>
+    </xsd:annotation>  
+  </xsd:element>
+  
+<xsd:complexType name="CreditCardAuthRequestType" >
+
+  <xsd:sequence>    
+    <xsd:element name="PaymentContext" type="PaymentContextType" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          The PaymentContext combines with the tendertype in the URI to uniquely identify a Payment Transaction for an order.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ExpirationDate" type="xsd:gYearMonth" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Expiration date of the credit card.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CardSecurityCode" type="CardSecurityCodeType" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        The CVV2 code found on the back of credit cards.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Amount" type="AmountType">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Amount to authorize
+        The AmountType includes a required attribute for a three character ISO currency code.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BillingFirstName" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          First name of the person on the Billing Address of the credit card
+        </xsd:documentation>
+      </xsd:annotation>  
+    </xsd:element>
+    <xsd:element name="BillingLastName" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Last name of the person on the Billing Address of the credit card
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BillingPhoneNo" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Billing phone number of the person on the Billing Address of the credit card
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="BillingAddress" type="PhysicalAddressType" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Billing Address of the credit card.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CustomerEmail" type="EmailAddress" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          E-mail address of the customer making the purchase.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="CustomerIPAddress" type="IPv4Address" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          IP Address of the customer making the purchase.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ShipToFirstName" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          First name of the person on the Shipping Address of the Order.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ShipToLastName" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Last name of the person on the Shipping Address of the Order.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ShipToPhoneNo" type="xsd:string" >
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Billing phone number of the person on the Billing Address of the credit card
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ShippingAddress" type="PhysicalAddressType" />
+    <xsd:element name="isRequestToCorrectCVVOrAVSError" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Indicates that this is an authorization re-submission to correct AVS or CVV2 error.  If set to true, this will 
+        process the transaction specifically as an AVS/CVV check.  This is important to set correctly, otherwise the 
+        cardholder will have their credit card authed multiple times for the full payment amount when correcting
+        AVS/CSC errors.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="SecureVerificationData" type="SecureVerificationDataType" minOccurs="0">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        3D-Secure(Master Card)/Verified-by-Visa Data
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+  </xsd:sequence>
+  <xsd:attribute name="requestId" type="RequestId" use="required"/>
+</xsd:complexType>
+
+<xsd:complexType name="CreditCardAuthReplyType" >
+    <xsd:sequence>
+      <xsd:element name="PaymentContext" type="PaymentContextType" />      
+      <xsd:element name="AuthorizationResponseCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            Response code of the credit card authorization.  This includes approval, timeout, and several decline codes.
+            Please see supporting documentation for a full list of these codes.
+          </xsd:documentation>
+        </xsd:annotation>  
+      </xsd:element>
+      <xsd:element name="BankAuthorizationCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+          Authorization Code returned by the payment processor upon a successful credit card auth.
+          Any order taken by the Order Service that is paid for by Credit Card MUST have this authorization code.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="CVV2ResponseCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            Payment Processor Response for CVV2 (Card Verification Value) check.  
+            For most credit cards, you will get an Approval on the AuthorizationResponseCode, even
+            though CVV2ResponseCode returns a CVV2 failure.  
+            You CANNOT accept an order where CVV2ResponseCode returns a CVV2 failure code.
+            Please see supporting documentation for a full list of these codes.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="AVSResponseCode" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            Payment Processor Response for the Address Verification System check.
+            For most credit cards, you will get an Approval on the AuthorizationResponseCode, even
+            though AVSResponseCode returns an AVS failure code.  That said, it is typically considered a significant fraud 
+            risk to accept an order where AVSResponseCode returns an AVS failure code.
+            Please see supporting documentation for a full list of these codes.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="PhoneResponseCode" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+          Response code for customer phone number verification (only applies to Amex auths).  This data should be
+          included in the OrderCreateRequest for Orders paid for with Amex to support downstream fraud processing.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="NameResponseCode" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            Response code for customer name verification (only applies to Amex auths). This data should be
+            included in the OrderCreateRequest for Orders paid for with Amex to support downstream fraud processing.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="EmailResponseCode" type="xsd:string" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            Response code for customer email verification (only applies to Amex auths). This data should be
+            included in the OrderCreateRequest for Orders paid for with Amex to support downstream fraud processing.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="AmountAuthorized" type="AmountType">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+          The amount authorized by the credit card processor.
+          Includes a required attribute for a three character ISO currency code.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+          <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                  This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+                  responses returned from the service.
+                  The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+                  to the service's responses without the service clients' code throwing exceptions.
+                  The client code for this service call should be written to not break if new optional XML elements show up in this part
+                  of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+                  (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+                  if new optional elements appear within the xsd:any section of the XML document).
+                  Developers' unit tests of their service client code should include a test case where this reply message
+                  contains one or more new elements in this location of the XML document.
+                  If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+                  and you will have the option to modify your service client code to process and use the new elements.
+                  If there is no need/desire to process the new optional elements, your service client should continue to run
+                  uninterrupted as long as it is built to honor this xsd:any element.
+              </xsd:documentation>
+          </xsd:annotation>
+      </xsd:any>
+    </xsd:sequence>
+</xsd:complexType>
+  
+  
+
+</xsd:schema>

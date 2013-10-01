@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+           elementFormDefault="qualified" attributeFormDefault="unqualified"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd" />
+    <xsd:include schemaLocation="Payment-Datatypes-CurrencyCode-1.0.xsd"/>
+
+    <xsd:simpleType name="CalculationError">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This type represents the specific error message related to internal calculation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="CountryCode">
+        <xsd:annotation>
+             <xsd:documentation>
+                 Two digit ISO country code conforming to ISO 3166 alpha 2.
+                 See: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+             </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+             <xsd:length value="2"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="String60">
+        <xsd:restriction base="xsd:string">
+                <xsd:maxLength value="60"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="CustomerTaxId">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This type represents a string identifier for a customer tax id.
+                A user-defined id that represents the customer for the transaction or line item.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+                <xsd:maxLength value="40"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TdfDestinationsType">
+        <xsd:sequence>
+            <xsd:element name="MailingAddress" minOccurs="0" maxOccurs="unbounded" nillable="false">
+                <xsd:complexType>
+                    <xsd:complexContent>
+                        <xsd:extension base="MailingAddress">
+                            <xsd:attribute name="id" type="xsd:ID"/>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Email" type="EmailDestinationType" minOccurs="0" maxOccurs="unbounded" nillable="false"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="EmailDestinationType">
+        <xsd:sequence>
+            <xsd:element name="Customer" type="PersonNameType" minOccurs="0"/>
+            <xsd:element name="EmailAddress" type="EmailAddress"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="GiftPackagingBase">
+        <xsd:sequence>
+            <xsd:element name="ItemId" type="ItemId"/>
+            <xsd:element name="ItemDesc" type="ItemDescription" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="ReferenceId" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ItemDescription">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This type represents the identifier for a product name.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="20"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="HTSCode">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                Each item has a HTSCode assigned by TradeBeam for duty calculation purposes.
+                This code is required if duty calculation is desired.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="12"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="LineNumber">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This type represents a string identifier for the order item line number.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:minLength value="1"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="Origins">
+        <xsd:sequence>
+            <xsd:element name="AdminOrigin" type="PhysicalAddressType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The Admin origin is the administrative address (business) address, order taking,
+                        order acceptance or place of principle negotiation location of the Store.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ShippingOrigin" type="PhysicalAddressType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The Shipping origin is the address from which the item is expected to ship from.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ManufacturingCountryCode" type="CountryCode" minOccurs="0" nillable="true">
+	            <xsd:annotation>
+	                <xsd:documentation>
+	                    Country of origin refers to the country where the item was manufactured or underwent
+	                    the most significant manufacturing process. For agricultural products, the country of
+	                    origin is the country where the commodity was grown or raised. For manufactured goods,
+	                    it is the country where the goods were underwent their most significant manufacturing
+	                    process.
+	                </xsd:documentation>
+	            </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="ReferenceId">
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                This type represents the unique reference identifier as part of request (where applicable), which will be echoed out in the response.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="12"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+
+</xsd:schema>

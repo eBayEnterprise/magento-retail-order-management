@@ -33,6 +33,7 @@
 				<region>na</region>
 				<timeout />
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
+				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+  targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+  xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+  version="1.0" >
+
+<xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+<xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+  
+<xsd:complexType name="StoredValueBalanceRequestType" >
+  <xsd:sequence>
+    <xsd:element name="PaymentAccountUniqueId" type="PaymentAccountUniqueIdType">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Either a raw PAN or a token representing a PAN.
+          The type includes an attribute, isToken, to indicate if the PAN is tokenized.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Pin" type="PinType" minOccurs="0" />
+    <xsd:element name="CurrencyCode" type="ISOCurrencyCodeType" />
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:element name="StoredValueBalanceRequest" type="StoredValueBalanceRequestType" />
+  
+
+<xsd:complexType name="StoredValueBalanceReplyType" >    
+  <xsd:sequence>
+    <xsd:element name="PaymentAccountUniqueId" type="PaymentAccountUniqueIdType">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          Either a raw PAN or a token representing a PAN.
+          The type includes an attribute, isToken, to indicate if the PAN is tokenized.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="ResponseCode" type="SuccessFailResponseCodeType" />
+    <xsd:element name="BalanceAmount" type="AmountType" />
+    <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+      <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+              This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+              responses returned from the service.
+              The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+              to the service's responses without the service clients' code throwing exceptions.
+              The client code for this service call should be written to not break if new optional XML elements show up in this part
+              of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+              (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+              if new optional elements appear within the xsd:any section of the XML document).
+              Developers' unit tests of their service client code should include a test case where this reply message
+              contains one or more new elements in this location of the XML document.
+              If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+              and you will have the option to modify your service client code to process and use the new elements.
+              If there is no need/desire to process the new optional elements, your service client should continue to run
+              uninterrupted as long as it is built to honor this xsd:any element.
+          </xsd:documentation>
+      </xsd:annotation>
+    </xsd:any>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:element name="StoredValueBalanceReply" type="StoredValueBalanceReplyType" />
+  
+</xsd:schema>

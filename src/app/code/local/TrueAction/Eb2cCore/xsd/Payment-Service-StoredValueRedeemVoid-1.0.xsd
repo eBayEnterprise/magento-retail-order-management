@@ -1,31 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            elementFormDefault="qualified" attributeFormDefault="unqualified"
-            targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
-            xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
-            version="1.0">
-
-    <xsd:element name="Fault" type="FaultResponseType">
-      <xsd:annotation>
-        <xsd:documentation xml:lang="en">
-            Fault will be returned when an exception occurs that prevents a the transaction from being processed.
-            Examples:
-            Invalid user input that violates the service interface.
-            Sytem errors.
-            Access to tenders/features not configured for an API client.
-            A service that the system relies on is not available.
-            Validation failure.
-            A timeout occurred.
-        </xsd:documentation>
-      </xsd:annotation>
-    </xsd:element>
-
-    <xsd:complexType name="FaultResponseType">
+    elementFormDefault="qualified" attributeFormDefault="unqualified"
+    targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+    xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+    version="1.0" >
+    
+    <xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+    <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+      
+    <xsd:complexType name="StoredValueRedeemVoidRequestType" >
+        <xsd:annotation>
+            <xsd:documentation xml:lang="en">
+                A StoredValueRedeemVoidRequest must be sent by the client
+                when the client does not receive a response to a StoredValueRedeemRequest.
+            </xsd:documentation>
+        </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="CreateTimestamp" type="xsd:dateTime"/>
-            <xsd:element name="Code" type="xsd:string"/>
-            <xsd:element name="Description" type="xsd:string"/>
+            <xsd:element name="PaymentContext" type="PaymentContextType" />
+            <xsd:element name="Pin" type="PinType" minOccurs="0" />
+            <xsd:element name="Amount" type="AmountType" />
+        </xsd:sequence>
+        <xsd:attribute name="requestId" type="RequestId" use="required"/>
+    </xsd:complexType>
+    
+    <xsd:element name="StoredValueRedeemVoidRequest" type="StoredValueRedeemVoidRequestType" />
+    
+    
+    <xsd:complexType name="StoredValueRedeemVoidReplyType" >
+        <xsd:sequence>
+            <xsd:element name="PaymentContext" type="PaymentContextType" />
+            <xsd:element name="ResponseCode" type="SuccessFailResponseCodeType" />
             <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
                 <xsd:annotation>
                     <xsd:documentation xml:lang="en">
@@ -48,5 +53,7 @@
             </xsd:any>
         </xsd:sequence>
     </xsd:complexType>
-
+    
+    <xsd:element name="StoredValueRedeemVoidReply" type="StoredValueRedeemVoidReplyType" />
+    
 </xsd:schema>

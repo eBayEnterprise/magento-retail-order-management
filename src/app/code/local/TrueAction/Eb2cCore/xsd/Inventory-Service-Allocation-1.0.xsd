@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ ! GSI Commerce Checkout API
+ !
+ ! {c) Copyright GSI Commerce, Inc 2011
+ !
+ -->
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" 
+            targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+            elementFormDefault="qualified" attributeFormDefault="unqualified"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <xsd:include schemaLocation="Inventory-Datatypes-1.0.xsd" />
+
+  <xsd:complexType name="AllocationRequestMessage">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        <p>
+        The allocation operation should be called immediately after the shopping 
+        user acts to submit a new order.
+        The operation is used to reserve inventory for a customer order.
+        This allocation operation is executed separately from order create so 
+        that inventory can be reserved to a shopping session while the sometimes
+        lengthy process of creating the new order is transacted and a competing 
+        shopper session doesn't get the inventory first.  This practice also 
+        helps prevent over-selling high velocity items.
+        </p>
+        <p>
+        This type defines the syntax of a request message sent to the 
+        inventory allocation API.  This request requires:
+        <ul>
+        <li>A reservation identifier which is used to identify the reservation
+        created by this request to the backing order management system.  
+        This identifier must be universally unique</li>
+        <li>A request identifier which is used by the service to protect
+        against duplicate request submissions.  This identifier must be
+        universally unique.</li>
+        <li>One or more order items</li>
+        </ul>
+        </p>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="OrderItem" type="InventoryLine" maxOccurs="unbounded"/>
+    </xsd:sequence>
+    <xsd:attribute name="requestId" type="RequestId" use="required">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          requestId is a universally unique string provided by the eb2c consuming
+          application which identifies the request.  This value is used by eb2c 
+          inventory to detect duplicate request submissions so as to ensure that 
+          this operation behaves in a safe and idempotent manner.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="reservationId" type="ReservationId" use="required">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+          reservationId is a universally unique string value provided by the eb2c 
+          consuming application which identifies the inventory reservation which 
+          is created by this operation.  This reservation ID value will be used 
+          to pass to eb2c create order so that the inventory represented by the 
+          reservation can be allocated to the order.   This reservation ID can 
+          also be passed to the inventory roll-back allocation operation in the 
+          event that create order processing fails before the order can be 
+          created.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:element name="AllocationRequestMessage" type="AllocationRequestMessage"
+               nillable="false" />
+
+  <xsd:element name="AllocationResponseMessage">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        This type defines the syntax of a response message returned from 
+        the inventory allocation API to the service consumer.  The response
+        will contain one or more AllocationResponse elements one for each line
+         -- i.e. OrderItem -- in the originating AllocationResquestMessage.  
+        The response message will also contain the reservation ID value sent on
+        the request if at least one of the lines in the response has allocated 
+        quantity.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="AllocationResponse" type="AllocationResponse" 
+                     maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:attribute name="reservationId" type="ReservationId" use="optional"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:complexType name="AllocationResponse">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        AllocationResponse represents an order line in the allocation response 
+        message. There is one line in the response for each line in the request,
+        <i>i.e.</i>. OrderItem.
+        Each response line can be correlated with the corresponding request line 
+        via the lineId attribute value.  Each response line contains:
+        <ul>
+        <li>the item ID for the line</li>
+        <li>the quantity allocated for the line</li>
+        <li>the lineId for the line which is used to correlate the response line 
+        with a request line.</li>
+        </ul>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+        <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        </xsd:documentation>
+        </xsd:annotation>
+        <xsd:element name="AmountAllocated" type="xsd:unsignedInt"/>
+        <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                    This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+                    responses returned from the service.
+                    The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+                    to the service's responses without the service clients' code throwing exceptions.
+                    The client code for this service call should be written to not break if new optional XML elements show up in this part
+                    of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+                    (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+                    if new optional elements appear within the xsd:any section of the XML document).
+                    Developers' unit tests of their service client code should include a test case where this reply message
+                    contains one or more new elements in this location of the XML document.
+                    If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+                    and you will have the option to modify your service client code to process and use the new elements.
+                    If there is no need/desire to process the new optional elements, your service client should continue to run
+                    uninterrupted as long as it is built to honor this xsd:any element.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:any>
+    </xsd:sequence>
+    <xsd:attribute name="lineId" type="xsd:string" use="required" />
+    <xsd:attribute name="itemId" type="ItemId" use="required" />
+  </xsd:complexType>
+</xsd:schema>
