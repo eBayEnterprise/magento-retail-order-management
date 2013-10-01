@@ -13,22 +13,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract item id data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractItemId(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractItemId(DOMXPath $xpath, DOMElement $item)
 	{
 		// SKU used to identify this item from the client system.
-		$nodeClientItemId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientItemId");
+		$nodeClientItemId = $xpath->query("ItemId/ClientItemId/text()", $item);
 
 		// Alternative identifier provided by the client.
-		$nodeClientAltItemId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ClientAltItemId");
+		$nodeClientAltItemId = $xpath->query("ItemId/ClientAltItemId/text()", $item);
 
 		// Code assigned to the item by the manufacturer to identify the item.
-		$nodeManufacturerItemId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ItemId/ManufacturerItemId");
+		$nodeManufacturerItemId = $xpath->query("ItemId/ManufacturerItemId/text()", $item);
 		return new Varien_Object(array(
 			'client_item_id' => ($nodeClientItemId->length)? (string) $nodeClientItemId->item(0)->nodeValue : null,
 			'client_alt_item_id' => ($nodeClientAltItemId->length)? (string) $nodeClientAltItemId->item(0)->nodeValue : null,
@@ -40,32 +38,30 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract BaseAttributes data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractBaseAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractBaseAttributes(DOMXPath $xpath, DOMElement $item)
 	{
 		// Allows for control of the web store display.
-		$nodeCatalogClass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/CatalogClass");
+		$nodeCatalogClass = $xpath->query("BaseAttributes/CatalogClass/text()", $item);
 
 		// Indicates the item if fulfilled by a drop shipper.
 		// New attribute.
-		$nodeIsDropShipped = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/IsDropShipped");
+		$nodeIsDropShipped = $xpath->query("BaseAttributes/IsDropShipped/text()", $item);
 
 		// Short description in the catalog's base language.
-		$nodeItemDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemDescription");
+		$nodeItemDescription = $xpath->query("BaseAttributes/ItemDescription/text()", $item);
 
 		// Identifies the type of item.
-		$nodeItemType = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemType");
+		$nodeItemType = $xpath->query("BaseAttributes/ItemType/text()", $item);
 
 		// Indicates whether an item is active, inactive or other various states.
-		$nodeItemStatus = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/ItemStatus");
+		$nodeItemStatus = $xpath->query("BaseAttributes/ItemStatus/text()", $item);
 
 		// Tax group the item belongs to.
-		$nodeTaxCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/BaseAttributes/TaxCode");
+		$nodeTaxCode = $xpath->query("BaseAttributes/TaxCode/text()", $item);
 
 		return new Varien_Object(
 			array(
@@ -83,22 +79,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract DropShipSupplierInformation data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractDropShipSupplierInformation(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractDropShipSupplierInformation(DOMXPath $xpath, DOMElement $item)
 	{
 		// Name of the Drop Ship Supplier fulfilling the item
-		$nodeSupplierName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierName");
+		$nodeSupplierName = $xpath->query("DropShipSupplierInformation/SupplierName/text()", $item);
 
 		// Unique code assigned to this supplier.
-		$nodeSupplierNumber = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierNumber");
+		$nodeSupplierNumber = $xpath->query("DropShipSupplierInformation/SupplierNumber/text()", $item);
 
 		// Id or SKU used by the drop shipper to identify this item.
-		$nodeSupplierPartNumber = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/DropShipSupplierInformation/SupplierPartNumber");
+		$nodeSupplierPartNumber = $xpath->query("DropShipSupplierInformation/SupplierPartNumber/text()", $item);
 
 		return new Varien_Object(
 			array(
@@ -113,30 +107,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract ExtendedAttributes data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractExtendedAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractExtendedAttributes(DOMXPath $xpath, DOMElement $item)
 	{
 		// If false, customer cannot add a gift message to the item.
-		$nodeAllowGiftMessage = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/AllowGiftMessage");
+		$nodeAllowGiftMessage = $xpath->query("ExtendedAttributes/AllowGiftMessage/text()", $item);
 
 		// Item is able to be back ordered.
-		$nodeBackOrderable = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/BackOrderable");
+		$nodeBackOrderable = $xpath->query("ExtendedAttributes/BackOrderable/text()", $item);
 
 		$colorData = array();
-		$nodeColorAttributes = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color");
+		$nodeColorAttributes = $xpath->query("ExtendedAttributes/ColorAttributes/Color", $item);
 		$colorIndex = 1;
 		foreach ($nodeColorAttributes as $colorRecord) {
 			// Color value/name with a locale specific description.
 			// Name of the color used as the default and in the admin.
-			$nodeColorCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Code");
+			$nodeColorCode = $xpath->query("Code/text()", $colorRecord);
 
 			// Description of the color used for specific store views/languages.
-			$nodeColorDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ColorAttributes/Color[$colorIndex]/Description");
+			$nodeColorDescription = $xpath->query("Description", $colorRecord);
 			$colorDescriptionData = array();
 			$colorDescriptionIndex = 1;
 			foreach ($nodeColorDescription as $colorDescriptionRecord) {
@@ -156,11 +148,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 
 		// Selling name and description used to identify a product for advertising purposes
 		// Selling/promotional name.
-		$nodeBrandName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Name");
+		$nodeBrandName = $xpath->query("ExtendedAttributes/Brand/Name/text()", $item);
 
 		// Short description of the selling/promotional name.
 		$brandDescriptionData = array();
-		$nodeBrandDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Brand/Description");
+		$nodeBrandDescription = $xpath->query("ExtendedAttributes/Brand/Description", $item);
 		foreach ($nodeBrandDescription as $brandDescriptionRecord) {
 			$brandDescriptionData[] = array(
 				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($brandDescriptionRecord->getAttribute('xml:lang')),
@@ -169,8 +161,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 		}
 
 		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
-		$nodeBuyerName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/Name");
-		$nodeBuyerId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Buyer/BuyerId");
+		$nodeBuyerName = $xpath->query("ExtendedAttributes/Buyer/Name/text()", $item);
+		$nodeBuyerId = $xpath->query("ExtendedAttributes/Buyer/BuyerId/text()", $item);
 
 		/*
 		 * Whether the item is a "companion" (must ship with another product) or can ship alone. ENUM: ("Yes", No", "Maybe")
@@ -178,10 +170,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 		 *    No - cancelled if not shipped with companion
 		 *    Maybe - other factors decide
 		 */
-		$nodeCompanionFlag = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/CompanionFlag");
+		$nodeCompanionFlag = $xpath->query("ExtendedAttributes/CompanionFlag/text()", $item);
 
 		// Country in which goods were completely derived or manufactured.
-		$nodeCountryOfOrigin = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/CountryOfOrigin");
+		$nodeCountryOfOrigin = $xpath->query("ExtendedAttributes/CountryOfOrigin/text()", $item);
 
 		/*
 		 *  Type of gift card to be used for activation.
@@ -191,130 +183,130 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 		 *		SV - SVS Virtual Gift Card
 		 *		SX - SmartClixx Gift Card
 		 */
-		$nodeGiftCardTenderCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/GiftCardTenderCode");
+		$nodeGiftCardTenderCode = $xpath->query("ExtendedAttributes/GiftCardTenderCode/text()", $item);
 
 		// Indicates if the item is considered hazardous material.
-		$nodeHazardousMaterialCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/HazardousMaterialCode");
+		$nodeHazardousMaterialCode = $xpath->query("ExtendedAttributes/HazardousMaterialCode/text()", $item);
 
 		// Not included in display or in emails. Default to false.
-		$nodeIsHiddenProduct = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/IsHiddenProduct");
+		$nodeIsHiddenProduct = $xpath->query("ExtendedAttributes/IsHiddenProduct/text()", $item);
 
 		// Shipping weight of the item.
-		$nodeShippingMass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass");
+		$nodeShippingMass = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Mass/text()", $item);
 
 		// Shipping weight of the item.
-		$nodeShippingWeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Mass/Weight");
+		$nodeShippingWeight = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()", $item);
 
 		// Unit of measure used for these dimensions.
-		$nodeDisplayMass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass");
+		$nodeDisplayMass = $xpath->query("ExtendedAttributes/ItemDimension/Display/Mass/text()", $item);
 
 		// Item's weight using the above unit of measure.
-		$nodeDisplayWeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Mass/Weight");
+		$nodeDisplayWeight = $xpath->query("ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()", $item);
 
 		// Unit of measure used for these dimensions.
-		$nodeDisplayPackaging = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging");
+		$nodeDisplayPackaging = $xpath->query("ExtendedAttributes/ItemDimension/Display/Packaging/text()", $item);
 
 		// Item's width.
-		$nodeDisplayPackagingWidth = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Width");
+		$nodeDisplayPackagingWidth = $xpath->query("ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()", $item);
 
 		// Item's length.
-		$nodeDisplayPackagingLength = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Length");
+		$nodeDisplayPackagingLength = $xpath->query("ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()", $item);
 
 		// Item's height.
-		$nodeDisplayPackagingHeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Display/Packaging/Height");
+		$nodeDisplayPackagingHeight = $xpath->query("ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()", $item);
 
 		// Unit of measure used for these dimensions.
-		$nodeShippingPackaging = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging");
+		$nodeShippingPackaging = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Packaging/text()", $item);
 
 		// Item's width.
-		$nodeShippingPackagingWidth = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Width");
+		$nodeShippingPackagingWidth = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()", $item);
 
 		// Item's length.
-		$nodeShippingPackagingLength = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Length");
+		$nodeShippingPackagingLength = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()", $item);
 
 		// Item's height.
-		$nodeShippingPackagingHeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Shipping/Packaging/Height");
+		$nodeShippingPackagingHeight = $xpath->query("ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()", $item);
 
 		// Unit of measure used for these dimensions.
-		$nodeCartonMass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass");
+		$nodeCartonMass = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Mass/text()", $item);
 
 		// Weight of the carton.
-		$nodeCartonWeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Mass/Weight");
+		$nodeCartonWeight = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()", $item);
 
 		// Unit of measure used for these dimensions.
-		$nodeCartonPackaging = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging");
+		$nodeCartonPackaging = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Packaging/text()", $item);
 
 		// Item's width.
-		$nodeCartonPackagingWidth = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Width");
+		$nodeCartonPackagingWidth = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()", $item);
 
 		// Item's length.
-		$nodeCartonPackagingLength = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Length");
+		$nodeCartonPackagingLength = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()", $item);
 
 		// Item's height.
-		$nodeCartonPackagingHeight = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/Carton/Packaging/Height");
+		$nodeCartonPackagingHeight = $xpath->query("ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()", $item);
 
 		// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
-		$nodeCartonType = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ItemDimension/CartonType");
+		$nodeCartonType = $xpath->query("ExtendedAttributes/ItemDimension/CartonType/text()", $item);
 
 		// Indicates if the item's lot assignment is required to be tracked.
-		$nodeLotTrackingIndicator = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LotTrackingIndicator");
+		$nodeLotTrackingIndicator = $xpath->query("ExtendedAttributes/LotTrackingIndicator/text()", $item);
 
 		// LTL freight cost for the item.
-		$nodeLtlFreightCost = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/LTLFreightCost");
+		$nodeLtlFreightCost = $xpath->query("ExtendedAttributes/LTLFreightCost/text()", $item);
 
 		// Date the item was build by the manufacturer.
-		$nodeManufacturingDate = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ManufacturingDate");
+		$nodeManufacturingDate = $xpath->query("ExtendedAttributes/ManufacturingDate/text()", $item);
 
 		// Company name of manufacturer.
-		$nodeManufacturerName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/Name");
+		$nodeManufacturerName = $xpath->query("ExtendedAttributes/Manufacturer/Name/text()", $item);
 
 		// Unique identifier to denote the item manufacturer.
-		$nodeManufacturerId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Manufacturer/ManufacturerId");
+		$nodeManufacturerId = $xpath->query("ExtendedAttributes/Manufacturer/ManufacturerId/text()", $item);
 
 		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-		$nodeMayShipExpedite = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipExpedite");
+		$nodeMayShipExpedite = $xpath->query("ExtendedAttributes/MayShipExpedite/text()", $item);
 
 		// Indicates if the item may be shipped internationally.
-		$nodeMayShipInternational = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipInternational");
+		$nodeMayShipInternational = $xpath->query("ExtendedAttributes/MayShipInternational/text()", $item);
 
 		// Indicates if the item may be shipped via USPS.
-		$nodeMayShipUsps = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MayShipUSPS");
+		$nodeMayShipUsps = $xpath->query("ExtendedAttributes/MayShipUSPS/text()", $item);
 
 		// Manufacturers suggested retail price. Not used for actual price calculations.
-		$nodeMsrp = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/MSRP");
+		$nodeMsrp = $xpath->query("ExtendedAttributes/MSRP/text()", $item);
 
 		// Default price item is sold at. Required only if the item is new.
-		$nodePrice = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Price");
+		$nodePrice = $xpath->query("ExtendedAttributes/Price/text()", $item);
 
 		// Amount used for safety stock calculations.
-		$nodeSafetyStock = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SafetyStock");
+		$nodeSafetyStock = $xpath->query("ExtendedAttributes/SafetyStock/text()", $item);
 
 		// Determines behavior on the live system when the item is backordered.
-		$nodeSalesClass = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SalesClass");
+		$nodeSalesClass = $xpath->query("ExtendedAttributes/SalesClass/text()", $item);
 
 		// Type of serial number to be scanned.
-		$nodeSerialNumberType = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SerialNumberType");
+		$nodeSerialNumberType = $xpath->query("ExtendedAttributes/SerialNumberType/text()", $item);
 
 		// Identifies the item as a service, e.g. clothing monogramming or hemming.
-		$nodeServiceIndicator = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ServiceIndicator");
+		$nodeServiceIndicator = $xpath->query("ExtendedAttributes/ServiceIndicator/text()", $item);
 
 		// Distinguishes items that can be shipped together with those in the same group.
-		$nodeShipGroup = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipGroup");
+		$nodeShipGroup = $xpath->query("ExtendedAttributes/ShipGroup/text()", $item);
 
 		// Minimum number of hours before the item may ship.
-		$nodeShipWindowMinHour = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMinHour");
+		$nodeShipWindowMinHour = $xpath->query("ExtendedAttributes/ShipWindowMinHour/text()", $item);
 
 		// Maximum number of hours before the item may ship.
-		$nodeShipWindowMaxHour = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/ShipWindowMaxHour");
+		$nodeShipWindowMaxHour = $xpath->query("ExtendedAttributes/ShipWindowMaxHour/text()", $item);
 
 		$sizeData = array();
-		$nodeSizeAttributes = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size");
+		$nodeSizeAttributes = $xpath->query("ExtendedAttributes/SizeAttributes/Size", $item);
 		foreach ($nodeSizeAttributes as $sizeRecord) {
 			// Size code.
-			$nodeSizeCode = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Code");
+			$nodeSizeCode = $xpath->query("Code/text()", $sizeRecord);
 
 			// Size Description.
-			$nodeSizeDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/SizeAttributes/Size/Description");
+			$nodeSizeDescription = $xpath->query("Description/text()", $sizeRecord);
 
 			$sizeData[] = array(
 				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
@@ -324,19 +316,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 		}
 
 		// Earliest date the product can be shipped.
-		$nodeStreetDate = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/StreetDate");
+		$nodeStreetDate = $xpath->query("ExtendedAttributes/StreetDate/text()", $item);
 
 		// Code that identifies the specific appearance type or variety in which the item is available.
-		$nodeStyleId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleID");
+		$nodeStyleId = $xpath->query("ExtendedAttributes/Style/StyleID/text()", $item);
 
 		// Short description or title of the style for the item.
-		$nodeStyleDescription = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Style/StyleDescription");
+		$nodeStyleDescription = $xpath->query("ExtendedAttributes/Style/StyleDescription/text()", $item);
 
 		// Name of the individual or organization providing the merchandise.
-		$nodeSupplierName = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/Name");
+		$nodeSupplierName = $xpath->query("ExtendedAttributes/Supplier/Name/text()", $item);
 
 		// Identifier for the supplier.
-		$nodeSupplierId = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/ExtendedAttributes/Supplier/SupplierId");
+		$nodeSupplierId = $xpath->query("ExtendedAttributes/Supplier/SupplierId/text()", $item);
 
 		return new Varien_Object(
 			array(
@@ -438,20 +430,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract CustomAttributes data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return Varien_Object
 	 */
-	protected function _extractCustomAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractCustomAttributes(DOMXPath $xpath, DOMElement $item)
 	{
 		$attributeData = array();
 
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $xpath->query("CustomAttributes/Attribute", $item);
 		foreach ($nodeAttribute as $attributeRecord) {
-			$nodeValue = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+			$nodeValue = $xpath->query("Value/text()", $attributeRecord);
 
 			$attributeData[] = array(
 				// The name of the attribute.
@@ -475,19 +465,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract productType from CustomAttributes data
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return string, the productType
 	 */
-	protected function _extractProductType(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractProductType(DOMXPath $xpath, DOMElement $item)
 	{
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $xpath->query("CustomAttributes/Attribute", $item);
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
-				$nodeValue = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				$nodeValue = $xpath->query("Value/text()", $attributeRecord);
 				return ($nodeValue->length)? strtolower(trim($nodeValue->item(0)->nodeValue)) : '';
 			}
 		}
@@ -499,19 +487,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 * extract ConfigurableAttributes from CustomAttributes data
 	 *
 	 * @param DOMXPath $xpath, the xpath object
-	 * @param int $idx, the current item position
-	 * @param string $catalogId, the catalog id for the current xml node
-	 * @param string $baseNode, the feed base node
+	 * @param DOMElement $item, the current element
 	 *
 	 * @return array, the configurable attribute sets
 	 */
-	protected function _extractConfigurableAttributes(DOMXPath $xpath, $idx, $catalogId, $baseNode='Item')
+	protected function _extractConfigurableAttributes(DOMXPath $xpath, DOMElement $item)
 	{
 		// Name value pairs of additional attributes for the product.
-		$nodeAttribute = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute");
+		$nodeAttribute = $xpath->query("CustomAttributes/Attribute", $item);
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
-				$nodeValue = $xpath->query("//${baseNode}[$idx][@catalog_id='$catalogId']/CustomAttributes/Attribute/Value");
+				$nodeValue = $xpath->query("Value/text()", $attributeRecord);
 				return ($nodeValue->length)? explode(',', $nodeValue->item(0)->nodeValue) : array();
 			}
 		}
@@ -545,19 +531,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 					// Defines the action requested for this item. enum:("Add", "Change", "Delete")
 					'operation_type' => (string) $item->getAttribute('operation_type'),
 					// get varien object of item id node
-					'item_id' => $this->_extractItemId($xpath, $idx, $catalogId, $baseNode),
+					'item_id' => $this->_extractItemId($xpath, $item),
 					// get varien object of base attributes node
-					'base_attributes' => $this->_extractBaseAttributes($xpath, $idx, $catalogId, $baseNode),
+					'base_attributes' => $this->_extractBaseAttributes($xpath, $item),
 					// get varien object of Drop Ship Supplier Information attribute node
-					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($xpath, $idx, $catalogId, $baseNode),
+					'drop_ship_supplier_information' => $this->_extractDropShipSupplierInformation($xpath, $item),
 					// get varien object of Extended Attributes node
-					'extended_attributes' => $this->_extractExtendedAttributes($xpath, $idx, $catalogId, $baseNode),
+					'extended_attributes' => $this->_extractExtendedAttributes($xpath, $item),
 					// get varien object of Custom Attributes node
-					'custom_attributes' => $this->_extractCustomAttributes($xpath, $idx, $catalogId, $baseNode),
+					'custom_attributes' => $this->_extractCustomAttributes($xpath, $item),
 					// get product type from Custom Attributes node
-					'product_type' => $this->_extractProductType($xpath, $idx, $catalogId, $baseNode),
+					'product_type' => $this->_extractProductType($xpath, $item),
 					// get configurable attributes from Custom Attributes node
-					'configurable_attributes' => $this->_extractConfigurableAttributes($xpath, $idx, $catalogId, $baseNode),
+					'configurable_attributes' => $this->_extractConfigurableAttributes($xpath, $item),
 				)
 			);
 
