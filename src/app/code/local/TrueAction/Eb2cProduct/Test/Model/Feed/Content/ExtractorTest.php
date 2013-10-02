@@ -23,7 +23,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_ExtractorTest extends EcomD
 		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$document->load(__DIR__ . '/ExtractorTest/fixtures/sample-feed.xml');
 		return array(
-			array($document)
+			array(new DOMXPath($document))
 		);
 	}
 
@@ -35,8 +35,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_ExtractorTest extends EcomD
 	 * @loadFixture loadConfig.yaml
 	 * @dataProvider providerExtractContentMasterFeed
 	 */
-	public function testExtractContentMasterFeed($doc)
+	public function testExtractContentMasterFeed($xpath)
 	{
-		$this->assertCount(1, $this->_extractor->extractContentMasterFeed($doc));
+		$this->assertCount(1, $this->_extractor->extract($xpath));
 	}
 }
