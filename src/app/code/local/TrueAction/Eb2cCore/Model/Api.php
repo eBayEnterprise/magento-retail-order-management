@@ -117,13 +117,13 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 
 	/**
 	 * Validates the DOM against a magically-set Validation Schema, which should be a full path
-	 * to a sensbile .xsd for this DOMDocument.
+	 * to a sensibile .xsd for this DOMDocument.
 	 *
 	 * @return boolean true valid false otherwise
 	 */
 	private function _schemaValidate(DOMDocument $doc)
 	{
-		$this->_schemaValiationErrors = array();
+		$this->_schemaValidationErrors = array();
 		set_error_handler(
 			array(
 				$this,

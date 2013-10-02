@@ -27,5 +27,9 @@ class TrueAction_Eb2cInventory_Model_Config extends TrueAction_Eb2cCore_Model_Co
 		'api_opt_inventory_allocation'          => 'eb2c/inventory/api_opt_inventory_allocation',
 		'api_opt_inventory_rollback_allocation' => 'eb2c/inventory/api_opt_inventory_rollback_allocation',
 		'api_return_format'                     => 'eb2c/inventory/api_return_format',
+		'xsd_file_allocation'                   => 'eb2c/inventory/xsd/allocation_file',
+		'xsd_file_details'                      => 'eb2c/inventory/xsd/details_file',
+		'xsd_file_quantity'                     => 'eb2c/inventory/xsd/quantity_file',
+		'xsd_file_rollback'                     => 'eb2c/inventory/xsd/rollback_file',
 	);
 }

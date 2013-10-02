@@ -16,6 +16,7 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 			// make request to eb2c for inventory details
 			$inventoryDetailsResponseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cinventory')->getOperationUri('get_inventory_details'))
+				->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileDetails)
 				->request($inventoryDetailsRequestMessage);
 		} catch (Exception $e) {
 			Mage::logException($e);
