@@ -46,7 +46,6 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 
 	protected $_valueFunctionMap = array(
 		'is_global'           => '_formatScope',
-		'frontend_label'      => '_formatFrontendLabel',
 		'default_value_yesno' => '_formatBoolean',
 		'is_unique'           => '_formatBoolean',
 		'default_value_date'  => '_formatDate',
