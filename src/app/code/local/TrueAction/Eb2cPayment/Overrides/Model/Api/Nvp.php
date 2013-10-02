@@ -304,7 +304,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			Mage::throwException(sprintf('[ %s ]: Non-EB2C PayPal API call attempted for %s.', __CLASS__, $methodName));
 			// @codeCoverageIgnoreStart
 		} else {
-		// @codeCoverageIgnoreEnd
+			// @codeCoverageIgnoreEnd
 			return parent::call($methodName, $request);
 		}
 		// @codeCoverageIgnoreStart

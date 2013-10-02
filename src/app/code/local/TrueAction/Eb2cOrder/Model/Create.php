@@ -84,7 +84,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 					)
 				)
 				->request($this->_domRequest);
-						
+
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
