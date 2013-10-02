@@ -26,12 +26,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_addresses          = array();
 	protected $_itemQuantities     = array();
 
-	private $_requiredAddressFields = array(
-		'line1',
-		'city',
-		'country_code'
-	);
-
 	/**
 	 * map skus to a quote item
 	 * @var array('string' => Mage_Sales_Model_Quote_Item_Abstract)
@@ -178,12 +172,22 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			// create the billing address destination node(s)
 			$billAddress = $quote->getBillingAddress();
 			$this->_billingInfoRef = $this->_getDestinationId($billAddress);
-			$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
-				$billAddress
-			);
+			try {
+				$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
+					$billAddress
+				);
+			} catch (Mage_Core_Exception $e) {
+				$message = 'Unable to extract billing address: ' . $e->getMessage();
+				throw new Mage_Core_Exception($message);
+			}
 			foreach ($quote->getAllAddresses() as $address) {
-				// keep a serialized copy of each address for use when looking for changes.
-				$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
+				try {
+					// keep a serialized copy of each address for use when looking for changes.
+					$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
+				} catch (Mage_Core_Exception $e) {
+					$message = 'Unable to extract shipping address: ' . $e->getMessage();
+					throw new Mage_Core_Exception($message);
+				}
 				$items = $this->_getItemsForAddress($address);
 				foreach ($items as $item) {
 					if ($item->getHasChildren() && $item->isChildrenCalculated()) {
@@ -208,8 +212,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				}
 			}
 		}
-		catch (Mage_Core_Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::DEBUG);
+		catch (Exception $e) {
+			$message = sprintf(
+				'[ %s ] Error gathering data for the tax request: %s',
+				__CLASS__,
+				$e->getMessage()
+			);
+			Mage::log($message, Zend_Log::WARN);
 			$this->invalidate();
 		}
 	}
@@ -857,25 +866,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		);
 
 		return $data;
-	}
-
-	/**
-	 * validate extracted data.
-	 * @param  array   $data   extracted data as an array
-	 * @param  array   $fields keys to check
-	 * @return self
-	 * @throws Mage_Core_Exception If any key maps to a null value
-	 */
-	protected function _validateData($data, $fields=array())
-	{
-		foreach ($fields as $field) {
-			$value = isset($destData[$field]) ? $destData[$field] : null;
-			if (is_null($value)) {
-				$message = sprintf('field %s: value [%s] is invalid length', $field, $value);
-				throw new Mage_Core_Exception($message);
-			}
-		}
-		return $this;
 	}
 
 	/**
