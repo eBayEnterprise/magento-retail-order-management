@@ -86,6 +86,9 @@
 {{if postcode}}{{var postcode}}<br/>{{/if}}
 {{var country}}]]></address_only_html>
 			</address_suggestion_templates>
+			<xsd>
+				<address_validation_file>Address-Validation-Service-1.0.xsd</address_validation_file>
+			</xsd>
 		</eb2caddress>
 	</default>
 	<phpunit>

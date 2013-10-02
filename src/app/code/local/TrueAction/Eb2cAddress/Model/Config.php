@@ -12,5 +12,6 @@ class TrueAction_Eb2cAddress_Model_Config
 		'api_namespace' => 'eb2ccore/api/xml_namespace',
 		'address_format_full' => 'eb2caddress/address_suggestion_templates/full_html',
 		'address_format_address_only' => 'eb2caddress/address_suggestion_templates/address_only_html',
+		'xsd_file_address_validation' => 'eb2caddress/xsd/address_validation_file',
 	);
 }
