@@ -36,6 +36,11 @@ class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
 		return $this;
 	}
 
+	protected function _prepareValues($data)
+	{
+		return $data;
+	}
+
 	/**
 	 * log a warning message
 	 * @param string $msg
