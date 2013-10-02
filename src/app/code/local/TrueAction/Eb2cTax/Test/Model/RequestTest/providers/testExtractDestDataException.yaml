@@ -1,0 +1,34 @@
+-
+  - setLastname
+-
+  - setFirstname
+-
+  - setStreet
+  - [ '' ]
+-
+  - setCity
+-
+  - setCountryId
+-
+  - setEmail
+  - ''
+  - true
+-
+  - setLastname
+  - ~
+-
+  - setFirstname
+  - ~
+-
+  - setStreet
+  - ~
+-
+  - setCity
+  - ~
+-
+  - setCountryId
+  - ~
+-
+  - setEmail
+  - ~
+  - true

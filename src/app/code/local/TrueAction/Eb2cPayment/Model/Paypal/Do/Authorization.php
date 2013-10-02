@@ -15,21 +15,22 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	 */
 	public function doAuthorization($quote)
 	{
-		$paypalDoAuthorizationResponseMessage = '';
+		$responseMessage = '';
 		try{
 			// build request
-			$payPalDoAuthorizationRequest = $this->buildPayPalDoAuthorizationRequest($quote);
+			$requestDoc = $this->buildPayPalDoAuthorizationRequest($quote);
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
 			// make request to eb2c for quote items PaypalDoAuthorization
-			$paypalDoAuthorizationResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_authorization'))
-				->request($payPalDoAuthorizationRequest);
+				->request($requestDoc);
 
 		}catch(Exception $e){
 			Mage::logException($e);
 		}
 
-		return $paypalDoAuthorizationResponseMessage;
+		return $responseMessage;
 	}
 
 	/**
@@ -51,7 +52,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 
 		$payPalDoAuthorizationRequest->createChild(
 			'Amount',
-			(string) $quote->getBaseGrandTotal(),
+			sprintf('%.02f', $quote->getBaseGrandTotal()),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 

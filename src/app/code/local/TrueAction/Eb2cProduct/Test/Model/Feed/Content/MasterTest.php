@@ -71,10 +71,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$loadProductBySku = $masterReflector->getMethod('_loadProductBySku');
 		$loadProductBySku->setAccessible(true);
 
-		$this->assertInstanceOf(
-			'Mage_Catalog_Model_Product',
-			$loadProductBySku->invoke($master, '123')
-		);
+		$this->assertInstanceOf('Mage_Catalog_Model_Product', $loadProductBySku->invoke($master, '123'));
 	}
 
 	/**
@@ -107,10 +104,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$loadCategoryByName = $masterReflector->getMethod('_loadCategoryByName');
 		$loadCategoryByName->setAccessible(true);
 
-		$this->assertInstanceOf(
-			'Mage_Catalog_Model_Category',
-			$loadCategoryByName->invoke($master, '123')
-		);
+		$this->assertInstanceOf('Mage_Catalog_Model_Category', $loadCategoryByName->invoke($master, '123'));
 	}
 
 	/**
@@ -165,10 +159,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 		$constructMethod = $masterReflector->getMethod('_construct');
 		$constructMethod->setAccessible(true);
 
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$constructMethod->invoke($productFeedModel)
-		);
+		$this->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $constructMethod->invoke($productFeedModel));
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 
 	/**
@@ -202,13 +194,17 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
+	}
 
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+	private function _mockEavConfig()
+	{
+		$eav = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
+		$this->replaceByMock('singleton', 'eav/config', $eav->buildEavModelConfig());
+		return $this;
 	}
 
 	/**
@@ -242,13 +238,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 
 	/**
@@ -285,13 +278,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 
 	/**
@@ -328,13 +318,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 
 	/**
@@ -371,13 +358,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 
 	/**
@@ -414,12 +398,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_MasterTest extends EcomDev_
 			array('base_dir' => $vfs->url(self::VFS_ROOT . '/feed_content_master'), 'fs_tool' => $this->_getMockFsTool($vfs, $sampleFiles))
 		);
 
-		$mockEavModelConfg = new TrueAction_Eb2cProduct_Test_Mock_Model_Eav_Config();
-		$master->setEavConfig($mockEavModelConfg->buildEavModelConfig());
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cProduct_Model_Feed_Content_Master',
-			$master->processFeeds()
-		);
+		$this
+			->_mockEavConfig()
+			->assertInstanceOf('TrueAction_Eb2cProduct_Model_Feed_Content_Master', $master->processFeeds());
+		$this->markTestIncomplete('Just tests that feed processor completes without error. Does not completely test interactions.');
 	}
 }

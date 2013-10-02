@@ -114,11 +114,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_MasterTest extends EcomDev_PHP
 
 		$feedItemExtractorMock = $this->getModelMockBuilder('eb2cproduct/feed_item_extractor')
 			->disableOriginalConstructor()
-			->setMethods(array('extractItemMasterFeed'))
+			->setMethods(array('extract'))
 			->getMock();
 
 		$feedItemExtractorMock->expects($this->any())
-			->method('extractItemMasterFeed')
+			->method('extract')
 			->will($this->returnValue(new Varien_Object()));
 
 		$this->replaceByMock('model', 'eb2cproduct/feed_item_extractor', $feedItemExtractorMock);

@@ -165,7 +165,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor extends Mage_Core_Model_Abst
 		foreach ($master as $item) {
 			$catalogId = (string) $item->getAttribute('catalog_id');
 
-			// setting item object into the colelction of item objects.
+			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
 					// setting catalog id

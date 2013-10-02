@@ -9,6 +9,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 {
 	protected $_allocation;
 
+	const DATE_PAST = '2000-01-01 00:00:00 +0';
+	const DATE_FUTURE = '2050-01-01 00:00:00 +0';
+
 	/**
 	 * setUp method
 	 */
@@ -642,7 +645,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$notExpiredItem
 			->expects($this->once())
 			->method('getEb2cReservedAt')
-			->will($this->returnValue('2050-01-01 00:00:00 +0'));
+			->will($this->returnValue(self::DATE_FUTURE));
 		$notExpiredItem
 			->expects($this->once())
 			->method('hasEb2cReservedAt')
@@ -656,7 +659,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$expiredItem
 			->expects($this->once())
 			->method('getEb2cReservedAt')
-			->will($this->returnValue('2000-01-01 00:00:00 +0'));
+			->will($this->returnValue(self::DATE_PAST));
 		$expiredItem
 			->expects($this->once())
 			->method('hasEb2cReservedAt')
@@ -726,4 +729,105 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		);
 		$this->assertSame($expected, $itemResponse);
 	}
+
+	/**
+	 * Create a stub quote that will return the given array of items
+	 * @param  Mage_Sales_Model_Quote_Item[] $items
+	 * @return Mage_Sales_Model_Quote
+	 */
+	protected function _createQuoteStubWithItems($items)
+	{
+		$quote = $this->getModelMock('sales/quote', array('getAllItems'));
+		$quote->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue($items));
+		return $quote;
+	}
+
+	protected function _createItemStub($managed, $hasAlloc, $isExpired)
+	{
+		$stubStockItem = $this->getModelMock('cataloginventory/stock_item', array('getManageStock'));
+		$stubStockItem->expects($this->any())
+			->method('getManageStock')
+			->will($this->returnValue($managed));
+		$productStub = $this->getModelMock('catalog/product', array('getStockItem'));
+		$productStub->expects($this->any())
+			->method('getStockItem')
+			->will($this->returnValue($stubStockItem));
+
+		$item = $this->getModelMock(
+			'sales/quote_item',
+			array('getProduct', 'getEb2cReservationId', 'hasEb2cReservedAt', 'getEb2cReservedAt',)
+		);
+		$item->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($productStub));
+		$item->expects($this->any())
+			->method('getEb2cReservationId')
+			->will($this->returnValue($hasAlloc ? '12345' : null));
+		$item->expects($this->any())
+			->method('hasEb2cReservedAt')
+			->will($this->returnValue(true));
+		$item->expects($this->any())
+			->method('getEb2cReservedAt')
+			->will($this->returnValue($isExpired ? self::DATE_PAST : self::DATE_FUTURE));
+		return $item;
+	}
+
+	/**
+	 * Data provider for testing if an allocation is required.
+	 * @return array
+	 */
+	public function allocationRequiredProvider()
+	{
+		return array(
+			array(
+				'noManaged-nAlloc-stale',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(false, false, true),)),
+			),
+			array(
+				'noManaged-nAlloc-fresh',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(false, false, false),)),
+			),
+			array(
+				'noManaged-yAlloc-stale',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(false, true, true),)),
+			),
+			array(
+				'noManaged-yAlloc-fresh',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(false, true, false),)),
+			),
+			array(
+				'isManaged-nAlloc-stale',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(true, false, true),)),
+			),
+			array(
+				'isManaged-nAlloc-fresh',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(true, false, false),)),
+			),
+			array(
+				'isManaged-yAlloc-stale',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(true, true, true),)),
+			),
+			array(
+				'isManaged-yAlloc-fresh',
+				$this->_createQuoteStubWithItems(array($this->_createItemStub(true, true, false),)),
+			),
+		);
+	}
+
+	/**
+	 * Test for checking if an allocation is required for the given quote.
+	 * @param  Mage_Sales_Model_Quote $quote The quote to be tested.
+	 * @test
+	 * @dataProvider allocationRequiredProvider
+	 */
+	public function testIfAllocationRequired($key, $quote)
+	{
+		$this->assertSame(
+			$this->expected($key)->getIsRequired(),
+			Mage::getModel('eb2cinventory/allocation')->requiresAllocation($quote)
+		);
+	}
+
 }

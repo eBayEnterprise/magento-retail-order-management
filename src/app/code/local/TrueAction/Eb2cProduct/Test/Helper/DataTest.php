@@ -1,14 +1,8 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
 	 * testing getConfigModel method
-	 *
 	 * @test
 	 */
 	public function testGetConfigModel()
@@ -83,47 +77,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Config_Registry', $productHelper->getConfigModel());
 	}
 
-	public function providerHasEavAttr()
-	{
-		$eavConfigModelMock = $this->getModelMockBuilder('eav/config')
-			->disableOriginalConstructor()
-			->setMethods(array('getAttribute', 'getId'))
-			->getMock();
-		$eavConfigModelMock->expects($this->any())
-			->method('getAttribute')
-			->will($this->returnSelf());
-		$eavConfigModelMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
-
-		$contenMasterModelMock = $this->getModelMockBuilder('eb2cproduct/feed_content_master')
-			->disableOriginalConstructor()
-			->setMethods(array('getEavConfig'))
-			->getMock();
-
-		$contenMasterModelMock->expects($this->any())
-			->method('getEavConfig')
-			->will($this->returnValue($eavConfigModelMock));
-
-		return array(
-			array($contenMasterModelMock, 'color'),
-		);
-	}
-
-	/**
-	 * testing hasEavAttr method
-	 *
-	 * @param TrueAction_Eb2cCore_Model_Feed_Interface $feed
-	 * @param string $attr
-	 *
-	 * @test
-	 * @dataProvider providerHasEavAttr
-	 */
-	public function testHasEavAttr(TrueAction_Eb2cCore_Model_Feed_Interface $feed, $attr)
-	{
-		$this->assertSame(true, Mage::helper('eb2cproduct')->hasEavAttr($feed, $attr));
-	}
-
 	/**
 	 * testing clean method
 	 *
@@ -164,5 +117,52 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
 
 		$this->assertInstanceOf('TrueAction_Eb2cProduct_Helper_Data', Mage::helper('eb2cproduct')->clean());
+	}
+
+	public function providerHasEavAttr()
+	{
+		return array(
+			array('known-attr'),
+			array('alien-attr'),
+		);
+	}
+
+	/**
+	 * Test that a product attribute is known if it has an id > 0.
+	 * @param string $name The attribute name
+	 * @test
+	 * @dataProvider providerHasEavAttr
+	 */
+	public function testHasEavAttr($name)
+	{
+		$atId = $this->expected($name)->getId();
+		$att = $this->getModelMock('eav/attribute', array('getId'));
+		$att->expects($this->once())
+			->method('getId')
+			->will($this->returnValue($atId));
+		$this->replaceByMock('model', 'eav/attribute', $att);
+
+		$eav = $this->getModelMock('eav/config', array('getAttribute'));
+		$eav->expects($this->once())
+			->method('getAttribute')
+			->with($this->equalTo(Mage_Catalog_Model_Product::ENTITY), $this->equalTo($name))
+			->will($this->returnValue($att));
+		$this->replaceByMock('model', 'eav/config', $eav);
+
+		// If $atId > 0, the result should be true
+		$this->assertSame($atId > 0, Mage::helper('eb2cproduct')->hasEavAttr($name));
+	}
+
+	/**
+	 * Test that a known product type is validated and an unknown is rejected.
+	 */
+	public function testHasProdType()
+	{
+		$this->assertSame(false, Mage::helper('eb2cproduct')->hasProdType('alien'));
+		// Normally I would inject a known value into Mage_Catalog_Model_Product_Type::getTypes()
+		// so that this test is a true "unit" test and doesn't depend on the environment
+		// at all, but getTypes is static, and you can bet there's gonna be a "simple"
+		// type in every environment.
+		$this->assertSame(true, Mage::helper('eb2cproduct')->hasProdType('simple'));
 	}
 }

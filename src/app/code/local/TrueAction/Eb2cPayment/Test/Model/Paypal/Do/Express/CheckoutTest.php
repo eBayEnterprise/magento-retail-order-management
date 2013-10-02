@@ -108,7 +108,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 			'Mage_Sales_Model_Quote',
 			array(
 				'getEntityId', 'getQuoteCurrencyCode',
-				'getBaseGrandTotal', 'getSubTotal', 'getShippingAmount', 'getTaxAmount', 'getAllAddresses', 'getPayment'
+				'getBaseGrandTotal', 'getSubtotal', 'getShippingAmount', 'getTaxAmount', 'getAllAddresses', 'getPayment'
 			)
 		);
 		$quoteMock->expects($this->any())
@@ -120,7 +120,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 			->will($this->returnValue(50.00)
 			);
 		$quoteMock->expects($this->any())
-			->method('getSubTotal')
+			->method('getSubtotal')
 			->will($this->returnValue(50.00)
 			);
 		$quoteMock->expects($this->any())

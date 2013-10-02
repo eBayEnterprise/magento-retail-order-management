@@ -20,7 +20,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount_Collection extends 
 			'Enterprise_GiftCardAccount_Model_Giftcardaccount',
 			array(
 				'load', 'getEb2cPin', 'getGiftcardaccountId', 'setCode', 'setEb2cPan', 'setEb2cPin', 'setStatus', 'setState',
-				'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpries', 'save', 'setGiftcardaccountId',
+				'setBalance', 'setIsRedeemable', 'setWebsiteId', 'setDateExpires', 'save', 'setGiftcardaccountId',
 				'setDateCreated'
 			)
 		);
