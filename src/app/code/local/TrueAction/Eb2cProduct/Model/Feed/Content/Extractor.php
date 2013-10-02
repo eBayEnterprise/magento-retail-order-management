@@ -57,9 +57,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			foreach ($nodeProductLink as $productContent) {
 				$productLinks[] = new Varien_Object(
 					array(
-						'link_type' => (string) $productContent->getAttribute('link_type'), // Type of link relationship.
-						'operation_type' => (string) $productContent->getAttribute('operation_type'), // Operation to take with the product link. ("Add", "Delete")
-						'link_to_unique_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('LinkToUniqueId/text()', $productContent)), // Unique ID (SKU) for the linked product.
+						// Type of link relationship.
+						'link_type' => (string) $productContent->getAttribute('link_type'),
+						// Operation to take with the product link. ("Add", "Delete")
+						'operation_type' => (string) $productContent->getAttribute('operation_type'),
+						// Unique ID (SKU) for the linked product.
+						'link_to_unique_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('LinkToUniqueId/text()', $productContent)),
 					)
 				);
 				$productContentIndex++;
@@ -88,10 +91,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 			foreach ($nodeCategoryLink as $categoryContent) {
 				$categoryLinks[] = new Varien_Object(
 					array(
-						'default' => (bool) $categoryContent->getAttribute('default'), // if category is the default
-						'catalog_id' => (string) $categoryContent->getAttribute('catalog_id'), // Used to link products across catalogs.
-						'import_mode' => (string) $categoryContent->getAttribute('import_mode'), // Operation to take with the category.
-						'name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Name/text()', $categoryContent)), // Unique ID (SKU) for the linked product.
+						// if category is the default
+						'default' => (bool) $categoryContent->getAttribute('default'),
+						// Used to link products across catalogs.
+						'catalog_id' => (string) $categoryContent->getAttribute('catalog_id'),
+						// Operation to take with the category.
+						'import_mode' => (string) $categoryContent->getAttribute('import_mode'),
+						// Unique ID (SKU) for the linked product.
+						'name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Name/text()', $categoryContent)),
 					)
 				);
 				$categoryContentIndex++;
@@ -166,9 +173,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 
 		$extendedAttributes['color_attributes'] = new Varien_Object(
 			array(
-				'code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Code/text()', $content)), // Code used to identify the color
-				'description' => $colorDescriptionCollection, // collection of description per language.
-				'sequence' =>  Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Sequence/text()', $content)), // Color order/sequence.
+				// Code used to identify the color
+				'code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Code/text()', $content)),
+				// collection of description per language.
+				'description' => $colorDescriptionCollection,
+				// Color order/sequence.
+				'sequence' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Sequence/text()', $content)),
 			)
 		);
 
@@ -177,8 +187,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		foreach ($nodeLongDescription as $attributeLongContent) {
 			$extendedAttributes['long_description'][] = new Varien_Object(
 				array(
-					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeLongContent->getAttribute('xml:lang')), // Targeted store language
-					'long_description' => (string) $attributeLongContent->nodeValue, // Long description of the item.
+					// Targeted store language
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeLongContent->getAttribute('xml:lang')),
+					// Long description of the item.
+					'long_description' => (string) $attributeLongContent->nodeValue,
 				)
 			);
 		}
@@ -188,8 +200,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		foreach ($nodeShortDescription as $attributeShortContent) {
 			$extendedAttributes['short_description'][] = new Varien_Object(
 				array(
-					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeShortContent->getAttribute('xml:lang')), // Targeted store language
-					'short_description' => (string) $attributeShortContent->nodeValue, // short description of the item.
+					// Targeted store language
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeShortContent->getAttribute('xml:lang')),
+					// short description of the item.
+					'short_description' => (string) $attributeShortContent->nodeValue,
 				)
 			);
 		}
@@ -199,8 +213,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		foreach ($nodeSearchKeywords as $attributeSearchContent) {
 			$extendedAttributes['search_keywords'][] = new Varien_Object(
 				array(
-					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeSearchContent->getAttribute('xml:lang')), // Targeted store language
-					'search_keywords' => (string) $attributeSearchContent->nodeValue, // search keywords of the item.
+					// Targeted store language
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeSearchContent->getAttribute('xml:lang')),
+					// search keywords of the item.
+					'search_keywords' => (string) $attributeSearchContent->nodeValue,
 				)
 			);
 		}
@@ -226,10 +242,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		foreach ($nodeAttribute as $customContent) {
 			$customAttributes[] = new Varien_Object(
 				array(
-					'name' => (string) $customContent->getAttribute('name'), // Custom attribute name.
-					'operation_type' => (string) $customContent->getAttribute('operation_type'), // Operation to take with the attribute. ("Add", "Change", "Delete")
-					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($customContent->getAttribute('xml:lang')), // Operation to take with the product link. ("Add", "Delete")
-					'value' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $customContent)), // Unique ID (SKU) for the linked product.
+					// Custom attribute name.
+					'name' => (string) $customContent->getAttribute('name'),
+					// Operation to take with the attribute. ("Add", "Change", "Delete")
+					'operation_type' => (string) $customContent->getAttribute('operation_type'),
+					// Operation to take with the product link. ("Add", "Delete")
+					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($customContent->getAttribute('xml:lang')),
+					// Unique ID (SKU) for the linked product.
+					'value' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $customContent)),
 				)
 			);
 			$attributeContentIndex++;

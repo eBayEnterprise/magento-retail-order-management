@@ -19,13 +19,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractItemId(DOMXPath $xpath, DOMElement $item)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		return new Varien_Object(array(
 			// SKU used to identify this item from the client system.
-			'client_item_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ItemId/ClientItemId/text()', $item)),
+			'client_item_id' => $prdHlpr->extractNodeToString($xpath->query('ItemId/ClientItemId/text()', $item)),
 			// Alternative identifier provided by the client.
-			'client_alt_item_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ItemId/ClientAltItemId/text()', $item)),
+			'client_alt_item_id' => $prdHlpr->extractNodeToString($xpath->query('ItemId/ClientAltItemId/text()', $item)),
 			// Code assigned to the item by the manufacturer to identify the item.
-			'manufacturer_item_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ItemId/ManufacturerItemId/text()', $item)),
+			'manufacturer_item_id' => $prdHlpr->extractNodeToString($xpath->query('ItemId/ManufacturerItemId/text()', $item)),
 		));
 	}
 
@@ -39,20 +40,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractBaseAttributes(DOMXPath $xpath, DOMElement $item)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		return new Varien_Object(
 			array(
 				// Allows for control of the web store display.
-				'catalog_class' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
+				'catalog_class' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
 				// Indicates the item if fulfilled by a drop shipper. New attribute.
-				'drop_shipped' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
+				'drop_shipped' => $prdHlpr->extractNodeToBoolean($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
 				// Short description in the catalog's base language.
-				'item_description' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
+				'item_description' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
 				// Identifies the type of item.
-				'item_type' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemType/text()', $item)),
+				'item_type' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemType/text()', $item)),
 				// Indicates whether an item is active, inactive or other various states.
-				'item_status' => (strtoupper(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
+				'item_status' => (strtoupper(trim($prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
 				// Tax group the item belongs to.
-				'tax_code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/TaxCode/text()', $item)),
+				'tax_code' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/TaxCode/text()', $item)),
 			)
 		);
 	}
@@ -67,14 +69,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractDropShipSupplierInformation(DOMXPath $xpath, DOMElement $item)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		return new Varien_Object(
 			array(
 				// Name of the Drop Ship Supplier fulfilling the item
-				'supplier_name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierName/text()', $item)),
+				'supplier_name' => $prdHlpr->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierName/text()', $item)),
 				// Unique code assigned to this supplier.
-				'supplier_number' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierNumber/text()', $item)),
+				'supplier_number' => $prdHlpr->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierNumber/text()', $item)),
 				// Id or SKU used by the drop shipper to identify this item.
-				'supplier_part_number' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierPartNumber/text()', $item)),
+				'supplier_part_number' => $prdHlpr->extractNodeToString($xpath->query('DropShipSupplierInformation/SupplierPartNumber/text()', $item)),
 			)
 		);
 	}
@@ -89,7 +92,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractExtendedAttributes(DOMXPath $xpath, DOMElement $item)
 	{
-
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$colorData = array();
 		$nodeColorAttributes = $xpath->query('ExtendedAttributes/ColorAttributes/Color', $item);
 		$colorIndex = 1;
@@ -109,7 +112,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 			$colorData[] = array(
 				// Color value/name with a locale specific description.
 				// Name of the color used as the default and in the admin.
-				'code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Code/text()', $colorRecord)),
+				'code' => $prdHlpr->extractNodeToString($xpath->query('Code/text()', $colorRecord)),
 				'description' => $colorDescriptionData,
 			);
 			$colorIndex++;
@@ -132,25 +135,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 			$sizeData[] = array(
 				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($sizeRecord->getAttribute('xml:lang')), // Language code for the natural language of the size data.
 				// Size code.
-				'code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Code/text()', $sizeRecord)),
+				'code' => $prdHlpr->extractNodeToString($xpath->query('Code/text()', $sizeRecord)),
 				// Size Description.
-				'description' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Description/text()', $sizeRecord)),
+				'description' => $prdHlpr->extractNodeToString($xpath->query('Description/text()', $sizeRecord)),
 			);
 		}
 
 		return new Varien_Object(
 			array(
 				// If false, customer cannot add a gift message to the item.
-				'allow_gift_message' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('ExtendedAttributes/AllowGiftMessage/text()', $item)),
+				'allow_gift_message' => $prdHlpr->extractNodeToBoolean($xpath->query('ExtendedAttributes/AllowGiftMessage/text()', $item)),
 				// Item is able to be back ordered.
-				'back_orderable' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/BackOrderable/text()', $item)),
+				'back_orderable' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/BackOrderable/text()', $item)),
 				'color_attributes' => new Varien_Object(
 					array(
 						'color' => $colorData,
 					)
 				),
 				// Country in which goods were completely derived or manufactured.
-				'country_of_origin' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/CountryOfOrigin/text()', $item)),
+				'country_of_origin' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/CountryOfOrigin/text()', $item)),
 				/*
 				 *  Type of gift card to be used for activation.
 				 * 		SD - TRU Digital Gift Card
@@ -159,124 +162,136 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 				 *		SV - SVS Virtual Gift Card
 				 *		SX - SmartClixx Gift Card
 				 */
-				'gift_card_tender_code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/GiftCardTenderCode/text()', $item)),
+				'gift_card_tender_code' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/GiftCardTenderCode/text()', $item)),
 				'item_dimension_shipping' => new Varien_Object(
 					array(
 						// Shipping weight of the item.
-						'mass_unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/text()', $item), 'unit_of_measure'),
+						'mass_unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+							$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/text()', $item), 'unit_of_measure'
+						),
 						// Shipping weight of the item.
-						'weight' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()', $item)),
+						'weight' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()', $item)),
 						'packaging' => new Varien_Object(
 							array(
 								// Unit of measure used for these dimensions.
-								'unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/text()', $item), 'unit_of_measure'),
-								'width' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()', $item)),
-								'length' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()', $item)),
-								'height' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()', $item)),
+								'unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+									$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/text()', $item), 'unit_of_measure'
+								),
+								'width' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()', $item)),
+								'length' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()', $item)),
+								'height' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()', $item)),
 							)
 						),
 					)
 				),
 				'item_dimension_display' => new Varien_Object(
 					array(
-						'mass_unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/text()', $item), 'unit_of_measure'),
-						'weight' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()', $item)),
+						'mass_unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+							$xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/text()', $item), 'unit_of_measure'
+						),
+						'weight' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()', $item)),
 						'packaging' => new Varien_Object(
 							array(
-								'unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/text()', $item), 'unit_of_measure'),
-								'width' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()', $item)),
-								'length' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()', $item)),
-								'height' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()', $item)),
+								'unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+									$xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/text()', $item), 'unit_of_measure'
+								),
+								'width' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()', $item)),
+								'length' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()', $item)),
+								'height' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()', $item)),
 							)
 						),
 					)
 				),
 				'item_dimension_carton' => new Varien_Object(
 					array(
-						'mass_unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/text()', $item), 'unit_of_measure'),
-						'weight' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()', $item)),
+						'mass_unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+							$xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/text()', $item), 'unit_of_measure'
+						),
+						'weight' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()', $item)),
 						'packaging' => new Varien_Object(
 							array(
-								'unit_of_measure' => Mage::helper('eb2cproduct')->extractNodeAttributeToString($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/text()', $item), 'unit_of_measure'),
-								'width' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()', $item)),
-								'length' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()', $item)),
-								'height' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()', $item)),
+								'unit_of_measure' => $prdHlpr->extractNodeAttributeToString(
+									$xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/text()', $item), 'unit_of_measure'
+								),
+								'width' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()', $item)),
+								'length' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()', $item)),
+								'height' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()', $item)),
 							)
 						),
 						// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
-						'type' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ItemDimension/CartonType/text()', $item)),
+						'type' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/ItemDimension/CartonType/text()', $item)),
 					)
 				),
 				// Indicates if the item's lot assignment is required to be tracked.
-				'lot_tracking_indicator' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/LotTrackingIndicator/text()', $item)),
+				'lot_tracking_indicator' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/LotTrackingIndicator/text()', $item)),
 				// LTL freight cost for the item.
-				'ltl_freight_cost' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/LTLFreightCost/text()', $item)),
+				'ltl_freight_cost' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/LTLFreightCost/text()', $item)),
 				'manufacturer' => new Varien_Object(
 					array(
 						// Date the item was build by the manufacturer.
-						'date' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ManufacturingDate/text()', $item)),
+						'date' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/ManufacturingDate/text()', $item)),
 						// Company name of manufacturer.
-						'name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Manufacturer/Name/text()', $item)),
+						'name' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Manufacturer/Name/text()', $item)),
 						// Unique identifier to denote the item manufacturer.
-						'id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Manufacturer/ManufacturerId/text()', $item)),
+						'id' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Manufacturer/ManufacturerId/text()', $item)),
 					)
 				),
 				// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-				'may_ship_expedite' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipExpedite/text()', $item)),
+				'may_ship_expedite' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipExpedite/text()', $item)),
 				// Indicates if the item may be shipped internationally.
-				'may_ship_international' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipInternational/text()', $item)),
+				'may_ship_international' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipInternational/text()', $item)),
 				// Indicates if the item may be shipped via USPS.
-				'may_ship_usps' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipUSPS/text()', $item)),
+				'may_ship_usps' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/MayShipUSPS/text()', $item)),
 				// Manufacturers suggested retail price. Not used for actual price calculations.
-				'msrp' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/MSRP/text()', $item)),
+				'msrp' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/MSRP/text()', $item)),
 				// Default price item is sold at. Required only if the item is new.
-				'price' => Mage::helper('eb2cproduct')->extractNodeToFloat($xpath->query('ExtendedAttributes/Price/text()', $item)),
+				'price' => $prdHlpr->extractNodeToFloat($xpath->query('ExtendedAttributes/Price/text()', $item)),
 				// Amount used for safety stock calculations.
-				'safety_stock' => Mage::helper('eb2cproduct')->extractNodeToInt($xpath->query('ExtendedAttributes/SafetyStock/text()', $item)),
+				'safety_stock' => $prdHlpr->extractNodeToInt($xpath->query('ExtendedAttributes/SafetyStock/text()', $item)),
 				// Determines behavior on the live system when the item is backordered.
-				'sales_class' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/SalesClass/text()', $item)),
+				'sales_class' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/SalesClass/text()', $item)),
 				// Type of serial number to be scanned.
-				'serial_number_type' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/SerialNumberType/text()', $item)),
+				'serial_number_type' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/SerialNumberType/text()', $item)),
 				// Identifies the item as a service, e.g. clothing monogramming or hemming.
-				'service_indicator' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('ExtendedAttributes/ServiceIndicator/text()', $item)),
+				'service_indicator' => $prdHlpr->extractNodeToBoolean($xpath->query('ExtendedAttributes/ServiceIndicator/text()', $item)),
 				// Distinguishes items that can be shipped together with those in the same group.
-				'ship_group' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ShipGroup/text()', $item)),
+				'ship_group' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/ShipGroup/text()', $item)),
 				// Minimum number of hours before the item may ship.
-				'ship_window_min_hour' => Mage::helper('eb2cproduct')->extractNodeToInt($xpath->query('ExtendedAttributes/ShipWindowMinHour/text()', $item)),
+				'ship_window_min_hour' => $prdHlpr->extractNodeToInt($xpath->query('ExtendedAttributes/ShipWindowMinHour/text()', $item)),
 				// Maximum number of hours before the item may ship.
-				'ship_window_max_hour' => Mage::helper('eb2cproduct')->extractNodeToInt($xpath->query('ExtendedAttributes/ShipWindowMaxHour/text()', $item)),
+				'ship_window_max_hour' => $prdHlpr->extractNodeToInt($xpath->query('ExtendedAttributes/ShipWindowMaxHour/text()', $item)),
 				'size_attributes' => new Varien_Object(
 					array(
 						'size' => $sizeData
 					)
 				),
 				// Earliest date the product can be shipped.
-				'street_date' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/StreetDate/text()', $item)),
+				'street_date' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/StreetDate/text()', $item)),
 				// Code that identifies the specific appearance type or variety in which the item is available.
-				'style_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Style/StyleID/text()', $item)),
+				'style_id' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Style/StyleID/text()', $item)),
 				// Short description or title of the style for the item.
-				'style_description' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Style/StyleDescription/text()', $item)),
+				'style_description' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Style/StyleDescription/text()', $item)),
 				// Name of the individual or organization providing the merchandise.
-				'supplier_name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Supplier/Name/text()', $item)),
+				'supplier_name' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Supplier/Name/text()', $item)),
 				// Identifier for the supplier.
-				'supplier_supplier_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Supplier/SupplierId/text()', $item)),
+				'supplier_supplier_id' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Supplier/SupplierId/text()', $item)),
 				// Selling/promotional name.
-				'brand_name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Brand/Name/text()', $item)),
+				'brand_name' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Brand/Name/text()', $item)),
 				'brand_description' => $brandDescriptionData,
 				// Encapsulates information related to the individual/organization responsible for the procurement of this item.
-				'buyer_name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Buyer/Name/text()', $item)),
-				'buyer_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/Buyer/BuyerId/text()', $item)),
+				'buyer_name' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Buyer/Name/text()', $item)),
+				'buyer_id' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/Buyer/BuyerId/text()', $item)),
 				/*
 				 * Whether the item is a 'companion' (must ship with another product) or can ship alone. ENUM: ('Yes', No', 'Maybe')
 				 *    Yes - may ship alone
 				 *    No - cancelled if not shipped with companion
 				 *    Maybe - other factors decide
 				 */
-				'companion_flag' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/CompanionFlag/text()', $item)),
+				'companion_flag' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/CompanionFlag/text()', $item)),
 				// Indicates if the item is considered hazardous material.
-				'hazardous_material_code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/HazardousMaterialCode/text()', $item)),
+				'hazardous_material_code' => $prdHlpr->extractNodeToString($xpath->query('ExtendedAttributes/HazardousMaterialCode/text()', $item)),
 				// Not included in display or in emails. Default to false.
-				'is_hidden_product' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('ExtendedAttributes/IsHiddenProduct/text()', $item)),
+				'is_hidden_product' => $prdHlpr->extractNodeToBoolean($xpath->query('ExtendedAttributes/IsHiddenProduct/text()', $item)),
 			)
 		);
 	}
@@ -292,6 +307,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	protected function _extractCustomAttributes(DOMXPath $xpath, DOMElement $item)
 	{
 		$attributeData = array();
+		$prdHlpr = Mage::helper('eb2cproduct');
 
 		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $xpath->query('CustomAttributes/Attribute', $item);
@@ -303,7 +319,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 				'operationType' => (string) $attributeRecord->getAttribute('operation_type'),
 				// Language code for the natural language or the <Value /> element.
 				'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($attributeRecord->getAttribute('xml:lang')),
-				'value' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $attributeRecord)),
+				'value' => $prdHlpr->extractNodeToString($xpath->query('Value/text()', $attributeRecord)),
 			);
 		}
 
@@ -324,11 +340,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractProductType(DOMXPath $xpath, DOMElement $item)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $xpath->query('CustomAttributes/Attribute', $item);
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
-				return strtolower(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $attributeRecord))));
+				return strtolower(trim($prdHlpr->extractNodeToString($xpath->query('Value/text()', $attributeRecord))));
 			}
 		}
 
@@ -345,11 +362,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	 */
 	protected function _extractConfigurableAttributes(DOMXPath $xpath, DOMElement $item)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		// Name value pairs of additional attributes for the product.
 		$nodeAttribute = $xpath->query('CustomAttributes/Attribute', $item);
 		foreach ($nodeAttribute as $attributeRecord) {
 			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'CONFIGURABLEATTRIBUTES') {
-				return explode(',', Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $attributeRecord)));
+				return explode(',', $prdHlpr->extractNodeToString($xpath->query('Value/text()', $attributeRecord)));
 			}
 		}
 

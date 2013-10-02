@@ -35,21 +35,21 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	 */
 	protected function _extractBaseAttributes(DOMXPath $xpath, DOMElement $item)
 	{
-
+		$prdHlpr = Mage::helper('eb2cproduct');
 		return new Varien_Object(
 			array(
 				// Allows for control of the web store display.
-				'catalog_class' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
+				'catalog_class' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
 				// Indicates the item if fulfilled by a drop shipper. New attribute.
-				'drop_shipped' => Mage::helper('eb2cproduct')->extractNodeToBoolean($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
+				'drop_shipped' => $prdHlpr->extractNodeToBoolean($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
 				// Short description in the catalog's base language.
-				'item_description' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
+				'item_description' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
 				// Identifies the type of item.
-				'item_type' => strtolower(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemType/text()', $item)))),
+				'item_type' => strtolower(trim($prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemType/text()', $item)))),
 				// Indicates whether an item is active, inactive or other various states.
-				'item_status' => (strtoupper(trim(Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
+				'item_status' => (strtoupper(trim($prdHlpr->extractNodeToString($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
 				// Tax group the item belongs to.
-				'tax_code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('BaseAttributes/TaxCode/text()', $item)),
+				'tax_code' => $prdHlpr->extractNodeToString($xpath->query('BaseAttributes/TaxCode/text()', $item)),
 			)
 		);
 	}
@@ -129,7 +129,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 		$collectionOfItems = array();
 		$baseNode = self::FEED_BASE_NODE;
 
-		$master = $xpath->query('//$baseNode');
+		$master = $xpath->query("//$baseNode");
 		$idx = 1; // start index
 		Mage::log(sprintf('[ %s ] Found %d items to extract', __CLASS__, $master->length), Zend_Log::DEBUG);
 		foreach ($master as $item) {
