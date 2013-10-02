@@ -11,7 +11,11 @@ class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 		$attr = Mage::getModel('eav/entity_attribute');
 		$attr->loadByCode(Mage::getSingleton('eav/config')->getEntityType('catalog_product'), 'price_is_vat_inclusive');
 		$this->assertNotNull($attr->getId());
+		$this->assertSame('0', $attr->getIsGlobal());
 		$this->assertSame('int', $attr->getBackendType());
+		$this->assertSame('0', $attr->getIsUnique());
+		$this->assertSame('boolean', $attr->getFrontendInput());
+		$this->assertSame('simple,configurable,virtual,bundle,downloadable,giftcard', $attr->getApplyTo());
 	}
 
 	/**
