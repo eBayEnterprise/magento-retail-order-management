@@ -20,6 +20,10 @@
     bundle
     downloadable
 -
+  - backend_type
+  - 'int'
+  - 'int'
+-
   - frontend_input
   - text
   - text

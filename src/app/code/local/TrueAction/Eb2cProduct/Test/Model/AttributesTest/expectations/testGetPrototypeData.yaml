@@ -28,4 +28,4 @@ tax_code:
   default_value:
   backend_type: varchar
   group: Prices
-  apply_to: [simple, configurable, virtual, bundle, downloadable]
+  apply_to: 'simple,configurable,virtual,bundle,downloadable'
