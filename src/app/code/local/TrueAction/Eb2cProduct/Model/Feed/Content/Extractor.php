@@ -20,7 +20,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	protected function _extractUniqueId(DOMXPath $xpath, DOMElement $content)
 	{
 		// Unique identifier for the item, SKU.
-		return Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('UniqueID/text()', $content));
+		return (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('UniqueID/text()', $content));
 	}
 
 	/**
@@ -35,7 +35,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 	{
 		// The parent SKU, associated with this child item
 		// should be the same as UniqueID if this item doesn't have a parent product.
-		return Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('StyleID/text()', $content));
+		return (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('StyleID/text()', $content));
 	}
 
 	/**
@@ -62,7 +62,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 						// Operation to take with the product link. ("Add", "Delete")
 						'operation_type' => (string) $productContent->getAttribute('operation_type'),
 						// Unique ID (SKU) for the linked product.
-						'link_to_unique_id' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('LinkToUniqueId/text()', $productContent)),
+						'link_to_unique_id' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('LinkToUniqueId/text()', $productContent)),
 					)
 				);
 				$productContentIndex++;
@@ -98,7 +98,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 						// Operation to take with the category.
 						'import_mode' => (string) $categoryContent->getAttribute('import_mode'),
 						// Unique ID (SKU) for the linked product.
-						'name' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Name/text()', $categoryContent)),
+						'name' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('Name/text()', $categoryContent)),
 					)
 				);
 				$categoryContentIndex++;
@@ -154,7 +154,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		$extendedAttributes['gift_wrap'] = new Varien_Object(
 			array(
 				// Can this item be gift wrapped? ("Y", "N")
-				'gift_wrap' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/GiftWrap/text()', $content)),
+				'gift_wrap' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('ExtendedAttributes/GiftWrap/text()', $content)),
 			)
 		);
 
@@ -174,11 +174,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 		$extendedAttributes['color_attributes'] = new Varien_Object(
 			array(
 				// Code used to identify the color
-				'code' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Code/text()', $content)),
+				'code' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('ExtendedAttributes/ColorAttributes/Color/Code/text()', $content)),
 				// collection of description per language.
 				'description' => $colorDescriptionCollection,
 				// Color order/sequence.
-				'sequence' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('ExtendedAttributes/ColorAttributes/Color/Sequence/text()', $content)),
+				'sequence' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('ExtendedAttributes/ColorAttributes/Color/Sequence/text()', $content)),
 			)
 		);
 
@@ -249,7 +249,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Extractor
 					// Operation to take with the product link. ("Add", "Delete")
 					'lang' => Mage::helper('eb2ccore')->xmlToMageLangFrmt($customContent->getAttribute('xml:lang')),
 					// Unique ID (SKU) for the linked product.
-					'value' => Mage::helper('eb2cproduct')->extractNodeToString($xpath->query('Value/text()', $customContent)),
+					'value' => (string) Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('Value/text()', $customContent)),
 				)
 			);
 			$attributeContentIndex++;
