@@ -8,20 +8,19 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	 */
 	public function getInventoryDetails($quote)
 	{
-		$inventoryDetailsResponseMessage = '';
+		$responseMessage = '';
 		try {
 			// build request
-			$inventoryDetailsRequestMessage = $this->buildInventoryDetailsRequestMessage($quote);
-
+			$requestMessage = $this->buildInventoryDetailsRequestMessage($quote);
 			// make request to eb2c for inventory details
-			$inventoryDetailsResponseMessage = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cinventory')->getOperationUri('get_inventory_details'))
 				->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileDetails)
-				->request($inventoryDetailsRequestMessage);
+				->request($requestMessage);
 		} catch (Exception $e) {
 			Mage::logException($e);
 		}
-		return $inventoryDetailsResponseMessage;
+		return $responseMessage;
 	}
 
 	/**
@@ -32,79 +31,72 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	public function buildInventoryDetailsRequestMessage($quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$inventoryDetailsRequestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
-		if ($quote) {
-			foreach(array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
-				try {
-					// creating orderItem element
-					$orderItem = $inventoryDetailsRequestMessage->createChild(
-						'OrderItem',
-						null,
-						array('lineId' => $item->getId(), 'itemId' => $item->getSku())
-					);
+		$requestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
+		// Shipping address required for the details request, if there's no address,
+		// can't make the details request.
+		if ($quote && $quote->getShippingAddress()) {
+			foreach($this->getInventoriedItems($quote->getAllItems()) as $item) {
+				// creating orderItem element
+				$orderItem = $requestMessage->createChild(
+					'OrderItem',
+					null,
+					array('lineId' => $item->getId(), 'itemId' => $item->getSku())
+				);
 
-					// add quantity
-					$orderItem->createChild(
-						'Quantity',
-						(string) $item->getQty() // integer value doesn't get added only string
-					);
+				// add quantity
+				$orderItem->createChild(
+					'Quantity',
+					(string) $item->getQty() // integer value doesn't get added only string
+				);
 
-					$shippingAddress = $quote->getShippingAddress();
-					// creating shipping details
-					$shipmentDetails = $orderItem->createChild(
-						'ShipmentDetails',
-						null
-					);
+				$shippingAddress = $quote->getShippingAddress();
+				// creating shipping details
+				$shipmentDetails = $orderItem->createChild(
+					'ShipmentDetails',
+					null
+				);
 
-					// add shipment method
-					$shipmentDetails->createChild(
-						'ShippingMethod',
-						$shippingAddress->getShippingMethod()
-					);
+				// add shipment method
+				$shipmentDetails->createChild(
+					'ShippingMethod',
+					$shippingAddress->getShippingMethod()
+				);
 
-					// add ship to address
-					$shipToAddress = $shipmentDetails->createChild(
-						'ShipToAddress',
-						null
-					);
+				// add ship to address
+				$shipToAddress = $shipmentDetails->createChild(
+					'ShipToAddress',
+					null
+				);
 
-					// add ship to address Line1
-					$street = $shippingAddress->getStreet();
-					$lineAddress = '';
-					if(sizeof($street) > 0){
-						$lineAddress = $street[0];
-					}
-					$shipToAddress->createChild(
-						'Line1',
-						$lineAddress
-					);
+				// add ship to address Line1
+				$shipToAddress->createChild(
+					'Line1',
+					$shippingAddress->getStreet(1)
+				);
 
-					// add ship to address City
-					$shipToAddress->createChild(
-						'City',
-						$shippingAddress->getCity()
-					);
+				// add ship to address City
+				$shipToAddress->createChild(
+					'City',
+					$shippingAddress->getCity()
+				);
 
-					// add ship to address MainDivision
-					$shipToAddress->createChild(
-						'MainDivision',
-						$shippingAddress->getRegion()
-					);
+				// add ship to address MainDivision
+				$shipToAddress->createChild(
+					'MainDivision',
+					$shippingAddress->getRegionCode()
+				);
 
-					// add ship to address CountryCode
-					$shipToAddress->createChild(
-						'CountryCode',
-						$shippingAddress->getCountryId()
-					);
+				// add ship to address CountryCode
+				$shipToAddress->createChild(
+					'CountryCode',
+					$shippingAddress->getCountryId()
+				);
 
-					// add ship to address PostalCode
-					$shipToAddress->createChild(
-						'PostalCode',
-						$shippingAddress->getPostcode()
-					);
-				} catch(Exception $e) {
-					Mage::logException($e);
-				}
+				// add ship to address PostalCode
+				$shipToAddress->createChild(
+					'PostalCode',
+					$shippingAddress->getPostcode()
+				);
 			}
 		}
 		return $domDocument;
@@ -112,17 +104,17 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 
 	/**
 	 * Parse inventory details response xml.
-	 * @param string $inventoryDetailsResponseMessage the xml response from eb2c
+	 * @param string $responseMessage the xml response from eb2c
 	 * @return array, an associative array of response data
 	 */
-	public function parseResponse($inventoryDetailsResponseMessage)
+	public function parseResponse($responseMessage)
 	{
 		$inventoryData = array();
-		if (trim($inventoryDetailsResponseMessage) !== '') {
+		if (trim($responseMessage) !== '') {
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 			// load response string xml from eb2c
-			$doc->loadXML($inventoryDetailsResponseMessage);
+			$doc->loadXML($responseMessage);
 			$i = 0;
 			$inventoryDetails = $doc->getElementsByTagName('InventoryDetails');
 			foreach($inventoryDetails as $response) {
@@ -178,14 +170,18 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	{
 
 		foreach ($inventoryData as $data) {
-			foreach ($quote->getAllItems() as $item) {
-				// find the item in the quote
-				if ((int) $item->getItemId() === (int) $data['lineId']) {
-					// update quote with eb2c data.
-					$this->_updateQuoteWithEb2cInventoryDetails($item, $data);
-				}
+			if ($item = $quote->getItemById($data['lineId'])) {
+				$this->_updateQuoteWithEb2cInventoryDetails($item, $data);
+			} else {
+				Mage::log(
+					sprintf('[ %s ]: No item matching lineId %s.', __CLASS__, $data['lineId']),
+					Zend_Log::DEBUG
+				);
 			}
 		}
+		// Save the quote
+		$quote->save();
+		return $this;
 	}
 
 	/**
@@ -196,9 +192,6 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	 */
 	protected function _updateQuoteWithEb2cInventoryDetails($quoteItem, $inventoryData)
 	{
-		// get quote from quote item
-		$quote = $quoteItem->getQuote();
-
 		// Add inventory details info to quote item
 		$quoteItem->setEb2cCreationTime($inventoryData['creationTime'])
 			->setEb2cDisplay($inventoryData['display'])
@@ -211,7 +204,6 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 			->setEb2cShipFromAddressMainDivision($inventoryData['shipFromAddress_mainDivision'])
 			->setEb2cShipFromAddressCountryCode($inventoryData['shipFromAddress_countryCode'])
 			->setEb2cShipFromAddressPostalCode($inventoryData['shipFromAddress_postalCode']);
-		// Save the quote
-		$quote->save();
+		return $this;
 	}
 }

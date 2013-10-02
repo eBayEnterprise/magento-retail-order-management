@@ -24,7 +24,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_M
 
 				// get available stock from response XML
 				$availableStock = $this->getAvailableStockFromResponse($quantityResponseMessage);
-				$isReserved = isset($availableStock[$itemId]) ? $availableStock[$itemId] : 0;
+				$isReserved = isset($availableStock[$sku]) ? $availableStock[$sku] : 0;
 			} catch(Exception $e) {
 				Mage::logException($e);
 			}

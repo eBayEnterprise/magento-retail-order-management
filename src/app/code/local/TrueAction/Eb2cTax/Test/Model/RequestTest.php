@@ -58,6 +58,27 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * make sure the exceptions don't kill the function.
+	 */
+	public function testProcessQuoteAddressException()
+	{
+		for ($i = 1; $i < 3; ++$i) {
+			$quote = $this->_stubMultiShipNotSameAsBill();
+			$request = $this->getModelMock('eb2ctax/request', array(
+				'getQuote',
+				'_extractDestData',
+			));
+			$request->expects($this->any())
+				->method('getQuote')
+				->will($this->returnValue($quote));
+			$request->expects($this->at($i))
+				->method('_extractDestData')
+				->will($this->throwException(new Mage_Core_Exception('address fail')));
+			$this->_reflectMethod($request, '_processQuote')->invoke($request);
+		}
+	}
+
+	/**
 	 * verify extracted data causes an exception when required fields have incorrect length
 	 * @dataProvider dataProvider
 	 */

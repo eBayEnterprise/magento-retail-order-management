@@ -1,8 +1,8 @@
 -
-  - product-exists
+  - product-not-exist
   - |
     <PricePerItem gsi_store_id="MAGT1" gsi_client_id="MAGTNA" catalog_id="45" >
-        <ClientItemId>45-000906011391</ClientItemId>
+        <ClientItemId>somesku2</ClientItemId>
         <Event>
             <EventDescription>Price Event for MAGT1</EventDescription>
             <Price>67.98</Price>
@@ -34,10 +34,10 @@
         </Event>
     </PricePerItem>
 -
-  - product-not-exist
+  - product-exists
   - |
     <PricePerItem gsi_store_id="MAGT1" gsi_client_id="MAGTNA" catalog_id="45" >
-        <ClientItemId>45-000906011391</ClientItemId>
+        <ClientItemId>somesku</ClientItemId>
         <Event>
             <EventDescription>Price Event for MAGT1</EventDescription>
             <Price>67.98</Price>
