@@ -41,6 +41,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
 			// setting default attribute set id
 			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
 		));
 	}
 
@@ -337,6 +338,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						'description' => $extendedData['long_description'],
 						// setting the product short description according to the store language setting
 						'short_description' => $extendedData['short_description'],
+						'website_ids' => $this->getWebsiteIds(),
+						'store_ids' => array($this->getDefaultStoreId()),
 					)
 				)->save(); // saving the product
 
@@ -383,6 +386,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						'name' => (trim($productTitle) !== '')? $productTitle : 'temporary-name - ' . uniqid(),
 						'status' => 0, // default - disabled
 						'sku' => $dataObject->getUniqueId(),
+						'website_ids' => $this->getWebsiteIds(),
+						'store_ids' => array($this->getDefaultStoreId()),
 					)
 				)
 				->save();

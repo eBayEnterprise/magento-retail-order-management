@@ -220,6 +220,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				'sku' => $item->getItemId()->getClientItemId(),
 				'msrp' => $item->getExtendedAttributes()->getMsrp(),
 				'price' => $item->getExtendedAttributes()->getPrice(),
+				'website_ids' => $this->getWebsiteIds(),
+				'store_ids' => array($this->getDefaultStoreId()),
 			))->save(); // saving the product
 
 			$this
@@ -274,6 +276,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					'status' => 0, // default - disabled
 					'sku' => $item->getUniqueId(),
 					'color' => $this->_getProductColorOptionId($item),
+					'website_ids' => $this->getWebsiteIds(),
+					'store_ids' => array($this->getDefaultStoreId()),
 				))
 				->save();
 		} catch (Mage_Core_Exception $e) {

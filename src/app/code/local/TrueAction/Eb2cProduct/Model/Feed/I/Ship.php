@@ -173,6 +173,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				'attribute_set_id' => $this->getDefaultAttributeSetId(),
 				'status' => $dataObject->getBaseAttributes()->getItemStatus(),
 				'sku' => $dataObject->getItemId()->getClientItemId(),
+				'website_ids' => $this->getWebsiteIds(),
+				'store_ids' => array($this->getDefaultStoreId()),
 			))->save(); // saving the product
 
 			// adding new attributes
@@ -205,6 +207,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						'name' => 'temporary-name - ' . uniqid(),
 						'status' => 0, // default - disabled
 						'sku' => $dataObject->getItemId()->getClientItemId(),
+						'website_ids' => $this->getWebsiteIds(),
+						'store_ids' => array($this->getDefaultStoreId()),
 					)
 				)
 				->save();
