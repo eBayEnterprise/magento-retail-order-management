@@ -114,6 +114,9 @@
 			<defaults>
 				<duty_amount_code>eb2c-duty-amount</duty_amount_code>
 			</defaults>
+			<xsd>
+				<quote_request_file>TaxDutyFee-QuoteRequest-1.0.xsd</quote_request_file>
+			</xsd>
 		</eb2ctax>
 	</default>
 	<phpunit>
