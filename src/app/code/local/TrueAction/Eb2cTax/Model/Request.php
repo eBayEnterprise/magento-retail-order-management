@@ -209,7 +209,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			}
 		}
 		catch (Mage_Core_Exception $e) {
-			Mage::log($message, Zend_Log::DEBUG);
+			Mage::log($e->getMessage(), Zend_Log::DEBUG);
 			$this->invalidate();
 		}
 	}

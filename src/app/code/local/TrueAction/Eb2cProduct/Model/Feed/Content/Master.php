@@ -164,7 +164,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 		}
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		//Mage::helper('eb2cproduct')->clean();
+		Mage::helper('eb2cproduct')->clean();
 
 		return $this;
 	}
@@ -179,7 +179,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	protected function _contentMasterActions(DOMDocument $doc)
 	{
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedContentCollection = $this->getExtractor()->extractContentMasterFeed($doc);
+		$feedContentCollection = $this->getExtractor()->extract(new DOMXPath($doc));
 		if ($feedContentCollection){
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedContentCollection as $feedContent) {
@@ -187,8 +187,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				// If different, do not update the Content and log at WARN level.
 				if ($feedContent->getCatalogId() !== $cfg->catalogId) {
 					Mage::log(
-						'Content Master Feed Catalog_id (' . $feedContent->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$cfg->catalogId . ')',
+						sprintf(
+							'[ %s ] Content Master Feed Catalog_id (%d), doesn\'t match Magento Eb2c Config Catalog_id (%d)',
+							__CLASS__, $feedContent->getCatalogId(), $cfg->catalogId
+						),
 						Zend_Log::WARN
 					);
 					continue;
@@ -198,8 +200,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				// If different, do not update this Content and log at WARN level.
 				if ($feedContent->getGsiClientId() !== $cfg->clientId) {
 					Mage::log(
-						'Content Master Feed Client_id (' . $feedContent->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$cfg->clientId . ')',
+						sprintf(
+							'[ %s ] Content Master Feed Client_id (%d), doesn\'t match Magento Eb2c Config Client_id (%d)',
+							__CLASS__, $feedContent->getGsiClientId(), $cfg->clientId
+						),
 						Zend_Log::WARN
 					);
 					continue;
@@ -342,14 +346,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 
 			} catch (Mage_Core_Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while updating the
-					product for Content Master Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while updating the product for Content Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while updating the
-					product for Content Master Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while updating the product for Content Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}
@@ -388,14 +396,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				->save();
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
-				for Content Master Feed (' . $e->getMessage() . ')',
+				sprintf(
+					'[ %s ] The following error has occurred while creating dummy product for Content Master Feed (%d)',
+					__CLASS__, $e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
 			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while creating dummy product
-				for Content Master Feed (' . $e->getMessage() . ')',
+				sprintf(
+					'[ %s ] The following error has occurred while creating dummy product for Content Master Feed (%d)',
+					__CLASS__, $e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		}
@@ -516,14 +528,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				$productObject->addData($customData)->save();
 			} catch (Mage_Core_Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
-					product for Content Master Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while adding custom attributes to product for Content Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
-					Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding custom attributes to
-					product for Content Master Feed (' . $e->getMessage() . ')',
+				Mage::log(
+					sprintf(
+						'[ %s ] The following error has occurred while adding custom attributes to product for Content Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}
@@ -569,9 +585,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				} catch (Mage_Core_Exception $e) {
 					Mage::logException($e);
 				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
-						Mage::log(
-						'[' . __CLASS__ . '] The following error has occurred while adding categories
-						product for Content Master Feed (' . $e->getMessage() . ')',
+					Mage::log(
+						sprintf(
+							'[ %s ] The following error has occurred while adding categories product for Content Master Feed (%d)',
+							__CLASS__, $e->getMessage()
+						),
 						Zend_Log::ERR
 					);
 				}
