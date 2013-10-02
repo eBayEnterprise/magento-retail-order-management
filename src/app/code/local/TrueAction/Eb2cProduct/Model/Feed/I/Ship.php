@@ -3,6 +3,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
+	const OPERATION_TYPE_DELETE = 'DELETE';
+	const OPERATION_TYPE_ADD = 'ADD';
+	const OPERATION_TYPE_UPDATE = 'UPDATE';
+
 	/**
 	 * Initialize model
 	 */
@@ -20,7 +24,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		}
 
 		$prod = Mage::getModel('catalog/product');
-		$this->addData(array(
+		return $this->addData(array(
 			'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
 			'product' => $prod,
 			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
@@ -29,7 +33,6 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
 			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
 		));
-		return $this;
 	}
 
 	/**
@@ -62,21 +65,22 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$feedModel = $this->getFeedModel();
 
-		$this->getFeedModel()->fetchFeedsFromRemote(
+		$feedModel->fetchFeedsFromRemote(
 			$cfg->iShipFeedRemoteReceivedPath,
 			$cfg->iShipFeedFilePattern
 		);
 
 		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
+		$feeds = $feedModel->lsInboundDir();
+		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
+		foreach ($feeds as $feed) {
 			// load feed files to Dom object
 			$domDocument->load($feed);
-
-			$expectEventType = $cfg->iShipFeedEventType;
-
+			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $cfg->iShipFeedEventType)) {
 				// processing feed items
 				$this->_iShipActions($domDocument);
 			}
@@ -84,9 +88,11 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveDir($feed);
+				$feedModel->mvToArchiveDir($feed);
 			}
 		}
+
+		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		Mage::helper('eb2cproduct')->clean();
@@ -103,58 +109,52 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	 */
 	protected function _iShipActions(DOMDocument $doc)
 	{
-		$productHelper = Mage::helper('eb2cproduct');
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedItemCollection = $this->getExtractor()->extract(new DOMXPath($doc));
+		$cfgCatId = $cfg->catalogId;
+		$cfgClientId = $cfg->clientId;
+		$items = $this->getExtractor()->extract(new DOMXPath($doc));
+		$numItems = count($items);
 
-		if ($feedItemCollection){
-			// we've import our feed data in a varien object we can work with
-			foreach ($feedItemCollection as $feedItem) {
-				// Ensure this matches the catalog id set in the Magento admin configuration.
-				// If different, do not update the item and log at WARN level.
-				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
-					Mage::log(
-						sprintf(
-							'[ %s ] iShip Feed Catalog_id (%d), doesn\'t match Magento Eb2c Config Catalog_id (%d)',
-							__CLASS__, $feedItem->getCatalogId(), $cfg->catalogId
-						),
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				// Ensure that the client_id field here matches the value supplied in the Magento admin.
-				// If different, do not update this item and log at WARN level.
-				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
-					Mage::log(
-						sprintf(
-							'[ %s ] iShip Feed Client_id (%d), doesn\'t match Magento Eb2c Config Client_id (%d)',
-							__CLASS__, $feedItem->getGsiClientId(), $cfg->clientId
-						),
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				// This will be mapped by the product hub to Magento product types.
-				// If the ItemType does not specify a Magento type, do not process the product and log at WARN level.
-				$itemType = $feedItem->getBaseAttributes()->getItemType();
-				if (!Mage::helper('eb2cproduct')->hasProdType($itemType)) {
-					Mage::log(sprintf('[ %s ] unrecognized item_type "%s"', __CLASS__, $itemType), Zend_Log::WARN);
-					continue;
-				}
-
-				// process feed data according to their operations
-				switch (trim(strtoupper($feedItem->getOperationType()))) {
-					case 'DELETE':
-						$this->_disabledItem($feedItem);
+		if (!$numItems) {
+			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
+			return $this;
+		}
+		foreach ($items as $i => $item) {
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
+			$catId = $item->getCatalogId();
+			$clientId = $item->getGsiClientId();
+			$prodType = $item->getProductType();
+			$opType = trim(strtoupper($item->getOperationType()));
+			if ($catId !== $cfgCatId) {
+				Mage::log(
+					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
+					Zend_Log::WARN
+				);
+			} elseif ($clientId !== $cfgClientId) {
+				Mage::log(
+					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
+					Zend_Log::WARN
+				);
+			} elseif (!$prdHlpr->hasProdType($prodType)) {
+				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
+			} else {
+				switch ($opType) {
+					case self::OPERATION_TYPE_ADD:
+					case self::OPERATION_TYPE_UPDATE:
+						$this->_synchProduct($item);
+						break;
+					case self::OPERATION_TYPE_DELETE:
+						$this->_disabledItem($item);
 						break;
 					default:
-						$this->_synchProduct($feedItem);
+						Mage::log(sprintf('[ %s ] Unrecognized operation type "%s"', __CLASS__, $opType), Zend_Log::WARN);
 						break;
 				}
 			}
 		}
+
+		return $this;
 	}
 
 	/**
@@ -177,13 +177,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				'attribute_set_id' => $this->getDefaultAttributeSetId(),
 				'status' => $dataObject->getBaseAttributes()->getItemStatus(),
 				'sku' => $dataObject->getItemId()->getClientItemId(),
+				'website_ids' => $this->getWebsiteIds(),
+				'store_ids' => array($this->getDefaultStoreId()),
+				'url_key' => $dataObject->getItemId()->getClientItemId(),
 			))->save(); // saving the product
 
-			// adding new attributes
-			$this->_addEb2cSpecificAttributeToProduct($dataObject, $productObject);
-
-			// adding custom attributes
-			$this->_addCustomAttributeToProduct($dataObject, $productObject);
+			$this->_addEb2cSpecificAttributeToProduct($dataObject, $productObject) // adding new attributes
+				->_addCustomAttributeToProduct($dataObject, $productObject); // adding custom attributes
 		}
 
 		return ;
@@ -209,6 +209,11 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 						'name' => 'temporary-name - ' . uniqid(),
 						'status' => 0, // default - disabled
 						'sku' => $dataObject->getItemId()->getClientItemId(),
+						'website_ids' => $this->getWebsiteIds(),
+						'store_ids' => array($this->getDefaultStoreId()),
+						'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
+						'tax_class_id' => 0,
+						'url_key' => $dataObject->getItemId()->getClientItemId(),
 					)
 				)
 				->save();
@@ -323,6 +328,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				);
 			}
 		}
+
+		return $this;
 	}
 
 	/**
@@ -368,5 +375,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				);
 			}
 		}
+
+		return $this;
 	}
 }

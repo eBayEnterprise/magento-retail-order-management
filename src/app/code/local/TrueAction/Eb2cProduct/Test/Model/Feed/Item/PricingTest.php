@@ -52,56 +52,30 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
 
-		$product = $this->getModelMock('catalog/product', array(
-			'setPrice',
-			'setMSRP',
-			'setSpecialPrice',
-			'setSpecialFromDate',
-			'setSpecialToDate',
-			'setPriceIsVatInclusive',
-			'save',
-		));
+		$product = $this->getModelMock('catalog/product', array('addData', 'save'));
 
 		$e = $this->expected($expectation);
 		$product->expects($this->atLeastOnce())
-			->method('setPrice')
-			->with($this->identicalTo($e->getPrice()))
-			->will($this->returnSelf());
-		$product->expects($this->atLeastOnce())
-			->method('setMsrp')
-			->with($this->identicalTo($e->getMsrp()))
-			->will($this->returnSelf());
-		$product->expects($this->any())
-			->method('setSpecialPrice')
-			->with($this->identicalTo($e->getSpecialPrice()))
-			->will($this->returnSelf());
-		$product->expects($this->any())
-			->method('setSpecialFromDate')
-			->with($this->identicalTo($e->getSpecialFromDate()))
-			->will($this->returnSelf());
-		$product->expects($this->any())
-			->method('setSpecialToDate')
-			->with($this->identicalTo($e->getSpecialToDate()))
-			->will($this->returnSelf());
-		$product->expects($this->any())
-			->method('setPriceIsVatInclusive')
-			->with($this->identicalTo($e->getPriceIsVatInclusive()))
+			->method('addData')
+			->with($this->identicalTo(
+				array(
+					'price' => $e->getPrice(),
+					'special_price' => $e->getSpecialPrice(),
+					'special_from_date' => $e->getSpecialFromDate(),
+					'special_to_date' => $e->getSpecialToDate(),
+					'msrp' => $e->getMsrp(),
+					'price_is_vat_inclusive' => $e->getPriceIsVatInclusive()
+				)))
 			->will($this->returnSelf());
 		$product->expects($this->any())
 			->method('save')
 			->will($this->returnSelf());
 
-		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
-			'_getProductBySku',
-			'_clean',
-		));
+		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array('_getProductBySku'));
 		$model->expects($this->once())
 			->method('_getProductBySku')
 			->with($this->identicalTo($e->getClientItemId()))
 			->will($this->returnValue($product));
-		$model->expects($this->any())
-			->method('_clean')
-			->will($this->returnSelf());
 		$model->setFeedModel($feedModel);
 		$model->processFeeds();
 	}

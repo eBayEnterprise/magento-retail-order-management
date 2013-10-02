@@ -29,8 +29,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_Pricing_ExtractorTest extends 
 			->method('_extractPricePerItem')
 			->with($this->isInstanceOf('TrueAction_Dom_Element'))
 			->will($this->returnValue(array()));
-		$result = $extractor->extractPricingFeed($doc);
-		$this->assertTrue(is_array($result), 'extractPricingFeed did not return an array');
+		$result = $extractor->extract(new DOMXPath($doc));
+		$this->assertTrue(is_array($result), 'extract did not return an array');
 		$this->assertSame($e->getItemsCount(), count($result));
 		foreach ($result as $item) {
 			$this->assertInstanceOf('Varien_Object', $item);
