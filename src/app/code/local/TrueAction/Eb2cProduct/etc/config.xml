@@ -50,6 +50,7 @@
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default>N</default>
+					<backend_type>int</backend_type>
 				</is_drop_shipped>
 				<drop_ship_supplier_name>
 					<scope>Website</scope>
@@ -86,6 +87,7 @@
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default>N</default>
+					<backend_type>int</backend_type>
 				</price_is_vat_inclusive>
 			</default>
 		</eb2cproduct_attributes>
