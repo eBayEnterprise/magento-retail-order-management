@@ -9,7 +9,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_ExtractorTest extends EcomDev_
 		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$document->load(__DIR__ . '/ExtractorTest/fixtures/sample-feed.xml');
 		return array(
-			array($document)
+			array(new DOMXPath($document))
 		);
 	}
 
@@ -19,8 +19,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_ExtractorTest extends EcomDev_
 	 * @loadFixture loadConfig.yaml
 	 * @dataProvider providerExtract
 	 */
-	public function testExtract($doc)
+	public function testExtract($xpath)
 	{
-		$this->assertCount(1, Mage::getModel('eb2cproduct/feed_item_extractor')->extract($doc));
+		$this->assertCount(2, Mage::getModel('eb2cproduct/feed_item_extractor')->extract($xpath));
 	}
 }
