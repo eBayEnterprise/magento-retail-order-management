@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cProduct_Model_Resource_Eav_Entity_Setup
-	extends Mage_Catalog_Model_Resource_Eav_Mysql4_Setup
+	extends Mage_Catalog_Model_Resource_Setup
 {
 	/**
 	 * base log message template.
