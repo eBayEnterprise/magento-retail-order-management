@@ -11,7 +11,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	const DATE_PAST = '2000-01-01 00:00:00 +0';
 	const DATE_FUTURE = '2050-01-01 00:00:00 +0';
-
+	const REQUEST_ID = '123';
+	const RESERVATION_ID = '123-123-123-123';
+	const QUOTE_ENTITY_ID = 123;
 	/**
 	 * setUp method
 	 */
@@ -19,6 +21,22 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	{
 		parent::setUp();
 		$this->_allocation = Mage::getModel('eb2cinventory/allocation');
+	}
+
+	/**
+	 * Get a simple address object.
+	 * @param  array $data If specified, address object will be created with the given data. Otherwise with some sample data.
+	 * @return Mage_Sales_Model_Quote_Address
+	 */
+	protected function _createAddressObject($data=array())
+	{
+		$addressData = empty($data) ?
+			array('firstname' => 'Foo', 'lastname' => 'Bar', 'street' => 'One Bagshot Row',
+				'city' => 'Bag End', 'region_id' => '51', 'region' => 'PA', 'country_id' => 'US',
+				'telephone' => '555-555-5555', 'postcode' => '19123', 'shipping_method' => 'USPSStandard'
+			) :
+			$data;
+		return Mage::getModel('sales/quote_address', $addressData);
 	}
 
 	public function buildQuoteMock()
@@ -147,8 +165,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			);
 		$quoteMock->expects($this->any())
 			->method('getItemById')
-			->will($this->returnValue($itemMock)
-			);
+			->will($this->returnValueMap(array(array(1, $itemMock))));
 		$quoteMock->expects($this->any())
 			->method('save')
 			->will($this->returnSelf()
@@ -165,42 +182,114 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		return $quoteMock;
 	}
 
-	public function providerAllocateQuoteItems()
+	/**
+	 * Provider method for a quote with 4 items - 1 non-managed stock, 1 virtual, 2 managed
+	 * @return array
+	 */
+	public function providerQuoteWithItems()
 	{
+		// The address to use in the quote for the shipping address
+		$address = $this->_createAddressObject();
+
+		// Group of products to assign to each item. All but one will have managed stock (test filtering)
+		$products = array();
+		for ($i = 0; $i < 4; $i++) {
+			$products[] = Mage::getModel('catalog/product', array(
+				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
+					// first three items should all be managed stock
+					'manage_stock' => $i !== 3,
+				)),
+			));
+		}
+
+		// Items for each of the products. One of these will be a virtual product (test filtering)
+		$items = array();
+		foreach ($products as $idx => $product) {
+			$items[] = Mage::getModel('sales/quote_item', array(
+				'product' => $product,
+				// third item will be virtual, rest will not be
+				'is_virtual' => $idx === 2,
+				'sku' => sprintf('item%s', $idx),
+				'qty' => $idx + 1,
+			));
+		}
+
+		// Create the quote to allocate
+		$quote = Mage::getModel('sales/quote');
+		$quote->setShippingAddress($address);
+		$quote->setEntityId(self::QUOTE_ENTITY_ID);
+		// Add each item to the quote.
+		foreach ($items as $idx => $item) {
+			$quote->addItem($item);
+			// Give the item in id, this normally happens when saving the quote, which
+			// would have happened by now, but as this is being avoided here it needs to be
+			// manually assigned.
+			$item->setId($idx);
+		}
+
 		return array(
-			array($this->buildQuoteMock())
+			array($quote),
 		);
 	}
 
 	/**
-	 * testing allocating quote items
+	 * testing building inventory details request message
 	 *
 	 * @test
-	 * @dataProvider providerAllocateQuoteItems
-	 * @loadFixture loadConfig.yaml
+	 * @dataProvider providerQuoteWithItems
 	 */
 	public function testAllocateQuoteItems($quote)
 	{
-		$inventoryHelperMock = $this->getHelperMock('eb2cinventory/data', array('getOperationUri'));
-		$inventoryHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml'));
-		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
+		// Stub out the Eb2cInventory helper to ensure a consistent request and reservation id
+		$invHelper = $this->getHelperMock('eb2cinventory/data', array('getRequestId', 'getReservationId'));
+		$invHelper->expects($this->once())
+			->method('getRequestId')
+			// entity id set on the quote in the provider
+			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
+			->will($this->returnValue(self::REQUEST_ID));
+		$invHelper->expects($this->once())
+			->method('getReservationId')
+			// entity id set on the quote in the provider
+			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
+			->will($this->returnValue(self::RESERVATION_ID));
+		$this->replaceByMock('helper', 'eb2cinventory', $invHelper);
 
-		// testing when you can allocated inventory
-		$this->assertNotNull(
-			$this->_allocation->allocateQuoteItems($quote)
-		);
+		// Canned response from the API. Should be what finally gets returned
+		// from the allocateQuoteItems method when successful.
+		$response = '<What>Ever</What>';
+
+		$request = new DOMDocument();
+		$request->loadXML('<AllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' . self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></AllocationRequestMessage>');
+
+		// Mock the API to verify the request is made with the proper request
+		$api = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+		$api->expects($this->once())
+			->method('setUri')
+			->will($this->returnSelf());
+		// Validate the request message matches the expected message
+		$api->expects($this->once())
+			->method('request')
+			->with($this->callback(function ($arg) use ($request) {
+				// compare the canonicalized XML of the TrueAction_Dom_Document
+				// passed to the request method to the expected XML for this quote
+				return $request->C14N() === $arg->C14N();
+			}))
+			->will($this->returnValue($response));
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+
+		$this->assertSame($response, $this->_allocation->allocateQuoteItems($quote));
 	}
 
 	/**
 	 * testing when allocating quote item API call throw an exception
 	 *
 	 * @test
-	 * @dataProvider providerAllocateQuoteItems
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testAllocateQuoteItemsWithApiCallException($quote)
+	public function testAllocateQuoteItemsWithApiCallException()
 	{
 		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
@@ -213,160 +302,20 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			);
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
+		// Avoid overly broad coverage as the only assertion in this test is that
+		// API model exceptions are caught and an empty string is given as the response.
+		// This will help ensure coverage relfects that.
+		$allocation = $this->getModelMock('eb2cinventory/allocation', array('buildAllocationRequestMessage'));
+		$allocation->expects($this->any())
+			->method('buildAllocationRequestMessage')
+			->will($this->returnValue(new DOMDocument()));
+
+		// just need a quote item to pass, won't be used for anything
+		$dummyQuote = Mage::getModel('sales/quote');
+
 		$this->assertSame(
 			'',
-			trim($this->_allocation->allocateQuoteItems($quote))
-		);
-	}
-
-	public function providerBuildAllocationRequestMessage()
-	{
-		return array(
-			array($this->buildQuoteMock())
-		);
-	}
-
-	/**
-	 * testing building inventory details request message
-	 *
-	 * @test
-	 * @dataProvider providerBuildAllocationRequestMessage
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testBuildAllocationRequestMessage($quote)
-	{
-		// testing when you can allocated inventory
-		$this->assertNotNull(
-			$this->_allocation->buildAllocationRequestMessage($quote)
-		);
-	}
-
-	public function providerBuildAllocationRequestMessageWithException()
-	{
-		$addressMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
-		);
-		$addressMock->expects($this->any())
-			->method('getShippingMethod')
-			->will($this->returnValue('USPS: 3 Day Select')
-			);
-		$addressMock->expects($this->any())
-			->method('getStreet')
-			->will($this->returnValue('1938 Some Street')
-			);
-		$addressMock->expects($this->any())
-			->method('getCity')
-			->will($this->returnValue('King of Prussia')
-			);
-		$addressMock->expects($this->any())
-			->method('getRegion')
-			->will($this->returnValue('Pennsylvania')
-			);
-		$addressMock->expects($this->any())
-			->method('getCountryId')
-			->will($this->returnValue('US')
-			);
-		$addressMock->expects($this->any())
-			->method('getPostcode')
-			->will($this->returnValue('19726')
-			);
-
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('getManageStock')
-		);
-
-		$stockItemMock->expects($this->any())
-			->method('getManageStock')
-			->will($this->returnValue(true)
-			);
-
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('getStockItem')
-		);
-
-		$productMock->expects($this->any())
-			->method('getStockItem')
-			->will($this->returnValue($stockItemMock)
-			);
-
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'getItemId', 'getProduct', 'getIsVirtual')
-		);
-
-		$addressMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-
-		$itemMock->expects($this->any())
-			->method('getQty')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue($this->throwException(new Exception)));
-		$itemMock->expects($this->any())
-			->method('getItemId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getProduct')
-			->will($this->returnValue($productMock));
-		$itemMock->expects($this->any())
-			->method('getIsVirtual')
-			->will($this->returnValue(false)
-			);
-
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems', 'getShippingAddress', 'getItemById', 'save', 'getAllAddresses')
-		);
-		$quoteMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAddress')
-			->will($this->returnValue($this->throwException(new Exception))
-			);
-		$quoteMock->expects($this->any())
-			->method('getItemById')
-			->will($this->returnValue($itemMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('save')
-			->will($this->returnValue(1)
-			);
-		$quoteMock->expects($this->any())
-			->method('getAllAddresses')
-			->will($this->returnValue(array($addressMock))
-			);
-
-		return array(
-			array($quoteMock)
-		);
-	}
-
-	/**
-	 * testing building allocation request message
-	 *
-	 * @test
-	 * @dataProvider providerBuildAllocationRequestMessageWithException
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testBuildAllocationRequestMessageWithException($quote)
-	{
-		// testing when building the allocation message throw an exception
-		$this->assertNotNull(
-			$this->_allocation->buildAllocationRequestMessage($quote)
+			trim($allocation->allocateQuoteItems($dummyQuote))
 		);
 	}
 
@@ -519,19 +468,80 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 * testing rollbackAllocation method
 	 *
 	 * @test
-	 * @dataProvider providerRollbackAllocation
+	 * @dataProvider providerQuoteWithItems
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testRollbackAllocation($quote)
 	{
-		// testing when you can rolling back allocated inventory
-		$this->assertNotNull(
+		// Set eb2c allocation data on the inventoried items (the first two from the provider)
+		// This data should be unset when rolling back the allocation.
+		$items = $quote->getAllItems();
+		for ($i = 0; $i < 2; $i++) {
+			$items[$i]->addData(array(
+				'eb2c_reservation_id' => 'some data',
+				'eb2c_reserved_at' => 'some data',
+				'eb2c_qty_reserved' => 'some data',
+			));
+		}
+
+		$invHelper = $this->getHelperMock('eb2cinventory/data', array('getRequestId', 'getReservationId'));
+		$invHelper->expects($this->once())
+			->method('getRequestId')
+			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
+			->will($this->returnValue(self::REQUEST_ID));
+		$invHelper->expects($this->once())
+			->method('getReservationId')
+			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
+			->will($this->returnValue(self::RESERVATION_ID));
+		$this->replaceByMock('helper', 'eb2cinventory', $invHelper);
+
+		// Canned response from the API. Should be what finally gets returned
+		// from the allocateQuoteItems method when successful.
+		$response = '<What>Ever</What>';
+
+		$request = new DOMDocument();
+		$request->loadXML('<RollbackAllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' . self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0"/>');
+
+		// Mock the API to verify the request is made with the proper request
+		$api = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'request'))
+			->getMock();
+		$api->expects($this->once())
+			->method('setUri')
+			->will($this->returnSelf());
+		// Validate the request message matches the expected message
+		$api->expects($this->once())
+			->method('request')
+			->with($this->callback(function ($arg) use ($request) {
+				// compare the canonicalized XML of the TrueAction_Dom_Document
+				// passed to the request method to the expected XML for this quote
+				return $request->C14N() === $arg->C14N();
+			}))
+			->will($this->returnValue($response));
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+
+		// pre-test to ensure items that should have eb2c allocation data do
+		for ($i = 0; $i < 2; $i++) {
+			$this->assertSame('some data', $quote->getItemById($i)->getEb2cReservationId());
+			$this->assertSame('some data', $quote->getItemById($i)->getEb2cReservedAt());
+			$this->assertSame('some data', $quote->getItemById($i)->getEb2cQtyReserved());
+		}
+		// make sure the api response is returned when successful
+		$this->assertSame(
+			$response,
 			$this->_allocation->rollbackAllocation($quote)
 		);
+		// none of the quote items should have eb2c allocation data anymore
+		foreach ($quote->getAllItems() as $item) {
+			$this->assertNull($item->getEb2cReservationId());
+			$this->assertNull($item->getEb2cReservedAt());
+			$this->assertNull($item->getEb2cQtyReserved());
+		}
 	}
 
 	/**
-	 * testing when rolling back allocation quote item API call throw an exception
+	 * Testing when rolling back allocation quote item API call throw an exception.
 	 *
 	 * @test
 	 * @dataProvider providerRollbackAllocation
@@ -543,14 +553,22 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
+		$apiModelMock->expects($this->once())
 			->method('request')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Mage_Core_Exception()));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		// Avoid overly broad coverage as the only assertion in this test is that
+		// API model exceptions are caught and an empty string is given as the response.
+		// This will help ensure coverage relfects that.
+		$allocation = $this->getModelMock('eb2cinventory/allocation', array('buildRollbackAllocationRequestMessage'));
+		$allocation->expects($this->any())
+			->method('buildRollbackAllocationRequestMessage')
+			->will($this->returnValue(new DOMDocument()));
 
 		$this->assertSame(
 			'',
-			trim($this->_allocation->rollbackAllocation($quote))
+			trim($allocation->rollbackAllocation($quote))
 		);
 	}
 
@@ -616,10 +634,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	public function testHasAllocation($quote)
 	{
 		// testing when building the allocation message throw an exception
-		$this->assertSame(
-			true,
-			$this->_allocation->hasAllocation($quote)
-		);
+		$this->assertTrue($this->_allocation->hasAllocation($quote));
 	}
 
 	/**
