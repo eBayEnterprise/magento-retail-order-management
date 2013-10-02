@@ -24,6 +24,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 			// make request to eb2c for Gift Card Balance
 			$storeValueBalanceReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_balance'))
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueBalance)
 				->request($storeValueBalanceRequest);
 
 		}catch(Exception $e){

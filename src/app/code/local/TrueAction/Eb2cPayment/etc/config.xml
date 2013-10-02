@@ -149,6 +149,16 @@
 				<api_opt_paypal_do_authorization>paypal/doAuth</api_opt_paypal_do_authorization>
 				<api_opt_paypal_do_void>paypal/void</api_opt_paypal_do_void>
 				<api_return_format>xml</api_return_format>
+				<xsd>
+					<paypal_express_do_file>Payment-Service-PayPalDoExpress-1.0.xsd</paypal_express_do_file> 
+					<paypal_express_get_file>Payment-Service-PayPalGetExpress-1.0.xsd</paypal_express_get_file>
+					<paypal_express_set_file>Payment-Service-PayPalSetExpress-1.0.xsd</paypal_express_set_file>
+					<paypal_do_auth_file>Payment-Service-PayPalDoAuth-1.0.xsd</paypal_do_auth_file>
+					<paypal_void_auth_file>Payment-Service-PayPalVoidAuth-1.0.xsd</paypal_void_auth_file>
+					<stored_value_balance_file>Payment-Service-StoredValueBalance-1.0.xsd</stored_value_balance_file>
+					<stored_value_redeem_void_file>Payment-Service-StoredValueRedeemVoid-1.0.xsd</stored_value_redeem_void_file>
+					<stored_value_redeem_file>Payment-Service-StoredValueRedeem-1.0.xsd</stored_value_redeem_file>
+				</xsd>
 			</payment>
 		</eb2c>
 	</default>

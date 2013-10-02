@@ -24,6 +24,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 			// make request to eb2c for quote items PaypalDoVoid
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_void'))
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalVoidAuth)
 				->request($requestDoc);
 
 		}catch(Exception $e){

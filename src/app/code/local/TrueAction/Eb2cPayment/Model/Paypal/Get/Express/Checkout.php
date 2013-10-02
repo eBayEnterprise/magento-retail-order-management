@@ -24,6 +24,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			// make request to eb2c for quote items PaypalGetExpressCheckout
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_get_express_checkout'))
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalGetExpress)
 				->request($requestDoc);
 
 		}catch(Exception $e){
