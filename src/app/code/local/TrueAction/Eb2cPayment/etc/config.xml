@@ -140,9 +140,9 @@
 
 				<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>
 				<api_service>payments</api_service>
-				<api_opt_stored_value_balance>storevalue/balance/GS</api_opt_stored_value_balance>
-				<api_opt_stored_value_redeem>storevalue/redeem/GS</api_opt_stored_value_redeem>
-				<api_opt_stored_value_redeem_void>storevalue/redeemvoid/GS</api_opt_stored_value_redeem_void>
+				<api_opt_stored_value_balance>storedvalue/balance/GS</api_opt_stored_value_balance>
+				<api_opt_stored_value_redeem>storedvalue/redeem/GS</api_opt_stored_value_redeem>
+				<api_opt_stored_value_redeem_void>storedvalue/redeemvoid/GS</api_opt_stored_value_redeem_void>
 				<api_opt_paypal_set_express_checkout>paypal/setExpress</api_opt_paypal_set_express_checkout>
 				<api_opt_paypal_get_express_checkout>paypal/getExpress</api_opt_paypal_get_express_checkout>
 				<api_opt_paypal_do_express_checkout>paypal/doExpress</api_opt_paypal_do_express_checkout>
