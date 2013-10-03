@@ -21,13 +21,13 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 
 		$prod = Mage::getModel('catalog/product');
 		$this->addData(array(
-				'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
-				'product' => $prod,
-				'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-				'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-				'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
-				'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
-				'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
+			'extractor' => Mage::getModel('eb2cproduct/feed_i_extractor'),
+			'product' => $prod,
+			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
+			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
+			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
 		));
 		return $this;
 	}
@@ -105,7 +105,7 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedItemCollection = $this->getExtractor()->extractIShipFeed($doc);
+		$feedItemCollection = $this->getExtractor()->extract(new DOMXPath($doc));
 
 		if ($feedItemCollection){
 			// we've import our feed data in a varien object we can work with
@@ -114,8 +114,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				// If different, do not update the item and log at WARN level.
 				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
 					Mage::log(
-						'iShip Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$cfg->catalogId . ')',
+						sprintf(
+							'[ %s ] iShip Feed Catalog_id (%d), doesn\'t match Magento Eb2c Config Catalog_id (%d)',
+							__CLASS__, $feedItem->getCatalogId(), $cfg->catalogId
+						),
 						Zend_Log::WARN
 					);
 					continue;
@@ -125,8 +127,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				// If different, do not update this item and log at WARN level.
 				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
 					Mage::log(
-						'iShip Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$cfg->clientId . ')',
+						sprintf(
+							'[ %s ] iShip Feed Client_id (%d), doesn\'t match Magento Eb2c Config Client_id (%d)',
+							__CLASS__, $feedItem->getGsiClientId(), $cfg->clientId
+						),
 						Zend_Log::WARN
 					);
 					continue;
@@ -213,7 +217,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				)
 				->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::log('[' . __CLASS__ . '] The following error has occurred while creating dummy product for iShip Feed (' . $e->getMessage() . ')', Zend_Log::ERR);
+			Mage::log(
+				sprintf('[ %s ] The following error has occurred while creating dummy product for iShip Feed (%d)',	__CLASS__, $e->getMessage()),
+				Zend_Log::ERR
+			);
 		}
 		return $this->_loadProductBySku($dataObject->getItemId()->getClientItemId());
 	}
@@ -267,7 +274,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				}
 			} else {
 				// this item doesn't exists in magento let simply log it
-				Mage::log('iShip Feed Delete Operation for SKU (' . $dataObject->getItemId()->getClientItemId() . '), does not exists in Magento', Zend_Log::WARN);
+				Mage::log(
+					sprintf('[ %s ] iShip Feed Delete Operation for SKU (%d), does not exists in Magento', __CLASS__, $dataObject->getItemId()->getClientItemId()),
+					Zend_Log::WARN
+				);
 			}
 		}
 
@@ -309,8 +319,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				$productObject->addData($newAttributeData)->save();
 			} catch (Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding eb2c
-					specific attributes to product for iShip Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while adding eb2c specific attributes to product for iShip Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}
@@ -352,8 +364,10 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Ship
 				$productObject->addData($customData)->save();
 			} catch (Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding custom
-					attributes to product for iShip Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while adding custom attributes to product for iShip Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}

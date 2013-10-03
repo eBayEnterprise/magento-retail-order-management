@@ -22,9 +22,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
-		if ($this->hasFsTool()) {
-			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-		}
 
 		$prod = Mage::getModel('catalog/product');
 		$this->addData(array(
@@ -39,7 +36,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 		// initialize bundle queue with an empty array
 		$this->_queue = array();
-		return $this;
 	}
 
 	/**
@@ -65,7 +61,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		if ($itemData) {
 			$this->_queue[] = $itemData;
 		}
-		return ;
+		return $this;
 	}
 
 	/**
@@ -81,6 +77,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 				Mage::logException($e);
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -96,7 +93,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$products->addAttributeToSelect('*');
 		$products->getSelect()
 			->where('e.sku = ?', $sku);
-
 		$products->load();
 		$product = $products->getFirstItem();
 		if (!$product->getId()) {
@@ -143,6 +139,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$this->_processQueue();
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		$this->_clean();
+		return $this;
 	}
 
 	/**
@@ -184,6 +181,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 				$this->_queueData($feedItem);
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -211,7 +209,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$product->setCategoryIds($this->_getDefaultCategoryIds());
 		$product->setWebsiteIds($this->getWebsiteIds());
 		$product->setDescription('This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.');
-		$product->setShortDescription('Invalid. Please do not attempt to purchase.');
+		$product->setShortDescription('Invalid product. Please do not attempt to purchase.');
 		$product->setPrice(0); # Set some price
 
 		//Default Magento attribute
@@ -220,10 +218,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$product->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
 		$product->setStatus(0);
 		$product->setTaxClassId(0); # default tax class
-		$product->setStockData(array(
-			'is_in_stock' => 0,
-			'qty' => 0
-		));
+		return $product;
 	}
 
 	/**
@@ -242,7 +237,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 			$event = $this->_selectEvent($dataObject->getEvents());
 			$price = $event->getPrice();
-			$priceVatInlcusive = $event->getPriceVatInclusive();
+			$priceVatInclusive = $event->getPriceVatInclusive();
 			$specialPrice = null;
 			$startDate = null;
 			$endDate = null;
@@ -258,12 +253,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			$productObject->setSpecialToDate($endDate);
 			$productObject->setMsrp($event->getMsrp());
 			if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {
-				$productObject->setPriceIsVatInclusive($priceVatInlcusive);
+				$productObject->setPriceIsVatInclusive($priceVatInclusive);
 			}
 			// saving the product
 			$productObject->save();
 		}
-		return ;
+		return $this;
 	}
 
 	/**
@@ -285,6 +280,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			Mage::log($e->getMessage(), Zend_Log::WARN);
 		}
 
-		return;
+		return $this;
 	}
 }

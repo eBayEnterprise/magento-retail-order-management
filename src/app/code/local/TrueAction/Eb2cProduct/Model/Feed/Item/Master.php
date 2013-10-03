@@ -84,8 +84,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while creating new option "' . $newOption . '" for attribute: ' . $attribute . ' in Item Master Feed (' .
-				$e->getMessage() . ')',
+				sprintf(
+					'[ %s ] The following error has occurred while creating new option "%d"  for attribute: %d in Item Master Feed (%d)',
+					__CLASS__, $newOption, $attribute, $e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		}
@@ -153,7 +155,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$cfgCatId = $cfg->catalogId;
 		$cfgClientId = $cfg->clientId;
-		$items = $this->getExtractor()->extract($doc);
+		$items = $this->getExtractor()->extract(new DOMXPath($doc));
 		$numItems = count($items);
 
 		if (!$numItems) {
@@ -281,7 +283,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				))
 				->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::logException(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()));
+			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
 		}
 		return $prd;
 	}
@@ -349,8 +351,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			} else {
 				// this item doesn't exists in magento let simply log it
 				Mage::log(
-					'[' . __CLASS__ . '] Item Master Feed Delete Operation for SKU (' .
-					$dataObject->getItemId()->getClientItemId() . '), does not exists in Magento',
+					sprintf(
+						'[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento',
+						__CLASS__, $dataObject->getItemId()->getClientItemId()
+					),
 					Zend_Log::WARN
 				);
 			}
@@ -408,9 +412,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			)->save();
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while linking
-				child product to configurable parent product for Item Master Feed (' .
-				$e->getMessage() . ')',
+				sprintf(
+					'[ %s ] The following error has occurred while linking child product to configurable parent product for Item Master Feed (%d)',
+					__CLASS__, $e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		}
@@ -476,8 +481,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			}
 		} catch (Exception $e) {
 			Mage::log(
-				'[' . __CLASS__ . '] The following error has occurred while adding configurable
-				color data to child product for Item Master Feed (' . $e->getMessage() . ')',
+				sprintf(
+					'[ %s ] The following error has occurred while adding configurable color data to child product for Item Master Feed (%d)',
+					__CLASS__, $e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		}
@@ -813,8 +820,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				$productObject->addData($newAttributeData)->save();
 			} catch (Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding eb2c
-					specific attributes to product for Item Master Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while adding eb2c specific attributes to product for Item Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}
@@ -855,8 +864,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				$productObject->addData($customData)->save();
 			} catch (Exception $e) {
 				Mage::log(
-					'[' . __CLASS__ . '] The following error has occurred while adding
-					custom attributes to product for Item Master Feed (' . $e->getMessage() . ')',
+					sprintf(
+						'[ %s ] The following error has occurred while adding custom attributes to product for Item Master Feed (%d)',
+						__CLASS__, $e->getMessage()
+					),
 					Zend_Log::ERR
 				);
 			}

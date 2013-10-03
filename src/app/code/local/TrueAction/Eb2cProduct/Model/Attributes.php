@@ -46,16 +46,14 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 
 	protected $_valueFunctionMap = array(
 		'is_global'           => '_formatScope',
-		'frontend_label'      => '_formatFrontendLabel',
-		'apply_to'            => '_formatArray',
 		'default_value_yesno' => '_formatBoolean',
 		'is_unique'           => '_formatBoolean',
 		'default_value_date'  => '_formatDate',
 	);
 
 	protected static $_scopeMap = array(
-		'website' => '1',
-		'store'   => '0',
+		'website' => Mage_Catalog_Model_Resource_Eav_Attribute::SCOPE_GLOBAL,
+		'store'   => Mage_Catalog_Model_Resource_Eav_Attribute::SCOPE_STORE,
 	);
 
 	/**
@@ -98,7 +96,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * convert the fronend label into an an array.
+	 * convert the frontend label into an an array.
 	 * @param  Varien_SimpleXml_Element $data
 	 * @return array
 	 */
@@ -134,7 +132,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 			Mage::throwException('Invalid scope value "' . $scopeStr . '"');
 		}
 		// @codeCoverageIgnoreEnd
-		$val = self::$_scopeMap[$scopeStr];
+		$val = (string) self::$_scopeMap[$scopeStr];
 		return $val;
 	}
 
@@ -154,7 +152,7 @@ class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
 	 * convert a string into a boolean value.
 	 * @see  http://php.net/manual/en/function.is-bool.php
 	 * @param Varien_SimpleXml_Element
-	 * @return  bool
+	 * @return  string
 	 */
 	protected function _formatBoolean($data)
 	{

@@ -15,7 +15,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function requiresAllocation(Mage_Sales_Model_Quote $quote)
 	{
-		$managedStockItems = array_filter($quote->getAllItems(), array($this, 'filterInventoriedItems'));
+		$managedStockItems = $this->getInventoriedItems($quote->getAllItems());
 		return !empty($managedStockItems) && (!$this->hasAllocation($quote) || $this->isExpired($quote));
 	}
 
@@ -55,81 +55,77 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		$allocationRequestMessage->setAttribute('requestId', Mage::helper('eb2cinventory')->getRequestId($quote->getEntityId()));
 		$allocationRequestMessage->setAttribute('reservationId', Mage::helper('eb2cinventory')->getReservationId($quote->getEntityId()));
-		if ($quote) {
-			foreach ($quote->getAllAddresses() as $addresses) {
-				if ($addresses) {
-					foreach (array_filter($addresses->getAllItems(), array($this, 'filterInventoriedItems')) as $item) {
-						try {
-							// creating quoteItem element
-							$quoteItem = $allocationRequestMessage->createChild(
-								'OrderItem',
-								null,
-								array('lineId' => $item->getId(), 'itemId' => $item->getSku())
-							);
+		// Shipping address required for the allocation request, if there's no address,
+		// can't make the allocation request.
+		if ($quote && $quote->getShippingAddress()) {
+			foreach ($quote->getAllAddresses() as $address) {
+				foreach ($this->getInventoriedItems($address->getAllItems()) as $item) {
+					// creating quoteItem element
+					$quoteItem = $allocationRequestMessage->createChild(
+						'OrderItem',
+						null,
+						array('lineId' => $item->getId(), 'itemId' => $item->getSku())
+					);
 
-							// add quantity
-							$quoteItem->createChild(
-								'Quantity',
-								(string) $item->getQty() // integer value doesn't get added only string
-							);
+					// add quantity
+					$quoteItem->createChild(
+						'Quantity',
+						(string) $item->getQty() // integer value doesn't get added only string
+					);
 
-							$shippingAddress = $quote->getShippingAddress();
-							// creating shipping details
-							$shipmentDetails = $quoteItem->createChild(
-								'ShipmentDetails',
-								null
-							);
+					$shippingAddress = $quote->getShippingAddress();
+					// creating shipping details
+					$shipmentDetails = $quoteItem->createChild(
+						'ShipmentDetails',
+						null
+					);
 
-							// add shipment method
-							$shipmentDetails->createChild(
-								'ShippingMethod',
-								$shippingAddress->getShippingMethod()
-							);
+					// add shipment method
+					$shipmentDetails->createChild(
+						'ShippingMethod',
+						$shippingAddress->getShippingMethod()
+					);
 
-							// add ship to address
-							$shipToAddress = $shipmentDetails->createChild(
-								'ShipToAddress',
-								null
-							);
+					// add ship to address
+					$shipToAddress = $shipmentDetails->createChild(
+						'ShipToAddress',
+						null
+					);
 
-							// add ship to address Line 1
-							$shipToAddress->createChild(
-								'Line1',
-								$shippingAddress->getStreet(1),
-								null
-							);
+					// add ship to address Line 1
+					$shipToAddress->createChild(
+						'Line1',
+						$shippingAddress->getStreet(1),
+						null
+					);
 
-							// add ship to address City
-							$shipToAddress->createChild(
-								'City',
-								$shippingAddress->getCity(),
-								null
-							);
+					// add ship to address City
+					$shipToAddress->createChild(
+						'City',
+						$shippingAddress->getCity(),
+						null
+					);
 
-							// add ship to address MainDivision
-							$shipToAddress->createChild(
-								'MainDivision',
-								$shippingAddress->getRegion(),
-								null
-							);
+					// add ship to address MainDivision
+					$shipToAddress->createChild(
+						'MainDivision',
+						$shippingAddress->getRegionCode(),
+						null
+					);
 
-							// add ship to address CountryCode
-							$shipToAddress->createChild(
-								'CountryCode',
-								$shippingAddress->getCountryId(),
-								null
-							);
+					// add ship to address CountryCode
+					$shipToAddress->createChild(
+						'CountryCode',
+						$shippingAddress->getCountryId(),
+						null
+					);
 
-							// add ship to address PostalCode
-							$shipToAddress->createChild(
-								'PostalCode',
-								$shippingAddress->getPostcode(),
-								null
-							);
-						} catch (Exception $e) {
-							Mage::logException($e);
-						}
-					}
+					// add ship to address PostalCode
+					$shipToAddress->createChild(
+						'PostalCode',
+						$shippingAddress->getPostcode(),
+						null
+					);
 				}
 			}
 		}
@@ -178,20 +174,14 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	public function processAllocation($quote, $allocationData)
 	{
 		$allocationResult = array();
-
 		foreach ($allocationData as $data) {
-			foreach ($quote->getAllItems() as $item) {
-				// find the item in the quote
-				if ((int) $item->getItemId() === (int) $data['lineId']) {
-					// update quote with eb2c data.
-					$result = $this->_updateQuoteWithEb2cAllocation($item, $data);
-					if (trim($result) !== '') {
-						$allocationResult[] = $result;
-					}
+			if ($item = $quote->getItemById($data['lineId'])) {
+				$result = $this->_updateQuoteWithEb2cAllocation($item, $data);
+				if ($result) {
+					$allocationResult[] = $result;
 				}
 			}
 		}
-
 		return $allocationResult;
 	}
 
@@ -203,7 +193,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	protected function _emptyQuoteAllocation($quote)
 	{
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote->getAllItems()) as $item) {
 			// emptying reservation data from quote item
 			$item->unsEb2cReservationId()
 				->unsEb2cReservedAt()
@@ -220,7 +210,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function hasAllocation($quote)
 	{
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote->getAllItems()) as $item) {
 			// find the reservation data in the quote item
 			if (trim($item->getEb2cReservationId()) !== '') {
 				return true;
@@ -241,7 +231,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		$expireMins = (int) Mage::helper('eb2cinventory')->getConfigModel()->allocationExpired;
 		$expiredIfReservedBefore = $now->sub(DateInterval::createFromDateString(sprintf('%d minutes', $expireMins)));
 
-		foreach ($quote->getAllItems() as $item) {
+		foreach ($this->getInventoriedItems($quote->getAllItems()) as $item) {
 			// find the reservation data in the quote item
 			if ($item->hasEb2cReservedAt()) {
 				$reservedAt = new DateTime($item->getEb2cReservedAt());

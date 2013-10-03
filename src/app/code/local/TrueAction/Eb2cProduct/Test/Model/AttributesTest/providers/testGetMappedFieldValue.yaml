@@ -13,12 +13,15 @@
 -
   - apply_to
   - 'simple,configurable,virtual,bundle,downloadable'
-  -
-    simple
-    configurable
-    virtual
-    bundle
-    downloadable
+  - 'simple,configurable,virtual,bundle,downloadable'
+-
+  - backend_type
+  - 'int'
+  - 'int'
+-
+  - backend_type
+  - 'int'
+  - 'int'
 -
   - frontend_input
   - text
