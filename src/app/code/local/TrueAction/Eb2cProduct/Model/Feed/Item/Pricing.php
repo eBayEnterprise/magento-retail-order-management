@@ -15,6 +15,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	protected function _construct()
 	{
+		// initialize feed item with an empty array
+		$this->_queue = array();
+
 		// set up base dir if it hasn't been during instantiation
 		if (!$this->hasBaseDir()) {
 			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->pricingFeedLocalPath);
@@ -24,7 +27,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
 
 		$prod = Mage::getModel('catalog/product');
-		$this->addData(array(
+
+		return $this->addData(array(
 			'extractor' => Mage::getModel('eb2cproduct/feed_item_pricing_extractor'),
 			'product' => $prod,
 			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
@@ -33,9 +37,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
 			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
 		));
-
-		// initialize bundle queue with an empty array
-		$this->_queue = array();
 	}
 
 	/**
@@ -85,7 +86,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 *
 	 * @param string $sku, the product sku to filter the product table
 	 *
-	 * @return catalog/product
+	 * @return Mage_Catalog_Model_Product
 	 */
 	protected function _getProductBySku($sku)
 	{
@@ -96,7 +97,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$products->load();
 		$product = $products->getFirstItem();
 		if (!$product->getId()) {
-			$this->applyDummyData($product, $sku);
+			$product = $this->applyDummyData($product, $sku);
 		}
 		return $product;
 	}
@@ -104,7 +105,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	/**
 	 * processing downloaded feeds from eb2c.
 	 *
-	 * @return void
+	 * @return self
 	 */
 	public function processFeeds()
 	{
@@ -112,33 +113,36 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$coreHelper = Mage::helper('eb2ccore');
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$feedModel = $this->getFeedModel();
 
-		$this->getFeedModel()->fetchFeedsFromRemote(
+		$feedModel->fetchFeedsFromRemote(
 			$cfg->pricingFeedRemoteReceivedPath,
 			$cfg->pricingFeedFilePattern
 		);
 		$domDocument = $coreHelper->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
+		$feeds = $feedModel->lsInboundDir();
+		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
+		foreach ($feeds as $feed) {
 			// load feed files to Dom object
 			$domDocument->load($feed);
-
-			$expectEventType = $cfg->pricingFeedEventType;
+			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
+			if ($coreHelperFeed->validateHeader($domDocument, $cfg->pricingFeedEventType)) {
 				// processing feed items
 				$this->_processDom($domDocument);
 			}
-
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveDir($feed);
+				$feedModel->mvToArchiveDir($feed);
 			}
 		}
 
 		$this->_processQueue();
-		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 
+		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
+
+		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		Mage::helper('eb2ccore')->clean(); // reindex
 		return $this;
 	}
@@ -148,38 +152,38 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _processDom($doc)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$cfgCatId = $cfg->catalogId;
+		$cfgClientId = $cfg->clientId;
+		$items = $this->getExtractor()->extract(new DOMXPath($doc));
+		$numItems = count($items);
 
-		if ($feedItemCollection = $this->getExtractor()->extractPricingFeed($doc)){
-			// we've import our feed data in a varien object we can work with
-			foreach ($feedItemCollection as $feedItem) {
-				// Ensure this matches the catalog id set in the Magento admin configuration.
-				// If different, do not update the item and log at WARN level.
-				if ($feedItem->getCatalogId() !== $cfg->catalogId) {
-					Mage::log(
-						'Item Pricing Feed Catalog_id (' . $feedItem->getCatalogId() . '), doesn\'t match Magento Eb2c Config Catalog_id (' .
-						$cfg->catalogId . ')',
-						Zend_Log::WARN
-					);
-					continue;
-				}
+		if (!$numItems) {
+			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
+			return $this;
+		}
 
-				// Ensure that the client_id field here matches the value supplied in the Magento admin.
-				// If different, do not update this item and log at WARN level.
-				if ($feedItem->getGsiClientId() !== $cfg->clientId) {
-					Mage::log(
-						'Item Pricing Feed Client_id (' . $feedItem->getGsiClientId() . '), doesn\'t match Magento Eb2c Config Client_id (' .
-						$cfg->clientId . ')',
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				$this->_queueData($feedItem);
+		foreach ($items as $i => $item) {
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
+			$catId = $item->getCatalogId();
+			$clientId = $item->getGsiClientId();
+			if ($catId !== $cfgCatId) {
+				Mage::log(
+					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
+					Zend_Log::WARN
+				);
+			} elseif ($clientId !== $cfgClientId) {
+				Mage::log(
+					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
+					Zend_Log::WARN
+				);
+			} else {
+				$this->_queueData($item);
 			}
 		}
 		return $this;
@@ -198,28 +202,66 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 * fill a product model with dummy data so that it can be saved and edited later
 	 * @see http://www.magentocommerce.com/boards/viewthread/289906/
 	 * @param  Mage_Catalog_Model_Product $product product model to be autofilled
-	 * @return void
+	 * @return Mage_Catalog_Model_Product
 	 */
 	public function applyDummyData($product, $sku)
 	{
-		$product->setAttributeSetId($this->getDefaultAttributeSetId());
-		$product->setTypeId('simple');
-		$product->setSku($sku);
-		$product->setName('Invalid Product: ' . $sku);
-		$product->setUrlKey($sku);
-		$product->setCategoryIds($this->_getDefaultCategoryIds());
-		$product->setWebsiteIds($this->getWebsiteIds());
-		$product->setDescription('This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.');
-		$product->setShortDescription('Invalid product. Please do not attempt to purchase.');
-		$product->setPrice(0); # Set some price
+		try{
+			$product->setId(null)
+				->addData(
+					array(
+						'type_id' => 'simple', // default product type
+						'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+						'attribute_set_id' => $this->getDefaultAttributeSetId(),
+						'name' => 'Invalid Product: ' . $sku,
+						'status' => 0, // default - disabled
+						'sku' => $sku,
+						'website_ids' => $this->getWebsiteIds(),
+						'category_ids' => $this->_getDefaultCategoryIds(),
+						'description' => 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.',
+						'short_description' => 'Invalid. Please do not attempt to purchase.',
+						'price' => 0,
+						'weight' => 0,
+						'url_key' => $sku,
+						'store_ids' => array($this->getDefaultStoreId()),
+						'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
+						'tax_class_id' => 0,
+					)
+				)
+				->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(
+				sprintf('[ %s ] The following error has occurred while creating dummy product for iShip Feed (%d)',	__CLASS__, $e->getMessage()),
+				Zend_Log::ERR
+			);
+		}
 
-		//Default Magento attribute
-		$product->setWeight(0);
-
-		$product->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE);
-		$product->setStatus(0);
-		$product->setTaxClassId(0); # default tax class
 		return $product;
+	}
+
+	/**
+	 * prepare the data to be set to the product
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to add the product
+	 *
+	 * @return array, data to be set to magento product
+	 */
+	protected function _preparedProductData(Varien_Object $dataObject)
+	{
+		$event = $this->_selectEvent($dataObject->getEvents());
+		$data = array('price' => $event->getPrice(), 'special_price' => null, 'special_from_date' => null, 'special_to_date' => null, 'msrp' => $event->getMsrp());
+		if ($event->getEventNumber()) {
+			$data['price'] = $event->getAlternatePrice();
+			$data['special_price'] = $event->getPrice();
+			$data['special_from_date'] = $event->getStartDate();
+			$data['special_to_date'] = $event->getEndDate();
+		}
+
+		if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {
+			$data['price_is_vat_inclusive'] = $event->getPriceVatInclusive();
+		}
+
+		return $data;
 	}
 
 	/**
@@ -227,38 +269,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add the product
 	 *
-	 * @return void
+	 * @return self
 	 */
-	protected function _processItem($dataObject)
+	protected function _processItem(Varien_Object $dataObject)
 	{
 		$sku = trim($dataObject->getClientItemId());
 		if ($dataObject && !is_null($sku) && $sku !== '') {
 			// get the product model to import the data into
-			$productObject = $this->_getProductBySku($dataObject->getClientItemId());
-
-			$event = $this->_selectEvent($dataObject->getEvents());
-			$price = $event->getPrice();
-			$priceVatInclusive = $event->getPriceVatInclusive();
-			$specialPrice = null;
-			$startDate = null;
-			$endDate = null;
-			if ($event->getEventNumber()) {
-				$price = $event->getAlternatePrice();
-				$specialPrice = $event->getPrice();
-				$startDate = $event->getStartDate();
-				$endDate = $event->getEndDate();
-			}
-			$productObject->setPrice($price);
-			$productObject->setSpecialPrice($specialPrice);
-			$productObject->setSpecialFromDate($startDate);
-			$productObject->setSpecialToDate($endDate);
-			$productObject->setMsrp($event->getMsrp());
-			if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {
-				$productObject->setPriceIsVatInclusive($priceVatInclusive);
-			}
-			// saving the product
-			$productObject->save();
+			$this->_getProductBySku($dataObject->getClientItemId())->addData($this->_preparedProductData($dataObject))->save();
 		}
+
 		return $this;
 	}
 }

@@ -30,7 +30,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 
 		$prod = Mage::getModel('catalog/product');
 		return $this->addData(array(
-			'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'), // Magically setting an instantiated extractor object
+			// Magically setting an instantiated extractor object
+			'extractor' => Mage::getModel('eb2cproduct/feed_content_extractor'),
 			'product' => $prod,
 			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
 			'category' => Mage::getModel('catalog/category'), // magically setting catalog/category model object
@@ -85,7 +86,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @param string $sku, the product sku to filter the product table
 	 *
-	 * @return catalog/product
+	 * @return Mage_Catalog_Model_Product
 	 */
 	protected function _loadProductBySku($sku)
 	{
@@ -104,7 +105,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @param string $categoryName, the category name to filter the category table
 	 *
-	 * @return catalog/category
+	 * @return Mage_Catalog_Model_Category
 	 */
 	protected function _loadCategoryByName($categoryName)
 	{
@@ -140,19 +141,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	{
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+		$feedModel = $this->getFeedModel();
 
-		$this->getFeedModel()->fetchFeedsFromRemote(
+		$feedModel->fetchFeedsFromRemote(
 			$cfg->contentFeedRemoteReceivedPath,
 			$cfg->contentFeedFilePattern
 		);
 
 		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
-		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
+		$feeds = $feedModel->lsInboundDir();
+		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
+		foreach ($feeds as $feed) {
 			// load feed files to dom object
 			$doc->load($feed);
-			$expectEventType = $cfg->contentFeedEventType;
+			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
+
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($doc, $expectEventType)) {
+			if ($coreHelperFeed->validateHeader($doc, $cfg->contentFeedEventType)) {
 				// processing feed Contents
 				$this->_contentMasterActions($doc);
 			}
@@ -160,9 +165,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			// Remove feed file from local server after finishing processing it.
 			if (file_exists($feed)) {
 				// This assumes that we have process all OK
-				$this->getFeedModel()->mvToArchiveDir($feed);
+				$feedModel->mvToArchiveDir($feed);
 			}
 		}
+
+		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
 
 		// After all feeds have been process, let's clean magento cache and rebuild inventory status
 		Mage::helper('eb2ccore')->clean();
@@ -175,45 +182,40 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @param DOMDocument $doc, the Dom document with the loaded feed data
 	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _contentMasterActions(DOMDocument $doc)
 	{
+		$prdHlpr = Mage::helper('eb2cproduct');
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedContentCollection = $this->getExtractor()->extract(new DOMXPath($doc));
-		if ($feedContentCollection){
-			// we've import our feed data in a varien object we can work with
-			foreach ($feedContentCollection as $feedContent) {
-				// Ensure this matches the catalog id set in the Magento admin configuration.
-				// If different, do not update the Content and log at WARN level.
-				if ($feedContent->getCatalogId() !== $cfg->catalogId) {
-					Mage::log(
-						sprintf(
-							'[ %s ] Content Master Feed Catalog_id (%d), doesn\'t match Magento Eb2c Config Catalog_id (%d)',
-							__CLASS__, $feedContent->getCatalogId(), $cfg->catalogId
-						),
-						Zend_Log::WARN
-					);
-					continue;
-				}
+		$cfgCatId = $cfg->catalogId;
+		$cfgClientId = $cfg->clientId;
+		$items = $this->getExtractor()->extract(new DOMXPath($doc));
+		$numItems = count($items);
 
-				// Ensure that the client_id field here matches the value supplied in the Magento admin.
-				// If different, do not update this Content and log at WARN level.
-				if ($feedContent->getGsiClientId() !== $cfg->clientId) {
-					Mage::log(
-						sprintf(
-							'[ %s ] Content Master Feed Client_id (%d), doesn\'t match Magento Eb2c Config Client_id (%d)',
-							__CLASS__, $feedContent->getGsiClientId(), $cfg->clientId
-						),
-						Zend_Log::WARN
-					);
-					continue;
-				}
-
-				// process content feed data
-				$this->_synchProduct($feedContent);
+		if (!$numItems) {
+			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
+			return $this;
+		}
+		foreach ($items as $i => $item) {
+			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
+			$catId = $item->getCatalogId();
+			$clientId = $item->getGsiClientId();
+			if ($catId !== $cfgCatId) {
+				Mage::log(
+					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
+					Zend_Log::WARN
+				);
+			} elseif ($clientId !== $cfgClientId) {
+				Mage::log(
+					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
+					Zend_Log::WARN
+				);
+			} else {
+				$this->_synchProduct($item);
 			}
 		}
+		return $this;
 	}
 
 	/**
@@ -299,18 +301,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to update the product
 	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _synchProduct(Varien_Object $dataObject)
 	{
 		if (trim($dataObject->getUniqueId()) !== '') {
 			$this->setProduct($this->_loadProductBySku($dataObject->getUniqueId()));
-			if (!$this->getProduct()->getId()){
-				// this is new product let's set default value for it in order to create it successfully.
-				$productObject = $this->_getDummyProduct($dataObject);
-			} else {
-				$productObject = $this->getProduct();
-			}
+			$productObject = $this->getProduct()->getId() ? $this->getProduct() : $this->_getDummyProduct($dataObject);
 
 			try {
 				// get product link data
@@ -320,8 +317,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				$extendedData = $this->_getExtendAttributeData($dataObject);
 
 				// getting product name/title
-				$productTitle = $this->_getDefaultLocaleTitle($dataObject);
-
+				$productTitle = trim($this->_getDefaultLocaleTitle($dataObject));
 				$productObject->addData(
 					array(
 						// setting related data
@@ -333,7 +329,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						// setting category data
 						'category_ids' => $this->_preparedCategoryLinkData($dataObject),
 						// Setting product name/title from base attributes
-						'name' => (trim($productTitle) !== '')? $productTitle : $productObject->getName(),
+						'name' => ($productTitle !== '')? $productTitle : $productObject->getName(),
 						// setting gift_wrapping_available
 						'gift_wrapping_available' => $extendedData['gift_wrap'],
 						// setting color attribute
@@ -344,6 +340,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						'short_description' => $extendedData['short_description'],
 						'website_ids' => $this->getWebsiteIds(),
 						'store_ids' => array($this->getDefaultStoreId()),
+						'url_key' => $dataObject->getUniqueId(),
 					)
 				)->save(); // saving the product
 
@@ -369,7 +366,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 			$this->_addCustomAttributeToProduct($dataObject, $productObject);
 		}
 
-		return ;
+		return $this;
 	}
 
 	/**
@@ -396,6 +393,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 						'sku' => $dataObject->getUniqueId(),
 						'website_ids' => $this->getWebsiteIds(),
 						'store_ids' => array($this->getDefaultStoreId()),
+						'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
+						'tax_class_id' => 0,
+						'url_key' => $dataObject->getUniqueId(),
 					)
 				)
 				->save();
@@ -502,7 +502,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
 	 *
-	 * @return void
+	 * @return self
 	 */
 	protected function _addCustomAttributeToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
@@ -549,6 +549,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				);
 			}
 		}
+
+		return $this;
 	}
 
 	/**

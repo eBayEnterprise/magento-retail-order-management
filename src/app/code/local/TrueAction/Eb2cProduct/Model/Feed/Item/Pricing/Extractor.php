@@ -5,6 +5,7 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
+	implements TrueAction_Eb2cProduct_Model_Feed_IExtractor
 {
 	/**
 	 * map an xpath to the name of the field the data will be extracted to.
@@ -70,14 +71,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing_Extractor
 
 	/**
 	 * extract data from the feed document.
-	 * @param  TrueAction_Dom_Document $doc the feed document
-	 * @return array                        list containing a Varien_Object for each PricePerItem node
+	 * @param DOMXPath $xpath, the DOMXPath with the loaded feed data
+	 * @return array, list containing a Varien_Object for each PricePerItem node
 	 */
-	public function extractPricingFeed(TrueAction_Dom_Document $doc)
+	public function extract(DOMXPath $xpath)
 	{
 		$collectionOfItems = array();
-		$feedXPath = new DOMXPath($doc);
-		$nodeList = $feedXPath->query('//PricePerItem');
+		$nodeList = $xpath->query('//PricePerItem');
 		foreach ($nodeList as $item) {
 			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object($this->_extractPricePerItem($item));
