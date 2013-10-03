@@ -128,6 +128,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 			->will($this->returnValue($productId));
 		$productMock->setData(array());
 
+		$productMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue($productId));
+		$productMock->setData(array());
+
 		$collection = $this->getResourceModelMockBuilder('catalog/product_collection');
 		$collection = $collection->disableOriginalConstructor()
 			->setMethods(array(
