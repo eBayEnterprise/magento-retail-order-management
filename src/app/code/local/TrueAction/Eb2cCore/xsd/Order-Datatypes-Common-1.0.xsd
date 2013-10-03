@@ -1,0 +1,2536 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+	<xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+	<xsd:include schemaLocation="Checkout-Service-Fault-1.0.xsd"/>
+	<xsd:simpleType name="YYYY-MMDateType">
+		<xsd:annotation>
+			<xsd:documentation>The date in YYYY-MM format. 
+Allowable Values: A valid four-digit year, followed by a dash and a two-digit month.
+Required: No
+Length: Seven characters, including the dash (-)
+Default Value: blank
+Restrictions: Best practice is to use a leading zero when entering months from January (01) to September (09).
+Aliases: N/A</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:gYearMonth"/>
+	</xsd:simpleType>
+	<xsd:complexType name="PriceAdjustmentOrderItemType">
+		<xsd:annotation>
+			<xsd:documentation>The line number and sub-line number associated with a price change. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="lineId" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Represents an item  that has been ordered, for example, a flash drive.
+Allowable Values: Text string.
+Required: No
+Length: 5
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:maxLength value="5"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="subLineId" use="required">
+			<xsd:annotation>
+				<xsd:documentation>If multiple items have been ordered this represents one instance of that item. For example, if three flash drives were ordered, but upon delivery, one was defective, the customer would want a credit for one of the drives. This field represents one instance of the flash drive item and is specified when adjusting the price. If only one item has been ordered, the value of this field is "1".
+Allowable Values: Text string.
+Required: Yes
+Length: 5
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A.</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="xsd:string">
+					<xsd:maxLength value="5"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="SourceId">
+		<xsd:annotation>
+			<xsd:documentation>The origin of a product, for example a manufacturer, retailer, etc. This component works in conjunction with SourceIdType..</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:annotation>
+				<xsd:documentation>
+                    Represents the channel, store code, or seller.
+                </xsd:documentation>
+			</xsd:annotation>
+			<xsd:extension base="SourceIdTextType">
+				<xsd:attribute name="type" type="SourceIdType" use="required">
+					<xsd:annotation>
+						<xsd:documentation>Values that indicate the type of seller as specified by SourceIdType </xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:simpleType name="SourceIdType">
+		<xsd:annotation>
+			<xsd:documentation>
+ The category a business falls into..
+ Allowable Values: 
+ CHANNEL.
+ STORE
+ SELLER
+Required: Yes
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="CHANNEL"/>
+			<xsd:enumeration value="STORE"/>
+			<xsd:enumeration value="SELLER"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="AttributeType">
+		<xsd:annotation>
+			<xsd:documentation>
+Generic Key/Value pair used for partner customizations.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Key" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The type of data being assigned a value. For example,the key might be "Customer Loyalty Number"
+Allowable Values: Text string.
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: Within a KeyValuePairList, keys must be unique
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Value" type="xsd:normalizedString">
+				<xsd:annotation>
+					<xsd:documentation>The value assigned to a key. For example if the key is "Customer Loyalty Number" and this value is "A123", then the Customer Loyalty Number for this key/value pair is A123.
+Allowable Values: Normalized text string.
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PayPalAuthorization">
+		<xsd:annotation>
+			<xsd:documentation> Authorization code for Paypal purchases. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ResponseCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+Allowable Values: 
+- APPROVED
+- AcceptOrderWithException
+- AVS
+- AVSPIN
+- DECLF
+- DECLR
+- DECL
+- PaymentProcessorTimeout
+- PIN
+- NOK
+- OK
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+Should be one of: 
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TemplatesType">
+		<xsd:annotation>
+			<xsd:documentation>
+			A list of Templates used for localized EDD/Shipping/Backorder messages
+
+			Current list of values
+			EDDGeneralTemplate - {Checkout - EDD Default Message} configured in webstore. Expectation is that this will be a no-date template.
+			EDDSingleDateTemplate - {Checkout - EDD Single Date Message} configured in webstore.
+			EDDMultiDateTemplate - {Checkout - EDD Multiple Date Message} configured in webstore.
+			BackorderTemplate - TBD in webstore.
+		    </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Template" maxOccurs="unbounded">
+				<xsd:complexType>
+					<xsd:complexContent>
+						<xsd:extension base="AttributeType">
+							<xsd:attribute name="id" type="xsd:ID" use="required"/>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CustomAttributesType">
+		<xsd:annotation>
+			<xsd:documentation>
+A list of Generic Key/Value pair used for partner customizations. 
+Example use: Loyalty Program
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Attribute" type="AttributeType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="ShopRunnerMessageType">
+		<xsd:annotation>
+			<xsd:documentation> A promotional text message to display to the customer
+Allowable Values: Normalized text string.
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:normalizedString"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="LocaleCode">
+		<xsd:annotation>
+			<xsd:documentation>
+Allowable Values: ISO-639 two-letter language code, an underscore (_) and ISO-3166 two-letter code, for example: en_US
+Required:Yes
+Length: 5
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="5"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="SourceIdTextType">
+		<xsd:annotation>
+			<xsd:documentation>
+The name assigned to the source id.  Examples: 'FOG', 'TRUS'. This is required
+                as a top level attribute for all Order Service requests.
+ Allowable Values: Text string.
+Required:Yes
+Length: 1-24
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="24"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="OrderType">
+		<xsd:annotation>
+			<xsd:documentation>
+ The type of order as defined in Sterling.
+Allowable Values: 
+SALES
+RETURN
+PURCHASE
+TRANSFER
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="SALES"/>
+			<xsd:enumeration value="RETURN"/>
+			<xsd:enumeration value="PURCHASE"/>
+			<xsd:enumeration value="TRANSFER"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="TestType">
+		<xsd:annotation>
+			<xsd:documentation> Denotes the order as a test order. Values for this attribute are set up within the OMS.
+Allowable Values: 
+TEST_WEBONLY - Webstore does not send the order to the Order service. This tests checkout flow on the webstore, but the order is not sent to OMS. Useful for demo purposes.
+TEST_AUTOCANCEL - Order is sent to OMS, which automatically cancels it. Tests that the order gets to the OMS.
+TEST_NORELEASE - – OMS processes but does not ship the order. Tests payment activation, including taxes
+N/A
+TEST_AUTOSHIP 
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: If omitted, order is sent to OMS as a live non test order.
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="OrderId">
+		<xsd:annotation>
+			<xsd:documentation>The unique text string that identifies an order.
+Allowable Values: Text string
+Required: Yes
+Length: 24
+Default Value: blank
+Restrictions: This string must be unique within the webstore.
+Aliases: N/A</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="24"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="LoyaltyPrograms">
+		<xsd:annotation>
+			<xsd:documentation>A list of loyalty program associated with a customer within a webstore.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="LoyaltyProgram" type="LoyaltyProgram" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="LoyaltyProgram">
+		<xsd:annotation>
+			<xsd:documentation>Information about a loyalty program, thet typically provides a discount or special offers to its members. Includes shopper account information, the loyalty program name, and details about the customer's membership, such as the customer's loyalty program number.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Account" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The customer account with which the loyalty program is linked.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Program" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The name of the loyalty program, for example "Smart Shopper" or "Buyer's Club"
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>A list of labels and data associated with the loyalty program, most typically the program name and the corresponding number assigned to the customer. Other uses could include the customer's status withni a plan, for example gold, silver, etc., and the number of points the customer has within the plan.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="CustomerIdType">
+		<xsd:annotation>
+			<xsd:documentation>Assigned by the system that is taking the order. This can be either an ID created by the customer, for example, when the customer created an account, or, if the customer did not want to create an account, the system creates an ID, which is then used for guest checkouts. Therefore this field always has a value, even if the customer does not actively create an account.
+Allowable Values: Text string
+Required: Yes
+Length: 40
+Default Value: blank
+Restrictions: Must be unique for each customer.
+Aliases: N/A
+			 </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+			<xsd:maxLength value="40"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Gender">
+		<xsd:annotation>
+			<xsd:documentation>
+Allowable Values: Text string.
+M - Male
+F - Female
+Required: No
+Length: 1
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:length value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="ShippingMethodType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+This text string represents the type of shipping used to deliver the order, for example, USPS. These values are unique to each webstore.
+Allowable Values: Text string.
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="displayText" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>The text name associated with the shipping type, for example, "United States Postal Service". The value in this field is used in shipping confirmation emails and on webstore checkout pages.
+Allowable Values: Text string.
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="OrderItemStatus">
+		<xsd:annotation>
+			<xsd:documentation>Combines the Status of the order with the shhipment, delivery, and availability dates, and the originiating warehouse.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Quantity" type="xsd:decimal">
+				<xsd:annotation>
+					<xsd:documentation>The number of items in the order.
+Allowable Values: Decimal 
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Status" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>A text description of the state of the order.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="StatusDate" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The date this status was entered.
+Allowable Values: Date, in MMDDYYYY format.
+Required: No
+Length: TBD
+Default Value: Current date.
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ExpectedShipmentDate" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The date the order is projected to ship.
+Allowable Values: Date, in MMDDYYYY format.
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ExpectedDeliveryDate" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The date the order is projected to arrive at its destination
+Allowable Values: Date, in MMDDYYYY format.
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ProductAvailabilityDate" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The date the order is projected to ship.
+Allowable Values: Date, in MMDDYYYY format.
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Warehouse" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The warehouse from where the order ships.
+Allowable Values: Text string.
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderItemReference">
+		<xsd:annotation>
+			<xsd:documentation>Sequences the order for external viewing, even when it is retrieved differently by an internal system. Multiple OrderItemReference fields can be associated with one order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="ref" type="xsd:IDREF" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Contains the OrderID to which the item belongs.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="OrderItemReferenceList">
+		<xsd:annotation>
+			<xsd:documentation>A list of OrderItems.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Item" type="OrderItemReference" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="FulfillmentType">
+		<xsd:annotation>
+			<xsd:documentation>How the order is completed.
+Allowable Values: 
+SHIP_TO_STORE
+STORE_PICK_UP
+SHIP_TO_HOME
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="SHIP_TO_STORE"/>
+			<xsd:enumeration value="STORE_PICK_UP"/>
+			<xsd:enumeration value="SHIP_TO_HOME"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="Hold">
+		<xsd:annotation>
+			<xsd:documentation>The reason an order is not being shiipped, for example, if fraud verification is not yet complete. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="HoldType" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The nature of the delay
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="LastHoldTypeDate" type="xsd:dateTime">
+				<xsd:annotation>
+					<xsd:documentation>The date and time the hold began.
+Allowable Values: Date in MM:DD:YY:HH:MM:SS format
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ReasonText" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The reason the hold was put in place.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ResolverUserId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The person who ended the hold.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="StatusDescription" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Text detailing the hold's state.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="HoldList">
+		<xsd:annotation>
+			<xsd:documentation>A list of holds associated with an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Hold" type="Hold" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Associate">
+		<xsd:annotation>
+			<xsd:documentation>Information about the person who made, or facilitated the sale. Most commonly used when a sales associate in a store places an order for a customer if merchandise is not in stock.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Name" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+Allowable Values: Text string
+Name of the sales person.
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Number" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+Store-assigned ID number of the sales person.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Store" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+A unique identifier for the store.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="LevelOfService">
+		<xsd:annotation>
+			<xsd:documentation>
+Level of service can be Regular or Rush and is used to identify the priority/urgency with which the order must be processed.  
+Allowable Values: 
+REGULAR
+RUSH
+Required: No
+Length: TBD
+Default Value: REGULAR
+Restrictions:  N/A
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="REGULAR"/>
+			<xsd:enumeration value="RUSH"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="OrderFeeListType">
+		<xsd:annotation>
+			<xsd:documentation>A list of all fees associated with an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Fee" type="OrderFeeType" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>Contains components as defined by OrderFeeType.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderFeeType">
+		<xsd:annotation>
+			<xsd:documentation>
+A fixed surcharge that is placed on an order when cash on delivery or convenience store payment method is used.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="FeeType" type="FeeTypes">
+				<xsd:annotation>
+					<xsd:documentation>Available surcharges that can be placed on an order as defined by FeeTypes</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Information explaining the FeeType. This information is typically displayed on a bill or confirmation email to the customer.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A
+					.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Amount" type="AmountBaseType">
+				<xsd:annotation>
+					<xsd:documentation>Represents a decimal currency with two decimal points, as defined by AmountBaseType. This field is required. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxData" type="OrderTaxData" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Contains information on the taxes associated with an order, including the tax class, jurisdiction, and amounts.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="FeeTypes">
+		<xsd:annotation>
+			<xsd:documentation>The available surcharges that can be applied to an order.
+Allowable Values: 
+ConvenienceStoreSurcharge - Applied when the customer pays for the order at their local convenience store. This option is primarily available in Japan.
+CashOnDeliverySurcharge - Applied when the customer pays for the order at the time it is delivered.
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions:  N/A
+Aliases: N/A
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="ConvenienceStoreSurcharge"/>
+			<xsd:enumeration value="CashOnDeliverySurcharge"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="FeeBaseType">
+		<xsd:annotation>
+			<xsd:documentation>Description, amount, Item ID and tax information of a fee.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="FeeType" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Available surcharges that can be placed on an order for example, geoSurcharge. 
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A			</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>This field contains a further description of the fee, for example, CA Recycling Fee $18.00.This field is not required as FeeType is often ample description..
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A	
+
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Amount" type="AmountBaseType">
+				<xsd:annotation>
+					<xsd:documentation>Represents a decimal currency with two decimal points, as defined by AmountBaseType. This field is required. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ItemId" type="ItemId">
+				<xsd:annotation>
+					<xsd:documentation>
+Represents the identifier for the fee.
+Allowable Values: Text string
+Required: Yes
+Length: 20
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxData" type="OrderTaxData" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="MessageFieldType">
+		<xsd:annotation>
+			<xsd:documentation>Defines the message. Typical MessageFieldTypes are the "To" "From" and "Message" fields on a gift certificate. However, this field is used widely throughout the  webstore. </xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="localizedDisplayText" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>The translation of the MessageTypeField for the local area. This field contains a translation of the MessageFieldType, for example, "To" (Para) "From" (De) or "Message" (Mensaje). It does not translate the actual content of the field. Text in a "Message" field on a gift certificate, such as "Happy Brithday" is not translated, and appears as the customer enters it.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank. Text in this field is English, unless another value is specified.
+Restrictions:  N/A
+Aliases: N/A						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="GiftMessage">
+		<xsd:annotation>
+			<xsd:documentation>Defines the headings contained on a gift card or certificate. This defines only the names of the headings, not their associated text.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="To" type="MessageFieldType">
+				<xsd:annotation>
+					<xsd:documentation>
+Person receiving the gift. Defined by MessageFieldType.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="From" type="MessageFieldType">
+				<xsd:annotation>
+					<xsd:documentation>
+Person sending the gift. Defined by MessageFieldType.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Message" type="xsd:normalizedString" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+Greeting associated with the gift.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A	
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PackslipType">
+		<xsd:annotation>
+			<xsd:documentation>Contains the sender, and recipient names, and any associated message.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Message" type="GiftMessage" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ShippedItem">
+		<xsd:annotation>
+			<xsd:documentation>Shipping information for an item.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Item" type="OrderItemReference"/>
+			<xsd:element name="Quantity" type="xsd:decimal">
+				<xsd:annotation>
+					<xsd:documentation>The number of items included in the shipment.
+Allowable Values: Integer
+Required: Yes
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="InvoiceNo" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The identifier assigned to this item's invoice.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A	
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TrackingNumbers" type="TrackingNumbers" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ShippedItems">
+		<xsd:annotation>
+			<xsd:documentation>Items contained in a shipment.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ShippedItem" type="ShippedItem" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Shipment">
+		<xsd:annotation>
+			<xsd:documentation>Contains the order information, all items in the shipment, the originating warehouse and the carrier.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ShippedItems" type="ShippedItems"/>
+			<xsd:element name="Warehouse" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The name of the originating warehouse. Populated by the  Sterling Node.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A
+
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Carrier" type="CarrierType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Populated on response from OMS. Represents the logical Carriers (SCAC) and modes (CarrierServiceCode)</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TotalWeight" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The amuont and unit of the shipment's weight.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ShippedDate" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Date the shipment left the warehouse.
+Allowable Values: Date and time as defined by dateTime
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:ID" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Unique string within the context of the Order. Generated by the OMS.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="destinationRef" type="xsd:IDREF" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Links a shipment to the destination address
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ShipmentList">
+		<xsd:annotation>
+			<xsd:documentation>Contains multiple shipments. Typically used when multiple shipments are associated with an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Shipment" type="Shipment" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TrackingNumbers">
+		<xsd:annotation>
+			<xsd:documentation>Unique identifiers assigned to a shipment by a shipper.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="TrackingNumber" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>The identifier assigned to the shipped item by the shipper, for example United Parcel Service. This field may contain multiple tracking numbers.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions:  N/A
+Aliases: N/A					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="StoreLocation">
+		<xsd:annotation>
+			<xsd:documentation>Combines the store ID and name with a physical address.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="StoreCode" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The unique string that identifies a specific store. 
+Allowable Values: Text string
+Required: No
+Length: 40
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="40"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="StoreName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The way the store is referrred to, for example "Springfield" or "Eastview Mall".. 
+Allowable Values: Text string
+Required: No
+Length: 100
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="StoreEmail" type="EmailAddress" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The email address used to contact a specific store. 
+Allowable Values: Text string
+Required: Yes
+Length: 70
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Address" type="PhysicalAddressType">
+				<xsd:annotation>
+					<xsd:documentation> The street, city, state and country where the store is located.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:ID"/>
+	</xsd:complexType>
+	<xsd:complexType name="DestinationTarget">
+		<xsd:annotation>
+			<xsd:documentation>Combines the store's mailing address and store location iinformation.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:choice>
+				<xsd:element name="MailingAddress" type="MailingAddress">
+					<xsd:annotation>
+						<xsd:documentation>Combines a name with a physical address.</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="StoreLocation" type="StoreLocation"/>
+				<xsd:element name="Email">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="EmailAddress" type="EmailAddress"/>
+							<xsd:element name="PersonName" type="PersonNameType" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>The name of the person at the specified email address</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="BankAccountDetails">
+		<xsd:annotation>
+			<xsd:documentation>Contains the location and account information for a bank account associated with an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="AccountName" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>How the acccount is described, typically "checking" or "savings".
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankName" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Name of the bank.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Unique identifier for the bank. See http://en.wikipedia.org/wiki/Bank_code for more details. The actual meaning depends on country where the bank is located. For example, in the United States, this is the  ABA Number/Transit Routing number, In the UK, it is the Sort Code, and in Italy, it is the ABI code. 
+Allowable Values: Text string
+Required: Yes.
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankCity" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Name of the city where the bank is located.
+Allowable Values: Text string
+Required: No
+Length: 35
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankCountry" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Name of the country where the bank is located.
+Allowable Values: Text string
+Required: Yes
+Length: 2-40 characters
+Default Value: blank
+Restrictions: Use of  ISO 3166 alpha 2 code is recommended, but not required. See: http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BranchCode" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Unique identifier of the bank's branch. See http://en.wikipedia.org/wiki/Bank_code for more details
+Actual meaning depends on country. For example, in France it is the Code guichet. In Italy it is the CAB code
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankCheckDigit" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The check digits enable a sanity check of the bank account number to confirm its integrity even before submitting a transaction.See http://en.wikipedia.org/wiki/International_Bank_Account_Number#Generating_IBAN_check_digits  for more details. Required for Spain (ES) and France (FR)
+Alllowable Values: Text string
+Required: Varies by country
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PaymentContextOrderBaseType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en"> A set of values to identify all transactions for a unique payment for a single order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PaymentSessionId" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">
+A unique identifier for the payment's session (for internal consumers it is an order id).  The client is responsible for ensuring uniqueness within a given OrderAppId and PartnerChannel
+This identifier typically ties payment transactions to an order. 
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TenderType" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">This element identifies the payment method.                        
+Allowable Values: Text string. Example values: 
+VC - Visa 
+MC - Master Card
+OGC - Online Gift Certificate
+SM - Maestro UK
+SO - Solo UK
+Gift card tender type codes are provider specific.Example values: 
+BH - Blackhawk
+SP - SVS
+PY - Paypal 
+BL -  Bill Me Later
+CVS - CVS 
+COD - COD
+BR - "Prepaid" tender
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PaymentContextOrderType">
+		<xsd:annotation>
+			<xsd:documentation>Contains the PaymentContextOrderBaseType and the PaymentAccountUniqueId</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="PaymentContextOrderBaseType">
+				<xsd:sequence>
+					<xsd:element name="PaymentAccountUniqueId" type="PaymentAccountUniqueIdType">
+						<xsd:annotation>
+							<xsd:documentation xml:lang="en">Either a raw Payment Account Number (PAN ), such as a credit card number, gift certificate, etc. or a token representing a PAN. The type includes an attribute, isToken, to indicate if the PAN is tokenized or is the actual number. As defined in PaymentAccountUniqueIdType.
+</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="ExtendedAuthorizationResponseCodesType">
+		<xsd:annotation>
+			<xsd:documentation>Combines the reason code and text description of a response to a request for credit card authorization.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ResponseCodeDescription" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Text explanation of the response. Typically either an approval, or a reason for denial.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ReasonCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>A code indicating if the authorization has been approved, or why it has been denied.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CreditCardAuthorization">
+		<xsd:annotation>
+			<xsd:documentation>This field is initially populated by the payment service. All authorization response properties will be passed to the OMS. All fields are generated by the payment service and must be passed through to the order service unmodified. The order service returns the fields when the payment is settled.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ResponseCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Response sent to the the OMS indicating if the card has been authorized.
+Allowable Values:  
+ - APPROVED
+ - AcceptOrderWithException
+ - AVS
+ - AVSPIN
+ - DECLF
+ - DECLR
+ - DECL
+ - PaymentProcessorTimeout
+ - PIN
+ - NOK
+ - OK
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BankAuthorizationCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Sent to OMS to send to the Fraud service and to act as a confirmation to OMS that an auth was successfully completed. The bank authorization code is only set when the card has been authorized.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CVV2ResponseCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Sent to OMS for fraud processing.  Not used by the webstore.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="AVSResponseCode" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Sent to OMS for fraud processing. Not used by the webstore.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="PhoneResponseCode" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Response code for customer phone number verification for American Express authorizations.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A  
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="NameResponseCode" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Response code for customer name verification for American Express authorizations.
+Allowable Values: Text string
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                      </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EmailResponseCode" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">Response code for customer email verification for American Express authorizations
+ Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                   </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ExtendedAuthorizationResponseCodes" type="ExtendedAuthorizationResponseCodesType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">
+Combines the response code desciption and the reason code. Sent in the order message to OMS for the fraud screening service.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="AmountAuthorized" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The decimal value approved for the transaction.
+Allowable Values: Integer followed by a decimal point, followed by 2 integers, for example, 723.65
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="SecureVerificationDataOrderType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+3D Secure Verification data. Marking fields as optional for now, need to follow payment schema during submit
+and continue to be optional in response when we split the schema.            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="AuthenticationAvailable" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">This field is used for Verified by VISA (VPAS) e-commerce transactions only. It is the Verify Enrollment Response from the VERes message, returned to the POE from the ACS server as a result of a Verify Enrollment Request. For all other transactions, enter spaces.
+Allowable Values: 
+Y - Card eligible for authentication processing
+N - Attempted authentication. Card eligible for attempts liability, but attempts proof is not available from Issuer.
+U - Unable to process or card not eligible for attempts.
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="AuthenticationStatus" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">The state of the card's authentication. 
+Allowable Values:
+Y - Authentication Approved
+A - Authentication attempted.
+U - Unable to authenticate (due to technical problems or excluded card type).
+N - Authentication failed.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:enumeration value="Y"/>
+						<xsd:enumeration value="A"/>
+						<xsd:enumeration value="U"/>
+						<xsd:enumeration value="N"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="CavvUcaf" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">3D Secure CAVV UCAF data
+Allowable Values: 
+CAVV - Cardholder authentication verification value (Visa)
+UCAF - Universal cardholder authentication field (Mastercard)
+Required: No
+Length: 64
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="64"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="TransactionId" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">This field contains the 3D Secure VBV XID data, which is the VBV transaction ID.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="64"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="ECI" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CardPaymentType">
+		<xsd:annotation>
+			<xsd:documentation>Combines the PaymentContext and PaymentRequestId</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PaymentContext" type="PaymentContextOrderType">
+				<xsd:annotation>
+					<xsd:documentation>Unique identification structure for payments. See Payment Service.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="PaymentRequestId" type="RequestId" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ProxyPickupDetails">
+		<xsd:annotation>
+			<xsd:documentation>Name and contact information for the person authorized to pick up an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PersonName" type="xsd:string"/>
+			<xsd:element name="Email" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="Phone" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="OrderItemLineNumber">
+		<xsd:annotation>
+			<xsd:documentation>
+The line number associated with an item in an order.   
+Allowable Values: 1 to 999. It is recommended to start line numbers in an order with "1"
+Required: Yes
+Length: 3 characters
+Default Value: blank
+Restrictions: Line numbers must be unique within a submitted order.
+Aliases: N/A
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:positiveInteger">
+			<xsd:totalDigits value="3"/>
+			<xsd:minInclusive value="1"/>
+			<xsd:maxInclusive value="999"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="ChargeDetailType">
+		<xsd:annotation>
+			<xsd:documentation>Captures specific details that are common to charges such as names, categories, and unique ID keys                </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="key" type="xsd:string"/>
+		<xsd:attribute name="category" type="xsd:string"/>
+		<xsd:attribute name="name" type="xsd:string" use="optional"/>
+		<xsd:attribute name="reference" type="xsd:string" use="optional"/>
+	</xsd:complexType>
+	<xsd:complexType name="ReasonType">
+		<xsd:annotation>
+			<xsd:documentation>Explanation of why there was a price adjustment. This text can be localized.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:annotation>
+				<xsd:documentation>
+                    Human produced text data specifying why an adjustment occurred
+                </xsd:documentation>
+			</xsd:annotation>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="code" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>String that corresponds the Reason text.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="PriceAdjustmentType">
+		<xsd:annotation>
+			<xsd:documentation>Specifies the amount of the price adjustment. Adjustment can be on the entire order, or a specific item.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Detail" type="ChargeDetailType"/>
+			<xsd:element name="Amount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The value of the adjustment on the entire order. Represents a decimal currency with two decimal points, as defined by AmountBaseType. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="LineAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The value of the adjustment on one item in the order. Represents a decimal currency with two decimal points, as defined by AmountBaseType.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="UnitAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The value of the adjustment on one instance of an item in an order. Used when multiple numbers of a single item are ordered, for example, if the order contained 10 flash drives, and one was defective, the price adjustment is entered using the unit amount. Represents a decimal currency with two decimal points, as defined by AmountBaseType.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxData" type="OrderTaxData" minOccurs="0"/>
+			<xsd:element name="Reason" type="ReasonType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Explanation of why there was a price adjustment. This text can be localized.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PriceAdjustmentListType">
+		<xsd:annotation>
+			<xsd:documentation>Contains a list of price adjustments for an order.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Adjustment" type="PriceAdjustmentType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Customer">
+		<xsd:annotation>
+			<xsd:documentation>Contains customer information including name, gender and birthdate. Also includes tax-exemption information and loyalty program information.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Name" type="PersonNameType">
+				<xsd:annotation>
+					<xsd:documentation>The customer name is the same as the order payment name. GSI currently does not support different names for Billing and
+Payment information, </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Gender" type="Gender" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Used for fraud check purposes.
+Allowable Values: Text string.
+M - Male
+F - Female
+Required: No
+Length: 1
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="DateOfBirth" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>When the customer was born 
+Allowable Values: Date, in yyyy-MM-dd format. Example: 1980-07-15
+Required: No
+Length: TBD
+Default Value: Blank
+Restrictions: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EmailAddress" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Customer Email address, for example: mike@gsicommerce.com
+Allowable Values: Text string
+Required: Yes
+Length: 150 characters
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                     </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="150"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="CustomerTaxId" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Specifies the buyer's tax exemption certificate to allow the
+tax system to exempt tax on certain items.
+Allowable Values: Text string
+Required: No
+Length: 40 characters
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="40"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="TaxExemptFlag" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>This flag indicates whether the buyer is exempt from paying taxes.
+Allowable Values: 
+0 - buyer is not tax-exempt
+1 - buyer is tax-exempt
+Required: No
+Length: 1 character
+Default Value: 0
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="LoyaltyPrograms" type="LoyaltyPrograms" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Contains loyalty program information for the customer.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="customerId" type="CustomerIdType" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Assigned by the system that is taking the order. This can be either an ID created by the customer, for example, when the customer created an account, or, if the customer did not want to create an account, the system creates an ID, which is then used for guest checkouts. Therefore this field always has a value, even if the customer does not actively create an account.
+Allowable Values: Text string
+Required: No
+Length: 40
+Default Value: blank
+Restrictions: Must be unique for each customer.
+Aliases: N/A</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="OrderItemRelationship">
+		<xsd:annotation>
+			<xsd:documentation>Associates the OrderID with the items in the order, and groups them according to type.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Members" type="OrderItemReferenceList">
+				<xsd:annotation>
+					<xsd:documentation>Contains all the items in the order.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Type" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Type of item group. For example, "BUNDLE", "KIT" or "WARRANTY".
+ TODO: Should this be an enumerated list?                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Item group description. For example "Snowboard Package".
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="parent" type="xsd:IDREF" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>The orderID associated with this OrderItemRelationship.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="OrderItemRelationships">
+		<xsd:sequence>
+			<xsd:element name="Relationship" type="OrderItemRelationship" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="TaxHeader">
+		<xsd:sequence>
+			<xsd:element name="Error" type="xsd:boolean" default="false">
+				<xsd:annotation>
+					<xsd:documentation>Set to true when the tax system returns an error on the
+                        Quotation Response.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ImpositionType">
+		<xsd:annotation>
+			<xsd:documentation>Category of tax imposed on the item.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="xsd:string">
+				<xsd:attribute name="impositionType" type="xsd:string" use="optional">
+					<xsd:annotation>
+						<xsd:documentation>Categorizes the tax being imposed. Examples include include General Sales and Use Tax, Surcharge, and VAT.
+Allowable Values: Text string
+Required: No
+Length: 60
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:attribute>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="OrderTaxType">
+		<xsd:annotation>
+			<xsd:documentation>Information that defines the taxes for the order. Includes taxable amount, type and rate, jurisdiction information and the seller ID.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Situs" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>The type of location on which the tax is based.
+Allowable Values:
+ADMINISTRATIVE_DESTINATION   
+ADMINISTRATIVE_ORIGIN   
+DESTINATION   
+PHYSICAL_ORIGIN
+Required: Yes
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Jurisdiction" type="Jurisdiction" minOccurs="0"/>
+			<xsd:element name="Imposition" type="ImpositionType" minOccurs="0"/>
+			<xsd:element name="EffectiveRate" type="xsd:decimal">
+				<xsd:annotation>
+					<xsd:documentation>The percentage applied to the TaxableAmount to create the CalculatedTax
+Allowable Values: A one- or two-character integer followed by a decimal point, followed by a two-character integer. For example, "2.25".
+Required: Yes
+Length: 5
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxableAmount" type="AmountBaseType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The portion of the order that is subject to taxation. Represents a decimal currency with two decimal points, as defined by AmountBaseType.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CalculatedTax" type="AmountBaseType">
+				<xsd:annotation>
+					<xsd:documentation>The amount of tax due for this purchase. Represents a decimal currency with two decimal points, as defined by AmountBaseType. This field is required. </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SellerRegistrationId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>A unique string associated with the entity selling this purchase.
+Allowable Values: Text string
+Required: No
+Length: 40
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="taxType" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation> This is expected to be one of "SALES", "SELLER_USE", "CONSUMER_USE",
+ "VAT", "IMPORT_VAT". 
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A            </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="taxability" type="Taxability" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>Indicates if the order is taxable. Populated by the OMS.
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="TaxGroupType">
+		<xsd:sequence>
+			<xsd:element name="Tax" type="OrderTaxType" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderTaxData">
+		<xsd:sequence>
+			<xsd:element name="TaxClass" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The category into which an item falls for tax purposes, for example "clothing" or "cosmetics".
+Allowable Values: Text string
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Taxes" type="TaxGroupType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PromoDiscount">
+		<xsd:sequence>
+			<xsd:element name="Id" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+                        This may not be required, but would most likely be a composite key of
+                        channel and identifier
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Code" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Optional code typically entered by the customer to explicitly apply a
+                        promotion to the order/item.  Example: FF20
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Amount" type="AmountBaseType"/>
+			<xsd:element name="Description" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        TODO: At one point, this was determined to be required. We need to
+                        investigate whether this is still true and in what Locale will the
+                        description be displayed
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EffectType" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation xml:lang="en">
+                        Represent the effect of the Promotion.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TaxData" type="OrderTaxData" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="appliedCount" type="xsd:int" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+                    The number of times a particular promotion has been applied.
+                    Promotions such as Buy One, Get One can get triggered multiple times
+                    and have the same Promotion Id.
+
+                    An omitted value is inferred as quantity of 1
+
+                    //Disount/Amount = Base Promotional Amount * quantity
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="PromoDiscountSet">
+		<xsd:sequence>
+			<xsd:element name="Discount" type="PromoDiscount" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="DeliveryType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+                Possible values are DeliveryDate, ShipDate, or None.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="DeliveryEstimateMode">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">
+                ENABLED: webstore uses the response from inventoryDetails request and displays EDD
+                to customer per line item in cart. edd is passed through order message to OMS
+
+                DISABLED: webstore ignores response from inventoryDetails request and displays
+                "legacy messaging" (e.g. "Leaves Warehouse in 1-2 days")
+
+                CALIBRATION:webstore passes calculated EDD dates from inventoryDetails request
+                through order message, but displays legacy messaging in webstore.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="CALIBRATION"/>
+			<xsd:enumeration value="ENABLED"/>
+			<xsd:enumeration value="LEGACY"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="EstimatedDeliveryDateType">
+		<xsd:annotation>
+			<xsd:documentation>
+                The estimated delivery date (EDD)
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="DeliveryWindow" type="DateRangeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        These are required fields for FTC compliance emails, values are returned as part of the Inventory Details service.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ShippingWindow" type="DateRangeType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        These are required fields for FTC compliance emails, values are returned as part of the Inventory Details service.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Mode" type="DeliveryEstimateMode" minOccurs="0"/>
+			<xsd:element name="MessageType" type="DeliveryType">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Estimated Delivery date message
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Template" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The Template text value has a varying number string variable markers depending on the
+                        template selected by OMS.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="NamedDeliveryDateType">
+		<xsd:sequence>
+			<xsd:element name="DeliveryDate" type="xsd:date" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The date named for delivery in yyyy-MM-dd (UTC) format
+Allowable Values: Four-digit year, two-digit month, two-digit day. Each component of the date is separated by a hyphen.
+Required: No
+Length: 10
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                  </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TimeWindowStart" type="xsd:time" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Time Window range start in 24 hour format
+Allowable Values: First two digits are 00-24, followed by a colon, followed by 00-59
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="TimeWindowEnd" type="xsd:time" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Time Window range end in 24 hour format
+Allowable Values: First two digits are 00-24, followed by a colon, followed by 00-59
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Message" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>Named Delivery Date specific delivery message
+Allowable Values: Text
+Required: No
+Length: TBD
+Default Value: blank
+Restrictions: N/A
+Aliases: N/A                                        </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CustomerSessionInfo">
+		<xsd:sequence>
+			<xsd:element name="TimeSpentOnSite" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The number of seconds from the time the customer started their current
+                        session to the time the order was submitted. Format is h:mm:ss
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:pattern value="[0-9]?[0-9]:[0-9][0-9]:[0-9][0-9]"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="LastLogin" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        This should be the date the customer had previously logged-in prior
+                        to their current session.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="UserPassword" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="TimeOnFile" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The time in milliseconds
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="RTCTransactionResponseCode" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Transaction Response code from the RTC Payment Response message
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="RTCReasonCodes" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        ExtendedReasonCodes from the RTC Payment Response message
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="AuthorizationAttempts" type="xsd:int" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="BrowserData">
+		<xsd:annotation>
+			<xsd:documentation>
+                Information about the browser that submitted the HTTP request that placed the order.
+                This data is currently used for fraud screening.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="HostName">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The fully qualified name of the client that sent the request when the order
+                        was taken through an HTTP client.
+
+                        See:
+                        http://java.sun.com/products/servlet/2.2/javadoc/javax/servlet/ServletRequest.html#getRemoteHost%28%29
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="IPAddress" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The Internet Protocol (IP) address of the client that sent the request.
+                        See:
+                        http://java.sun.com/products/servlet/2.2/javadoc/javax/servlet/ServletRequest.html#getRemoteAddr%28%29
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SessionId">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The customer's unique HTTP session identifier
+                        See:
+                        http://java.sun.com/products/servlet/2.2/javadoc/javax/servlet/http/HttpSession.html#getId%28%29
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="UserAgent">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The user agent identification string of the HTTP client that submitted the
+                        order. This is typically obtained using
+                        HTTPServletRequest.getHeader("User-Agent")
+                        Example: Mozilla/5.0 (Linux; X11)
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="Connection" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The type of connection preferred by the user agent of the HTTP client that
+                        submitted the order. This is typically obtained using
+                        HTTPServletRequest.getHeader("Connection")
+                        Example: close
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="25"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="Cookies" type="xsd:normalizedString" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The raw cookies found in the HTTP request. This is typically obtained using
+                        HTTPServletRequest.getHeader("Cookie").
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="UserCookie" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The user cookie
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="UserAgentOS" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="UserAgentCPU" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="HeaderFrom" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="EmbeddedWebBrowserFrom" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="100"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="JavascriptData" type="xsd:normalizedString">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The data collected by the 41st Parameter FraudNet JavaScript data collector.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Referrer">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The HTTP referring page URL.
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="1024"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="HTTPAcceptData" type="HTTPAcceptData"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="HTTPAcceptData">
+		<xsd:annotation>
+			<xsd:documentation>
+                Characteristics of the content types that are acceptable to the HTTP client that
+                was used to placed the order. Currently, this data is used for fraud screening.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ContentTypes">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The types of content acceptable. Typically retrieved using:
+                        HTTPServletRequest.getHeader("Accept")
+                        Example:
+                        text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="1024"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="Encoding">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The encoding mechanisms. Typically retrieved using:
+                        HTTPServletRequest.getHeader("Accept-Encoding")
+                        Example: compress, gzip
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="Language">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Acceptable languages. Typically retrieved using:
+                        HTTPServletRequest.getHeader("Accept-Language")
+                        Example: en
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="255"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="CharSet">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Acceptable character set. Typically retrieved using:
+                        HTTPServletRequest.getHeader("Accept-Charset")
+                        Example: iso-8859-5
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PayPalPayerInfo">
+		<xsd:annotation>
+			<xsd:documentation>
+                PayPal Payer information.  Currently, this data is used for fraud screening.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="PayPalPayerID" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="PayPalPayerStatus" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="PayPalAddressStatus" minOccurs="0">
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="50"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="CustomizationTextType">
+		<xsd:restriction base="xsd:string">
+			<xsd:maxLength value="254"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="CustomizationInstruction">
+		<xsd:sequence>
+			<xsd:element name="Key">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Key to identify the type of customization instruction.  Must be unique
+                        within the set of CustomizationInstructions.
+                        Examples: "Font", "Color", "Sender", "From".
+                        Synonymous with "Message Type ID"
+                    </xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="xsd:string">
+						<xsd:maxLength value="20"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+			<xsd:element name="Value" type="CustomizationTextType">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Represents the single piece of information associated with the instruction.
+                        The value may be encoded and not necessarily intended for customer display.
+                        Examples: "Blue", "SMITH,42", "gift_certificate_05_010609_w272.jpg"
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="DisplayTitle" type="CustomizationTextType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        The display string used to characterize the meaning of the data
+                        encapsulated by the CustomizationInstruction.  This value is usually different
+                        from the 'Key' as it is intended for the customer display purposes.  It may
+                        be in a different locale than the Key.  Example: "Hangtag Typestyle".
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="DisplayValue" type="CustomizationTextType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        A displayable value representing a single piece of customization data.
+                        DisplayValue is usually different from the 'Value' element as it is
+                        intended for the customer who selected the customization and may be in a
+                        different locale.  Examples: "dunkelblaue"
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="CustomizationInstructions">
+		<xsd:sequence>
+			<xsd:element name="Instructions" type="CustomizationInstruction" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="PriceGroupBaseType">
+		<xsd:sequence>
+			<xsd:element name="Amount" minOccurs="0">
+				<xsd:complexType>
+					<xsd:simpleContent>
+						<xsd:extension base="AmountBaseType">
+							<xsd:annotation>
+								<xsd:documentation>
+                                    Remainder refers to the VAT (Value Added Tax.. the price of the item already
+                                    has tax included) remainder that can occur when
+                                    the total amount divided by the order item quantity does not come out even.
+
+                                    Amount - remainder = UnitPrice * Quantity
+                                    Amount = (UnitPrice * Quantity) + remainder
+
+                                    For example, Amount is 100 and the quantity is 3.
+                                    The amount would be 100.00, the remainder would be 0.01, and
+                                    the UnitPrice would be 33.33.
+
+                                </xsd:documentation>
+							</xsd:annotation>
+							<xsd:attribute name="remainder" type="AmountBaseType" use="optional"/>
+						</xsd:extension>
+					</xsd:simpleContent>
+				</xsd:complexType>
+			</xsd:element>
+			<xsd:element name="PromotionalDiscounts" type="PromoDiscountSet" minOccurs="0"/>
+			<xsd:element name="TaxData" type="OrderTaxData" minOccurs="0"/>
+			<xsd:element name="UnitPrice" type="AmountBaseType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ProductDescriptionBaseType">
+		<xsd:annotation>
+			<xsd:documentation>
+                The product description is primarily intended for communicating with the customer
+                in the language they placed the order.  It is not intended for this data to be
+                used for fulfillment or reporting information.
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Description" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+                        Product description in the locale in which the order was taken.
+                        Enfinity plans to use Short Description.
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OrderSummaryResponseType">
+		<xsd:annotation>
+			<xsd:documentation>Search</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice minOccurs="0">
+			<xsd:element name="OrderSummary" type="OrderSummaryType" nillable="false" maxOccurs="unbounded"/>
+		</xsd:choice>
+	</xsd:complexType>
+	<xsd:complexType name="OrderSummaryType">
+		<xsd:annotation>
+			<xsd:documentation xml:lang="en">Order Summary</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="CustomerOrderId" type="OrderId" minOccurs="0"/>
+			<xsd:element name="CustomerId" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="OrderDate" type="xsd:dateTime"/>
+			<xsd:element name="DashboardRepId" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+                        If a customer service representative put this order through for a customer, there Id is
+                        returned here
+                    </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Status" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="OrderTotal" type="xsd:string" minOccurs="1"/>
+			<xsd:element name="Source" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="ChainedOrder" type="ChainedOrderType" minOccurs="0"/>
+			<xsd:element name="DerivedOrder" type="DerivedOrderType" minOccurs="0"/>
+		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:ID" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Unique key used for relating orders through IDREFs
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="orderType" type="OrderType" use="optional"/>
+		<xsd:attribute name="orderPurpose" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+                    This indicates what, if any, specific purpose this order was created for.
+                    The only current valid value is 'EXCHANGE' which means the order is created for exchange purpose.
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="testType" type="TestType" use="optional"/>
+		<xsd:attribute name="modifiedTime" type="xsd:dateTime" use="required"/>
+		<xsd:attribute name="cancellable" type="xsd:boolean" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Will only be populated for Order Search requests.
+                    Will not be returned on Related Order Search requests.
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="ChainedOrderType">
+		<xsd:annotation>
+			<xsd:documentation>
+                A chained order refers to a Drop Shipped order
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="type" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Only current valid value is "DROP_SHIP"
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="parentRef" type="xsd:IDREF" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Refers to a parent order
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="DerivedOrderType">
+		<xsd:annotation>
+			<xsd:documentation>
+                A derived order is a returned and/or exchanged order
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="parentRef" type="xsd:IDREF" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+                    Refers to the parent of this derived order
+                </xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:simpleType name="TaxAndDutyDisplayType">
+		<xsd:annotation>
+			<xsd:documentation>
+                Line level attribute for Tax and Duty Display
+
+                Consolidated Taxes Only
+                This means that a single tax line is displayed to consumers with no duties line displayed,
+                e.g. Sales Tax in the US
+
+                Individual Taxes Only
+                This means that one or more tax lines are displayed to consumers based on the taxes returned
+                from Vertex with no duties line displayed, e.g. GST, HST, PST, QST in Canada
+
+                No Taxes or Duties
+                This provides a way to message to consumers that no taxes or duties are being charged as part
+                of their purchase but that they may be responsible for payment of taxes and/or duties upon delivery.
+                NOTE - This does not stop the TDF service from calculating taxes and duties so it is important
+                that if you don't want to charge taxes and duties that the TDF is not returning taxes and duties.
+
+                Taxes and Duties Consolidated in a Single Amount (aka International Handling Fee)
+                This provides a way to roll all tax and duty amounts into a single amount and display that amount
+                to a user utilizing a single label. Also referred to as the "International Handling Fee"
+            </xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:complexType name="DestinationsType">
+		<xsd:sequence>
+			<xsd:sequence minOccurs="0">
+				<xsd:element name="MailingAddress" nillable="false" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:complexContent>
+							<xsd:extension base="MailingAddress">
+								<xsd:sequence>
+									<xsd:element name="Phone" type="xsd:string"/>
+								</xsd:sequence>
+								<xsd:attribute name="id" type="xsd:ID"/>
+							</xsd:extension>
+						</xsd:complexContent>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="StoreLocation" type="StoreLocation" nillable="false" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element name="Email" nillable="false" minOccurs="0" maxOccurs="unbounded">
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="EmailAddress" type="EmailAddress"/>
+							<xsd:element name="PersonName" type="PersonNameType" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>The name of the person at the specified email address</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="id" type="xsd:ID"/>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+		</xsd:sequence>
+	</xsd:complexType>
+</xsd:schema>

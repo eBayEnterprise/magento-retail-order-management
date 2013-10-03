@@ -26,6 +26,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 			// make request to eb2c for Gift Card Redeem
 			$storeValueRedeemReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem)
 				->request($storeValueRedeemRequest);
 
 		}catch(Exception $e){

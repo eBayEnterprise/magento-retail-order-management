@@ -74,9 +74,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		foreach ($this->_queue as $item) {
 			try {
 				$this->_processItem($item);
+				// @codeCoverageIgnoreStart 
 			} catch (Mage_Core_Exception $e) {
 				Mage::logException($e);
 			}
+			// @codeCoverageIgnoreEnd
 		}
 		return $this;
 	}
@@ -191,6 +193,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 	/**
 	 * @return array list containing the integer id for the root-category of the default store
+	 * @codeCoverageIgnore
+	 * No coverage needed since this is almost all external code.
 	 */
 	protected function _getDefaultCategoryIds()
 	{
@@ -278,7 +282,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			// get the product model to import the data into
 			$this->_getProductBySku($dataObject->getClientItemId())->addData($this->_preparedProductData($dataObject))->save();
 		}
-
 		return $this;
 	}
 }

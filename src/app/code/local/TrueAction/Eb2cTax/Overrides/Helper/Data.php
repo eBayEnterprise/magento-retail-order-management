@@ -36,6 +36,7 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		try {
 			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
+				->setXsd($this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest)
 				->request($request->getDocument());
 		} catch(Exception $e) {
 			Mage::throwException('TaxDutyFee communications error: ' . $e->getMessage() );

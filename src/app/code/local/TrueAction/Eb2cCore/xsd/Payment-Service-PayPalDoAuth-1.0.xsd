@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+  targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+  xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+  version="1.0">
+
+<xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+<xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+<xsd:complexType name="PayPalDoAuthorizationRequestType" >
+  <xsd:sequence>
+    <xsd:element name="OrderId" type="OrderIdType" >
+         <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                   A unique identifier for the order.<br/>
+                   The client is responsible for ensuring uniqueness across all transactions the client initiates with this service.
+              </xsd:documentation>
+         </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="Amount" type="AmountType" >
+         <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                   The actual amount that needs to be authorized.
+              </xsd:documentation>
+         </xsd:annotation>
+    </xsd:element>
+  </xsd:sequence>
+  <xsd:attribute name="requestId" type="RequestId" use="required"/>
+</xsd:complexType>
+
+<xsd:element name="PayPalDoAuthorizationRequest" type="PayPalDoAuthorizationRequestType" />
+
+<xsd:complexType name="PayPalDoAuthorizationReplyType" >
+  <xsd:sequence>
+    <xsd:element name="OrderId" type="OrderIdType" />
+    <xsd:element name="ResponseCode" type="xsd:string" >
+         <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                   Response code like Success, Failure etc
+              </xsd:documentation>
+         </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="AuthorizationInfo" type="PayPalPaymentInfoType" minOccurs="0">
+         <xsd:annotation>
+              <xsd:documentation xml:lang="en">
+                   Authorization details.
+              </xsd:documentation>
+         </xsd:annotation>
+    </xsd:element>
+  </xsd:sequence>
+</xsd:complexType>
+
+<xsd:element name="PayPalDoAuthorizationReply" type="PayPalDoAuthorizationReplyType" />
+  
+
+</xsd:schema>
