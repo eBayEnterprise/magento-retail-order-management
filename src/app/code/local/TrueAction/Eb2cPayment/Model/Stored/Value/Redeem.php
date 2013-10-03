@@ -21,12 +21,12 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 		$storeValueRedeemReply = '';
 		try{
 			// build request
-			$storeValueRedeemRequest = $this->buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount);
+			$storedValueRedeemRequest = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
 
 			// make request to eb2c for Gift Card Redeem
 			$storeValueRedeemReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
-				->request($storeValueRedeemRequest);
+				->request($storedValueRedeemRequest);
 
 		}catch(Exception $e){
 			Mage::logException($e);
@@ -45,14 +45,14 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 	 *
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
-	public function buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount)
+	public function buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueRedeemRequest = $domDocument->addElement('StoreValueRedeemRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
-		$storeValueRedeemRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($entityId));
+		$storedValueRedeemRequest = $domDocument->addElement('StoredValueRedeemRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$storedValueRedeemRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($entityId));
 
 		// creating PaymentContent element
-		$paymentContext = $storeValueRedeemRequest->createChild(
+		$paymentContext = $storedValueRedeemRequest->createChild(
 			'PaymentContext',
 			null
 		);
@@ -71,13 +71,13 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 		);
 
 		// add Pin
-		$storeValueRedeemRequest->createChild(
+		$storedValueRedeemRequest->createChild(
 			'Pin',
 			(string) $pin
 		);
 
 		// add amount
-		$storeValueRedeemRequest->createChild(
+		$storedValueRedeemRequest->createChild(
 			'Amount',
 			$amount,
 			array('currencyCode' => 'USD')

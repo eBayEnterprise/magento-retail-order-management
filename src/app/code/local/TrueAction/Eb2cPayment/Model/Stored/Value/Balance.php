@@ -19,12 +19,12 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 		$storeValueBalanceReply = '';
 		try{
 			// build request
-			$storeValueBalanceRequest = $this->buildStoreValueBalanceRequest($pan, $pin);
+			$storedValueBalanceRequest = $this->buildStoredValueBalanceRequest($pan, $pin);
 
 			// make request to eb2c for Gift Card Balance
 			$storeValueBalanceReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_balance'))
-				->request($storeValueBalanceRequest);
+				->request($storedValueBalanceRequest);
 
 		}catch(Exception $e){
 			Mage::logException($e);
@@ -40,26 +40,26 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 	 *
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
-	public function buildStoreValueBalanceRequest($pan, $pin)
+	public function buildStoredValueBalanceRequest($pan, $pin)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueBalanceRequest = $domDocument->addElement('StoreValueBalanceRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$storedValueBalanceRequest = $domDocument->addElement('StoredValueBalanceRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 
 		// creating PaymentAccountUniqueId element
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'PaymentAccountUniqueId',
 			$pan,
 			array('isToken' => 'false')
 		);
 
 		// add Pin
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'Pin',
 			(string) $pin
 		);
 
 		// add Pin
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'CurrencyCode',
 			'USD'
 		);
