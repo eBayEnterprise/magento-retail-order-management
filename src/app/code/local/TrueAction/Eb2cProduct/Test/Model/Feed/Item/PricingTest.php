@@ -204,9 +204,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	 * @loadFixture
 	 * @dataProvider dataProvider
 	 */
-	public function testProcessFeedsIntegration($expectation, $xml)
+	public function testProcessFeedsIntegration($expectation)
 	{
-		$this->markTestSkipped('disabled because of a bug in product attributes.');
+		$fixtureData = $this->getLocalFixture($expectation);
+		$xml = $fixtureData['xml'];
+
 		$vfs = $this->getFixture()->getVfs();
 		$vfs->apply(array('var' => array('eb2c' => array('foo.txt' => $xml))));
 		$this->replaceCoreConfigRegistry(array(
@@ -244,9 +246,21 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 		$model->expects($this->any())
 			-> method('getWebsiteIds')
 			->will($this->returnValue(array(0)));
+
+		$e = $this->expected($expectation);
+		// do some precondition checks
+		$products = Mage::getResourceModel('catalog/product_collection');
+		$products->addAttributeToSelect('*')
+			->getSelect()
+			->where('e.sku = ?', $e->getSku());
+		$product = $products->getFirstItem();
+		$this->assertSame($e->getInitialVatFlag(), $product->getPriceIsVatInclusive());
+
+		// run the actual test
 		$model->setFeedModel($feedModel);
 		$model->processFeeds();
-		$e = $this->expected($expectation);
+
+		// check the results
 		$products = Mage::getResourceModel('catalog/product_collection');
 		$products->addAttributeToSelect('*')
 			->getSelect()
