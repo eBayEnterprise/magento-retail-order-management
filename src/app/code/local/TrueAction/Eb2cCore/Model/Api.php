@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 {
 	/**
@@ -23,6 +18,11 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	const DEFAULT_ADAPTER = 'Zend_Http_Client_Adapter_Socket';
 
 	/**
+	 * Placeholder for validation errors for schema validation
+	 */
+	private $_schemaValidationErrors;
+
+	/**
 	 * Call the API.
 	 *
 	 * @param DOMDocument $doc The document to send in the request body
@@ -30,6 +30,14 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	 */
 	public function request(DOMDocument $doc)
 	{
+		if (!$this->hasXsd()) {
+			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation has not been set.');
+		}
+
+		if (!$this->_schemaValidate($doc)) {
+			Mage::throwException('[ ' . __CLASS__ . ' ] Schema validation failed.');
+		}
+
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server
 		// by default, curl will be used as the default adapter
 		$client = $this->getHttpClient();
@@ -44,6 +52,10 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 			));
 		Mage::log(sprintf('[ %s ] Making API request to %s', __CLASS__, $client->getUri()), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
+		Mage::log(
+			sprintf("[ %s ] Sent request to %s:\n%s", __CLASS__, $client->getUri(), $doc->saveXML()),
+			Zend_Log::DEBUG
+		);
 		Mage::log(
 			sprintf("[ %s ] Received response from %s:\n%s", __CLASS__, $client->getUri(), $response->asString()),
 			Zend_Log::DEBUG
@@ -76,5 +88,54 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	public function setHttpClient(Zend_Http_Client $clientIn)
 	{
 		return $this->setData('http_client', $clientIn);
+	}
+
+	/**
+	 * Returns an XSD path. xsdName is expected to come from a module's configuration.
+	 * If it's just a plain old filename, we look for it in the Core Config apiXsdPath.
+	 * Otherwise, we just use it as is.
+	 *
+	 * @return string Path to send to DOMDocument::schemaValidate
+	 */
+	private function _getXsdPath($xsdName)
+	{
+		if( basename($xsdName) === $xsdName ) {
+			$xsdName = $this->getConfig()->apiXsdPath . DS . $xsdName;
+		}
+		return($xsdName);
+	}
+
+	/**
+	 * Used by set_error_handler() to capture array of errors during schema validation
+	 *
+	 */
+	public function schemaValidationErrorHandler($errno , $errstr, $errfile, $errline)
+	{
+		$this->_schemaValidationErrors[] = "'$errstr' [Errno $errno]";
+	}
+
+	/**
+	 * Validates the DOM against a magically-set Validation Schema, which should be a full path
+	 * to a sensibile .xsd for this DOMDocument.
+	 *
+	 * @return boolean true valid false otherwise
+	 */
+	private function _schemaValidate(DOMDocument $doc)
+	{
+		$this->_schemaValidationErrors = array();
+		set_error_handler(
+			array(
+				$this,
+				'schemaValidationErrorHandler'
+			)
+		);
+		$validationResult = $doc->schemaValidate($this->_getXsdPath($this->getXsd()));
+		restore_error_handler();
+		if( !$validationResult ) {
+			foreach( $this->_schemaValidationErrors as $error ) {
+				Mage::log( '[ ' . __CLASS__ . ' ]' . $error, Zend_Log::ERR );
+			}
+		}
+		return $validationResult;
 	}
 }

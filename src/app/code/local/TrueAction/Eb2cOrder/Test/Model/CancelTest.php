@@ -5,21 +5,18 @@
 class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cOrder_Test_Abstract
 {
 	const SAMPLE_CANCELLED_XML = <<<CANCELLED_XML
-<?xml version="1.0" encoding="UTF-8"?>
-  <OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+<OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
   <ResponseStatus>CANCELLED</ResponseStatus>
 </OrderCancelResponse>
 CANCELLED_XML;
 
 	const SAMPLE_FAILED_XML = <<<FAILED_XML
-<?xml version="1.0" encoding="UTF-8"?>
-  <OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+<OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
   <ResponseStatus>WHOOPS THAT DIDNT WORK</ResponseStatus>
 </OrderCancelResponse>
 FAILED_XML;
 
 	const SAMPLE_INVALID_XML = <<<INVALID_XML
-<?xml version="1.0" encoding="UTF-8"?>
   <OrderCancelResponse>
 Sorry, this is some invalid stuff right here.
 INVALID_XML;

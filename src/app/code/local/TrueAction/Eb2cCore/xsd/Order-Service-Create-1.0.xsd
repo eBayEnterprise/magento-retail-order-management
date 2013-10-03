@@ -1,0 +1,788 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+           targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xsd:include schemaLocation="Order-Datatypes-Common-1.0.xsd"/>
+
+    <xsd:element name="OrderCreateResponse" type="OrderCreateResponse" nillable="false"/>
+
+    <xsd:element name="OrderCreateRequest" type="OrderCreateRequest" nillable="false"/>
+
+    <xsd:simpleType name="NewOrderResponseStatus">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Fail"/>
+            <xsd:enumeration value="Success"/>
+            <xsd:enumeration value="Timeout"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="OrderCreateResponse">
+        <xsd:sequence>
+            <xsd:element name="ResponseStatus" type="NewOrderResponseStatus"/>
+            <xsd:element name="ResponseDescription" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional text description of error.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="OrderContext">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provides contextual information regarding Order. Primarily pass-through values
+                used for fraud filtering and marketing reporting
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="BrowserData" type="BrowserData" minOccurs="0"/>
+            <xsd:element name="TdlOrderTimestamp" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="SessionInfo" type="CustomerSessionInfo" minOccurs="0"/>
+            <xsd:element name="PayPalPayerInfo" type="PayPalPayerInfo" minOccurs="0"/>
+            <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderCreateRequest">
+        <xsd:sequence>
+            <xsd:element name="Order" type="OrderRequestType"/>
+            <xsd:element name="Context" type="OrderContext"/>
+        </xsd:sequence>
+        <xsd:attribute name="orderType" type="OrderType" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Optional parameter to explicitly denote the type of order to create.
+                    Sales order is the default.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="testType" type="TestType" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Optional attribute to send order as a test.
+                    TEST_AUTOCANCEL will cancel the order in Order Management System.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="requestId" type="RequestId" use="required">
+            <xsd:annotation>
+                <xsd:documentation xml:lang="en">
+                  requestId is a globally unique string provided by the eb2c application
+                  which identifies the request.  This value is used by eb2c inventory
+                  to ensure that this operation behaves in a safe and idempotent
+                  manner.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="OrderRequestType">
+        <xsd:annotation>
+            <xsd:documentation>This is the top node for representing an Order</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="Customer" type="Customer"/>
+            <xsd:element name="CreateTime" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The time the order generating application accepted the order.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="OrderItems" type="OrderItemListRequestType"/>
+            <xsd:element name="Shipping" type="ShippingRequestType"/>
+            <xsd:element name="Payment" type="OrderPaymentType"/>
+            <xsd:element name="ShopRunnerMessage" type="ShopRunnerMessageType" minOccurs="0"/>
+            <xsd:element name="Currency" type="ISOCurrencyCodeType"/>
+            <xsd:element name="Associate" type="Associate" minOccurs="0"/>
+            <xsd:element name="TaxHeader" type="TaxHeader" minOccurs="0"/>
+            <xsd:element name="PrintedCatalogCode" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional field to capture the catalog code found in some printed catalogs
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Locale" type="LocaleCode" nillable="false"/>
+            <xsd:element name="Relationships" type="OrderItemRelationships" minOccurs="0"/>
+
+
+            <xsd:element name="DashboardRepId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional field to capture the identification number of the representative
+                        who created an order through the "Dashboard"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="OrderSource" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Otherwise known as ORSO code in legacy systems. These fields are commonly used to track
+                        where the customer/order originated.
+                        http://confluence.tools.us.gspt.net/display/v11upgde/Determine+ORSO+work
+
+                        Only to be used for Marketing and affiliate tracking, passed by entrypoint component in Webstore.
+                        Will be present only if referring url to website has values.
+
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:string">
+                            <xsd:attribute name="type" type="xsd:string" use="required">
+                                <xsd:annotation>
+                                    <xsd:documentation>
+                                        Only to be used for Marketing and affiliate tracking, passed by entrypoint
+                                        component in Webstore. Will be present only if referring url to website
+                                        has values.
+                                    </xsd:documentation>
+                                </xsd:annotation>
+                            </xsd:attribute>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="Holds" type="HoldList" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation>Customer Care</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Templates" type="TemplatesType" minOccurs="0"/>
+            <xsd:element name="OrderHistoryUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional field passed by the web-store that contains the URL for their order history page.
+                        OMS will store this and publish it in the canonical email for Order.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="VATInclusivePricing" type="xsd:boolean" minOccurs="0" />
+            <xsd:element name="OrderTotal" type="AmountBaseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The total dollar amount of the order.
+                        Required for orders sent in bulk.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="customerOrderId" type="OrderId" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The order id generated by the webstore.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+
+        <xsd:attribute name="levelOfService" type="LevelOfService" use="optional"/>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="OrderPaymentType">
+        <xsd:sequence>
+            <xsd:element name="BillingAddress">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Billing Address references Destination Mailing Address
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:complexType>
+                    <xsd:attribute name="ref" type="xsd:IDREF"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Payments" type="PaymentsType" minOccurs="0"/><!-- Minoccurs = 0???-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PaymentsType">
+        <xsd:choice maxOccurs="unbounded">
+            <xsd:element name="CreditCard" type="CreditCardPaymentType"/>
+            <xsd:element name="PrepaidCreditCard" type="PrepaidCreditCardPaymentType"/>
+            <xsd:element name="Points" type="PrepaidPaymentType"/>
+            <xsd:element name="StoredValueCard" type="StoredValueCardPaymentType"/>
+            <xsd:element name="PayPal" type="PayPalPaymentType"/>
+            <xsd:element name="PrepaidCashOnDelivery" type="PrepaidPaymentType"/>
+        </xsd:choice>
+    </xsd:complexType>
+
+    <xsd:complexType name="CreditCardPaymentType">
+        <xsd:complexContent>
+            <xsd:extension base="CardPaymentType">
+                <xsd:sequence>
+                    <xsd:element name="CreateTimeStamp" type="xsd:dateTime">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time the payment was authorized.  Should come from the Payment Service
+                                CreditCardAuthReply/MessageHeader/CreateTimestamp
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Amount" type="AmountBaseType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The currency amount applied to the card. This may be different from
+                                the order total in the case of multiple tenders.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Authorization" type="CreditCardAuthorization"/>
+                    <xsd:element name="ExpirationDate" type="YYYY-MMDateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional for some credit card types
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="StartDate" type="YYYY-MMDateType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">
+                                Required to authorize some legacy Maestro UK cards.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="IssueNumber" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Required to authorize some legacy Maestro UK cards.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="SecureVerificationData" type="SecureVerificationDataTypeRequest" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">
+                                3D Secure (SecureCard / Verified by Visa)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="PurchasePlanCode" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Currently used for PLCC credit cards to identify the purchase plan code.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="PurchasePlanDescription" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Currently used for PLCC credit cards to capture the purchase plan description.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+                <xsd:attribute name="isMockPayment" type="xsd:boolean" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            Field will be set to true if the PAN used in the request is
+                            a mock PAN (e.g. 4111111111111111).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+
+    </xsd:complexType>
+
+    <xsd:complexType name="StoredValueCardPaymentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                StoredValueCard refers to a redeemable card such as a Gift Card or Gift Certificate
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="CardPaymentType">
+                <xsd:sequence>
+                    <xsd:element name="CreateTimeStamp" type="xsd:dateTime">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time the payment was authorized.  Should come from the Payment Service
+                                CreditCardAuthReply/MessageHeader/CreateTimestamp
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Pin" type="PinType" minOccurs="0"/>
+                    <xsd:element name="Amount" type="AmountBaseType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The currency amount applied to the card. This may be different from
+                                the order total in the case of multiple tenders.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+                <xsd:attribute name="isMockPayment" type="xsd:boolean" use="optional">
+                    <xsd:annotation>
+                        <xsd:documentation xml:lang="en">
+                            Field will be set to true if the PAN used in the request is
+                            a mock PAN (e.g. 4111111111111111).
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="CreditAccountPaymentType">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The currency amount applied to Bill Me Later payment. This may be different from
+                        the order total in the case of multiple tenders.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AmountAuthorized" type="AmountBaseType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The currency amount authorized for Bill Me Later payment. This has to match the amount
+                        requested for authorization.  Authorization for BML has to be completed before the order is
+                        submitted and sent to OMS.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PaymentContext" type="PaymentContextOrderType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="CreditCheckResultCodeType">
+            <xsd:annotation>
+                <xsd:documentation>
+                    ok - Successfully retrieved Credit Score and below the risk threshold.
+                    nok - Successfully retrieved Credit Score and above the risk threshold.
+                    undefined - Successfully retrieved Credit Score but provider is unable to decide about risk
+                    na - Unable to retrieve Credit Score
+                </xsd:documentation>
+            </xsd:annotation>
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="ok"/>
+                <xsd:enumeration value="nok"/>
+                <xsd:enumeration value="na"/>
+                <xsd:enumeration value="undefined"/>
+            </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="PayPalPaymentType">
+        <xsd:complexContent>
+            <xsd:extension base="CreditAccountPaymentType">
+                <xsd:sequence>
+                    <xsd:element name="CreateTimeStamp" type="xsd:dateTime">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The time the payment was authorized.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="PaymentRequestId" type="RequestId" minOccurs="0"/>
+                    <xsd:element name="Authorization" type="PayPalAuthorization"/>
+                    <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="SecureVerificationDataTypeRequest">
+        <xsd:complexContent>
+            <xsd:extension base="SecureVerificationDataOrderType">
+                <xsd:sequence>
+                    <xsd:element name="PayerAuthenticationResponse">
+                        <xsd:annotation>
+                            <xsd:documentation xml:lang="en">
+                                The Issuer Bank ACS (Access Control Server) authenticates the cardholder.
+                                The authentication result is represented by the Payer Authentication Response (PARes)
+                                generated by the Card Issuer ACS.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:maxLength value="10000"/>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrepaidCreditCardPaymentType">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The amount applied
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Brand" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The brand name of the credit card used. Not validated, any value will work.
+                        For example, "Visa", "Mastercard", etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="PrepaidPaymentType">
+        <xsd:sequence>
+            <xsd:element name="Amount" type="AmountBaseType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The amount of Points applied
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="OrderItemListRequestType">
+        <xsd:sequence>
+            <xsd:element name="OrderItem" type="OrderItemRequestType" nillable="false" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemRequestType">
+        <xsd:sequence>
+            <xsd:element name="ItemId" type="ItemId"/>
+            <xsd:element name="Quantity" type="xsd:decimal"/>
+            <xsd:element name="Description" type="ProductDescriptionRequestType" minOccurs="0"/>
+            <xsd:element name="Department" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="Pricing" type="OrderItemPricingRequest"/>
+            <xsd:element name="ShippingProgram" minOccurs="0">
+                <xsd:complexType >
+                    <xsd:simpleContent>
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional field that indicates if this item is eligible under a shipping program for benefits.
+                                Currently, the only expected value for this element is ShopRunner.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:extension base="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    optional authToken used for passing authentication token for particular
+                                    shipping program
+                                </xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:attribute name="authToken" type="xsd:string" use="optional"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="ShippingMethod" type="ShippingMethodType" minOccurs="0"/>
+            <xsd:element name="FulfillmentChannel" type="FulfillmentType" minOccurs="0"/>
+
+            <xsd:element name="EstimatedDeliveryDate" type="EstimatedDeliveryDateType" minOccurs="0"/>
+            <xsd:element name="NamedDeliveryDate" type="NamedDeliveryDateType" minOccurs="0"/>
+            <xsd:element name="DeliveryInstructions" type="xsd:normalizedString" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Delivery Instructions are often collected using a textbox which can
+                        contain new lines.  JiBX and Sterling OMS XML parser may not properly handle
+                        new lines, especially since Sterling OMS plans to use XML attributes for
+                        this field.  We need to determine how and which system will do the encoding.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="VendorId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This field is the unique ID for the vendor of the product.
+                        Used to map vendor to vendor admin for request routing logic.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="VendorName" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This field is the text name of the vendor.  Used by Vendor Ops
+                        and CS to determine the vendor name for the item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Gifting" type="GiftRequestType" minOccurs="0"/>
+            <xsd:element name="ShopRunnerMessage" type="ShopRunnerMessageType" minOccurs="0"/>
+            <xsd:element name="Customization" type="CustomizationServiceRequestType" minOccurs="0"/>
+            <xsd:element name="SerialNumber" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional data for a small subset of products that have serial numbers.
+                        Typically only used for items of Quantity = 1.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="CustomAttributes" type="CustomAttributesType" minOccurs="0" maxOccurs="1"/>
+
+            <xsd:element name="GiftRegistryCancelUrl" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional field used by OMS for cancellation of orders involving gift registry items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReservationId" type="ReservationId" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Used for inventory reservation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The id field is used to uniquely identify the order item within an XML document
+                    to allow XML references.  It should not be used externally and is not required
+                    to be consistent between various messages.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="webLineId" type="OrderItemLineNumber" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Required field when submitting an order.  Can be used by the webstore to
+                    retain the sequence in which items were displayed in the basket.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="isHiddenGift" type="xsd:boolean" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Labels this item as a Hidden Gift Line.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="taxAndDutyDisplay" type="TaxAndDutyDisplayType" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PriceGroupRequestType">
+        <xsd:complexContent>
+            <xsd:extension base="PriceGroupBaseType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderItemPricingRequest">
+        <xsd:sequence>
+            <xsd:element name="Merchandise" type="PriceGroupRequestType"/>
+            <xsd:element name="Shipping" type="PriceGroupRequestType" minOccurs="0"/>
+            <xsd:element name="Duty" type="PriceGroupRequestType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="CustomizationRequestType">
+        <xsd:sequence>
+            <xsd:element name="CustomizationId" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional value used to group customization instructions into logical sets.
+                        Examples may be: "Stone2", "Left Shoulder"
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Instructions" type="CustomizationInstructions">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Ordered list of individual CustomizationInstructions associated with a
+                        Customization.  It is important for consuming applications to retain the
+                        sequence of elements contained within.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ExtendedPrice" type="PriceGroupRequestType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional charge associated to the given Customization.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ItemId" type="ItemId">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Optional item identifier used to identify an inventory item "(physical item or accounting placeholder)".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Item" type="OrderItemReference" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The id field is used by customer care to relate the customized item
+                        within a customization relationship in the order.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomizationServiceRequestType">
+        <xsd:sequence>
+            <xsd:element name="Customizations" type="CustomizationsRequestType"/>
+            <xsd:element name="BasePrice" type="PriceGroupRequestType" minOccurs="0"/>
+            <xsd:element name="DisplayUrl" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An optional link for the customer to view detail of the customization.
+                        The URL usually carries encoded customization detail as parameters.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="CustomizationsRequestType">
+        <xsd:sequence>
+            <xsd:element name="Customization" type="CustomizationRequestType" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GiftRequestType">
+        <xsd:sequence>
+            <xsd:element name="Gift" type="GiftPackagingRequestType" minOccurs="0"/>
+            <xsd:element name="GiftCard" type="PackslipType" minOccurs="0"/>
+            <xsd:element name="Packslip" type="PackslipType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="GiftPackagingRequestType">
+        <xsd:sequence>
+            <xsd:element name="ItemId" type="ItemId"/>
+            <xsd:element name="Pricing" type="PriceGroupRequestType"/>
+            <xsd:element name="Message" type="GiftMessage" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DestinationRequestType">
+        <xsd:sequence>
+            <xsd:element name="DestinationTarget" type="DestinationTarget"/>
+            <xsd:element name="OrderItems" type="OrderItemReferenceList"/>
+            <xsd:element name="Gifting" type="GiftRequestType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For adding destination level gift wrap and packslips
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Phone" type="xsd:string"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The id field is used to uniquely identify the destination within an XML document
+                    to allow XML references.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="DestinationListRequestType">
+        <xsd:sequence>
+            <xsd:element name="Destination" type="DestinationRequestType" nillable="false"
+                        maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProductDescriptionRequestType">
+        <xsd:complexContent>
+            <xsd:extension base="ProductDescriptionBaseType">
+                <xsd:sequence>
+                    <xsd:element name="Color" type="ColorRequestType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional product color in the locale in which the order was taken.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="Size" type="SizeRequestType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Optional product productSize in the locale in which the order was taken.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="ColorRequestType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="id" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="SizeRequestType">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="id" use="required"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+
+    <xsd:complexType name="ShippingRequestType">
+        <xsd:sequence>
+            <xsd:element name="ShipGroups" nillable="false">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="ShipGroup" type="ShipGroupRequestType" maxOccurs="unbounded"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Destinations" type="DestinationsType" nillable="false">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ShipGroupRequestType">
+        <xsd:sequence>
+            <xsd:element name="DestinationTarget" type="DestinationTargetType"/>
+            <xsd:element name="OrderItems" type="OrderItemReferenceList"/>
+            <xsd:element name="Gifting" type="GiftRequestType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        For adding destination level gift wrap and packslips
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:ID" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The id field is used to uniquely identify the destination within an XML document
+                    to allow XML references.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="chargeType" type="xsd:string" use="required">
+            <xsd:annotation>
+                <xsd:documentation>
+                    The type of shipping charge. i.e. - FLAT, WEIGHT
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+
+</xsd:schema>

@@ -31,6 +31,19 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		return $mock;
 	}
 
+	public function getLocalFixture($key = null)
+	{
+		$fixture = $this->getFixture()->getStorage()->getLocalFixture();
+		if (!is_null($key)) {
+			if (isset($fixture[$key])) {
+				$fixture = $fixture[$key];
+			} else {
+				throw new Exception("Unable to get fixture data for key [$key]");
+			}
+		} 
+		return $fixture;
+	}
+
 	/**
 	 * Replaces the Magento eb2ccore/config_registry model.
 	 *

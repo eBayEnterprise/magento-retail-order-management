@@ -24,6 +24,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 			// make request to eb2c for quote items PaypalDoAuthorization
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_authorization'))
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalDoAuth)
 				->request($requestDoc);
 
 		}catch(Exception $e){

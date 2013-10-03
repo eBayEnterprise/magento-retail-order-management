@@ -1,17 +1,10 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
-class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cPayment_Model_Stored_Value_Balance
 {
 	/**
 	 * Get gift card balance from eb2c.
-	 *
 	 * @param string $pan, Either a raw PAN or a token representing a PAN
 	 * @param string $pin, The personal identification number or code associated with a gift card or gift certificate.
-	 *
 	 * @return string the eb2c response to the request.
 	 */
 	public function getBalance($pan, $pin)
@@ -19,60 +12,54 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 		$storeValueBalanceReply = '';
 		try{
 			// build request
-			$storeValueBalanceRequest = $this->buildStoreValueBalanceRequest($pan, $pin);
+			$storedValueBalanceRequest = $this->buildStoredValueBalanceRequest($pan, $pin);
 
 			// make request to eb2c for Gift Card Balance
 			$storeValueBalanceReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_balance'))
-				->request($storeValueBalanceRequest);
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueBalance)
+				->request($storedValueBalanceRequest);
 
-		}catch(Exception $e){
+		} catch(Exception $e) {
 			Mage::logException($e);
 		}
-
 		return $storeValueBalanceReply;
 	}
 
 	/**
 	 * Build gift card balance request.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
-	 *
-	 * @return DOMDocument The xml document, to be sent as request to eb2c.
+	 * @return DOMDocument to be sent as request to eb2c.
 	 */
-	public function buildStoreValueBalanceRequest($pan, $pin)
+	public function buildStoredValueBalanceRequest($pan, $pin)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueBalanceRequest = $domDocument->addElement('StoreValueBalanceRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
-
+		$storedValueBalanceRequest = $domDocument
+			->addElement('StoredValueBalanceRequest', null, Mage::helper('eb2cpayment')->getXmlNs())
+			->firstChild;
 		// creating PaymentAccountUniqueId element
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'PaymentAccountUniqueId',
 			$pan,
 			array('isToken' => 'false')
 		);
-
 		// add Pin
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'Pin',
 			(string) $pin
 		);
-
 		// add Pin
-		$storeValueBalanceRequest->createChild(
+		$storedValueBalanceRequest->createChild(
 			'CurrencyCode',
 			'USD'
 		);
-
 		return $domDocument;
 	}
 
 	/**
 	 * Parse gift card balance response xml.
-	 *
 	 * @param string $storeValueBalanceReply the xml response from eb2c
-	 *
-	 * @return array, an associative array of response data
+	 * @return array of response data
 	 */
 	public function parseResponse($storeValueBalanceReply)
 	{
@@ -91,7 +78,6 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance extends Mage_Core_Model_
 				'balanceAmount' => ($nodeBalanceAmount->length)? (float) $nodeBalanceAmount->item(0)->nodeValue : 0,
 			);
 		}
-
 		return $balanceData;
 	}
 }

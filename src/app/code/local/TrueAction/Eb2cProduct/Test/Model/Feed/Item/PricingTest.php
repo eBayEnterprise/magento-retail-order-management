@@ -113,6 +113,46 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	}
 
 	/**
+	 * ensure the error branches won't cause an error themselves
+	 * @dataProvider dataProvider
+	 */
+	public function testProcessDomErrors($catalogId, $gsiClientId)
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$this->replaceCoreConfigRegistry(array(
+			'clientId' => 'MAGTNA',
+			'catalogId' => 'catid',
+			'gsiClientId' => 'gsiclientid',
+		));
+		$feedItem = $this->getMock('Varien_Object', array(
+			'getCatalogId',
+			'getGsiClientId',
+		));
+		$invokeArg = ($catalogId === 'catid') ? $this->exactly(1) : $this->exactly(2);
+		$feedItem->expects($invokeArg)
+			->method('getCatalogId')
+			->will($this->returnValue($catalogId));
+
+		$invokeArg = ($gsiClientId === 'gsiclientid') ? $this->exactly(1) : $this->exactly(2);
+		$invokeArg = ($catalogId !== 'catid') ? $this->never() : $invokeArg;
+		$feedItem->expects($invokeArg)
+			->method('getGsiClientId')
+			->will($this->returnValue($gsiClientId));
+
+		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
+			'getExtractor',
+			'extractPricingFeed',
+		));
+		$model->expects($this->once())
+			->method('getExtractor')
+			->will($this->returnSelf());
+		$model->expects($this->any())
+			->method('extractPricingFeed')
+			->will($this->returnValue(array($feedItem)));
+		$this->_reflectMethod($model, '_processDom')->invoke($model, $doc);		
+	}
+
+	/**
 	 * verify if product doesnt exit, dummy product is created
 	 * @loadExpectation
 	 * @dataProvider dataProvider
@@ -122,6 +162,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 		$productMock = $this->getModelMock('catalog/product', array(
 			'getId',
 		));
+
+		$productMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue($productId));
+		$productMock->setData(array());
 
 		$productMock->expects($this->any())
 			->method('getId')
@@ -199,9 +244,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	 * @loadFixture
 	 * @dataProvider dataProvider
 	 */
-	public function testProcessFeedsIntegration($expectation, $xml)
+	public function testProcessFeedsIntegration($expectation)
 	{
-		$this->markTestSkipped('disabled because of a bug in product attributes.');
+		$fixtureData = $this->getLocalFixture($expectation);
+		$xml = $fixtureData['xml'];
+
 		$vfs = $this->getFixture()->getVfs();
 		$vfs->apply(array('var' => array('eb2c' => array('foo.txt' => $xml))));
 		$this->replaceCoreConfigRegistry(array(
@@ -239,9 +286,21 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 		$model->expects($this->any())
 			-> method('getWebsiteIds')
 			->will($this->returnValue(array(0)));
+
+		$e = $this->expected($expectation);
+		// do some precondition checks
+		$products = Mage::getResourceModel('catalog/product_collection');
+		$products->addAttributeToSelect('*')
+			->getSelect()
+			->where('e.sku = ?', $e->getSku());
+		$product = $products->getFirstItem();
+		$this->assertSame($e->getInitialVatFlag(), $product->getPriceIsVatInclusive());
+
+		// run the actual test
 		$model->setFeedModel($feedModel);
 		$model->processFeeds();
-		$e = $this->expected($expectation);
+
+		// check the results
 		$products = Mage::getResourceModel('catalog/product_collection');
 		$products->addAttributeToSelect('*')
 			->getSelect()

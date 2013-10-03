@@ -73,9 +73,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		foreach ($this->_queue as $item) {
 			try {
 				$this->_processItem($item);
+				// @codeCoverageIgnoreStart 
 			} catch (Mage_Core_Exception $e) {
 				Mage::logException($e);
 			}
+			// @codeCoverageIgnoreEnd
 		}
 		return $this;
 	}
@@ -186,6 +188,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 
 	/**
 	 * @return array list containing the integer id for the root-category of the default store
+	 * @codeCoverageIgnore
+	 * No coverage needed since this is almost all external code.
 	 */
 	protected function _getDefaultCategoryIds()
 	{
@@ -268,18 +272,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	protected function _clean()
 	{
-		Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-		return;
-		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
+		if (class_exists('PHPUnit_Runner_Version')) {
+			Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
+			// @codeCoverageIgnoreStart
+		} else {
+			try {
+				// CLEAN CACHE
+				Mage::app()->cleanCache();
 
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log($e->getMessage(), Zend_Log::WARN);
+				// STOCK STATUS
+				$this->getStockStatus()->rebuild();
+			} catch (Exception $e) {
+				Mage::log($e->getMessage(), Zend_Log::WARN);
+			}
+			// @codeCoverageIgnoreEnd
 		}
-
 		return $this;
 	}
 }

@@ -182,6 +182,12 @@
 				<api_opt_inventory_allocation>allocations/create</api_opt_inventory_allocation>
 				<api_opt_inventory_rollback_allocation>allocations/delete</api_opt_inventory_rollback_allocation>
 				<api_return_format>xml</api_return_format>
+				<xsd>
+					<allocation_file>Inventory-Service-Allocation-1.0.xsd</allocation_file>
+					<details_file>Inventory-Service-InventoryDetails-1.0.xsd</details_file>
+					<quantity_file>Inventory-Service-Quantity-1.0.xsd</quantity_file>
+					<rollback_file>Inventory-Service-RollbackAllocation-1.0.xsd</rollback_file>
+				</xsd>
 			</inventory>
 		</eb2c>
 		<eb2cinventory>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+  targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+  elementFormDefault="qualified" attributeFormDefault="unqualified"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd" />
+
+  <xsd:simpleType name="String100">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        A string between one and 100 characters in length
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string" >
+        <xsd:minLength value="1"/>
+        <xsd:maxLength value="100"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="FulfillmentLocationType">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Enumerates supported fulfillment location types.  At present only
+        ISPU is supported, but this might be extended to support warehouse and
+        SFS as fulfillment types.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ISPU"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <!--xsd:simpleType name="OrderItemLineId"-->
+  <xsd:simpleType name="InventoryLineId">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Identifier for an inventory line item.  Must be unique among all lines in
+        the order.  Must be non-blank
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1"/>
+      <xsd:maxLength value="40"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <!--xsd:simpleType name="OrderItemQuantity"-->
+  <xsd:simpleType name="InventoryLineQuantity">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Requested quantity for an order item.
+      </xsd:documentation>
+    </xsd:annotation>
+      <xsd:restriction base="xsd:int">
+          <xsd:minInclusive value="1" />
+          <xsd:maxInclusive value="99999" />
+      </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:complexType name="InStorePickupDetails">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Describes the store front where an in-store pickup order item is to 
+        be picked up.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="StoreFrontId" type="String100"/>
+      <xsd:element name="StoreFrontName" type="String100"/>
+      <xsd:element name="StoreFrontAddress" type="PhysicalAddressType"/>
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="DeliveryEstimate">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Describes in some detail when an order line can be expected to be 
+        delivered to the customer.
+        <ul>
+          <li>DeliveryWindow: the range of dates when the order
+          line item is expected to arrive at the ship-to address</li>
+          <li>ShippingWindow: the range of dates when the order line item is
+          expected to leave the fulfillment node</li>
+          <li>CreationTime: the date-time when this delivery estimate was
+          created</li>
+          <li>Display: indicates if the GSI checkout API consumer should display 
+          this delivery estimate</li>
+          <li>Message: not currently used</li>
+        </ul>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="DeliveryWindow" type="DateRangeType" />
+      <xsd:element name="ShippingWindow" type="DateRangeType" />
+      <xsd:element name="CreationTime" type="xsd:dateTime" />
+      <xsd:element name="Display" type="xsd:boolean" />
+      <xsd:element name="Message" type="xsd:string" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="ShipmentDetails">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        Describes how and to where an order item is to be shipped.
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="ShippingMethod" type="CarrierType" />
+      <xsd:element name="ShipToAddress" type="PhysicalAddressType" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <!--xsd:complexType name="OrderItem"-->
+  <xsd:complexType name="InventoryLine">
+    <xsd:annotation>
+      <xsd:documentation xml:lang="en">
+        This type describes an order line item in a GSI checkout inventory API
+        inventory details request or allocation request. An OrderItem consists
+        of:
+        <ul>
+          <li>An identifier for the item attached to the line item</li>
+          <li>An identifier for the line item</li>
+          <li>A requested quantity for the line item</li>
+          <li>Shipment details for line items which are to be shipped to
+            the shopper</li>
+          <li>An optional boolean flag indicating if gift wrap was requested
+          by the shopper for the line item</li>
+        </ul>
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="Quantity" type="InventoryLineQuantity" />
+      <xsd:element name="ShipmentDetails" type="ShipmentDetails" />
+      <xsd:element name="GiftwrapRequested" type="xsd:boolean" minOccurs="0">
+        <xsd:annotation>
+          <xsd:documentation xml:lang="en">
+            True if the shopper requested gift wrap for this line item.
+          </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+    <xsd:attribute name="lineId" type="InventoryLineId" use="required">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Uniquely identifies an <code>OrderItem</code> within a request.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="itemId" type="ItemId" use="required">
+      <xsd:annotation>
+        <xsd:documentation xml:lang="en">
+        Identifies the item assosicated with this line.
+        </xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+</xsd:schema>

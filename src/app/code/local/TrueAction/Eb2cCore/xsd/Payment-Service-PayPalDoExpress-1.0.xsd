@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified" attributeFormDefault="unqualified"
+    targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+    xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+    version="1.0" >
+
+    <xsd:include schemaLocation="Payment-Datatypes-1.0.xsd"/>
+    <xsd:include schemaLocation="Checkout-Datatypes-1.0.xsd"/>
+
+    <xsd:complexType name="PayPalDoExpressCheckoutRequestType">
+        <xsd:sequence>
+            <xsd:element name="OrderId" type="OrderIdType" >
+                <xsd:annotation>
+                   <xsd:documentation xml:lang="en">
+                        A unique identifier for the order.<br/>
+                        The client is responsible for ensuring uniqueness across all transactions the client initiates with this service.
+                   </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Token" type="minStringLength1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Token from the PayPalSetExpressCheckoutReply, can be retrieved from the PayPalGetExpressCheckoutReply<br/>
+                        or the URL the customer was redirected with from PayPal.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PayerId" type="minStringLength1">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Unique identifier of the customer's PayPal account, can be retrieved from the PayPalGetExpressCheckoutReply<br/>
+                        or the URL the customer was redirected with from PayPal.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Amount" type="AmountType">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Represents order total amount; the calculation works as follows order total= LineItemsTotal +
+                        ShippingTotal + TaxTotal;<br/>
+                        PayPal validates above calculation and throws error message for incorrect order total;<br/>
+                        See LineItems element below for LineItemsTotal, ShippingTotal and TaxTotal.<br/>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PickUpStoreId" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        PickUpStoreId refers to store name/number for ship-to-store/in-store-pick up like "StoreName
+                        StoreNumber".<br/>
+                        Optional except during ship-to-store delivery method.<br/>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ShipToName" type="xsd:string" minOccurs="0" >
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        The name of the person shipped to like "FirsName LastName".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ShippingAddress" type="PhysicalAddressType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        Whether the address was input on PayPal site or the merchant site, the final address
+                        used should be passed at this time.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="LineItems" type="LineItemsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        LineItems that represents details like LineItemsTotal, ShippingTotal, TaxTotal
+                        and list of line items.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="requestId" type="RequestId" use="required"/>
+    </xsd:complexType>
+
+    <xsd:element name="PayPalDoExpressCheckoutRequest" type="PayPalDoExpressCheckoutRequestType"/>
+
+    <xsd:complexType name="PayPalDoExpressCheckoutReplyType" >
+      <xsd:sequence>
+        <xsd:element name="OrderId" type="OrderIdType" />
+        <xsd:element name="ResponseCode" type="xsd:string" >
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Response code like Success, Failure etc
+               </xsd:documentation>
+           </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="TransactionID" type="xsd:string" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   A transaction identification number.<br/>
+                   Character length and limits: 19 single-byte characters maximum
+               </xsd:documentation>
+           </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="PaymentInfo" type="PayPalPaymentInfoType" minOccurs="0">
+           <xsd:annotation>
+               <xsd:documentation xml:lang="en">
+                   Information about the transaction.
+               </xsd:documentation>
+           </xsd:annotation>
+        </xsd:element>
+        <xsd:element name="ErrorMessage" type="xsd:string" minOccurs="0">
+             <xsd:annotation>
+                  <xsd:documentation xml:lang="en">
+                       The description of error like "10413:The totals of the cart item amounts do not match order amounts".
+                  </xsd:documentation>
+             </xsd:annotation>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="PayPalDoExpressCheckoutReply" type="PayPalDoExpressCheckoutReplyType" />
+    
+</xsd:schema>

@@ -32,7 +32,13 @@ INVALID_XML;
 	public function testOrderCreate()
 	{
 		$this->replaceCoreConfigRegistry();
-		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
+		$this->replaceModel(
+			'eb2ccore/api',
+			array(
+				'request' => self::SAMPLE_SUCCESS_XML,
+			),
+			false
+		);
 
 		$status = Mage::getModel('eb2corder/create')
 			->buildRequest($this->getMockSalesOrder())

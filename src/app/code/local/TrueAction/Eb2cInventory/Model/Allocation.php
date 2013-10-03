@@ -34,6 +34,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 			// make request to eb2c for quote items allocation
 			$allocationResponseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cinventory')->getOperationUri('allocate_inventory'))
+				->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileAllocation)
 				->request($allocationRequestMessage);
 
 		} catch (Exception $e) {
@@ -299,6 +300,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 			// make request to eb2c for inventory rollback allocation
 			$rollbackAllocationResponseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cinventory')->getOperationUri('rollback_allocation'))
+				->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileRollback)
 				->request($rollbackAllocationRequestMessage);
 		} catch (Exception $e) {
 			Mage::logException($e);

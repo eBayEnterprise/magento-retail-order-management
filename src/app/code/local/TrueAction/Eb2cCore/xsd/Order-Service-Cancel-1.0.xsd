@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+            targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:include schemaLocation="Order-Datatypes-Common-1.0.xsd"/>
+
+    <xsd:element name="OrderCancelResponse" type="OrderCancelResponse" nillable="false"/>
+
+    <xsd:element name="OrderCancelRequest" type="OrderCancelRequest" nillable="false"/>
+
+    <xsd:complexType name="OrderCancelResponse">
+        <xsd:sequence>
+            <xsd:element name="ResponseStatus" type="CancelResponseStatus"/>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip" >
+                <xsd:annotation>
+                    <xsd:documentation xml:lang="en">
+                        This xsd:any element indicates that future optional elements may show up in this location of the XML document in the
+                        responses returned from the service.
+                        The purpose of this xsd:any element is to define a more robust service interface that allows for new, optional elements to be added
+                        to the service's responses without the service clients' code throwing exceptions.
+                        The client code for this service call should be written to not break if new optional XML elements show up in this part
+                        of the service response.  Modern XML marshalling frameworks often process xsd:any elements properly out-of-the-box
+                        (for example, in Java, JAXB and JibX XML marshalling frameworks both honor xsd:any elements and don't throw exceptions
+                        if new optional elements appear within the xsd:any section of the XML document).
+                        Developers' unit tests of their service client code should include a test case where this reply message
+                        contains one or more new elements in this location of the XML document.
+                        If new optional elements are added to this interface, a new schema will be created, communications will be sent out,
+                        and you will have the option to modify your service client code to process and use the new elements.
+                        If there is no need/desire to process the new optional elements, your service client should continue to run
+                        uninterrupted as long as it is built to honor this xsd:any element.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderCancelRequest">
+        <xsd:sequence>
+            <xsd:element name="CustomerOrderId" type="OrderId" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The unique order id to cancel
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReasonCode" minOccurs="1" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A client generated code for the cancellation
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:minLength value="1"/>
+                        <xsd:maxLength value="40"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Reason" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A description for the client cancellation code
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:simpleType>
+                    <xsd:restriction base="xsd:string">
+                        <xsd:maxLength value="254"/>
+                    </xsd:restriction>
+                </xsd:simpleType>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="orderType" type="OrderType" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:simpleType name="CancelResponseStatus">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="CANCELLED"/>
+            <xsd:enumeration value="PENDING"/>
+            <xsd:enumeration value="FAILED"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+</xsd:schema>

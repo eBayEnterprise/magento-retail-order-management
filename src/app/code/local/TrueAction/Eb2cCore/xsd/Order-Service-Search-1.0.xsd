@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://api.gsicommerce.com/schema/checkout/1.0"
+           targetNamespace="http://api.gsicommerce.com/schema/checkout/1.0"
+           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xsd:include schemaLocation="Order-Datatypes-Common-1.0.xsd"/>
+
+    <xsd:element name="OrderSummaryRequest" type="OrderSummaryRequestType" nillable="false"/>
+    <xsd:element name="OrderSummaryResponse" type="OrderSummaryResponseType" nillable="false"/>
+
+    <xsd:complexType name="OrderSearchType">
+    	<xsd:annotation>
+            <xsd:documentation xml:lang="en">Search</xsd:documentation>
+        </xsd:annotation>
+        
+ 	    <xsd:sequence>
+			<xsd:choice minOccurs="1" maxOccurs="1">
+            	<xsd:element name="CustomerId" type="CustomerIdType">
+			    	<xsd:annotation>
+			            <xsd:documentation xml:lang="en">
+                            Finds orders for a particular customer
+			            </xsd:documentation>
+			        </xsd:annotation>
+                </xsd:element>
+            	<xsd:element name="CustomerOrderId" type="OrderId">
+			    	<xsd:annotation>
+			            <xsd:documentation xml:lang="en">Finds orders related to this order id such as return orders</xsd:documentation>
+			        </xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="OrderSummaryRequestType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Search can be one of 2 types.
+                Order Search or Related Order Search
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="OrderSearch" type="OrderSearchType"/>
+        </xsd:sequence>
+        <xsd:attribute name="maximumRecords" type="xsd:int" use="optional" />
+    </xsd:complexType>
+
+
+</xsd:schema>

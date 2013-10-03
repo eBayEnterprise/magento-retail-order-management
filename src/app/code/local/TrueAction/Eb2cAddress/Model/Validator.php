@@ -225,12 +225,16 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 */
 	protected function _makeRequestForAddress(Mage_Customer_Model_Address_Abstract $address)
 	{
+
 		$apiResponse = '';
+		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2caddress/config'));
 		$api = Mage::getModel('eb2ccore/api');
-		$api->setUri(Mage::helper('eb2ccore')->getApiUri(
-			TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
-			TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION
-		));
+		$api->setXsd($cfg->xsdFileAddressValidation)
+			->setUri(Mage::helper('eb2ccore')->getApiUri(
+				TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
+				TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION
+			));
 		try {
 			$apiResponse = $api->request(
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()

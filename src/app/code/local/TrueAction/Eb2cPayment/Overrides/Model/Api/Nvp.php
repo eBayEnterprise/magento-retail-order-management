@@ -79,6 +79,9 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			// Eb2c PaypalSetExpressCheckout is disabled, continue as normal with direct call to the paypal api
 			$response = $this->call(self::SET_EXPRESS_CHECKOUT, $request);
 		}
+
+		Mage::log(sprintf("[ %s ] Received response:\n", __METHOD__) . $response, Zend_Log::DEBUG);
+
 		$this->_importFromResponse($this->_setExpressCheckoutResponse, $response);
 	}
 
@@ -304,7 +307,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 			Mage::throwException(sprintf('[ %s ]: Non-EB2C PayPal API call attempted for %s.', __CLASS__, $methodName));
 			// @codeCoverageIgnoreStart
 		} else {
-		// @codeCoverageIgnoreEnd
+			// @codeCoverageIgnoreEnd
 			return parent::call($methodName, $request);
 		}
 		// @codeCoverageIgnoreStart

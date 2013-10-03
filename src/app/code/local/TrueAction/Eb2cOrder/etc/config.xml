@@ -43,6 +43,10 @@
 				<developer_cancel_uri>http://virtbox.net/~mwest/fakeb2c/orderCancelRequest.php</developer_cancel_uri>
 				<payments_enabled>false</payments_enabled>
 				<config_path>eb2ccore/general</config_path>
+				<xsd>
+					<create_file>Order-Service-Create-1.0.xsd</create_file>
+					<cancel_file>Order-Service-Cancel-1.0.xsd</cancel_file>
+				</xsd>
 			</order>
 		</eb2c>
 		<eb2corder>

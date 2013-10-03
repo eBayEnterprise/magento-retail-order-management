@@ -134,6 +134,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			// Core Values:
 			'clientId'                => 'TAN-OS-CLI',
 			'feedDestinationType'     => 'MAILBOX',
+			'apiXsdPath'              => '/home/mwest/projects/magento-enterprise/src/app/code/local/TrueAction/Eb2cCore/xsd',
 
 			// Eb2cOrder-specific Values:
 			'developerMode'           => true,
@@ -144,6 +145,8 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			'statusFeedRemotePath'    => 'doesnt_matter_just_some_path',
 			'statusFeedEventType'     => 'OrderStatus',
 			'statusFeedHeaderVersion' => '2.3.4',
+			'xsdFileCreate'           => 'Order-Service-Create-1.0.xsd',
+			'xsdFileCancel'           => 'Order-Service-Cancel-1.0.xsd',
 		);
 
 		// Replace and/ or add to the default configValuePairs if the user has supplied some config values

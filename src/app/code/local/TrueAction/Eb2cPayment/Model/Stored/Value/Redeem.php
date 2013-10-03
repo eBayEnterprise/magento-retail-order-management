@@ -1,96 +1,72 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
-class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
 {
 	/**
 	 * Get gift card Redeem from eb2c.
-	 *
 	 * @param string $pan, Either a raw PAN or a token representing a PAN
 	 * @param string $pin, The personal identification number or code associated with a gift card or gift certificate.
 	 * @param string $entityId, the sales/quote entity_id value
 	 * @param string $amount, the amount to redeem
-	 *
-	 * @return string the eb2c response to the request.
+	 * @return string the eb2c response to the request
 	 */
 	public function getRedeem($pan, $pin, $entityId, $amount)
 	{
 		$storeValueRedeemReply = '';
-		try{
+		try {
 			// build request
-			$storeValueRedeemRequest = $this->buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount);
+			$storedValueRedeemRequest = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
 
 			// make request to eb2c for Gift Card Redeem
 			$storeValueRedeemReply = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
-				->request($storeValueRedeemRequest);
-
-		}catch(Exception $e){
+				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem)
+				->request($storedValueRedeemRequest);
+		} catch(Exception $e) {
 			Mage::logException($e);
 		}
-
 		return $storeValueRedeemReply;
 	}
 
 	/**
 	 * Build gift card Redeem request.
-	 *
 	 * @param string $pan, the payment account number
 	 * @param string $pin, the personal identification number
 	 * @param string $entityId, the sales/quote entity_id value
 	 * @param string $amount, the amount to redeem
-	 *
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
-	public function buildStoreValueRedeemRequest($pan, $pin, $entityId, $amount)
+	public function buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$storeValueRedeemRequest = $domDocument->addElement('StoreValueRedeemRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
-		$storeValueRedeemRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($entityId));
+		$storedValueRedeemRequest = $domDocument
+			->addElement('StoredValueRedeemRequest', null, Mage::helper('eb2cpayment')->getXmlNs())
+			->firstChild;
+		$storedValueRedeemRequest->setAttribute(
+			'requestId',
+			Mage::helper('eb2cpayment')->getRequestId($entityId)
+		);
 
 		// creating PaymentContent element
-		$paymentContext = $storeValueRedeemRequest->createChild(
-			'PaymentContext',
-			null
-		);
+		$paymentContext = $storedValueRedeemRequest->createChild('PaymentContext', null);
 
 		// creating OrderId element
-		$paymentContext->createChild(
-			'OrderId',
-			$entityId
-		);
+		$paymentContext->createChild('OrderId', $entityId);
 
 		// creating PaymentAccountUniqueId element
-		$paymentContext->createChild(
-			'PaymentAccountUniqueId',
-			$pan,
-			array('isToken' => 'false')
-		);
+		$paymentContext->createChild('PaymentAccountUniqueId', $pan, array('isToken' => 'false'));
 
 		// add Pin
-		$storeValueRedeemRequest->createChild(
-			'Pin',
-			(string) $pin
-		);
+		$storedValueRedeemRequest->createChild('Pin', (string) $pin);
 
 		// add amount
-		$storeValueRedeemRequest->createChild(
-			'Amount',
-			$amount,
-			array('currencyCode' => 'USD')
-		);
+		$storedValueRedeemRequest->createChild('Amount', $amount, array('currencyCode' => 'USD'));
 
 		return $domDocument;
 	}
 
 	/**
 	 * Parse gift card Redeem response xml.
-	 *
 	 * @param string $storeValueRedeemReply the xml response from eb2c
-	 *
 	 * @return array, an associative array of response data
 	 */
 	public function parseResponse($storeValueRedeemReply)
@@ -114,7 +90,6 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem extends Mage_Core_Model_A
 				'balanceAmount' => ($nodeBalanceAmount->length)? (float) $nodeBalanceAmount->item(0)->nodeValue : 0,
 			);
 		}
-
 		return $redeemData;
 	}
 }
