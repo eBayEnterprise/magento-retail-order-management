@@ -21,7 +21,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 	public function providerRequestQuantity()
 	{
 		return array(
-			array('qty' => 1, 'itemId' => 100, 'sku' => '1234-TA')
+			array('qty' => 1, 'itemId' => 1, 'sku' => '1234-TA')
 		);
 	}
 
@@ -94,7 +94,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			->method('request')
 			->will($this->returnValue('<?xml version="1.0" encoding="UTF-8"?>
 <QuantityResponseMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-	<QuantityResponse itemId="100" lineId="1">
+	<QuantityResponse itemId="1234-TA" lineId="1">
 		<Quantity>1020</Quantity>
 	</QuantityResponse>
 </QuantityResponseMessage>
