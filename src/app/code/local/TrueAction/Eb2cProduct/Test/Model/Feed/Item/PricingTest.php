@@ -113,6 +113,46 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	}
 
 	/**
+	 * ensure the error branches won't cause an error themselves
+	 * @dataProvider dataProvider
+	 */
+	public function testProcessDomErrors($catalogId, $gsiClientId)
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$this->replaceCoreConfigRegistry(array(
+			'clientId' => 'MAGTNA',
+			'catalogId' => 'catid',
+			'gsiClientId' => 'gsiclientid',
+		));
+		$feedItem = $this->getMock('Varien_Object', array(
+			'getCatalogId',
+			'getGsiClientId',
+		));
+		$invokeArg = ($catalogId === 'catid') ? $this->exactly(1) : $this->exactly(2);
+		$feedItem->expects($invokeArg)
+			->method('getCatalogId')
+			->will($this->returnValue($catalogId));
+
+		$invokeArg = ($gsiClientId === 'gsiclientid') ? $this->exactly(1) : $this->exactly(2);
+		$invokeArg = ($catalogId !== 'catid') ? $this->never() : $invokeArg;
+		$feedItem->expects($invokeArg)
+			->method('getGsiClientId')
+			->will($this->returnValue($gsiClientId));
+
+		$model = $this->getModelMock('eb2cproduct/feed_item_pricing', array(
+			'getExtractor',
+			'extractPricingFeed',
+		));
+		$model->expects($this->once())
+			->method('getExtractor')
+			->will($this->returnSelf());
+		$model->expects($this->any())
+			->method('extractPricingFeed')
+			->will($this->returnValue(array($feedItem)));
+		$this->_reflectMethod($model, '_processDom')->invoke($model, $doc);		
+	}
+
+	/**
 	 * verify if product doesnt exit, dummy product is created
 	 * @loadExpectation
 	 * @dataProvider dataProvider
