@@ -58,6 +58,10 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 		Mage::log(sprintf('[ %s ] Making API request to %s', __CLASS__, $client->getUri()), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
 		Mage::log(
+			sprintf("[ %s ] Sent request to %s:\n%s", __CLASS__, $client->getUri(), $doc->saveXML()),
+			Zend_Log::DEBUG
+		);
+		Mage::log(
 			sprintf("[ %s ] Received response from %s:\n%s", __CLASS__, $client->getUri(), $response->asString()),
 			Zend_Log::DEBUG
 		);
