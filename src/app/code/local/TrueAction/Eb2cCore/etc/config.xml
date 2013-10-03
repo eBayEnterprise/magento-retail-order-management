@@ -35,6 +35,7 @@
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 			</api>
 			<feed>
+				<enabled_reindex>0</enabled_reindex>
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>

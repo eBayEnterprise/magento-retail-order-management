@@ -140,7 +140,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			}
 		}
 		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
-		Mage::helper('eb2cproduct')->clean(); // reindex
+		Mage::helper('eb2ccore')->clean(); // reindex
 		return $this;
 	}
 
