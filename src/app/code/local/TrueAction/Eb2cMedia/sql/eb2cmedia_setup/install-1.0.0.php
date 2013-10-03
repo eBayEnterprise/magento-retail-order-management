@@ -2,7 +2,7 @@
 $installer = $this;
 
 $productIdViewNameIndexColumns = array(
-	'product_id',
+	'sku',
 	'view',
 	'name',
 );
@@ -20,28 +20,11 @@ $table = $installer->getConnection()
 		),
 		'Image id'
 	)
-	->addColumn('product_id',
-		Varien_Db_Ddl_Table::TYPE_INTEGER,
-		null,
+	->addColumn('sku',
+		Varien_Db_Ddl_Table::TYPE_TEXT,
+		64,
 		array(),
-		'Product Id'
-	)
-	->addColumn('created_at',
-		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
-		null,
-		array(
-			'nullable' => false,
-			'default'  => Varien_Db_Ddl_Table::TIMESTAMP_INIT
-		),
-		'Created At'
-	)
-	->addColumn('updated_at',
-		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
-		null,
-		array(
-			'nullable' => true
-		),
-		'Updated At'
+		'SKU'
 	)
 	->addColumn('view',
 		Varien_Db_Ddl_Table::TYPE_TEXT,
@@ -72,6 +55,23 @@ $table = $installer->getConnection()
 		null,
 		array(),
 		'Image Width'
+	)
+	->addColumn('created_at',
+		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
+		null,
+		array(
+			'nullable' => false,
+			'default'  => Varien_Db_Ddl_Table::TIMESTAMP_INIT
+		),
+		'Created At'
+	)
+	->addColumn('updated_at',
+		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,
+		null,
+		array(
+			'nullable' => true
+		),
+		'Updated At'
 	)
 	->addIndex(
 		$installer->getIdxName(

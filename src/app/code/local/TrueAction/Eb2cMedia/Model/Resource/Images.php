@@ -14,14 +14,14 @@ class TrueAction_Eb2cMedia_Model_Resource_Images extends Mage_Core_Model_Resourc
 	 * Returns just the id if we find a match on product/ imagename/ imageview
 	 *
 	 */
-	public function getIdByName($productId, $imageName, $imageView)
+	public function getIdByViewAndName($sku, $imageView, $imageName)
 	{
 		$adapter = $this->_getReadAdapter();
 		$select = $adapter->select()
 			->from($this->getMainTable(), 'id')
-			->where('product_id = :product_id and name = :image_name and view = :image_view');
+			->where('sku = :sku and view = :image_view and name = :image_name');
 		$bind = array(
-			':product_id' => (string) $productId,
+			':sku'        => (string) $sku,
 			':image_name' => (string) $imageName,
 			':image_view' => (string) $imageView,
 		);

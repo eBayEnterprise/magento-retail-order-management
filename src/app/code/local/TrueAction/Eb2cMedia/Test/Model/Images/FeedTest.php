@@ -49,7 +49,7 @@ class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCor
 	{
 		$this->_setMockFileTransfer($this->returnValue(true));
 
-		$this->markTestIncomplete('Incomplete, needs a replacy-by-mock for catalog/product');
+		$this->markTestIncomplete('Incomplete, needs a replace-by-mock for catalog/product');
 
 		$this->assertSame(
 			self::NUMBER_OF_DUMMY_FILES,
