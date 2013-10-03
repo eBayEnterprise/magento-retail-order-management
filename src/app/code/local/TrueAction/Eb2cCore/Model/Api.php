@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 {
 	/**
@@ -58,7 +53,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 		Mage::log(sprintf('[ %s ] Making API request to %s', __CLASS__, $client->getUri()), Zend_Log::DEBUG);
 		$response = $client->request(self::DEFAULT_METHOD);
 		Mage::log(
-			sprintf("[ %s ] Sent request %s:\n%s", __CLASS__, $client->getUri(), $doc->saveXML()),
+			sprintf("[ %s ] Sent request to %s:\n%s", __CLASS__, $client->getUri(), $doc->saveXML()),
 			Zend_Log::DEBUG
 		);
 		Mage::log(
