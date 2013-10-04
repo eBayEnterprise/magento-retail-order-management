@@ -28,7 +28,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 				->request($requestDoc);
 
 		}catch(Exception $e){
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Do paypal Authorization request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		return $responseMessage;

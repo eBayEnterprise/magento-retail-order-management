@@ -22,7 +22,13 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem)
 				->request($storedValueRedeemRequest);
 		} catch(Exception $e) {
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending StoredValueRedeem request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 		return $storeValueRedeemReply;
 	}

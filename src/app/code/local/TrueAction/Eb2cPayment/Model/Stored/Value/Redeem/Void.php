@@ -23,7 +23,13 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void
 				->request($storedValueRedeemVoidRequest);
 
 		}catch(Exception $e){
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending StoredValueRedeemVoid request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		return $storeValueRedeemVoidReply;

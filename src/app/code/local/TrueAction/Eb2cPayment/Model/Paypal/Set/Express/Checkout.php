@@ -28,7 +28,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 				->request($requestDoc);
 
 		}catch(Exception $e){
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Set Express Paypal Checkout request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		// Save payment data
@@ -144,7 +150,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 			$doc->loadXML($payPalSetExpressCheckoutReply);
 			$checkoutXpath = new DOMXPath($doc);
-			$checkoutXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getPaymentXmlNs());
+			$checkoutXpath->registerNamespace('a', Mage::helper('eb2cpayment')->getXmlNs());
 			$nodeOrderId = $checkoutXpath->query('//a:OrderId');
 			$nodeResponseCode = $checkoutXpath->query('//a:ResponseCode');
 			$nodeToken = $checkoutXpath->query('//a:Token');

@@ -21,7 +21,13 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance
 				->request($storedValueBalanceRequest);
 
 		} catch(Exception $e) {
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending GetStoredValueBalance request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 		return $storeValueBalanceReply;
 	}

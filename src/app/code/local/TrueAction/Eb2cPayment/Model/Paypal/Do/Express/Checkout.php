@@ -28,7 +28,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 				->request($requestDoc);
 
 		}catch(Exception $e){
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Do paypal express checkout request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		// Save payment data
@@ -48,6 +54,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoExpressCheckoutRequest = $domDocument->addElement('PayPalDoExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$payPalDoExpressCheckoutRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
 		$payPalDoExpressCheckoutRequest->createChild(
 			'OrderId',
 			(string) $quote->getEntityId()
@@ -85,25 +92,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 		// add Line1
 		$shippingAddress->createChild(
 			'Line1',
-			(string) $quoteShippingAddress->getStreet(1)
+			(trim($quoteShippingAddress->getStreet(1)) !== '')? (string) $quoteShippingAddress->getStreet(1) : 'na'
 		);
 
 		// add Line2
 		$shippingAddress->createChild(
 			'Line2',
-			(string) $quoteShippingAddress->getStreet(2)
+			(trim($quoteShippingAddress->getStreet(2)) !== '')? (string) $quoteShippingAddress->getStreet(2) : 'na'
 		);
 
 		// add Line3
 		$shippingAddress->createChild(
 			'Line3',
-			(string) $quoteShippingAddress->getStreet(3)
+			(trim($quoteShippingAddress->getStreet(3)) !== '')? (string) $quoteShippingAddress->getStreet(3) : 'na'
 		);
 
 		// add Line4
 		$shippingAddress->createChild(
 			'Line4',
-			(string) $quoteShippingAddress->getStreet(4)
+			(trim($quoteShippingAddress->getStreet(4)) !== '')? (string) $quoteShippingAddress->getStreet(4) : 'na'
 		);
 
 		// add City

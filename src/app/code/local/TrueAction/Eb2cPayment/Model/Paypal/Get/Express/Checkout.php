@@ -28,7 +28,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 				->request($requestDoc);
 
 		}catch(Exception $e){
-			Mage::logException($e);
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Get Express Paypal Checkout request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		// Save payment data
@@ -60,7 +66,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			(string) $paypal->getEb2cPaypalToken()
 		);
 		$payPalGetExpressCheckoutRequest->createChild(
-			'currencyCode',
+			'CurrencyCode',
 			(string) $quote->getQuoteCurrencyCode()
 		);
 
