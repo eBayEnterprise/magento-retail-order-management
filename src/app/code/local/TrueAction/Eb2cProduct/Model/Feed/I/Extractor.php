@@ -88,6 +88,28 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 	}
 
 	/**
+	 * extract productType from CustomAttributes data
+	 *
+	 * @param DOMXPath $xpath, the xpath object
+	 * @param DOMElement $item, the current element
+	 *
+	 * @return string, the productType
+	 */
+	protected function _extractProductType(DOMXPath $xpath, DOMElement $item)
+	{
+		$prdHlpr = Mage::helper('eb2cproduct');
+		// Name value pairs of additional attributes for the product.
+		$nodeAttribute = $xpath->query('CustomAttributes/Attribute', $item);
+		foreach ($nodeAttribute as $attributeRecord) {
+			if (trim(strtoupper($attributeRecord->getAttribute('name'))) === 'PRODUCTTYPE') {
+				return strtolower(trim($prdHlpr->extractNodeVal($xpath->query('Value/text()', $attributeRecord))));
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * extract HTSCodes data into a varien object
 	 *
 	 * @param DOMXPath $xpath, the xpath object
@@ -150,6 +172,8 @@ class TrueAction_Eb2cProduct_Model_Feed_I_Extractor
 					'base_attributes' => $this->_extractBaseAttributes($xpath, $item),
 					// get varien object of Custom Attributes node
 					'custom_attributes' => $this->_extractCustomAttributes($xpath, $item),
+					// get product type from Custom Attributes node
+					'product_type' => $this->_extractProductType($xpath, $item),
 					// get varien object of HTSCode node
 					'hts_codes' => $this->_extractHtsCodes($xpath, $item),
 				)

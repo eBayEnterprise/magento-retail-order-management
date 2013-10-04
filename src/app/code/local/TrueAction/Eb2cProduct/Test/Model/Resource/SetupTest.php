@@ -2,6 +2,14 @@
 class TrueAction_Eb2cProduct_Test_Model_Resource_SetupTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
+	/**
+	 * integration test to make sure attributes actually get setup properly.
+	 * @test
+	 * @large
+	 * make sure attributes are created properly.
+	 * has the added side effect of re-setting up the attributes so changes to the
+	 * config will be apply next time the test runs.
+	 */
 	public function testSetupIntegration()
 	{
 		$attrInfo = Mage::getModel('eb2cproduct/attributes');

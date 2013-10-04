@@ -97,7 +97,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	/**
 	 * load product by sku
 	 * @param string $sku, the product sku to filter the product table
-	 * @return catalog/product
+	 * @return Mage_Catalog_Model_Product
 	 */
 	protected function _loadProductBySku($sku)
 	{
@@ -140,7 +140,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			}
 		}
 		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
-		Mage::helper('eb2cproduct')->clean(); // reindex
+		Mage::helper('eb2ccore')->clean(); // reindex
 		return $this;
 	}
 
@@ -222,6 +222,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				'sku' => $item->getItemId()->getClientItemId(),
 				'msrp' => $item->getExtendedAttributes()->getMsrp(),
 				'price' => $item->getExtendedAttributes()->getPrice(),
+				'website_ids' => $this->getWebsiteIds(),
+				'store_ids' => array($this->getDefaultStoreId()),
+				'tax_class_id' => 0,
+				'url_key' => $item->getItemId()->getClientItemId(),
 			))->save(); // saving the product
 
 			$this
@@ -274,8 +278,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
 					'name' => 'temporary-name - ' . uniqid(),
 					'status' => 0, // default - disabled
-					'sku' => $item->getUniqueId(),
+					'sku' => $item->getItemId()->getClientItemId(),
 					'color' => $this->_getProductColorOptionId($item),
+					'website_ids' => $this->getWebsiteIds(),
+					'store_ids' => array($this->getDefaultStoreId()),
+					'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
+					'tax_class_id' => 0,
+					'url_key' => $item->getItemId()->getClientItemId(),
 				))
 				->save();
 		} catch (Mage_Core_Exception $e) {
