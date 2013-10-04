@@ -14,8 +14,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 * Initialize model
 	 */
 	protected function _construct()
-	{
-		// initialize feed item with an empty array
+	
+{		// initialize feed item with an empty array
 		$this->_queue = array();
 
 		// set up base dir if it hasn't been during instantiation
@@ -223,7 +223,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 						'website_ids' => $this->getWebsiteIds(),
 						'category_ids' => $this->_getDefaultCategoryIds(),
 						'description' => 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.',
-						'short_description' => 'Invalid. Please do not attempt to purchase.',
+						'short_description' => 'Invalid product. Please do not attempt to purchase.',
 						'price' => 0,
 						'weight' => 0,
 						'url_key' => $sku,
@@ -231,8 +231,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 						'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
 						'tax_class_id' => 0,
 					)
-				)
-				->save();
+				);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
 				sprintf('[ %s ] The following error has occurred while creating dummy product for iShip Feed (%d)',	__CLASS__, $e->getMessage()),

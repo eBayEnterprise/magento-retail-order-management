@@ -217,7 +217,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_PricingTest
 	 */
 	public function testProcessFeedsIntegration($expectation)
 	{
-		$this->markTestIncomplete('test is broken due to merged changes');
 		$fixtureData = $this->getLocalFixture($expectation);
 		$xml = $fixtureData['xml'];
 
