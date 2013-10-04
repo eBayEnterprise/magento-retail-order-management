@@ -141,7 +141,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	{
 		$this->_remoteCall(
 			array(Mage::helper('filetransfer'), 'deleteFile'),
-			array($remotePath . DS . $fileName)
+			array($remotePath, $fileName)
 		);
 	}
 

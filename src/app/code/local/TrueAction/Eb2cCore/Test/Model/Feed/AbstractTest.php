@@ -9,6 +9,28 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	const CLASS_TESTED = 'TrueAction_Eb2cCore_Model_Feed_Abstract';
 
 	/**
+	 * Stub dom documents created by the core helper
+	 * @param  array $loadResults Results of load calls, assoc array of filename => returnValue|Exception
+	 * @return TrueAction_Dom_Document  Stubbed DOM document
+	 */
+	protected function _domStub($loadResults)
+	{
+		$dom = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$dom->expects($this->any())
+			->method('load')
+			->will($this->returnCallback(function ($arg) use ($loadResults) {
+				if (isset($loadResults[$arg])) {
+					if ($loadResults[$arg] instanceof Exception) {
+						throw $loadResults[$arg];
+					} else {
+						return $loadResults[$arg];
+					}
+				}
+				return null;
+			}));
+		return $dom;
+	}
+	/**
 	 * Test Feed Abstract
 	 *
 	 * @test
@@ -85,12 +107,16 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		// The transport protocol is mocked - we just pretend we got files
 		$mockSftp = $this->getMock(
 			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getAllFiles')
+			array( 'getAllFiles', 'deleteFile')
 		);
 
 		$mockSftp
 			->expects($this->any())
 			->method('getAllFiles')
+			->will($this->returnValue(true));
+		$mockSftp
+			->expects($this->any())
+			->method('deleteFile')
 			->will($this->returnValue(true));
 
 		$this->replaceByMock(
@@ -136,6 +162,66 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		$feedModelProp->setAccessible(true);
 		$coreFeed = $feedModelProp->getValue($model);
 		$this->assertSame(Mage::getBaseDir('var') . DS . 'inbound', $coreFeed->getBaseDir());
+	}
+
+	/**
+	 * When exceptions are encountered while loading a feed file, the feed
+	 * should not process (it can't). Feed file should be archived (moved to archive dir)
+	 * and removed from the remote.
+	 *
+	 * @test
+	 */
+	public function testLoadExceptions()
+	{
+		$fileName = 'dummy_file_name.xml';
+		$remotePath = 'remove_dummy_path';
+		$filePattern = 'Oh*My*Glob';
+
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
+			->getMock();
+		$coreFeed->expects($this->once())
+			->method('fetchFeedsFromRemote')
+			->with($this->identicalTo($remotePath), $this->identicalTo($filePattern));
+		$coreFeed->expects($this->once())
+			->method('lsInboundDir')
+			->will($this->returnValue(array($fileName)));
+		$coreFeed->expects($this->once())
+			->method('mvToArchiveDir')
+			->with($this->identicalTo($fileName));
+		$coreFeed->expects($this->once())
+			->method('removeFromRemote')
+			->with($this->identicalTo($remotePath, $fileName));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+
+		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
+		$coreHelper->expects($this->any())
+			->method('getNewDomDocument')
+			->will($this->returnValue($this->_domStub(array($fileName => new Exception(),))));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
+
+		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
+		$mockFs->expects($this->any())
+			->method('setAllowCreateFolders')
+			->will($this->returnSelf());
+		$mockFs->expects($this->any())
+			->method('open')
+			->will($this->returnSelf());
+		$model = $this->getMockForAbstractClass(
+			self::CLASS_TESTED,
+			array('param' => array(
+				'feed_config'       => 'dummy_config',
+				'feed_event_type'   => 'OrderStatus',
+				'feed_file_pattern' => $filePattern,
+				'feed_local_path'   => 'inbound',
+				'feed_file_pattern' => $filePattern,
+				'feed_remote_path'  => $remotePath,
+				'fs_tool'           => $mockFs,
+			))
+		);
+		// dom loading exceptions are caught and consider the file as processed
+		$this->assertSame(1, $model->processFeeds());
 	}
 
 	/**

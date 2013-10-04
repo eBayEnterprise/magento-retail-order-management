@@ -86,9 +86,19 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 		$filesProcessed = 0;
 		$this->_coreFeed->fetchFeedsFromRemote($this->getFeedRemotePath(), $this->getFeedFilePattern());
 		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
-			$this->processFile($xmlFeedFile);
+			try {
+				$this->processFile($xmlFeedFile);
+				$filesProcessed++;
+			} catch (TrueAction_Eb2cCore_Exception_Feed_Failure $e) {
+				echo $e->getMessage();
+				Mage::log(sprintf('[ %s ] Failed to process file, %s.', __CLASS__, $xmlFeedFile), Zend_Log::DEBUG);
+			} catch (Mage_Core_Exception $e) {
+				Mage::log(sprintf('[ %s ] Failed to process file, %s. Halting further feed processing.', __CLASS__, $xmlFeedFile), Zend_Log::DEBUG);
+				echo $e->getMessage();
+				break;
+			}
+			$this->_coreFeed->removeFromRemote($this->getFeedRemotePath(), basename($xmlFeedFile));
 			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
-			$filesProcessed++;
 		}
 		return $filesProcessed;
 	}
