@@ -167,7 +167,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 					array(
 						// Shipping weight of the item.
 						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/text()', $item), 'unit_of_measure'
+							$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass', $item), 'unit_of_measure'
 						),
 						// Shipping weight of the item.
 						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()', $item)),
@@ -175,7 +175,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 							array(
 								// Unit of measure used for these dimensions.
 								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/text()', $item), 'unit_of_measure'
+									$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging', $item), 'unit_of_measure'
 								),
 								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()', $item)),
 								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()', $item)),
@@ -187,13 +187,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 				'item_dimension_display' => new Varien_Object(
 					array(
 						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/text()', $item), 'unit_of_measure'
+							$xpath->query('ExtendedAttributes/ItemDimension/Display/Mass', $item), 'unit_of_measure'
 						),
 						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()', $item)),
 						'packaging' => new Varien_Object(
 							array(
 								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/text()', $item), 'unit_of_measure'
+									$xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging', $item), 'unit_of_measure'
 								),
 								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()', $item)),
 								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()', $item)),
@@ -205,13 +205,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 				'item_dimension_carton' => new Varien_Object(
 					array(
 						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/text()', $item), 'unit_of_measure'
+							$xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass', $item), 'unit_of_measure'
 						),
 						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()', $item)),
 						'packaging' => new Varien_Object(
 							array(
 								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/text()', $item), 'unit_of_measure'
+									$xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging', $item), 'unit_of_measure'
 								),
 								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()', $item)),
 								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()', $item)),
