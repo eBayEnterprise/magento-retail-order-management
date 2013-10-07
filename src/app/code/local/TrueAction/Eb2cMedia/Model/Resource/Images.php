@@ -30,7 +30,7 @@ class TrueAction_Eb2cMedia_Model_Resource_Images extends Mage_Core_Model_Resourc
 	}
 
 	/**
-	 * Returns just the earliest-created image id for this SKU
+	 * Returns the first image id for this SKU
 	 *
 	 * @return int an Image Id
 	 */
@@ -43,7 +43,27 @@ class TrueAction_Eb2cMedia_Model_Resource_Images extends Mage_Core_Model_Resourc
 			->order(array('id'))
 			->limit(1);
 		$bind = array(
+			':sku' => (string) $sku,
+		);
+		return $adapter->fetchOne($select, $bind);
+	}
+
+	/**
+	 * Returns the first image id matching SKU and name (i.e., ignores view)
+	 *
+	 * @return int an Image Id
+	 */
+	public function getIdBySkuAndName($sku, $imageName)
+	{
+		$adapter = $this->_getReadAdapter();
+		$select = $adapter->select()
+			->from($this->getMainTable(), 'id')
+			->where('sku = :sku and name = :image_name')
+			->order(array('id'))
+			->limit(1);
+		$bind = array(
 			':sku'        => (string) $sku,
+			':image_name' => (string) $imageName,
 		);
 		return $adapter->fetchOne($select, $bind);
 	}
