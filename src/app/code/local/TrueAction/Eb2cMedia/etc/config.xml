@@ -11,6 +11,11 @@
 				<class>TrueAction_Eb2cMedia_Model</class>
 				<resourceModel>eb2cmedia_resource</resourceModel>
 			</eb2cmedia>
+			<catalog>
+					<rewrite>
+						<product>TrueAction_Eb2cMedia_Model_Product</product>
+					</rewrite>
+			</catalog>
 			<eb2cmedia_resource>
 				<class>TrueAction_Eb2cMedia_Model_Resource</class>
 				<entities>
