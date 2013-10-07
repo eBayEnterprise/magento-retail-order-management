@@ -98,7 +98,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Zend_Http_Client_Exception));
 
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 

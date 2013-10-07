@@ -164,15 +164,15 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 	public function testDoExpressCheckout($quote)
 	{
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
-			->setMethods(array('getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId'))
+			->setMethods(array('getEb2cPaypalToken', 'getEb2cPaypalPayerId'))
 			->getMock();
 
 		$paypalMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutToken')
+			->method('getEb2cPaypalToken')
 			->will($this->returnValue('EC-5YE59312K56892714')
 			);
 		$paypalMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutPayerId')
+			->method('getEb2cPaypalPayerId')
 			->will($this->returnValue('PayerId0')
 			);
 		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalMock);
@@ -200,20 +200,20 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Zend_Http_Client_Exception));
 
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
-			->setMethods(array('getEb2cPaypalExpressCheckoutToken', 'getEb2cPaypalExpressCheckoutPayerId'))
+			->setMethods(array('getEb2cPaypalToken', 'getEb2cPaypalPayerId'))
 			->getMock();
 
 		$paypalMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutToken')
+			->method('getEb2cPaypalToken')
 			->will($this->returnValue('EC-5YE59312K56892714')
 			);
 		$paypalMock->expects($this->any())
-			->method('getEb2cPaypalExpressCheckoutPayerId')
+			->method('getEb2cPaypalPayerId')
 			->will($this->returnValue('PayerId0')
 			);
 

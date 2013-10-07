@@ -16,19 +16,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstra
 	public function doVoid($quote)
 	{
 		$responseMessage = '';
-		try{
-			// build request
-			$requestDoc = $this->buildPayPalDoVoidRequest($quote);
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
+		// build request
+		$requestDoc = $this->buildPayPalDoVoidRequest($quote);
+		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
+		try{
 			// make request to eb2c for quote items PaypalDoVoid
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_void'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalVoidAuth)
 				->request($requestDoc);
 
-		}catch(Exception $e){
-			Mage::logException($e);
+		} catch(Zend_Http_Client_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Do paypal Void request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		return $responseMessage;
