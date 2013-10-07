@@ -16,19 +16,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	public function getExpressCheckout($quote)
 	{
 		$responseMessage = '';
-		try{
-			// build request
-			$requestDoc = $this->buildPayPalGetExpressCheckoutRequest($quote);
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
+		// build request
+		$requestDoc = $this->buildPayPalGetExpressCheckoutRequest($quote);
+		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
+		try{
 			// make request to eb2c for quote items PaypalGetExpressCheckout
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_get_express_checkout'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalGetExpress)
 				->request($requestDoc);
 
-		}catch(Exception $e){
-			Mage::logException($e);
+		} catch(Zend_Http_Client_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Get Express Paypal Checkout request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		// Save payment data
@@ -60,7 +66,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 			(string) $paypal->getEb2cPaypalToken()
 		);
 		$payPalGetExpressCheckoutRequest->createChild(
-			'currencyCode',
+			'CurrencyCode',
 			(string) $quote->getQuoteCurrencyCode()
 		);
 

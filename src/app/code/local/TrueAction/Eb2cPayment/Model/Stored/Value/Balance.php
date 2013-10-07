@@ -9,21 +9,27 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Balance
 	 */
 	public function getBalance($pan, $pin)
 	{
-		$storeValueBalanceReply = '';
+		$responseMessage = '';
+		// build request
+		$requestDoc = $this->buildStoredValueBalanceRequest($pan, $pin);
+		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 		try{
-			// build request
-			$storedValueBalanceRequest = $this->buildStoredValueBalanceRequest($pan, $pin);
-
 			// make request to eb2c for Gift Card Balance
-			$storeValueBalanceReply = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_balance'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueBalance)
-				->request($storedValueBalanceRequest);
+				->request($requestDoc);
 
-		} catch(Exception $e) {
-			Mage::logException($e);
+		} catch(Zend_Http_Client_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending GetStoredValueBalance request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
-		return $storeValueBalanceReply;
+		return $responseMessage;
 	}
 
 	/**

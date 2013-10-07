@@ -194,24 +194,24 @@ class TrueAction_Eb2cAddress_Model_Validator
 	public function shouldValidateAddress(Mage_Customer_Model_Address_Abstract $address)
 	{
 		if ($this->_hasAddressBeenValidated($address)) {
-			Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - already validated', Zend_Log::DEBUG);
+			self::_logDebug('No validation - already validated');
 			return false;
 		}
 		if ($this->_isCheckoutAddress($address)) {
 			if ($this->_isAddressFromAddressBook($address)) {
-				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - from address book', Zend_Log::DEBUG);
+				self::_logDebug('No validation - from address book');
 				return false;
 			}
 			if ($this->_isAddressBeingSaved($address)) {
-				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: Require validation - saving address in address book', Zend_Log::DEBUG);
+				self::_logDebug('Require validation - saving address in address book');
 				return true;
 			}
 			if ($this->_isVirtualOrder()) {
-				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - virtual order', Zend_Log::DEBUG);
+				self::_logDebug('No validation - virtual order');
 				return false;
 			}
 			if ($this->_isAddressBillingOnly($address)) {
-				Mage::log('[' . __CLASS__ . '] EB2C Address Validation: No validation - billing only', Zend_Log::DEBUG);
+				self::_logDebug('No validation - billing only');
 				return false;
 			}
 		}
@@ -221,11 +221,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 	/**
 	 * Perform the call to EB2C and return the Address Validation Response model
 	 * @param Mage_Customer_Model_Address_Abstract $address
-	 * @return TrueAction_Eb2cAddress_Model_Validation_Response
+	 * @return TrueAction_Eb2cAddress_Model_Validation_Response|null
 	 */
 	protected function _makeRequestForAddress(Mage_Customer_Model_Address_Abstract $address)
 	{
-
 		$apiResponse = '';
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2caddress/config'));
@@ -240,15 +239,29 @@ class TrueAction_Eb2cAddress_Model_Validator
 				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
 			);
 		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . ']: Error returned from API request - ' . $e->getMessage(), Zend_Log::WARN);
+			self::_logWarn('API request returned error: ' . $e->getMessage());
 		}
 		if (empty($apiResponse)) {
-			Mage::log('[' . __CLASS__ . ']: Empty reponse returned from address validation service.', Zend_Log::WARN);
-			return null;
+			self::_logWarn('Address Validation service returned empty response.');
 		} else {
-			return Mage::getModel('eb2caddress/validation_response')
-				->setMessage($apiResponse);
+			return Mage::getModel('eb2caddress/validation_response')->setMessage($apiResponse);
 		}
+	}
+	/**
+	 * Log the message at the WARN loglevel in a standard format.
+	 * @codeCoverageIgnore
+	 */
+	private static function _logWarn($s)
+	{
+		Mage::log(sprintf('[ %s ] %s', __CLASS__, $s), Zend_Log::WARN);
+	}
+	/**
+	 * Log the message at the DEBUG loglevel in a standard format.
+	 * @codeCoverageIgnore
+	 */
+	private static function _logDebug($s)
+	{
+		Mage::log(sprintf('[ %s ] %s', __CLASS__, $s), Zend_Log::DEBUG);
 	}
 
 	/**
