@@ -83,60 +83,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 			(string) $quoteShippingAddress->getName()
 		);
 
-		// creating shippingAddress element
-		$shippingAddress = $payPalDoExpressCheckoutRequest->createChild(
-			'ShippingAddress',
-			null
-		);
-
-		// add Line1
-		$shippingAddress->createChild(
-			'Line1',
-			(trim($quoteShippingAddress->getStreet(1)) !== '')? (string) $quoteShippingAddress->getStreet(1) : 'na'
-		);
-
-		// add Line2
-		$shippingAddress->createChild(
-			'Line2',
-			(trim($quoteShippingAddress->getStreet(2)) !== '')? (string) $quoteShippingAddress->getStreet(2) : 'na'
-		);
-
-		// add Line3
-		$shippingAddress->createChild(
-			'Line3',
-			(trim($quoteShippingAddress->getStreet(3)) !== '')? (string) $quoteShippingAddress->getStreet(3) : 'na'
-		);
-
-		// add Line4
-		$shippingAddress->createChild(
-			'Line4',
-			(trim($quoteShippingAddress->getStreet(4)) !== '')? (string) $quoteShippingAddress->getStreet(4) : 'na'
-		);
-
-		// add City
-		$shippingAddress->createChild(
-			'City',
-			(string) $quoteShippingAddress->getCity()
-		);
-
-		// add MainDivision
-		$shippingAddress->createChild(
-			'MainDivision',
-			(string) $quoteShippingAddress->getRegion()
-		);
-
-		// add CountryCode
-		$shippingAddress->createChild(
-			'CountryCode',
-			(string) $quoteShippingAddress->getCountryId()
-		);
-
-		// add PostalCode
-		$shippingAddress->createChild(
-			'PostalCode',
-			(string) $quoteShippingAddress->getPostcode()
-		);
-
 		// creating lineItems element
 		$lineItems = $payPalDoExpressCheckoutRequest->createChild(
 			'LineItems',
