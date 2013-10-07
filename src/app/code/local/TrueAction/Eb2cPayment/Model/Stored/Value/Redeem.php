@@ -11,17 +11,17 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
 	 */
 	public function getRedeem($pan, $pin, $entityId, $amount)
 	{
-		$storeValueRedeemReply = '';
-		try {
-			// build request
-			$storedValueRedeemRequest = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
+		$responseMessage = '';
+		// build request
+		$requestDoc = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
 
+		try {
 			// make request to eb2c for Gift Card Redeem
-			$storeValueRedeemReply = Mage::getModel('eb2ccore/api')
+			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem)
-				->request($storedValueRedeemRequest);
-		} catch(Exception $e) {
+				->request($requestDoc);
+		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(
 				sprintf(
 					'[ %s ] The following error has occurred while sending StoredValueRedeem request to eb2c: (%s).',
@@ -30,7 +30,7 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
 				Zend_Log::ERR
 			);
 		}
-		return $storeValueRedeemReply;
+		return $responseMessage;
 	}
 
 	/**

@@ -16,18 +16,17 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 	public function setExpressCheckout($quote)
 	{
 		$responseMessage = '';
+		// build request
+		$requestDoc = $this->buildPayPalSetExpressCheckoutRequest($quote);
+		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 		try{
-			// build request
-			$requestDoc = $this->buildPayPalSetExpressCheckoutRequest($quote);
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-
 			// make request to eb2c for quote items PaypalSetExpressCheckout
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_set_express_checkout'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalSetExpress)
 				->request($requestDoc);
 
-		}catch(Exception $e){
+		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(
 				sprintf(
 					'[ %s ] The following error has occurred while sending Set Express Paypal Checkout request to eb2c: (%s).',

@@ -61,7 +61,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Zend_Http_Client_Exception));
 
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
