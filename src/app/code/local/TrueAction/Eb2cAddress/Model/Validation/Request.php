@@ -58,14 +58,15 @@ class TrueAction_Eb2cAddress_Model_Validation_Request
 	 */
 	protected function _createMessageHeader()
 	{
-		$dom = $this->_dom;
-		$fragment = $dom->createDocumentFragment();
+		$fragment = $this->_dom->createDocumentFragment();
 
 		$fragment->appendChild(
-			$dom->createElement('Header',
-				$dom->createElement('MaxAddressSuggestions',
-					$this->_config->maxAddressSuggestions
-				)
+			$this->_dom->createElement('Header',
+				$this->_dom->createElement('MaxAddressSuggestions',
+					$this->_config->maxAddressSuggestions,
+					$this->_dom->documentElement->namespaceURI
+				),
+				$this->_dom->documentElement->namespaceURI
 			)
 		);
 		return $fragment;
@@ -77,13 +78,14 @@ class TrueAction_Eb2cAddress_Model_Validation_Request
 	 */
 	protected function _createMessageAddress()
 	{
-		$dom = $this->_dom;
-		$fragment = $dom->createDocumentFragment();
+		$fragment = $this->_dom->createDocumentFragment();
+		$nsUri = $this->_dom->documentElement->namespaceURI;
 
 		$fragment->appendChild(
-			$dom->createElement(
+			$this->_dom->createElement(
 				'Address',
-				Mage::helper('eb2caddress')->addressToPhysicalAddressXml($this->getAddress(), $this->_dom)
+				Mage::helper('eb2caddress')->addressToPhysicalAddressXml($this->getAddress(), $this->_dom, $nsUri),
+				$nsUri
 			)
 		);
 		return $fragment;

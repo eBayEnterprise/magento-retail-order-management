@@ -84,7 +84,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 			Mage::getStoreConfig('eb2ccore/api/xml_namespace')
 		);
 		$maxSuggestions = $xpath
-			->query('x:AddressValidationRequest/Header/MaxAddressSuggestions', $message)
+			->query('x:AddressValidationRequest/x:Header/x:MaxAddressSuggestions', $message)
 			->item(0)
 			->textContent;
 		// test that the MaxAddressSuggestions pulled correctly from config
@@ -93,12 +93,24 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 			$maxSuggestions
 		);
 		$address = $xpath
-			->query('x:AddressValidationRequest/Address', $message);
+			->query('x:AddressValidationRequest/x:Address', $message);
 		// make sure there is an address node - actual content tested elsewhere
 		$this->assertSame(
 			$address->length,
 			1
 		);
+	}
+
+	/**
+	 * Test that the generated message validates per the xsd schema.
+	 * @test
+	 */
+	public function testRequestMessageValidates()
+	{
+		$xsd = Mage::getModuleDir('', 'TrueAction_Eb2cCore') . DS . 'xsd' . DS . 'Address-Validation-Service-1.0.xsd';
+		$request = $this->_createRequest();
+		$message = $request->getMessage();
+		$this->assertTrue($message->schemaValidate($xsd));
 	}
 
 }

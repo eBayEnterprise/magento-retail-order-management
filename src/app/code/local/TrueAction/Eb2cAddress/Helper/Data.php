@@ -29,27 +29,33 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * Generate the xml to represent the Eb2c PhysicalAddressType from an address
-	 * @param Mage_Customer_Model_Address_Abstract
+	 * @param  Mage_Customer_Model_Address_Abstract
+	 * @param  TrueAction_Dom_Document $doc
+	 * @param  string $nsUri
 	 * @return DOMDocumentFragment
 	 */
-	public function addressToPhysicalAddressXml(Mage_Customer_Model_Address_Abstract $address, TrueAction_Dom_Document $doc)
+	public function addressToPhysicalAddressXml(
+		Mage_Customer_Model_Address_Abstract $address,
+		TrueAction_Dom_Document $doc,
+		$nsUri
+	)
 	{
 		$frag = $doc->createDocumentFragment();
 		$addressLines = $address->getStreet();
 		foreach ($addressLines as $idx => $line) {
-			$frag->appendChild($doc->createElement('Line' . ($idx + 1), $this->_limit($line, 70)));
+			$frag->appendChild($doc->createElement('Line' . ($idx + 1), $this->_limit($line, 70), $nsUri));
 		}
-		$frag->appendChild($doc->createElement('City', $this->_limit($address->getCity(), 35)));
-		$frag->appendChild($doc->createElement('MainDivision', $this->_limit($address->getRegionCode(), 35)));
-		$frag->appendChild($doc->createElement('CountryCode', $this->_limit($address->getCountry(), 40)));
-		$frag->appendChild($doc->createElement('PostalCode', $this->_limit($address->getPostcode(), 15)));
+		$frag->appendChild($doc->createElement('City', $this->_limit($address->getCity(), 35), $nsUri));
+		$frag->appendChild($doc->createElement('MainDivision', $this->_limit($address->getRegionCode(), 35), $nsUri));
+		$frag->appendChild($doc->createElement('CountryCode', $this->_limit($address->getCountry(), 40), $nsUri));
+		$frag->appendChild($doc->createElement('PostalCode', $this->_limit($address->getPostcode(), 15), $nsUri));
 		return $frag;
 	}
 
 	/**
 	 * Evaluate the given XPath get get the text content of the returned nodes
-	 * @param DOMNode $context
-	 * @param string $path
+	 * @param  DOMNode $context
+	 * @param  string $path
 	 * @return array|string
 	 */
 	public function getTextValueByXPath($path, DOMNode $context)
