@@ -36,9 +36,11 @@ class TrueAction_Eb2cMedia_Model_Product extends Mage_Catalog_Model_Product
 	/**
 	 * Return url for Small Image; Overriding the non-magic method.
 	 *
+	 * @param int width ignored (supplied to satisfy overriden model's parameters).
+	 * @param int height ignored  "
 	 * @return string ''
 	 */
-	public function getSmallImageUrl()
+	public function getSmallImageUrl($width=88, $height=77)
 	{
 		return Mage::getModel('eb2cmedia/images')->loadBySkuAndName($this->getSku(), 'small_image')->getUrl();
 	}
@@ -46,9 +48,11 @@ class TrueAction_Eb2cMedia_Model_Product extends Mage_Catalog_Model_Product
 	/**
 	 * Return for Thumbnail Image; Overriding the non-magic method.
 	 *
+	 * @param int width ignored (supplied to satisfy overriden model's parameters).
+	 * @param int height ignored  "
 	 * @return string ''
 	 */
-	public function getThumbnailImageUrl()
+    public function getThumbnailUrl($width=75, $height=75)
 	{
 		return Mage::getModel('eb2cmedia/images')->loadBySkuAndName($this->getSku(), 'thumbnail')->getUrl();
 	}
