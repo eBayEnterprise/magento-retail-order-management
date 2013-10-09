@@ -42,8 +42,8 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$queue->expects($this->atLeastOnce())
 			->method('addUpsert')
 			->with($this->equalTo($e->getData()));
-		$testModel = $this->getModelMock('eb2cproduct/feed');
-		$testModel->processFeeds();
+		$testModel = Mage::getModel('eb2cproduct/feed');
+		$testModel->processFile($filesList[0]);
 	}
 
 	/**
