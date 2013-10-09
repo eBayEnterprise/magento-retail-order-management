@@ -1,0 +1,85 @@
+vfs:
+  var:
+    eb2c:
+      contentmaster:
+        feed.xml: |
+          <ContentMaster>
+          <MessageHeader>
+          <Standard>GSI</Standard>
+          <HeaderVersion>NGP1_0_0</HeaderVersion>
+          <VersionReleaseNumber>NGP1_0_0</VersionReleaseNumber>
+          <SourceData>
+          <SourceId>MAGTNA</SourceId>
+          <SourceType>CLIENT</SourceType>
+          </SourceData>
+          <DestinationData>
+          <DestinationId>MWS</DestinationId>
+          <DestinationType>WS</DestinationType>
+          </DestinationData>
+          <EventType>Content</EventType>
+          <MessageData>
+          <MessageId>1000</MessageId>
+          <CorrelationId>1000</CorrelationId>
+          </MessageData>
+          <CreateDateAndTime>2013-04-01T09:39:47-04:00</CreateDateAndTime>
+          </MessageHeader>
+          <Content catalog_id="45" gsi_client_id="MAGTNA">
+          <UniqueID>sku1</UniqueID>
+          <ProductLinks>...</ProductLinks>
+          <CategoryLinks>...</CategoryLinks>
+          <BaseAttributes>...</BaseAttributes>
+          <ExtendedAttributes>...</ExtendedAttributes>
+          <CustomAttributes>...</CustomAttributes>
+          </Content>
+          <Content catalog_id="45" gsi_client_id="MAGTNA">
+          <UniqueID>sku2</UniqueID>
+          <ProductLinks>...</ProductLinks>
+          <CategoryLinks>...</CategoryLinks>
+          <BaseAttributes>...</BaseAttributes>
+          <ExtendedAttributes>...</ExtendedAttributes>
+          <CustomAttributes>...</CustomAttributes>
+          </Content>
+          </ContentMaster>
+      itemmaster:
+        feed.xml: |
+          <ItemMaster>
+          <MessageHeader>
+          <Standard>GSI</Standard>
+          <HeaderVersion>NGP1_0_0</HeaderVersion>
+          <VersionReleaseNumber>NGP1_0_0</VersionReleaseNumber>
+          <SourceData>
+          <SourceId>MAGTNA</SourceId>
+          <SourceType>CLIENT</SourceType>
+          </SourceData>
+          <DestinationData>
+          <DestinationId>MWS</DestinationId>
+          <DestinationType>WS</DestinationType>
+          </DestinationData>
+          <DestinationData>
+          <DestinationId>SOMS_03</DestinationId>
+          <DestinationType>OMS</DestinationType>
+          </DestinationData>
+          <EventType>ItemMaster</EventType>
+          <MessageData>
+          <MessageId>100</MessageId>
+          <CorrelationId>100</CorrelationId>
+          </MessageData>
+          <CreateDateAndTime>2013-04-01T09:39:47-04:00</CreateDateAndTime>
+          </MessageHeader>
+          <Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
+          <ItemId>
+          <ClientItemId>45-000906011391</ClientItemId>
+          </ItemId>
+          <BaseAttributes>...</BaseAttributes>
+          <ExtendedAttributes>...</ExtendedAttributes>
+          <CustomAttributes>...</CustomAttributes>
+          </Item>
+          <Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
+          <ItemId>
+          <ClientItemId>45-000906014545</ClientItemId>
+          </ItemId>
+          <BaseAttributes>...</BaseAttributes>
+          <ExtendedAttributes>...</ExtendedAttributes>
+          <CustomAttributes>...</CustomAttributes>
+          </Item>
+          </ItemMaster>
