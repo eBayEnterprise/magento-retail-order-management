@@ -1,2 +1,10 @@
 pricing1:
   sku: sku1
+  gsi_store_id: MAGT1
+  gsi_client_id: MAGTNA
+  catalog_id: '45'
+  price: '86.38'
+  special_price: '67.98'
+  special_from_date: 2012-10-04T00:00:00-05:00
+  special_to_date: 2014-08-17T00:00:00-05:00
+  price_is_vat_inclusive: '0'
