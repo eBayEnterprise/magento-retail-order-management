@@ -2,7 +2,9 @@
 /**
  * Abstract the extraction of values using a simple xpath.
  */
-class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath {
+class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath
+	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
+{
 	protected $_mapping;
 	protected $_trimValue;
 
@@ -10,7 +12,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath {
 	 * extract the value of a node as text
 	 * @param  DOMXPath   $xpath xpath to use when extracting the data
 	 * @param  DOMElement $node  node to extract data from
-	 * @return array             key/value pairs of any extracted values
+	 * @return array      extracted data
 	 */
 	public function extract(DOMXPath $xpath, DOMElement $node)
 	{
