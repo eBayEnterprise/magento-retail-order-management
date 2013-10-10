@@ -166,7 +166,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return array_intersect($attributeList, self::$_attributeCodes);
 	}
 
-	protected function _getEventTypeModel($doc)
+	protected function _determineEventType($doc)
 	{
 		$this->_xpath = new DomXPath($doc);
 		$nodeList = $this->_xpath->query(self::EVENT_TYPE_XPATH, $doc->documentElement);
@@ -178,6 +178,16 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$message = sprintf(self::INVALID_EVENT_TYPE, $eventType);
 			throw new Mage_Core_Exception($message);
 		}
+		return $eventType;
+	}
+
+	/**
+	 * get the model for a specified event type.
+	 * @param  string $eventType [description]
+	 * @return [type]            [description]
+	 */
+	protected function _getEventTypeModel($eventType)
+	{
 		return Mage::getSingleton('eb2cproduct/' . $this->_eventTypes[$eventType]);
 	}
 
