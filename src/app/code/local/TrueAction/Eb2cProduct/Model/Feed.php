@@ -124,31 +124,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 		}
 	}
 
-	public function getFeedConfig()
-	{
-		return $this->_config;
-	}
-
-	public function getFeedEventType()
-	{
-		return $this->_eventTypeModel->getFeedEventType();
-	}
-
-	public function getFeedFilePattern()
-	{
-		return $this->_eventTypeModel->getFeedFilePattern();
-	}
-
-	public function getFeedLocalPath()
-	{
-		return $this->_eventTypeModel->getFeedLocalPath();
-	}
-
-	public function getFeedRemotePath()
-	{
-		return $this->_eventTypeModel->getFeedRemotePath();
-	}
-
 	protected function _extractData($unit)
 	{
 	}
