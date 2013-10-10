@@ -1,0 +1,6 @@
+config:
+  default/eb2ctax/admin_origin/line1: "1075 First Avenue"
+  default/eb2ctax/admin_origin/city: "King Of Prussia"
+  default/eb2ctax/admin_origin/main_division: "PA"
+  default/eb2ctax/admin_origin/country_code: "US"
+  default/eb2ctax/admin_origin/postal_code: "19406"

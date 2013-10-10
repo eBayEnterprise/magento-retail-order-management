@@ -1859,6 +1859,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	/**
 	 * @test
 	 * @large
+	 * @loadFixture loadAdminOriginConfig.yaml
 	 */
 	public function testValidateWithXsd()
 	{
@@ -2397,6 +2398,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 * @test
 	 * @loadFixture loadAdminAddressConfig.yaml
 	 * @loadFixture base.yaml
+	 * @loadFixture loadAdminOriginConfig.yaml
 	 * @large
 	 */
 	public function testExtractAdminData()

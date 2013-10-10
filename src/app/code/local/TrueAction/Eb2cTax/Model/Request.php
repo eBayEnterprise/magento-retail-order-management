@@ -809,43 +809,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractAdminData()
 	{
-		$storeAddress = Mage::getStoreConfig('general/store_information/address');
-		$countryCode  = Mage::getStoreConfig('general/store_information/merchant_country');
+		$config = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ctax/config'));
 
-		$countryCode = (trim($countryCode) !== '')? $countryCode : 'US';
-
-		$addressArr = explode('\r\n', trim($storeAddress));
-
-		$lineAddress = 'Line1';
-		$cityStateArr = array();
-		if (sizeof($addressArr) > 1) {
-			$lineAddress = $addressArr[0];
-			$cityStateArr = explode(',', trim($addressArr[1]));
-		}
-
-		$city = 'city';
-		$stateZipArr = array();
-		if (sizeof($cityStateArr) > 1) {
-			$city = $cityStateArr[0];
-			$stateZipArr = explode(' ', trim($cityStateArr[1]));
-		}
-
-		$state = 'state';
-		$zipCode = 'zipCode';
-
-		if (sizeof($stateZipArr) > 1) {
-			$state = $stateZipArr[0];
-			$zipCode = $stateZipArr[1];
-		}
-		$data = array(
-			'Line1' => $lineAddress,
-			'City' => $city,
-			'MainDivision' => $state,
-			'CountryCode' => $countryCode,
-			'PostalCode' => $zipCode,
+		return array(
+			'Line1' => $config->adminOriginLine1,
+			'City' => $config->adminOriginCity,
+			'MainDivision' =>$config->adminOriginMainDivision,
+			'CountryCode' => $config->adminOriginCountryCode,
+			'PostalCode' => $config->adminOriginPostalCode,
 		);
-
-		return $data;
 	}
 
 	/**
@@ -857,15 +830,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
-		$data = array(
-			'Line1'        => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'City'         => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
+		return array(
+			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
+			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
 			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
-			'CountryCode'  => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
-			'PostalCode'   => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
+			'CountryCode' => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
+			'PostalCode' => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
 		);
-
-		return $data;
 	}
 
 	/**

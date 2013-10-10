@@ -29,6 +29,57 @@
 						</apply_after_discount>
 					</fields>
 				</calculation>
+				<admin_origin translate="label">
+					<label>Admin Origin</label>
+					<frontend_type>text</frontend_type>
+					<sort_order>600</sort_order>
+					<show_in_default>1</show_in_default>
+					<show_in_website>1</show_in_website>
+					<show_in_store>1</show_in_store>
+					<fields>
+						<line1>
+							<label>Line1</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>1</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</line1>
+						<city>
+							<label>City</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>2</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</city>
+						<main_division>
+							<label>State Code</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>3</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</main_division>
+						<country_code>
+							<label>Country Code</label>
+							<frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_country</source_model>
+							<sort_order>4</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</country_code>
+						<postal_code>
+							<label>Postal Code</label>
+							<frontend_type>text</frontend_type>
+							<sort_order>5</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+						</postal_code>
+					</fields>
+				</admin_origin>
 			</groups>
 		</eb2ctax>
 	</sections>
