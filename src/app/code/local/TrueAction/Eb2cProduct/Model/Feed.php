@@ -109,21 +109,22 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$this->processDom($dom);
 	}
 
+	/**
+	 * process a dom document
+	 * @param  TrueAction_Dom_Document $doc
+	 * @return self
+	 */
 	public function processDom(TrueAction_Dom_Document $doc)
 	{
-		$units = $this->_splitIntoUnits($doc);
+		$units = $this->_getIterableFor($doc);
 		foreach ($units as $unit) {
 			$operation = $this->getOperationType($unit);
 			$data = $this->_extractData($unit);
-			if ($operation = self::OPERATION_UPSERT) {
-				$this->_queue->add($data);
-			}
-			elseif ($operation = self::OPERATION_REMOVE) {
-				$this->_queue->remove($data);
-			}
+			$operationType = $this->_eventTypeModel->getOperationExtractor()
+				->getValue($this->_xpath, $unit);
+			$this->_queue->add($data, $operationType);
 		}
-	}
-
+		return $this;
 	}
 
 	/**
