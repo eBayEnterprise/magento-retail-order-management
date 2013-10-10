@@ -7,6 +7,7 @@ class TrueAction_Eb2cMedia_Test_Model_ProductTest extends TrueAction_Eb2cCore_Te
 {
 	const CLASS_NAME      = 'TrueAction_Eb2cMedia_Model_Product';
 	const MODEL_NAME      = 'eb2cmedia/product';
+	const TEST_IMAGE_HOST = 'http://cjbus.imageg.net';
 	const NUM_TEST_IMAGES = 3;
 
 	/**
@@ -35,17 +36,17 @@ class TrueAction_Eb2cMedia_Test_Model_ProductTest extends TrueAction_Eb2cCore_Te
 		);
 
 		$this->assertEquals(
-			'/some/sensible/path.png',
+			self::TEST_IMAGE_HOST . '/some/sensible/path.png',
 			$testProduct->getImageUrl()
 		);
 
 		$this->assertEquals(
-			'/some/other/sensible/path.jpg',
+			self::TEST_IMAGE_HOST . '/some/other/sensible/path.jpg',
 			$testProduct->getSmallImageUrl()
 		);
 
 		$this->assertEquals(
-			'/yet/another/sensible/path.png',
+			self::TEST_IMAGE_HOST . '/yet/another/sensible/path.png',
 			$testProduct->getThumbnailUrl()
 		);
 	}

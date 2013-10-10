@@ -5,7 +5,7 @@
 class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const CLASS_NAME            = 'TrueAction_Eb2cMedia_Model_Images_Feed';
-	const MAGE_MODEL_NAME       = 'eb2cmedia/images_feed';
+	const MODEL_NAME            = 'eb2cmedia/images_feed';
 	const VFS_ROOT              = 'testImageRoot';
 	const NUMBER_OF_DUMMY_FILES = 2; // How many files I expect to process as found in vfs fixture
 
@@ -45,11 +45,41 @@ class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCor
 	 * @test
 	 * @loadFixture mockFsTool
 	 */
-	public function testFeedProcess()
+	public function testFeedProcessAddMode()
 	{
 		$this->_setMockFileTransfer($this->returnValue(true));
 
-		$this->markTestIncomplete('Incomplete, needs a replace-by-mock for catalog/product');
+		$this->replaceByMock(
+			'model',
+			'eb2cmedia/images',
+			$this->_setMockImageModel(0)
+		);
+
+		$this->assertSame(
+			self::NUMBER_OF_DUMMY_FILES,
+			$this->_getTestModel(
+				$this->getFixture()
+				->getVfs()
+			)
+			->processFeeds()
+		);
+	}
+
+	/**
+	 * Test with a mock'd up filesystem
+	 * 
+	 * @test
+	 * @loadFixture mockFsTool
+	 */
+	public function testFeedProcessUpdateMode()
+	{
+		$this->_setMockFileTransfer($this->returnValue(true));
+
+		$this->replaceByMock(
+			'model',
+			'eb2cmedia/images',
+			$this->_setMockImageModel(1)
+		);
 
 		$this->assertSame(
 			self::NUMBER_OF_DUMMY_FILES,
@@ -78,7 +108,7 @@ class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCor
 		);
 
 		return Mage::getModel(
-			self::MAGE_MODEL_NAME,
+			self::MODEL_NAME,
 			array(
 				'fs_tool' => $this->_setMockFsTool($vfs),
 			)
@@ -152,5 +182,37 @@ class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCor
 			->will($this->returnSelf());
 
 		return $mockFsTool;
+	}
+
+	private function _setMockImageModel($imageId=0)
+	{
+		$mockImageModel = $this->getModelMock(
+			'eb2cmedia/images',
+			array(
+				'addData',
+				'getIdBySkuViewName',
+				'load',
+				'setData',
+			)
+		);
+
+		$mockImageModel
+			->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$mockImageModel
+			->expects($this->any())
+			->method('getIdBySkuViewName')
+			->will($this->returnValue($imageId));
+		$mockImageModel
+			->expects($this->any())
+			->method('load')
+			->will($this->returnSelf());
+		$mockImageModel
+			->expects($this->any())
+			->method('setData')
+			->will($this->returnSelf());
+
+		return $mockImageModel;
 	}
 }

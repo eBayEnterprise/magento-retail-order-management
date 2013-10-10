@@ -12,4 +12,13 @@ class TrueAction_Eb2cMedia_Helper_Data extends Mage_Core_Helper_Abstract
 			->addConfigModel(Mage::getModel('eb2cmedia/config'))
 			->addConfigModel(Mage::getModel('eb2ccore/config'));
 	}
+
+	/**
+	 * Get the Image Host, the protocol and clientId + '.'
+	 * the callers add the URL from the image model record.
+	 */
+	public function getImageHost()
+	{
+		return (Mage::app()->getStore()->isCurrentlySecure() ?'https' : 'http') . '://' . $this->getConfigModel()->clientId . '.';
+	}
 }

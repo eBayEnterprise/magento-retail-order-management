@@ -12,7 +12,7 @@ class TrueAction_Eb2cMedia_Model_Images_Feed
 {
 	const EB2CMEDIA_IMAGES_MODEL = 'eb2cmedia/images';
 
-	private $_cdnDomain; // We're making a guess here - if imageDomain is provided, it's a CDN installation
+	private $_imageDomain;
 	private $_imageAttrs = array('imagewidth', 'imageview', 'imageurl', 'imagename', 'imageheight');
 
 	protected function _construct()
@@ -39,7 +39,7 @@ class TrueAction_Eb2cMedia_Model_Images_Feed
 	{
 		// ItemImages is the root node of each Image Feed file.
 		foreach( $dom->getElementsByTagName('ItemImages') as $itemImagesNode ) {
-			$this->_cdnDomain = $itemImagesNode->getAttribute('imageDomain');
+			$this->_imageDomain = $itemImagesNode->getAttribute('imageDomain');
 
 			foreach( $dom->getElementsByTagName('Item') as $itemNode ) {
 				$itemImageInfo = array();
@@ -72,24 +72,22 @@ class TrueAction_Eb2cMedia_Model_Images_Feed
 
 		$imageModel = Mage::getModel(self::EB2CMEDIA_IMAGES_MODEL);
 		foreach( $imageInfo['images'] as $image ) {
-			if( $this->_cdnDomain ) {
-				$imageData = array(
-					'sku'        => $imageInfo['sku'],
-					'view'       => $image['imageview'],
-					'name'       => $image['imagename'],
-					'height'     => $image['imageheight'],
-					'url'        => $image['imageurl'],
-					'width'      => $image['imagewidth'],
-				);
+			$imageData = array(
+				'sku'        => $imageInfo['sku'],
+				'view'       => $image['imageview'],
+				'name'       => $image['imagename'],
+				'height'     => $image['imageheight'],
+				'url'        => $this->_imageDomain . DS . $image['imageurl'],
+				'width'      => $image['imagewidth'],
+			);
 
-				$imageId = $imageModel->getIdBySkuViewName($imageInfo['sku'], $image['imageview'], $image['imagename']);
-				if( $imageId ) {
-					$imageModel->load($imageId);
-					$imageData['updated_at'] = Mage::getModel('core/date')->timestamp(time());
-					$imageModel->addData($imageData)->save();
-				} else {
-					$imageModel->setData($imageData)->save();
-				}
+			$imageId = $imageModel->getIdBySkuViewName($imageInfo['sku'], $image['imageview'], $image['imagename']);
+			if( $imageId ) {
+				$imageModel->load($imageId);
+				$imageData['updated_at'] = Mage::getModel('core/date')->timestamp(time());
+				$imageModel->addData($imageData)->save();
+			} else {
+				$imageModel->setData($imageData)->save();
 			}
 		}
 		return $this;
