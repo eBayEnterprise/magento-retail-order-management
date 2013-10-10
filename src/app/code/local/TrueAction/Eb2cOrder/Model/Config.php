@@ -18,5 +18,6 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'api_xml_ns'                 => 'eb2ccore/api/xml_namespace',
 		'xsd_file_create'            => 'eb2c/order/xsd/create_file',
 		'xsd_file_cancel'            => 'eb2c/order/xsd/cancel_file',
+		'xsd_file_search'            => 'eb2c/order/xsd/search_file',
 	);
 }

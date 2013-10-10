@@ -46,6 +46,7 @@
 				<xsd>
 					<create_file>Order-Service-Create-1.0.xsd</create_file>
 					<cancel_file>Order-Service-Cancel-1.0.xsd</cancel_file>
+					<search_file>Order-Service-Search-1.0.xsd</search_file>
 				</xsd>
 			</order>
 		</eb2c>
