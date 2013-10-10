@@ -56,8 +56,8 @@ class TrueAction_Eb2cProduct_Model_Feed
 	{
 		$filesProcessed = 0;
 		// fetch all files for all feeds.
-		foreach ($this->_eventTypes as $eventType => $modelAlias) {
-			$this->_eventTypeModel = Mage::getSingleton('eb2cproduct/' . $modelAlias);
+		foreach (array_keys($this->_eventTypes) as $eventType) {
+			$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 			$this->_setupCoreFeed();
 
