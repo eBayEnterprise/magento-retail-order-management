@@ -1,6 +1,6 @@
 <?php
 /**
- * A common interface for all eb2cproduct feed extractor classes to implement
+ * interface for all eb2cproduct feed extractor classes to implement
  */
 interface TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface {
 	/**
