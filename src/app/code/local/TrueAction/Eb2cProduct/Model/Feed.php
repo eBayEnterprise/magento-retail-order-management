@@ -127,16 +127,16 @@ class TrueAction_Eb2cProduct_Model_Feed
 	}
 
 	/**
-	 * @param  array  $attributeList list of attributes we want to exist
-	 * @return array                 subset of $attributeList that actually exist
+	 * setup feed specific internals before attempting to process the dom.
+	 * @param  TrueAction_Dom_Document $dom
+	 * @return self
 	 */
-	private function _getApplicableAttributes(array $attributeList)
+	protected function _beforeProcessDom(TrueAction_Dom_Document $dom)
 	{
-		$extraAttrs = array_diff($attributeList, self::$_attributeCodes);
-		if ($extraAttrs) {
-			self::$_missingAttributes = array_unique(array_merge(self::$_missingAttributes, $extraAttrs));
-		}
-		return array_intersect($attributeList, self::$_attributeCodes);
+		$this->_checkPreconditions();
+		$this->_setupCoreFeed();
+		$this->_xpath = $this->_eventTypeModel->getNewXpath($dom);
+		return $this;
 	}
 
 	protected function _determineEventType($doc)
@@ -163,6 +163,19 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$result->addData($data);
 		}
 		return $result;
+	}
+
+	/**
+	 * @param  array  $attributeList list of attributes we want to exist
+	 * @return array                 subset of $attributeList that actually exist
+	 */
+	private function _getApplicableAttributes(array $attributeList)
+	{
+		$extraAttrs = array_diff($attributeList, self::$_attributeCodes);
+		if ($extraAttrs) {
+			self::$_missingAttributes = array_unique(array_merge(self::$_missingAttributes, $extraAttrs));
+		}
+		return array_intersect($attributeList, self::$_attributeCodes);
 	}
 
 	/**
