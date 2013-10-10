@@ -23,26 +23,17 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		));
 
 		$filesList = array($vfs->url($feedFile));
-		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
-			'lsInboundDir',
-			'fetchFeedsFromRemote'
-		));
-		$coreFeed->expects($this->atLeastOnce())
-			->method('lsInboundDir')
-			->will($this->returnValue($filesList));
-		$coreFeed->expects($this->atLeastOnce())
-			->method('fetchFeedsFromRemote')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
 		$e = $this->expected($scenario);
 		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
-			'addUpsert',
+			'add',
 		));
 		$queue->expects($this->atLeastOnce())
-			->method('addUpsert')
-			->with($this->equalTo($e->getData()));
+			->method('add')
+			->with($this->isInstanceOf('Varien_Object'), $this->identicalTo('ADD'));
 		$testModel = Mage::getModel('eb2cproduct/feed');
+		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
+
 		$testModel->processFile($filesList[0]);
 	}
 
