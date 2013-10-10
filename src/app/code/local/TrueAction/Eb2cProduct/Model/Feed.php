@@ -17,6 +17,18 @@ class TrueAction_Eb2cProduct_Model_Feed
 	);
 
 	/**
+	 * xpath object used to query the feed document
+	 * @var DOMXPath
+	 */
+	private $_xpath;
+
+	/**
+	 * extracts the event type from the feed file.
+	 * @var TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
+	 */
+	protected $_eventTypeExtractor;
+
+	/**
 	 * list of all attribute codes within the set identified by $_attributeCodesSetId
 	 * @var array
 	 */
@@ -32,7 +44,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 * list of attribute codes that are not setup on the system but were in the feed.
 	 * @var array
 	 */
-	private static $_missingAttributes = array();
+	private $_missingAttributes = array();
 
 	protected $_feedFiles = array();
 
