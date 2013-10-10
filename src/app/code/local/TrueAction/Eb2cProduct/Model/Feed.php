@@ -124,8 +124,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 		}
 	}
 
-	protected function _extractData($unit)
-	{
 	}
 
 	/**
@@ -154,6 +152,17 @@ class TrueAction_Eb2cProduct_Model_Feed
 			throw new Mage_Core_Exception($message);
 		}
 		return $eventType;
+	}
+
+	protected function _extractData($unit)
+	{
+		$extractors = $this->_eventTypeModel->getExtractors();
+		$result = new Varien_Object();
+		foreach ($extractors as $extractor) {
+			$data = $extractor->extract($this->_xpath, $unit);
+			$result->addData($data);
+		}
+		return $result;
 	}
 
 	/**
