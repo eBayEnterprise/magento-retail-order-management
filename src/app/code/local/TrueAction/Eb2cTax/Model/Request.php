@@ -809,15 +809,15 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractAdminData()
 	{
-		$config = Mage::getModel('eb2ccore/config_registry')
+		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ctax/config'));
 
 		return array(
-			'Line1' => $config->adminOriginLine1,
-			'City' => $config->adminOriginCity,
-			'MainDivision' =>$config->adminOriginMainDivision,
-			'CountryCode' => $config->adminOriginCountryCode,
-			'PostalCode' => $config->adminOriginPostalCode,
+			'Lines' => array_map(function ($n) use ($cfg) {return $cfg->getConfig("admin_origin_line$n"); }, array(1, 2, 3, 4)),
+			'City' => $cfg->adminOriginCity,
+			'MainDivision' => $cfg->adminOriginMainDivision,
+			'CountryCode' => $cfg->adminOriginCountryCode,
+			'PostalCode' => $cfg->adminOriginPostalCode,
 		);
 	}
 
@@ -850,7 +850,10 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _buildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
 	{
 		return $parent->createChild('AdminOrigin')
-			->addChild('Line1', $adminOrigin['Line1'])
+			->addChild('Line1', $adminOrigin['Lines'][0])
+			->addChild('Line2', $adminOrigin['Lines'][1])
+			->addChild('Line3', $adminOrigin['Lines'][2])
+			->addChild('Line4', $adminOrigin['Lines'][3])
 			->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])

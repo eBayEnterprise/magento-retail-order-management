@@ -2411,7 +2411,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$extractAdminDataMethod->setAccessible(true);
 
 		$this->assertSame(array(
-			'Line1'        => '1075 First Avenue',
+			'Lines'        => array('1075 First Avenue', 'N/A', 'N/A', 'N/A'),
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2478,7 +2478,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		return array(array($parent, array(
-			'Line1'        => '1075 First Avenue',
+			'Lines'        => array('1075 First Avenue', 'N/A', 'N/A', 'N/A'),
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
