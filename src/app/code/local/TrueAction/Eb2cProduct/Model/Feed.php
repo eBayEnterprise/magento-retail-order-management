@@ -188,6 +188,13 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return Mage::getSingleton('eb2cproduct/' . $this->_eventTypes[$eventType]);
 	}
 
+	protected function _getIterableFor(TrueAction_Dom_Document $doc)
+	{
+		$baseXpath = $this->_eventTypeModel->getBaseXpath();
+		$iterable = $this->_xpath->query($baseXpath);
+		return $iterable;
+	}
+
 	/**
 	 * load all attribute codes
 	 * @return self
