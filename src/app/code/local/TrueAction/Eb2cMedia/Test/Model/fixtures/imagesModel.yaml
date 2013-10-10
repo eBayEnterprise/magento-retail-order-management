@@ -1,0 +1,29 @@
+tables:
+  eb2cmedia/images:
+    - id: 10
+      sku: "29-303132"
+      view: "topleft"
+      name: "XXL"
+      url: "/some/sensible/path.png"
+      height: "83"
+      width: "77"
+      created_at: "2013-10-03 18:28:22"
+      updated_at: "2013-10-03 18:28:22"
+    - id: 20 
+      sku: "29-303132"
+      view: "topright"
+      name: "small_image"
+      url: "/some/other/sensible/path.jpg"
+      height: "83"
+      width: "77"
+      created_at: "2013-10-03 18:28:22"
+      updated_at:
+    - id: 30
+      sku: "29-303132"
+      view: "main"
+      name: "thumbnail"
+      url: "/yet/another/sensible/path.png"
+      height: "83"
+      width: "77"
+      created_at: "2013-10-03 18:28:22"
+      updated_at: "2013-10-03 18:28:22"

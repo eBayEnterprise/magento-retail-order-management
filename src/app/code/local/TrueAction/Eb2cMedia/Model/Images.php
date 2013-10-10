@@ -16,9 +16,9 @@ class TrueAction_Eb2cMedia_Model_Images extends Mage_Core_Model_Abstract
 	 *
 	 * @return int id of image matching
 	 */
-	public function getIdByViewAndName($sku, $imageView, $imageName)
+	public function getIdBySkuViewName($sku, $imageView, $imageName)
 	{
-		return $this->_getResource()->getIdByViewAndName($sku, $imageView, $imageName);
+		return $this->_getResource()->getIdBySkuViewName($sku, $imageView, $imageName);
 	}
 
 	/**

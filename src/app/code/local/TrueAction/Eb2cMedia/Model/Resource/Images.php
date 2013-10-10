@@ -13,9 +13,12 @@ class TrueAction_Eb2cMedia_Model_Resource_Images extends Mage_Core_Model_Resourc
 	/**
 	 * Returns just the id if we find a match on product/ imagename/ imageview
 	 *
+	 * @param string SKU of product to which this image belongs
+	 * @param string imageView the eb2c View of the image
+	 * @param string imageName the eb2c Name of the image
 	 * @return int an Image Id
 	 */
-	public function getIdByViewAndName($sku, $imageView, $imageName)
+	public function getIdBySkuViewName($sku, $imageView, $imageName)
 	{
 		$adapter = $this->_getReadAdapter();
 		$select = $adapter->select()
