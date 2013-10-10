@@ -5,81 +5,48 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
-	implements TrueAction_Eb2cProduct_Model_Feed_IExtractor
+	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
 {
 	const FEED_BASE_NODE = 'Item';
 
-	/**
-	 * extract item id data into a varien object
-	 *
-	 * @param DOMXPath $xpath, the xpath object
-	 * @param DOMElement $item, the current element
-	 *
-	 * @return Varien_Object
-	 */
-	protected function _extractItemId(DOMXPath $xpath, DOMElement $item)
+	protected $_extractMap = array(
+		// SKU used to identify this item from the client system.
+		'client_item_id' => 'ItemId/ClientItemId/text()',
+		// Alternative identifier provided by the client.
+		'client_alt_item_id' => 'ItemId/ClientAltItemId/text()',
+		// Code assigned to the item by the manufacturer to identify the item.
+		'manufacturer_item_id' => 'ItemId/ManufacturerItemId/text()',
+		// Name of the Drop Ship Supplier fulfilling the item
+		'supplier_name' => 'DropShipSupplierInformation/SupplierName/text()',
+		// Unique code assigned to this supplier.
+		'supplier_number' => 'DropShipSupplierInformation/SupplierNumber/text()',
+		// Id or SKU used by the drop shipper to identify this item.
+		'supplier_part_number' => 'DropShipSupplierInformation/SupplierPartNumber/text()',
+		// Allows for control of the web store display.
+		'catalog_class' => 'BaseAttributes/CatalogClass/text()',
+		// Short description in the catalog's base language.
+		'item_description' => 'BaseAttributes/ItemDescription/text()',
+		// Identifies the type of item.
+		'item_type' => 'BaseAttributes/ItemType/text()',
+		// Indicates whether an item is active, inactive or other various states.
+		'item_status' => 'BaseAttributes/ItemStatus/text()',
+		// Tax group the item belongs to.
+		'tax_code' => 'BaseAttributes/TaxCode/text()',
+	);
+
+	protected $_extractBool = array(
+		// Indicates the item if fulfilled by a drop shipper. New attribute.
+		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
+	);
+
+	protected $_dropShipSupplierInformation = array(
+	);
+
+	public function transformData(Varien_Object $dataObject)
 	{
-		$prdHlpr = Mage::helper('eb2cproduct');
-		return new Varien_Object(array(
-			// SKU used to identify this item from the client system.
-			'client_item_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ItemId/ClientItemId/text()', $item)),
-			// Alternative identifier provided by the client.
-			'client_alt_item_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ItemId/ClientAltItemId/text()', $item)),
-			// Code assigned to the item by the manufacturer to identify the item.
-			'manufacturer_item_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ItemId/ManufacturerItemId/text()', $item)),
+		$dataObject->addData(array(
+			$dataObject->getStatus() === 'ACTIVE' ? 1 : 0,
 		));
-	}
-
-	/**
-	 * extract BaseAttributes data into a varien object
-	 *
-	 * @param DOMXPath $xpath, the xpath object
-	 * @param DOMElement $item, the current element
-	 *
-	 * @return Varien_Object
-	 */
-	protected function _extractBaseAttributes(DOMXPath $xpath, DOMElement $item)
-	{
-		$prdHlpr = Mage::helper('eb2cproduct');
-		return new Varien_Object(
-			array(
-				// Allows for control of the web store display.
-				'catalog_class' => (string) $prdHlpr->extractNodeVal($xpath->query('BaseAttributes/CatalogClass/text()', $item)),
-				// Indicates the item if fulfilled by a drop shipper. New attribute.
-				'drop_shipped' => (bool) $prdHlpr->extractNodeVal($xpath->query('BaseAttributes/IsDropShipped/text()', $item)),
-				// Short description in the catalog's base language.
-				'item_description' => (string) $prdHlpr->extractNodeVal($xpath->query('BaseAttributes/ItemDescription/text()', $item)),
-				// Identifies the type of item.
-				'item_type' => (string) $prdHlpr->extractNodeVal($xpath->query('BaseAttributes/ItemType/text()', $item)),
-				// Indicates whether an item is active, inactive or other various states.
-				'item_status' => (strtoupper(trim($prdHlpr->extractNodeVal($xpath->query('BaseAttributes/ItemStatus/text()', $item)))) === 'ACTIVE')? 1 : 0,
-				// Tax group the item belongs to.
-				'tax_code' => (string) $prdHlpr->extractNodeVal($xpath->query('BaseAttributes/TaxCode/text()', $item)),
-			)
-		);
-	}
-
-	/**
-	 * extract DropShipSupplierInformation data into a varien object
-	 *
-	 * @param DOMXPath $xpath, the xpath object
-	 * @param DOMElement $item, the current element
-	 *
-	 * @return Varien_Object
-	 */
-	protected function _extractDropShipSupplierInformation(DOMXPath $xpath, DOMElement $item)
-	{
-		$prdHlpr = Mage::helper('eb2cproduct');
-		return new Varien_Object(
-			array(
-				// Name of the Drop Ship Supplier fulfilling the item
-				'supplier_name' => (string) $prdHlpr->extractNodeVal($xpath->query('DropShipSupplierInformation/SupplierName/text()', $item)),
-				// Unique code assigned to this supplier.
-				'supplier_number' => (string) $prdHlpr->extractNodeVal($xpath->query('DropShipSupplierInformation/SupplierNumber/text()', $item)),
-				// Id or SKU used by the drop shipper to identify this item.
-				'supplier_part_number' => (string) $prdHlpr->extractNodeVal($xpath->query('DropShipSupplierInformation/SupplierPartNumber/text()', $item)),
-			)
-		);
 	}
 
 	/**
