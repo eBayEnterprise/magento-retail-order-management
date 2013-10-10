@@ -213,9 +213,17 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return $this;
 	}
 
+	/**
+	 * suppress the core feed's initialization
+	 * create necessary internal models.
+	 * @return [type] [description]
+	 */
 	protected function _construct()
 	{
-		$this->_config = Mage::helper('eb2cproduct')->getConfigModel();
+		$this->_eventTypeExtractor = Mage::getModel(
+			'eb2cproduct/feed_extractor_xpath',
+			array('event_type' => self::EVENT_TYPE_XPATH)
+		);
 		$this->_queue = Mage::getSingleton('eb2cproduct/feed_queue');
 	}
 }
