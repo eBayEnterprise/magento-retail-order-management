@@ -89,12 +89,12 @@ class TrueAction_Eb2cProduct_Model_Feed
 			return;
 		}
 
-		$this->_eventTypeModel = $this->_getEventTypeModel($dom);
-
+		$eventType = $this->_determineEventType($dom);
+		$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 		// Validate Eb2c Header Information
 		if ( !Mage::helper('eb2ccore/feed')
-			->validateHeader($dom, $this->getFeedEventType() )
+			->validateHeader($dom, $eventType )
 		) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return;
