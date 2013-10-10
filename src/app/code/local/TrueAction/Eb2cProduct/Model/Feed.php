@@ -59,20 +59,12 @@ class TrueAction_Eb2cProduct_Model_Feed
 		foreach ($this->_eventTypes as $eventType => $modelAlias) {
 			$this->_eventTypeModel = Mage::getSingleton('eb2cproduct/' . $modelAlias);
 
-			// Set up local folders for receiving, processing
-			$coreFeedConstructorArgs = array(
-				'base_dir' => Mage::getBaseDir('var') . DS . $this->getFeedLocalPath()
+			$this->_setupCoreFeed();
+
+			$this->_coreFeed->fetchFeedsFromRemote(
+				$this->_eventTypeModel->getFeedRemotePath(),
+				$this->_eventTypeModel->getFeedFilePattern()
 			);
-
-			// FileSystem tool can be supplied, esp. for testing
-			if ($this->getFsTool()) {
-				$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-			}
-
-			// Ready to set up the core feed helper, which manages files and directories:
-			$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
-
-			$this->_coreFeed->fetchFeedsFromRemote($this->getFeedRemotePath(), $this->getFeedFilePattern());
 			$this->_feedFiles = array_merge($this->_feedFiles, $this->_coreFeed->lsInboundDir());
 		}
 		foreach($this->_feedFiles as $xmlFeedFile ) {
@@ -85,7 +77,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 	/**
 	 * Processes a single xml file.
-	 *
 	 */
 	public function processFile($xmlFile)
 	{
@@ -100,18 +91,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 		$this->_eventTypeModel = $this->_getEventTypeModel($dom);
 
-		// Set up local folders for receiving, processing
-		$coreFeedConstructorArgs = array(
-			'base_dir' => Mage::getBaseDir('var') . DS . $this->getFeedLocalPath()
-		);
-
-		// FileSystem tool can be supplied, esp. for testing
-		if ($this->getFsTool()) {
-			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-		}
-
-		// Ready to set up the core feed helper, which manages files and directories:
-		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 
 		// Validate Eb2c Header Information
 		if ( !Mage::helper('eb2ccore/feed')
@@ -215,8 +194,15 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return $this;
 	}
 
-	protected function _prepareForFeed()
+	protected function _setupCoreFeed()
 	{
+		// Set up local folders for receiving, processing
+		$coreFeedConstructorArgs = array(
+			'base_dir' => Mage::getBaseDir('var') . DS . $this->_eventTypeModel->getFeedLocalPath()
+		);
+
+		// Ready to set up the core feed helper, which manages files and directories:
+		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 		return $this;
 	}
 
