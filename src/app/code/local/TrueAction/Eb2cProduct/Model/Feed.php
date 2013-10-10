@@ -120,6 +120,13 @@ class TrueAction_Eb2cProduct_Model_Feed
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return;
 		}
+		try {
+			$this->_beforeProcessDom($dom);
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(sprintf('File %s: error while preparing to process DOM', $xmlFile));
+			Mage::logException($e);
+			return;
+		}
 		$this->processDom($dom);
 	}
 
@@ -211,6 +218,41 @@ class TrueAction_Eb2cProduct_Model_Feed
 	protected function _prepareForFeed()
 	{
 		return $this;
+	}
+
+	/**
+	 * check the eventTypeModel to see if it is properly configured.
+	 * @return [type] [description]
+	 */
+	protected function _checkPreconditions()
+	{
+		// Where is the remote path?
+		if( is_null($this->_eventTypeModel->getFeedRemotePath()) ) {
+			Mage::throwException($this->_missingConfigMessage('FeedRemotePath'));
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
+
+		// What is the file pattern for remote retrieval?
+		if( is_null($this->_eventTypeModel->getFeedFilePattern()) ) {
+			Mage::throwException($this->_missingConfigMessage('FeedFilePattern'));
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
+
+		// Where is the local path?
+		if( is_null($this->_eventTypeModel->getFeedLocalPath()) ) {
+			Mage::throwException($this->_missingConfigMessage('FeedLocalPath'));
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
+
+		// Where is the event type we're processing?
+		if( is_null($this->_eventTypeModel->getFeedEventType()) ) {
+			Mage::throwException($this->_missingConfigMessage('FeedEventType'));
+			// @codeCoverageIgnoreStart
+		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
