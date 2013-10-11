@@ -39,7 +39,142 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
 	);
 
-	protected $_dropShipSupplierInformation = array(
+	protected $_extendedAttributesOptions = array(
+//////// new kind of extractor for option data
+		'color_attributes' => new Varien_Object(
+			array(
+				'color' => $colorData,
+			)
+		),
+		'size_attributes' => new Varien_Object(
+			array(
+				'size' => $sizeData
+			)
+		),
+	);
+
+	protected $_extendedAttributesNested = array(
+		'item_dimension_shipping' => array(
+			// Shipping weight of the item.
+			'mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
+			// Shipping weight of the item.
+			'weight' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()',
+			'packaging' => array(
+				// Unit of measure used for these dimensions.
+				'unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging@unit_of_measure',
+				'width' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()',
+				'length' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()',
+				'height' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()',
+			),
+		),
+		'item_dimension_display' => array(
+				'mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Mass@unit_of_measure',
+				'weight' => (float) 'ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()',
+				'packaging' => array(
+						'unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Packaging@unit_of_measure',
+						'width' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()',
+						'length' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()',
+						'height' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()',
+					)
+				),
+			)
+		),
+		'item_dimension_carton' => array(
+				'mass_unit_of_measure' => (string) 'ExtendedAttributes/ItemDimension/Carton/Mass@unit_of_measure',
+				'weight' => (float) 'ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()',
+				'packaging' => array(
+						'unit_of_measure' => (string) 'ExtendedAttributes/ItemDimension/Carton/Packaging@unit_of_measure',
+						'width' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()',
+						'length' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()',
+						'height' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()',
+					)
+				),
+				// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
+				'type' => (string) 'ExtendedAttributes/ItemDimension/CartonType/text()',
+			)
+		),
+		'manufacturer' => array(
+				// Date the item was build by the manufacturer.
+				'date' => (string) 'ExtendedAttributes/ManufacturingDate/text()',
+				// Company name of manufacturer.
+				'name' => (string) 'ExtendedAttributes/Manufacturer/Name/text()',
+				// Unique identifier to denote the item manufacturer.
+				'id' => (string) 'ExtendedAttributes/Manufacturer/ManufacturerId/text()',
+			)
+		),
+	);
+
+	protected $_extenddedAttributes = array(
+		// Item is able to be back ordered.
+		'back_orderable' => 'ExtendedAttributes/BackOrderable/text()',
+		// Country in which goods were completely derived or manufactured.
+		'country_of_origin' => 'ExtendedAttributes/CountryOfOrigin/text()',
+		/*
+		 *  Type of gift card to be used for activation.
+		 * 		SD - TRU Digital Gift Card
+		 *		SP - SVS Physical Gift Card
+		 *		ST - SmartClixx Gift Card Canada
+		 *		SV - SVS Virtual Gift Card
+		 *		SX - SmartClixx Gift Card
+		 */
+		'gift_card_tender_code' => 'ExtendedAttributes/GiftCardTenderCode/text()',
+		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
+		'may_ship_expedite' => (float) 'ExtendedAttributes/MayShipExpedite/text()',
+		// Indicates if the item may be shipped internationally.
+		'may_ship_international' => (float) 'ExtendedAttributes/MayShipInternational/text()',
+		// Indicates if the item may be shipped via USPS.
+		'may_ship_usps' => (float) 'ExtendedAttributes/MayShipUSPS/text()',
+		// Manufacturers suggested retail price. Not used for actual price calculations.
+		'msrp' => (float) 'ExtendedAttributes/MSRP/text()',
+		// Default price item is sold at. Required only if the item is new.
+		'price' => (float) 'ExtendedAttributes/Price/text()',
+		// Amount used for safety stock calculations.
+		'safety_stock' => (int) 'ExtendedAttributes/SafetyStock/text()',
+		// Determines behavior on the live system when the item is backordered.
+		'sales_class' => 'ExtendedAttributes/SalesClass/text()',
+		// Type of serial number to be scanned.
+		'serial_number_type' => 'ExtendedAttributes/SerialNumberType/text()',
+		// Identifies the item as a service, e.g. clothing monogramming or hemming.
+		'service_indicator' => (bool) 'ExtendedAttributes/ServiceIndicator/text()',
+		// Distinguishes items that can be shipped together with those in the same group.
+		'ship_group' => 'ExtendedAttributes/ShipGroup/text()',
+		// Minimum number of hours before the item may ship.
+		'ship_window_min_hour' => (int) 'ExtendedAttributes/ShipWindowMinHour/text()',
+		// Maximum number of hours before the item may ship.
+		'ship_window_max_hour' => (int) 'ExtendedAttributes/ShipWindowMaxHour/text()',
+		// Earliest date the product can be shipped.
+		'street_date' => 'ExtendedAttributes/StreetDate/text()',
+		// Code that identifies the specific appearance type or variety in which the item is available.
+		'style_id' => 'ExtendedAttributes/Style/StyleID/text()',
+		// Short description or title of the style for the item.
+		'style_description' => 'ExtendedAttributes/Style/StyleDescription/text()',
+		// Name of the individual or organization providing the merchandise.
+		'supplier_name' => 'ExtendedAttributes/Supplier/Name/text()',
+		// Identifier for the supplier.
+		'supplier_supplier_id' => 'ExtendedAttributes/Supplier/SupplierId/text()',
+		// Selling/promotional name.
+		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
+		'brand_description' => $brandDescriptionData,
+		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
+		'buyer_name' => 'ExtendedAttributes/Buyer/Name/text()',
+		'buyer_id' => 'ExtendedAttributes/Buyer/BuyerId/text()',
+		/*
+		 * Whether the item is a 'companion' (must ship with another product) or can ship alone. ENUM: ('Yes', No', 'Maybe')
+		 *    Yes - may ship alone
+		 *    No - cancelled if not shipped with companion
+		 *    Maybe - other factors decide
+		 */
+		'companion_flag' => 'ExtendedAttributes/CompanionFlag/text()',
+		// Indicates if the item is considered hazardous material.
+		'hazardous_material_code' => 'ExtendedAttributes/HazardousMaterialCode/text()',
+		// If false, customer cannot add a gift message to the item.
+		'allow_gift_message' => (bool) 'ExtendedAttributes/AllowGiftMessage/text()',
+		// Not included in display or in emails. Default to false.
+		'is_hidden_product' => (bool) 'ExtendedAttributes/IsHiddenProduct/text()',
+		// Indicates if the item's lot assignment is required to be tracked.
+		'lot_tracking_indicator' => 'ExtendedAttributes/LotTrackingIndicator/text()',
+		// LTL freight cost for the item.
+		'ltl_freight_cost' => 'ExtendedAttributes/LTLFreightCost/text()',
 	);
 
 	public function transformData(Varien_Object $dataObject)
@@ -107,160 +242,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 				'description' => (string) $prdHlpr->extractNodeVal($xpath->query('Description/text()', $sizeRecord)),
 			);
 		}
-
-		return new Varien_Object(
-			array(
-				// If false, customer cannot add a gift message to the item.
-				'allow_gift_message' => (bool) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/AllowGiftMessage/text()', $item)),
-				// Item is able to be back ordered.
-				'back_orderable' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/BackOrderable/text()', $item)),
-				'color_attributes' => new Varien_Object(
-					array(
-						'color' => $colorData,
-					)
-				),
-				// Country in which goods were completely derived or manufactured.
-				'country_of_origin' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/CountryOfOrigin/text()', $item)),
-				/*
-				 *  Type of gift card to be used for activation.
-				 * 		SD - TRU Digital Gift Card
-				 *		SP - SVS Physical Gift Card
-				 *		ST - SmartClixx Gift Card Canada
-				 *		SV - SVS Virtual Gift Card
-				 *		SX - SmartClixx Gift Card
-				 */
-				'gift_card_tender_code' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/GiftCardTenderCode/text()', $item)),
-				'item_dimension_shipping' => new Varien_Object(
-					array(
-						// Shipping weight of the item.
-						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass', $item), 'unit_of_measure'
-						),
-						// Shipping weight of the item.
-						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()', $item)),
-						'packaging' => new Varien_Object(
-							array(
-								// Unit of measure used for these dimensions.
-								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging', $item), 'unit_of_measure'
-								),
-								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()', $item)),
-								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()', $item)),
-								'height' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()', $item)),
-							)
-						),
-					)
-				),
-				'item_dimension_display' => new Varien_Object(
-					array(
-						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Display/Mass', $item), 'unit_of_measure'
-						),
-						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()', $item)),
-						'packaging' => new Varien_Object(
-							array(
-								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging', $item), 'unit_of_measure'
-								),
-								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()', $item)),
-								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()', $item)),
-								'height' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()', $item)),
-							)
-						),
-					)
-				),
-				'item_dimension_carton' => new Varien_Object(
-					array(
-						'mass_unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-							$xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass', $item), 'unit_of_measure'
-						),
-						'weight' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()', $item)),
-						'packaging' => new Varien_Object(
-							array(
-								'unit_of_measure' => (string) $prdHlpr->extractNodeAttributeVal(
-									$xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging', $item), 'unit_of_measure'
-								),
-								'width' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()', $item)),
-								'length' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()', $item)),
-								'height' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()', $item)),
-							)
-						),
-						// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
-						'type' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ItemDimension/CartonType/text()', $item)),
-					)
-				),
-				// Indicates if the item's lot assignment is required to be tracked.
-				'lot_tracking_indicator' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/LotTrackingIndicator/text()', $item)),
-				// LTL freight cost for the item.
-				'ltl_freight_cost' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/LTLFreightCost/text()', $item)),
-				'manufacturer' => new Varien_Object(
-					array(
-						// Date the item was build by the manufacturer.
-						'date' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ManufacturingDate/text()', $item)),
-						// Company name of manufacturer.
-						'name' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Manufacturer/Name/text()', $item)),
-						// Unique identifier to denote the item manufacturer.
-						'id' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Manufacturer/ManufacturerId/text()', $item)),
-					)
-				),
-				// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-				'may_ship_expedite' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/MayShipExpedite/text()', $item)),
-				// Indicates if the item may be shipped internationally.
-				'may_ship_international' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/MayShipInternational/text()', $item)),
-				// Indicates if the item may be shipped via USPS.
-				'may_ship_usps' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/MayShipUSPS/text()', $item)),
-				// Manufacturers suggested retail price. Not used for actual price calculations.
-				'msrp' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/MSRP/text()', $item)),
-				// Default price item is sold at. Required only if the item is new.
-				'price' => (float) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Price/text()', $item)),
-				// Amount used for safety stock calculations.
-				'safety_stock' => (int) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/SafetyStock/text()', $item)),
-				// Determines behavior on the live system when the item is backordered.
-				'sales_class' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/SalesClass/text()', $item)),
-				// Type of serial number to be scanned.
-				'serial_number_type' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/SerialNumberType/text()', $item)),
-				// Identifies the item as a service, e.g. clothing monogramming or hemming.
-				'service_indicator' => (bool) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ServiceIndicator/text()', $item)),
-				// Distinguishes items that can be shipped together with those in the same group.
-				'ship_group' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ShipGroup/text()', $item)),
-				// Minimum number of hours before the item may ship.
-				'ship_window_min_hour' => (int) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ShipWindowMinHour/text()', $item)),
-				// Maximum number of hours before the item may ship.
-				'ship_window_max_hour' => (int) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/ShipWindowMaxHour/text()', $item)),
-				'size_attributes' => new Varien_Object(
-					array(
-						'size' => $sizeData
-					)
-				),
-				// Earliest date the product can be shipped.
-				'street_date' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/StreetDate/text()', $item)),
-				// Code that identifies the specific appearance type or variety in which the item is available.
-				'style_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Style/StyleID/text()', $item)),
-				// Short description or title of the style for the item.
-				'style_description' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Style/StyleDescription/text()', $item)),
-				// Name of the individual or organization providing the merchandise.
-				'supplier_name' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Supplier/Name/text()', $item)),
-				// Identifier for the supplier.
-				'supplier_supplier_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Supplier/SupplierId/text()', $item)),
-				// Selling/promotional name.
-				'brand_name' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Brand/Name/text()', $item)),
-				'brand_description' => $brandDescriptionData,
-				// Encapsulates information related to the individual/organization responsible for the procurement of this item.
-				'buyer_name' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Buyer/Name/text()', $item)),
-				'buyer_id' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/Buyer/BuyerId/text()', $item)),
-				/*
-				 * Whether the item is a 'companion' (must ship with another product) or can ship alone. ENUM: ('Yes', No', 'Maybe')
-				 *    Yes - may ship alone
-				 *    No - cancelled if not shipped with companion
-				 *    Maybe - other factors decide
-				 */
-				'companion_flag' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/CompanionFlag/text()', $item)),
-				// Indicates if the item is considered hazardous material.
-				'hazardous_material_code' => (string) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/HazardousMaterialCode/text()', $item)),
-				// Not included in display or in emails. Default to false.
-				'is_hidden_product' => (bool) $prdHlpr->extractNodeVal($xpath->query('ExtendedAttributes/IsHiddenProduct/text()', $item)),
-			)
-		);
 	}
 
 	/**
