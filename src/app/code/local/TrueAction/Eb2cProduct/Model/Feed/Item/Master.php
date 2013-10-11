@@ -2,6 +2,28 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
+	const UNIT_OPERATION_TYPE_XPATH = '.@operation_type';
+
+	protected $_extractors;
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->_operationExtractor = Mage::getModel(
+			'eb2cproduct/feed_extractor_specialized_operationtype',
+			self::UNIT_OPERATION_TYPE_XPATH
+		);
+		$this->_extractors = array(
+			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
+			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
+		);
+		$this->_baseXpath = $this->_config->itemFeed;
+		$this->_feedLocalPath = $this->_config->itemFeedLocalPath;
+		$this->_feedRemotePath = $this->_config->itemFeedRemotePath;
+		$this->_feedFilePattern = $this->_config->itemFeedFilePattern;
+		$this->_feedEventType = $this->_config->itemFeedEventType;
+	}
+
 	protected $_extractMap = array(
 		// SKU used to identify this item from the client system.
 		'client_item_id' => 'ItemId/ClientItemId/text()',
