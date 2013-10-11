@@ -16,18 +16,22 @@ class TrueAction_Eb2cMedia_Model_Resource_Images extends Mage_Core_Model_Resourc
 	 * @param string SKU of product to which this image belongs
 	 * @param string imageView the eb2c View of the image
 	 * @param string imageName the eb2c Name of the image
+	 * @param string imageWidth the eb2c Width of the image
+	 * @param string imageHeight the eb2c Height of the image
 	 * @return int an Image Id
 	 */
-	public function getIdBySkuViewName($sku, $imageView, $imageName)
+	public function getIdBySkuViewNameSize($sku, $imageView, $imageName, $imageWidth, $imageHeight)
 	{
 		$adapter = $this->_getReadAdapter();
 		$select = $adapter->select()
 			->from($this->getMainTable(), 'id')
-			->where('sku = :sku and view = :image_view and name = :image_name');
+			->where('sku = :sku and view = :image_view and name = :image_name and height = :image_height and width = :image_width');
 		$bind = array(
-			':sku'        => (string) $sku,
-			':image_name' => (string) $imageName,
-			':image_view' => (string) $imageView,
+			':sku'          => (string) $sku,
+			':image_name'   => (string) $imageName,
+			':image_view'   => (string) $imageView,
+			':image_width'  => (string) $imageWidth,
+			':image_height' => (string) $imageHeight,
 		);
 		return $adapter->fetchOne($select, $bind);
 	}

@@ -5,6 +5,8 @@ $productIdViewNameIndexColumns = array(
 	'sku',
 	'view',
 	'name',
+	'height',
+	'width',
 );
 
 $table = $installer->getConnection()
@@ -38,12 +40,6 @@ $table = $installer->getConnection()
 		array(),
 		'Image Name'
 	)
-	->addColumn('url',
-		Varien_Db_Ddl_Table::TYPE_TEXT,
-		1024,
-		array( 'nullable' => true,),
-		'Image URL'
-	)
 	->addColumn('height',
 		Varien_Db_Ddl_Table::TYPE_INTEGER,
 		null,
@@ -55,6 +51,12 @@ $table = $installer->getConnection()
 		null,
 		array(),
 		'Image Width'
+	)
+	->addColumn('url',
+		Varien_Db_Ddl_Table::TYPE_TEXT,
+		1024,
+		array( 'nullable' => true,),
+		'Image URL'
 	)
 	->addColumn('created_at',
 		Varien_Db_Ddl_Table::TYPE_TIMESTAMP,

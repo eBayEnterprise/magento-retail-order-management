@@ -47,9 +47,6 @@
 					<eb2corder>
 						<status_feed>1</status_feed>
 					</eb2corder>
-					<eb2cmedia>
-						<images_feed>1</images_feed>
-					</eb2cmedia>
 					<eb2cproduct>
 						<feed_content_master>1</feed_content_master>
 						<feed_i_ship>1</feed_i_ship>

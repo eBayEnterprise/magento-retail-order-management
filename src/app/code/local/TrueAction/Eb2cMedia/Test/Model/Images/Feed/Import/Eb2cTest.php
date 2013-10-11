@@ -2,10 +2,10 @@
 /**
  * 
  */
-class TrueAction_Eb2cMedia_Test_Model_Images_FeedTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cMedia_Test_Model_Images_Feed_Import_Eb2cTest extends TrueAction_Eb2cCore_Test_Base
 {
-	const CLASS_NAME            = 'TrueAction_Eb2cMedia_Model_Images_Feed';
-	const MODEL_NAME            = 'eb2cmedia/images_feed';
+	const CLASS_NAME            = 'TrueAction_Eb2cMedia_Model_Images_Feed_Import_Eb2c';
+	const MODEL_NAME            = 'eb2cmedia/images_feed_import_eb2c';
 	const VFS_ROOT              = 'testImageRoot';
 	const NUMBER_OF_DUMMY_FILES = 2; // How many files I expect to process as found in vfs fixture
 

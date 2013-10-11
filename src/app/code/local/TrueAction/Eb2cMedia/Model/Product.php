@@ -2,7 +2,7 @@
 class TrueAction_Eb2cMedia_Model_Product extends Mage_Catalog_Model_Product
 {
 	/**
-	 * Retrive media gallery images
+	 * Retrieve media gallery images
 	 *
 	 * @return Varien_Data_Collection
 	 */
@@ -17,6 +17,16 @@ class TrueAction_Eb2cMedia_Model_Product extends Mage_Catalog_Model_Product
 					$this->getSku()
 				)
 			);
+	}
+
+	/**
+	 * Retrieve base magento media gallery images
+	 *
+	 * @return Varien_Data_Collection
+	 */
+	public function getBaseMediaGalleryImages()
+	{
+		return parent::getMediaGalleryImages();
 	}
 
 	/**

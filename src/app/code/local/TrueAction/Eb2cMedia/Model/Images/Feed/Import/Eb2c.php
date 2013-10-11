@@ -6,7 +6,7 @@
  *  and manage their files, and anyway it's where I started.
  *
  */
-class TrueAction_Eb2cMedia_Model_Images_Feed
+class TrueAction_Eb2cMedia_Model_Images_Feed_Import_Eb2c
 	extends TrueAction_Eb2cCore_Model_Feed_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
@@ -77,11 +77,12 @@ class TrueAction_Eb2cMedia_Model_Images_Feed
 				'view'       => $image['imageview'],
 				'name'       => $image['imagename'],
 				'height'     => $image['imageheight'],
-				'url'        => $this->_imageDomain . DS . $image['imageurl'],
 				'width'      => $image['imagewidth'],
+				'url'        => $this->_imageDomain . DS . $image['imageurl'],
 			);
 
-			$imageId = $imageModel->getIdBySkuViewName($imageInfo['sku'], $image['imageview'], $image['imagename']);
+			$imageId = $imageModel->getIdBySkuViewNameSize($imageInfo['sku'], $image['imageview'],
+				$image['imagename'], $image['imagewidth'], $image['imageheight']);
 			if( $imageId ) {
 				$imageModel->load($imageId);
 				$imageData['updated_at'] = Mage::getModel('core/date')->timestamp(time());
