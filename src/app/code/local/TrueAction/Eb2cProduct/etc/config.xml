@@ -114,6 +114,25 @@
 				<api_service>product</api_service>
 				<api_return_format>xml</api_return_format>
 				<config_path>eb2ccore/general</config_path>
+				<image_export>
+					<message_header>
+						<standard>GSI</standard>
+						<header_version>1.0</header_version>
+						<source_data>
+							<id>PH</id>
+							<type>PH</type>
+						</source_data>
+						<destination_data>
+							<id>PH</id>
+							<type>PH</type>
+						</destination_data>
+						<event_type>ImageMetaData</event_type>
+						<message_data>
+							<id>1173161</id>
+							<correlation_id>1173161</correlation_id>
+						</message_data>
+					</message_header>
+				</image_export>
 			</product>
 		</eb2c>
 		<eb2cproduct>
