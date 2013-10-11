@@ -116,6 +116,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	public function processDom(TrueAction_Dom_Document $doc)
 	{
+		Varien_Profiler::start('processDom');
 		$units = $this->_getIterableFor($doc);
 		foreach ($units as $unit) {
 			$operation = $this->getOperationType($unit);
@@ -124,6 +125,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 				->getValue($this->_xpath, $unit);
 			$this->_queue->add($data, $operationType);
 		}
+		Varien_Profiler::stop('processDom');
 		return $this;
 	}
 
