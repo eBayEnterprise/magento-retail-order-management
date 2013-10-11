@@ -8,3 +8,14 @@ pricing1:
   special_from_date: 2012-10-04T00:00:00-05:00
   special_to_date: 2014-08-17T00:00:00-05:00
   price_is_vat_inclusive: '0'
+itemmaster1:
+  client_item_id: 45-000906011391
+  catalog_class: regular
+  item_description: 25077 2I TAN CXL SMOOT
+  item_type: MERCH
+  item_status: 1
+  tax_code: '76800'
+  drop_shipped: false
+  service_indicator: false
+  allow_gift_message: false
+  is_hidden_product: false
