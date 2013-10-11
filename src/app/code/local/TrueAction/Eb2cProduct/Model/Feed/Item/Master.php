@@ -44,9 +44,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				'size' => $sizeData
 			)
 		),
+		'brand_description' => $brandDescriptionData,
 	);
 
 	protected $_extendedAttributesNested = array(
+		// Selling/promotional name.
+		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
 		'item_dimension_shipping' => array(
 			// Shipping weight of the item.
 			'mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
@@ -98,6 +101,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	);
 
 	protected static $_extenddedAttributes = array(
+		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
+		'may_ship_expedite' => (float) 'ExtendedAttributes/MayShipExpedite/text()',
+		// Indicates if the item may be shipped internationally.
+		'may_ship_international' => (float) 'ExtendedAttributes/MayShipInternational/text()',
+		// Indicates if the item may be shipped via USPS.
+		'may_ship_usps' => (float) 'ExtendedAttributes/MayShipUSPS/text()',
+		// Manufacturers suggested retail price. Not used for actual price calculations.
+		'msrp' => (float) 'ExtendedAttributes/MSRP/text()',
+		// Default price item is sold at. Required only if the item is new.
+		'price' => (float) 'ExtendedAttributes/Price/text()',
+		// Amount used for safety stock calculations.
+		'safety_stock' => (int) 'ExtendedAttributes/SafetyStock/text()',
+		// Minimum number of hours before the item may ship.
+		'ship_window_min_hour' => (int) 'ExtendedAttributes/ShipWindowMinHour/text()',
+		// Maximum number of hours before the item may ship.
+		'ship_window_max_hour' => (int) 'ExtendedAttributes/ShipWindowMaxHour/text()',
+		// Identifies the item as a service, e.g. clothing monogramming or hemming.
+		'service_indicator' => (bool) 'ExtendedAttributes/ServiceIndicator/text()',
+		// If false, customer cannot add a gift message to the item.
+		'allow_gift_message' => (bool) 'ExtendedAttributes/AllowGiftMessage/text()',
+		// Not included in display or in emails. Default to false.
+		'is_hidden_product' => (bool) 'ExtendedAttributes/IsHiddenProduct/text()',
 		// Item is able to be back ordered.
 		'back_orderable' => 'ExtendedAttributes/BackOrderable/text()',
 		// Country in which goods were completely derived or manufactured.
@@ -111,30 +136,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		 *		SX - SmartClixx Gift Card
 		 */
 		'gift_card_tender_code' => 'ExtendedAttributes/GiftCardTenderCode/text()',
-		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-		'may_ship_expedite' => (float) 'ExtendedAttributes/MayShipExpedite/text()',
-		// Indicates if the item may be shipped internationally.
-		'may_ship_international' => (float) 'ExtendedAttributes/MayShipInternational/text()',
-		// Indicates if the item may be shipped via USPS.
-		'may_ship_usps' => (float) 'ExtendedAttributes/MayShipUSPS/text()',
-		// Manufacturers suggested retail price. Not used for actual price calculations.
-		'msrp' => (float) 'ExtendedAttributes/MSRP/text()',
-		// Default price item is sold at. Required only if the item is new.
-		'price' => (float) 'ExtendedAttributes/Price/text()',
-		// Amount used for safety stock calculations.
-		'safety_stock' => (int) 'ExtendedAttributes/SafetyStock/text()',
 		// Determines behavior on the live system when the item is backordered.
 		'sales_class' => 'ExtendedAttributes/SalesClass/text()',
 		// Type of serial number to be scanned.
 		'serial_number_type' => 'ExtendedAttributes/SerialNumberType/text()',
-		// Identifies the item as a service, e.g. clothing monogramming or hemming.
-		'service_indicator' => (bool) 'ExtendedAttributes/ServiceIndicator/text()',
 		// Distinguishes items that can be shipped together with those in the same group.
 		'ship_group' => 'ExtendedAttributes/ShipGroup/text()',
-		// Minimum number of hours before the item may ship.
-		'ship_window_min_hour' => (int) 'ExtendedAttributes/ShipWindowMinHour/text()',
-		// Maximum number of hours before the item may ship.
-		'ship_window_max_hour' => (int) 'ExtendedAttributes/ShipWindowMaxHour/text()',
 		// Earliest date the product can be shipped.
 		'street_date' => 'ExtendedAttributes/StreetDate/text()',
 		// Code that identifies the specific appearance type or variety in which the item is available.
@@ -145,9 +152,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'supplier_name' => 'ExtendedAttributes/Supplier/Name/text()',
 		// Identifier for the supplier.
 		'supplier_supplier_id' => 'ExtendedAttributes/Supplier/SupplierId/text()',
-		// Selling/promotional name.
-		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
-		'brand_description' => $brandDescriptionData,
 		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
 		'buyer_name' => 'ExtendedAttributes/Buyer/Name/text()',
 		'buyer_id' => 'ExtendedAttributes/Buyer/BuyerId/text()',
@@ -160,10 +164,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'companion_flag' => 'ExtendedAttributes/CompanionFlag/text()',
 		// Indicates if the item is considered hazardous material.
 		'hazardous_material_code' => 'ExtendedAttributes/HazardousMaterialCode/text()',
-		// If false, customer cannot add a gift message to the item.
-		'allow_gift_message' => (bool) 'ExtendedAttributes/AllowGiftMessage/text()',
-		// Not included in display or in emails. Default to false.
-		'is_hidden_product' => (bool) 'ExtendedAttributes/IsHiddenProduct/text()',
 		// Indicates if the item's lot assignment is required to be tracked.
 		'lot_tracking_indicator' => 'ExtendedAttributes/LotTrackingIndicator/text()',
 		// LTL freight cost for the item.

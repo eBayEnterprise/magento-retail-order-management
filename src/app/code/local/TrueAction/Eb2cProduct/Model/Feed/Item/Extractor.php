@@ -7,8 +7,6 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Extractor
 	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
 {
-
-
 	/**
 	 * extract ExtendedAttributes data into a varien object
 	 *
