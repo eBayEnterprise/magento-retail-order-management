@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cOrder_Model_Cutomer_Order_Search extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_Abstract
 {
 	const SERVICE = 'customers';
 	const OPERATION = 'orders/get';
@@ -15,7 +15,7 @@ class TrueAction_Eb2cOrder_Model_Cutomer_Order_Search extends Mage_Core_Model_Ab
 	 *
 	 * @return string the eb2c response to the request.
 	 */
-	public function requestOrderSummary($order)
+	public function requestOrderSummary(Mage_Sales_Model_Order $order)
 	{
 		$responseMessage = '';
 		// build request
@@ -49,10 +49,10 @@ class TrueAction_Eb2cOrder_Model_Cutomer_Order_Search extends Mage_Core_Model_Ab
 	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildOrderSummaryRequest($order)
+	public function buildOrderSummaryRequest(Mage_Sales_Model_Order $order)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$orderSummaryRequest = $domDocument->addElement('OrderSummaryRequest', null, Mage::helper('eb2corder')->getXmlNs())->firstChild;
+		$orderSummaryRequest = $domDocument->addElement('OrderSummaryRequest', null, Mage::helper('eb2corder')->getConfigModel()->apiXmlNs)->firstChild;
 		$orderSummaryRequest->addChild('OrderSearch', null)
 			->addChild('CustomerId', (string) $order->getCustomerId());
 
@@ -74,21 +74,21 @@ class TrueAction_Eb2cOrder_Model_Cutomer_Order_Search extends Mage_Core_Model_Ab
 			$doc = $coreHlpr->getNewDomDocument();
 			$doc->loadXML($orderSummaryReply);
 			$xpath = new DOMXPath($doc);
-			$xpath->registerNamespace('a', Mage::helper('eb2corder')->getXmlNs());
+			$xpath->registerNamespace('a', Mage::helper('eb2corder')->getConfigModel()->apiXmlNs);
 			$searchResults = $xpath->query('//a:OrderSummary');
 			foreach($searchResults as $result) {
-				$resultData = new Varien_Object(array(
+				$resultData[] = new Varien_Object(array(
 					'id' => $result->getAttribute('id'),
 					'order_type' => $result->getAttribute('orderType'),
 					'test_type' => $result->getAttribute('testType'),
 					'modified_time' => $result->getAttribute('modifiedTime'),
-					'customer_order_id' => (string) $coreHlpr->extractNodeVal($xpath->query('CustomerOrderId/text()', $result),
-					'customer_id' => (string) $coreHlpr->extractNodeVal($xpath->query('CustomerId/text()', $result),
-					'order_date' => (string) $coreHlpr->extractNodeVal($xpath->query('OrderDate/text()', $result),
-					'dashboard_rep_id' => (string) $coreHlpr->extractNodeVal($xpath->query('DashboardRepId/text()', $result),
-					'status' => (string) $coreHlpr->extractNodeVal($xpath->query('Status/text()', $result),
-					'order_total' => (float) $coreHlpr->extractNodeVal($xpath->query('OrderTotal/text()', $result),
-					'source' => (string) $coreHlpr->extractNodeVal($xpath->query('Source/text()', $result),
+					'customer_order_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:CustomerOrderId/text()', $result)),
+					'customer_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:CustomerId/text()', $result)),
+					'order_date' => (string) $coreHlpr->extractNodeVal($xpath->query('a:OrderDate/text()', $result)),
+					'dashboard_rep_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:DashboardRepId/text()', $result)),
+					'status' => (string) $coreHlpr->extractNodeVal($xpath->query('a:Status/text()', $result)),
+					'order_total' => (float) $coreHlpr->extractNodeVal($xpath->query('a:OrderTotal/text()', $result)),
+					'source' => (string) $coreHlpr->extractNodeVal($xpath->query('a:Source/text()', $result)),
 				));
 			}
 		}
