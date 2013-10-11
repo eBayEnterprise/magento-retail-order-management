@@ -92,7 +92,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	{
 		parent::__construct();
 		$this->_extractors = array(
-			Mage::getModel('eb2cproduct/feed_extractor_xpath', $this->_extractMap)
+			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap));
 		);
 	}
 }
