@@ -3,8 +3,13 @@
  * returns add as the operation.
  */
 class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
+	extends TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath
 	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
 {
+	protected static $_defaultOperation = array(
+		'operation' => TrueAction_Eb2cProduct_Model_Feed_Queue_Interface::OPERATION_TYPE_ADD
+	);
+
 	/**
 	 * @param  DOMXPath   $xpath xpath to use when extracting the data
 	 * @param  DOMElement $node  node to extract data from
@@ -12,9 +17,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
 	 */
 	public function extract(DOMXPath $xpath, DOMElement $node)
 	{
-		return array(
-			'operation' => TrueAction_Eb2cProduct_Model_Feed_Queue_Interface::OPERATION_TYPE_ADD
-		);
+		return $this->_mapping ? parent::extract($xpath, $node) : self::$_defaultOperation;
 	}
 
 	/**
@@ -24,6 +27,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
 	 */
 	public function getValue(DOMXPath $xpath, DOMElement $node)
 	{
-		return TrueAction_Eb2cProduct_Model_Feed_Queue_Interface::OPERATION_TYPE_ADD;
+		$result = $this->extract($xpath, $node);
+		return  $result['operation'];
+	}
+
+	public function __construct($xPathStr=null)
+	{
+		if ($xPathStr) {
+			$this->_mapping = array('operation' => $xPathStr);
+		}
 	}
 }
