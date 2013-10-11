@@ -24,9 +24,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Typecast
 				if ($this->_trimValue) {
 					$value = trim($value);
 				}
+				settype($value, $this->_destinationType);
+				$result[$key] = $value;
 			}
-			settype($value, $this->_destinationType);
-			$result[$key] = $value;
 		}
 		return $result;
 	}
