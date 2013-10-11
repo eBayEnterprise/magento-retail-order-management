@@ -32,12 +32,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath
 	}
 
 	/**
-	 * @param array   $extractMap mapping of a field to the xpath string to the field's value
-	 * @param boolean $trimValue  trim each extracted value if true; return values as is otherwise.
+	 * @param $args an array containing the following:
+	 * array   mapping of a field to the xpath string to the field's value
+	 * boolean trim each extracted value if true; return values as is otherwise.
+	 * @throws Mage_Core_Exception if the mapping parameter is missing.
 	 */
-	public function __construct(array $extractMap, $trimValue=true)
+	public function __construct(array $args)
 	{
-		$this->_mapping = $extractMap;
-		$this->_trimValue = $trimValue;
+		if (count($args) < 1 || !is_array($args[0])) {
+			throw new Mage_Core_Exception(
+				'[' . __CLASS__ . '] initializer array must have the mapping as the first element'
+			);
+		}
+		$this->_mapping = $args[0];
+		$this->_trimValue = count($args) > 1 ? (boolean) $args[1] : true;
 	}
 }
