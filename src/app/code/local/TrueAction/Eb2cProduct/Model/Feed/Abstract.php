@@ -1,5 +1,5 @@
 <?php
-abstract class TrueAction_Eb2cProduct_Model_Feed_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
 	/**
 	 * config model
@@ -9,31 +9,66 @@ abstract class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * extractor model used to extract the unit level operation type.
-	 * @var TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
+	 * @var TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
 	 */
 	protected $_operationExtractor;
+
+	/**
+	 * list of extractor models used extract data from each unit.
+	 * @var array(TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface)
+	 */
+	protected $_extractors;
+
+	/**
+	 * necessary configuration data
+	 * @var [type]
+	 */
+	protected $_baseXpath;
+	protected $_feedLocalPath;
+	protected $_feedRemotePath;
+	protected $_feedFilePattern;
+	protected $_feedEventType;
 
 	/**
 	 * get the xpath used to split a feed document into processable units
 	 * @return string xpath
 	 */
-	abstract public function getBaseXpath();
+	public function getBaseXpath()
+	{
+		return $this->_baseXpath;
+	}
 
-	/**
-	 * @return Iterable list of extractor models
-	 */
-	abstract public function getExtractors();
+	public function getFeedLocalPath()
+	{
+		return $this->_feedLocalPath;
+	}
 
-	abstract public function getFeedLocalPath();
-
-	abstract public function getFeedRemotePath();
+	public function getFeedRemotePath()
+	{
+		return $this->_feedRemotePath;
+	}
 
 	abstract public function getFeedFilePattern();
+	{
+		return $this->_feedFilePattern;
+	}
 
 	abstract public function getFeedEventType();
+	{
+		return $this->_feedEventType;
+	}
 
 	/**
-	 * @return array callback to extract the operation type from the unit.
+	 * @return @see _extractors declaration
+	 */
+	public function getExtractors()
+	{
+		return $this->_extractors;
+	}
+
+	/**
+	 * get the extractor model used to get the operation type from the unit.
+	 * @return TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
 	 */
 	public function getOperationExtractor()
 	{
