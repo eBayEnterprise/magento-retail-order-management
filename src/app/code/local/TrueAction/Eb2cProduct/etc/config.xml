@@ -221,13 +221,26 @@
 				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>
-			<image_master_feed>
-				<local_path>TrueAction/Eb2c/Feed/Product/ImageMaster/</local_path>
-				<remote_path>/</remote_path>
-				<file_pattern>ImageMetaData*.xml</file_pattern>
-				<event_type>ImageMaster</event_type>
-				<header_version>2.3.0</header_version>
-			</image_master_feed>
+			<image_export>
+				<api>
+					<xml_namespace />
+				</api>
+				<local_path>TrueAction/Eb2c/Feed/ImageExport/</local_path>
+				<xsd>Image_Feed.xsd</xsd>
+				<include_empty_galleries>true</include_empty_galleries>
+				<filename_format>\I\m\a\g\e\E\x\p\o\r\t_YmdHis</filename_format>
+				<message_header>
+					<standard></standard>
+					<version>2.3.0</version>
+					<source_data_id>source_data_id</source_data_id>
+					<source_data_type>source_data_type</source_data_type>
+					<destination_data_id>destination_data_id</destination_data_id>
+					<destination_data_type>destinattion_data_type</destination_data_type>
+					<event_type>Images</event_type>
+					<message_data_id>message_data_id</message_data_id>
+					<message_data_correlation_id>message_data_correlation_id</message_data_correlation_id>
+				</message_header>
+			</image_export>
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>
 			<processor_update_batch_size>100</processor_update_batch_size>

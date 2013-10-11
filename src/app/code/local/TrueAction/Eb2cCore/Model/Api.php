@@ -38,7 +38,7 @@ class TrueAction_Eb2cCore_Model_Api extends Varien_Object
 			throw new TrueAction_Eb2cCore_Exception('XSD for schema validation has not been set.');
 		}
 
-		if (!$this->_schemaValidate($doc)) {
+		if (!$this->schemaValidate($doc)) {
 			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.');
 		}
 
@@ -125,7 +125,7 @@ class TrueAction_Eb2cCore_Model_Api extends Varien_Object
 	 *
 	 * @return boolean true valid false otherwise
 	 */
-	private function _schemaValidate(DOMDocument $doc)
+	public function schemaValidate(DOMDocument $doc)
 	{
 		$this->_schemaValidationErrors = array();
 		set_error_handler(

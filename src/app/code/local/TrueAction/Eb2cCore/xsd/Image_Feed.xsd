@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) by Rahul (private) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:include schemaLocation="messageHeader.xsd"/>
+	<xs:element name="ItemImages">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="MessageHeader"/>
+				<xs:element name="Item" maxOccurs="unbounded">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Images">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element ref="Image" minOccurs="0" maxOccurs="unbounded"/>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="CustomAttributes" minOccurs="0">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="CustomAttribute">
+											<xs:complexType>
+												<xs:attribute name="key" type="xs:string" use="required"/>
+												<xs:attribute name="datatype" type="xs:string" use="required"/>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="id" type="xs:string" use="required"/>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="timestamp" type="xs:string" use="required"/>
+			<xs:attribute name="clientId" type="xs:string" use="required"/>
+			<xs:attribute name="imageDomain" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="Image">
+		<xs:complexType>
+			<xs:attribute name="imagename" type="xs:string" use="required"/>
+			<xs:attribute name="imageview" type="xs:string" use="required"/>
+			<xs:attribute name="imageurl" type="xs:string" use="required"/>
+			<xs:attribute name="imagewidth" type="xs:string" use="required"/>
+			<xs:attribute name="imageheight" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

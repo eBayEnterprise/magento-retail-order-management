@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) by Rahul (private) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="MessageHeader">
+		<xs:annotation>
+			<xs:documentation>Encapsulates message Routing data. The elements included in this grouping are standard
+across all messages</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Standard">
+					<xs:annotation>
+						<xs:documentation>Code identifying the schema controlling
+agency</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="HeaderVersion">
+					<xs:annotation>
+						<xs:documentation>Version of the message being used. Each
+new version whole number represents a
+significant change from a previous whole
+version and reflects a need for upgrades.
+For example, a change from Version 1.X to
+2.X represents a substantial change in the
+framework and would be a recommended
+upgrade point. A change in the number
+after the decimal represents a minor
+upgrade/modification to the framework.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="VersionReleaseNumber" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Release number within the current message
+header version number.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="SourceData">
+					<xs:annotation>
+						<xs:documentation>Encapsulates data related to the Source or Sending System</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="DestinationData">
+					<xs:annotation>
+						<xs:documentation>Encapsulates data related to the Destination or Receiving System</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DestinationId">
+								<xs:annotation>
+									<xs:documentation>Unique identifier of the System that is the
+intended recipient of the message. There
+can be more than one
+DestinationId/DestinationType sets per
+message to allow for one message to be sent to multiple receiving systems.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+							<xs:element name="DestinationType">
+								<xs:annotation>
+									<xs:documentation>The descriptive category used to define the
+system that is the intended recipient of the
+message. OMS = Order Management
+System, WMS = Warehouse Management
+System. See Appendix A for list.</xs:documentation>
+								</xs:annotation>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="EventType">
+					<xs:annotation>
+						<xs:documentation>The name of the event to which the
+message pertains.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="MessageData">
+					<xs:annotation>
+						<xs:documentation>Encapsulates message identification information unique to the GSI Xchange</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="CreateDateAndTime">
+					<xs:annotation>
+						<xs:documentation>Original message creation date and time
+assigned by the Source. Follows ISO 8601
+standard with offset from GMT/UTC.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
