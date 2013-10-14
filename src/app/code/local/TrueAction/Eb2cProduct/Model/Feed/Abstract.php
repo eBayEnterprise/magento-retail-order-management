@@ -20,46 +20,77 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	protected $_extractors;
 
 	/**
-	 * necessary configuration data
-	 * @var [type]
+	 * xpath used to split a feed document into processable units
+	 * @var string
 	 */
 	protected $_baseXpath;
+
+	/**
+	 * xpath used to split a feed document into processable units
+	 * @var string
+	 */
 	protected $_feedLocalPath;
+
+	/**
+	 * xpath used to split a feed document into processable units
+	 * @var string
+	 */
 	protected $_feedRemotePath;
+
+	/**
+	 * xpath used to split a feed document into processable units
+	 * @var string
+	 */
 	protected $_feedFilePattern;
+
+	/**
+	 * xpath used to split a feed document into processable units
+	 * @var string
+	 */
 	protected $_feedEventType;
 
 	/**
-	 * get the xpath used to split a feed document into processable units
-	 * @return string xpath
+	 * @return @see _baseXpath
 	 */
 	public function getBaseXpath()
 	{
 		return $this->_baseXpath;
 	}
 
+	/**
+	 * @return @see _feedLocalPath
+	 */
 	public function getFeedLocalPath()
 	{
 		return $this->_feedLocalPath;
 	}
 
+	/**
+	 * @return @see _feedRemotePath
+	 */
 	public function getFeedRemotePath()
 	{
 		return $this->_feedRemotePath;
 	}
 
-	abstract public function getFeedFilePattern();
+	/**
+	 * @return @see _feedFilePattern
+	 */
+	public function getFeedFilePattern()
 	{
 		return $this->_feedFilePattern;
 	}
 
-	abstract public function getFeedEventType();
+	/**
+	 * @return @see _feedEventType
+	 */
+	public function getFeedEventType()
 	{
 		return $this->_feedEventType;
 	}
 
 	/**
-	 * @return @see _extractors declaration
+	 * @return @see _extractors
 	 */
 	public function getExtractors()
 	{
@@ -100,6 +131,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	public function __construct()
 	{
 		$this->_config = Mage::helper('eb2cproduct')->getConfigModel();
-		$this->_operationExtractor = Mage::getModel('eb2cproduct/feed_extractor_specialized_operationtype');
+		$this->_operationExtractor = Mage::getModel(
+			'eb2cproduct/feed_extractor_specialized_operationtype'
+		);
 	}
 }
