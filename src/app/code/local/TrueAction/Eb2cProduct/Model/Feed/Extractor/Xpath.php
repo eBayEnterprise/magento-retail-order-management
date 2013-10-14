@@ -18,7 +18,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath
 	{
 		$result = array();
 		foreach ($this->_mapping as $key => $xpathString) {
-			$nodeList = $xpath->query($xpathString, $node);
+			try{
+				$nodeList = $xpath->query($xpathString, $node);
+			} catch (Exception $e) {
+				$message = ' [ ' . __CLASS__ . ' ] there was an error querying "' .
+					$xpathString . '": ' . $e->getMessage();
+				Mage::log($message, Zend_Log::ERR);
+				continue;
+			}
+
 			$value = null;
 			if ($nodeList->length && $nodeList->item(0)) {
 				$value = $nodeList->item(0)->nodeValue;
