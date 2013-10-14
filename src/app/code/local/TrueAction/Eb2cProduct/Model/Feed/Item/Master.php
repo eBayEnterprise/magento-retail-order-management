@@ -145,12 +145,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'ship_window_min_hour' => (int) 'ExtendedAttributes/ShipWindowMinHour/text()',
 		// Maximum number of hours before the item may ship.
 		'ship_window_max_hour' => (int) 'ExtendedAttributes/ShipWindowMaxHour/text()',
-		// Identifies the item as a service, e.g. clothing monogramming or hemming.
-		'service_indicator' => (bool) 'ExtendedAttributes/ServiceIndicator/text()',
-		// If false, customer cannot add a gift message to the item.
-		'allow_gift_message' => (bool) 'ExtendedAttributes/AllowGiftMessage/text()',
-		// Not included in display or in emails. Default to false.
-		'is_hidden_product' => (bool) 'ExtendedAttributes/IsHiddenProduct/text()',
 		// Item is able to be back ordered.
 		'back_orderable' => 'ExtendedAttributes/BackOrderable/text()',
 		// Country in which goods were completely derived or manufactured.
