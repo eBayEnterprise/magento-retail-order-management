@@ -17,7 +17,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
 	 */
 	public function extract(DOMXPath $xpath, DOMElement $node)
 	{
-		return $this->_mapping ? parent::extract($xpath, $node) : self::$_defaultOperation;
+		$result = $this->_mapping ? parent::extract($xpath, $node) : self::$_defaultOperation;
+		if (!isset($result['operation'])) {
+			throw new Mage_Core_Exception('[ '. __CLASS__ . '] unable to extract operation type.');
+		}
+		$result['operation'] = strtoupper($result['operation']);
+		return $result;
 	}
 
 	/**
