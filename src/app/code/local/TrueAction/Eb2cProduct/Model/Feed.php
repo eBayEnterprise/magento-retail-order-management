@@ -140,6 +140,11 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$this->_checkPreconditions();
 		$this->_setupCoreFeed();
 		$this->_xpath = $this->_eventTypeModel->getNewXpath($dom);
+		if (!$this->_xpath) {
+			$message = '[ ' . __CLASS__ . ' ] unable to get DOMXPath object from model ' .
+				get_class($this->_eventTypeModel);
+			Mage::throwException($message);
+		}
 		return $this;
 	}
 
