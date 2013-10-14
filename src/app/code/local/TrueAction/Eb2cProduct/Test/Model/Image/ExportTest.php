@@ -24,6 +24,7 @@ class TrueAction_Eb2cProduct_Test_Model_Image_ExportTest extends TrueAction_Eb2c
 
 	/**
 	 * Test build
+	 * @large
 	 * @todo output to vfs(?)
 	 *
 	 * @todo fix this from an expectedException. It's being thrown because we can't pass xsd validate - we can't pass
