@@ -17,7 +17,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
 		);
-		$this->_baseXpath = $this->_config->itemFeed;
+		$this->_baseXpath = '/ItemMaster/Item';
 		$this->_feedLocalPath = $this->_config->itemFeedLocalPath;
 		$this->_feedRemotePath = $this->_config->itemFeedRemotePath;
 		$this->_feedFilePattern = $this->_config->itemFeedFilePattern;
