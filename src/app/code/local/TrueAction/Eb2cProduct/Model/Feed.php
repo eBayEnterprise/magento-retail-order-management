@@ -277,6 +277,15 @@ class TrueAction_Eb2cProduct_Model_Feed
 	}
 
 	/**
+	 * Returns a message string for an exception message
+	 * @param string $missingConfigName which config name is missing.
+	 */
+	private function _missingConfigMessage($missingConfigName)
+	{
+		return get_class($this->_eventTypeModel) . " was not setup correctly; '$missingConfigName' not configured.";
+	}
+
+	/**
 	 * suppress the core feed's initialization
 	 * create necessary internal models.
 	 * @return [type] [description]
@@ -285,7 +294,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	{
 		$this->_eventTypeExtractor = Mage::getModel(
 			'eb2cproduct/feed_extractor_xpath',
-			array('event_type' => self::EVENT_TYPE_XPATH)
+			array(array('event_type' => self::EVENT_TYPE_XPATH))
 		);
 		$this->_queue = Mage::getSingleton('eb2cproduct/feed_queue');
 	}
