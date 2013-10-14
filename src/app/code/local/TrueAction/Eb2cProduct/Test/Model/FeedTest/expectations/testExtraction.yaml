@@ -18,3 +18,20 @@ itemmaster1:
   item_status: 'Active'
   tax_code: '76800'
   drop_shipped: 'false'
+  item_dimension_display_mass_unit_of_measure: kg
+  item_dimension_display_mass_unit_of_measure_weight: 1.0
+  item_dimension_display_packaging_unit_of_measure: cm
+  item_dimension_display_packaging_width: 1.0
+  item_dimension_display_packaging_length: 1.0
+  item_dimension_display_packaging_height: 1.0
+  item_dimension_shipping_mass_weight: 1.0
+  item_dimension_shipping_packaging_unit_of_measure: kg
+  item_dimension_shipping_packaging_width: 1.0
+  item_dimension_shipping_packaging_length: 1.0
+  item_dimension_shipping_packaging_height: 1.0
+  item_dimension_carton_mass_unit_of_measure: kg
+  item_dimension_carton_mass_weight: 1.0
+  item_dimension_carton_packaging_unit_of_measure: cm
+  item_dimension_carton_packaging_width: 1.0
+  item_dimension_carton_packaging_length: 1.0
+  item_dimension_carton_packaging_height: 1.0

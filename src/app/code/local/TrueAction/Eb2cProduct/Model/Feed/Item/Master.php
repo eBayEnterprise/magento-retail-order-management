@@ -16,6 +16,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$this->_extractors = array(
 			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
+			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extendedAttributesFloat, 'float')),
+			Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
+				array('color' => 'ExtendedAttributes/ColorAttributes/Color'),
+				array('code' => 'Code/text()')
+			)),
+			Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
+				array('size' => 'ExtendedAttributes/SizeAttributes/Size'),
+				array('code' => 'Code/text()')
+			)),
 		);
 		$this->_baseXpath = '/ItemMaster/Item';
 		$this->_feedLocalPath = $this->_config->itemFeedLocalPath;
@@ -49,6 +58,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'tax_code' => 'BaseAttributes/TaxCode/text()',
 		// Indicates the item if fulfilled by a drop shipper. New attribute.
 		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
+		// Selling/promotional name.
+		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
+		// Shipping weight of the item.
+		'item_dimension_shipping_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
+		// item dimension structure
+		'item_dimension_shipping_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/@unit_of_measure',
+		'item_dimension_display_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Packaging/@unit_of_measure',
+		'item_dimension_display_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Mass/@unit_of_measure',
+		'item_dimension_carton_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Carton/Mass/@unit_of_measure',
+		'item_dimension_carton_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/@unit_of_measure',
+		'item_dimension_carton_type' => 'ExtendedAttributes/ItemDimension/CartonType/text()',
+		// Date the item was build by the manufacturer.
+		'manufacturer_date' => 'ExtendedAttributes/ManufacturingDate/text()',
+		// Company name of manufacturer.
+		'manufacturer_name' => 'ExtendedAttributes/Manufacturer/Name/text()',
+		// Unique identifier to denote the item manufacturer.
+		'manufacturer_id' => 'ExtendedAttributes/Manufacturer/ManufacturerId/text()',
 	);
 
 	protected $_extractBool = array(
@@ -60,91 +86,60 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'is_hidden_product' => 'ExtendedAttributes/IsHiddenProduct/text()',
 	);
 
-	protected $_extendedAttributesOptions = array(
-//////// new kind of extractor for option data
-		'color_attributes' => new Varien_Object(
-			array(
-				'color' => $colorData,
-			)
-		),
-		'size_attributes' => new Varien_Object(
-			array(
-				'size' => $sizeData
-			)
-		),
-		'brand_description' => $brandDescriptionData,
+// 	protected $_extendedAttributesArray = array(
+// //////// new kind of extractor for option data
+// 		'color_attributes' => new Varien_Object(
+// 			array(
+// 				'color' => $colorData,
+// 			)
+// 		),
+// 		'size_attributes' => new Varien_Object(
+// 			array(
+// 				'size' => $sizeData
+// 			)
+// 		),
+// 		'brand_description' => $brandDescriptionData,
+// 	);
+
+	protected $_extendedAttributesFloat = array(
+		// Shipping weight of the item.
+		'item_dimension_shipping_mass_weight' => 'ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()',
+		// Unit of measure used for these dimensions.
+		'item_dimension_shipping_packaging_width' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()',
+		'item_dimension_shipping_packaging_length' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()',
+		'item_dimension_shipping_packaging_height' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()',
+		'item_dimension_display_mass_unit_of_measure_weight' => 'ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()',
+		'item_dimension_display_packaging_width' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()',
+		'item_dimension_display_packaging_length' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()',
+		'item_dimension_display_packaging_height' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()',
+		'item_dimension_carton_mass_weight' => 'ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()',
+		'item_dimension_carton_packaging_width' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()',
+		'item_dimension_carton_packaging_length' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()',
+		'item_dimension_carton_packaging_height' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()',
+		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
+		'may_ship_expedite' => 'ExtendedAttributes/MayShipExpedite/text()',
+		// Indicates if the item may be shipped internationally.
+		'may_ship_international' => 'ExtendedAttributes/MayShipInternational/text()',
+		// Indicates if the item may be shipped via USPS.
+		'may_ship_usps' => 'ExtendedAttributes/MayShipUSPS/text()',
+		// Manufacturers suggested retail price. Not used for actual price calculations.
+		'msrp' => 'ExtendedAttributes/MSRP/text()',
+		// Default price item is sold at. Required only if the item is new.
+		'price' => 'ExtendedAttributes/Price/text()',
 	);
 
-	protected $_extendedAttributesNested = array(
-		// Selling/promotional name.
-		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
-		'item_dimension_shipping' => array(
-			// Shipping weight of the item.
-			'mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
-			// Shipping weight of the item.
-			'weight' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()',
-			'packaging' => array(
-				// Unit of measure used for these dimensions.
-				'unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging@unit_of_measure',
-				'width' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()',
-				'length' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()',
-				'height' => (float) 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()',
-			),
-		),
-		'item_dimension_display' => array(
-				'mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Mass@unit_of_measure',
-				'weight' => (float) 'ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()',
-				'packaging' => array(
-						'unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Packaging@unit_of_measure',
-						'width' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()',
-						'length' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()',
-						'height' => (float) 'ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()',
-					)
-				),
-			)
-		),
-		'item_dimension_carton' => array(
-				'mass_unit_of_measure' => (string) 'ExtendedAttributes/ItemDimension/Carton/Mass@unit_of_measure',
-				'weight' => (float) 'ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()',
-				'packaging' => array(
-						'unit_of_measure' => (string) 'ExtendedAttributes/ItemDimension/Carton/Packaging@unit_of_measure',
-						'width' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()',
-						'length' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()',
-						'height' => (float) 'ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()',
-					)
-				),
-				// Used in combination with Ship Ground to determine how the order is released by the OMS. Determined on a per client basis.
-				'type' => (string) 'ExtendedAttributes/ItemDimension/CartonType/text()',
-			)
-		),
-		'manufacturer' => array(
-				// Date the item was build by the manufacturer.
-				'date' => (string) 'ExtendedAttributes/ManufacturingDate/text()',
-				// Company name of manufacturer.
-				'name' => (string) 'ExtendedAttributes/Manufacturer/Name/text()',
-				// Unique identifier to denote the item manufacturer.
-				'id' => (string) 'ExtendedAttributes/Manufacturer/ManufacturerId/text()',
-			)
-		),
+	protected $_extendedAttributesInt = array(
+		// Amount used for safety stock calculations.
+		'safety_stock' => 'ExtendedAttributes/SafetyStock/text()',
+		// Minimum number of hours before the item may ship.
+		'ship_window_min_hour' => 'ExtendedAttributes/ShipWindowMinHour/text()',
+		// Maximum number of hours before the item may ship.
+		'ship_window_max_hour' => 'ExtendedAttributes/ShipWindowMaxHour/text()',
 	);
+
+
 
 	protected static $_extenddedAttributes = array(
-		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
-		'may_ship_expedite' => (float) 'ExtendedAttributes/MayShipExpedite/text()',
-		// Indicates if the item may be shipped internationally.
-		'may_ship_international' => (float) 'ExtendedAttributes/MayShipInternational/text()',
-		// Indicates if the item may be shipped via USPS.
-		'may_ship_usps' => (float) 'ExtendedAttributes/MayShipUSPS/text()',
-		// Manufacturers suggested retail price. Not used for actual price calculations.
-		'msrp' => (float) 'ExtendedAttributes/MSRP/text()',
-		// Default price item is sold at. Required only if the item is new.
-		'price' => (float) 'ExtendedAttributes/Price/text()',
-		// Amount used for safety stock calculations.
-		'safety_stock' => (int) 'ExtendedAttributes/SafetyStock/text()',
-		// Minimum number of hours before the item may ship.
-		'ship_window_min_hour' => (int) 'ExtendedAttributes/ShipWindowMinHour/text()',
-		// Maximum number of hours before the item may ship.
-		'ship_window_max_hour' => (int) 'ExtendedAttributes/ShipWindowMaxHour/text()',
 		// Item is able to be back ordered.
 		'back_orderable' => 'ExtendedAttributes/BackOrderable/text()',
 		// Country in which goods were completely derived or manufactured.
