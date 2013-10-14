@@ -15,35 +15,27 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 	 */
 	public function providerRequestOrderSummary()
 	{
-		$orderMock = $this->getModelMockBuilder('sales/order')
-			->disableOriginalConstructor()
-			->setMethods(array('getCustomerId'))
-			->getMock();
-		$orderMock->expects($this->once())
-			->method('getCustomerId')
-			->will($this->returnValue('0000120100003000'));
-
-		return array(array($orderMock));
+		return array(array(1));
 	}
 
 	/**
 	 * Test the processing of data for a order. customer id is provided via magic setters.
-	 * @param Mage_Sales_Model_Order $order, the order with data need to build orderSummaryRequest
+	 * @param int $customerId, the magento customer id to query eb2c with
 	 * @dataProvider providerRequestOrderSummary
 	 * @test
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testRequestOrderSummary(Mage_Sales_Model_Order $order)
+	public function testRequestOrderSummary($customerId)
 	{
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
 
 		$orderHelperMock = $this->getHelperMockBuilder('eb2corder/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+			->setMethods(array('getConfig'))
 			->getMock();
 		$orderHelperMock->expects($this->exactly(2))
-			->method('getConfigModel')
+			->method('getConfig')
 			->will($this->returnValue((object) array(
 				'xsdFileSearch' => 'Order-Service-Search-1.0.xsd',
 				'apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0',
@@ -81,27 +73,27 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->will($this->returnValue(file_get_contents($vfs->url(self::VFS_ROOT . '/customer_order_search/response/orderSummaryResponse.xml'))));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$this->assertSame($this->expected('reponse')->getXml(), Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($order));
+		$this->assertSame($this->expected('reponse')->getXml(), Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($customerId));
 	}
 
 	/**
 	 * Testing when requestOrderSummary api request call throw Zend_Http_Client_Exception
-	 * @param Mage_Sales_Model_Order $order, the order with data need to build orderSummaryRequest
+	 * @param int $customerId, the magento customer id to query eb2c with
 	 * @dataProvider providerRequestOrderSummary
 	 * @test
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testRequestOrderSummaryWithZendHttpClientException(Mage_Sales_Model_Order $order)
+	public function testRequestOrderSummaryWithZendHttpClientException($customerId)
 	{
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
 
 		$orderHelperMock = $this->getHelperMockBuilder('eb2corder/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+			->setMethods(array('getConfig'))
 			->getMock();
 		$orderHelperMock->expects($this->exactly(2))
-			->method('getConfigModel')
+			->method('getConfig')
 			->will($this->returnValue((object) array(
 				'xsdFileSearch' => 'Order-Service-Search-1.0.xsd',
 				'apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0',
@@ -139,7 +131,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->will($this->throwException(new Zend_Http_Client_Exception));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$this->assertSame('', Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($order));
+		$this->assertSame('', Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($customerId));
 	}
 
 	/**
@@ -152,10 +144,10 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 	{
 		$orderHelperMock = $this->getHelperMockBuilder('eb2corder/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+			->setMethods(array('getConfig'))
 			->getMock();
 		$orderHelperMock->expects($this->once())
-			->method('getConfigModel')
+			->method('getConfig')
 			->will($this->returnValue((object) array('apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0')));
 		$this->replaceByMock('helper', 'eb2corder', $orderHelperMock);
 
@@ -176,17 +168,19 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 
 		$response = Mage::getModel('eb2corder/customer_order_search')->parseResponse($orderSummaryReply);
 
+		$orderId = $this->expected('reponse')->getCustomerOrderId();
+
 		$this->assertCount(1, $response);
-		$this->assertSame($this->expected('reponse')->getId(), $response[0]->getId());
-		$this->assertSame($this->expected('reponse')->getOrderType(), $response[0]->getOrderType());
-		$this->assertSame($this->expected('reponse')->getTestType(), $response[0]->getTestType());
-		$this->assertSame($this->expected('reponse')->getModifiedTime(), $response[0]->getModifiedTime());
-		$this->assertSame($this->expected('reponse')->getCustomerOrderId(), $response[0]->getCustomerOrderId());
-		$this->assertSame($this->expected('reponse')->getCustomerId(), $response[0]->getCustomerId());
-		$this->assertSame($this->expected('reponse')->getOrderDate(), $response[0]->getOrderDate());
-		$this->assertSame($this->expected('reponse')->getDashboardRepId(), $response[0]->getDashboardRepId());
-		$this->assertSame($this->expected('reponse')->getStatus(), $response[0]->getStatus());
-		$this->assertSame((float) $this->expected('reponse')->getOrderTotal(), $response[0]->getOrderTotal());
-		$this->assertSame($this->expected('reponse')->getSource(), $response[0]->getSource());
+		$this->assertSame($this->expected('reponse')->getId(), $response[$orderId]->getId());
+		$this->assertSame($this->expected('reponse')->getOrderType(), $response[$orderId]->getOrderType());
+		$this->assertSame($this->expected('reponse')->getTestType(), $response[$orderId]->getTestType());
+		$this->assertSame($this->expected('reponse')->getModifiedTime(), $response[$orderId]->getModifiedTime());
+		$this->assertSame($this->expected('reponse')->getCustomerOrderId(), $response[$orderId]->getCustomerOrderId());
+		$this->assertSame($this->expected('reponse')->getCustomerId(), $response[$orderId]->getCustomerId());
+		$this->assertSame($this->expected('reponse')->getOrderDate(), $response[$orderId]->getOrderDate());
+		$this->assertSame($this->expected('reponse')->getDashboardRepId(), $response[$orderId]->getDashboardRepId());
+		$this->assertSame($this->expected('reponse')->getStatus(), $response[$orderId]->getStatus());
+		$this->assertSame((float) $this->expected('reponse')->getOrderTotal(), $response[$orderId]->getOrderTotal());
+		$this->assertSame($this->expected('reponse')->getSource(), $response[$orderId]->getSource());
 	}
 }

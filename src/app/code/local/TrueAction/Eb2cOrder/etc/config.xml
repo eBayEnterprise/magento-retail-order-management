@@ -20,6 +20,8 @@
 			<sales>
 				<rewrite>
 					<order_history>TrueAction_Eb2cOrder_Overrides_Block_Order_History</order_history>
+					<order_recent>TrueAction_Eb2cOrder_Overrides_Block_Order_Recent</order_recent>
+					<order_view>TrueAction_Eb2cOrder_Overrides_Block_Order_View</order_view>
 				</rewrite>
 			</sales>
 		</blocks>

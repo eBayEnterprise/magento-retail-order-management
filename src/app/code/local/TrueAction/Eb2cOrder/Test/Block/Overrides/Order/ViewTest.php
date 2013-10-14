@@ -4,14 +4,27 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_ViewTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * Test overriding sales/order_history block
+	 * Test overriding sales/order_view block
 	 * @test
 	 */
 	public function testPrepareLayout()
 	{
+		$coreBlockTemplateMock = $this->getBlockMockBuilder('core/template')
+			->disableOriginalConstructor()
+			->getMock();
+
+		$paymentHelperMock = $this->getHelperMockBuilder('payment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getInfoBlock', 'parseResponse'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getInfoBlock')
+			->will($this->returnValue($coreBlockTemplateMock));
+		$this->replaceByMock('helper', 'payment', $paymentHelperMock);
+
 		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
 			->disableOriginalConstructor()
 			->setMethods(array('requestOrderSummary', 'parseResponse'))
@@ -50,50 +63,50 @@ class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAc
 			->will($this->returnValue(1));
 		$this->replaceByMock('singleton', 'customer/session', $sessionMock);
 
+		$paymentInfoObject = Mage::getModel('sales/order_payment');
+
 		$orderObject = Mage::getModel('sales/order');
 		$orderObject->addData(array(
 			'real_order_id' => '100000038',
 			'status' => 'pending',
+			'payment' => $paymentInfoObject,
 		));
+		$orderObject->setPayment($paymentInfoObject);
 
 		$layoutMock = $this->getModelMockBuilder('core/layout')
 			->disableOriginalConstructor()
-			->setMethods(array('createBlock', 'setCollection'))
+			->setMethods(array('getBlock', 'setTitle'))
 			->getMock();
 		$layoutMock->expects($this->any())
-			->method('createBlock')
-			->with($this->equalTo('page/html_pager'), $this->equalTo('sales.order.history.pager'))
+			->method('getBlock')
+			->with($this->equalTo('head'))
 			->will($this->returnSelf());
 		$layoutMock->expects($this->any())
-			->method('setCollection')
-			->with($this->isInstanceOf('Varien_Data_Collection'))
-			->will($this->returnSelf());
+			->method('setTitle')
+			->with($this->equalTo('Order # 100000038'));
 
-		$newCollection = new Varien_Data_Collection();
-		$newCollection->addItem($orderObject);
-
-		$orderHistoryBlockMock = $this->getBlockMockBuilder('sales/order_history')
+		$orderViewBlockMock = $this->getBlockMockBuilder('sales/order_view')
 			->disableOriginalConstructor()
-			->setMethods(array('getLayout', 'setChild', 'getOrders', 'setOrders', '__construct'))
+			->setMethods(array('getLayout', 'setChild', 'getOrder', 'setOrders', '__construct'))
 			->getMock();
-		$orderHistoryBlockMock->expects($this->any())
+		$orderViewBlockMock->expects($this->any())
 			->method('getLayout')
 			->will($this->returnValue($layoutMock));
-		$orderHistoryBlockMock->expects($this->any())
+		$orderViewBlockMock->expects($this->any())
 			->method('setChild')
-			->with($this->equalTo('pager'), $this->isInstanceOf('Mage_Core_Model_Layout'));
-		$orderHistoryBlockMock->expects($this->any())
-			->method('getOrders')
-			->will($this->returnValue($newCollection));
-		$orderHistoryBlockMock->expects($this->any())
+			->with($this->equalTo('payment_info'), $this->isInstanceOf('Mage_Core_Block_Template'));
+		$orderViewBlockMock->expects($this->any())
+			->method('getOrder')
+			->will($this->returnValue($orderObject));
+		$orderViewBlockMock->expects($this->any())
 			->method('setOrders')
 			->with($this->isInstanceOf('Varien_Data_Collection'));
-		$orderHistoryBlockMock->expects($this->any())
+		$orderViewBlockMock->expects($this->any())
 			->method('__construct')
 			->will($this->returnSelf());
-		$this->replaceByMock('block', 'sales/order_history', $orderHistoryBlockMock);
+		$this->replaceByMock('block', 'sales/order_view', $orderViewBlockMock);
 
-		$prepareLayout = $this->_reflectMethod($orderHistoryBlockMock, '_prepareLayout');
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Overrides_Block_Order_History', $prepareLayout->invoke($orderHistoryBlockMock));
+		$prepareLayout = $this->_reflectMethod($orderViewBlockMock, '_prepareLayout');
+		$prepareLayout->invoke($orderViewBlockMock);
 	}
 }

@@ -11,22 +11,22 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_A
 	/**
 	 * Cutomer Order Search from eb2c.
 	 *
-	 * @param Mage_Sales_Model_Order $order, the order to do Void paypal checkout for in eb2c
+	 * @param int $customerId, the magento customer id to query eb2c with
 	 *
 	 * @return string the eb2c response to the request.
 	 */
-	public function requestOrderSummary(Mage_Sales_Model_Order $order)
+	public function requestOrderSummary($customerId)
 	{
 		$responseMessage = '';
 		// build request
-		$requestDoc = $this->buildOrderSummaryRequest($order);
+		$requestDoc = $this->buildOrderSummaryRequest($customerId);
 		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
 		try{
 			// make request to eb2c for Customer OrderSummary
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2ccore')->getApiUri(self::SERVICE, self::OPERATION))
-				->setXsd(Mage::helper('eb2corder')->getConfigModel()->xsdFileSearch)
+				->setXsd(Mage::helper('eb2corder')->getConfig()->xsdFileSearch)
 				->request($requestDoc);
 
 		} catch(Zend_Http_Client_Exception $e) {
@@ -45,17 +45,16 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_A
 	/**
 	 * Build OrderSummary request.
 	 *
-	 * @param Mage_Sales_Model_Order $order, the order to generate request XML from
+	 * @param int $customerId, the customer id to generate request XML from
 	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildOrderSummaryRequest(Mage_Sales_Model_Order $order)
+	public function buildOrderSummaryRequest($customerId)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$orderSummaryRequest = $domDocument->addElement('OrderSummaryRequest', null, Mage::helper('eb2corder')->getConfigModel()->apiXmlNs)->firstChild;
-		$orderSummaryRequest->addChild('OrderSearch', null)
-			->addChild('CustomerId', (string) $order->getCustomerId());
-
+		$orderSummaryRequest = $domDocument->addElement('OrderSummaryRequest', null, Mage::helper('eb2corder')->getConfig()->apiXmlNs)->firstChild;
+		$orderSearch = $orderSummaryRequest->createChild('OrderSearch', null, array());
+		$orderSearch->createChild('CustomerId', (string) $customerId);
 		return $domDocument;
 	}
 
@@ -74,15 +73,16 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_A
 			$doc = $coreHlpr->getNewDomDocument();
 			$doc->loadXML($orderSummaryReply);
 			$xpath = new DOMXPath($doc);
-			$xpath->registerNamespace('a', Mage::helper('eb2corder')->getConfigModel()->apiXmlNs);
+			$xpath->registerNamespace('a', Mage::helper('eb2corder')->getConfig()->apiXmlNs);
 			$searchResults = $xpath->query('//a:OrderSummary');
 			foreach($searchResults as $result) {
-				$resultData[] = new Varien_Object(array(
+				$orderId = $coreHlpr->extractNodeVal($xpath->query('a:CustomerOrderId/text()', $result));
+				$resultData[$orderId] = new Varien_Object(array(
 					'id' => $result->getAttribute('id'),
 					'order_type' => $result->getAttribute('orderType'),
 					'test_type' => $result->getAttribute('testType'),
 					'modified_time' => $result->getAttribute('modifiedTime'),
-					'customer_order_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:CustomerOrderId/text()', $result)),
+					'customer_order_id' => $orderId,
 					'customer_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:CustomerId/text()', $result)),
 					'order_date' => (string) $coreHlpr->extractNodeVal($xpath->query('a:OrderDate/text()', $result)),
 					'dashboard_rep_id' => (string) $coreHlpr->extractNodeVal($xpath->query('a:DashboardRepId/text()', $result)),

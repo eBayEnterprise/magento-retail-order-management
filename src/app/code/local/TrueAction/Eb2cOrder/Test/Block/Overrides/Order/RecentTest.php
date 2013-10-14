@@ -4,13 +4,13 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_RecentTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * Test overriding sales/order_history block
+	 * Test overriding sales/order_recent block
 	 * @test
 	 */
-	public function testPrepareLayout()
+	public function testConstruct()
 	{
 		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
 			->disableOriginalConstructor()
@@ -56,44 +56,25 @@ class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAc
 			'status' => 'pending',
 		));
 
-		$layoutMock = $this->getModelMockBuilder('core/layout')
-			->disableOriginalConstructor()
-			->setMethods(array('createBlock', 'setCollection'))
-			->getMock();
-		$layoutMock->expects($this->any())
-			->method('createBlock')
-			->with($this->equalTo('page/html_pager'), $this->equalTo('sales.order.history.pager'))
-			->will($this->returnSelf());
-		$layoutMock->expects($this->any())
-			->method('setCollection')
-			->with($this->isInstanceOf('Varien_Data_Collection'))
-			->will($this->returnSelf());
-
 		$newCollection = new Varien_Data_Collection();
 		$newCollection->addItem($orderObject);
 
-		$orderHistoryBlockMock = $this->getBlockMockBuilder('sales/order_history')
+		$orderRecentBlockMock = $this->getBlockMockBuilder('sales/order_recent')
 			->disableOriginalConstructor()
-			->setMethods(array('getLayout', 'setChild', 'getOrders', 'setOrders', '__construct'))
+			->setMethods(array('getOrders', 'setOrders', '__construct'))
 			->getMock();
-		$orderHistoryBlockMock->expects($this->any())
-			->method('getLayout')
-			->will($this->returnValue($layoutMock));
-		$orderHistoryBlockMock->expects($this->any())
-			->method('setChild')
-			->with($this->equalTo('pager'), $this->isInstanceOf('Mage_Core_Model_Layout'));
-		$orderHistoryBlockMock->expects($this->any())
+		$orderRecentBlockMock->expects($this->any())
 			->method('getOrders')
 			->will($this->returnValue($newCollection));
-		$orderHistoryBlockMock->expects($this->any())
+		$orderRecentBlockMock->expects($this->any())
 			->method('setOrders')
 			->with($this->isInstanceOf('Varien_Data_Collection'));
-		$orderHistoryBlockMock->expects($this->any())
+		$orderRecentBlockMock->expects($this->any())
 			->method('__construct')
 			->will($this->returnSelf());
-		$this->replaceByMock('block', 'sales/order_history', $orderHistoryBlockMock);
+		$this->replaceByMock('block', 'sales/order_recent', $orderRecentBlockMock);
 
-		$prepareLayout = $this->_reflectMethod($orderHistoryBlockMock, '_prepareLayout');
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Overrides_Block_Order_History', $prepareLayout->invoke($orderHistoryBlockMock));
+		$construct = $this->_reflectMethod($orderRecentBlockMock, '__construct');
+		$construct->invoke($orderRecentBlockMock);
 	}
 }

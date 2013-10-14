@@ -5,14 +5,14 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 
-class TrueAction_Eb2cOrder_Overrides_Block_Order_History extends Mage_Sales_Block_Order_History
+class TrueAction_Eb2cOrder_Overrides_Block_Order_Recent extends Mage_Sales_Block_Order_Recent
 {
 	/**
-	 * overriding order history to fetch order summary from eb2c webservice to present to customer the order status
+	 * overriding order recent to fetch order summary from eb2c webservice to present to customer the order status
 	 */
-	protected function _prepareLayout()
+	 public function __construct()
 	{
-		parent::_prepareLayout();
+		parent::__construct();
 		// assigned current session customer id to a local variable
 		$customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
 
@@ -38,6 +38,5 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_History extends Mage_Sales_Bloc
 			$newCollection->addItem($order);
 		}
 		$this->setOrders($newCollection);
-		return $this;
 	}
 }
