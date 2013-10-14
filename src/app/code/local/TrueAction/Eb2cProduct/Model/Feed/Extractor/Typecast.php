@@ -42,14 +42,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Typecast
 	public function __construct(array $args)
 	{
 		$test = '0';
-		if (count($args) < 2 || !is_string($args[1]) || settype($test, $args[1]) === false) {
+		if (!isset($args[1]) || !is_string($args[1]) || settype($test, $args[1]) === false) {
 			throw new Mage_Core_Exception(
 				'[ ' . __CLASS__ . ' ] initializer array must contain a valid type name'
 			);
 		}
+		$trimValue = isset($args[2]) ? $args[2] : true;
 		// force trim the value if the destination type is numeric
-		$trimValue = isset($args[2]) || array_search($args[1], array('int', 'float', 'double')) === false ?
-			$args[2] :
+		$trimValue = $trimValue || array_search($args[1], array('int', 'float', 'double')) === false ?
+			$trimValue :
 			true;
 		parent::__construct(array($args[0], $trimValue));
 		$this->_destinationType = $args[1];
