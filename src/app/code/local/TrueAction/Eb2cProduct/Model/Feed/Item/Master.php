@@ -2,7 +2,7 @@
 class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
-	const UNIT_OPERATION_TYPE_XPATH = '.@operation_type';
+	const UNIT_OPERATION_TYPE_XPATH = './@operation_type';
 
 	protected $_extractors;
 
