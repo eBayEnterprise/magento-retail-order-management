@@ -16,10 +16,14 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 			'clientId' => 'MAGTNA',
 			'catalogId' => '45',
 			'gsiClientId' => 'MAGTNA',
-			'pricingFeedLocalPath' => dirname($feedFile),
+			'pricingFeedLocalPath' => self::VFS_ROOT . DS . 'pricing',
 			'pricingFeedRemotePath' => '/',
 			'pricingFeedFilePattern' => '*.xml',
 			'pricingFeedEventType' => 'Price',
+			'itemFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
+			'itemFeedRemotePath' => '/',
+			'itemFeedFilePattern' => '*.xml',
+			'itemFeedEventType' => 'Price',
 		));
 
 		$filesList = array($vfs->url($feedFile));
@@ -30,8 +34,18 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		));
 		$queue->expects($this->atLeastOnce())
 			->method('add')
-			->with($this->isInstanceOf('Varien_Object'), $this->identicalTo('ADD'));
-		$testModel = Mage::getModel('eb2cproduct/feed');
+			->with(
+				$this->isInstanceOf('Varien_Object'),
+				$this->identicalTo('ADD')
+			);
+
+		$testModel = $this->getModelMock('eb2cproduct/feed', array('_transformData'));
+		$testModel->expects($this->atLeastOnce())
+			->method('_transformData')
+			->with($this->logicalAnd(
+				$this->isInstanceOf('Varien_Object'),
+				$this->attribute($this->equalTo($e->getData()), '_data')
+			));
 		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
 
 		$testModel->processFile($filesList[0]);

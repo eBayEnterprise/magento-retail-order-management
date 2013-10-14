@@ -8,6 +8,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	protected $_extractMap = array(
 		'client_item_id' => 'ClientItemId/text()',
+		'event_number' => 'Event[last()]/EventNumber/text()',
+		'catalog_id' => './@catalog_id',
+		'gsi_client_id' => './@gsi_client_id',
+		'gsi_store_id' => './@gsi_store_id',
 		'price' => 'Event[last()]/Price/text()',
 		'msrp' => 'Event[last()]/MSRP/text()',
 		'alternate_price' => 'Event[last()]/AlternatePrice1/text()',
@@ -29,6 +33,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	public function transformData(Varien_Object $dataObject)
 	{
+		$priceIsVatInclusive = $dataObject->getPriceVatInclusive();
+		$priceIsVatInclusive = strtoupper($priceIsVatInclusive) === 'TRUE' ? true : false;
 		$data = array(
 			'sku' => $dataObject->getClientItemId(),
 			'price' => $dataObject->getPrice(),
@@ -36,7 +42,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 			'special_from_date' => null,
 			'special_to_date' => null,
 			'msrp' => $dataObject->getMsrp(),
-			'price_is_vat_inclusive' => $dataObject->getPriceVatInclusive(),
+			'price_is_vat_inclusive' => $priceIsVatInclusive,
 		);
 		if ($dataObject->getEventNumber()) {
 			$data['price'] = $dataObject->getAlternatePrice();
@@ -49,50 +55,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	}
 
 	/**
-	 * @return Iterable list of extractor models
-	 */
-	public function getExtractors()
-	{
-		return $this->_extractors;
-	}
-
-	/**
-	 * get the xpath used to split a feed document into processable units
-	 * @return string xpath
-	 */
-	public function getBaseXpath()
-	{
-		return '/Prices/PricePerItem';
-	}
-
-	public function getFeedLocalPath()
-	{
-		return $this->_config->pricingFeedLocalPath;
-	}
-
-	public function getFeedRemotePath()
-	{
-		return $this->_config->pricingFeedRemotePath;
-	}
-
-	public function getFeedFilePattern()
-	{
-		return $this->_config->pricingFeedFilePattern;
-	}
-
-	public function getFeedEventType()
-	{
-		return $this->_config->pricingFeedEventType;
-	}
-
-	/**
 	 * Initialize model
 	 */
 	public function __construct()
 	{
 		parent::__construct();
+		$this->_baseXpath = '/Prices/PricePerItem';
+		$this->_feedLocalPath = $this->_config->pricingFeedLocalPath;
+		$this->_feedRemotePath = $this->_config->pricingFeedRemotePath;
+		$this->_feedFilePattern = $this->_config->pricingFeedFilePattern;
+		$this->_feedEventType = $this->_config->pricingFeedEventType;
+
 		$this->_extractors = array(
-			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap));
+			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
 		);
 	}
 }
