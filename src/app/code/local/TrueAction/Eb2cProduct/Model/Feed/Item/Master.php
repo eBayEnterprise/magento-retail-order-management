@@ -47,11 +47,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'item_status' => 'BaseAttributes/ItemStatus/text()',
 		// Tax group the item belongs to.
 		'tax_code' => 'BaseAttributes/TaxCode/text()',
+		// Indicates the item if fulfilled by a drop shipper. New attribute.
+		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
 	);
 
 	protected $_extractBool = array(
-		// Indicates the item if fulfilled by a drop shipper. New attribute.
-		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
+		// Identifies the item as a service, e.g. clothing monogramming or hemming.
+		'service_indicator' => 'ExtendedAttributes/ServiceIndicator/text()',
+		// If false, customer cannot add a gift message to the item.
+		'allow_gift_message' => 'ExtendedAttributes/AllowGiftMessage/text()',
+		// Not included in display or in emails. Default to false.
+		'is_hidden_product' => 'ExtendedAttributes/IsHiddenProduct/text()',
 	);
 
 	protected $_extendedAttributesOptions = array(
