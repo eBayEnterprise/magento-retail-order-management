@@ -67,6 +67,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Valuedesc
 	 */
 	public function __construct(array $args)
 	{
+		if (!isset($args[0]) || !is_array($args[0]) || !$args[0]) {
+			Mage::throwException(
+				'[ ' . __CLASS__ . ' ] The 1st argument in the initializer array must be an array mapping the top-level key to an xpath string'
+			);
+		}
+		$this->_baseXpath = current($args[0]);
+		$this->_baseKey = key($args[0]);
+
 		$this->_valueKeyAlias = 'value';
 		$this->_valueXpath = 'Value/text()';
 		if (isset($args[1])) {
@@ -78,12 +86,5 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Valuedesc
 			$this->_valueKeyAlias = key($args[1]) ? key($args[1]) : $this->_valueKeyAlias;
 			$this->_valueXpath = current($args[1]) ? current($args[1]) : $this->_valueXpath;
 		}
-		if (!isset($args[0]) || !is_array($args[0]) || !$args[0]) {
-			Mage::throwException(
-				'[ ' . __CLASS__ . ' ] The 1st argument in the initializer array must be an xpath string'
-			);
-		}
-		$this->_baseXpath = current($args[0]);
-		$this->_baseKey = key($args[0]);
 	}
 }
