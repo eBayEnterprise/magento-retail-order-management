@@ -6,28 +6,23 @@
 class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 {
 	private   $_dom;
-	private   $_includeEmptyGalleries;
 	protected $_coreFeed;
 
-	public function _construct() {
-		$this->_coreFeed = Mage::getModel('eb2ccore/feed');
+	public function _construct()
+	{
+		$this->_cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2cproduct/image_export_config'))
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 
 		$this->_dom = Mage::helper('eb2ccore')->getNewDomDocument();
-
-        $this->_cfg = Mage::getModel('eb2ccore/config_registry')
-            ->addConfigModel(Mage::getSingleton('eb2cproduct/image_export_config'))
-            ->addConfigModel(Mage::getSingleton('eb2ccore/config'));
-
 		$this->_dom->formatOutput = true;
-
-		$this->_includeEmptyGalleries = false;
 	}
 
 	/**
 	 * Build the DOM
 	 *
 	 */
-	public function buildExportFeed()
+	public function buildExport()
 	{
 		$domainParts = parse_url(Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB));
 
@@ -37,9 +32,38 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 		$itemImages->setAttribute('timestamp', date('H:i:s'));
 
 		$this->_buildMessageHeader($itemImages->createChild('MessageHeader'))
-			->_buildItemImages($itemImages);
+			->_buildItemImages($itemImages)
+			->_sendDom();
 
-		echo $this->_dom->saveXML() . "\n";
+		return $this;
+	}
+
+	/**
+	 * Send the file
+	 *
+	 */
+	private function _sendDom()
+	{
+		//* @todo getting outbound path with 'var' should be closer to core
+		$coreFeed = Mage::getModel('eb2ccore/feed', array('base_dir' => Mage::getBaseDir('var') . DS . $this->_cfg->localPath) );
+		$filename = $coreFeed->getOutboundPath() . DS . date($this->_cfg->filenameFormat) . '.xml';
+		$this->_dom->save($filename);
+
+		// @todo xsd into core (somehow).
+		$reflector = new ReflectionClass(get_class($this));
+		$xsdFile = dirname($reflector->getFileName()) . DS . 'xsd' . DS . $this->_cfg->xsdFileImageExport;
+		$api = Mage::getModel('eb2ccore/api', array('xsd' => $xsdFile));
+		if (!$api->schemaValidate($this->_dom)) {
+			Mage::throwException('[ ' . __CLASS__ . ' ] Schema ' . $xsdFile . ' validation failed.');
+		}
+
+		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
+		try {
+			$sftp->sendFile($filename, $this->remotePath);
+		} catch(Exception $e) {
+			Mage::log('Error sending file: ' . $e->getMessage(), Zend_log::ERR);
+		}
+		return $this;
 	}
 
 	/**
@@ -48,21 +72,24 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	 */
 	private function _buildItemImages(DOMelement $itemImages)
 	{
-		foreach( Mage::getModel('catalog/product')->getCollection() as $mageProduct ) {
+		foreach (Mage::getModel('catalog/product')->getCollection() as $mageProduct) {
 			$mageProduct->load($mageProduct->getId());
+			if ($mageProduct->getMediaGalleryImages()->count() || $this->_cfg->includeEmptyGalleries) {
+				$mageImageViewMap = $this->_getMageImageViewMap($mageProduct);
 
-			if( $mageProduct->getMediaGalleryImages()->count()
-				|| $this->_includeEmptyGalleries )
-			{
 				$item = $itemImages->createChild('Item');
 				$item->setAttribute('id', $mageProduct->getSku());
 
 				$images = $item->createChild('Images');
 
 				foreach( $mageProduct->getMediaGalleryImages() as $mageImage ) {
+					list($w, $h) = getimagesize( (file_exists($mageImage->getPath())) ? $mageImage->getPath() : $mageImage->getUrl() );
 					$image = $images->createChild('Image');
+					$image->setAttribute('imageview', array_search($mageImage->getFile(), $mageImageViewMap));
 					$image->setAttribute('imagename', $mageImage->getLabel());
 					$image->setAttribute('imageurl', $mageImage->getUrl());
+					$image->setAttribute('imagewidth', $w);
+					$image->setAttribute('imageheight', $h);
 				}
 			}
 		}
@@ -95,5 +122,24 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 		$header->createChild('CreateDateAndTime', date('m/d/y H:i:s'));
 
 		return $this;
+	}
+
+	/**
+	 * Searchs for all media_image type attributes for this product, and creates a hash matching
+	 * the attribute code to its value, which is a media path. The attribute code is used as the
+	 * image 'view', and we use array_search to match based on media path.
+	 *
+	 */
+	private function _getMageImageViewMap($mageProduct)
+	{
+		$imageViewMap = array();
+
+		$attributes = $mageProduct->getAttributes();
+		foreach ($attributes as $attribute) {
+			if( !strcmp($attribute->getFrontendInput(), 'media_image') ) {
+				$imageViewMap[$attribute->getAttributeCode()] = $mageProduct->getData($attribute->getAttributeCode());
+			}
+		}
+		return $imageViewMap;
 	}
 }

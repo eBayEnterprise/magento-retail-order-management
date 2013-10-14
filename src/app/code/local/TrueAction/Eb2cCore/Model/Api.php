@@ -34,7 +34,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation has not been set.');
 		}
 
-		if (!$this->_schemaValidate($doc)) {
+		if (!$this->schemaValidate($doc)) {
 			Mage::throwException('[ ' . __CLASS__ . ' ] Schema validation failed.');
 		}
 
@@ -120,7 +120,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	 *
 	 * @return boolean true valid false otherwise
 	 */
-	private function _schemaValidate(DOMDocument $doc)
+	public function schemaValidate(DOMDocument $doc)
 	{
 		$this->_schemaValidationErrors = array();
 		set_error_handler(
