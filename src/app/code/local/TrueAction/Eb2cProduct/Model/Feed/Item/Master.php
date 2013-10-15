@@ -17,14 +17,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extendedAttributesFloat, 'float')),
-			Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
+			Mage::getModel('eb2cproduct/feed_extractor_color', array(
 				array('color' => 'ExtendedAttributes/ColorAttributes/Color'),
 				array('code' => 'Code/text()')
 			)),
-			Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
-				array('size' => 'ExtendedAttributes/SizeAttributes/Size'),
-				array('code' => 'Code/text()')
-			)),
+			// Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
+			// 	array('size' => 'ExtendedAttributes/SizeAttributes/Size'),
+			// 	array('code' => 'Code/text()')
+			// )),
 		);
 		$this->_baseXpath = '/ItemMaster/Item';
 		$this->_feedLocalPath = $this->_config->itemFeedLocalPath;
