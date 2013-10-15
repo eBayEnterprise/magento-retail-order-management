@@ -179,7 +179,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					Zend_Log::WARN
 				);
 			} elseif (!$prdHlpr->hasProdType($prodType)) {
-				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
+				Mage::log(sprintf('[ %s ] Unrecognized product type "%s" for %s', __CLASS__, $prodType, $item->getItemId()->getClientItemId()), Zend_Log::WARN);
 			} else {
 				switch ($opType) {
 					case self::OPERATION_TYPE_ADD:
@@ -301,15 +301,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		$this->getStockItem()->loadByProduct($productObject)
-			->addData(
-				array(
-					'use_config_backorders' => false,
-					'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
-					'product_id' => $productObject->getId(),
-					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
-				)
-			)
+		// @todo This is where it goes wrong. addData is for updating; setData is for adding
+		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject->getId());
+		$stockItem
+			->setUseConfigBackorders(false)
+			->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
+			->setStockId(Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID)
 			->save();
 		return $this;
 	}

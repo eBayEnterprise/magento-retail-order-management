@@ -79,11 +79,13 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		if ($feedItemCollection) {
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedItemCollection as $feedItem) {
-				if (trim($feedItem->getItemId()->getClientItemId()) !== '') {
+				// For inventory, we must prepend the client-id
+				$mageSku = $feedItem->getCatalogId() . '-' . trim($feedItem->getItemId()->getClientItemId());
+				if ($mageSku !== '') {
 					// we have a valid item, let's get the product id
-					$this->getProduct()->loadByAttribute('sku', $feedItem->getItemId()->getClientItemId());
+					$mageProduct = $this->getProduct()->loadByAttribute('sku', $mageSku);
 
-					if ($this->getProduct()->getId()) {
+					if ($mageProduct->getId()) {
 						// we've gotten a valid magento product, let's update its stock
 						$this->getStockItem()->loadByProduct($this->getProduct()->getId())
 							->setQty($feedItem->getMeasurements()->getAvailableQuantity())
