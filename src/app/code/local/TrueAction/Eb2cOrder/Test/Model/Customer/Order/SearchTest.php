@@ -39,6 +39,8 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->will($this->returnValue((object) array(
 				'xsdFileSearch' => 'Order-Service-Search-1.0.xsd',
 				'apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0',
+				'apiSearchService' => 'customers',
+				'apiSearchOperation' => 'orders/get',
 			)));
 		$this->replaceByMock('helper', 'eb2corder', $orderHelperMock);
 
@@ -97,6 +99,8 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->will($this->returnValue((object) array(
 				'xsdFileSearch' => 'Order-Service-Search-1.0.xsd',
 				'apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0',
+				'apiSearchService' => 'customers',
+				'apiSearchOperation' => 'orders/get',
 			)));
 		$this->replaceByMock('helper', 'eb2corder', $orderHelperMock);
 

@@ -4,10 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cOrder_Model_Customer_Order_Search
 {
-	const SERVICE = 'customers';
-	const OPERATION = 'orders/get';
 	/**
 	 * Cutomer Order Search from eb2c.
 	 *
@@ -21,12 +19,13 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search extends Mage_Core_Model_A
 		// build request
 		$requestDoc = $this->buildOrderSummaryRequest($customerId);
 		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
+		$cfg = Mage::helper('eb2corder')->getConfig();
 
 		try{
 			// make request to eb2c for Customer OrderSummary
 			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri(Mage::helper('eb2ccore')->getApiUri(self::SERVICE, self::OPERATION))
-				->setXsd(Mage::helper('eb2corder')->getConfig()->xsdFileSearch)
+				->setUri(Mage::helper('eb2ccore')->getApiUri($cfg->apiSearchService, $cfg->apiSearchOperation))
+				->setXsd($cfg->xsdFileSearch)
 				->request($requestDoc);
 
 		} catch(Zend_Http_Client_Exception $e) {

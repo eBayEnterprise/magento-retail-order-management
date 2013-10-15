@@ -10,7 +10,7 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_Recent extends Mage_Sales_Block
 	/**
 	 * overriding order recent to fetch order summary from eb2c webservice to present to customer the order status
 	 */
-	 public function __construct()
+	public function __construct()
 	{
 		parent::__construct();
 		// assigned current session customer id to a local variable
