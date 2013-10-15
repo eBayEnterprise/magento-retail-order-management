@@ -18,8 +18,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 	 * array(
 	 *     root_key => array(
 	 *         key_alias => value_node_string,
-	 *         'description' => description_string,
-	 *         'lang' => xml_language_string
+	 *         'description' => array(
+	 *             'description' => description_string,
+	 *             'lang' => xml_language_string
+	 *         ),
 	 *     ),
 	 *     ...
 	 * )
@@ -34,7 +36,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 			Mage::throwException(
 				'[ ' . get_called_class() . ' ] the xpath "' . $this->_baseXpath . '" could not be queried: ' . $e->getMessage()
 			);
+			// @codeCovergeIgnoreStart
 		}
+		// @codeCoverageIgnoreEnd
 		foreach ($nodes as $child) {
 			$value = null;
 			$nodeList = $xpath->query($this->_valueXpath, $child);
@@ -51,8 +55,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 
 			$result[] = array(
 				$this->_valueKeyAlias => $value,
-				'description' => trim($xpath->query('Description/text()', $child)->item(0)->nodeValue),
-				'lang' => trim($xpath->query('Description/@xml:lang', $child)->item(0)->nodeValue),
+				'description' => array(
+					'description' => trim($xpath->query('Description/text()', $child)->item(0)->nodeValue),
+					'lang' => trim($xpath->query('Description/@xml:lang', $child)->item(0)->nodeValue),
+				)
 			);
 		}
 		return empty($result) ? array() : array($this->_baseKey => $result);
@@ -71,7 +77,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 			Mage::throwException(
 				'[ ' . __CLASS__ . ' ] The 1st argument in the initializer array must be an array mapping the top-level key to an xpath string'
 			);
+			// @codeCoverageIgnoreStart
 		}
+		// @codeCoverageIgnoreEnd
 		$this->_baseXpath = current($args[0]);
 		$this->_baseKey = key($args[0]);
 
@@ -82,7 +90,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 				Mage::throwException(
 					'[ ' . __CLASS__ . ' ] The 2nd argument in the initializer array must be an array like array(key_alias => xpath_string)'
 				);
+				// @codeCoverageIgnoreStart
 			}
+			// @codeCoverageIgnoreEnd
 			$this->_valueKeyAlias = key($args[1]) ? key($args[1]) : $this->_valueKeyAlias;
 			$this->_valueXpath = current($args[1]) ? current($args[1]) : $this->_valueXpath;
 		}
