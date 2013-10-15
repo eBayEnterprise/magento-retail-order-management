@@ -17,18 +17,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 				array('code' => 'Code/text()')
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
-				array('product_links' => 'ExtendedAttributes/ProductLinks/ProductLink'),
+				array('product_links' => 'ProductLinks/ProductLink'),
 				array(
 					// Type of link relationship.
 					'link_type' => './@link_type',
 					// Operation to take with the product link. ("Add", "Delete")
 					'operation_type' => './@operation_type',
 					// Unique ID (SKU) for the linked product.
-					'link_to_unique_id' => 'LinkToUniqueId/text()',
+					'link_to_unique_id' => 'LinkToUniqueID/text()',
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
-				array('category_links' => 'ExtendedAttributes/CategoryLinks/CategoryLink'),
+				array('category_links' => 'CategoryLinks/CategoryLink'),
 				array(
 					// if category is the default
 					'default' => './@default', // (bool)
@@ -37,7 +37,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					// Operation to take with the category.
 					'import_mode' => './@import_mode',
 					// Unique ID (SKU) for the linked product.
-					'name' => 'Name/text()',
+					'name' => 'Name',
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
@@ -59,7 +59,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					// Targeted store language
 					'lang' => './@xml:lang',
 					// Localized product title
-					'description' => './text()',
+					'long_description' => '.',
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
@@ -68,20 +68,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					// Targeted store language
 					'lang' => './@xml:lang',
 					// short description of the item.
-					'description' => './text()',
+					'short_description' => '.',
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
-				array('title' => 'ExtendedAttributes/SearchKeywords'),
+				array('search_keywords' => 'ExtendedAttributes/SearchKeywords'),
 				array(
 					// Targeted store language
 					'lang' => './@xml:lang',
 					// search keywords of the item.
-					'search_keywords' => './text()',
+					'search_keywords' => '.',
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
-				array('title' => 'CustomAttributes/Attribute'),
+				array('custom_attributes' => 'CustomAttributes/Attribute'),
 				array(
 					// Custom attribute name.
 					'name' => './@name',
@@ -90,7 +90,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content_Master
 					// Operation to take with the product link. ("Add", "Delete")
 					'lang' => './@xml:lang',
 					// Unique ID (SKU) for the linked product.
-					'value' => 'Value/text()',
+					'value' => 'Value',
 				)
 			)),
 		);
