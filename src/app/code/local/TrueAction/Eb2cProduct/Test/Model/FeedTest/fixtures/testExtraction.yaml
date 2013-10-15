@@ -142,3 +142,71 @@ vfs:
               <CustomAttributes>...</CustomAttributes>
             </Item>
           </ItemMaster>
+      contentmaster:
+        feed.xml: |
+          <ContentMaster>
+            <MessageHeader>
+              <Standard>GSI</Standard>
+              <HeaderVersion>NGP1_0_0</HeaderVersion>
+              <VersionReleaseNumber>NGP1_0_0</VersionReleaseNumber>
+              <SourceData>
+                <SourceId>MAGTNA</SourceId>
+                <SourceType>CLIENT</SourceType>
+              </SourceData>
+              <DestinationData>
+                <DestinationId>MWS</DestinationId>
+                <DestinationType>WS</DestinationType>
+              </DestinationData>
+              <EventType>Content</EventType>
+              <MessageData>
+                <MessageId>1000</MessageId>
+                <CorrelationId>1000</CorrelationId>
+              </MessageData>
+              <CreateDateAndTime>2013-04-01T09:39:47-04:00</CreateDateAndTime>
+            </MessageHeader>
+            <Content catalog_id="45" gsi_client_id="MAGTNA">
+              <UniqueID>45-000906014545</UniqueID>
+              <ProductLinks>
+                <ProductLink link_type="ES_CrossSelling" operation_type="Add">
+                  <LinkToUniqueID>45-C42A180C</LinkToUniqueID>
+                </ProductLink>
+                <ProductLink link_type="ES_Other" operation_type="Add">
+                  <LinkToUniqueID>45-C42A180C</LinkToUniqueID>
+                </ProductLink>
+              </ProductLinks>
+              <CategoryLinks>
+                <CategoryLink catalog_id="45" default="false" import_mode="Update">
+                  <Name>
+                    <![CDATA[
+                    Toys-Category-Learning & Educational Toys-Electronic Learning
+                    ]]>
+                  </Name>
+                </CategoryLink>
+              </CategoryLinks>
+              <BaseAttributes>
+                <Title xml:lang="en-US">
+                  LeapFrog Leapster Educational Game Cartridge - Arcade Word Chasers
+                </Title>
+              </BaseAttributes>
+              <ExtendedAttributes>
+                <DisplayCountryOfOrigin xml:lang="en-US">CN</DisplayCountryOfOrigin>
+                <GiftWrap>Y</GiftWrap>
+                <ColorAttributes>
+                    <Color>
+                        <Code>100</Code>
+                        <Description xml:lang="en-US">WHITE</Description>
+                        <Description xml:lang="fr">Blanc</Description>
+                    </Color>
+                </ColorAttributes>
+                <LongDescription xml:lang="en-US">
+                  Chase your way to word victory in this cat-and-mouse arcade game! Choose a cat, then catch mice and the correct letters to spell words! This fast-paced game builds advanced phonics and spelling skills!
+                </LongDescription>
+                <SearchKeywords xml:lang="en-US"/>
+              </ExtendedAttributes>
+              <CustomAttributes>
+                <Attribute name="TRUBRANDJDA" operation_type="Add" xml:lang="en-US" is_list="false" dt="string">
+                  <Value>LeapFrog</Value>
+                </Attribute>
+              </CustomAttributes>
+            </Content>
+          </ContentMaster>
