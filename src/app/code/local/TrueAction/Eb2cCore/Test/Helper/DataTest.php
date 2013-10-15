@@ -211,4 +211,57 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
 	}
+
+	public function providerExtractNodeVal()
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<Product><Item><sku>1234</sku></Item></Product>');
+		$xpath = new DOMXPath($doc);
+		$items = $xpath->query('//Item');
+		$skuNode = null;
+		foreach($items as $item) {
+			$skuNode = $xpath->query('sku/text()', $item);
+		}
+		return array(array($skuNode));
+	}
+
+	/**
+	 * Test extractNodeVal method
+	 *
+	 * @param DOMNodeList $nodeList
+	 *
+	 * @test
+	 * @dataProvider providerExtractNodeVal
+	 */
+	public function testExtractNodeVal(DOMNodeList $nodeList)
+	{
+		$this->assertSame('1234', Mage::helper('eb2ccore')->extractNodeVal($nodeList));
+	}
+
+	public function providerExtractNodeAttributeVal()
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<Product><Item><sku gsi_client_id="TAN-CLI">1234</sku></Item></Product>');
+		$xpath = new DOMXPath($doc);
+		$items = $xpath->query('//Item');
+		$skuNode = null;
+		foreach($items as $item) {
+			$skuNode = $xpath->query('sku', $item);
+		}
+		return array(array($skuNode, 'gsi_client_id'));
+	}
+
+	/**
+	 * Test extractNodeAttributeVal method
+	 *
+	 * @param DOMNodeList $nodeList
+	 * @param string $attributeName
+	 *
+	 * @test
+	 * @dataProvider providerExtractNodeAttributeVal
+	 */
+	public function testExtractNodeAttributeVal(DOMNodeList $nodeList, $attributeName)
+	{
+		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
+	}
 }
