@@ -2,7 +2,7 @@
 /**
  * extractor that extracts data from a ValueDesc structure.
  */
-class TrueAction_Eb2cProduct_Model_Feed_Extractor_Valuedesc
+class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
 {
 	protected $_baseKey;
