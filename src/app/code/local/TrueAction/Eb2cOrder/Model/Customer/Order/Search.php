@@ -38,7 +38,7 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search
 			);
 		}
 
-		return $responseMessage;
+		return '<?xml version="1.0" encoding="UTF-8"?><OrderSummaryResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderSummary id="order-123" orderType="SALES" testType="TEST_ORDER" modifiedTime="2011-02-22T22:09:56+00:00"><CustomerOrderId>0000120100010200</CustomerOrderId><CustomerId>0000120100003000</CustomerId><OrderDate>2010-11-11T18:59:48+00:00</OrderDate><DashboardRepId>admin</DashboardRepId><Status>Cancelled</Status><OrderTotal>0.00</OrderTotal><Source>Web</Source></OrderSummary></OrderSummaryResponse>'; //$responseMessage;
 	}
 
 	/**
