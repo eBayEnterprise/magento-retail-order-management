@@ -21,7 +21,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				array('color' => 'ExtendedAttributes/ColorAttributes/Color'),
 				array('code' => 'Code/text()')
 			)),
-			Mage::getModel('eb2cproduct/feed_extractor_valuedesc', array(
+			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
 				array('size' => 'ExtendedAttributes/SizeAttributes/Size'),
 				array(
 					'code' => 'Code/text()',
@@ -90,20 +90,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'is_hidden_product' => 'ExtendedAttributes/IsHiddenProduct/text()',
 	);
 
-// 	protected $_extendedAttributesArray = array(
-// //////// new kind of extractor for option data
-// 		'color_attributes' => new Varien_Object(
-// 			array(
-// 				'color' => $colorData,
-// 			)
-// 		),
-// 		'size_attributes' => new Varien_Object(
-// 			array(
-// 				'size' => $sizeData
-// 			)
-// 		),
-// 		'brand_description' => $brandDescriptionData,
-// 	);
+	protected $_extendedAttributesArray = array(
+		//////// new kind of extractor for option data
+		// 'color_attributes' => new Varien_Object(
+		// 	array(
+		// 		'color' => $colorData,
+		// 	)
+		// ),
+		// 'size_attributes' => new Varien_Object(
+		// 	array(
+		// 		'size' => $sizeData
+		// 	)
+		// ),
+		// 'brand_description' => $brandDescriptionData,
+	);
 
 	protected $_extendedAttributesFloat = array(
 		// Shipping weight of the item.
@@ -140,8 +140,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		// Maximum number of hours before the item may ship.
 		'ship_window_max_hour' => 'ExtendedAttributes/ShipWindowMaxHour/text()',
 	);
-
-
 
 	protected static $_extenddedAttributes = array(
 		// Item is able to be back ordered.
