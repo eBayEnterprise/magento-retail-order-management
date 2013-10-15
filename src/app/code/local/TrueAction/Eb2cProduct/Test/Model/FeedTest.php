@@ -24,7 +24,11 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 			'itemFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
 			'itemFeedRemotePath' => '/',
 			'itemFeedFilePattern' => '*.xml',
-			'itemFeedEventType' => 'Price',
+			'itemFeedEventType' => 'Item',
+			'contentFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
+			'contentFeedRemotePath' => '/',
+			'contentFeedFilePattern' => '*.xml',
+			'contentFeedEventType' => 'Content',
 		));
 
 		$filesList = array($vfs->url($feedFile));
@@ -40,13 +44,18 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 				$this->identicalTo('ADD')
 			);
 
+		$checkData = function($dataObj) use ($e) {
+			PHPUnit_Framework_Assert::assertEquals(
+				$dataObj->getData(),
+				$e->getData()
+			);
+		};
+
 		$testModel = $this->getModelMock('eb2cproduct/feed', array('_transformData'));
 		$testModel->expects($this->atLeastOnce())
 			->method('_transformData')
-			->with($this->logicalAnd(
-				$this->isInstanceOf('Varien_Object'),
-				$this->attribute($this->equalTo($e->getData()), '_data')
-			));
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnCallback($checkData));
 		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
 
 		$testModel->processFile($filesList[0]);
