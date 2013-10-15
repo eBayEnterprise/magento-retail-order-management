@@ -75,7 +75,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->will($this->returnValue(file_get_contents($vfs->url(self::VFS_ROOT . '/customer_order_search/response/orderSummaryResponse.xml'))));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$this->assertSame($this->expected('reponse')->getXml(), Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($customerId));
+		$this->assertSame($this->expected('response')->getXml(), Mage::getModel('eb2corder/customer_order_search')->requestOrderSummary($customerId));
 	}
 
 	/**
@@ -172,19 +172,19 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 
 		$response = Mage::getModel('eb2corder/customer_order_search')->parseResponse($orderSummaryReply);
 
-		$orderId = $this->expected('reponse')->getCustomerOrderId();
+		$orderId = $this->expected('response')->getCustomerOrderId();
 
 		$this->assertCount(1, $response);
-		$this->assertSame($this->expected('reponse')->getId(), $response[$orderId]->getId());
-		$this->assertSame($this->expected('reponse')->getOrderType(), $response[$orderId]->getOrderType());
-		$this->assertSame($this->expected('reponse')->getTestType(), $response[$orderId]->getTestType());
-		$this->assertSame($this->expected('reponse')->getModifiedTime(), $response[$orderId]->getModifiedTime());
-		$this->assertSame($this->expected('reponse')->getCustomerOrderId(), $response[$orderId]->getCustomerOrderId());
-		$this->assertSame($this->expected('reponse')->getCustomerId(), $response[$orderId]->getCustomerId());
-		$this->assertSame($this->expected('reponse')->getOrderDate(), $response[$orderId]->getOrderDate());
-		$this->assertSame($this->expected('reponse')->getDashboardRepId(), $response[$orderId]->getDashboardRepId());
-		$this->assertSame($this->expected('reponse')->getStatus(), $response[$orderId]->getStatus());
-		$this->assertSame((float) $this->expected('reponse')->getOrderTotal(), $response[$orderId]->getOrderTotal());
-		$this->assertSame($this->expected('reponse')->getSource(), $response[$orderId]->getSource());
+		$this->assertSame($this->expected('response')->getId(), $response[$orderId]->getId());
+		$this->assertSame($this->expected('response')->getOrderType(), $response[$orderId]->getOrderType());
+		$this->assertSame($this->expected('response')->getTestType(), $response[$orderId]->getTestType());
+		$this->assertSame($this->expected('response')->getModifiedTime(), $response[$orderId]->getModifiedTime());
+		$this->assertSame($this->expected('response')->getCustomerOrderId(), $response[$orderId]->getCustomerOrderId());
+		$this->assertSame($this->expected('response')->getCustomerId(), $response[$orderId]->getCustomerId());
+		$this->assertSame($this->expected('response')->getOrderDate(), $response[$orderId]->getOrderDate());
+		$this->assertSame($this->expected('response')->getDashboardRepId(), $response[$orderId]->getDashboardRepId());
+		$this->assertSame($this->expected('response')->getStatus(), $response[$orderId]->getStatus());
+		$this->assertSame((float) $this->expected('response')->getOrderTotal(), $response[$orderId]->getOrderTotal());
+		$this->assertSame($this->expected('response')->getSource(), $response[$orderId]->getSource());
 	}
 }
