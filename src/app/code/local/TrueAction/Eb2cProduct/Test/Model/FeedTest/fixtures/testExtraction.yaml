@@ -210,3 +210,61 @@ vfs:
               </CustomAttributes>
             </Content>
           </ContentMaster>
+      iship:
+        feed.xml: |
+          <iShip>
+            <MessageHeader>
+              <Standard>GSI</Standard>
+              <HeaderVersion>NGP1_0_0</HeaderVersion>
+              <VersionReleaseNumber>NGP1_0_0</VersionReleaseNumber>
+              <SourceData>
+                <SourceId>MAGTNA</SourceId>
+                <SourceType>CLIENT</SourceType>
+              </SourceData>
+              <DestinationData>
+                <DestinationId>MWS</DestinationId>
+                <DestinationType>WS</DestinationType>
+              </DestinationData>
+              <DestinationData>
+                <DestinationId>SOMS_03</DestinationId>
+                <DestinationType>OMS</DestinationType>
+              </DestinationData>
+              <EventType>iShip</EventType>
+              <MessageData>
+                <MessageId>100</MessageId>
+                <CorrelationId>100</CorrelationId>
+              </MessageData>
+              <CreateDateAndTime>2013-04-01T09:39:47-04:00</CreateDateAndTime>
+            </MessageHeader>
+            <Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
+              <ItemId>
+                <ClientItemId>45-000906011391</ClientItemId>
+              </ItemId>
+              <BaseAttributes>
+                <CatalogClass>regular</CatalogClass>
+                <IsDropShipped>false</IsDropShipped>
+                <ItemDescription>25077 2I TAN CXL SMOOT</ItemDescription>
+                <ItemType>MERCH</ItemType>
+                <ItemStatus>Active</ItemStatus>
+                <TaxCode>76800</TaxCode>
+                <Hierarchy>
+                  <DeptNumber>903</DeptNumber>
+                  <SubDeptNumber>1</SubDeptNumber>
+                  <SubDeptDescription>CASUAL FOOTWEAR</SubDeptDescription>
+                  <ClassNumber>1</ClassNumber>
+                  <ClassDescription>MENS CASUAL FOOTWEAR</ClassDescription>
+                  <SubClass>1</SubClass>
+                  <SubClassDescription>MN RUGGED CASUAL</SubClassDescription>
+                </Hierarchy>
+              </BaseAttributes>
+              <HTSCodes>
+                <HTSCode mfn_duty_rate="1.02" destination_country="USA" restricted="true">
+                  abc123
+                </HTSCode>
+                <HTSCode mfn_duty_rate="0.98" destination_country="CAN" restricted="false">
+                  def456
+                </HTSCode>
+              </HTSCodes>
+              <CustomAttributes></CustomAttributes>
+            </Item>
+          </iShip>

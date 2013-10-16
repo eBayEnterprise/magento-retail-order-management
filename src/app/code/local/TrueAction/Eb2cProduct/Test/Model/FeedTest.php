@@ -19,10 +19,14 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 			'itemFeedRemotePath' => '/',
 			'itemFeedFilePattern' => '*.xml',
 			'itemFeedEventType' => 'Item',
-			'contentFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
+			'contentFeedLocalPath' => self::VFS_ROOT . DS . 'contentmaster',
 			'contentFeedRemotePath' => '/',
 			'contentFeedFilePattern' => '*.xml',
 			'contentFeedEventType' => 'Content',
+			'iShipFeedLocalPath' => self::VFS_ROOT . DS . 'iship',
+			'iShipFeedRemotePath' => '/',
+			'iShipFeedFilePattern' => '*.xml',
+			'iShipFeedEventType' => 'iShip',
 		));
 	}
 

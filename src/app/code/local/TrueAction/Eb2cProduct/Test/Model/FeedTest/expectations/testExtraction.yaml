@@ -57,6 +57,7 @@ itemmaster1:
   item_dimension_display_packaging_unit_of_measure: cm
   # shipping dimensions
   item_dimension_shipping_mass_weight: 1.0
+  item_dimension_shipping_mass_unit_of_measure: kg
   item_dimension_shipping_packaging_length: 1.0
   item_dimension_shipping_packaging_width: 1.0
   item_dimension_shipping_packaging_height: 1.0
@@ -141,4 +142,22 @@ contentmaster1:
       value: LeapFrog
       operation_type: Add
       lang: 'en-US'
-
+iship1:
+  catalog_class: regular
+  client_item_id: 45-000906011391
+  is_drop_shipped: 'false'
+  item_description: 25077 2I TAN CXL SMOOT
+  item_type: MERCH
+  item_status: 'Active'
+  tax_code: '76800'
+  hts_codes:
+     -
+      destination_country: USA
+      hts_code: abc123
+      mfn_duty_rate: '1.02'
+      restricted: 'true'
+     -
+      destination_country: CAN
+      hts_code: def456
+      mfn_duty_rate: '0.98'
+      restricted: 'false'

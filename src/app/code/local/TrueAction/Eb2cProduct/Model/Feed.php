@@ -14,6 +14,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		'Price' => 'feed_item_pricing',
 		'ItemMaster' => 'feed_item_master',
 		'Content' => 'feed_content_master',
+		'iShip' => 'feed_iship',
 	);
 
 	/**
