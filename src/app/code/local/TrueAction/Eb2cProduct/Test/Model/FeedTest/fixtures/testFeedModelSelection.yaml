@@ -66,3 +66,18 @@ vfs:
               <CreateDateAndTime>2013-03-28T18:33:56-04:00</CreateDateAndTime>
             </MessageHeader>
           </Prices>
+      iship:
+        feed.xml: |
+          <Prices>
+            <MessageHeader>
+              <Standard>GSI</Standard>
+              <HeaderVersion>NGP1_0_0</HeaderVersion>
+              <VersionReleaseNumber>NGP1_0_0</VersionReleaseNumber>
+              <SourceData><SourceId>MAGTNA</SourceId><SourceType>CLIENT</SourceType></SourceData>
+              <DestinationData><DestinationId>MWS</DestinationId><DestinationType>WS</DestinationType></DestinationData>
+              <DestinationData><DestinationId>SOMS_03</DestinationId><DestinationType>OMS</DestinationType></DestinationData>
+              <EventType>iShip</EventType>
+              <MessageData><MessageId>20120220</MessageId><CorrelationId>20120220</CorrelationId></MessageData>
+              <CreateDateAndTime>2013-03-28T18:33:56-04:00</CreateDateAndTime>
+            </MessageHeader>
+          </Prices>

@@ -7,3 +7,6 @@
 -
   - var/eb2c/pricing/feed.xml
   - TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
+-
+  - var/eb2c/iship/feed.xml
+  - TrueAction_Eb2cProduct_Model_Feed_Iship
