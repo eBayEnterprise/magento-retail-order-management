@@ -31,44 +31,6 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	}
 
 	/**
-	 * @loadFixture
-	 * @loadExpectation
-	 * @dataProvider dataProvider
-	 */
-	public function testExtraction($scenario, $feedFile)
-	{
-		$vfs = $this->getFixture()->getVfs();
-		$filesList = array($vfs->url($feedFile));
-
-		$e = $this->expected($scenario);
-		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
-			'add',
-		));
-		$queue->expects($this->atLeastOnce())
-			->method('add')
-			->with(
-				$this->isInstanceOf('Varien_Object'),
-				$this->identicalTo('ADD')
-			);
-
-		$checkData = function($dataObj) use ($e) {
-			PHPUnit_Framework_Assert::assertEquals(
-				$dataObj->getData(),
-				$e->getData()
-			);
-		};
-
-		$testModel = $this->getModelMock('eb2cproduct/feed', array('_transformData'));
-		$testModel->expects($this->atLeastOnce())
-			->method('_transformData')
-			->with($this->isInstanceOf('Varien_Object'))
-			->will($this->returnCallback($checkData));
-		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
-
-		$testModel->processFile($filesList[0]);
-	}
-
-	/**
 	 * verify a file's feed type is identified properly and the correct models
 	 * are used.
 	 * @dataProvider dataProvider
@@ -144,6 +106,44 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$testModel->ProcessFeeds();
 		$feedModel = $this->_reflectProperty($testModel, '_eventTypeModel')->getValue($testModel);
 		$this->assertInstanceOf($model, $feedModel);
+	}
+
+	/**
+	 * @loadFixture
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testExtraction($scenario, $feedFile)
+	{
+		$vfs = $this->getFixture()->getVfs();
+		$filesList = array($vfs->url($feedFile));
+
+		$e = $this->expected($scenario);
+		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
+			'add',
+		));
+		$queue->expects($this->atLeastOnce())
+			->method('add')
+			->with(
+				$this->isInstanceOf('Varien_Object'),
+				$this->identicalTo('ADD')
+			);
+
+		$checkData = function($dataObj) use ($e) {
+			PHPUnit_Framework_Assert::assertEquals(
+				$dataObj->getData(),
+				$e->getData()
+			);
+		};
+
+		$testModel = $this->getModelMock('eb2cproduct/feed', array('_transformData'));
+		$testModel->expects($this->atLeastOnce())
+			->method('_transformData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnCallback($checkData));
+		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
+
+		$testModel->processFile($filesList[0]);
 	}
 
 	/**
