@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Feed_I_Ship
+class TrueAction_Eb2cProduct_Model_Feed_Iship
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
