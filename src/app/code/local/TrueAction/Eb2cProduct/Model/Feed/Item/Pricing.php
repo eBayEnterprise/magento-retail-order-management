@@ -251,13 +251,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 */
 	protected function _preparedProductData(Varien_Object $dataObject)
 	{
+		// @todo: Something buggy this way comes. I suspect special_from_date, special_to_date, as well as special_price have
+		// to be null for "Special Price $0.00" to go away.
 		$event = $this->_selectEvent($dataObject->getEvents());
-		$data = array('price' => $event->getPrice(), 'special_price' => null, 'special_from_date' => null, 'special_to_date' => null, 'msrp' => $event->getMsrp());
-		if ($event->getEventNumber()) {
-			$data['price'] = $event->getAlternatePrice();
-			$data['special_price'] = $event->getPrice();
-			$data['special_from_date'] = $event->getStartDate();
-			$data['special_to_date'] = $event->getEndDate();
+		$data = array(
+			'price'             => $event->getPrice(),
+			'special_price'     => null,
+			'special_from_date' => null,
+			'special_to_date'   => null,
+			'msrp'              => $event->getMsrp(),
+		);
+		if ($event->getEventNumber())
+		{
+			if( $event->getAlternatePrice()
+				&& $event->getAlternatePrice()
+				&& $event->getPrice()
+				&& $event->getStartDate()
+				&& $event->getEndDate())
+			{
+				// During initial integration tests, found we could get here with some/ all info missing.
+				// For safety's sake, just leave price alone if we don't have all the details.
+				$data['price']             = $event->getAlternatePrice();
+				$data['special_price']     = $event->getPrice();
+				$data['special_from_date'] = $event->getStartDate();
+				$data['special_to_date']   = $event->getEndDate();
+			} else {
+				Mage::log(sprintf('[ %s ] Event %s missing event details ' . print_r($event,true), __CLASS__, $event->getEventNumber()), Zend_Log::ERR);
+			}
 		}
 
 		if (Mage::helper('eb2cproduct')->hasEavAttr('price_is_vat_inclusive')) {

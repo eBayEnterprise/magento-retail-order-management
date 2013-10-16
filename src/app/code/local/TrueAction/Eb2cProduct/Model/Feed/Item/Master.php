@@ -3,8 +3,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
+	const DEFAULT_INVENTORY_QTY = 997;
 	const OPERATION_TYPE_DELETE = 'DELETE';
-	const OPERATION_TYPE_ADD = 'ADD';
+	const OPERATION_TYPE_ADD    = 'ADD';
 	const OPERATION_TYPE_UPDATE = 'UPDATE';
 
 	/**
@@ -282,11 +283,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					'color' => $this->_getProductColorOptionId($item),
 					'website_ids' => $this->getWebsiteIds(),
 					'store_ids' => array($this->getDefaultStoreId()),
-					'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
 					'tax_class_id' => 0,
 					'url_key' => $item->getItemId()->getClientItemId(),
 				))
 				->save();
+
+			// Create a stock_item for this product. It's not /loaded/ into the product yet!
+			Mage::getModel('cataloginventory/stock_item')
+				->setData(
+					array(
+						'product_id'   => $prd->getId(),
+						'is_in_stock'  => 1,
+						'manage_stock' => 1,
+						'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					)
+				)->save();
+
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
 		}
@@ -301,12 +313,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		// @todo This is where it goes wrong. addData is for updating; setData is for adding
 		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject->getId());
 		$stockItem
+			->setQty(self::DEFAULT_INVENTORY_QTY)
 			->setUseConfigBackorders(false)
 			->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
-			->setStockId(Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID)
 			->save();
 		return $this;
 	}
