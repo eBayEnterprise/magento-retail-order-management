@@ -4,8 +4,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 {
 	const UNIT_OPERATION_TYPE_XPATH = './@operation_type';
 
-	protected $_extractors;
-
 	public function __construct()
 	{
 		parent::__construct();
@@ -18,6 +16,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extendedAttributes)),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extendedAttributesFloat, 'float')),
+			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extendedAttributesInt, 'int')),
 			Mage::getModel('eb2cproduct/feed_extractor_color', array(
 				array('color' => 'ExtendedAttributes/ColorAttributes/Color'),
 				array('code' => 'Code/text()')
@@ -28,6 +27,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					'code' => 'Code/text()',
 					'description' => 'Description/text()',
 					'lang' => './@xml:lang'
+				)
+			)),
+			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
+				array('custom_attributes' => 'CustomAttributes/Attribute'),
+				array(
+					// Custom attribute name.
+					'name' => './@name',
+					// Operation to take with the attribute. ("Add", "Change", "Delete")
+					'operation_type' => './@operation_type',
+					// Operation to take with the product link. ("Add", "Delete")
+					'lang' => './@xml:lang',
+					// Unique ID (SKU) for the linked product.
+					'value' => 'Value',
 				)
 			)),
 		);
@@ -62,7 +74,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		// Indicates whether an item is active, inactive or other various states.
 		'item_status' => 'BaseAttributes/ItemStatus/text()',
 		// item dimensions structure
-		'item_dimension_shipping_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
+		'item_dimension_shipping_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass/@unit_of_measure',
 		'item_dimension_shipping_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/@unit_of_measure',
 		'item_dimension_display_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Packaging/@unit_of_measure',
 		'item_dimension_display_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Mass/@unit_of_measure',
