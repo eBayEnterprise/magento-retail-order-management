@@ -195,48 +195,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * Initialize model
-	 */
-	protected function _construct()
-	{
-		// set up base dir if it hasn't been during instantiation
-		if (!$this->hasBaseDir()) {
-			$this->setBaseDir(Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->itemFeedLocalPath);
-		}
-
-		// Set up local folders for receiving, processing
-		$coreFeedConstructorArgs['base_dir'] = $this->getBaseDir();
-		if ($this->hasFsTool()) {
-			$coreFeedConstructorArgs['fs_tool'] = $this->getFsTool();
-		}
-
-		$prod = Mage::getModel('catalog/product');
-		return $this->addData(array(
-			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
-			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
-			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(),
-			'eav_entity_attribute' => Mage::getModel('eav/entity_attribute'),
-			'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
-			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-			'product' => $prod,
-			'product_type_configurable_attribute' => Mage::getModel('catalog/product_type_configurable_attribute'),
-			'stock_item' => Mage::getModel('cataloginventory/stock_item'),
-			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
-		));
-	}
-
-	/**
-	 * getting the eav attribute object.
-	 * @param string $attribute, the string attribute code to get the attribute config
-	 * @return Mage_Eav_Model_Config
-	 */
-	protected function _getAttribute($attribute)
-	{
-		return Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-	}
-
-	/**
 	 * getting the attribute selected option.
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
