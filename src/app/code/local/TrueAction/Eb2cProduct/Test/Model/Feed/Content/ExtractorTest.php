@@ -37,6 +37,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Content_ExtractorTest extends EcomD
 	 */
 	public function testExtractContentMasterFeed($xpath)
 	{
+		$this->markTestIncomplete();
 		$this->assertCount(1, $this->_extractor->extract($xpath));
 	}
 }

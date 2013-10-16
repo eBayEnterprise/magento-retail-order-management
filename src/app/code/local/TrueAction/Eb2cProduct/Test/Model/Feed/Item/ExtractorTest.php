@@ -21,6 +21,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Item_ExtractorTest extends EcomDev_
 	 */
 	public function testExtract($xpath)
 	{
+		$this->markTestIncomplete();
 		$this->assertCount(2, Mage::getModel('eb2cproduct/feed_item_extractor')->extract($xpath));
 	}
 }
