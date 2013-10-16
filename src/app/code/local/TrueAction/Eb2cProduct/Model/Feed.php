@@ -54,6 +54,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 	public function processFeeds()
 	{
+		Varien_Profiler::start('processFeeds');
 		$filesProcessed = 0;
 		// fetch all files for all feeds.
 		foreach (array_keys($this->_eventTypes) as $eventType) {
@@ -73,6 +74,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$filesProcessed++;
 		}
 		return $filesProcessed;
+		Varien_Profiler::stop('processFeeds');
 	}
 
 	/**
@@ -80,6 +82,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	public function processFile($xmlFile)
 	{
+		Varien_Profiler::start('processFile');
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
 			$dom->load($xmlFile);
@@ -107,6 +110,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			return;
 		}
 		$this->processDom($dom);
+		Varien_Profiler::stop('processFile');
 	}
 
 	/**
