@@ -18,7 +18,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Typecast
 		$result = array();
 		foreach ($this->_mapping as $key => $xpathString) {
 			$nodeList = $xpath->query($xpathString, $node);
-			$value = null;
 			if ($nodeList->length && $nodeList->item(0)) {
 				$value = $nodeList->item(0)->nodeValue;
 				if ($this->_trimValue) {
