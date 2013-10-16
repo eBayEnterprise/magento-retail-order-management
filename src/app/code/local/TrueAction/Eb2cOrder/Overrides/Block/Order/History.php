@@ -12,7 +12,7 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_History extends Mage_Sales_Bloc
 	 */
 	public function __construct()
 	{
-        $this->setTemplate('eb2corder_frontend/order/history.phtml');
+		$this->setTemplate('eb2corder_frontend/order/history.phtml');
 		// assigned current session customer id to a local variable
 		$customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
 
@@ -27,23 +27,25 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_History extends Mage_Sales_Bloc
 
 		$tempId = 1;
 		foreach ($orderHistorySearchResults as $orderId => $ebcData) {
-			$mgtOrder = Mage::getModel('sales/order')->loadByIncrementId($ebcData->getCustomerOrderId());
+			// get order from magento
+			$mgtOrder = Mage::getModel('sales/order')->loadByIncrementId($orderId);
 			$gmtShippingAddress = $mgtOrder->getShippingAddress();
-			$shipToName = ($gmtShippingAddress)? $gmtShippingAddress->getName() : '';
-
 			$order = Mage::getModel('sales/order');
 			$order->addData(array(
 				'entity_id' => ($mgtOrder->getId())? $mgtOrder->getId() : 'ebc-' . $tempId,
-				'real_order_id' => $ebcData->getCustomerOrderId(),
+				'real_order_id' => $orderId,
 				'created_at' => $ebcData->getOrderDate(),
 				'status' => Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcData->getStatus()),
 				'grand_total' => $ebcData->getOrderTotal(),
 				'exist_in_mage' => ($mgtOrder->getId())? true : false,
 			));
 			$shippingAddress = Mage::getModel('sales/order_address');
-			$shippingAddress->setData(array('name' => $$shipToName, 'address_type' => 'shipping'));
+			$shippingAddress->setData(array(
+				// set ship to name
+				'name' => ($gmtShippingAddress)? $gmtShippingAddress->getName() : '',
+				'address_type' => 'shipping'
+			));
 			$order->addAddress($shippingAddress);
-
 			$newCollection->addItem($order);
 			$tempId++;
 		}
