@@ -11,7 +11,6 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	 */
 	public function testExtraction($scenario, $feedFile)
 	{
-		$this->markTestIncomplete();
 		$vfs = $this->getFixture()->getVfs();
 		$this->replaceCoreConfigRegistry(array(
 			'clientId' => 'MAGTNA',
