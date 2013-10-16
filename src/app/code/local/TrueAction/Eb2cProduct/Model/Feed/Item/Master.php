@@ -15,6 +15,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		);
 		$this->_extractors = array(
 			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extractMap)),
+			Mage::getModel('eb2cproduct/feed_extractor_xpath', array($this->_extendedAttributes)),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extractBool, 'boolean')),
 			Mage::getModel('eb2cproduct/feed_extractor_typecast', array($this->_extendedAttributesFloat, 'float')),
 			Mage::getModel('eb2cproduct/feed_extractor_color', array(
@@ -38,35 +39,30 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	protected $_extractMap = array(
-		// SKU used to identify this item from the client system.
-		'client_item_id' => 'ItemId/ClientItemId/text()',
-		// Alternative identifier provided by the client.
-		'client_alt_item_id' => 'ItemId/ClientAltItemId/text()',
-		// Code assigned to the item by the manufacturer to identify the item.
-		'manufacturer_item_id' => 'ItemId/ManufacturerItemId/text()',
-		// Name of the Drop Ship Supplier fulfilling the item
-		'supplier_name' => 'DropShipSupplierInformation/SupplierName/text()',
-		// Unique code assigned to this supplier.
-		'supplier_number' => 'DropShipSupplierInformation/SupplierNumber/text()',
-		// Id or SKU used by the drop shipper to identify this item.
-		'supplier_part_number' => 'DropShipSupplierInformation/SupplierPartNumber/text()',
+		// Selling/promotional name.
+		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
 		// Allows for control of the web store display.
 		'catalog_class' => 'BaseAttributes/CatalogClass/text()',
+		// Alternative identifier provided by the client.
+		'client_alt_item_id' => 'ItemId/ClientAltItemId/text()',
+		// SKU used to identify this item from the client system.
+		'client_item_id' => 'ItemId/ClientItemId/text()',
+		// Name of the Drop Ship Supplier fulfilling the item
+		'drop_ship_supplier_name' => 'DropShipSupplierInformation/SupplierName/text()',
+		// Unique code assigned to this supplier.
+		'drop_ship_supplier_number' => 'DropShipSupplierInformation/SupplierNumber/text()',
+		// Id or SKU used by the drop shipper to identify this item.
+		'drop_ship_supplier_part_number' => 'DropShipSupplierInformation/SupplierPartNumber/text()',
+		// Indicates the item if fulfilled by a drop shipper. New attribute.
+		'is_drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
 		// Short description in the catalog's base language.
 		'item_description' => 'BaseAttributes/ItemDescription/text()',
 		// Identifies the type of item.
 		'item_type' => 'BaseAttributes/ItemType/text()',
 		// Indicates whether an item is active, inactive or other various states.
 		'item_status' => 'BaseAttributes/ItemStatus/text()',
-		// Tax group the item belongs to.
-		'tax_code' => 'BaseAttributes/TaxCode/text()',
-		// Indicates the item if fulfilled by a drop shipper. New attribute.
-		'drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
-		// Selling/promotional name.
-		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
-		// Shipping weight of the item.
+		// item dimensions structure
 		'item_dimension_shipping_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Mass@unit_of_measure',
-		// item dimension structure
 		'item_dimension_shipping_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/@unit_of_measure',
 		'item_dimension_display_packaging_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Packaging/@unit_of_measure',
 		'item_dimension_display_mass_unit_of_measure' => 'ExtendedAttributes/ItemDimension/Display/Mass/@unit_of_measure',
@@ -75,51 +71,41 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'item_dimension_carton_type' => 'ExtendedAttributes/ItemDimension/CartonType/text()',
 		// Date the item was build by the manufacturer.
 		'manufacturer_date' => 'ExtendedAttributes/ManufacturingDate/text()',
+		// Code assigned to the item by the manufacturer to identify the item.
+		'manufacturer_item_id' => 'ItemId/ManufacturerItemId/text()',
 		// Company name of manufacturer.
 		'manufacturer_name' => 'ExtendedAttributes/Manufacturer/Name/text()',
 		// Unique identifier to denote the item manufacturer.
 		'manufacturer_id' => 'ExtendedAttributes/Manufacturer/ManufacturerId/text()',
+		// Tax group the item belongs to.
+		'tax_code' => 'BaseAttributes/TaxCode/text()',
 	);
 
 	protected $_extractBool = array(
-		// Identifies the item as a service, e.g. clothing monogramming or hemming.
-		'service_indicator' => 'ExtendedAttributes/ServiceIndicator/text()',
 		// If false, customer cannot add a gift message to the item.
 		'allow_gift_message' => 'ExtendedAttributes/AllowGiftMessage/text()',
 		// Not included in display or in emails. Default to false.
 		'is_hidden_product' => 'ExtendedAttributes/IsHiddenProduct/text()',
-	);
-
-	protected $_extendedAttributesArray = array(
-		//////// new kind of extractor for option data
-		// 'color_attributes' => new Varien_Object(
-		// 	array(
-		// 		'color' => $colorData,
-		// 	)
-		// ),
-		// 'size_attributes' => new Varien_Object(
-		// 	array(
-		// 		'size' => $sizeData
-		// 	)
-		// ),
-		// 'brand_description' => $brandDescriptionData,
+		// Identifies the item as a service, e.g. clothing monogramming or hemming.
+		'service_indicator' => 'ExtendedAttributes/ServiceIndicator/text()',
 	);
 
 	protected $_extendedAttributesFloat = array(
+		// item packaging measurements.
+		'item_dimension_carton_mass_weight' => 'ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()',
+		'item_dimension_carton_packaging_length' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()',
+		'item_dimension_carton_packaging_width' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()',
+		'item_dimension_carton_packaging_height' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()',
+		// display measurments
+		'item_dimension_display_mass_unit_of_measure_weight' => 'ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()',
+		'item_dimension_display_packaging_length' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()',
+		'item_dimension_display_packaging_width' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()',
+		'item_dimension_display_packaging_height' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()',
 		// Shipping weight of the item.
 		'item_dimension_shipping_mass_weight' => 'ExtendedAttributes/ItemDimension/Shipping/Mass/Weight/text()',
-		// Unit of measure used for these dimensions.
-		'item_dimension_shipping_packaging_width' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()',
 		'item_dimension_shipping_packaging_length' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Length/text()',
+		'item_dimension_shipping_packaging_width' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Width/text()',
 		'item_dimension_shipping_packaging_height' => 'ExtendedAttributes/ItemDimension/Shipping/Packaging/Height/text()',
-		'item_dimension_display_mass_unit_of_measure_weight' => 'ExtendedAttributes/ItemDimension/Display/Mass/Weight/text()',
-		'item_dimension_display_packaging_width' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Width/text()',
-		'item_dimension_display_packaging_length' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Length/text()',
-		'item_dimension_display_packaging_height' => 'ExtendedAttributes/ItemDimension/Display/Packaging/Height/text()',
-		'item_dimension_carton_mass_weight' => 'ExtendedAttributes/ItemDimension/Carton/Mass/Weight/text()',
-		'item_dimension_carton_packaging_width' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Width/text()',
-		'item_dimension_carton_packaging_length' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Length/text()',
-		'item_dimension_carton_packaging_height' => 'ExtendedAttributes/ItemDimension/Carton/Packaging/Height/text()',
 		// Vendor can ship expedited shipments. When false, should not offer expedited shipping on this item.
 		'may_ship_expedite' => 'ExtendedAttributes/MayShipExpedite/text()',
 		// Indicates if the item may be shipped internationally.
@@ -141,7 +127,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		'ship_window_max_hour' => 'ExtendedAttributes/ShipWindowMaxHour/text()',
 	);
 
-	protected static $_extenddedAttributes = array(
+	protected $_extendedAttributes = array(
+		/*
+		 * Whether the item is a 'companion' (must ship with another product) or can ship alone. ENUM: ('Yes', No', 'Maybe')
+		 *    Yes - may ship alone
+		 *    No - cancelled if not shipped with companion
+		 *    Maybe - other factors decide
+		 */
+		'companion_flag' => 'ExtendedAttributes/CompanionFlag/text()',
+		// Indicates if the item is considered hazardous material.
+		'hazardous_material_code' => 'ExtendedAttributes/HazardousMaterialCode/text()',
 		// Item is able to be back ordered.
 		'back_orderable' => 'ExtendedAttributes/BackOrderable/text()',
 		// Country in which goods were completely derived or manufactured.
@@ -155,6 +150,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		 *		SX - SmartClixx Gift Card
 		 */
 		'gift_card_tender_code' => 'ExtendedAttributes/GiftCardTenderCode/text()',
+		// Indicates if the item's lot assignment is required to be tracked.
+		'lot_tracking_indicator' => 'ExtendedAttributes/LotTrackingIndicator/text()',
+		// LTL freight cost for the item.
+		'ltl_freight_cost' => 'ExtendedAttributes/LTLFreightCost/text()',
 		// Determines behavior on the live system when the item is backordered.
 		'sales_class' => 'ExtendedAttributes/SalesClass/text()',
 		// Type of serial number to be scanned.
@@ -174,19 +173,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		// Encapsulates information related to the individual/organization responsible for the procurement of this item.
 		'buyer_name' => 'ExtendedAttributes/Buyer/Name/text()',
 		'buyer_id' => 'ExtendedAttributes/Buyer/BuyerId/text()',
-		/*
-		 * Whether the item is a 'companion' (must ship with another product) or can ship alone. ENUM: ('Yes', No', 'Maybe')
-		 *    Yes - may ship alone
-		 *    No - cancelled if not shipped with companion
-		 *    Maybe - other factors decide
-		 */
-		'companion_flag' => 'ExtendedAttributes/CompanionFlag/text()',
-		// Indicates if the item is considered hazardous material.
-		'hazardous_material_code' => 'ExtendedAttributes/HazardousMaterialCode/text()',
-		// Indicates if the item's lot assignment is required to be tracked.
-		'lot_tracking_indicator' => 'ExtendedAttributes/LotTrackingIndicator/text()',
-		// LTL freight cost for the item.
-		'ltl_freight_cost' => 'ExtendedAttributes/LTLFreightCost/text()',
 	);
 
 	public function transformData(Varien_Object $dataObject)
