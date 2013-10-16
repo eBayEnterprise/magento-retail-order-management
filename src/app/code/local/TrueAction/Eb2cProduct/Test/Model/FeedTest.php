@@ -4,14 +4,9 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 {
 	const VFS_ROOT = 'var/eb2c';
 
-	/**
-	 * @loadFixture
-	 * @loadExpectation
-	 * @dataProvider dataProvider
-	 */
-	public function testExtraction($scenario, $feedFile)
+	public function setUp()
 	{
-		$vfs = $this->getFixture()->getVfs();
+		parent::setUp();
 		$this->replaceCoreConfigRegistry(array(
 			'clientId' => 'MAGTNA',
 			'catalogId' => '45',
@@ -29,7 +24,16 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 			'contentFeedFilePattern' => '*.xml',
 			'contentFeedEventType' => 'Content',
 		));
+	}
 
+	/**
+	 * @loadFixture
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testExtraction($scenario, $feedFile)
+	{
+		$vfs = $this->getFixture()->getVfs();
 		$filesList = array($vfs->url($feedFile));
 
 		$e = $this->expected($scenario);
@@ -61,20 +65,15 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	}
 
 	/**
+	 * verify a file's feed type is identified properly and the correct models
+	 * are used.
 	 * @dataProvider dataProvider
 	 * @loadFixture
 	 */
 	public function testFeedModelSelection($feedFile, $model)
 	{
-		$this->markTestIncomplete();
-		$this->replaceCoreConfigRegistry(array(
-			'clientId' => 'MAGTNA',
-			'catalogId' => '45',
-			'gsiClientId' => 'MAGTNA',
-		));
 		$vfs = $this->getFixture()->getVfs();
 		$filesList = array($vfs->url($feedFile));
-
 		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item_master', array(
 			'_construct',
 			'getFeedRemotePath',
@@ -118,10 +117,10 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$this->replaceByMock('singleton', 'eb2cproduct/feed_content_master', $feedTypeB);
 
 		$testModel = $this->getModelMock('eb2cproduct/feed', array(
-			'_splitIntoUnits',
+			'_getIterableFor',
 		));
 		$testModel->expects($this->atLeastOnce())
-			->method('_splitIntoUnits')
+			->method('_getIterableFor')
 			->will($this->returnValue(array()));
 		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
 			'fetchFeedsFromRemote',
@@ -147,16 +146,10 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	 * @loadFixture
 	 * @loadExpectation
 	 */
-	public function testItemMasterFeedIntegration()
+	public function testFeedIntegration()
 	{
 		$this->markTestIncomplete();
 		$vfs = $this->getFixture()->getVfs();
-		$this->replaceCoreConfigRegistry(array(
-			'itemFeedLocalPath' => 'var/eb2c/itemmaster',
-			'itemFeedRemotePath' => '/',
-			'itemFeedEventType' => 'ItemMaster',
-			'itemFeedFilePattern' => '*.xml',
-		));
 		$coreFeed = $this->getModelMock('eb2ccore/feed');
 		$coreFeed->expects($this->any())
 			->method('fetchFeedsFromRemote')

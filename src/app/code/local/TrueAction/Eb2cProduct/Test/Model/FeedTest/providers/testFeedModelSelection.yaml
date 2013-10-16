@@ -4,6 +4,6 @@
 -
   - var/eb2c/itemmaster/feed.xml
   - TrueAction_Eb2cProduct_Model_Feed_Item_Master
-# -
-#   - var/eb2c/pricing/feed.xml
-#   - TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
+-
+  - var/eb2c/pricing/feed.xml
+  - TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
