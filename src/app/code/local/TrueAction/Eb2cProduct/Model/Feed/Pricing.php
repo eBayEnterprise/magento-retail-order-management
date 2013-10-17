@@ -8,7 +8,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Pricing
 	 */
 	protected $_extractMap = array(
 		'client_item_id' => 'ClientItemId/text()',
-		'ebc_pricing_feed_event_number' => 'Event[last()]/EventNumber/text()',
+		'ebc_pricing_event_number' => 'Event[last()]/EventNumber/text()',
 		'catalog_id' => './@catalog_id',
 		'gsi_client_id' => './@gsi_client_id',
 		'gsi_store_id' => './@gsi_store_id',

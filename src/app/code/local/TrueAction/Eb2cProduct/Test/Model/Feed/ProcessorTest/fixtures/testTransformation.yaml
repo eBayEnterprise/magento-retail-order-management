@@ -1,6 +1,6 @@
 pricing1:
   client_item_id: sku1
-  ebc_pricing_feed_event_number: '19780815'
+  ebc_pricing_event_number: '19780815'
   gsi_store_id: MAGT1
   gsi_client_id: MAGTNA
   catalog_id: '45'
