@@ -21,6 +21,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	private $_missingAttributes = array();
 
+	/**
+	 * list of transformations to run on the data.
+	 * @var array
+	 */
+	protected $_updateTransformations = array(
+		'_preparePricingEventData',
+	);
+
 	public function processUpdates($dataObjectList)
 	{
 		foreach ($dataObjectList as $dataObject) {
@@ -44,9 +52,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 	}
 
-	protected $_updateTransformations = array(
-		'_preparePricingEventData',
-	);
+	/**
+	 * @return true if the save size limit has been met
+	 */
+	protected function _isAtLimit()
+	{
+
+	}
 
 	public function transformBasicAttributes(Varien_Object $dataObject)
 	{
