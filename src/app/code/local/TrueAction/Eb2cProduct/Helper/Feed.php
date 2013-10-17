@@ -32,11 +32,14 @@ class TrueAction_Eb2cProduct_Helper_Feed
 			);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
-				sprintf('[ %s ] The following error has occurred while creating dummy product for iShip Feed (%d)',	__CLASS__, $e->getMessage()),
+				sprintf(
+					'[ %s ] Failed to apply dummy data to product: %s',
+					__CLASS__,
+					$e->getMessage()
+				),
 				Zend_Log::ERR
 			);
 		}
-
 		return $product;
 	}
 
