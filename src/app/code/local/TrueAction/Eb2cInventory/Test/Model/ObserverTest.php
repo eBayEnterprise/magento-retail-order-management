@@ -328,7 +328,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->method('getInventoryDetails')
 			->will($this->returnValue('<foo></foo>'));
 		$detailsMock->expects($this->any())
-			->method('processInventoryDetails')
+			->method('parseResponse')
 			->will($this->returnValue(array()));
 		$detailsMock->expects($this->any())
 			->method('processInventoryDetails')
@@ -372,7 +372,9 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->will($this->returnValue('19726')
 			);
 
-		$procuctMock = $this->getModelMock('catalog/product', array());
+		$productMock = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->getMock();
 
 		$itemMock = $this->getModelMock(
 			'sales/quote_item',
