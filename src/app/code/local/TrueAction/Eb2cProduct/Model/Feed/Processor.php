@@ -115,93 +115,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
-	 * Process downloaded feeds from eb2c.
-	 * @return self
-	 */
-	public function processFeeds()
-	{
-		$coreHelper = Mage::helper('eb2ccore');
-		$coreHelperFeed = Mage::helper('eb2ccore/feed');
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$feedModel = $this->getFeedModel();
-
-		$feedModel->fetchFeedsFromRemote(
-			$cfg->itemFeedRemoteReceivedPath,
-			$cfg->itemFeedFilePattern
-		);
-		$doc = $coreHelper->getNewDomDocument();
-		$feeds = $feedModel->lsInboundDir();
-		Mage::log(sprintf('[ %s ] Found %d files to import', __CLASS__, count($feeds)), Zend_Log::DEBUG);
-		foreach ($feeds as $feed) {
-			$doc->load($feed);
-			Mage::log(sprintf('[ %s ] Loaded xml file %s', __CLASS__, $feed), Zend_Log::DEBUG);
-			if ($coreHelperFeed->validateHeader($doc, $cfg->itemFeedEventType)) {
-				$this->_itemMasterActions($doc); // Process feed data
-			}
-			if (file_exists($feed)) {
-				$feedModel->mvToArchiveDir($feed);
-			}
-		}
-		Mage::log(sprintf('[ %s ] Complete', __CLASS__), Zend_Log::DEBUG);
-		Mage::helper('eb2ccore')->clean(); // reindex
-		return $this;
-	}
-
-	/**
-	 * determine which action to take for item master (add, update, delete.
-	 * @param DOMDocument $doc, the Dom document with the loaded feed data
-	 * @return self
-	 */
-	protected function _itemMasterActions(DOMDocument $doc)
-	{
-		$prdHlpr = Mage::helper('eb2cproduct');
-		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$cfgCatId = $cfg->catalogId;
-		$cfgClientId = $cfg->clientId;
-		$items = $this->getExtractor()->extract(new DOMXPath($doc));
-		$numItems = count($items);
-
-		if (!$numItems) {
-			Mage::log(sprintf('[ %s ] Found no items in file to import.', __CLASS__), Zend_Log::WARN);
-			return $this;
-		}
-		foreach ($items as $i => $item) {
-			Mage::log(sprintf('[ %s ] Attempting to import %d of %d items.', __CLASS__, $i, $numItems), Zend_Log::DEBUG);
-			$catId = $item->getCatalogId();
-			$clientId = $item->getGsiClientId();
-			$prodType = $item->getProductType();
-			$opType = trim(strtoupper($item->getOperationType()));
-			if ($catId !== $cfgCatId) {
-				Mage::log(
-					sprintf("[ %s ] Item catalog_id '%s' doesn't match configured catalog_id '%s'.", __CLASS__, $catId, $cfgCatId),
-					Zend_Log::WARN
-				);
-			} elseif ($clientId !== $cfgClientId) {
-				Mage::log(
-					sprintf("[ %s ] Item client_id '%s' doesn't match configured client_id '%s'.", __CLASS__, $clientId, $cfgClientId),
-					Zend_Log::WARN
-				);
-			} elseif (!$prdHlpr->hasProdType($prodType)) {
-				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
-			} else {
-				switch ($opType) {
-					case self::OPERATION_TYPE_ADD:
-					case self::OPERATION_TYPE_UPDATE:
-						$this->_synchProduct($item);
-						break;
-					case self::OPERATION_TYPE_DELETE:
-						$this->_deleteItem($item);
-						break;
-					default:
-						Mage::log(sprintf('[ %s ] Unrecognized operation type "%s"', __CLASS__, $opType), Zend_Log::WARN);
-						break;
-				}
-			}
-		}
-		return $this;
-	}
-
-	/**
 	 * add/update magento product with eb2c data
 	 * @param Varien_Object $item, the object with data needed to add/update a magento product
 	 * @return self
@@ -262,38 +175,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			}
 		}
 		return $colorOptionId;
-	}
-
-	/**
-	 * Create dummy products and return new dummy product object
-	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
-	 * @return Mage_Catalog_Model_Product
-	 */
-	protected function _getDummyProduct(Varien_Object $item)
-	{
-		$prd = $this->getProduct()->load(0);
-		try {
-			$prd
-				->unsId()
-				->addData(array(
-					'type_id' => 'simple', // default product type
-					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
-					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name' => 'temporary-name - ' . uniqid(),
-					'status' => 0, // default - disabled
-					'sku' => $item->getItemId()->getClientItemId(),
-					'color' => $this->_getProductColorOptionId($item),
-					'website_ids' => $this->getWebsiteIds(),
-					'store_ids' => array($this->getDefaultStoreId()),
-					'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
-					'tax_class_id' => 0,
-					'url_key' => $item->getItemId()->getClientItemId(),
-				))
-				->save();
-		} catch (Mage_Core_Exception $e) {
-			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
-		}
-		return $prd;
 	}
 
 	/**
