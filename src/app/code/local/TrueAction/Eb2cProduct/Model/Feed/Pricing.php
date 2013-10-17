@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
+class TrueAction_Eb2cProduct_Model_Feed_Pricing
 	extends TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
 	/**

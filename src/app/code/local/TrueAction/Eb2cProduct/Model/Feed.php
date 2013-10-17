@@ -10,18 +10,18 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	const EVENT_TYPE_XPATH = 'MessageHeader/EventType/text()';
 
-	protected $_eventTypes = array(
-		'Price' => 'feed_item_pricing',
-		'ItemMaster' => 'feed_item_master',
-		'Content' => 'feed_content_master',
-		'iShip' => 'feed_iship',
-	);
-
 	/**
 	 * xpath object used to query the feed document
 	 * @var DOMXPath
 	 */
 	private $_xpath;
+
+	private $_eventTypes = array(
+		'Price' => 'feed_pricing',
+		'ItemMaster' => 'feed_item',
+		'Content' => 'feed_content',
+		'iShip' => 'feed_iship',
+	);
 
 	/**
 	 * extracts the event type from the feed file.

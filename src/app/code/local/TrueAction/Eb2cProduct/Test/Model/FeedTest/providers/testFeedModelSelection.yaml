@@ -1,12 +1,12 @@
 -
   - var/eb2c/contentmaster/feed.xml
-  - TrueAction_Eb2cProduct_Model_Feed_Content_Master
+  - TrueAction_Eb2cProduct_Model_Feed_Content
 -
   - var/eb2c/itemmaster/feed.xml
-  - TrueAction_Eb2cProduct_Model_Feed_Item_Master
+  - TrueAction_Eb2cProduct_Model_Feed_Item
 -
   - var/eb2c/pricing/feed.xml
-  - TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
+  - TrueAction_Eb2cProduct_Model_Feed_Pricing
 -
   - var/eb2c/iship/feed.xml
   - TrueAction_Eb2cProduct_Model_Feed_Iship

@@ -4,7 +4,7 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cProduct_Model_Feed_Content_Master
+class TrueAction_Eb2cProduct_Model_Feed_Content
 	extends TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
 	public function __construct()

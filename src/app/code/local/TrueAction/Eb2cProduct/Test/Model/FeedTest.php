@@ -40,7 +40,7 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	{
 		$vfs = $this->getFixture()->getVfs();
 		$filesList = array($vfs->url($feedFile));
-		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item_master', array(
+		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item', array(
 			'_construct',
 			'getFeedRemotePath',
 			'getFeedLocalPath',
@@ -59,9 +59,9 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$feedTypeA->expects($this->any())
 			->method('getFeedEventType')
 			->will($this->returnValue('ItemMaster'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_item_master', $feedTypeA);
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_item', $feedTypeA);
 
-		$feedTypeB = $this->getModelMock('eb2cproduct/feed_content_master', array(
+		$feedTypeB = $this->getModelMock('eb2cproduct/feed_content', array(
 			'_construct',
 			'getFeedRemotePath',
 			'getFeedLocalPath',
@@ -80,7 +80,7 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$feedTypeB->expects($this->any())
 			->method('getFeedEventType')
 			->will($this->returnValue('Content'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_content_master', $feedTypeB);
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
 
 		$testModel = $this->getModelMock('eb2cproduct/feed', array(
 			'_getIterableFor',

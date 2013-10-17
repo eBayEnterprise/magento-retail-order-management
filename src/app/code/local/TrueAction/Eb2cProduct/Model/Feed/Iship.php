@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cProduct_Model_Feed_Iship
-	extends TrueAction_Eb2cProduct_Model_Feed_Item_Master
+	extends TrueAction_Eb2cProduct_Model_Feed_Item
 {
 	public function __construct()
 	{
