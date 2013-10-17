@@ -259,7 +259,37 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$response = '<What>Ever</What>';
 
 		$request = new DOMDocument();
-		$request->loadXML('<AllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' . self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></AllocationRequestMessage>');
+		$request->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
+			'<AllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' .
+			self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+			<OrderItem itemId="item0" lineId="0">
+			<Quantity>1</Quantity>
+			<ShipmentDetails>
+			<ShippingMethod>USPSStandard</ShippingMethod>
+			<ShipToAddress>
+			<Line1>One Bagshot Row</Line1>
+			<City>Bag End</City>
+			<MainDivision>PA</MainDivision>
+			<CountryCode>US</CountryCode>
+			<PostalCode>19123</PostalCode>
+			</ShipToAddress>
+			</ShipmentDetails>
+			</OrderItem>
+			<OrderItem itemId="item1" lineId="1">
+			<Quantity>2</Quantity>
+			<ShipmentDetails>
+			<ShippingMethod>USPSStandard</ShippingMethod>
+			<ShipToAddress>
+			<Line1>One Bagshot Row</Line1>
+			<City>Bag End</City>
+			<MainDivision>PA</MainDivision>
+			<CountryCode>US</CountryCode>
+			<PostalCode>19123</PostalCode>
+			</ShipToAddress>
+			</ShipmentDetails>
+			</OrderItem>
+			</AllocationRequestMessage>'
+		)));
 
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
@@ -273,10 +303,10 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$api->expects($this->once())
 			->method('request')
 			->with($this->callback(function ($arg) use ($request) {
-				// compare the canonicalized XML of the TrueAction_Dom_Document
-				// passed to the request method to the expected XML for this quote
-				return $request->C14N() === $arg->C14N();
-			}))
+					// compare the canonicalized XML of the TrueAction_Dom_Document
+					// passed to the request method to the expected XML for this quote
+					return $request->C14N() === $arg->C14N();
+				}))
 			->will($this->returnValue($response));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
 
@@ -500,7 +530,12 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$response = '<What>Ever</What>';
 
 		$request = new DOMDocument();
-		$request->loadXML('<RollbackAllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' . self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0"/>');
+		$request->loadXML(
+			'<RollbackAllocationRequestMessage requestId="' .
+			self::REQUEST_ID . '" reservationId="' .
+			self::RESERVATION_ID .
+			'" xmlns="http://api.gsicommerce.com/schema/checkout/1.0"/>'
+		);
 
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
@@ -514,10 +549,10 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$api->expects($this->once())
 			->method('request')
 			->with($this->callback(function ($arg) use ($request) {
-				// compare the canonicalized XML of the TrueAction_Dom_Document
-				// passed to the request method to the expected XML for this quote
-				return $request->C14N() === $arg->C14N();
-			}))
+					// compare the canonicalized XML of the TrueAction_Dom_Document
+					// passed to the request method to the expected XML for this quote
+					return $request->C14N() === $arg->C14N();
+				}))
 			->will($this->returnValue($response));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
 
@@ -637,11 +672,19 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$this->assertTrue($this->_allocation->hasAllocation($quote));
 	}
 
-	/**
-	 * @todo Check the configured expiration period and don't use hard-coded dates in this provider.
-	 */
 	public function providerIsExpired()
 	{
+		$elapseTime = (int) Mage::getStoreConfig('eb2c/inventory/allocation_expired', null) + 15; // configure elapse time plus 15 minute more
+		$currentDate = new DateTime(gmdate('c'));
+		$intervalFormat = 'PT' . $elapseTime . 'M';
+		$interval = new DateInterval($intervalFormat);
+		$passDate = new DateTime($currentDate->format('Y-m-d H:i:s'));
+		$passDate->sub($interval);
+		$dateInPass = $passDate->format('Y-m-d H:i:s') . ' +0';
+		$futureDate = new DateTime($currentDate->format('Y-m-d H:i:s'));
+		$futureDate->add($interval);
+		$dateInFuture = $futureDate->format('Y-m-d H:i:s') . ' +0';
+
 		$stockItemMock = $this->getModelMock('cataloginventory/stock_item', array('getManageStock'));
 		$stockItemMock->expects($this->any())
 			->method('getManageStock')
@@ -657,12 +700,10 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			'is_virtual' => false,
 			'product' => $productMock,
 		));
-		$notExpiredItem
-			->expects($this->once())
+		$notExpiredItem->expects($this->once())
 			->method('getEb2cReservedAt')
-			->will($this->returnValue(self::DATE_FUTURE));
-		$notExpiredItem
-			->expects($this->once())
+			->will($this->returnValue($dateInFuture));
+		$notExpiredItem->expects($this->once())
 			->method('hasEb2cReservedAt')
 			->will($this->returnValue(true));
 
@@ -671,12 +712,11 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			'is_virtual' => false,
 			'product' => $productMock,
 		));
-		$expiredItem
-			->expects($this->once())
+
+		$expiredItem->expects($this->once())
 			->method('getEb2cReservedAt')
-			->will($this->returnValue(self::DATE_PAST));
-		$expiredItem
-			->expects($this->once())
+			->will($this->returnValue($dateInPass));
+		$expiredItem->expects($this->once())
 			->method('hasEb2cReservedAt')
 			->will($this->returnValue(true));
 
