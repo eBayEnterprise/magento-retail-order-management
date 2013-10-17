@@ -16,7 +16,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Unitvalidator
 	{
 		$result = parent::extract($xpath, $node);
 		if (array_diff_assoc($result, $this->_answer)) {
-			$resultStr = print_r($result, true);
+			$resultStr = json_encode($result);
 			Mage::log(
 				sprintf("[ %s ] The unit failed validation: '%s'", __CLASS__, $resultStr),
 				Zend_Log::WARN
