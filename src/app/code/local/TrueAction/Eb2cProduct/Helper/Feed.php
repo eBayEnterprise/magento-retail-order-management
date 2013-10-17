@@ -44,6 +44,20 @@ class TrueAction_Eb2cProduct_Helper_Feed
 	}
 
 	/**
+	 * load product by sku
+	 * @param string $sku, the product sku to filter the product table
+	 * @return Mage_Catalog_Model_Product
+	 */
+	public function loadProductBySku($sku)
+	{
+		$products = Mage::getResourceModel('catalog/product_collection');
+		$products->addAttributeToSelect('*');
+		$products->getSelect()
+			->where('e.sku = ?', $sku);
+		return $products->getFirstItem();
+	}
+
+	/**
 	 * @return array list containing the integer id for the root-category of the default store
 	 * @codeCoverageIgnore
 	 * No coverage needed since this is almost all external code.
