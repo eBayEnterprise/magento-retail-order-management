@@ -7,7 +7,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
 	implements TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
 {
 	protected static $_defaultOperation = array(
-		'operation' => TrueAction_Eb2cProduct_Model_Feed_Queue_Interface::OPERATION_TYPE_ADD
+		'operation' => TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_ADD
 	);
 
 	/**
@@ -19,7 +19,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Operationtype
 	{
 		$result = $this->_mapping ? parent::extract($xpath, $node) : self::$_defaultOperation;
 		if (!isset($result['operation'])) {
-			throw new Mage_Core_Exception('[ '. __CLASS__ . '] unable to extract operation type.');
+			throw new Mage_Core_Exception('[ ' . __CLASS__ . '] unable to extract operation type.');
 		}
 		$result['operation'] = strtoupper($result['operation']);
 		return $result;
