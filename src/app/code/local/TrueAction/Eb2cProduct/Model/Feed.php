@@ -14,7 +14,13 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 * xpath object used to query the feed document
 	 * @var DOMXPath
 	 */
-	private $_xpath;
+	protected $_xpath;
+
+	/**
+	 * model to use to handle queueing of data
+	 * @var TrueAction_Eb2cProduct_Model_Feed_Queue_Interface
+	 */
+	protected $_queue;
 
 	private $_eventTypes = array(
 		'Price' => 'feed_pricing',
@@ -27,31 +33,11 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 * extracts the event type from the feed file.
 	 * @var TrueAction_Eb2cProduct_Model_Feed_Extractor_Interface
 	 */
-	protected $_eventTypeExtractor;
+	private $_eventTypeExtractor;
 
-	/**
-	 * list of all attribute codes within the set identified by $_attributeCodesSetId
-	 * @var array
-	 */
-	private $_attributeCodes = null;
-
-	/**
-	 * attribute set id of the currently loaded attribute codes
-	 * @var int
-	 */
-	private $_attributeCodesSetId = null;
-
-	/**
-	 * list of attribute codes that are not setup on the system but were in the feed.
-	 * @var array
-	 */
-	private $_missingAttributes = array();
-
-	protected $_feedFiles = array();
+	private $_feedFiles = array();
 
 	protected $_eventTypeModel = null;
-
-	protected $_queue = null;
 
 	public function processFeeds()
 	{
