@@ -2,6 +2,21 @@
 class TrueAction_Eb2cProduct_Helper_Feed
 {
 	/**
+	 * get a model loaded with the data for $sku if it exists;
+	 * otherwise, get a new _UNSAVED_ model populated with dummy data.
+	 * @param  string $sku
+	 * @return Mage_Catalog_Model_Product
+	 */
+	public function prepareProductModel($sku)
+	{
+		$product = $this->loadProductBySku($sku);
+		if (!$product->getId()) {
+			$this->applyDummyData($product);
+		}
+		return $product;
+	}
+
+	/**
 	 * fill a product model with dummy data so that it can be saved and edited later
 	 * @see http://www.magentocommerce.com/boards/viewthread/289906/
 	 * @param  Mage_Catalog_Model_Product $product product model to be autofilled
