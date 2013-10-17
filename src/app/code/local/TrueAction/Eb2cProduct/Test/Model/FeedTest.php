@@ -140,8 +140,8 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		));
 		$checkData = function($dataObj) use ($e) {
 			PHPUnit_Framework_Assert::assertEquals(
-				$dataObj->getData(),
-				$e->getData()
+				$e->getData(),
+				$dataObj->getData()
 			);
 		};
 		$queue->expects($this->atLeastOnce())
