@@ -138,25 +138,21 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
 			'add',
 		));
-		$queue->expects($this->atLeastOnce())
-			->method('add')
-			->with(
-				$this->isInstanceOf('Varien_Object'),
-				$this->identicalTo('ADD')
-			);
-
 		$checkData = function($dataObj) use ($e) {
 			PHPUnit_Framework_Assert::assertEquals(
 				$dataObj->getData(),
 				$e->getData()
 			);
 		};
-
-		$testModel = $this->getModelMock('eb2cproduct/feed', array('_transformData'));
-		$testModel->expects($this->atLeastOnce())
-			->method('_transformData')
-			->with($this->isInstanceOf('Varien_Object'))
+		$queue->expects($this->atLeastOnce())
+			->method('add')
+			->with(
+				$this->isInstanceOf('Varien_Object'),
+				$this->identicalTo('ADD')
+			)
 			->will($this->returnCallback($checkData));
+
+		$testModel = Mage::getModel('eb2cproduct/feed');
 		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
 
 		$testModel->processFile($filesList[0]);

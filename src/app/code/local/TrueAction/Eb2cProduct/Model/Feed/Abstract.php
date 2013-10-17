@@ -133,16 +133,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	}
 
 	/**
-	 * perform transformations on the extracted data
-	 * @param Varien_Object $dataObject object containing the data to be transformed
-	 * @return self
-	 */
-	public function transformData(Varien_Object $dataObject)
-	{
-		return $this;
-	}
-
-	/**
 	 * setup the some internals
 	 */
 	public function __construct()

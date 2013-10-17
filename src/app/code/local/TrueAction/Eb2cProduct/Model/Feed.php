@@ -129,7 +129,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 				->getValue($this->_xpath, $unit);
 			if ($isValid) {
 				$data = $this->_extractData($unit);
-				$this->_transformData($data);
 				$operationType = $this->_eventTypeModel->getOperationExtractor()
 					->getValue($this->_xpath, $unit);
 				$this->_queue->add($data, $operationType);
@@ -181,18 +180,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$result->addData($data);
 		}
 		return $result;
-	}
-
-	/**
-	 * perform post extraction transformations on the data before applying it to
-	 * a product.
-	 * @param  Varien_Object $data data to modify
-	 * @return self
-	 */
-	protected function _transformData($data)
-	{
-		$this->_eventTypeModel->transformData($data);
-		return $this;
 	}
 
 	/**
