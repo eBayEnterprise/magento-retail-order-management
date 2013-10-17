@@ -1,23 +1,43 @@
 <?php
 class TrueAction_Eb2cProduct_Model_Feed_Queue
-	implements TrueAction_Eb2cProduct_Model_Feed_Queue_Interface
+	implements TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface
 {
+	/**
+	 * model that processes the feeds
+	 * @var TrueAction_Eb2cProduct_Model_Feed_Processor
+	 */
+	private $_processor;
+
+	protected $_upsertList;
+
+	protected $_deletionList;
+
+	protected $_maxEntries = 100;
+
+	protected $_maxTotalEntries = 150;
+
+	public function __construct()
+	{
+		$this->_upsertList = new ArrayObject();
+		$this->_deletionList = new ArrayObject();
+		$this->_processor = Mage::getModel('eb2cproduct/feed_processor');
+		$config = Mage::helper('eb2cproduct')->getConfigModel();
+	}
 
 	/**
 	 * add data to the processing queue
 	 * @param Varien_Object $data   data to be processed
 	 * @param string $operationType the operation to be performed with the unit; see interface for values.
-	 * @param callback $proc        callable that will be used with $data as its argument.
 	 */
-	public function add($data, $operationType, $proc=null)
+	public function add($data, $operationType)
 	{
 		switch(strtoupper($operationType)) {
 			case self::OPERATION_TYPE_ADD:
 			case self::OPERATION_TYPE_UPDATE:
-				$this->addUpsert($data, $proc);
+				$this->_upsertList->append($data);
 				break;
 			case self::OPERATION_TYPE_REMOVE:
-				$this->addDelete($data, $proc);
+				$this->_deletionList->append($data);
 				break;
 			default:
 				Mage::throwException(sprintf('invalid operation type [%s]', $operationType));
@@ -25,41 +45,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Queue
 				break;
 		}
 		//@codeCoverageIgnoreEnd
+		if ($this->_isAtEntryLimit()) {
+			$this->process();
+		}
 		return $this;
 	}
 
 	/**
-	 * add data for a delete operation
-	 * @param  mixed $data data to be processed
-	 * @param  mixed $proc callable/callback to run on the data.
-	 */
-	public function addUpsert($data, $proc)
-	{
-	}
-
-	/**
-	 * add data for a delete operation
-	 * @param array $data product data used to perform the delete
-	 * @param  mixed $proc callable/callback to run on the data.
-	 */
-	public function addDelete($data, $proc)
-	{
-	}
-
-	/**
-	 * add a list of files to be processed and the process to handle all files.
-	 * @param  mixed $data data to be processed
-	 * @param  mixed $proc callable/callback to run on the data.
-	 */
-	public function addFiles($files, $proc)
-	{
-	}
-
-	/**
-	 * processes each item
-	 * @return [type] [description]
+	 * process the items in the queue
 	 */
 	public function process()
 	{
+		$this->_processor->processDeletions($this->_deletionList->getIterator());
+		$this->_processor->processUpdates($this->_upsertList->getIterator());
+	}
+
+	/**
+	 * @return boolean true if the amount of entries queued meets a limit
+	 */
+	protected function _isAtEntryLimit()
+	{
+		return $this->_deletionList->count() >= $this->_maxEntries ||
+			$this->_upsertList->count() >= $this->_maxEntries ||
+			($this->_deletionList->count() + $this->_upsertList->count()) >= $this->_maxTotalEntries;
 	}
 }
