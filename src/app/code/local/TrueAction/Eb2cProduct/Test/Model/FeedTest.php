@@ -109,6 +109,22 @@ class TrueAction_Eb2cProduct_Test_FeedTest
 	}
 
 	/**
+	 * verify a unit that fails initial validation will not be extracted.
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 */
+	public function testUnitValidationFail($feedFile)
+	{
+		$vfs = $this->getFixture()->getVfs();
+		$filesList = array($vfs->url($feedFile));
+
+		$testModel = $this->getModelMock('eb2cproduct/feed', array('_extractData'));
+		$testModel->expects($this->never())
+			->method('_extractData');
+		$testModel->processFile($filesList[0]);
+	}
+
+	/**
 	 * @loadFixture
 	 * @loadExpectation
 	 * @dataProvider dataProvider

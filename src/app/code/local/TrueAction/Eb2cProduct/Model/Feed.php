@@ -125,11 +125,15 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$units = $this->_getIterableFor($doc);
 		foreach ($units as $unit) {
 			$operation = $this->getOperationType($unit);
-			$data = $this->_extractData($unit);
-			$this->_transformData($data);
-			$operationType = $this->_eventTypeModel->getOperationExtractor()
+			$isValid = $this->_eventTypeModel->getUnitValidationExtractor()
 				->getValue($this->_xpath, $unit);
-			$this->_queue->add($data, $operationType);
+			if ($isValid) {
+				$data = $this->_extractData($unit);
+				$this->_transformData($data);
+				$operationType = $this->_eventTypeModel->getOperationExtractor()
+					->getValue($this->_xpath, $unit);
+				$this->_queue->add($data, $operationType);
+			}
 		}
 		Varien_Profiler::stop('processDom');
 		return $this;

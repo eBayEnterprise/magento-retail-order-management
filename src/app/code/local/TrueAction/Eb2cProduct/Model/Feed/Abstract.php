@@ -1,4 +1,7 @@
 <?php
+/**
+ *
+ */
 class TrueAction_Eb2cProduct_Model_Feed_Abstract
 {
 	/**
@@ -50,6 +53,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	protected $_feedEventType;
 
 	/**
+	 * validates a unit
+	 */
+	protected $_unitValidationExtractor;
+
+	/**
 	 * @return @see _baseXpath
 	 */
 	public function getBaseXpath()
@@ -98,6 +106,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	}
 
 	/**
+	 * get an extractor that checks if the unit is valid or not
+	 * @return
+	 */
+	public function getUnitValidationExtractor()
+	{
+		return $this->_unitValidationExtractor;
+	}
+
+	/**
 	 * get the extractor model used to get the operation type from the unit.
 	 * @return TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
 	 */
@@ -133,6 +150,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 		$this->_config = Mage::helper('eb2cproduct')->getConfigModel();
 		$this->_operationExtractor = Mage::getModel(
 			'eb2cproduct/feed_extractor_specialized_operationtype'
+		);
+		$this->_unitValidationExtractor = Mage::getModel(
+			'eb2cproduct/feed_extractor_specialized_unitvalidator',
+			array(
+				array(
+					'catalog_id' => './@catalog_id',
+					'gsi_client_id' => './@gsi_client_id',
+				),
+				array(
+					'catalog_id' => $this->_config->catalogId,
+					'gsi_client_id' => $this->_config->clientId,
+				),
+			)
 		);
 	}
 }
