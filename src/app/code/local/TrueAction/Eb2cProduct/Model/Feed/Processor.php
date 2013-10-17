@@ -24,27 +24,48 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	public function processUpdates($dataObjectList)
 	{
 		foreach ($dataObjectList as $dataObject) {
+			$this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
+			if ($this->_isAtLimit()) {
+				$this->$save();
+			}
 		}
 	}
 
 	public function processDeletions($dataObjectList)
 	{
-		foreach ($dataObjectList as $dataObject) {
-			$this->_deleteItem($dataObject);
+		$this->_deletions->append($dataObjectList);
+		if ($this->_isAtLimit()) {
+			$this->$save();
 		}
 	}
 
-	public function transformData(Varien_Object $dataObject)
+	public function save()
+	{
+	}
+
+	protected $_updateTransformations = array(
+		'_preparePricingEventData',
+	);
+
+	public function transformBasicAttributes(Varien_Object $dataObject)
 	{
 		$dataObject->addData(array(
 			'status' => $dataObject->getStatus() === 'ACTIVE' ? 1 : 0,
 		));
+		$this->_prepareProductLinkData($dataObject);
+	}
+
+	protected function _transformData(Varien_Object $dataObject)
+	{
+		foreach ($this->_updateTransformations as $method) {
+			$this->$method($dataObject);
+		}
 	}
 
 	/**
 	 */
-	public function transformPricingEventData(Varien_Object $dataObject)
+	protected function _preparePricingEventData(Varien_Object $dataObject)
 	{
 		if ($dataObject->hasEbcPricingEventNumber()) {
 			$priceIsVatInclusive = $dataObject->getPriceVatInclusive();
@@ -58,7 +79,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				'msrp' => $dataObject->getMsrp(),
 				'price_is_vat_inclusive' => $priceIsVatInclusive,
 			);
-			if ($dataObject->getEventNumber()) {
+			if ($dataObject->getEbcPricingEventNumber()) {
 				$data['price'] = $dataObject->getAlternatePrice();
 				$data['special_price'] = $dataObject->getPrice();
 				$data['special_from_date'] = $dataObject->getStartDate();

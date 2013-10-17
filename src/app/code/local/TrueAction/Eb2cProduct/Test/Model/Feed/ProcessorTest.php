@@ -18,7 +18,7 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 				$dataObj->getData()
 			);
 		};
-		$testModel = $this->getModelMock('eb2cproduct/feed_processor', array('_synchProduct'));
+		$testModel = $this->getModelMock('eb2cproduct/feed_processor', array('_synchProduct', '_isAtLimit'));
 		$testModel->expects($this->atLeastOnce())
 			->method('_synchProduct')
 			->will($this->returnCallback($checkData));
