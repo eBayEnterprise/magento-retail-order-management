@@ -278,7 +278,18 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$quote->getId() &&
 			$quote->getBillingAddress() &&
 			$quote->getBillingAddress()->getId() &&
+			$this->_hasValidBillingAddress($quote->getBillingAddress()) &&
 			$quote->getItemsCount();
+	}
+
+	/**
+	 * return true if the address has enough information to be useful.
+	 * @param Mage_Sales_Model_Quote_Address $address
+	 * @return boolean
+	 */
+	protected function _hasValidBillingAddress(Mage_Sales_Model_Quote_Address $address)
+	{
+		return (trim($address->getLastName()) !== '') && (trim($address->getFirstName()) !== '');
 	}
 
 	/**
