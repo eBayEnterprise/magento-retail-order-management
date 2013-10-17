@@ -43,6 +43,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
+	 */
+	public function transformPricingEventData(Varien_Object $dataObject)
+	{
+		if ($dataObject->hasEbcPricingEventNumber()) {
+			$priceIsVatInclusive = $dataObject->getPriceVatInclusive();
+			$priceIsVatInclusive = strtoupper($priceIsVatInclusive) === 'TRUE' ? true : false;
+			$data = array(
+				'sku' => $dataObject->getClientItemId(),
+				'price' => $dataObject->getPrice(),
+				'special_price' => null,
+				'special_from_date' => null,
+				'special_to_date' => null,
+				'msrp' => $dataObject->getMsrp(),
+				'price_is_vat_inclusive' => $priceIsVatInclusive,
+			);
+			if ($dataObject->getEventNumber()) {
+				$data['price'] = $dataObject->getAlternatePrice();
+				$data['special_price'] = $dataObject->getPrice();
+				$data['special_from_date'] = $dataObject->getStartDate();
+				$data['special_to_date'] = $dataObject->getEndDate();
+			}
+			$dataObject->setData($data);
+		}
+		return $this;
+	}
+
+	/**
 	 * getting the attribute selected option.
 	 * @param string $attribute, the string attribute code to get the attribute config
 	 * @param string $option, the string attribute option label to get the attribute
