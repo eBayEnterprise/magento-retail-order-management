@@ -13,10 +13,13 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 	{
 		$e = $this->expected($scenario);
 		$checkData = function($dataObj) use ($e) {
-			PHPUnit_Framework_Assert::assertEquals(
-				$e->getData(),
-				$dataObj->getData()
-			);
+			foreach ($e->getData() as $key => $value) {
+				PHPUnit_Framework_Assert::assertSame(
+					$value,
+					$dataObj->getData($key),
+					"[$key]"
+				);
+			}
 		};
 		$testModel = $this->getModelMock('eb2cproduct/feed_processor', array('_synchProduct', '_isAtLimit'));
 		$testModel->expects($this->atLeastOnce())
