@@ -7,3 +7,6 @@
 [submodule "extensions/mage_log"]
 	path = extensions/mage_log
 	url = git@bitbucket.org:trueaction/mage_log
+[submodule "extensions/pbridge"]
+	path = extensions/pbridge
+	url = git@bitbucket.org:trueaction/trueaction_pbridge
