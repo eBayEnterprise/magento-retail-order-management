@@ -114,6 +114,9 @@
 				<api_service>product</api_service>
 				<api_return_format>xml</api_return_format>
 				<config_path>eb2ccore/general</config_path>
+				<processor_update_batch_size>100</processor_update_batch_size>
+				<processor_delete_batch_size>200</processor_delete_batch_size>
+				<processor_max_total_entries>200</processor_max_total_entries>
 			</product>
 		</eb2c>
 		<eb2cproduct>

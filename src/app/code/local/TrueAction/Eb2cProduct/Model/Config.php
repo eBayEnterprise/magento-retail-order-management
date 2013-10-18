@@ -41,5 +41,9 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'image_feed_file_pattern'         => 'eb2cproduct/image_master_feed/file_pattern',
 		'image_feed_event_type'           => 'eb2cproduct/image_master_feed/event_type',
 		'image_feed_header_version'       => 'eb2cproduct/image_master_feed/header_version',
+
+		'processor_update_batch_size' => 'eb2c/product/processor_update_batch_size',
+		'processor_delete_batch_size' => 'eb2c/product/processor_delete_batch_size',
+		'processor_max_total_entries' => 'eb2c/product/processor_max_total_entries',
 	);
 }
