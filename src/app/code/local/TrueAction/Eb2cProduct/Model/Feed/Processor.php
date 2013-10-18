@@ -729,6 +729,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
+	 * @param  array  $attributeList list of attributes we want to exist
+	 * @return array                 subset of $attributeList that actually exist
+	 */
+	private function _getApplicableAttributes(array $attributeList)
+	{
+		$extraAttrs = array_diff($attributeList, self::$_attributeCodes);
+		if ($extraAttrs) {
+			self::$_missingAttributes = array_unique(array_merge(self::$_missingAttributes, $extraAttrs));
+		}
+		return array_intersect($attributeList, self::$_attributeCodes);
+	}
+
+	/**
+	 * load all attribute codes
+	 * @return self
+	 */
+	private function _loadAttributeCodes($product)
+	{
+		if (is_null(self::$_attributeCodes) || self::$_attribeteCodesSetId != $product->getAttributeSetId()) {
+			self::$_attributeCodes = Mage::getSingleton('eav/config')
+				->getEntityAttributeCodes($product->getResource()->getEntityType(), $product);
+		}
+		return $this;
+	}
+
+	/**
 	 * adding eb2c specific attributes to a product
 	 * @param Varien_Object $dataObject, the object with data needed to add eb2c specific attributes to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set attributes data to
