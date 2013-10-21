@@ -33,6 +33,30 @@ itemmaster1:
       # sequence:
   # companion_flag:
   # country_of_origin:
+itemmaster-visibility-always:
+  catalog_class: always
+  client_item_id: 45-000906011391
+  custom_attributes:
+     -
+      name: ProductType
+      value: simple
+      lang: en-US
+      operation_type: Add
+  is_drop_shipped: 'false'
+  item_status: 'Active'
+
+itemmaster-visibility-other:
+  catalog_class: sfsdf
+  client_item_id: 45-000906011391
+  custom_attributes:
+     -
+      name: ProductType
+      value: simple
+      lang: en-US
+      operation_type: Add
+  is_drop_shipped: 'false'
+  item_status: 'Active'
+
   # drop_ship_supplier_name:
   # drop_ship_supplier_number:
   # drop_ship_supplier_part_number:

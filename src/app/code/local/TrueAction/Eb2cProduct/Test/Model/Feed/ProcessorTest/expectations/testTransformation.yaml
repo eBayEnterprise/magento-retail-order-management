@@ -83,6 +83,12 @@ itemmaster1:
   # supplier_name:
   # supplier_supplier_id:
   size:
+itemmaster-visibility-always:
+  visibility: 4
+
+itemmaster-visibility-other:
+  visibility: 1
+
      -
       code: 6-M
       description: 6-M
