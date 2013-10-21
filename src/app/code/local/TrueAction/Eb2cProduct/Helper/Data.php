@@ -109,7 +109,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 					'name' => 'Invalid Product: ' . $sku,
 					'status' => 0, // default - disabled
 					'sku' => $sku,
-					'website_ids' => $this->_getAllWebsiteIds(),
+					'website_ids' => $this->getAllWebsiteIds(),
 					'category_ids' => $this->_getDefaultCategoryIds(),
 					'description' => 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.',
 					'short_description' => 'Invalid product. Please do not attempt to purchase.',
@@ -159,7 +159,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		return array(Mage::app()->getStore($storeId)->getRootCategoryId());
 	}
 
-	protected function _getAllWebsiteIds()
+	public function getAllWebsiteIds()
 	{
 		return Mage::getModel('core/website')->getCollection()->getAllIds();
 	}
