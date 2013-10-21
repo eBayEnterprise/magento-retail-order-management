@@ -79,8 +79,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	protected function _transformData(Varien_Object $dataObject)
 	{
-		$this->_prepareSku($dataObject);
-		$this->_prepareStatus($dataObject);
+		$this->_prepareProductData($dataObject);
 		$this->_prepareDuplicatedData($dataObject);
 		$this->_prepareCustomAttributes($dataObject);
 		$this->_preparePricingEventData($dataObject);
@@ -88,7 +87,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_prepareProductLinkData($dataObject);
 	}
 
-	protected function _prepareSku(Varien_Object $dataObject)
+	protected function _prepareProductData(Varien_Object $dataObject)
 	{
 		$sku = $dataObject->getClientItemId();
 		$dataObject->unsClientItemId();
@@ -99,20 +98,38 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		// @codeCoverageIgnoreEnd
 		$dataObject->setSku($sku);
-	}
 
-	/**
-	 * process
-	 * @param  Varien_Object $dataObject [description]
-	 */
-	protected function _prepareStatus(Varien_Object $dataObject)
-	{
 		if ($dataObject->hasItemStatus()) {
 			$dataObject->addData(array(
 				'status' => strtoupper($dataObject->getItemStatus()) === 'ACTIVE' ? true : false,
 			));
 			$dataObject->unsData('item_status');
 		}
+
+		// nosale should map to not visible individually.
+		$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
+
+		// Both regular and always should map to catalog/search.
+		// Assume there can be a custom Visibility field. As always, the last node wins.
+		$catalogClass = strtoupper($dataObject->getCatalogClass());
+		$dataObject->unsCatalogClass();
+		if ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
+			$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH;
+		}
+		$dataObject->setData('visibility', $visibility);
+		$dataObject->setData('website_ids', $this->_helper->getAllWebsiteIds());
+
+		if ($dataObject->hasIsDropShipped()) {
+			$dataObject->setData(
+				'is_drop_shipped',
+				$this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped'))
+			);
+		}
+		// $data = array(
+		// 	'website_ids' => $this->getWebsiteIds(),
+		// 	'store_ids' => array($this->getDefaultStoreId()),
+		// 	'tax_class_id' => 0,
+		// );
 	}
 
 	/**
