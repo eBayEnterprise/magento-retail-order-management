@@ -25,6 +25,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	private $_missingAttributes = array();
 
+	protected $_customAttributeProcessors = array(
+		'product_type' => '_processProductType',
+	);
+
 	/**
 	 * attributes that do not exist on the product.
 	 * @var array
@@ -109,6 +113,50 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				'status' => strtoupper($dataObject->getItemStatus()) === 'ACTIVE' ? true : false,
 			));
 			$dataObject->unsData('item_status');
+		}
+	}
+
+	/**
+	 * transform valid custom attribute data into a readily saveable form.
+	 * @param  Varien_Object $dataObject
+	 * @return [type]                    [description]
+	 */
+	protected function _prepareCustomAttributes(Varien_Object $dataObject)
+	{
+		$coreHelper = Mage::helper('eb2ccore');
+		$customAttrs = $dataObject->getCustomAttributes();
+		$dataObject->unsCustomAttributes();
+		if (!$customAttrs) {
+			// do nothing if there is no custom attributes
+			return;
+		}
+		foreach ($customAttrs as $attributeData) {
+			if (!isset($attributeData['name'])) {
+				// skip the attribute
+				Mage::log('Custom attribute has no name: ' . json_encode($attributeData), Zend_Log::DEBUG);
+			} else {
+				if (strtoupper($attributeData['name']) === 'CONFIGURABLEATTRIBUTES') {
+					continue;
+				}
+				$attributeCode = $this->_underscore($attributeData['name']);
+				$attributeData['code'] = $attributeCode;
+				// setting custom attributes
+				if (strtoupper($attributeData['operation_type']) === 'DELETE') {
+					// setting custom attributes to null on operation type 'delete'
+					$dataObject->setData($attributeCode, null);
+				} else {
+					isset($attributeData['value']) ? $attributeData['value'] : '';
+					if (isset($this->_customAttributeProcessors[$attributeCode])) {
+						$method = $this->_customAttributeProcessors[$attributeCode];
+						$this->$method($attributeData, $dataObject);
+					} else {
+						$dataObject->setData(
+							$attributeCode,
+							$attributeData['value']
+						);
+					}
+				}
+			}
 		}
 	}
 
