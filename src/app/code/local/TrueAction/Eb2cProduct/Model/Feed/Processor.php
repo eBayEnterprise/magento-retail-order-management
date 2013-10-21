@@ -1,7 +1,9 @@
 <?php
 /**
  */
+// TODO: REMOVE DEPENDENCY ON MAGE_CORE_MODEL_ABSTRACT::_UNDERSCORE METHOD
 class TrueAction_Eb2cProduct_Model_Feed_Processor
+	extends Mage_Core_Model_Abstract
 {
 	/**
 	 * list of all attribute codes within the set identified by $_attributeCodesSetId
