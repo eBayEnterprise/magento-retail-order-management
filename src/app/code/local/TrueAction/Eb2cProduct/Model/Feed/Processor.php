@@ -159,6 +159,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
+	protected function _processProductType($attrData, Varien_Object $dataObject)
+	{
+		$dataObject->setData('type_id', strtolower($attrData['value']));
+	}
+
 	 */
 	protected function _preparePricingEventData(Varien_Object $dataObject)
 	{
