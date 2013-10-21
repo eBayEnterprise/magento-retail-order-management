@@ -34,9 +34,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		foreach ($dataObjectList as $dataObject) {
 			$this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
-			if ($this->_isAtLimit()) {
-				$this->$save();
-			}
 		}
 	}
 
@@ -58,14 +55,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _isAtLimit()
 	{
 
-	}
-
-	public function transformBasicAttributes(Varien_Object $dataObject)
-	{
-		$dataObject->addData(array(
-			'status' => $dataObject->getStatus() === 'ACTIVE' ? 1 : 0,
-		));
-		$this->_prepareProductLinkData($dataObject);
 	}
 
 	protected function _transformData(Varien_Object $dataObject)
