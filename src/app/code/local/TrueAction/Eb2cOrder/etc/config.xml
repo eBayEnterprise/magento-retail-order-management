@@ -27,6 +27,13 @@
 		</blocks>
 	</global>
 	<frontend>
+		<layout>
+			<updates>
+				<trueaction_eb2corder module="TrueAction_Eb2cOrder">
+					<file>eb2corder_frontend.xml</file>
+				</trueaction_eb2corder>
+			</updates>
+		</layout>
 		<events>
 			<checkout_type_onepage_save_order_after>
 				<observers>
