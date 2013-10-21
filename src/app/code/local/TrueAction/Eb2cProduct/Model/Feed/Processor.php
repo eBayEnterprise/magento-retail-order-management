@@ -159,6 +159,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
+	 * stores the attribute data to be logged later.
+	 * @param  string $code          the _unscored attribute code
+	 * @param  array  $attributeData the extacted attribute data
+	 */
+	protected function _recordUnknownCustomAttributes($code, $attributeData)
+	{
+		if (!array_key_exists($name, $this->_unkownCustomAttributes)) {
+			$this->_unkownCustomAttributes[$name] = $attributeData;
+		}
+	}
+
 	protected function _processProductType($attrData, Varien_Object $dataObject)
 	{
 		$dataObject->setData('type_id', strtolower($attrData['value']));
