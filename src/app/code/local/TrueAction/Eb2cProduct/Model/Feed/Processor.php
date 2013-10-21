@@ -26,14 +26,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	private $_missingAttributes = array();
 
 	/**
-	 * list of transformations to run on the data.
-	 * @var array
-	 */
-	protected $_updateTransformations = array(
-		'_preparePricingEventData',
-	);
-
-	/**
 	 * attributes that do not exist on the product.
 	 * @var array
 	 */
@@ -68,8 +60,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	protected function _transformData(Varien_Object $dataObject)
 	{
-		foreach ($this->_updateTransformations as $method) {
-			$this->$method($dataObject);
+		$this->_prepareSku($dataObject);
+		$this->_prepareStatus($dataObject);
+		$this->_prepareDuplicatedData($dataObject);
+		$this->_prepareCustomAttributes($dataObject);
+		$this->_preparePricingEventData($dataObject);
+		$this->_prepareFromMappingLists($dataObject);
+		$this->_prepareProductLinkData($dataObject);
+	}
+
 		}
 	}
 
