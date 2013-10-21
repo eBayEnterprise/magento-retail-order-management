@@ -125,15 +125,15 @@
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
 				</hazardous_material_code>
-				<item_description>
+				<brand_description>
 					<scope>Website</scope>
-					<label>Item Description</label>
+					<label>Brand Description</label>
 					<group></group>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
-				</item_description>
+				</brand_description>
 				<item_type>
 					<scope>Website</scope>
 					<label>eBay Enterprise Item Type</label>
