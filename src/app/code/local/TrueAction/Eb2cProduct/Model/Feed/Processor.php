@@ -104,7 +104,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * process
 	 * @param  Varien_Object $dataObject [description]
-	 * @return [type]                    [description]
 	 */
 	protected function _prepareStatus(Varien_Object $dataObject)
 	{
@@ -119,7 +118,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * transform valid custom attribute data into a readily saveable form.
 	 * @param  Varien_Object $dataObject
-	 * @return [type]                    [description]
 	 */
 	protected function _prepareCustomAttributes(Varien_Object $dataObject)
 	{
