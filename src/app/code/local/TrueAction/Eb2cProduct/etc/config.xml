@@ -134,6 +134,15 @@
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
 				</item_description>
+				<item_type>
+					<scope>Website</scope>
+					<label>eBay Enterprise Item Type</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</item_type>
 			</default>
 		</eb2cproduct_attributes>
 	</global>
