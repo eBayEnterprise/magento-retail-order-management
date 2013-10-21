@@ -92,22 +92,6 @@
 			</default>
 		</eb2cproduct_attributes>
 	</global>
-	<crontab>
-		<jobs>
-			<eb2cproduct_feed_item_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_item_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_item_master>
-			<eb2cproduct_feed_content_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_content_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_content_master>
-		</jobs>
-	</crontab>
 	<default>
 		<eb2c>
 			<product>

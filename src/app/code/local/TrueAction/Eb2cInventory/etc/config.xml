@@ -156,16 +156,6 @@
 			</eb2c_allocation_onepage_save_order_action_before>
 		</events>
 	</frontend>
-	<crontab>
-		<jobs>
-			<eb2cinventory_feed_item_inventories>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
-				</run>
-			</eb2cinventory_feed_item_inventories>
-		</jobs>
-	</crontab>
 	<default>
 		<eb2c>
 			<inventory>
