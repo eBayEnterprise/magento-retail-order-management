@@ -30,6 +30,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item
 				)
 			)),
 			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
+				array('brand_description' => 'ExtendedAttributes/Brand/Description'),
+				array(
+					'description' => '.',
+					'lang' => './@xml:lang'
+				)
+			)),
+			Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(
 				array('custom_attributes' => 'CustomAttributes/Attribute'),
 				array(
 					// Custom attribute name.
@@ -67,8 +74,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item
 		'drop_ship_supplier_part_number' => 'DropShipSupplierInformation/SupplierPartNumber/text()',
 		// Indicates the item if fulfilled by a drop shipper. New attribute.
 		'is_drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
-		// Short description in the catalog's base language.
-		'item_description' => 'BaseAttributes/ItemDescription/text()',
 		// Identifies the type of item.
 		'item_type' => 'BaseAttributes/ItemType/text()',
 		// Indicates whether an item is active, inactive or other various states.

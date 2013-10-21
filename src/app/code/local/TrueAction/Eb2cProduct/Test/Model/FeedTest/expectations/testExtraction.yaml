@@ -14,10 +14,10 @@ itemmaster1:
   # allow_gift_message:
   # back_orderable:
   brand_name: New Brand
-  # brand:
-  #    -
-  #     lang: en-US
-  #     description: New Brand
+  brand_description:
+     -
+      lang: en-US
+      description: New Brand
   # buyer_name:
   # buyer_id:
   catalog_class: regular
@@ -39,7 +39,8 @@ itemmaster1:
   is_drop_shipped: 'false'
   # gift_card_tender_code:
   hazardous_material_code: '0'
-  item_description: 25077 2I TAN CXL SMOOT
+  # item description should not be implemented for item master
+  # item_description:
   # packaging dimensions
   item_dimension_carton_mass_weight: 1.0
   item_dimension_carton_mass_unit_of_measure: kg
@@ -146,7 +147,8 @@ iship1:
   catalog_class: regular
   client_item_id: 45-000906011391
   is_drop_shipped: 'false'
-  item_description: 25077 2I TAN CXL SMOOT
+  # item description should not be implemented for iship
+  # item_description: ~
   item_type: MERCH
   item_status: 'Active'
   tax_code: '76800'
