@@ -2,6 +2,7 @@
 @import extensions/dom
 @import extensions/filetransfer
 @import extensions/mage_log
+@import extensions/pbridge
 
 # TrueAction_Eb2cCore
 src/shell/* shell/
