@@ -193,7 +193,7 @@
 		<eb2cinventory>
 			<inventory_feed>
 				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>*inventatpfull*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>
 				<header_version>2.3.0</header_version>
