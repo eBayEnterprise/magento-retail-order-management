@@ -90,4 +90,21 @@ class TrueAction_Eb2cPayment_Model_Observer
 			}
 		}
 	}
+
+	/**
+	 * Suppressing all non-eb2c payment modules or payment methods if eb2cpayment is turn on.
+	 * @param Varien_Event_Observer $observer
+	 * @return self
+	 */
+	public function suppressPaymentModule($observer)
+	{
+		$knownPaymentModule = array('Mage_Authorizenet', 'Mage_Paygate', 'Mage_PaypalUk', 'Mage_Payment', 'Mage_Paypal');
+
+		foreach ($knownPaymentModule as $paymentModule) {
+			Mage::log(sprintf("Inside [%s::%s]\n\r%s: %s", __CLASS__, __METHOD__, 'paymentModule', $paymentModule), Zend_Log::DEBUG);
+			Mage::getModel('eb2cpayment/suppression')->disableModule($paymentModule);
+		}
+
+		return $this;
+	}
 }
