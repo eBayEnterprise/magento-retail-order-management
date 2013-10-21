@@ -89,6 +89,51 @@
 					<default>N</default>
 					<backend_type>int</backend_type>
 				</price_is_vat_inclusive>
+				<brand_name>
+					<scope>Website</scope>
+					<label>Brand Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</brand_name>
+				<size>
+					<scope>Website</scope>
+					<label>Size</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</size>
+				<buyer_name>
+					<scope>Website</scope>
+					<label>Buyer Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</buyer_name>
+				<hazardous_material_code>
+					<scope>Website</scope>
+					<label>Hazardous Material Code</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</hazardous_material_code>
+				<item_description>
+					<scope>Website</scope>
+					<label>Item Description</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</item_description>
 			</default>
 		</eb2cproduct_attributes>
 	</global>
