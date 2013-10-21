@@ -84,7 +84,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_prepareProductLinkData($dataObject);
 	}
 
+	protected function _prepareSku(Varien_Object $dataObject)
+	{
+		$sku = $dataObject->getClientItemId();
+		$dataObject->unsClientItemId();
+		if (!$sku) {
+			// TODO: MAKE AN EXTRACTOR THAT THROWS AN EXCEPTION IF THE DATA EXTRACTED IS EMPTY TO HANDLE THIS SITUATION
+			throw new Mage_Core_Exception('client_item_id is blank');
+			// @codeCoverageIgnoreStart
 		}
+		// @codeCoverageIgnoreEnd
+		$dataObject->setSku($sku);
 	}
 
 	/**
