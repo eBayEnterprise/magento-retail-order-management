@@ -192,6 +192,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$dataObject->setData('type_id', strtolower($attrData['value']));
 	}
 
+	protected function _prepareDuplicatedData(Varien_Object $dataObject)
+	{
+		$mapping = array(
+			'item_dimension_shipping_mass_weight' => 'weight',
+			'item_dimension_shipping_mass_unit_of_measure' => 'mass',
+			'client_item_id' => 'url_key',
+			'sku' => 'url_key',
+		);
+		foreach ($mapping as $key => $attributeCode) {
+			if ($dataObject->hasData($key)) {
+				$dataObject->setData($attributeCode, $dataObject->getData($key));
+			}
+		}
+	}
+
+	/**
 	 */
 	protected function _preparePricingEventData(Varien_Object $dataObject)
 	{
