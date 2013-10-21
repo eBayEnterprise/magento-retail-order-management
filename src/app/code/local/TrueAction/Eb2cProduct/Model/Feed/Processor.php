@@ -30,6 +30,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @var array
 	 */
 	protected $_unkownCustomAttributes = array();
+
+	protected $_updateBatchSize;
+	protected $_deleteBatchSize;
+	protected $_maxTotalEntries;
+
+	public function __construct()
+	{
+		$config = Mage::helper('eb2cproduct')->getConfigModel();
+		$this->_helper = Mage::helper('eb2cproduct');
+		$this->_defaultStoreLanguageCode = Mage::app()->getLocale()->getLocaleCode();
+		$this->_updateBatchSize = $config->processorUpdateBatchSize;
+		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
+		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
+	}
+
 	public function processUpdates($dataObjectList)
 	{
 		foreach ($dataObjectList as $dataObject) {
