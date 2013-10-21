@@ -17,6 +17,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	private $_attributeCodesSetId = null;
 
+	protected $_defaultStoreLanguageCode;
+
 	/**
 	 * list of attribute codes that are not setup on the system but were in the feed.
 	 * @var array
@@ -31,6 +33,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		'_preparePricingEventData',
 	);
 
+	/**
+	 * attributes that do not exist on the product.
+	 * @var array
+	 */
+	protected $_unkownCustomAttributes = array();
 	public function processUpdates($dataObjectList)
 	{
 		foreach ($dataObjectList as $dataObject) {
