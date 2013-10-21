@@ -98,6 +98,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
+	 * process
+	 * @param  Varien_Object $dataObject [description]
+	 * @return [type]                    [description]
+	 */
+	protected function _prepareStatus(Varien_Object $dataObject)
+	{
+		if ($dataObject->hasItemStatus()) {
+			$dataObject->addData(array(
+				'status' => strtoupper($dataObject->getItemStatus()) === 'ACTIVE' ? true : false,
+			));
+			$dataObject->unsData('item_status');
+		}
+	}
+
+	/**
 	 */
 	protected function _preparePricingEventData(Varien_Object $dataObject)
 	{
