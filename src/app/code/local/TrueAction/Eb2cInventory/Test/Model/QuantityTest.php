@@ -47,8 +47,14 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 	public function testBuildQuantityRequestMessage($items)
 	{
 		$qtyRequestMsg = Mage::helper('eb2ccore')->getNewDomDocument();
-		$qtyRequestMsg->loadXML('<?xml version="1.0" encoding="UTF-8"?>
-<QuantityRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><QuantityRequest lineId="1" itemId="SKU_TEST_1"/><QuantityRequest lineId="2" itemId="SKU_TEST_2"/><QuantityRequest lineId="3" itemId="SKU_TEST_3"/></QuantityRequestMessage>');
+		$qtyRequestMsg->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
+			'<?xml version="1.0" encoding="UTF-8"?>
+			<QuantityRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+			<QuantityRequest lineId="1" itemId="SKU_TEST_1"/>
+			<QuantityRequest lineId="2" itemId="SKU_TEST_2"/>
+			<QuantityRequest lineId="3" itemId="SKU_TEST_3"/>
+			</QuantityRequestMessage>'
+		)));
 		$this->assertSame(
 			$qtyRequestMsg->saveXML(),
 			$this->_quantity->buildQuantityRequestMessage($items)->saveXML()
@@ -69,7 +75,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Zend_Http_Client_Exception));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
@@ -97,8 +103,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 	<QuantityResponse itemId="1234-TA" lineId="1">
 		<Quantity>1020</Quantity>
 	</QuantityResponse>
-</QuantityResponseMessage>
-			'));
+</QuantityResponseMessage>'));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$this->assertSame(
@@ -144,5 +149,4 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			$this->_quantity->getAvailableStockFromResponse($responseMessage)
 		);
 	}
-
 }
