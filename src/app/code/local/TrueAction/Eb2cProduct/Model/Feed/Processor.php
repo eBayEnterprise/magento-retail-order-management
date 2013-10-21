@@ -92,10 +92,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _preparePricingEventData(Varien_Object $dataObject)
 	{
 		if ($dataObject->hasEbcPricingEventNumber()) {
-			$priceIsVatInclusive = $dataObject->getPriceVatInclusive();
-			$priceIsVatInclusive = strtoupper($priceIsVatInclusive) === 'TRUE' ? true : false;
+			$priceIsVatInclusive = $this->_helper->convertToBoolean($dataObject->getPriceVatInclusive());
 			$data = array(
-				'sku' => $dataObject->getClientItemId(),
 				'price' => $dataObject->getPrice(),
 				'special_price' => null,
 				'special_from_date' => null,
@@ -104,12 +102,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				'price_is_vat_inclusive' => $priceIsVatInclusive,
 			);
 			if ($dataObject->getEbcPricingEventNumber()) {
+				$startDate = new DateTime($dataObject->getStartDate());
+				$startDate->setTimezone(new DateTimeZone('UTC'));
+				$endDate = new DateTime($dataObject->getEndDate());
+				$endDate->setTimezone(new DateTimeZone('UTC'));
 				$data['price'] = $dataObject->getAlternatePrice();
 				$data['special_price'] = $dataObject->getPrice();
-				$data['special_from_date'] = $dataObject->getStartDate();
-				$data['special_to_date'] = $dataObject->getEndDate();
+				$data['special_from_date'] = $startDate->format('Y-m-d H:i:s');
+				$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
 			}
-			$dataObject->setData($data);
+			$dataObject->addData($data);
 		}
 		return $this;
 	}
