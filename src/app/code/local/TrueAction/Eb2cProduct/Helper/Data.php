@@ -2,6 +2,22 @@
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	private $_types;
+
+	/**
+	 * convert a string into a boolean value.
+	 * @see  http://php.net/manual/en/function.is-bool.php
+	 * @param   string
+	 * @return  string
+	 */
+	public function convertToBoolean($value)
+	{
+		return in_array(
+			strtolower($value),
+			array('true', '1', 'on', 'yes', 'y'),
+			true
+		) ? '1' : '0';
+	}
+
 	/**
 	 * Get Product config instantiated object.
 	 *
