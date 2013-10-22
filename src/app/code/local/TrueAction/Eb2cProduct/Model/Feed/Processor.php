@@ -1205,7 +1205,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			if ($link instanceof Varien_Object && strtoupper($link->getOperationType()) === 'ADD') {
 				$linkId = $this->_helper->loadProductBySku($link->getLinkToUniqueId())->getId();
 				$linkType = $this->_getProducLinkType($link->getLinkType());
-				var_dump($linkType);
 				if ($linkId) {
 					if (isset($pos[$linkType])) {
 						$links[$linkType][$linkId]['position'] = $pos[$linkType]++;
