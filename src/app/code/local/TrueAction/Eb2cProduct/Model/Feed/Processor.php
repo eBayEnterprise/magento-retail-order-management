@@ -17,6 +17,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	private $_attributeCodesSetId = null;
 
+	/**
+	 * default language code for the store.
+	 * @var string
+	 */
 	protected $_defaultStoreLanguageCode;
 
 	/**
@@ -314,36 +318,71 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _synchProduct(Varien_Object $item)
 	{
-		if (trim($item->getItemId()->getClientItemId()) === '') {
+		$sku = $item->getItemId()->getClientItemId();
+		if ($sku === '' || is_null($sku)) {
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
-		} else {
-			// we have a valid item, let's check if this product already exists in Magento
-			$prd = $this->_loadProductBySku($item->getItemId()->getClientItemId());
-			$this->setProduct($prd);
-			$prdObj = $prd->getId() ? $prd : $this->_getDummyProduct($item);
-			$prdObj->addData(array(
-				'type_id' => $item->getProductType(),
-				'weight' => $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight(),
-				'mass' => $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure(),
-				'visibility' => $this->_getVisibilityData($item),
-				'attribute_set_id' => $this->getDefaultAttributeSetId(),
-				'status' => $item->getBaseAttributes()->getItemStatus(),
-				'sku' => $item->getItemId()->getClientItemId(),
-				'msrp' => $item->getExtendedAttributes()->getMsrp(),
-				'price' => $item->getExtendedAttributes()->getPrice(),
-				'website_ids' => $this->getWebsiteIds(),
-				'store_ids' => array($this->getDefaultStoreId()),
-				'tax_class_id' => 0,
-				'url_key' => $item->getItemId()->getClientItemId(),
-			))->save(); // saving the product
-
-			$this
-				->_addColorToProduct($item, $prdObj)
-				->_addEb2cSpecificAttributeToProduct($item, $prdObj)
-				->_addCustomAttributeToProduct($item, $prdObj)
-				->_addConfigurableDataToProduct($item, $prdObj)
-				->_addStockItemDataToProduct($item, $prdObj);
+			return;
 		}
+		$product = $this->_helper->prepareProductModel($sku);
+
+		$productData = new Varien_Object();
+		$productData->setData('visibility', $this->_getVisibilityData($item));
+		// getting product name/title
+		$productTitle = $this->_getDefaultLocaleTitle($item);
+
+		if ($item->hasProductType()) {
+			$productData->setData('type_id', $item->getProductType());
+		}
+		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasWeight()) {
+			$productData->setData('weight', $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight());
+		}
+		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass')) {
+			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
+		}
+		if ($item->getBaseAttributes()->getItemStatus()) {
+			$productData->setData('status', $item->getBaseAttributes()->getItemStatus());
+		}
+		if ($item->getExtendedAttributes()->getMsrp()) {
+			$productData->setData('msrp', $item->getExtendedAttributes()->getMsrp());
+		}
+		if ($item->getExtendedAttributes()->getPrice()) {
+			$productData->setData('price', $item->getExtendedAttributes()->getPrice());
+		}
+		if ($item->getItemId()->getClientItemId()) {
+			$productData->setData('url_key', $item->getItemId()->getClientItemId());
+		}
+		// get product link data
+		$linkData = $this->_prepareProductLinkData($item);
+		// setting related data
+		if (!empty($linkData['related'])) {
+			$productData->setData('related_link_data', $linkData['related']);
+		}
+		if (!empty($linkData['upsell'])) {
+			$productData->setData('up_sell_link_data', $linkData['upsell']);
+		}
+		if (!empty($linkData['crosssell'])) {
+			$productData->setData('cross_sell_link_data', $linkData['crosssell']);
+		}
+
+		// setting category data
+		$productData->setData('category_ids', $this->_preparedCategoryLinkData($item));
+		// Setting product name/title from base attributes
+		$productData->setData('name', ($productTitle !== '')? $productTitle : $product->getName());
+		// setting the product long description according to the store language setting
+		if ($item->getExtendedAttributes()->hasData('long_description')) {
+			$productData->setData('description', $item->getExtendedAttributes()->getData('long_description'));
+		}
+		// setting the product short description according to the store language setting
+		if ($item->hasData('short_description')) {
+			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
+		}
+
+		$product->addData($productData->getData())->save(); // saving the product
+		// $this
+		// 	->_addColorToProduct($item, $product)
+		// 	->_addEb2cSpecificAttributeToProduct($item, $product)
+		// 	->_addConfigurableDataToProduct($item, $product)
+		// 	->_addStockItemDataToProduct($item, $product);
 		return $this;
 	}
 
