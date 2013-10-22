@@ -1020,6 +1020,64 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		return explode('/', $fullPath);
 	}
+
+	/**
+	 * convert the linktype into a version usable by magento
+	 * @param  string $lt link type extracted from the document
+	 * @return string     the converted string or the empty string if conversion is not possible
+	 */
+	protected function _getProducLinkType($lt)
+	{
+		$lt = strtoupper($lt);
+		if ($lt === 'ES_UPSELLING') {
+			return 'upsell';
+		} elseif ($lt === 'ES_CROSSSELLING') {
+			return 'crosssell';
+		}
+		return '';
+	}
+
+	/**
+	 * prepared related, crosssell, upsell array to be set to a product.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to update the product
+	 *
+	 * @return array, composite array contain key for related, crosssell, and upsell data
+	 */
+	protected function _prepareProductLinkData(Varien_Object $dataObject)
+	{
+		// Product Links
+		$links = array(
+			'related' => array(),
+			'upsell' => array(),
+			'crosssell' => array(),
+		);
+		$pos = array(
+			'related' => 0,
+			'upsell' => 0,
+			'crosssell' => 0,
+		);
+		foreach ($dataObject->getProductLinks() as $link) {
+			$link = new Varien_Object($link);
+			if ($link instanceof Varien_Object && strtoupper($link->getOperationType()) === 'ADD') {
+				$linkId = $this->_helper->loadProductBySku($link->getLinkToUniqueId())->getId();
+				$linkType = $this->_getProducLinkType($link->getLinkType());
+				var_dump($linkType);
+				if ($linkId) {
+					if (isset($pos[$linkType])) {
+						$links[$linkType][$linkId]['position'] = $pos[$linkType]++;
+					} else {
+						Mage::log(
+							sprintf('[ %s ] Encountered unknown link type "%s".', __CLASS__, $linkType),
+							Zend_Log::WARN
+						);
+					}
+				}
+			}
+		}
+		return $links;
+	}
+
 	/**
 	 * add category to magento, check if already exist and return the category id
 	 *
