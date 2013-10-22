@@ -25,10 +25,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	private $_missingAttributes = array();
 
-	protected $_customAttributeProcessors = array(
-		'product_type' => '_processProductType',
-	);
-
 	/**
 	 * attributes that do not exist on the product.
 	 * @var array
@@ -38,6 +34,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected $_updateBatchSize;
 	protected $_deleteBatchSize;
 	protected $_maxTotalEntries;
+	/**
+	 * mapping of custom attributes and the function used to prepare them for
+	 * use.
+	 * @var array
+	 */
+	protected $_customAttributeProcessors = array(
+		'PRODUCTTYPE' => '_processProductType',
+		'CONFIGURABLEATTRIBUTES' => '_processConfigurableAttributes'
+	);
+
 
 	public function __construct()
 	{
@@ -161,6 +167,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				}
 			}
 		}
+	}
+
+	protected function _processProductType($attrData, Varien_Object $customData, Varien_Object $outData)
+	{
+		$outData->setData('product_type', strtolower($attrData['value']));
+	}
+
+	protected function _processConfigurableAttributes($attrData, Varien_Object $customData, Varien_Object $outData)
+	{
+		$outData->setData('configurable_attributes', explode(',', $attrData['value']));
 	}
 
 	/**
