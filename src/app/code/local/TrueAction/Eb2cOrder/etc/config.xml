@@ -27,6 +27,13 @@
 		</blocks>
 	</global>
 	<frontend>
+		<layout>
+			<updates>
+				<trueaction_eb2corder module="TrueAction_Eb2cOrder">
+					<file>eb2corder_frontend.xml</file>
+				</trueaction_eb2corder>
+			</updates>
+		</layout>
 		<events>
 			<checkout_type_onepage_save_order_after>
 				<observers>
@@ -64,7 +71,7 @@
 		<eb2corder>
 			<status_feed>
 				<local_path>TrueAction/Eb2c/Feed/Order/Status/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>OrderStatus*.xml</file_pattern>
 				<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
 				<event_type>OrderStatus</event_type>

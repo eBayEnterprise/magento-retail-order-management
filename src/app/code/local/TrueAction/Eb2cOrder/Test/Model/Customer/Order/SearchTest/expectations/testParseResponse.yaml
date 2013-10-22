@@ -1,4 +1,4 @@
-reponse:
+response:
   id: "order-123"
   order_type: "SALES"
   test_type: "TEST_ORDER"

@@ -10,7 +10,7 @@ class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAc
 	 * Test overriding sales/order_history block
 	 * @test
 	 */
-	public function testPrepareLayout()
+	public function testConstruct()
 	{
 		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
 			->disableOriginalConstructor()
@@ -93,7 +93,7 @@ class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_HistoryTest extends TrueAc
 			->will($this->returnSelf());
 		$this->replaceByMock('block', 'sales/order_history', $orderHistoryBlockMock);
 
-		$prepareLayout = $this->_reflectMethod($orderHistoryBlockMock, '_prepareLayout');
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Overrides_Block_Order_History', $prepareLayout->invoke($orderHistoryBlockMock));
+		$construct = $this->_reflectMethod($orderHistoryBlockMock, '__construct');
+		$construct->invoke($orderHistoryBlockMock);
 	}
 }

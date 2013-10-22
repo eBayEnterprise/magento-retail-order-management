@@ -10,3 +10,6 @@
 [submodule "extensions/pbridge"]
 	path = extensions/pbridge
 	url = git@bitbucket.org:trueaction/trueaction_pbridge
+[submodule "extensions/aoe_scheduler"]
+	path = extensions/aoe_scheduler
+	url = git@bitbucket.org:trueaction/aoe_scheduler.git

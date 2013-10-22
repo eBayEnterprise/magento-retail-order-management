@@ -28,7 +28,11 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_View extends Mage_Sales_Block_O
 		// get eb2c order data
 		$ebcData = (isset($orderHistorySearchResults[$orderId]))? $orderHistorySearchResults[$orderId] : null;
 		if ($ebcData instanceof Varien_Object) {
-			$this->getOrder()->setStatus(Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcData->getStatus()));
+			$this->getOrder()->addData(array(
+				'status' => Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcData->getStatus()),
+				'created_at' => $ebcData->getOrderDate(),
+				'grand_total' => $ebcData->getOrderTotal(),
+			));
 		}
 
 		parent::_prepareLayout();

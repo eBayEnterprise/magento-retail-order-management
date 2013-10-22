@@ -14,7 +14,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 	 * Initialize model
 	 */
 	protected function _construct()
-	
+
 {		// initialize feed item with an empty array
 		$this->_queue = array();
 
@@ -74,7 +74,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		foreach ($this->_queue as $item) {
 			try {
 				$this->_processItem($item);
-				// @codeCoverageIgnoreStart 
+				// @codeCoverageIgnoreStart
 			} catch (Mage_Core_Exception $e) {
 				Mage::logException($e);
 			}
@@ -118,7 +118,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Pricing
 		$feedModel = $this->getFeedModel();
 
 		$feedModel->fetchFeedsFromRemote(
-			$cfg->pricingFeedRemoteReceivedPath,
+			str_replace('{storeid}', $cfg->storeId, $cfg->pricingFeedRemoteReceivedPath),
 			$cfg->pricingFeedFilePattern
 		);
 		$domDocument = $coreHelper->getNewDomDocument();

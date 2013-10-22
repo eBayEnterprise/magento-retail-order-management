@@ -12,7 +12,7 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_Recent extends Mage_Sales_Block
 	 */
 	public function __construct()
 	{
-		parent::__construct();
+		$this->setTemplate('eb2corder_frontend/order/recent.phtml');
 		// assigned current session customer id to a local variable
 		$customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
 
@@ -24,19 +24,32 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_Recent extends Mage_Sales_Block
 		$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary($customerId));
 
 		$newCollection = new Varien_Data_Collection();
-		foreach ($this->getOrders() as $order) {
-			// get order id
-			$orderId = $order->getRealOrderId();
 
-			// get eb2c order data
-			$ebcData = (isset($orderHistorySearchResults[$orderId]))? $orderHistorySearchResults[$orderId] : null;
-			$data = $order->getData();
-			if ($ebcData instanceof Varien_Object) {
-				$data['status'] = Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcData->getStatus());
-			}
-			$order->setData($data);
+		$tempId = 1;
+		foreach ($orderHistorySearchResults as $orderId => $ebcData) {
+			// get order from magento
+			$mgtOrder = Mage::getModel('sales/order')->loadByIncrementId($orderId);
+			$gmtShippingAddress = $mgtOrder->getShippingAddress();
+			$order = Mage::getModel('sales/order');
+			$order->addData(array(
+				'entity_id' => ($mgtOrder->getId())? $mgtOrder->getId() : 'ebc-' . $tempId,
+				'real_order_id' => $orderId,
+				'created_at' => $ebcData->getOrderDate(),
+				'status' => Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcData->getStatus()),
+				'grand_total' => $ebcData->getOrderTotal(),
+				'exist_in_mage' => ($mgtOrder->getId())? true : false,
+			));
+			$shippingAddress = Mage::getModel('sales/order_address');
+			$shippingAddress->setData(array(
+				// set ship to name
+				'name' => ($gmtShippingAddress)? $gmtShippingAddress->getName() : '',
+				'address_type' => 'shipping'
+			));
+			$order->addAddress($shippingAddress);
 			$newCollection->addItem($order);
+			$tempId++;
 		}
+
 		$this->setOrders($newCollection);
 	}
 }
