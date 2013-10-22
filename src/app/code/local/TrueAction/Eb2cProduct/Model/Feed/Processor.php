@@ -923,7 +923,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
 				// load the parent product using the child style id, because a child that belong to a
 				// parent product will have the parent product style id as the sku to link them together.
-				$parentProduct = $this->_loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
+				$parentProduct = $this->_helper->loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
 				// we have a valid parent configurable product
 				if ($parentProduct->getId()) {
 					if (trim(strtoupper($parentProduct->getTypeId())) === 'CONFIGURABLE') {
