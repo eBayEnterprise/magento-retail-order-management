@@ -31,9 +31,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected $_unkownCustomAttributes = array();
 
-	protected $_updateBatchSize;
-	protected $_deleteBatchSize;
-	protected $_maxTotalEntries;
 	/**
 	 * mapping of custom attributes and the function used to prepare them for
 	 * use.
@@ -44,6 +41,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		'CONFIGURABLEATTRIBUTES' => '_processConfigurableAttributes'
 	);
 
+
+	protected $_updateBatchSize = 100;
+	protected $_deleteBatchSize = 100;
+	protected $_maxTotalEntries = 100;
 
 	public function __construct()
 	{
