@@ -80,49 +80,42 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_prepareProductLinkData($dataObject);
 	}
 
-	protected function _prepareProductData(Varien_Object $dataObject)
+	/**
+	 * delete product.
+	 * @param Varien_Object $dataObject, the object with data needed to delete the product
+	 * @return self
+	 */
+	protected function _deleteItem(Varien_Object $dataObject)
 	{
 		$sku = $dataObject->getClientItemId();
-		$dataObject->unsClientItemId();
-		if (!$sku) {
-			// TODO: MAKE AN EXTRACTOR THAT THROWS AN EXCEPTION IF THE DATA EXTRACTED IS EMPTY TO HANDLE THIS SITUATION
-			throw new Mage_Core_Exception('client_item_id is blank');
-			// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
-		$dataObject->setSku($sku);
+		if ($sku) {
+			// we have a valid item, let's check if this product already exists in Magento
+			$product = $this->_helper->loadProductBySku($sku);
 
-		if ($dataObject->hasItemStatus()) {
-			$dataObject->addData(array(
-				'status' => strtoupper($dataObject->getItemStatus()) === 'ACTIVE' ? true : false,
-			));
-			$dataObject->unsData('item_status');
+			if ($product->getId()) {
+				try {
+					// deleting the product from magento
+					$product->delete();
+				} catch (Mage_Core_Exception $e) {
+					Mage::logException($e);
+				}
+			} else {
+				// this item doesn't exists in magento let simply log it
+				Mage::log(
+					sprintf(
+						'[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento',
+						__CLASS__, $dataObject->getItemId()->getClientItemId()
+					),
+					Zend_Log::WARN
+				);
+			}
 		}
 
-		// nosale should map to not visible individually.
-		$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
+		return $this;
+	}
 
-		// Both regular and always should map to catalog/search.
-		// Assume there can be a custom Visibility field. As always, the last node wins.
-		$catalogClass = strtoupper($dataObject->getCatalogClass());
-		$dataObject->unsCatalogClass();
-		if ($catalogClass === 'REGULAR' || $catalogClass === 'ALWAYS') {
-			$visibility = Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH;
-		}
-		$dataObject->setData('visibility', $visibility);
-		$dataObject->setData('website_ids', $this->_helper->getAllWebsiteIds());
 
-		if ($dataObject->hasIsDropShipped()) {
-			$dataObject->setData(
-				'is_drop_shipped',
-				$this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped'))
-			);
 		}
-		// $data = array(
-		// 	'website_ids' => $this->getWebsiteIds(),
-		// 	'store_ids' => array($this->getDefaultStoreId()),
-		// 	'tax_class_id' => 0,
-		// );
 	}
 
 	/**
