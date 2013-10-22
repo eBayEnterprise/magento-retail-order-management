@@ -60,6 +60,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
 			$filesProcessed++;
 		}
+		$this->_queue->process();
 		return $filesProcessed;
 		Varien_Profiler::stop('processFeeds');
 	}
