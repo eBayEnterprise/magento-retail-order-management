@@ -78,4 +78,22 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$dataObj = new Varien_Object($this->getLocalFixture($scenario));
 		$testModel->processUpdates(array($dataObj));
 	}
+
+	/**
+	 * @loadFixture
+	 */
+	public function testProductLinks()
+	{
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$dataObj = new Varien_Object($this->getLocalFixture('contentmaster1'));
+		$testModel->processUpdates(array($dataObj));
+
+		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
+		$col = $product->getRelatedLinkCollection();
+		$this->assertSame(0, count($col));
+		$col = $product->getUpSellLinkCollection();
+		$this->assertSame(0, count($col));
+		$col = $product->getCrossSellLinkCollection();
+		$this->assertSame(1, count($col));
+	}
 }
