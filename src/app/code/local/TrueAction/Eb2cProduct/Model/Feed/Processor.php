@@ -167,39 +167,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * transform valid custom attribute data into a readily saveable form.
 	 * @param  Varien_Object $dataObject
 	 */
-	protected function _prepareCustomAttributes(Varien_Object $dataObject)
+	protected function _prepareCustomAttributes(Varien_Object $dataObject, Varien_Object $outData)
 	{
-		$coreHelper = Mage::helper('eb2ccore');
 		$customAttrs = $dataObject->getCustomAttributes();
-		$dataObject->unsCustomAttributes();
 		if (!$customAttrs) {
 			// do nothing if there is no custom attributes
 			return;
 		}
+		$custData = new Varien_Object();
+		$outData->setData('custom_attributes', $outData);
+		$coreHelper = Mage::helper('eb2ccore');
 		foreach ($customAttrs as $attributeData) {
 			if (!isset($attributeData['name'])) {
 				// skip the attribute
 				Mage::log('Custom attribute has no name: ' . json_encode($attributeData), Zend_Log::DEBUG);
 			} else {
-				if (strtoupper($attributeData['name']) === 'CONFIGURABLEATTRIBUTES') {
-					continue;
-				}
 				$attributeCode = $this->_underscore($attributeData['name']);
-				$attributeData['code'] = $attributeCode;
 				// setting custom attributes
 				if (strtoupper($attributeData['operation_type']) === 'DELETE') {
 					// setting custom attributes to null on operation type 'delete'
-					$dataObject->setData($attributeCode, null);
+					$custData->setData($attributeCode, null);
 				} else {
-					isset($attributeData['value']) ? $attributeData['value'] : '';
-					if (isset($this->_customAttributeProcessors[$attributeCode])) {
-						$method = $this->_customAttributeProcessors[$attributeCode];
-						$this->$method($attributeData, $dataObject);
+					$lookup = strtoupper($attributeData['name']);
+					if (isset($this->_customAttributeProcessors[$lookup])) {
+						$method = $this->_customAttributeProcessors[$lookup];
+						$this->$method($attributeData, $custData, $outData);
 					} else {
-						$dataObject->setData(
-							$attributeCode,
-							$attributeData['value']
-						);
+						$custData->setData($attributeCode, $attributeData['value']);
 					}
 				}
 			}
