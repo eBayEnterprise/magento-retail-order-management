@@ -157,6 +157,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		return $data;
 	}
 
+	protected function _isDefaultStoreLanguage($langStr)
+	{
+		$langStr = Mage::helper('eb2ccore')->xmlToMageLangFrmt($langStr);
+		return strtoupper($langStr) !== strtoupper($this->_defaultStoreLanguageCode);
+	}
+
 	/**
 	 * transform valid custom attribute data into a readily saveable form.
 	 * @param  Varien_Object $dataObject
@@ -387,7 +393,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		$this->getStockItem()->loadByProduct($productObject)
+		Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject)
 			->addData(
 				array(
 					'use_config_backorders' => false,
