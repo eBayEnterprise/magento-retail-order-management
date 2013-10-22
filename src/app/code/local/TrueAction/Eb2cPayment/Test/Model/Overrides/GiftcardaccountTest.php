@@ -4,7 +4,8 @@
  * @package    TrueAction_Eb2c
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
-class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * testing _filterGiftCardByPanPin method - the reason for this test is because the method will be replace by a mock on all the other tests
@@ -13,7 +14,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testFilterGiftCardByPanPin()
 	{
-		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$giftCardAccount = Mage::getModel('enterprise_giftcardaccount/giftcardaccount');
 		$giftCardAccountReflector = new ReflectionObject($giftCardAccount);
 
 		$filterGiftCardByPanPin = $giftCardAccountReflector->getMethod('_filterGiftCardByPanPin');
@@ -34,7 +35,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest extends Ec
 	 */
 	public function testGiftCardPinByPan()
 	{
-		$giftCardAccount = new TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount();
+		$giftCardAccount = Mage::getModel('enterprise_giftcardaccount/giftcardaccount');
 		$this->assertSame('5344',	$giftCardAccount->giftCardPinByPan('4111111ak4idq1111'));
 	}
 

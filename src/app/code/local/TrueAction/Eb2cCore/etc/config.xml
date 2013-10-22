@@ -17,6 +17,46 @@
 			</eb2ccore>
 		</helpers>
 	</global>
+	<crontab>
+		<jobs>
+			<eb2cinventory_feed_item_inventories>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
+				</run>
+			</eb2cinventory_feed_item_inventories>
+			<eb2corder_status_feed>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2corder/status_feed::processFeeds</model>
+				</run>
+			</eb2corder_status_feed>
+			<eb2cproduct_feed_item_master>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_item_master::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_item_master>
+			<eb2cproduct_feed_content_master>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_content_master::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_content_master>
+			<eb2cproduct_feed_pricing>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_item_pricing::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_pricing>
+			<eb2cproduct_feed_iship>
+				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<run>
+					<model>eb2cproduct/feed_i_ship::processFeeds</model>
+				</run>
+			</eb2cproduct_feed_iship>
+		</jobs>
+	</crontab>
 	<default>
 		<eb2ccore>
 			<general>

@@ -156,16 +156,6 @@
 			</eb2c_allocation_onepage_save_order_action_before>
 		</events>
 	</frontend>
-	<crontab>
-		<jobs>
-			<eb2cinventory_feed_item_inventories>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
-				</run>
-			</eb2cinventory_feed_item_inventories>
-		</jobs>
-	</crontab>
 	<default>
 		<eb2c>
 			<inventory>
@@ -193,7 +183,7 @@
 		<eb2cinventory>
 			<inventory_feed>
 				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>*inventatpfull*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>
 				<header_version>2.3.0</header_version>
