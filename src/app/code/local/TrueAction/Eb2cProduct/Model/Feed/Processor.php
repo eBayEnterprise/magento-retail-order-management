@@ -65,9 +65,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	public function processDeletions($dataObjectList)
 	{
-		$this->_deletions->append($dataObjectList);
-		if ($this->_isAtLimit()) {
-			$this->$save();
+		foreach ($dataObjectList as $dataObject) {
+			$this->_deleteItem($dataObject);
 		}
 	}
 
