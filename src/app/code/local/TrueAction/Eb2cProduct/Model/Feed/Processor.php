@@ -65,18 +65,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 	}
 
-	public function save()
-	{
-	}
-
-	/**
-	 * @return true if the save size limit has been met
-	 */
-	protected function _isAtLimit()
-	{
-
-	}
-
 	protected function _transformData(Varien_Object $dataObject)
 	{
 		$this->_prepareProductData($dataObject);
