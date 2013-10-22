@@ -221,7 +221,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @param  string $code          the _unscored attribute code
 	 * @param  array  $attributeData the extacted attribute data
 	 */
-	protected function _recordUnknownCustomAttributes($code, $attributeData)
+	protected function _recordUnknownCustomAttribute($code, $attributeData)
 	{
 		if (!array_key_exists($name, $this->_unkownCustomAttributes)) {
 			$this->_unkownCustomAttributes[$name] = $attributeData;
@@ -231,21 +231,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _processProductType($attrData, Varien_Object $dataObject)
 	{
 		$dataObject->setData('type_id', strtolower($attrData['value']));
-	}
-
-	protected function _prepareDuplicatedData(Varien_Object $dataObject)
-	{
-		$mapping = array(
-			'item_dimension_shipping_mass_weight' => 'weight',
-			'item_dimension_shipping_mass_unit_of_measure' => 'mass',
-			'client_item_id' => 'url_key',
-			'sku' => 'url_key',
-		);
-		foreach ($mapping as $key => $attributeCode) {
-			if ($dataObject->hasData($key)) {
-				$dataObject->setData($attributeCode, $dataObject->getData($key));
-			}
-		}
 	}
 
 	/**
@@ -275,6 +260,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$dataObject->addData($data);
 		}
 		return $this;
+	}
+
+	/**
+	 * getting category attribute set id.
+	 *
+	 * @return int, the category attribute set id
+	 */
+	protected function _getCategoryAttributeSetId()
+	{
+		return (int) Mage::getSingleton('eav/config')
+			->getAttribute(Mage_Catalog_Model_Category::ENTITY, 'attribute_set_id')
+			->getEntityType()
+			->getDefaultAttributeSetId();
 	}
 
 	/**
@@ -428,40 +426,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
-	 * delete product.
-	 * @param Varien_Object $dataObject, the object with data needed to delete the product
-	 * @return self
-	 */
-	protected function _deleteItem(Varien_Object $dataObject)
-	{
-		$sku = $dataObject->getClientItemId();
-		if ($sku) {
-			// we have a valid item, let's check if this product already exists in Magento
-			$product = $this->_loadProductBySku($sku);
-
-			if ($product->getId()) {
-				try {
-					// deleting the product from magento
-					$product->delete();
-				} catch (Mage_Core_Exception $e) {
-					Mage::logException($e);
-				}
-			} else {
-				// this item doesn't exists in magento let simply log it
-				Mage::log(
-					sprintf(
-						'[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento',
-						__CLASS__, $dataObject->getItemId()->getClientItemId()
-					),
-					Zend_Log::WARN
-				);
-			}
-		}
-
-		return $this;
-	}
-
-	/**
 	 * link child product to parent configurable product.
 	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
 	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
@@ -518,6 +482,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			);
 		}
 		return $this;
+	}
+
+	/**
+	 * getting default locale title that match magento default locale
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve the default product title
+	 *
+	 * @return string
+	 */
+	protected function _getDefaultLocaleTitle(Varien_Object $dataObject)
+	{
+		$title = '';
+		// Setting product name/title from base attributes
+		$baseAttributes = $dataObject->getBaseAttributes();
+		foreach ($baseAttributes as $baseAttribute) {
+			if ($baseAttribute instanceof Varien_Object && trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode())) &&
+			trim($baseAttribute->getTitle()) !== '') {
+				// setting the product title according to the store language setting
+				$title = $baseAttribute->getTitle();
+			}
+		}
+		return $title;
 	}
 
 	/**
@@ -962,6 +948,129 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			}
 		}
 		return $this;
+	}
+
+	/**
+	 * load category by name
+	 *
+	 * @param string $categoryName, the category name to filter the category table
+	 *
+	 * @return Mage_Catalog_Model_Category
+	 */
+	protected function _loadCategoryByName($categoryName)
+	{
+		return Mage::getModel('catalog/category')
+			->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('name', array('eq' => $categoryName))
+			->load()
+			->getFirstItem();
+	}
+
+	/**
+	 * get parent default category id
+	 *
+	 * @return int, default parent category id
+	 */
+	protected function _getDefaultParentCategoryId()
+	{
+		return Mage::getModel('catalog/category')->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('parent_id', array('eq' => 0))
+			->load()
+			->getFirstItem()
+			->getId();
+	}
+
+	/**
+	 * prepared category data.
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to update the product
+	 *
+	 * @return array, category data
+	 */
+	protected function _preparedCategoryLinkData(Varien_Object $dataObject)
+	{
+		// Product Category Link
+		$categoryLinks = $dataObject->getCategoryLinks();
+		$fullPath = 0;
+
+		if (!empty($categoryLinks)) {
+			foreach ($categoryLinks as $link) {
+				if ($link instanceof Varien_Object) {
+					$categories = explode('-', $link->getName());
+					if (strtoupper(trim($link->getImportMode())) === 'DELETE') {
+						foreach($categories as $category) {
+							$this->setCategory($this->_loadCategoryByName(ucwords($category)));
+							if ($this->getCategory()->getId()) {
+								// we have a valid category in the system let's delete it
+								$this->getCategory()->delete();
+							}
+						}
+					} else {
+						// adding or changing category import mode
+						$path = $this->getDefaultRootCategoryId();
+						foreach($categories as $category) {
+							$path .= '/' . $this->_addCategory(ucwords($category), $path);
+						}
+						$fullPath .= '/' . $path;
+					}
+				}
+			}
+		}
+		return explode('/', $fullPath);
+	}
+	/**
+	 * add category to magento, check if already exist and return the category id
+	 *
+	 * @param string $categoryName, the category to either add or get category id from magento
+	 * @param string $path, delimited string of the category depth path
+	 *
+	 * @return int, the category id
+	 */
+	protected function _addCategory($categoryName, $path)
+	{
+		$categoryId = 0;
+		if (trim($categoryName) !== '') {
+			// let's check if category already exists
+			$this->setCategory($this->_loadCategoryByName($categoryName));
+			$categoryId = $this->getCategory()->getId();
+			if (!$categoryId) {
+				// category doesn't currently exists let's add it.
+				try {
+					$this->getCategory()->setAttributeSetId($this->getDefaultCategoryAttributeSetId())
+						->setStoreId($this->getDefaultStoreId())
+						->addData(
+							array(
+								'name' => $categoryName,
+								'path' => $path, // parent relationship..
+								'description' => $categoryName,
+								'is_active' => 1,
+								'is_anchor' => 0, //for layered navigation
+								'page_layout' => 'default',
+								'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
+								'image' => null,
+								'thumbnail' => null,
+							)
+						)
+						->save();
+
+					$categoryId = $this->getCategory()->getId();
+				} catch (Mage_Core_Exception $e) {
+					Mage::logException($e);
+				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
+					Mage::log(
+						sprintf(
+							'[ %s ] The following error has occurred while adding categories product for Content Master Feed (%d)',
+							__CLASS__, $e->getMessage()
+						),
+						Zend_Log::ERR
+					);
+				}
+			}
+		}
+
+		return $categoryId;
 	}
 
 }
