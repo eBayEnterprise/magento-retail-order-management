@@ -67,6 +67,11 @@
 					<express_shortcut>TrueAction_Eb2cPayment_Overrides_Block_Paypal_Express_Shortcut</express_shortcut>
 				</rewrite>
 			</paypal>
+			<adminhtml>
+				<rewrite>
+					<system_config_form>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form</system_config_form>
+				</rewrite>
+			</adminhtml>
 		</blocks>
 		<resources>
 			<eb2cpayment_setup>
