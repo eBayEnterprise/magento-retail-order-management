@@ -114,8 +114,47 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		return $this;
 	}
 
+	/**
+	 * extract extended attribute data such as (gift_wrap
+	 *
+	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
+	 *
+	 * @return array, composite array containing description data, gift wrap, color... etc
+	 */
+	protected function _getContentExtendedAttributeData(Varien_Object $dataObject)
+	{
+		$data = array();
+		$extendedAttributes = $dataObject->getExtendedAttributes()->getData();
+		if (!empty($extendedAttributes)) {
+			if (isset($extendedAttributes['gift_wrap'])) {
+				// extracting gift_wrapping_available
+				$data['gift_wrap'] = $this->_helper->convertToBoolean($extendedAttributes['gift_wrap']);
+			}
 
+			if (isset($extendedAttributes['long_description'])) {
+				// get long description data
+				$longDescriptions = $extendedAttributes['long_description'];
+				foreach ($longDescriptions as $longDescription) {
+					if (strtoupper($longDescriptionetLang()) === strtoupper($this->getDefaultStoreLanguageCode())) {
+						// extracting the product long description according to the store language setting
+						$data['long_description'] = $longDescription->getLongDescription();
+					}
+				}
+			}
+
+			if (isset($extendedAttributes['short_description'])) {
+				// get short description data
+				$shortDescriptions = $extendedAttributes['short_description'];
+				foreach ($shortDescriptions as $shortDescription) {
+					if (strtoupper($shortDescription->getLang()) === strtoupper($this->getDefaultStoreLanguageCode())) {
+						// setting the product short description according to the store language setting
+						$data['short_description'] = $shortDescription->getShortDescription();
+					}
+				}
+			}
 		}
+
+		return $data;
 	}
 
 	/**
