@@ -116,7 +116,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 					'price' => 0,
 					'weight' => 0,
 					'url_key' => $sku,
-					'store_ids' => array($this->_getDefaultStoreId()),
+					'store_ids' => array($this->getDefaultStoreId()),
 					'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
 					'tax_class_id' => 0,
 				)
@@ -155,7 +155,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	protected function _getDefaultCategoryIds()
 	{
-		$storeId = $this->_getDefaultStoreId();
+		$storeId = $this->getDefaultStoreId();
 		return array(Mage::app()->getStore($storeId)->getRootCategoryId());
 	}
 
@@ -164,7 +164,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		return Mage::getModel('core/website')->getCollection()->getAllIds();
 	}
 
-	protected function _getDefaultStoreId()
+	public function getDefaultStoreId()
 	{
 		return null;
 	}
