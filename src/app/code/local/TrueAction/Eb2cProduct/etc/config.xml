@@ -91,17 +91,6 @@
 				</price_is_vat_inclusive>
 			</default>
 		</eb2cproduct_attributes>
-		<events>
-			<adminhtml_init_system_config>
-				<observers>
-					<payment_suppression_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cPayment_Model_Observer</class>
-						<method>suppressPaymentModule</method>
-					</payment_suppression_observer>
-				</observers>
-			</adminhtml_init_system_config>
-		</events>
 	</global>
 	<crontab>
 		<jobs>

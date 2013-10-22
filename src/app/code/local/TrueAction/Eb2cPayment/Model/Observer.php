@@ -98,11 +98,9 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 */
 	public function suppressPaymentModule($observer)
 	{
-		$knownPaymentModule = array('Mage_Authorizenet', 'Mage_Paygate', 'Mage_PaypalUk', 'Mage_Payment', 'Mage_Paypal');
-
-		foreach ($knownPaymentModule as $paymentModule) {
-			Mage::log(sprintf("Inside [%s::%s]\n\r%s: %s", __CLASS__, __METHOD__, 'paymentModule', $paymentModule), Zend_Log::DEBUG);
-			Mage::getModel('eb2cpayment/suppression')->disableModule($paymentModule);
+		Mage::log(sprintf("Inside [%s::%s]", __CLASS__, __METHOD__), Zend_Log::DEBUG);
+		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
+			Mage::getModel('eb2cpayment/suppression')->disabledNonEb2cPaymentModules();
 		}
 
 		return $this;

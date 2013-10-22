@@ -73,6 +73,17 @@
 				</connection>
 			</eb2cpayment_setup>
 		</resources>
+		<events>
+			<controller_action_predispatch>
+				<observers>
+					<payment_suppression_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cPayment_Model_Observer</class>
+						<method>suppressPaymentModule</method>
+					</payment_suppression_observer>
+				</observers>
+			</controller_action_predispatch>
+		</events>
 	</global>
 	<frontend>
 		<routers>
@@ -150,7 +161,7 @@
 				<api_opt_paypal_do_void>paypal/void</api_opt_paypal_do_void>
 				<api_return_format>xml</api_return_format>
 				<xsd>
-					<paypal_express_do_file>Payment-Service-PayPalDoExpress-1.0.xsd</paypal_express_do_file> 
+					<paypal_express_do_file>Payment-Service-PayPalDoExpress-1.0.xsd</paypal_express_do_file>
 					<paypal_express_get_file>Payment-Service-PayPalGetExpress-1.0.xsd</paypal_express_get_file>
 					<paypal_express_set_file>Payment-Service-PayPalSetExpress-1.0.xsd</paypal_express_set_file>
 					<paypal_do_auth_file>Payment-Service-PayPalDoAuth-1.0.xsd</paypal_do_auth_file>
