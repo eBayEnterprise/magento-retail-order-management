@@ -45,6 +45,42 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		'CONFIGURABLEATTRIBUTES' => '_processConfigurableAttributes'
 	);
 
+	protected $_extKeys = array(
+		'back_orderable',
+		'country_of_origin',
+		'gift_card_tender_code',
+		'lot_tracking_indicator',
+		'ltl_freight_cost',
+		'may_ship_expedite',
+		'may_ship_international',
+		'may_ship_usps',
+		'msrp',
+		'price',
+		'safety_stock',
+		'sales_class',
+		'serial_number_type',
+		'ship_group',
+		'ship_window_min_hour',
+		'ship_window_max_hour',
+		'street_date',
+		'style_id',
+		'style_description',
+		'supplier_name',
+		'supplier_supplier_id',
+		'brand_name',
+		'brand_description',
+		'buyer_id',
+		'companion_flag',
+		'hazardous_material_code',
+	);
+
+	protected $_extKeysBool = array(
+		'allow_gift_message',
+		'is_hidden_product',
+		'service_indicator',
+		'gift_wrapping_available',
+		'gift_wrap',
+	);
 
 	protected $_updateBatchSize = 100;
 	protected $_deleteBatchSize = 100;
@@ -63,7 +99,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	public function processUpdates($dataObjectList)
 	{
 		foreach ($dataObjectList as $dataObject) {
-			$this->_transformData($dataObject);
+			$dataObject = $this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
 		}
 	}
@@ -77,12 +113,93 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	protected function _transformData(Varien_Object $dataObject)
 	{
-		$this->_prepareProductData($dataObject);
-		$this->_prepareDuplicatedData($dataObject);
-		$this->_prepareCustomAttributes($dataObject);
-		$this->_preparePricingEventData($dataObject);
-		$this->_prepareFromMappingLists($dataObject);
-		$this->_prepareProductLinkData($dataObject);
+		$outData = new Varien_Object(array(
+			'catalog_id' => $dataObject->getData('catalog_id'),
+			'gsi_client_id' => $dataObject->getData('gsi_client_id'),
+			'gsi_store_id' => $dataObject->getData('gsi_store_id'),
+			'operation_type' => $dataObject->getData('operation_type'),
+		));
+
+		$outData->setData('item_id', new Varien_Object(array(
+			'client_item_id' => $dataObject->getData('client_item_id'),
+			'client_alt_item_id' => $dataObject->hasData('client_alt_item_id') ? $dataObject->getData('client_alt_item_id') : false,
+			'manufacturer_item_id' => $dataObject->hasData('manufacturer_item_id') ? $dataObject->getData('manufacturer_item_id') : false,
+		)));
+		// add the unique id from the content feed.
+		if ($dataObject->hasData('unique_id')) {
+			$outData->getData('item_id')->setData('client_item_id', $dataObject->getData('unique_id'));
+		}
+
+		// prepare base attributes
+		$baseAttributes = new Varien_Object();
+		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
+		foreach (array('catalog_class', 'item_type', 'item_status', 'tax_code') as $key) {
+			$baseAttributes->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
+		}
+		$outData->setData('base_attributes', $baseAttributes);
+
+		$outData->setData('drop_ship_supplier_information', new Varien_Object(array(
+			// Name of the Drop Ship Supplier fulfilling the item
+			'supplier_name' => $dataObject->hasData('drop_ship_supplier_name') ? $dataObject->getData('drop_ship_supplier_name') : false,
+			// Unique code assigned to this supplier.
+			'supplier_number' => $dataObject->hasData('drop_ship_supplier_number') ? $dataObject->getData('drop_ship_supplier_number') : false,
+			// Id or SKU used by the drop shipper to identify this item.
+			'supplier_part_number' => $dataObject->hasData('drop_ship_supplier_part_number') ? $dataObject->getData('drop_ship_supplier_part_number') : false,
+		)));
+
+		// prepare the extended attributes
+		$extData = new Varien_Object();
+		foreach (array('item_dimension_shipping', 'item_dimension_display', 'item_dimension_carton') as $section) {
+			$extData->setData($section, new Varien_Object(array(
+				// Shipping weight of the item.
+				'mass_unit_of_measure' => $dataObject->hasData($section . '_mass_unit_of_measure') ? $dataObject->getData($section . '_mass_unit_of_measure') : false,
+				// Shipping weight of the item.
+				'weight' => $dataObject->hasData($section . '_weight') ? $dataObject->getData($section . '_weight') : false,
+				'packaging' => new Varien_Object(array(
+					// Unit of measure used for these dimensions.
+					'unit_of_measure' => $dataObject->hasData($section . '_packaging_mass_unit_of_measure') ? $dataObject->getData($section . '_packaging_mass_unit_of_measure') : false,
+					'width' => $dataObject->hasData($section . '_packaging_width') ? $dataObject->getData($section . '_packaging_width') : false,
+					'length' => $dataObject->hasData($section . '_packaging_length') ? $dataObject->getData($section . '_packaging_length') : false,
+					'height' => $dataObject->hasData($section . '_packaging_height') ? $dataObject->getData($section . '_packaging_height') : false,
+				)),
+			)));
+		}
+		$extData->getItemDimensionCarton()->setData('type', $dataObject->hasData('item_dimension_carton_type') ? $dataObject->getData('item_dimension_carton_type') : false);
+		$extData->setData('manufacturer', new Varien_Object(array(
+			// Date the item was build by the manufacturer.
+			'date' => $dataObject->hasData('manufacturer_date') ? $dataObject->getData('manufacturer_date') : false,
+			// Company name of manufacturer.
+			'name' => $dataObject->hasData('manufacturer_name') ? $dataObject->getData('manufacturer_name') : false,
+			// Unique identifier to denote the item manufacturer.
+			'id' => $dataObject->hasData('manufacturer_id') ? $dataObject->getData('manufacturer_id') : false,
+		)));
+		$extData->setData('size_attributes', new Varien_Object(array(
+			'size' => $dataObject->getData('size')
+		)));
+		$extData->setData('color_attributes', new Varien_Object(array(
+			'color' => $dataObject->getData('color')
+		)));
+
+		foreach ($this->_extKeys as $key) {
+			$extData->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
+		}
+		// handle values that need to be booleans
+		foreach ($this->_extKeysBool as $key) {
+			$extData->setData($key, $dataObject->hasData($key) ? $this->_helper->convertToBoolean($dataObject->getData($key)) : false);
+		}
+
+		$this->_preparePricingEventData($dataObject, $extData);
+		$outData->setData('extended_attributes', $extData);
+		$extData->addData(
+			// get extended attributes data containing (gift wrap, color, long/short descriptions)
+			$this->_getContentExtendedAttributeData($outData)
+		);
+		$this->_prepareCustomAttributes($dataObject, $outData);
+
+		if ($dataObject->hasData('product_links')) {
+			$outData->setData('product_links', $dataObject->getData('product_links'));
+		}
+		return $outData;
 	}
 
 	/**
