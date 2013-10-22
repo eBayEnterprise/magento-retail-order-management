@@ -230,15 +230,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	/**
 	 */
-	protected function _preparePricingEventData(Varien_Object $dataObject)
+	protected function _preparePricingEventData(Varien_Object $dataObject, Varien_Object $outData)
 	{
 		if ($dataObject->hasEbcPricingEventNumber()) {
 			$priceIsVatInclusive = $this->_helper->convertToBoolean($dataObject->getPriceVatInclusive());
 			$data = array(
 				'price' => $dataObject->getPrice(),
-				'special_price' => null,
-				'special_from_date' => null,
-				'special_to_date' => null,
 				'msrp' => $dataObject->getMsrp(),
 				'price_is_vat_inclusive' => $priceIsVatInclusive,
 			);
@@ -252,7 +249,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				$data['special_from_date'] = $startDate->format('Y-m-d H:i:s');
 				$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
 			}
-			$dataObject->addData($data);
+			$outData->addData($data);
 		}
 		return $this;
 	}
