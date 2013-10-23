@@ -314,20 +314,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _createMyParent($sku, $attributeSetId, $colorOptionId)
 	{
 		$newParent = Mage::getModel('catalog/product');
+		$newParentData = array(
+			'type_id'          => self::PRODUCT_TYPE_CONFIGURABLE,
+			'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'attribute_set_id' => $attributeSetId,
+			'name'             => 'temporary-parent-name - ' . uniqid(),
+			'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'sku'              => $sku,
+			'color'            => $colorOptionId,
+			'website_ids'      => $this->getWebsiteIds(),
+			'store_ids'        => array($this->getDefaultStoreId()),
+			'tax_class_id'     => 0,
+			'url_key'          => $sku,
+		);
 		try {
-			$newParentData = array(
-				'type_id'          => self::PRODUCT_TYPE_CONFIGURABLE,
-				'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-				'attribute_set_id' => $attributeSetId,
-				'name'             => 'temporary-parent-name - ' . uniqid(),
-				'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-				'sku'              => $sku,
-				'color'            => $colorOptionId,
-				'website_ids'      => $this->getWebsiteIds(),
-				'store_ids'        => array($this->getDefaultStoreId()),
-				'tax_class_id'     => 0,
-				'url_key'          => $sku,
-			);
 			$newParent->setData($newParentData)->save();
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(sprintf('[ %s ] Create parent sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
