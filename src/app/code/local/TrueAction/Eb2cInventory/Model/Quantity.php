@@ -49,7 +49,7 @@ class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_M
 		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		foreach ($items as $item) {
 			if (isset($item['id']) && isset($item['sku'])) {
-				$quantityRequestMessage->createChild('QuantityRequest', null, array('lineId' => $item['id'], 'itemId' => $item['sku']));
+				$quantityRequestMessage->createChild('QuantityRequest', null, array('lineId' => 'item' . $item['id'], 'itemId' => $item['sku']));
 			}
 		}
 		return $domDocument;
