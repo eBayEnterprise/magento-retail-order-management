@@ -860,15 +860,23 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _buildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
 	{
-		return $parent->createChild('AdminOrigin')
-			->addChild('Line1', $adminOrigin['Lines'][0])
-			->addChild('Line2', $adminOrigin['Lines'][1])
-			->addChild('Line3', $adminOrigin['Lines'][2])
-			->addChild('Line4', $adminOrigin['Lines'][3])
-			->addChild('City', $adminOrigin['City'])
+		$adminOriginEl = $parent->createChild('AdminOrigin')
+			->addChild('Line1', $adminOrigin['Lines'][0]);
+		if (trim($adminOrigin['Lines'][1]) !== '') {
+			$adminOriginEl->addChild('Line2', $adminOrigin['Lines'][1]);
+		}
+		if (trim($adminOrigin['Lines'][2]) !== '') {
+			$adminOriginEl->addChild('Line3', $adminOrigin['Lines'][2]);
+		}
+		if (trim($adminOrigin['Lines'][3]) !== '') {
+			$adminOriginEl->addChild('Line4', $adminOrigin['Lines'][3]);
+		}
+		$adminOriginEl->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])
 			->addChild('PostalCode', $adminOrigin['PostalCode']);
+
+		return $adminOriginEl;
 	}
 
 	/**
