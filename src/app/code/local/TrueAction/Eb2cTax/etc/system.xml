@@ -1,6 +1,15 @@
 <?xml version="1.0"?>
 <config>
 	<sections>
+		<tax translate="label" module="tax">
+			<class>separator-top</class>
+			<label>Tax</label>
+			<tab>sales</tab>
+			<sort_order>303</sort_order>
+			<show_in_default>0</show_in_default>
+			<show_in_website>0</show_in_website>
+			<show_in_store>0</show_in_store>
+		</tax>
 		<eb2ctax translate="label" module="eb2ctax">
 			<label>Tax</label>
 			<tab>eb2c</tab>
