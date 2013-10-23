@@ -3,9 +3,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
-	const OPERATION_TYPE_DELETE = 'DELETE';
-	const OPERATION_TYPE_ADD = 'ADD';
-	const OPERATION_TYPE_UPDATE = 'UPDATE';
+	const DEFAULT_INVENTORY_QTY       = 997;
+	const OPERATION_TYPE_DELETE       = 'DELETE';
+	const OPERATION_TYPE_ADD          = 'ADD';
+	const OPERATION_TYPE_UPDATE       = 'UPDATE';
+	const PRODUCT_TYPE_SIMPLE         = 'simple';
+	const PRODUCT_TYPE_CONFIGURABLE   = 'configurable';
 
 	/**
 	 * Initialize model
@@ -179,7 +182,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					Zend_Log::WARN
 				);
 			} elseif (!$prdHlpr->hasProdType($prodType)) {
-				Mage::log(sprintf('[ %s ] Unrecognized product type "%s"', __CLASS__, $prodType), Zend_Log::WARN);
+				Mage::log(sprintf('[ %s ] Unrecognized product type "%s" for %s', __CLASS__, $prodType, $item->getItemId()->getClientItemId()), Zend_Log::WARN);
 			} else {
 				switch ($opType) {
 					case self::OPERATION_TYPE_ADD:
@@ -273,24 +276,63 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$prd
 				->unsId()
 				->addData(array(
-					'type_id' => 'simple', // default product type
-					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
+					'type_id'          => self::PRODUCT_TYPE_SIMPLE, // default product type
+					'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name' => 'temporary-name - ' . uniqid(),
-					'status' => 0, // default - disabled
-					'sku' => $item->getItemId()->getClientItemId(),
-					'color' => $this->_getProductColorOptionId($item),
-					'website_ids' => $this->getWebsiteIds(),
-					'store_ids' => array($this->getDefaultStoreId()),
-					'stock_data' => array('is_in_stock' => 1, 'qty' => 999, 'manage_stock' => 1),
-					'tax_class_id' => 0,
-					'url_key' => $item->getItemId()->getClientItemId(),
+					'name'             => 'temporary-name - ' . uniqid(),
+					'status'           => 0, // default - disabled
+					'sku'              => $item->getItemId()->getClientItemId(),
+					'color'            => $this->_getProductColorOptionId($item),
+					'website_ids'      => $this->getWebsiteIds(),
+					'store_ids'        => array($this->getDefaultStoreId()),
+					'tax_class_id'     => 0,
+					'url_key'          => $item->getItemId()->getClientItemId(),
 				))
 				->save();
+
+			// Create a stock_item for this product. It's not /loaded/ into the product yet!
+			Mage::getModel('cataloginventory/stock_item')
+				->setData(
+					array(
+						'product_id'   => $prd->getId(),
+						'is_in_stock'  => 1,
+						'manage_stock' => 1,
+						'stock_id'     => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					)
+				)->save();
+
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
 		}
 		return $prd;
+	}
+
+	/**
+	 * Create a Parent Product
+	 * @return Mage_Catalog_Model_Product
+	 */
+	protected function _createMyParent($sku, $attributeSetId, $colorOptionId)
+	{
+		$newParent = Mage::getModel('catalog/product');
+		$newParentData = array(
+			'type_id'          => self::PRODUCT_TYPE_CONFIGURABLE,
+			'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'attribute_set_id' => $attributeSetId,
+			'name'             => 'temporary-parent-name - ' . uniqid(),
+			'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'sku'              => $sku,
+			'color'            => $colorOptionId,
+			'website_ids'      => $this->getWebsiteIds(),
+			'store_ids'        => array($this->getDefaultStoreId()),
+			'tax_class_id'     => 0,
+			'url_key'          => $sku,
+		);
+		try {
+			$newParent->setData($newParentData)->save();
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(sprintf('[ %s ] Create parent sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
+		}
+		return $this->_loadProductBySku($sku);
 	}
 
 	/**
@@ -301,15 +343,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		$this->getStockItem()->loadByProduct($productObject)
-			->addData(
-				array(
-					'use_config_backorders' => false,
-					'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
-					'product_id' => $productObject->getId(),
-					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
-				)
-			)
+		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject->getId());
+		$stockItem
+			->setQty(self::DEFAULT_INVENTORY_QTY)
+			->setUseConfigBackorders(false)
+			->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
 			->save();
 		return $this;
 	}
@@ -323,7 +361,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
 		$prodHlpr = Mage::helper('eb2cproduct');
-		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $prodHlpr->hasEavAttr('color')) {
+		if (trim(strtolower($dataObject->getProductType())) === self::PRODUCT_TYPE_CONFIGURABLE && $prodHlpr->hasEavAttr('color')) {
 			// setting color attribute, with the first record
 			$productObject->addData(
 				array(
@@ -888,27 +926,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addConfigurableDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		// we only set child product to parent configurable products products if we
-		// have a simple product that has a style_id that belong to a parent product.
-		if (trim(strtoupper($dataObject->getProductType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
-			// when style id for an item doesn't match the item client_item_id (sku),
-			// then we have a potential child product that can be added to a configurable parent product
-			if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
-				// load the parent product using the child style id, because a child that belong to a
-				// parent product will have the parent product style id as the sku to link them together.
-				$parentProduct = $this->_loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
-				// we have a valid parent configurable product
-				if ($parentProduct->getId()) {
-					if (trim(strtoupper($parentProduct->getTypeId())) === 'CONFIGURABLE') {
-						// We have a valid configurable parent product to set this child to
-						$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
+		$currentSku  = trim(strtoupper($dataObject->getItemId()->getClientItemId())); // Current Item's SKU
+		$productType = trim(strtolower($dataObject->getProductType()));               // Simple or Configurable, etc.
+		$parentSku   = trim($dataObject->getExtendedAttributes()->getStyleId());      // If applicable, this item's Parent SKU (See Spec for naming details)
 
-						// We can get color description save in the parent product to be saved to this child product.
-						$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
-						if (!empty($configurableColorData)) {
-							$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
-						}
-					}
+		/*
+	 	 * When we have a Simple product with a parent sku /different/ from our own sku, we may well
+		 * be a child of a configurable product.
+		 */
+		if ( !empty($parentSku) && $productType === self::PRODUCT_TYPE_SIMPLE && ($currentSku !== strtoupper($parentSku))) {
+			$parentSku = $dataObject->getCatalogId() . '-' . $parentSku; // Prepend the catalogId to the SKU - what we get doesn't have it
+			$parentProduct = $this->_loadProductBySku($parentSku);       // Load the Parent SKU
+			if (!$parentProduct->getId()) {                              // Parent doesn't exists, let's dummy up a parent
+				$parentProduct = $this->_createMyParent($parentSku,
+					$this->getDefaultAttributeSetId(),
+					$this->_getProductColorOptionId($dataObject)
+				);
+			}
+
+			// we have a valid parent configurable product
+			if (trim(strtolower($parentProduct->getTypeId())) === self::PRODUCT_TYPE_CONFIGURABLE) {
+				// We have a valid configurable parent product to set this child to
+				$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
+
+				// We can get color description save in the parent product to be saved to this child product.
+				$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
+				if (!empty($configurableColorData)) {
+					$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
 				}
 			}
 		}
