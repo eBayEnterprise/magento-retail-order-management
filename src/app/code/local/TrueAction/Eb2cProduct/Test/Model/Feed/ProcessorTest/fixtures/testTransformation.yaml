@@ -1,23 +1,24 @@
 pricing1:
   client_item_id: sku1
-  ebc_pricing_event_number: '19780815'
   gsi_store_id: MAGT1
   gsi_client_id: MAGTNA
   catalog_id: '45'
+  ebc_pricing_event_number: '19780815'
   price: '67.98'
   msrp: '100.77'
   alternate_price: '86.38'
   start_date: 2012-10-04T00:00:00-05:00
   end_date: 2014-08-17T00:00:00-05:00
   price_vat_inclusive: 'false'
+
 itemmaster1:
   # allow_gift_message:
   # back_orderable:
   brand_name: New Brand
-  # brand:
-  #    -
-  #     lang: en-US
-  #     description: New Brand
+  brand_description:
+     -
+      lang: en-US
+      description: New Brand
   # buyer_name:
   # buyer_id:
   catalog_class: regular
@@ -33,6 +34,80 @@ itemmaster1:
       # sequence:
   # companion_flag:
   # country_of_origin:
+  custom_attributes:
+     -
+      name: ProductType
+      value: simple
+      lang: en-US
+      operation_type: Add
+     -
+      name: ConfigurableAttributes
+      value: 'fee,fi,fo,fum'
+      lang: en-US
+      operation_type: Add
+  drop_ship_supplier_name: Mass Merchants, Intl
+  drop_ship_supplier_number: 9876
+  drop_ship_supplier_part_number: 9843333A
+  is_drop_shipped: 'false'
+  # gift_card_tender_code:
+  hazardous_material_code: '0'
+  # item description should not be implemented for item master
+  # item_description:
+  # packaging dimensions
+  item_dimension_carton_mass_weight: 1.0
+  item_dimension_carton_mass_unit_of_measure: kg
+  item_dimension_carton_packaging_length: 1.0
+  item_dimension_carton_packaging_width: 1.0
+  item_dimension_carton_packaging_height: 1.0
+  item_dimension_carton_packaging_unit_of_measure: cm
+  # item_dimension_carton_type:
+  # display dimensions
+  item_dimension_display_mass_unit_of_measure_weight: 1.0
+  item_dimension_display_mass_unit_of_measure: kg
+  item_dimension_display_packaging_length: 1.0
+  item_dimension_display_packaging_width: 1.0
+  item_dimension_display_packaging_height: 1.0
+  item_dimension_display_packaging_unit_of_measure: cm
+  # shipping dimensions
+  item_dimension_shipping_mass_weight: 1.0
+  item_dimension_shipping_mass_unit_of_measure: kg
+  item_dimension_shipping_packaging_length: 1.0
+  item_dimension_shipping_packaging_width: 1.0
+  item_dimension_shipping_packaging_height: 1.0
+  item_dimension_shipping_packaging_unit_of_measure: cm
+  item_type: MERCH
+  item_status: 'Active'
+  # is_hidden_product:
+  # lot_tracking_indicator:
+  # ltl_freight_cost:
+  # manufacturer_date:
+  # manufacturer_item_id:
+  manufacturer_name: Sony
+  manufacturer_id: Sony_Man_Id
+  # may_ship_expedite:
+  # may_ship_international:
+  # may_ship_usps:
+  msrp: 89.99
+  price: 71.98
+  # safety_stock:
+  sales_class: advanceOrderLimited
+  # serial_number_type:
+  # service_indicator:
+  # ship_group:
+  # ship_window_min_hour:
+  # ship_window_max_hour:
+  # street_date:
+  # supplier_name:
+  # supplier_supplier_id:
+  size:
+     -
+      code: 6-M
+      description: 6-M
+      lang: en-US
+  style_id: '25077'
+  # style_description:
+  tax_code: '76800'
+
 itemmaster-visibility-always:
   catalog_class: always
   client_item_id: 45-000906011391
@@ -118,6 +193,7 @@ itemmaster-visibility-other:
   style_id: '25077'
   # style_description:
   tax_code: '76800'
+
 contentmaster1:
   catalog_id: '45'
   gsi_client_id: MAGTNA
@@ -166,6 +242,7 @@ contentmaster1:
       value: LeapFrog
       operation_type: Add
       lang: 'en-US'
+
 iship1:
   catalog_class: regular
   client_item_id: 45-000906011391

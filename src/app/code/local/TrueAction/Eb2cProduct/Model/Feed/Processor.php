@@ -46,7 +46,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	);
 
 	protected $_extKeys = array(
-		'back_orderable',
 		'country_of_origin',
 		'gift_card_tender_code',
 		'lot_tracking_indicator',
@@ -76,10 +75,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	protected $_extKeysBool = array(
 		'allow_gift_message',
+		'back_orderable',
+		'gift_wrap',
+		'gift_wrapping_available',
 		'is_hidden_product',
 		'service_indicator',
-		'gift_wrapping_available',
-		'gift_wrap',
 	);
 
 	protected $_updateBatchSize = 100;
@@ -98,6 +98,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	public function processUpdates($dataObjectList)
 	{
+		$message = 'processing ' . count($dataObjectList) . ' updates';
+		Mage::log($message);
 		foreach ($dataObjectList as $dataObject) {
 			$dataObject = $this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
@@ -189,11 +191,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		$this->_preparePricingEventData($dataObject, $extData);
+		// FIXME: CLEAN UP CIRCULAR ASSIGNMENTS
 		$outData->setData('extended_attributes', $extData);
 		$extData->addData(
 			// get extended attributes data containing (gift wrap, color, long/short descriptions)
 			$this->_getContentExtendedAttributeData($outData)
 		);
+		///////
 		$this->_prepareCustomAttributes($dataObject, $outData);
 
 		if ($dataObject->hasData('product_links')) {
@@ -275,7 +279,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				}
 			}
 		}
-
 		return $data;
 	}
 
@@ -304,6 +307,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				// skip the attribute
 				Mage::log('Custom attribute has no name: ' . json_encode($attributeData), Zend_Log::DEBUG);
 			} else {
+				// if (isset($attributeData['lang']) && !$this->_isDefaultStoreLanguage($attributeData['lang'])) {
+				// 	// skip any attribute that is specifically not the default language
+				// 	continue;
+				// }
 				$attributeCode = $this->_underscore($attributeData['name']);
 				// setting custom attributes
 				if (strtoupper($attributeData['operation_type']) === 'DELETE') {
@@ -495,11 +502,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		$product->addData($productData->getData())->save(); // saving the product
-		// $this
-		// 	->_addColorToProduct($item, $product)
-		// 	->_addEb2cSpecificAttributeToProduct($item, $product)
-		// 	->_addConfigurableDataToProduct($item, $product)
-		// 	->_addStockItemDataToProduct($item, $product);
+		$this
+			// ->_addColorToProduct($item, $product)
+			// ->_addEb2cSpecificAttributeToProduct($item, $product)
+			->_addConfigurableDataToProduct($item, $product)
+			->_addStockItemDataToProduct($item, $product);
 		return $this;
 	}
 
@@ -1189,6 +1196,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _prepareProductLinkData(Varien_Object $dataObject)
 	{
+		if (!$dataObject->hasData('product_links')) {
+			// no product links to process
+			return;
+		}
 		// Product Links
 		$links = array(
 			'related' => array(),

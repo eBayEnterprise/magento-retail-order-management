@@ -71,6 +71,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	public function processFile($xmlFile)
 	{
 		Varien_Profiler::start('processFile');
+		if ($xmlFile === 'sample-feed-invalid-item-type.xml') print file_get_contents($xmlFile);
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
 			$dom->load($xmlFile);

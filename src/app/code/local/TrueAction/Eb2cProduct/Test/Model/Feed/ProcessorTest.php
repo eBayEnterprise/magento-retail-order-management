@@ -96,4 +96,46 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$col = $product->getCrossSellLinkCollection();
 		$this->assertSame(1, count($col));
 	}
+
+	/**
+	 * @loadFixture
+	 */
+	public function testStockItemData()
+	{
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$dataObj = new Varien_Object($this->getLocalFixture('itemmaster-exists'));
+		// confirm preconditions
+		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
+		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+		$this->assertSame('0', $stock->getData('backorders'));
+		$this->assertSame('1', $stock->getData('use_config_backorders'));
+		// run test
+		$testModel->processUpdates(array($dataObj));
+		// verify results
+		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
+		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
+		$this->assertSame('1', $stock->getData('backorders'));
+		$this->assertSame('0', $stock->getData('use_config_backorders'));
+	}
+
+	/**
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 */
+	public function testConfigurableData($scenario)
+	{
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$extractedUnits = $this->getLocalFixture($scenario);
+		$processList = array();
+		foreach ($extractedUnits as $extractedUnit) {
+			$processList[] = new Varien_Object($extractedUnit);
+		}
+		$dataObj = new Varien_Object();
+		// confirm preconditions
+		// assert theparent exists
+		// assert theotherparent doesnt exist
+		// assert 45-000906014545 doesnt exist
+		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
+		$testModel->processUpdates($processList);
+	}
 }

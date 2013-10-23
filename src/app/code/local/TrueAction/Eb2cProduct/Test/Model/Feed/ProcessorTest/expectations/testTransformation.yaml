@@ -1,88 +1,122 @@
 pricing1:
-  sku: sku1
-  price: '86.38'
-  msrp: '100.77'
-  special_price: '67.98'
-  special_from_date: 2012-10-04T00:00:00-05:00
-  special_to_date: 2014-08-17T00:00:00-05:00
-  price_is_vat_inclusive: false
+  keys:
+   - catalog_id
+   - gsi_client_id
+   - gsi_store_id
+   - operation_type
+   - item_id
+   - base_attributes
+   - drop_ship_supplier_information
+   - extended_attributes
+  catalog_id: '45'
+  gsi_store_id: MAGT1
+  gsi_client_id: MAGTNA
+  item_id:
+    client_item_id: sku1
+  extended_attributes:
+    price: '86.38'
+    msrp: '100.77'
+    special_price: '67.98'
+    special_from_date: 2012-10-04 05:00:00
+    special_to_date: 2014-08-17 05:00:00
+    price_is_vat_inclusive: '0'
+
 itemmaster1:
-  # allow_gift_message:
-  # back_orderable:
-  brand_name: New Brand
-  # brand:
-  #    -
-  #     lang: en-US
-  #     description: New Brand
-  # buyer_name:
-  # buyer_id:
-  catalog_class: regular
-  # client_alt_item_id:
-  client_item_id: 45-000906011391
-  color:
-     -
-      code: '700'
-      description:
-        description: VANILLA
+  keys:
+   - catalog_id
+   - gsi_client_id
+   - operation_type
+   - item_id
+   - base_attributes
+   - drop_ship_supplier_information
+   - extended_attributes
+   - custom_attributes
+   - product_type
+   - configurable_attributes
+  base_attributes:
+    catalog_class: regular
+    drop_shipped: '0'
+    item_type: MERCH
+    item_status: 'Active'
+    tax_code: '76800'
+  drop_ship_supplier_information:
+    drop_ship_supplier_name:
+    drop_ship_supplier_number:
+    drop_ship_supplier_part_number:
+  item_id:
+    client_alt_item_id: false
+    client_item_id: 45-000906011391
+  color_attributes:
+    color:
+       -
+        code: '700'
+        description:
+          description: VANILLA
+          lang: en-US
+        # there should be no sequence
+        # sequence:
+  size_attributes:
+    size:
+  configurable_attributes: [ fee, fi, fo, fum ]
+  extended_attributes:
+    allow_gift_message: false
+    back_orderable: false
+    brand_name: New Brand
+    brand_description:
+       -
         lang: en-US
-      # there should be no sequence
-      # sequence:
-  # companion_flag:
-  # country_of_origin:
-  # drop_ship_supplier_name:
-  # drop_ship_supplier_number:
-  # drop_ship_supplier_part_number:
-  is_drop_shipped: 'false'
-  # gift_card_tender_code:
-  hazardous_material_code: '0'
-  item_description: 25077 2I TAN CXL SMOOT
-  # packaging dimensions
-  item_dimension_carton_mass_weight: 1.0
-  item_dimension_carton_mass_unit_of_measure: kg
-  item_dimension_carton_packaging_length: 1.0
-  item_dimension_carton_packaging_width: 1.0
-  item_dimension_carton_packaging_height: 1.0
-  item_dimension_carton_packaging_unit_of_measure: cm
-  # item_dimension_carton_type:
-  # display dimensions
-  item_dimension_display_mass_unit_of_measure_weight: 1.0
-  item_dimension_display_mass_unit_of_measure: kg
-  item_dimension_display_packaging_length: 1.0
-  item_dimension_display_packaging_width: 1.0
-  item_dimension_display_packaging_height: 1.0
-  item_dimension_display_packaging_unit_of_measure: cm
-  # shipping dimensions
-  item_dimension_shipping_mass_weight: 1.0
-  item_dimension_shipping_mass_unit_of_measure: kg
-  item_dimension_shipping_packaging_length: 1.0
-  item_dimension_shipping_packaging_width: 1.0
-  item_dimension_shipping_packaging_height: 1.0
-  item_dimension_shipping_packaging_unit_of_measure: cm
-  item_type: MERCH
-  item_status: 'Active'
-  # is_hidden_product:
-  # lot_tracking_indicator:
-  # ltl_freight_cost:
-  # manufacturer_date:
-  # manufacturer_item_id:
-  manufacturer_name: Sony
-  manufacturer_id: Sony_Man_Id
-  # may_ship_expedite:
-  # may_ship_international:
-  # may_ship_usps:
-  msrp: 89.99
-  price: 71.98
-  # safety_stock:
-  sales_class: advanceOrderLimited
-  # serial_number_type:
-  # service_indicator:
-  # ship_group:
-  # ship_window_min_hour:
-  # ship_window_max_hour:
-  # street_date:
-  # supplier_name:
-  # supplier_supplier_id:
-  size:
+        description: New Brand
+    # buyer_name:
+    # buyer_id:
+    # companion_flag:
+    # country_of_origin:
+    # gift_card_tender_code:
+    hazardous_material_code: '0'
+    # # packaging dimensions
+    # item_dimension_carton_mass_weight: 1.0
+    # item_dimension_carton_mass_unit_of_measure: kg
+    # item_dimension_carton_packaging_length: 1.0
+    # item_dimension_carton_packaging_width: 1.0
+    # item_dimension_carton_packaging_height: 1.0
+    # item_dimension_carton_packaging_unit_of_measure: cm
+    # # item_dimension_carton_type:
+    # # display dimensions
+    # item_dimension_display_mass_unit_of_measure_weight: 1.0
+    # item_dimension_display_mass_unit_of_measure: kg
+    # item_dimension_display_packaging_length: 1.0
+    # item_dimension_display_packaging_width: 1.0
+    # item_dimension_display_packaging_height: 1.0
+    # item_dimension_display_packaging_unit_of_measure: cm
+    # # shipping dimensions
+    # item_dimension_shipping_mass_weight: 1.0
+    # item_dimension_shipping_mass_unit_of_measure: kg
+    # item_dimension_shipping_packaging_length: 1.0
+    # item_dimension_shipping_packaging_width: 1.0
+    # item_dimension_shipping_packaging_height: 1.0
+    # item_dimension_shipping_packaging_unit_of_measure: cm
+    # is_hidden_product:
+    # lot_tracking_indicator:
+    # ltl_freight_cost:
+    # manufacturer_date:
+    # manufacturer_item_id:
+    # manufacturer_name: Sony
+    # manufacturer_id: Sony_Man_Id
+    # may_ship_expedite:
+    # may_ship_international:
+    # may_ship_usps:
+    msrp: 89.99
+    price: 71.98
+    # safety_stock:
+    sales_class: advanceOrderLimited
+    # serial_number_type:
+    # service_indicator:
+    # ship_group:
+    # ship_window_min_hour:
+    # ship_window_max_hour:
+    # street_date:
+    # supplier_name:
+    # supplier_supplier_id:
+
 itemmaster-visibility-always:
   visibility: 4
 
@@ -96,48 +130,60 @@ itemmaster-visibility-other:
   style_id: '25077'
   # style_description:
   tax_code: '76800'
+
 contentmaster1:
+  keys:
+   - catalog_id
+   - gsi_client_id
+   - operation_type
+   - item_id
+   - base_attributes
+   - extended_attributes
+   - custom_attributes
+   - configurable_attributes
   catalog_id: '45'
   gsi_client_id: MAGTNA
   unique_id: 45-000906014545
   # # there will be no style id
-  # style_id:
-  product_links:
-     -
-      link_type: ES_CrossSelling
-      operation_type: Add
-      link_to_unique_id: 45-C42A180C
-     -
-      link_type: ES_Other
-      operation_type: Add
-      link_to_unique_id: 45-C42A180C
-  category_links:
-     -
-      default: 'false'
-      catalog_id: '45'
-      import_mode: Update
-      name: Toys-Category-Learning & Educational Toys-Electronic Learning
-  title:
-     -
-      lang: en-US
-      title: LeapFrog Leapster Educational Game Cartridge - Arcade Word Chasers
-  gift_wrapping_available: 'Y'
-  color:
-     -
-      code: '100'
-      description:
-        description: WHITE
+  color_attributes:
+    color:
+       -
+        code: '100'
+        description:
+          description: WHITE
+          lang: en-US
+        # there should be no sequence
+        # sequence:
+  extended_attributes:
+    category_links:
+       -
+        default: 'false'
+        catalog_id: '45'
+        import_mode: Update
+        name: Toys-Category-Learning & Educational Toys-Electronic Learning
+    gift_wrap:
+    gift_wrapping_available: 'Y'
+    long_description:
+       -
         lang: en-US
-      # there should be no sequence
-      # sequence:
-  long_description:
-     -
-      lang: en-US
-      long_description: Chase your way to word victory in this cat-and-mouse arcade game! Choose a cat, then catch mice and the correct letters to spell words! This fast-paced game builds advanced phonics and spelling skills!
-  search_keywords:
-     -
-      lang: en-US
-      search_keywords:
+        long_description: Chase your way to word victory in this cat-and-mouse arcade game! Choose a cat, then catch mice and the correct letters to spell words! This fast-paced game builds advanced phonics and spelling skills!
+    product_links:
+       -
+        link_type: ES_CrossSelling
+        operation_type: Add
+        link_to_unique_id: 45-C42A180C
+       -
+        link_type: ES_Other
+        operation_type: Add
+        link_to_unique_id: 45-C42A180C
+    search_keywords:
+       -
+        lang: en-US
+        search_keywords:
+    title:
+       -
+        lang: en-US
+        title: LeapFrog Leapster Educational Game Cartridge - Arcade Word Chasers
   custom_attributes:
      -
       name: TRUBRANDJDA

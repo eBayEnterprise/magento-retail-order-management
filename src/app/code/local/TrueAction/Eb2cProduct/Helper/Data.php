@@ -83,11 +83,14 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param  string $sku
 	 * @return Mage_Catalog_Model_Product
 	 */
-	public function prepareProductModel($sku)
+	public function prepareProductModel($sku, $type='simple')
 	{
 		$product = $this->loadProductBySku($sku);
 		if (!$product->getId()) {
 			$this->applyDummyData($product, $sku);
+			if ($type !== 'simple') {
+				$product->setData('type_id', $type);
+			}
 		}
 		return $product;
 	}

@@ -1,0 +1,18 @@
+product-exists:
+  website_ids: [ ]
+  category_ids: [ ]
+  status: 1  # this is a number because getStatus returns numeric 1 when the value is null
+product-not-exist:
+  type_id: simple
+  sku: 'somesku'
+  name: 'Invalid Product: somesku'
+  url_key: 'somesku'
+  category_ids: [ 999 ]
+  website_ids: [ 0 ]
+  description: 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.'
+  short_description: 'Invalid product. Please do not attempt to purchase.'
+  price: 0
+  weight: 0
+  visibility: 1
+  status: 0
+  tax_class_id: 0

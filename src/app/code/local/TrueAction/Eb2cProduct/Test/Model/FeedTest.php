@@ -27,6 +27,9 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'iShipFeedRemotePath' => '/',
 			'iShipFeedFilePattern' => '*.xml',
 			'iShipFeedEventType' => 'iShip',
+			'processorUpdateBatchSize' => 1,
+			'processorDeleteBatchSize' => 1,
+			'processorMaxTotalEntries' => 1,
 		));
 	}
 
