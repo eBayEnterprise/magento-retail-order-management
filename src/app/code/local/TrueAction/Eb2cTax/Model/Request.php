@@ -851,6 +851,17 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'CountryCode' => trim($item->getEb2cShipFromAddressCountryCode()),
 			'PostalCode' => trim($item->getEb2cShipFromAddressPostalCode()),
 		);
+		$this->_validateShipFromData($data);
+		return $data;
+	}
+
+	/**
+	 * validate the ship from address.
+	 * @param  array               $data address data
+	 * @throws Mage_Core_Exception if Line1, City, or CountryCode is blank.
+	 */
+	protected function _validateShipFromData($data)
+	{
 		foreach (array('Line1', 'City', 'CountryCode') as $key) {
 			$value = $data[$key];
 			if ($value === '') {
@@ -859,7 +870,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				);
 			}
 		}
-		return $data;
 	}
 
 	/**
