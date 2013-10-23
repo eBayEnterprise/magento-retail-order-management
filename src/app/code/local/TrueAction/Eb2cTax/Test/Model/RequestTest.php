@@ -58,6 +58,26 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * verify if any important part of the shipping address is missing
+	 * @dataProvider dataProvider
+	 * @loadExpectation
+	 */
+	public function testExtractShippingDataExceptions($expectation)
+	{
+		$addrData = $this->expected($expectation)->getData();
+		$this->setExpectedException(
+			'Mage_Core_Exception',
+			'unable to extract Line1, City, and CountryCode parts of the ship from address'
+		);
+		$data = new Mage_Sales_Model_Quote_Item();
+		$data->setData($addrData);
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->getMock();
+		$this->_reflectMethod($request, '_extractShippingData')->invoke($request, $data);
+	}
+
+	/**
 	 * make sure the exceptions don't kill the function.
 	 */
 	public function testProcessQuoteAddressException()
