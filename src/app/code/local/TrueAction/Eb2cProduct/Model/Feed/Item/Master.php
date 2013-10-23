@@ -62,6 +62,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	{
 		$optionId = 0;
 		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		// @todo, I just think this was wrong?
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
@@ -79,6 +80,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addAttributeOption($attribute, $newOption)
 	{
+		$eavAttributeModel  = Mage::getModel('eav/entity_attribute');
+		$eavAttributeCode   = $eavAttributeModel->getIdByCode('catalog_product', $attribute);
+		$eavAttributeObject = $eavAttributeModel->load($eavAttributeCode);
+
+	//	@todo: I don't think this works right, I think the get is broken.
 		$newOptionId = 0;
 		try{
 			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
@@ -94,10 +100,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				Zend_Log::ERR
 			);
 		}
+
+		if (!$newOptionId) {
+			Mage::log(
+				sprintf(
+					'[ %s ] Get-after-create broken for "%d" for attribute: %d in Item Master Feed',
+					__CLASS__, $newOption, $attribute
+				),
+				Zend_Log::ERR
+			);
+		}
 		return $newOptionId;
 	}
 
-	/**
+/**
 	 * load product by sku
 	 * @param string $sku, the product sku to filter the product table
 	 * @return Mage_Catalog_Model_Product
@@ -279,7 +295,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 					'type_id'          => self::PRODUCT_TYPE_SIMPLE, // default product type
 					'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name'             => 'temporary-name - ' . uniqid(),
+					'name'             => 'temporary-name-' . uniqid() . '-' . $item->getBaseAttributes()->getItemDescription(),
 					'status'           => 0, // default - disabled
 					'sku'              => $item->getItemId()->getClientItemId(),
 					'color'            => $this->_getProductColorOptionId($item),
@@ -311,7 +327,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 * Create a Parent Product
 	 * @return Mage_Catalog_Model_Product
 	 */
-	protected function _createMyParent($sku, $attributeSetId, $colorOptionId)
+	protected function _createMyParent($sku, $attributeSetId)
 	{
 		$newParent = Mage::getModel('catalog/product');
 		$newParentData = array(
@@ -321,7 +337,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			'name'             => 'temporary-parent-name - ' . uniqid(),
 			'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
 			'sku'              => $sku,
-			'color'            => $colorOptionId,
 			'website_ids'      => $this->getWebsiteIds(),
 			'store_ids'        => array($this->getDefaultStoreId()),
 			'tax_class_id'     => 0,
@@ -415,13 +430,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
 	{
+		/*
+		 * The problem is here. We are re-creating the SUper Attribute each time - it only needs to be created once. 
+		 * The 2nd problem is that this basically is over-writing the UsedProducts with the current product. So, we
+		 * need to *only* add the super attribute the first time around, and then *add* additional products to the existing
+		 * UsedProducts list. Then I think we're all set.
+		 */
 		try {
 			$configurableData = array();
 			foreach ($confAttr as $configAttribute) {
 				$attributeObject = $this->_getAttribute($configAttribute);
 				$attributeOptions = $attributeObject->getSource()->getAllOptions();
 				foreach ($attributeOptions as $option) {
-					if ((int) $pCObj->getData(strtolower($configAttribute)) === (int) $option['value']) {
+					$configAttributeInt = (int) $pCObj->getData(strtolower($configAttribute));
+					if ($configAttributeInt === (int) $option['value']) {
 						$configurableData[$pCObj->getId()][] = array(
 							'attribute_id' => $attributeObject->getId(),
 							'label' => $option['label'],
@@ -431,6 +453,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				}
 			}
 
+			/*
+			 * 	@todo: If the Super Attribute already exists, don't add it again. This is a maze of twisty little passages 
+			 * 	because the damn thing associates the first item and then tells you to pound sand on the 2nd one. 
+			 */
 			$configurableAttributeData = array();
 			foreach ($confAttr as $attrCode) {
 				$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
@@ -449,7 +475,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$pPObj->addData(
 				array(
 					'configurable_products_data' => $configurableData,
-					'configurable_attributes_data' => $configurableAttributeData,
+					// configurable_attributes_data' => $configurableAttributeData,
 					'can_save_configurable_attributes' => true,
 				)
 			)->save();
@@ -939,8 +965,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$parentProduct = $this->_loadProductBySku($parentSku);       // Load the Parent SKU
 			if (!$parentProduct->getId()) {                              // Parent doesn't exists, let's dummy up a parent
 				$parentProduct = $this->_createMyParent($parentSku,
-					$this->getDefaultAttributeSetId(),
-					$this->_getProductColorOptionId($dataObject)
+					$this->getDefaultAttributeSetId()
 				);
 			}
 
