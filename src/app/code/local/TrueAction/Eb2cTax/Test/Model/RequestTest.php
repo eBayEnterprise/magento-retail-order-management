@@ -37,6 +37,14 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 	public static $namespaceUri = 'http://api.gsicommerce.com/schema/checkout/1.0';
 
+	public static $validShipFromAddress = array(
+		'Line1' => '1 n rosedale st',
+		'City' => 'baltimore',
+		'MainDivision' => 'MD',
+		'CountryCode' => 'US',
+		'PostalCode' => '21229',
+	);
+
 	public $tdRequest    = null;
 	public $destinations = null;
 	public $shipGroups   = null;
@@ -203,18 +211,30 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	protected function _stubQuoteItem(
 		$product=null, $totalQty=1, $id=1, $sku='12345',
-		$children=array(), $childrenCalculated=false, $discountAmt=null
+		$children=array(), $childrenCalculated=false, $discountAmt=null,
+		$shipFromData=null
 	)
 	{
+		if (is_null($shipFromData)) {
+			$shipFromData = self::$validShipFromAddress;
+		}
 		return $this->_buildModelMock('sales/quote_item', array(
-			'getId'                => $this->returnValue($id),
-			'getSku'               => $this->returnValue($sku),
-			'getProduct'           => $this->returnValue($product),
-			'getTotalQty'          => $this->returnValue($totalQty),
-			'getHasChildren'       => $this->returnValue(!empty($children)),
-			'getChildren'          => $this->returnValue($children),
-			'isChildrenCalculated' => $this->returnValue($childrenCalculated),
-			'getDiscountAmount'    => $this->returnValue($discountAmt),
+			'getId'                              => $this->returnValue($id),
+			'getSku'                             => $this->returnValue($sku),
+			'getProduct'                         => $this->returnValue($product),
+			'getTotalQty'                        => $this->returnValue($totalQty),
+			'getHasChildren'                     => $this->returnValue(!empty($children)),
+			'getChildren'                        => $this->returnValue($children),
+			'isChildrenCalculated'               => $this->returnValue($childrenCalculated),
+			'getDiscountAmount'                  => $this->returnValue($discountAmt),
+			'getEb2cShipFromAddressLine1'        => $this->returnValue(isset($shipFromData['Line1']) ? $shipFromData['Line1'] : null),
+			'getEb2cShipFromAddressLine2'        => $this->returnValue(isset($shipFromData['Line2']) ? $shipFromData['Line2'] : null),
+			'getEb2cShipFromAddressLine3'        => $this->returnValue(isset($shipFromData['Line3']) ? $shipFromData['Line3'] : null),
+			'getEb2cShipFromAddressLine4'        => $this->returnValue(isset($shipFromData['Line4']) ? $shipFromData['Line4'] : null),
+			'getEb2cShipFromAddressCity'         => $this->returnValue(isset($shipFromData['City']) ? $shipFromData['City'] : null),
+			'getEb2cShipFromAddressMainDivision' => $this->returnValue(isset($shipFromData['MainDivision']) ? $shipFromData['MainDivision'] : null),
+			'getEb2cShipFromAddressCountryCode'  => $this->returnValue(isset($shipFromData['CountryCode']) ? $shipFromData['CountryCode'] : null),
+			'getEb2cShipFromAddressPostalCode'   => $this->returnValue(isset($shipFromData['PostalCode']) ? $shipFromData['PostalCode'] : null),
 		));
 	}
 
