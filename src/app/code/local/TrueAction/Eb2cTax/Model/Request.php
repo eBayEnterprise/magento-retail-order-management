@@ -843,6 +843,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$data = array(
 			'Line1' => trim($item->getEb2cShipFromAddressLine1()),
+			'Line2' => trim($item->getEb2cShipFromAddressLine2()),
+			'Line3' => trim($item->getEb2cShipFromAddressLine3()),
+			'Line4' => trim($item->getEb2cShipFromAddressLine4()),
 			'City' => trim($item->getEb2cShipFromAddressCity()),
 			'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
 			'CountryCode' => trim($item->getEb2cShipFromAddressCountryCode()),
@@ -851,7 +854,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		foreach (array('Line1', 'City', 'CountryCode') as $key) {
 			$value = $data[$key];
 			if ($value === '') {
-				;
 				throw new Mage_Core_Exception(
 					'[ ' . __CLASS__ . ' ] unable to extract Line1, City, and CountryCode parts of the ship from address'
 				);
