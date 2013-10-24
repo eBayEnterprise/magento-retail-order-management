@@ -354,7 +354,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$store = $this->_stubStore();
 		$product = $this->_stubProduct();
 		// mock the items
-		$itemA = $this->_stubQuoteItem($product, 1, 1111);
+		$itemA = $this->_stubQuoteItem($product, 1, 1, 1111);
 		$itemA->setData(array(
 			'item_id'                 => 1,
 			'quote_id'                => 1,
@@ -382,7 +382,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 299.9900,
 		));
 
-		$itemB = $this->_stubQuoteItem($product, 1, 1112);
+		$itemB = $this->_stubQuoteItem($product, 1, 2, 1112);
 		$itemB->setData(array(
 			'item_id'                 => 2,
 			'quote_id'                => 1,
@@ -410,7 +410,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 129.9900,
 		));
 
-		$itemC = $this->_stubQuoteItem($product, 1, 1113);
+		$itemC = $this->_stubQuoteItem($product, 1, 3, 1113);
 		$itemC->setData(array(
 			'item_id' => 3,
 			'quote_id'                => 1,
@@ -1835,13 +1835,13 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * verify the request generates xml that passes xsd validation.
 	 * @test
 	 * @large
 	 * @loadFixture loadAdminOriginConfig.yaml
 	 */
 	public function testValidateWithXsd()
 	{
-		$this->_setupBaseUrl();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
