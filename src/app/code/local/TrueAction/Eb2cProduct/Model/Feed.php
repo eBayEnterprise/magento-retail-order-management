@@ -41,7 +41,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 	public function processFeeds()
 	{
-		Varien_Profiler::start('processFeeds');
+		Varien_Profiler::start(__METHOD__);
 		$filesProcessed = 0;
 		// fetch all files for all feeds.
 		foreach (array_keys($this->_eventTypes) as $eventType) {
@@ -61,8 +61,8 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$filesProcessed++;
 		}
 		$this->_queue->process();
+		Varien_Profiler::stop(__METHOD__);
 		return $filesProcessed;
-		Varien_Profiler::stop('processFeeds');
 	}
 
 	/**
@@ -70,7 +70,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	public function processFile($xmlFile)
 	{
-		Varien_Profiler::start('processFile');
+		Varien_Profiler::start(__METHOD__);
 		if ($xmlFile === 'sample-feed-invalid-item-type.xml') print file_get_contents($xmlFile);
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
@@ -99,7 +99,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			return;
 		}
 		$this->processDom($dom);
-		Varien_Profiler::stop('processFile');
+		Varien_Profiler::stop(__METHOD__);
 	}
 
 	/**
@@ -109,10 +109,9 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	public function processDom(TrueAction_Dom_Document $doc)
 	{
-		Varien_Profiler::start('processDom');
+		Varien_Profiler::start(__METHOD__);
 		$units = $this->_getIterableFor($doc);
 		foreach ($units as $unit) {
-			$operation = $this->getOperationType($unit);
 			$isValid = $this->_eventTypeModel->getUnitValidationExtractor()
 				->getValue($this->_xpath, $unit);
 			if ($isValid) {
@@ -122,7 +121,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 				$this->_queue->add($data, $operationType);
 			}
 		}
-		Varien_Profiler::stop('processDom');
+		Varien_Profiler::stop(__METHOD__);
 		return $this;
 	}
 

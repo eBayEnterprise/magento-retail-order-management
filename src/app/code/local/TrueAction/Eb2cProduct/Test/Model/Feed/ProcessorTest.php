@@ -81,6 +81,7 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 
 	/**
 	 * @loadFixture
+	 * @large
 	 */
 	public function testProductLinks()
 	{

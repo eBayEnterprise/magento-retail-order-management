@@ -113,6 +113,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 	}
 
+	/**
+	 * Transform the data extracted from the feed into a generic set of feed data
+	 * including item_id, base_attributes, extended_attributes and custome_attributes
+	 * @param  Varien_Object $dataObject Data extraced from the feed
+	 * @return Varien_Object             Data that can be imported to a product
+	 */
 	protected function _transformData(Varien_Object $dataObject)
 	{
 		$outData = new Varien_Object(array(
@@ -130,6 +136,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// add the unique id from the content feed.
 		if ($dataObject->hasData('unique_id')) {
 			$outData->getData('item_id')->setData('client_item_id', $dataObject->getData('unique_id'));
+		}
+
+		// add iShip HTS codes, which will be a serialized array of hts codes and associated data
+		if ($dataObject->hasData('hts_codes')) {
+			$outData->setData('hts_codes', serialize($dataObject->getData('hts_codes')));
 		}
 
 		// prepare base attributes
@@ -300,7 +311,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			return;
 		}
 		$custData = new Varien_Object();
-		$outData->setData('custom_attributes', $outData);
+		$outData->setData('custom_attributes', $custData);
 		$coreHelper = Mage::helper('eb2ccore');
 		foreach ($customAttrs as $attributeData) {
 			if (!isset($attributeData['name'])) {
@@ -329,14 +340,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 	}
 
+	/**
+	 * Special data processors for the product_type custome attribute.
+	 * Assigns the PRODUCTTYPE custom attribute to the product data as 'product_type'
+	 * @param  array         $attrData   Map of custom attribute data: name, operation type, lang and value
+	 * @param  Varien_Object $customData Varien_Object containing all custome attributes data
+	 * @param  Varien_Object $outData    Varien_Object containing all transformed product feed data
+	 */
 	protected function _processProductType($attrData, Varien_Object $customData, Varien_Object $outData)
 	{
 		$outData->setData('product_type', strtolower($attrData['value']));
 	}
 
+	/**
+	 * Special data processor for the product configurable_attributes custom attribute.
+	 * Assigns the CONFIGURABLEATTRIBUTES custom attribute to the product data as configurable_attributes.
+	 * @todo  needs to be reformatted to match the appropriate data format. I think this is a start but will need to be checked.
+	 * @param  array         $attrData   Map of custom attribute data: name, operation type, lang and value
+	 * @param  Varien_Object $customData Varien_Object containing all custome attributes data
+	 * @param  Varien_Object $outData    Varien_Object containing all transformed product feed data
+	 */
 	protected function _processConfigurableAttributes($attrData, Varien_Object $customData, Varien_Object $outData)
 	{
-		$outData->setData('configurable_attributes', explode(',', $attrData['value']));
+		$heler = Mage::helper('eb2cproduct');
+		$outData->setData('configurable_attributes_data', array_map(function ($el) use ($helper) {
+			return array('attribute_id' => $helper->getProductAttributeId($el));
+		}, explode(',', $attrData['value'])));
 	}
 
 	/**
@@ -501,10 +530,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
 		}
 
-		$product->addData($productData->getData())->save(); // saving the product
+		$product->addData($productData->getData())
+			->addData($this->_getEb2cSpecificAttributeData($item))
+			->save(); // saving the product
 		$this
+			// @todo - these may need to be worked back in, and I think it should be
 			// ->_addColorToProduct($item, $product)
-			// ->_addEb2cSpecificAttributeToProduct($item, $product)
 			->_addConfigurableDataToProduct($item, $product)
 			->_addStockItemDataToProduct($item, $product);
 		return $this;
@@ -786,6 +817,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($prodHlpr->hasEavAttr('brand_name')) {
 			// setting brand_name attribute
 			$data['brand_name'] = $dataObject->getExtendedAttributes()->getBrandName();
+		}
+
+		if ($prodHlpr->hasEavAttr('hts_codes')) {
+			$data['hts_codes'] = $dataObject->getHtsCode();
 		}
 
 		if ($prodHlpr->hasEavAttr('brand_description')) {

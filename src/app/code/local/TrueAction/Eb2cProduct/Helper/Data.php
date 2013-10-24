@@ -43,6 +43,19 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Get a catalog product eav attribute id for the attribute identified by
+	 * the given code.
+	 * @param  string $attributeCode Attribute code for the product attribute
+	 * @return int                   ID of the attribute
+	 */
+	public function getProductAttributeId($attributeCode)
+	{
+		return Mage::getModel('eav/entity_attribute')
+			->loadByCode('catalog_product', $attributeCode)
+			->getId();
+	}
+
+	/**
 	 * @return bool true if Magento knows about the product type.
 	 * @param string $type
 	 */
