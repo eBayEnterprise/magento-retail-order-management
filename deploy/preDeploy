@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-# Run post-deploy tasks
+# Run pre-deploy tasks
 #
 
 # SCRIPTNAME should always be the filename of the script.
