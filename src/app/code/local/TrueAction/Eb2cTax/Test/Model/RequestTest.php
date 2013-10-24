@@ -2230,6 +2230,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testAddToDestination()
 	{
 		$fn      = $this->_reflectMethod('TrueAction_Eb2cTax_Model_Request', '_addToDestination');
