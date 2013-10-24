@@ -1926,8 +1926,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddresses()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1943,8 +1941,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNoChanges()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1959,8 +1955,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesEmptyQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1975,8 +1969,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNullQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1991,8 +1983,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesChangeMultishipState()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
