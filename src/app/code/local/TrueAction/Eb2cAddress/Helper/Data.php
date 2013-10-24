@@ -1,23 +1,19 @@
 <?php
-
 /**
  * Methods for converting addresses represented in XML
  * to Magento address model objects.
  */
 class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 {
-
-	const LINES_PATH     = 'eb2c:Line1|eb2c:Line2|eb2c:Line3|eb2c:Line4';
-	const CITY_PATH      = 'eb2c:City';
-	const REGION_PATH    = 'eb2c:MainDivision';
-	const COUNTRY_PATH   = 'eb2c:CountryCode';
-	const POSTCODE_PATH  = 'eb2c:PostalCode';
+	const LINES_PATH    = 'eb2c:Line1|eb2c:Line2|eb2c:Line3|eb2c:Line4';
+	const CITY_PATH     = 'eb2c:City';
+	const REGION_PATH   = 'eb2c:MainDivision';
+	const COUNTRY_PATH  = 'eb2c:CountryCode';
+	const POSTCODE_PATH = 'eb2c:PostalCode';
 
 	/**
 	 * Make sure the given string does not exceed the max length specified.
-	 *
 	 * BTW, wouldn't it be nice if PHP had partial functions?
-	 *
 	 * @param  string $str    String to limit to given length
 	 * @param  ing    $maxLen Max length of the string
 	 * @return string         String which will be at most $maxLen characters
@@ -144,5 +140,4 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return $this->getTextValueByXPath(self::POSTCODE_PATH, $physicalAddressXml);
 	}
-
 }

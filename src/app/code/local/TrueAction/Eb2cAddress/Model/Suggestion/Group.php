@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Stores all of the session data used by address validation.
  *
@@ -11,10 +10,8 @@
  * @method boolean getHasFreshSuggestions()
  * @method TrueAction_Eb2cAddress_Model_Suggestion_Group setHasFreshSuggestions(boolean)
  */
-class TrueAction_Eb2cAddress_Model_Suggestion_Group
-	extends Varien_Object
+class TrueAction_Eb2cAddress_Model_Suggestion_Group extends Varien_Object
 {
-
 	/**
 	 * Container for validated addresses. Addresses are stored by type.
 	 * Varien_Object instead of simple array for easier access.
@@ -88,5 +85,4 @@ class TrueAction_Eb2cAddress_Model_Suggestion_Group
 		$this->setHasFreshSuggestions($keepFresh && $this->getHasFreshSuggestions());
 		return $this->getData('suggested_addresses');
 	}
-
 }

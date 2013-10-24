@@ -1,9 +1,7 @@
 <?php
-
 class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	public function setUp()
 	{
 		parent::setUp();
@@ -307,11 +305,11 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		// address to feed to validator
 		$address = $this->_createAddress(array(
-			'street' => '1671 Clark Street Rd',
-			'city' => 'Auburn',
+			'street'      => '1671 Clark Street Rd',
+			'city'        => 'Auburn',
 			'region_code' => 'NY',
-			'country_id' => 'US',
-			'postcode' => '13025',
+			'country_id'  => 'US',
+			'postcode'    => '13025',
 		));
 		// original address from response model
 		$origAddress = $this->_createAddress(array(
@@ -1277,5 +1275,4 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			$validator->isValid()
 		);
 	}
-
 }

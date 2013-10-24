@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 require_once('Mage/Checkout/controllers/OnepageController.php');
 class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_Checkout_OnepageController
 {

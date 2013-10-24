@@ -1,13 +1,10 @@
 <?php
-
 /**
  * Test the generation of the xml request to the EB2C address validation service
  */
-
 class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * Parts of an address to use when building out the address request
 	 */
@@ -112,5 +109,4 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 		$message = $request->getMessage();
 		$this->assertTrue($message->schemaValidate($xsd));
 	}
-
 }

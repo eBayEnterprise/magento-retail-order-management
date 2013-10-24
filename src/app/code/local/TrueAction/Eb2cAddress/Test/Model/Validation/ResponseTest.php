@@ -1,9 +1,7 @@
 <?php
-
 class TrueAction_Eb2cAddress_Test_Model_Validation_ResponseTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * @test
 	 * @dataProvider dataProvider
@@ -427,5 +425,4 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_ResponseTest
 		');
 		$this->assertFalse($response->hasAddressSuggestions());
 	}
-
 }

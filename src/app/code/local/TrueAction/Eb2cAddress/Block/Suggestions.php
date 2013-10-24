@@ -1,8 +1,6 @@
 <?php
-
 class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 {
-
 	const SUGGESTION_INPUT_NAME = 'validation_option';
 	const DEFAULT_ADDRESS_FORMAT_CONFIG = 'address_format_full';
 	const NEW_ADDRESS_SELECTION_VALUE = 'new_address';
@@ -15,9 +13,9 @@ class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 	 */
 	protected $_messages = array(
 		'suggested_address' => 'TrueAction_Eb2cAddress_Suggestions_Label',
-		'suggestion_label' => 'TrueAction_Eb2cAddress_Suggested_Address_Label',
-		'original_label' => 'TrueAction_Eb2cAddress_Original_Address_Label',
-		'new_label' => 'TrueAction_Eb2cAddress_New_Address_Label',
+		'suggestion_label'  => 'TrueAction_Eb2cAddress_Suggested_Address_Label',
+		'original_label'    => 'TrueAction_Eb2cAddress_Original_Address_Label',
+		'new_label'         => 'TrueAction_Eb2cAddress_New_Address_Label',
 	);
 
 	/**
@@ -97,10 +95,19 @@ class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return string
 	 */
-	public function getAddressJSONData(Mage_Customer_Model_Address_Abstract $address)
+	public function getAddressJsonData(Mage_Customer_Model_Address_Abstract $address)
 	{
 		$address->explodeStreetAddress();
-		return $address->toJson(array('street1', 'street2', 'street3', 'street4', 'city', 'region_id', 'country_id', 'postcode'));
+		return $address->toJson(array(
+			'street1',
+			'street2',
+			'street3',
+			'street4',
+			'city',
+			'region_id',
+			'country_id',
+			'postcode',
+		));
 	}
 
 	/**
@@ -166,5 +173,4 @@ class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 	{
 		return $this->_getMessage('new_label');
 	}
-
 }

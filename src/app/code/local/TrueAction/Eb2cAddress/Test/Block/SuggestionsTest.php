@@ -1,9 +1,7 @@
 <?php
-
 class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * Get an instance of the suggestions block to run some tests against.
 	 * @return TrueAction_Eb2cAddress_Block_Suggestions
@@ -150,7 +148,7 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 		);
 		$address->addData($addressData);
 		$block = $this->_createSuggestionsBlock();
-		$jsonString = $block->getAddressJSONData($address);
+		$jsonString = $block->getAddressJsonData($address);
 		$this->assertNotNull($jsonString);
 		$jsonData = Mage::helper('core')->jsonDecode($jsonString);
 		$this->assertEquals(
@@ -273,5 +271,4 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 			$block->$methodName()
 		);
 	}
-
 }

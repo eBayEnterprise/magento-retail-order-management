@@ -1,10 +1,5 @@
 <?php
 /**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
-/**
  * reads the response from the TaxDutyRequest.
  */
 class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract

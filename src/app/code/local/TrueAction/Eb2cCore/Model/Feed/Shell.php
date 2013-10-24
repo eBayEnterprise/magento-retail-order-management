@@ -1,10 +1,9 @@
-<?php 
+<?php
 /**
  * Eb2c Feed Shell
  *
- * Ensures that feeds instantiate appropriate models by fetching the feed, instantiating the model, and 
+ * Ensures that feeds instantiate appropriate models by fetching the feed, instantiating the model, and
  * validating that it implements the correct interface
- *
  */
 class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 {
@@ -12,7 +11,7 @@ class TrueAction_Eb2cCore_Model_Feed_Shell extends Varien_Object
 
 	/**
 	 * Loads the configured feed models.
-	 * 
+	 *
 	 */
 	public function _construct()
 	{

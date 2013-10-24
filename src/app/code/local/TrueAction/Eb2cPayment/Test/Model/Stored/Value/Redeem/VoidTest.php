@@ -1,9 +1,4 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Test_Model_Stored_Value_Redeem_VoidTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_void;
