@@ -2268,7 +2268,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$request = Mage::getModel('eb2ctax/request');
 		$fn = $this->_reflectMethod($request, '_buildDiscountNode');
 		$doc = $request->getDocument();
-		$node = $doc->createElement('root', null, 'http:/www.example.com/foo');
+		$node = $doc->createElement('root', null, 'http://example.com/foo');
 		$doc->appendChild($node);
 		$xpath = new DOMXPath($doc);
 		$xpath->registerNamespace('a', $doc->documentElement->namespaceURI);
@@ -2285,7 +2285,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->assertSame('0', $xpath->evaluate('string(./a:Discount/@calculateDuty)', $node));
 		$this->assertSame('10', $xpath->evaluate('string(./a:Discount/a:Amount)', $node));
 
-		$node = $doc->createElement('root', null, 'http:/www.example.com/foo'); // parent node
+		$node = $doc->createElement('root', null, 'http://example.com/foo'); // parent node
 		$doc->appendChild($node);
 		$fn->invoke($request, $node, $discount, false);
 		$this->assertSame('somediscount2', $xpath->evaluate('string(./a:Discount/@id)', $node));

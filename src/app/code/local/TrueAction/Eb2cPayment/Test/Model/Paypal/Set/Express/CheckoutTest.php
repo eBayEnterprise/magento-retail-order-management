@@ -16,12 +16,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 		parent::setUp();
 		$this->_checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
 
-		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
-		$paymentHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalSetExpressCheckoutReply.xml'));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
-
 		$urlMock = $this->getModelMockBuilder('core/url')
 			->disableOriginalConstructor()
 			->setMethods(array('getUrl'))

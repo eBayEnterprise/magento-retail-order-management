@@ -7,7 +7,6 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_mockCoreHelper();
 		$this->_mockApiModel();
 		$this->_mockCustomerSession();
 		$this->_mockCheckoutSession();
@@ -43,23 +42,6 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 				'));
 		$this->replaceByMock('model', 'eb2ccore/api', $mock);
 		return $mock;
-	}
-
-	/**
-	 * Replace the eb2ccore/data helper class with a mock.
-	 * @return PHPUnit_Framework_MockObject_MockObject - the mock helper
-	 */
-	protected function _mockCoreHelper($emptyResponse=false)
-	{
-		$mockCoreHelper = $this->getHelperMock(
-			'eb2ccore/data',
-			array('apiUri')
-		);
-		$mockCoreHelper->expects($this->any())
-			->method('apiUri')
-			->will($this->returnValue('https://does.not.matter/as/this/isnot/actually/used.xml'));
-		$this->replaceByMock('helper', 'eb2ccore', $mockCoreHelper);
-		return $mockCoreHelper;
 	}
 
 	/**

@@ -1,11 +1,6 @@
 config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2c/payment/paypal_set_express_checkout_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalSetExpressCheckoutReply.xml"
-  default/eb2c/payment/paypal_get_express_checkout_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalGetExpressCheckoutReply.xml"
-  default/eb2c/payment/paypal_do_express_checkout_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoExpressCheckoutReply.xml"
-  default/eb2c/payment/paypal_do_authorization_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoAuthorizationReply.xml"
-  default/eb2c/payment/paypal_do_void_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalDoVoidReply.xml"
   default/eb2c/payment/enabled_eb2c_paypal_set_express_checkout: 1
   default/eb2c/payment/enabled_eb2c_paypal_get_express_checkout: 1
   default/eb2c/payment/enabled_eb2c_paypal_do_express_checkout: 1

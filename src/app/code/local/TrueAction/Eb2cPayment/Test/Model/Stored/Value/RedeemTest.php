@@ -15,11 +15,6 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_RedeemTest extends EcomDev_
 	{
 		parent::setUp();
 		$this->_redeem = Mage::getModel('eb2cpayment/stored_value_redeem');
-		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
-		$paymentHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemReply.xml'));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function providerGetRedeem()
