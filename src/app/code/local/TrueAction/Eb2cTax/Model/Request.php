@@ -841,6 +841,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
+		// make sure we always use the Quote item to get the ship from address.
+		$item = $this->_getQuoteItem($item);
 		return array(
 			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
 			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
@@ -941,5 +943,19 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
 			}
 		}
+	}
+
+	/**
+	 * if given a quote_item, the quote_item is returned.
+	 * if given an address_item, the associated quote_item is returned.
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item either a quote_item or an address_item
+	 * @return Mage_Sales_Model_Quote_Item
+	 */
+	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		if ($item instanceof Mage_Sales_Model_Quote_Address_Item) {
+			$item = $item->getQuoteItem();
+		}
+		return $item;
 	}
 }
