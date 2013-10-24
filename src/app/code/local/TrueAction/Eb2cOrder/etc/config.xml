@@ -49,7 +49,7 @@
 	<default>
 		<eb2c>
 			<order>
-				<developer_mode>1</developer_mode>
+				<developer_mode />
 					<!--
 					To view using dumbListener
 					<create_uri>http://virtbox.net:8080/</create_uri>
