@@ -2543,6 +2543,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * verify the shipfrom address check invalidates the request only when there is a change.
 	 * @test
 	 * @loadFixture base.yaml
 	 * @large
@@ -2551,22 +2552,22 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$this->assertNull(
-			$request->checkShippingOriginAddresses($quote)
-		);
+		$this->assertTrue($request->isValid(), 'request should initially be valid');
+		$request->checkShippingOriginAddresses($quote);
+		$this->assertTrue($request->isValid(), 'request should remain valid if no changes to the address are made');
 
 		// testing with invalid quote
 		$quoteAMock = $this->getMock('Mage_Sales_Model_Quote', array('getId'));
 		$quoteAMock->expects($this->any())
 			->method('getId')
-			->will($this->returnValue(0)
-			);
-		$this->assertNull(
-			$request->checkShippingOriginAddresses($quoteAMock)
-		);
+			->will($this->returnValue(0));
+		$request->checkShippingOriginAddresses($quoteAMock);
+		$this->assertFalse($request->isValid(), 'an invalid quote should invalidate the request');
 
 		// testing when shippingOrigin has changed.
+		$quote = $this->_stubSingleShipSameAsBill();
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid(), 'request should initially be valid');
 		$requestReflector = new ReflectionObject($request);
 		$orderItemsProperty = $requestReflector->getProperty('_orderItems');
 		$orderItemsProperty->setAccessible(true);
@@ -2585,7 +2586,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				)
 			)
 		));
-		$this->assertNull($request->checkShippingOriginAddresses($quote));
+		$request->checkShippingOriginAddresses($quote);
+		$this->assertFalse($request->isValid(), 'Expected the request to be invalidated');
 	}
 
 	/**
