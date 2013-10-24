@@ -132,7 +132,6 @@
 		</eb2cpayment>
 		<eb2c>
 			<payment>
-				<developer_mode>0</developer_mode>
 				<stored_value_balance_api_uri></stored_value_balance_api_uri>
 				<stored_value_redeem_api_uri></stored_value_redeem_api_uri>
 				<stored_value_redeem_void_api_uri></stored_value_redeem_void_api_uri>

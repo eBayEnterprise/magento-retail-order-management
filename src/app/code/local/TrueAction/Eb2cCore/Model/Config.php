@@ -11,7 +11,6 @@ class TrueAction_Eb2cCore_Model_Config
 		'api_timeout'                 => 'eb2ccore/api/timeout',
 		'api_namespace'               => 'eb2ccore/api/xml_namespace',
 		'api_xsd_path'                => 'eb2ccore/api/xsd_path',
-		'test_mode'                   => 'eb2ccore/development/test_mode',
 		'feed_destination_type'       => 'eb2ccore/feed/destination_type',
 		'sftp_location'               => 'eb2ccore/feed/filetransfer_sftp_host',
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',

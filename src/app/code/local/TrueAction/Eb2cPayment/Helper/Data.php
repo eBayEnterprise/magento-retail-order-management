@@ -99,13 +99,10 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$operation = $this->_operation[$optIndex];
 		}
 		$cfg = $this->getConfigModel(null);
-		$apiUri = $operation['dev'];
-		if (!(bool) $cfg->developerMode) {
-			$apiUri = Mage::helper('eb2ccore')->getApiUri(
-				$cfg->apiService,
-				$operation['pro']
-			);
-		}
+		$apiUri = Mage::helper('eb2ccore')->getApiUri(
+			$cfg->apiService,
+			$operation['pro']
+		);
 		return $apiUri;
 	}
 

@@ -23,7 +23,6 @@ class TrueAction_Eb2cFraud_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Cas
 	{
 		$config = $this->_helper->getConfig();
 		$this->assertSame('TAN-EB2CJS', $config->clientId);
-		$this->assertSame(null, $config->developerMode);
 	}
 
 	/**

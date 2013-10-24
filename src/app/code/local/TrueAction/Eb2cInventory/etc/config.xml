@@ -159,7 +159,6 @@
 	<default>
 		<eb2c>
 			<inventory>
-				<developer_mode>0</developer_mode>
 				<quantity_api_uri></quantity_api_uri>
 				<inventory_detail_uri></inventory_detail_uri>
 				<allocation_uri></allocation_uri>

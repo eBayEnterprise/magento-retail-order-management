@@ -70,10 +70,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$consts = $this->_helper->getConstHelper();
 		$uri = $this->_helper->getOperationUri($consts::CREATE_OPERATION);
 
-		if( $this->_config->developerMode ) {
-			$uri = $this->_config->developerCreateUri;
-		}
-
 		try {
 			$response = Mage::getModel('eb2ccore/api')
 				->addData(

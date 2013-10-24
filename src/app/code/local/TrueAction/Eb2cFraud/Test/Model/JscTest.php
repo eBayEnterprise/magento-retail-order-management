@@ -2,7 +2,7 @@
 class TrueAction_Eb2cFraud_Test_Model_JscTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
-	 * Test the 3 functions that put out necessary html/ javascript we need to inject into the checkout form
+	 * Test the 3 functions that put out necessary html/javascript we need to inject into the checkout form
 	 * @test
 	 */
 	public function testJscHtml()

@@ -63,7 +63,6 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
-				<test_mode />
 			</general>
 			<api>
 				<environment>api</environment>
@@ -96,9 +95,6 @@
 					</eb2cproduct>
 				</available_models>
 			</feed>
-			<development>
-				<test_mode />
-			</development>
 			<service>
 				<order>
 					<timeout>15</timeout>

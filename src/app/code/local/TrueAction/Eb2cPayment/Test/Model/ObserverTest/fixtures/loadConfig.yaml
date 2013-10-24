@@ -1,5 +1,4 @@
 config:
-  default/eb2c/inventory/developer_mode: 1
   default/eb2c/core/store_id: "ABCD"
   default/eb2c/core/client_id: "TAN-CLI"
   default/eb2c/inventory/quantity_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/QuantityResponseMessage.xml"

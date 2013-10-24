@@ -54,11 +54,6 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	{
 		$consts = $this->_helper->getConstHelper();
 		$uri = $this->_helper->getOperationUri($consts::CANCEL_OPERATION);
-
-		if( $this->_config->developerMode ) {
-			$uri = $this->_config->developerCancelUri;
-		}
-
 		try {
 			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)

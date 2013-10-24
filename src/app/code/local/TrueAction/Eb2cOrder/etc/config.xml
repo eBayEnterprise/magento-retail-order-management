@@ -49,14 +49,6 @@
 	<default>
 		<eb2c>
 			<order>
-				<developer_mode>1</developer_mode>
-					<!--
-					To view using dumbListener
-					<create_uri>http://virtbox.net:8080/</create_uri>
-					<cancel_uri>http://virtbox.net:8080/</cancel_uri>
-					-->
-				<developer_create_uri>http://virtbox.net/~mwest/fakeb2c/orderCreateRequest.php</developer_create_uri>
-				<developer_cancel_uri>http://virtbox.net/~mwest/fakeb2c/orderCancelRequest.php</developer_cancel_uri>
 				<payments_enabled>false</payments_enabled>
 				<config_path>eb2ccore/general</config_path>
 				<api_search_service>customers</api_search_service>

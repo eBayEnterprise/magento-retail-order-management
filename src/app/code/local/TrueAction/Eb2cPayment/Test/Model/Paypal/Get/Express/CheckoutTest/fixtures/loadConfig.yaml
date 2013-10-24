@@ -1,5 +1,4 @@
 config:
-  default/eb2c/payment/developer_mode: 1
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
   default/eb2c/payment/paypal_get_express_checkout_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalGetExpressCheckoutReply.xml"

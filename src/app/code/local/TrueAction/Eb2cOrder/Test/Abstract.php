@@ -137,9 +137,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			'apiXsdPath'              => '/home/mwest/projects/magento-enterprise/src/app/code/local/TrueAction/Eb2cCore/xsd',
 
 			// Eb2cOrder-specific Values:
-			'developerMode'           => true,
-			'developerCreateUri'      => 'valid-url-here',
-			'developerCancelUri'      => 'valid-url-here',
 			'eb2cPaymentsEnabled'     => true,
 			'statusFeedLocalPath'     => 'some_local_path_for_files',
 			'statusFeedRemotePath'    => 'doesnt_matter_just_some_path',
