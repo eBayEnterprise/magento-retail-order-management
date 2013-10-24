@@ -12,22 +12,10 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		$cfg = $this->getConfigModel(null);
 		$this->_operation = array(
-			'check_quantity' => array(
-				'pro' => $cfg->apiOptInventoryQty,
-				'dev' => $cfg->quantityApiUri
-			),
-			'get_inventory_details' => array(
-				'pro' => $cfg->apiOptInventoryDetails,
-				'dev' => $cfg->inventoryDetailUri
-			),
-			'allocate_inventory' => array(
-				'pro' => $cfg->apiOptInventoryAllocation,
-				'dev' => $cfg->allocationUri
-			),
-			'rollback_allocation' => array(
-				'pro' => $cfg->apiOptInventoryRollbackAllocation,
-				'dev' => $cfg->rollbackAllocationUri
-			)
+			'allocate_inventory'    => $cfg->apiOptInventoryAllocation,
+			'check_quantity'        => $cfg->apiOptInventoryQty,
+			'get_inventory_details' => $cfg->apiOptInventoryDetails,
+			'rollback_allocation'   => $cfg->apiOptInventoryRollbackAllocation,
 		);
 	}
 
@@ -58,21 +46,12 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
-	 *
 	 * @return string, the generated operation Uri
 	 */
 	public function getOperationUri($optIndex)
 	{
-		$operation = '';
-		if (isset($this->_operation[$optIndex])) {
-			$operation = $this->_operation[$optIndex];
-		}
 		$cfg = $this->getConfigModel(null);
-		$apiUri = Mage::helper('eb2ccore')->getApiUri(
-			$cfg->apiService,
-			$operation['pro']
-		);
-		return $apiUri;
+		return Mage::helper('eb2ccore')->getApiUri($cfg->apiService, $this->_operation[$optIndex]);
 	}
 
 	/**

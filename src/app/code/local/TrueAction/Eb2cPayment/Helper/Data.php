@@ -15,38 +15,14 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 		$cfg = $this->getConfigModel(null);
 
 		$this->_operation = array(
-			'get_gift_card_balance' => array(
-				'pro' => $cfg->apiOptStoredValueBalance,
-				'dev' => $cfg->storedValueBalanceApiUri
-			),
-			'get_gift_card_redeem' => array(
-				'pro' => $cfg->apiOptStoredValueRedeem,
-				'dev' => $cfg->storedValueRedeemApiUri
-			),
-			'get_gift_card_redeem_void' => array(
-				'pro' => $cfg->apiOptStoredValueRedeemVoid,
-				'dev' => $cfg->storedValueRedeemVoidApiUri
-			),
-			'get_paypal_set_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalSetExpressCheckout,
-				'dev' => $cfg->paypalSetExpressCheckoutApiUri
-			),
-			'get_paypal_get_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalGetExpressCheckout,
-				'dev' => $cfg->paypalGetExpressCheckoutApiUri
-			),
-			'get_paypal_do_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalDoExpressCheckout,
-				'dev' => $cfg->paypalDoExpressCheckoutApiUri
-			),
-			'get_paypal_do_authorization' => array(
-				'pro' => $cfg->apiOptPaypalDoAuthorization,
-				'dev' => $cfg->paypalDoAuthorizationApiUri
-			),
-			'get_paypal_do_void' => array(
-				'pro' => $cfg->apiOptPaypalDoVoid,
-				'dev' => $cfg->paypalDoVoidApiUri
-			)
+			'get_gift_card_balance'           => $cfg->apiOptStoredValueBalance,
+			'get_gift_card_redeem'            => $cfg->apiOptStoredValueRedeem,
+			'get_gift_card_redeem_void'       => $cfg->apiOptStoredValueRedeemVoid,
+			'get_paypal_do_authorization'     => $cfg->apiOptPaypalDoAuthorization,
+			'get_paypal_do_express_checkout'  => $cfg->apiOptPaypalDoExpressCheckout,
+			'get_paypal_do_void'              => $cfg->apiOptPaypalDoVoid,
+			'get_paypal_get_express_checkout' => $cfg->apiOptPaypalGetExpressCheckout,
+			'get_paypal_set_express_checkout' => $cfg->apiOptPaypalSetExpressCheckout,
 		);
 	}
 
@@ -89,21 +65,12 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
-	 *
 	 * @return string, the generated operation Uri
 	 */
 	public function getOperationUri($optIndex)
 	{
-		$operation = '';
-		if (isset($this->_operation[$optIndex])) {
-			$operation = $this->_operation[$optIndex];
-		}
 		$cfg = $this->getConfigModel(null);
-		$apiUri = Mage::helper('eb2ccore')->getApiUri(
-			$cfg->apiService,
-			$operation['pro']
-		);
-		return $apiUri;
+		return Mage::helper('eb2ccore')->getApiUri($cfg->apiService, $this->_operation[$optIndex]);
 	}
 
 	/**
