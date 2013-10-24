@@ -1547,7 +1547,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	public function testCheckDiscountsCouponCode()
 	{
 		$vProduct = $this->_stubProduct(true);
-		$item = $this->_stubQuoteItem($product, 1, 1, 'parent_sku', array(), false, 10);
+		$item = $this->_stubQuoteItem($vProduct, 1, 1, 'parent_sku', array(), false, 10);
 		$address = $this->_buildModelMock('sales/quote_address', array(
 			'getId'                 => $this->returnValue(1),
 			'getAllNonNominalItems' => $this->returnValue(array($item)),
