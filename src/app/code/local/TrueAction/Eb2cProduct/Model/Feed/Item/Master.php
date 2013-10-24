@@ -8,7 +8,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	const OPERATION_TYPE_ADD          = 'ADD';
 	const OPERATION_TYPE_UPDATE       = 'UPDATE';
 	const PRODUCT_TYPE_SIMPLE         = 'simple';
-	const PRODUCT_TYPE_CONFIGURABLE   = 'configurable';
 
 	/**
 	 * Initialize model
@@ -252,7 +251,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				->_addEb2cSpecificAttributeToProduct($item, $prdObj)
 				->_addCustomAttributeToProduct($item, $prdObj)
 				->_addConfigurableDataToProduct($item, $prdObj)
-				->_addStockItemDataToProduct($item, $prdObj);
+				->_addStockItemDataToProduct($item->getExtendedAttributes()->getBackOrderable(), $prdObj->getId());
+
 		}
 		return $this;
 	}
@@ -292,7 +292,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$prd
 				->unsId()
 				->addData(array(
-					'type_id'          => self::PRODUCT_TYPE_SIMPLE, // default product type
+					'type_id'          => Mage_Catalog_Model_Product_Type::TYPE_SIMPLE, // default product type
 					'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
 					'name'             => 'temporary-name-' . uniqid() . '-' . $item->getBaseAttributes()->getItemDescription(),
@@ -324,28 +324,57 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * Create a Parent Product
+	 * Create a Configurable Product
 	 * @return Mage_Catalog_Model_Product
 	 */
-	protected function _createMyParent($sku, $attributeSetId)
+	protected function _createConfigurableProduct($sku, $attributeSetId, $configurableAttributes)
 	{
-		$newParent = Mage::getModel('catalog/product');
-		$newParentData = array(
-			'type_id'          => self::PRODUCT_TYPE_CONFIGURABLE,
-			'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			'attribute_set_id' => $attributeSetId,
-			'name'             => 'temporary-parent-name - ' . uniqid(),
-			'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-			'sku'              => $sku,
-			'website_ids'      => $this->getWebsiteIds(),
-			'store_ids'        => array($this->getDefaultStoreId()),
-			'tax_class_id'     => 0,
-			'url_key'          => $sku,
+		$newConfigurableProduct = Mage::getModel('catalog/product');
+
+		/*
+		 *  @todo: If the Super Attribute already exists, don't add it again. This is a maze of twisty little passages 
+		 *  because the damn thing associates the first item and then tells you to pound sand on the 2nd one. 
+		 */
+		$configurableAttributeData = array();
+		foreach ($configurableAttributes as $attrCode) {
+			$superAttribute  = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
+			$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
+
+			$configurableAttributeData[] = array(
+				'id'             => $configurableAtt->getId(),
+				'label'          => $configurableAtt->getLabel(),
+				'position'       => $superAttribute->getPosition(),
+				'values'         => array(),
+				'attribute_id'   => $superAttribute->getId(),
+				'attribute_code' => $superAttribute->getAttributeCode(),
+				'frontend_label' => $superAttribute->getFrontend()->getLabel(),
+			);
+		}
+
+		// 'configurable_products_data' => $configurableData,
+		// 'can_save_configurable_attributes' => true,
+		$newConfigurableProductData = array(
+			'type_id'                      => Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
+			'visibility'                   => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'attribute_set_id'             => $attributeSetId,
+			'name'                         => 'configurable-temp-' . uniqid(),
+			'status'                       => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'sku'                          => $sku,
+			'website_ids'                  => $this->getWebsiteIds(),
+			'store_ids'                    => array($this->getDefaultStoreId()),
+			'tax_class_id'                 => 0,
+			'configurable_attributes_data' => $configurableAttributeData,
+			'url_key'                      => $sku,
+			'stock_data'                   => array(
+				'is_in_stock' => 1,
+				'qty'         => self::DEFAULT_INVENTORY_QTY
+			),
 		);
+
 		try {
-			$newParent->setData($newParentData)->save();
+			$newConfigurableProduct->setData($newConfigurableProductData)->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::log(sprintf('[ %s ] Create parent sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
+			Mage::log(sprintf('[ %s ] Create configurable product sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
 		}
 		return $this->_loadProductBySku($sku);
 	}
@@ -356,13 +385,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 * @param Mage_Catalog_Model_Product $parentProductObject, the product object to set stock item data to
 	 * @return self
 	 */
-	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	protected function _addStockItemDataToProduct($backOrderable, $productId)
 	{
-		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject->getId());
+		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productId);
 		$stockItem
 			->setQty(self::DEFAULT_INVENTORY_QTY)
 			->setUseConfigBackorders(false)
-			->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
+			->setBackorders($backOrderable)
 			->save();
 		return $this;
 	}
@@ -376,7 +405,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
 		$prodHlpr = Mage::helper('eb2cproduct');
-		if (trim(strtolower($dataObject->getProductType())) === self::PRODUCT_TYPE_CONFIGURABLE && $prodHlpr->hasEavAttr('color')) {
+		if (trim(strtolower($dataObject->getProductType())) === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE && $prodHlpr->hasEavAttr('color')) {
 			// setting color attribute, with the first record
 			$productObject->addData(
 				array(
@@ -422,72 +451,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * link child product to parent configurable product.
-	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
-	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
-	 * @param array $confAttr, collection of configurable attribute
-	 * @return self
+	 * Adds the passed in product id to the configurableProduct passed in
+	 * 
+	 * @param type $configurableProduct
+	 * @param type $usedProduct
+	 * @return \TrueAction_Eb2cProduct_Model_Feed_Item_Master 
 	 */
-	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
+	private function _attachProductToConfigurable($configurableProduct, $usedProduct)
 	{
-		/*
-		 * The problem is here. We are re-creating the SUper Attribute each time - it only needs to be created once. 
-		 * The 2nd problem is that this basically is over-writing the UsedProducts with the current product. So, we
-		 * need to *only* add the super attribute the first time around, and then *add* additional products to the existing
-		 * UsedProducts list. Then I think we're all set.
-		 */
-		try {
-			$configurableData = array();
-			foreach ($confAttr as $configAttribute) {
-				$attributeObject = $this->_getAttribute($configAttribute);
-				$attributeOptions = $attributeObject->getSource()->getAllOptions();
-				foreach ($attributeOptions as $option) {
-					$configAttributeInt = (int) $pCObj->getData(strtolower($configAttribute));
-					if ($configAttributeInt === (int) $option['value']) {
-						$configurableData[$pCObj->getId()][] = array(
-							'attribute_id' => $attributeObject->getId(),
-							'label' => $option['label'],
-							'value_index' => $option['value'],
-						);
-					}
-				}
-			}
-
-			/*
-			 * 	@todo: If the Super Attribute already exists, don't add it again. This is a maze of twisty little passages 
-			 * 	because the damn thing associates the first item and then tells you to pound sand on the 2nd one. 
-			 */
-			$configurableAttributeData = array();
-			foreach ($confAttr as $attrCode) {
-				$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
-				$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
-				$configurableAttributeData[] = array(
-					'id' => $configurableAtt->getId(),
-					'label' => $configurableAtt->getLabel(),
-					'position' => $superAttribute->getPosition(),
-					'values' => array(),
-					'attribute_id' => $superAttribute->getId(),
-					'attribute_code' => $superAttribute->getAttributeCode(),
-					'frontend_label' => $superAttribute->getFrontend()->getLabel(),
-				);
-			}
-
-			$pPObj->addData(
-				array(
-					'configurable_products_data' => $configurableData,
-					// configurable_attributes_data' => $configurableAttributeData,
-					'can_save_configurable_attributes' => true,
-				)
-			)->save();
-		} catch (Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while linking child product to configurable parent product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
+		$usedProductIds   = $configurableProduct->getTypeInstance()->getUsedProductIds();
+		$usedProductIds[] = $usedProduct->getId();
+		Mage::getResourceModel('catalog/product_type_configurable')
+			->saveProducts($configurableProduct, array_unique($usedProductIds));
 		return $this;
 	}
 
@@ -954,31 +929,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	{
 		$currentSku  = trim(strtoupper($dataObject->getItemId()->getClientItemId())); // Current Item's SKU
 		$productType = trim(strtolower($dataObject->getProductType()));               // Simple or Configurable, etc.
-		$parentSku   = trim($dataObject->getExtendedAttributes()->getStyleId());      // If applicable, this item's Parent SKU (See Spec for naming details)
+		$configurableSku   = trim($dataObject->getExtendedAttributes()->getStyleId());      // If applicable, this item's Parent SKU (See Spec for naming details)
 
 		/*
 	 	 * When we have a Simple product with a parent sku /different/ from our own sku, we may well
 		 * be a child of a configurable product.
 		 */
-		if ( !empty($parentSku) && $productType === self::PRODUCT_TYPE_SIMPLE && ($currentSku !== strtoupper($parentSku))) {
-			$parentSku = $dataObject->getCatalogId() . '-' . $parentSku; // Prepend the catalogId to the SKU - what we get doesn't have it
-			$parentProduct = $this->_loadProductBySku($parentSku);       // Load the Parent SKU
-			if (!$parentProduct->getId()) {                              // Parent doesn't exists, let's dummy up a parent
-				$parentProduct = $this->_createMyParent($parentSku,
-					$this->getDefaultAttributeSetId()
+		if ( !empty($configurableSku) && $productType === Mage_Catalog_Model_Product_Type::TYPE_SIMPLE && ($currentSku !== strtoupper($configurableSku))) {
+			$configurableSku = $dataObject->getCatalogId() . '-' . $configurableSku; // Prepend the catalogId to the SKU - what we get doesn't have it
+			$parentProduct = $this->_loadProductBySku($configurableSku); // Load the Configurable SKU
+			if (!$parentProduct->getId()) {                              // Configurable doesn't exists, let's dummy up a parent
+				$parentProduct = $this->_createConfigurableProduct(
+					$configurableSku,                        // Product SKU
+					$this->getDefaultAttributeSetId(),       // The Attribute Set
+					$dataObject->getConfigurableAttributes() // Which attributes in the Set are Configurable
 				);
 			}
 
-			// we have a valid parent configurable product
-			if (trim(strtolower($parentProduct->getTypeId())) === self::PRODUCT_TYPE_CONFIGURABLE) {
-				// We have a valid configurable parent product to set this child to
-				$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
-
-				// We can get color description save in the parent product to be saved to this child product.
-				$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
-				if (!empty($configurableColorData)) {
-					$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
-				}
+			if (trim(strtolower($parentProduct->getTypeId())) === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE) {
+				$this->_attachProductToConfigurable($parentProduct, $productObject);
 			}
 		}
 		return $this;
