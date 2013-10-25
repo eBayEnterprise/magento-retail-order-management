@@ -9,10 +9,9 @@ vfs:
 config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2c/inventory/allocation_expired: 60
-  default/eb2c/inventory/config_path: "eb2ccore/general"
-  default/eb2cinventory/inventory_feed/local_path: "TrueAction/Eb2c/Feed/Item/Inventories/"
-  default/eb2cinventory/inventory_feed/remote_path: "/Item/Inventories/"
-  default/eb2cinventory/inventory_feed/event_type: "ItemInventories"
-  default/eb2cinventory/inventory_feed/header_version: "2.3.0"
+  default/eb2cinventory/allocation_expired: 60
+  default/eb2cinventory/feed/local_path: "TrueAction/Eb2c/Feed/Item/Inventories/"
+  default/eb2cinventory/feed/remote_path: "/Item/Inventories/"
+  default/eb2cinventory/feed/event_type: "ItemInventories"
+  default/eb2cinventory/feed/header_version: "2.3.0"
   default/eb2ccore/feed/destination_type: "MAILBOX"

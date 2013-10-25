@@ -669,7 +669,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerIsExpired()
 	{
-		$elapseTime = (int) Mage::getStoreConfig('eb2c/inventory/allocation_expired', null) + 15; // configure elapse time plus 15 minute more
+		$elapseTime = (int) Mage::getStoreConfig('eb2cinventory/allocation_expired', null) + 15; // configure elapse time plus 15 minute more
 		$currentDate = new DateTime(gmdate('c'));
 		$intervalFormat = 'PT' . $elapseTime . 'M';
 		$interval = new DateInterval($intervalFormat);

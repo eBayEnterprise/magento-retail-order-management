@@ -1,8 +1,8 @@
 config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2c/payment/enabled_eb2c_paypal_set_express_checkout: 1
-  default/eb2c/payment/enabled_eb2c_paypal_get_express_checkout: 0
-  default/eb2c/payment/enabled_eb2c_paypal_do_express_checkout: 1
-  default/eb2c/payment/enabled_eb2c_paypal_do_authorization: 1
-  default/eb2c/payment/enabled_eb2c_paypal_do_void: 1
+  default/eb2cpayment/enabled_eb2c_paypal_set_express_checkout: 1
+  default/eb2cpayment/enabled_eb2c_paypal_get_express_checkout: 0
+  default/eb2cpayment/enabled_eb2c_paypal_do_express_checkout: 1
+  default/eb2cpayment/enabled_eb2c_paypal_do_authorization: 1
+  default/eb2cpayment/enabled_eb2c_paypal_do_void: 1

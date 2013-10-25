@@ -20,8 +20,7 @@ config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
   default/eb2ccore/general/catalog_id: "70"
-  default/eb2c/product/allocation_expired: 60
-  default/eb2c/product/config_path: "eb2ccore/general"
+  default/eb2cproduct/allocation_expired: 60
   default/eb2cproduct/item_master_feed/local_path: "vfs://testBase/feed_item_master/"
   default/eb2cproduct/item_master_feed/remote_path: "/Item/Master/"
   default/eb2cproduct/item_master_feed/event_type: "ItemMaster"

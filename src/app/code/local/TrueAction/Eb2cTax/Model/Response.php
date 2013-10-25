@@ -168,7 +168,7 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 				foreach ($items as $item) {
 					$orderItem = Mage::getModel('eb2ctax/response_orderitem', array(
 						'node' => $item,
-						'namespace_uri' => $this->_namespaceUri
+						'namespace_uri' => $this->_namespaceUri,
 					));
 					if ($orderItem->isValid()) {
 						$itemKey = (string) $orderItem->getSku();

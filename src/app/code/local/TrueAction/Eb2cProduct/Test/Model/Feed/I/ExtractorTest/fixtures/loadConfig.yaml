@@ -2,8 +2,7 @@ config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
   default/eb2ccore/general/catalog_id: "70"
-  default/eb2c/product/allocation_expired: 60
-  default/eb2c/product/config_path: "eb2ccore/general"
+  default/eb2cproduct/allocation_expired: 60
   default/eb2cproduct/i_ship_feed/local_path: "var/TrueAction/Eb2c/Feed/I/Ship/"
   default/eb2cproduct/i_ship_feed/remote_path: "/I/Ship/"
   default/eb2cproduct/i_ship_feed/event_type: "iShip"

@@ -3,9 +3,8 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 {
 	protected $_configPaths = array(
 		'api_xml_ns'        => 'eb2ccore/api/xml_namespace',
-		'api_service'       => 'eb2c/product/api_service',
-		'api_return_format' => 'eb2c/product/api_return_format',
-		'config_path'       => 'eb2c/product/config_path',
+		'api_service'       => 'eb2cproduct/api_service',
+		'api_return_format' => 'eb2cproduct/api_return_format',
 
 		'item_feed_local_path'           => 'eb2cproduct/item_master_feed/local_path',
 		'item_feed_remote_received_path' => 'eb2cproduct/item_master_feed/remote_path',

@@ -75,7 +75,6 @@
 				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
 			<feed>
-				<enabled_reindex>0</enabled_reindex>
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>

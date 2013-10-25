@@ -1,7 +1,6 @@
 <?php
-class TrueAction_Eb2cCore_Model_Config
-	extends TrueAction_Eb2cCore_Model_Config_Abstract {
-
+class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_Abstract
+{
 	protected $_configPaths = array(
 		'api_environment'             => 'eb2ccore/api/environment',
 		'api_key'                     => 'eb2ccore/api/key',

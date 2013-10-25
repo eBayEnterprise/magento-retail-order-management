@@ -2,4 +2,4 @@ config:
   default/eb2ccore/general/store_id: "ABCD"
   default/eb2ccore/general/client_id: "TAN-CLI"
   default/eb2ccore/api/xml_namespace: "http://api.gsicommerce.com/schema/checkout/1.0"
-  default/eb2c/inventory/allocation_expired: 60
+  default/eb2cinventory/allocation_expired: 60
