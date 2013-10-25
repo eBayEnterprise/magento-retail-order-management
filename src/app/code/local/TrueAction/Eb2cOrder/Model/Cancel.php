@@ -95,6 +95,14 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 				),
 				Zend_Log::ERR
 			);
+		} catch(Mage_Core_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		return $this->_processResponse($response);

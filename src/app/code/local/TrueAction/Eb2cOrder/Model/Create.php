@@ -73,10 +73,10 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_ebcPaymentMethodMap = array(
 			'Pbridge_eb2cpayment_cc' => 'CreditCard',
 			'Paypal_express' => 'PayPal',
-			'PrepaidCreditCard' => 'PrepaidCreditCard', // unknowned
-			'StoredValueCard' => 'StoredValueCard', // unknowned
-			'Points' => 'Points', // unknowned
-			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery', // unknowned
+			'PrepaidCreditCard' => 'PrepaidCreditCard', // Not use
+			'StoredValueCard' => 'StoredValueCard', // Not use
+			'Points' => 'Points', // Not use
+			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery', // Not use
 		);
 	}
 
@@ -129,6 +129,14 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			Mage::log(
 				sprintf(
 					'[ %s ] The following error has occurred while sending order create request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
+		} catch(Mage_Core_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
 					__CLASS__, $e->getMessage()
 				),
 				Zend_Log::ERR
@@ -307,8 +315,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 
 		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
-
-		Mage::log(sprintf('[ %s ]: Item Data: %s', __METHOD__, $reservationId), Zend_Log::DEBUG);
 
 		if (trim($item->getEb2cDeliveryWindowFrom()) !== '' && trim($item->getEb2cShippingWindowFrom()) !== '') {
 			$estDeliveryDate = $orderItem->createChild('EstimatedDeliveryDate');
@@ -557,5 +563,46 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	private function _getRequestId()
 	{
 		return uniqid('OCR-');
+	}
+
+	/**
+	 * This method will be trigger via cron, in which it will fetch all magento order
+	 * with a state status of 'new' and then loop through them and then run code create eb2c orders
+	 * same event to resend them to eb2c to create
+	 * @return void
+	 */
+	public function retryOrderCreate()
+	{
+		// first get all order with state equal to 'new'
+		$orders = $this->_getNewOrders();
+		$currentDate = date("m/d/Y H:i:s", Mage::getModel('core/date')->timestamp(time()));
+		Mage::log(
+			sprintf('[ %s ]: Begin order retry now: %s. Found %s new order to be retried',
+			__METHOD__, $currentDate, $orders->count()
+			),
+			Zend_Log::DEBUG
+		);
+
+		foreach ($orders as $order) {
+			// running same code to send request create eb2c orders
+			$this->buildRequest($order)
+				->sendRequest();
+		}
+
+		$newDate = date("m/d/Y H:i:s", Mage::getModel('core/date')->timestamp(time()));
+		Mage::log(sprintf('[ %s ]: Order retried finish at: %s', __METHOD__, $newDate), Zend_Log::DEBUG);
+	}
+
+	/**
+	 * fetch all order with state new
+	 * @return Mage_Sales_Model_Order_Resource_Collection
+	 */
+	private function _getNewOrders()
+	{
+		$orders = Mage::getResourceModel('sales/order_collection');
+		$orders->addAttributeToSelect('*')
+			->getSelect()
+			->where("main_table.state = 'new'");
+		return $orders->load();
 	}
 }
