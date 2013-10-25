@@ -69,7 +69,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 	private function _invalidateTaxRequest()
 	{
 		$req = $this->_getTaxHelper()->getCalculator()->getTaxRequest();
-		if ($req) {
+		if (method_exists($req, 'invalidate')) {
 			$req->invalidate();
 		}
 	}
