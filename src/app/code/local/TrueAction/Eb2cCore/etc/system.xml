@@ -2,7 +2,7 @@
 <config>
 	<tabs>
 		<eb2c translate="label" module="eb2ccore">
-			<label>EBay Enterprise</label>
+			<label>eBay Enterprise</label>
 			<sort_order>550</sort_order>
 		</eb2c>
 	</tabs>
