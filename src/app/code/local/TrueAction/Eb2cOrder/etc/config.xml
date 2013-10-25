@@ -10,6 +10,16 @@
 			<eb2corder>
 				<class>TrueAction_Eb2cOrder_Model</class>
 			</eb2corder>
+			<eav>
+				<rewrite>
+					<entity_type>TrueAction_Eb2cOrder_Overrides_Model_Eav_Entity_Type</entity_type>
+				</rewrite>
+			</eav>
+			<paypal>
+				<rewrite>
+					<express_checkout>TrueAction_Eb2cOrder_Overrides_Model_Paypal_Express_Checkout</express_checkout>
+				</rewrite>
+			</paypal>
 		</models>
 		<helpers>
 			<eb2corder>

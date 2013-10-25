@@ -97,11 +97,21 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 			);
 		}
 
+		return $this->_processResponse($response);
+	}
+
+	/**
+	 * processing the request response from eb2c
+	 * @param string $response, the response string xml from eb2c request
+	 * @return bool, true successfully cancelled in eb2c otherwise false
+	 */
+	private function _processResponse($response)
+	{
 		if (trim($response) !== '') {
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			$rc = strcmp($status, 'CANCELLED') ? false : true;
+			$rc = (strtoupper(trim($status)) === 'CANCELLED') ? false : true;
 			if( $rc === true ) {
 				Mage::dispatchEvent('eb2c_order_cancel_succeeded', array('order_id' => $this->_orderId));
 			} else {

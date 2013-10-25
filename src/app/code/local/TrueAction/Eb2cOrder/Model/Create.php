@@ -62,6 +62,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 	/**
 	 * @var array, hold magento payment map to eb2c
+	 * @see https://trueaction.atlassian.net/wiki/display/EBC/Magento+Payment+Method+Map+with+Eb2c
 	 */
 	private $_ebcPaymentMethodMap = array();
 
@@ -71,8 +72,11 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$this->_config = $this->_helper->getConfig();
 		$this->_ebcPaymentMethodMap = array(
 			'Pbridge_eb2cpayment_cc' => 'CreditCard',
-			'Paypal_express' => 'PrepaidCreditCard',
-			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery',
+			'Paypal_express' => 'PayPal',
+			'PrepaidCreditCard' => 'PrepaidCreditCard', // unknowned
+			'StoredValueCard' => 'StoredValueCard', // unknowned
+			'Points' => 'Points', // unknowned
+			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery', // unknowned
 		);
 	}
 
@@ -131,14 +135,40 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			);
 		}
 
+		return $this->_processResponse($response);
+	}
+
+	/**
+	 * processing the request response from eb2c
+	 * @param string $response, the response string xml from eb2c request
+	 * @return self
+	 */
+	private function _processResponse($response)
+	{
 		if (trim($response) !== '') {
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-
-			if( strcmp($status, 'Success') === true ) {
+			if(strtoupper(trim($status)) === 'SUCCESS') {
+				$this->_o->setState(Mage_Sales_Model_Order::STATE_PROCESSING)->save();
+				Mage::log(
+					sprintf('[ %s ]: updating order (%s) state to processing after successfully creating order from eb2c', __METHOD__, $this->_o->getIncrementId()),
+					Zend_Log::DEBUG
+				);
 				Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
+			} else {
+				$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
+				Mage::log(
+					sprintf('[ %s ]: updating order (%s) state to new after receiving fail response from eb2c', __METHOD__, $this->_o->getIncrementId()),
+					Zend_Log::DEBUG
+				);
 			}
+		} else {
+			$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
+			Mage::log(
+				sprintf('[ %s ]: updating order (%s) state to new after order creation request failure', __METHOD__, $this->_o->getIncrementId()),
+				Zend_Log::DEBUG
+			);
 		}
 
 		return $this;
@@ -156,7 +186,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	public function buildRequest(Mage_Sales_Model_Order $orderObject)
 	{
 		$this->_o = $orderObject;
-
 		$consts = $this->_helper->getConstHelper();
 
 		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -217,7 +246,10 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	 */
 	private function _buildCustomer(DomElement $customer)
 	{
-		$customer->setAttribute('customerId', $this->_o->getCustomerId());
+		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+
+		$customer->setAttribute('customerId', sprintf('%s%s', $cfg->clientCustomerIdPrefix, $this->_o->getCustomerId()));
 
 		$name = $customer->createChild('Name');
 		$name->createChild('Honorific', $this->_o->getCustomerPrefix() );
@@ -444,19 +476,39 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	{
 		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
 			foreach($this->_o->getAllPayments() as $payment) {
-				$thisPayment = $payments->createChild($this->_ebcPaymentMethodMap[ucfirst($payment->getMethod())]);
-				$paymentContext = $thisPayment->createChild('PaymentContext');
-				$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-				$paymentContext->createChild('TenderType', $payment->getMethod());
-				$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
-				$thisPayment->createChild('PaymentRequestId', '???');
-				$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
-				$auth = $thisPayment->createChild('Authorization');
-				$auth->createChild('ResponseCode', $payment->getCcStatus());
-				$auth->createChild('BankAuthorizationCode', $payment->getCcApproval());
-				$auth->createChild('CVV2ResponseCode', $payment->getCcCidStatus());
-				$auth->createChild('AVSResponseCode', $payment->getCcAvsStatus());
-				$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
+				$payMethodNode = $this->_ebcPaymentMethodMap[ucfirst($payment->getMethod())];
+
+				$thisPayment = $payments->createChild($payMethodNode);
+
+				if ($payMethodNode === 'CreditCard') {
+					$paymentContext = $thisPayment->createChild('PaymentContext');
+					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
+					$paymentContext->createChild('TenderType', $payment->getMethod());
+					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
+					$thisPayment->createChild('PaymentRequestId', '???');
+					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
+
+					$auth = $thisPayment->createChild('Authorization');
+					$auth->createChild('ResponseCode', $payment->getCcStatus());
+					$auth->createChild('BankAuthorizationCode', $payment->getCcApproval());
+					$auth->createChild('CVV2ResponseCode', $payment->getCcCidStatus());
+					$auth->createChild('AVSResponseCode', $payment->getCcAvsStatus());
+					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
+
+				} elseif ($payMethodNode === 'PayPal') {
+					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
+					$thisPayment->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
+
+					$paymentContext = $thisPayment->createChild('PaymentContext');
+					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
+					$paymentContext->createChild('TenderType', $payment->getMethod());
+					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
+
+					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
+					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payment->getId()));
+					$auth = $thisPayment->createChild('Authorization');
+					$auth->createChild('ResponseCode', $payment->getCcStatus());
+				}
 			}
 		} else {
 			$thisPayment = $payments->createChild('PrepaidCreditCard');
