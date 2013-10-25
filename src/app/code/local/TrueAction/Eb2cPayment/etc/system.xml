@@ -1,16 +1,9 @@
 <?xml version="1.0"?>
 <config>
 	<sections>
-		<eb2cpayment translate="label" module="eb2cpayment">
-			<label>Payments</label>
-			<tab>eb2c</tab>
-			<frontend_type>text</frontend_type>
-			<sort_order>450</sort_order>
-			<show_in_default>1</show_in_default>
-			<show_in_website>1</show_in_website>
-			<show_in_store>1</show_in_store>
+		<eb2ccore translate="label" module="eb2cpayment">
 			<groups>
-				<general translate="label">
+				<eb2cpayment translate="label">
 					<label>Payments</label>
 					<frontend_type>text</frontend_type>
 					<sort_order>500</sort_order>
@@ -28,8 +21,8 @@
 							<show_in_store>1</show_in_store>
 						</enabled>
 					</fields>
-				</general>
+				</eb2cpayment>
 			</groups>
-		</eb2cpayment>
+		</eb2ccore>
 	</sections>
 </config>
