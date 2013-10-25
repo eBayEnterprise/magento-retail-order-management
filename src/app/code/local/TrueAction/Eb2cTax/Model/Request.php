@@ -859,6 +859,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 * validate the ship from address.
 	 * @param  array               $data address data
 	 * @throws Mage_Core_Exception if Line1, City, or CountryCode is blank.
+	 * @return null
 	 */
 	protected function _validateShipFromData($data)
 	{
