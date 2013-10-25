@@ -1,0 +1,86 @@
+entity-1:
+  is_clean: true
+  related_products:
+    -
+      'simple-clean'
+  up_sell_products:
+    -
+      'config-dirty'
+  cross_sell_products:
+    -
+      'simple-clean'
+  used_products:
+    -
+entity-2:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+      'child-clean'
+      'child-dirty'
+entity-3:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+entity-4:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+entity-5:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+entity-6:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+entity-7:
+  is_clean: true
+  related_products:
+    -
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
+entity-8:
+  is_clean: false
+  related_products:
+    -
+      'simple-clean'
+  up_sell_products:
+    -
+  cross_sell_products:
+    -
+  used_products:
+    -
