@@ -929,8 +929,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function checkShippingOriginAddresses(Mage_Sales_Model_Quote $quote=null)
 	{
 		if (!($this->isValid() && $quote && $quote->getId())) {
-			// skip it if the request is bad in the first place or if the quote
-			// passed in is null.
+			// just invalidate the request if the request is bad in the first place or if
+			// the quote passed in is null.
+			$this->invalidate();
 			return;
 		}
 
@@ -939,7 +940,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				if($item = $quote->getItemById($value['id'])) {
 					$itemData = $this->_extractShippingData($item);
 					$shippingOrigin = $value['ShippingOrigin'];
-					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin);
+					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin) ||
+						(bool) array_diff_assoc($shippingOrigin, $itemData);
 				}
 			}
 		}
