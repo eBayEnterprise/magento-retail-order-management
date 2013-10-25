@@ -2544,10 +2544,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckShippingOriginAddresses()
 	{
-		$this->markTestIncomplete('this test is invalid');
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 
+		$this->markTestIncomplete('this test is invalid');
 		$this->assertNull(
 			$request->checkShippingOriginAddresses($quote)
 		);
