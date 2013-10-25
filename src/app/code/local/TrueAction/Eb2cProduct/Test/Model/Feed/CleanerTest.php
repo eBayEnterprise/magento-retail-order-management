@@ -13,7 +13,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
 	{
 		$cleaner = Mage::getModel('eb2cproduct/feed_cleaner');
 		$dirtyProducts = $cleaner->getProductsToClean();
-		$this->assertSame(4, count($dirtyProducts), 'Found incorrect number of products.');
+		$this->assertSame(6, count($dirtyProducts), 'Found incorrect number of products.');
+
+		$testProd = Mage::getModel('catalog/product')->load(1);
 		foreach ($dirtyProducts as $product) {
 			$this->assertFalse($product->getIsClean(), 'Included a product that is already clean.');
 		}
@@ -33,13 +35,17 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
 		$cleaner->cleanProduct($product);
 		$expect = $this->expected('entity-%s', $productId);
 
-		$this->assertSame($expect->getIsClean(), $product->getIsClean());
+		$savedProduct = Mage::getModel('catalog/product')->load($productId);
 		$linkTypes = array('Related', 'UpSell', 'CrossSell');
 		foreach ($linkTypes as $linkType) {
 			$linkGetter = 'get' . $linkType . 'Products';
 			$expectedLinks = $expect->$linkGetter();
-			$actualLinks = $product->$linkGetter();
-			$this->assertSame(count($expectedLinks), count($actualLinks));
+			$actualLinks = $savedProduct->$linkGetter();
+			$this->assertSame(
+				count($expectedLinks),
+				count($actualLinks),
+				'Incorrect number of ' . $linkType . ' products'
+			);
 			foreach ($actualLinks as $linkedProduct) {
 				$this->assertEquals(
 					$expectedLinks,
@@ -49,14 +55,24 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
 			}
 		}
 
-		if ($product->getTypeId() === 'configurable') {
-			$usedProducts = $product->getTypeInstance()->getUsedProducts();
+		if ($savedProduct->getTypeId() === 'configurable') {
+			$usedProducts = $savedProduct->getTypeInstance()->getUsedProducts();
 			$this->assertEquals(
-				$expected->getUsedProducts(),
+				$expect->getUsedProducts(),
 				array_map(function ($p) { return $p->getSku(); }, $usedProducts),
 				'Not all expected used products were linked.'
 			);
 		}
+		$this->assertEquals(
+			$expect->getUnresolvedProductLinks(),
+			$savedProduct->getUnresolvedProductLinks(),
+			'unresolved_product_links not properly updated'
+		);
+		$this->assertSame(
+			$expect->getIsClean(),
+			$savedProduct->getIsClean(),
+			'is_clean flag not set properly'
+		);
 	}
 
 	/**

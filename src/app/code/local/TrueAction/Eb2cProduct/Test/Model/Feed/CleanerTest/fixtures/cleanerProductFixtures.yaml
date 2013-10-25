@@ -27,7 +27,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: 'a:3:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"config-dirty";}i:2;a:3:{s:9:"link_type";s:9:"crosssell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}}'
+      unresolved_product_links: 'a:3:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"config-dirty";}i:2;a:3:{s:9:"link_type";s:9:"crosssell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}}'
     -
       entity_id: 2
       type_id: configurable
@@ -50,7 +50,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 3
       type_id: simple
@@ -73,7 +73,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: true
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 4
       type_id: simple
@@ -97,7 +97,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: true
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 5
       type_id: simple
@@ -121,7 +121,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 6
       type_id: simple
@@ -145,7 +145,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 7
       type_id: configurable
@@ -168,7 +168,7 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: ''
+      unresolved_product_links: ''
     -
       entity_id: 8
       type_id: simple
@@ -191,4 +191,4 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      missing_product_links: 'a:2:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:16:"the-missing-link";}}'
+      unresolved_product_links: 'a:2:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:16:"the-missing-link";}}'

@@ -143,6 +143,25 @@
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
 				</item_type>
+				<is_clean>
+					<scope>Website</scope>
+					<label>Is Clean</label>
+					<group></group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default>N</default>
+				</is_clean>
+				<unresolved_product_links>
+					<scope>Website</scope>
+					<label>Unresolved Product Links</label>
+					<group></group>
+					<input_type>textarea</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+					<backend_type>text</backend_type>
+				</unresolved_product_links>
 			</default>
 		</eb2cproduct_attributes>
 	</global>
