@@ -1119,6 +1119,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'     => $this->returnValue($product),
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
+			'getQuoteItem'   => $this->returnValue($item),
 		));
 		$addressItemA->setData(array(
 			'address_item_id'         => 5,
@@ -1156,6 +1157,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'     => $this->returnValue($product),
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
+			'getQuoteItem'   => $this->returnValue($item),
 		));
 		$addressItemB->setData(array(
 			'address_item_id'         => 6,
@@ -1903,8 +1905,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddresses()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1920,8 +1920,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNoChanges()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1936,8 +1934,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesEmptyQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1952,8 +1948,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNullQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1968,8 +1962,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesChangeMultishipState()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -2435,8 +2427,16 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			->method('getEb2cShipFromAddressPostalCode')
 			->will($this->returnValue('19406'));
 
+		// mock the address items
+		$mockAddressItem = $this->_buildModelMock('sales/quote_address_item', array(
+			'getId'          => $this->returnValue(5),
+			'getHasChildren' => $this->returnValue(false),
+			'getQuoteItem'   => $this->returnValue($mockQuoteItem),
+		));
+
 		return array(
-			array($mockQuoteItem)
+			array($mockQuoteItem),
+			array($mockAddressItem),
 		);
 	}
 

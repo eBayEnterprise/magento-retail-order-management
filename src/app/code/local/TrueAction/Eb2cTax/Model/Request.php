@@ -1,7 +1,7 @@
 <?php
 /**
  * generate the xml for an EB2C tax and duty quote request.
- * @author mphang
+ * @author Michael Phang <mphang@ebay.com>
  */
 class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 {
@@ -841,15 +841,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
+		$item = $this->_getQuoteItem($item);
 		$data = array(
-			'Line1' => trim($item->getEb2cShipFromAddressLine1()),
-			'Line2' => trim($item->getEb2cShipFromAddressLine2()),
-			'Line3' => trim($item->getEb2cShipFromAddressLine3()),
-			'Line4' => trim($item->getEb2cShipFromAddressLine4()),
-			'City' => trim($item->getEb2cShipFromAddressCity()),
+			'Line1'        => trim($item->getEb2cShipFromAddressLine1()),
+			'Line2'        => trim($item->getEb2cShipFromAddressLine2()),
+			'Line3'        => trim($item->getEb2cShipFromAddressLine3()),
+			'Line4'        => trim($item->getEb2cShipFromAddressLine4()),
+			'City'         => trim($item->getEb2cShipFromAddressCity()),
 			'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
-			'CountryCode' => trim($item->getEb2cShipFromAddressCountryCode()),
-			'PostalCode' => trim($item->getEb2cShipFromAddressPostalCode()),
+			'CountryCode'  => trim($item->getEb2cShipFromAddressCountryCode()),
+			'PostalCode'   => trim($item->getEb2cShipFromAddressPostalCode()),
 		);
 		$this->_validateShipFromData($data);
 		return $data;
@@ -964,5 +965,19 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
 			}
 		}
+	}
+
+	/**
+	 * if given a quote_item, the quote_item is returned.
+	 * if given an address_item, the associated quote_item is returned.
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item either a quote_item or an address_item
+	 * @return Mage_Sales_Model_Quote_Item
+	 */
+	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		if ($item instanceof Mage_Sales_Model_Quote_Address_Item) {
+			$item = $item->getQuoteItem();
+		}
+		return $item;
 	}
 }
