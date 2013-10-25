@@ -125,11 +125,11 @@
 		</events>
 	</frontend>
 	<default>
-		<eb2cpayment>
-			<general>
+		<eb2ccore>
+			<eb2cpayment>
 				<enabled></enabled>
-			</general>
-		</eb2cpayment>
+			</eb2cpayment>
+		</eb2ccore>
 		<eb2c>
 			<payment>
 				<developer_mode>0</developer_mode>
