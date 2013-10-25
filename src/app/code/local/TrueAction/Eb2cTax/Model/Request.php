@@ -841,13 +841,36 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
-		return array(
-			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
-			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
-			'CountryCode' => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
-			'PostalCode' => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
+		$data = array(
+			'Line1' => trim($item->getEb2cShipFromAddressLine1()),
+			'Line2' => trim($item->getEb2cShipFromAddressLine2()),
+			'Line3' => trim($item->getEb2cShipFromAddressLine3()),
+			'Line4' => trim($item->getEb2cShipFromAddressLine4()),
+			'City' => trim($item->getEb2cShipFromAddressCity()),
+			'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
+			'CountryCode' => trim($item->getEb2cShipFromAddressCountryCode()),
+			'PostalCode' => trim($item->getEb2cShipFromAddressPostalCode()),
 		);
+		$this->_validateShipFromData($data);
+		return $data;
+	}
+
+	/**
+	 * validate the ship from address.
+	 * @param  array               $data address data
+	 * @throws Mage_Core_Exception if Line1, City, or CountryCode is blank.
+	 * @return null
+	 */
+	protected function _validateShipFromData($data)
+	{
+		foreach (array('Line1', 'City', 'CountryCode') as $key) {
+			$value = $data[$key];
+			if ($value === '') {
+				throw new Mage_Core_Exception(
+					'[ ' . __CLASS__ . ' ] unable to extract Line1, City, and CountryCode parts of the ship from address'
+				);
+			}
+		}
 	}
 
 	/**
