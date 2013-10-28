@@ -4,7 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_helper;
 
@@ -58,6 +58,22 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 		$this->assertSame(
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
+		);
+	}
+
+	/**
+	 * testing getOperationUri method with a store other than the default
+	 *
+	 * @test
+	 * @loadFixture
+	 */
+	public function testGetOperationUriNonDefaultStore()
+	{
+		// check to make sure that if the current store has another value for store id,
+		// the store level value is chosen over the default.
+		$this->assertSame(
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.xml',
+			$this->_helper->getOperationUri('rollback_allocation', 'canada')
 		);
 	}
 
