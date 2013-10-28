@@ -61,10 +61,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		// update configurable relationships
 		if ($product->getTypeId() === 'configurable') {
 			$this->_addUsedProducts($product);
-		} else if ($product->getSku() !== $product->getStyleId()) {
+		} else if ($product->getStyleId() && $product->getStyleId() !== $product->getSku()) {
 			$this->_addToCofigurableProduct($product);
 		}
-		$product->setIsClean($this->isProductClean($product));
+		$this->markProductClean($product);
 		$product->save();
 		return $this;
 	}
@@ -76,13 +76,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	 */
 	protected function _resolveProductLinks(Mage_Catalog_Model_Product $product)
 	{
-		// array(
-		//   array(
-		//     'link_type' => 'related|upsell|crosssell',
-		//     'operation_type' => 'Add|Delete',
-		//     'link_to_unique_id' => 'sku'
-		//   )
-		// )
 		$missingLinks = unserialize($product->getUnresolvedProductLinks());
 		if (!empty($missingLinks)) {
 			// keep track of links that are not resolved
@@ -118,26 +111,38 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 			return $link['link_to_unique_id'];
 		};
 
-		// get list of skus to add and remove
-		$addSkus = array_map($skuMap, array_filter($linkUpdates, $opFilter('add')));
-		$deleteSkus = array_map($skuMap, array_filter($linkUpdates, $opFilter('delete')));
-
 		// get all currently linked products of this link type
 		$linkedProductsGetter = $this->_linkTypes[$linkType]['linked_products_getter_method'];
 		$linkedProducts = $product->$linkedProductsGetter();
 
 		// remove any links that are supposed to be getting deleted
+		$deleteSkus = array_map($skuMap, array_filter($linkUpdates, $opFilter('delete')));
 		$linkedProducts = array_filter(
 			$linkedProducts,
 			function ($prod) use ($deleteSkus) { return !in_array($prod->getSku(), $deleteSkus); }
 		);
 
+		$addSkus = array_map($skuMap, array_filter($linkUpdates, $opFilter('add')));
+
+		// Go through the skus to add and look up the product id for each one.
+		// If any are missing, add the product link for that sku to a list of links that
+		// cannot be resolved yet.
+		$missingLinks = array();
+		$idsToAdd = array();
 		$helper = Mage::helper('eb2cproduct');
+		foreach ($addSkus as $sku) {
+			$id = $helper->loadProductBySku($sku)->getId();
+			if ($id) {
+				$idsToAdd[] = $id;
+			} else {
+				$missingLinks[] = $this->_buildProductLinkForSku($sku, $linkType, 'Add');
+			}
+		}
+
 		// get a list of all products that should be linked
 		$linkIds = array_filter(array_unique(array_merge(
 			array_map(function ($prod) { return $prod->getId(); }, $linkedProducts),
-			// @todo - what happens when this lookup fails
-			array_map(function ($sku) use ($helper) { return $helper->loadProductBySku($sku)->getId(); }, $addSkus)
+			$idsToAdd
 		)));
 
 		$linkData = array();
@@ -147,35 +152,97 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 
 		// add the updated links to the product
 		$product->setData($this->_linkTypes[$linkType]['data_attribute'], $linkData);
-		return array();
+		// return links that were not resolved
+		return $missingLinks;
+	}
+
+	/**
+	 * Build out the product link map for a given sku.
+	 * @param  string $sku       Sku the link should point to
+	 * @param  string $type      Type of link to create
+	 * @param  string $operation Type of operation, "Add" or "Delete"
+	 * @return array             Map of product link data
+	 */
+	protected function _buildProductLinkForSku($sku, $type, $operation)
+	{
+		return array(
+			'link_to_unique_id' => $sku,
+			'link_type' => $type,
+			'operation_type' => $operation
+		);
 	}
 
 	/**
 	 * Add products used to configure this product.
 	 * @param Mage_Catalog_Model_Product $product Configurable parent product to add children to.
+	 * @return $this object
 	 */
 	protected function _addUsedProducts(Mage_Catalog_Model_Product $product)
 	{
+		// look up used products by style_id, will match sku of configurable product
+		$addProductIds = Mage::getModel('catalog/product')->getCollection()
+			->addAttributeToSelect('*')
+			->addFieldToFilter('style_id', $product->getSku())
+			->getAllIds();
 
+		// merge the found products with any existing links, filtering out any duplicates
+		$usedProductIds = $product->getTypeInstance()->getUsedProductIds();
+		$usedProductIds = array_unique(array_merge($usedProductIds, $addProductIds));
+		if (!empty($usedProductIds)) {
+			Mage::getResourceModel('catalog/product_type_configurable')
+				->saveProducts($product, array_unique($usedProductIds));
+		} else {
+			Mage::log(
+				sprintf('[ %s ]: Expected to find products to use for configurable product %s but found none.', __CLASS__, $product->getSku()),
+				Zend_Log::DEBUG
+			);
+		}
+		return $this;
 	}
 
 	/**
 	 * Simple product that needs to be added as a configuration to a configurable product.
 	 * @param Mage_Catalog_Model_Product $product Simple product used to configure a configurable product.
+	 * @return $this object
 	 */
 	protected function _addToCofigurableProduct(Mage_Catalog_Model_Product $product)
 	{
-
+		$configurableProduct = Mage::helper('eb2cproduct')->loadProductBySku($product->getStyleId());
+		if ($configurableProduct->getId()) {
+			$usedProductIds   = $configurableProduct->getTypeInstance()->getUsedProductIds();
+			$usedProductIds[] = $product->getId();
+			Mage::getResourceModel('catalog/product_type_configurable')
+				->saveProducts($configurableProduct, array_unique($usedProductIds));
+		} else {
+			Mage::log(
+				sprintf(
+					'[ %s ]: Expected to find configurable product with sku %s to add product with sku %s to but no such product found',
+					__CLASS__, $product->getStlyeId(), $product->getSku()
+				),
+				Zend_Log::DEBUG
+			);
+		}
+		return $this;
 	}
 
 	/**
 	 * Determine if the product has been sufficiently cleaned.
 	 * @param  Mage_Catalog_Model_Product $product Product to check
-	 * @return boolean                             Is the product clean
+	 * @return $this object
 	 */
-	public function isProductClean(Mage_Catalog_Model_Product $product)
+	public function markProductClean(Mage_Catalog_Model_Product $product)
 	{
+		$isClean = false;
+		// lingering unresolved links will need to be checked again in a later pass, considered dirty
+		$unresolvedLinks = unserialize($product->getUnresolvedProductLinks());
+		$isClean = empty($unresolvedLinks);
 
+		// update flag on product
+		$product->setIsClean(Mage::helper('eb2cproduct')->convertToBoolean($isClean));
+		if (!$isClean) {
+			Mage::log(sprintf('[ %s ]: Product, %s, has not be fully cleaned.', __CLASS__, $product->getSku()), Zend_Log::DEBUG);
+		}
+		return $this;
 	}
 
 }

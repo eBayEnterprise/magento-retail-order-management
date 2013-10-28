@@ -143,6 +143,15 @@
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default></default>
 				</item_type>
+				<style_id>
+					<scope>Website</scope>
+					<label>Style Id</label>
+					<group>General</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</style_id>
 				<is_clean>
 					<scope>Website</scope>
 					<label>Is Clean</label>
@@ -151,6 +160,7 @@
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default>N</default>
+					<backend_type>int</backend_type>
 				</is_clean>
 				<unresolved_product_links>
 					<scope>Website</scope>

@@ -191,4 +191,4 @@ eav:
       status: 1             # Enabled
       visibility: 4         # Visible in Catalog & Search
       is_clean: false
-      unresolved_product_links: 'a:2:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:16:"the-missing-link";}}'
+      unresolved_product_links: 'a:3:{i:0;a:3:{s:9:"link_type";s:7:"related";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:12:"simple-clean";}i:1;a:3:{s:9:"link_type";s:6:"upsell";s:14:"operation_type";s:3:"Add";s:17:"link_to_unique_id";s:16:"the-missing-link";}i:2;a:3:{s:14:"operation_type";s:3:"Add";s:9:"link_type";s:9:"crosssell";s:17:"link_to_unique_id";s:23:"missing-cross-sell-link";}}'
