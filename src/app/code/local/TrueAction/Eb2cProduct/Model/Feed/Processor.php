@@ -504,17 +504,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($item->getItemId()->getClientItemId()) {
 			$productData->setData('url_key', $item->getItemId()->getClientItemId());
 		}
-		// get product link data
-		$linkData = $this->_prepareProductLinkData($item);
-		// setting related data
-		if (!empty($linkData['related'])) {
-			$productData->setData('related_link_data', $linkData['related']);
-		}
-		if (!empty($linkData['upsell'])) {
-			$productData->setData('up_sell_link_data', $linkData['upsell']);
-		}
-		if (!empty($linkData['crosssell'])) {
-			$productData->setData('cross_sell_link_data', $linkData['crosssell']);
+		if ($item->getProductLinks()) {
+			$productData->setData('unresolved_product_links', serialize($item->getProductLinks()));
 		}
 
 		// setting category data
@@ -530,13 +521,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
 		}
 
+		// mark all products that have just been imported as not being clean
+		$productData->setData('is_clean', false);
+
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
 			->save(); // saving the product
 		$this
-			// @todo - these may need to be worked back in, and I think it should be
-			// ->_addColorToProduct($item, $product)
-			->_addConfigurableDataToProduct($item, $product)
+			->_addColorToProduct($item, $product)
 			->_addStockItemDataToProduct($item, $product);
 		return $this;
 	}
@@ -602,65 +594,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 					'configurable_color_data' => json_encode($dataObject->getExtendedAttributes()->getColorAttributes()->getColor()),
 				)
 			)->save();
-		}
-		return $this;
-	}
-
-	/**
-	 * link child product to parent configurable product.
-	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
-	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
-	 * @param array $confAttr, collection of configurable attribute
-	 * @return self
-	 */
-	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
-	{
-		try {
-			$configurableData = array();
-			foreach ($confAttr as $configAttribute) {
-				$attributeObject = $this->_getAttribute($configAttribute);
-				$attributeOptions = $attributeObject->getSource()->getAllOptions();
-				foreach ($attributeOptions as $option) {
-					if ((int) $pCObj->getData(strtolower($configAttribute)) === (int) $option['value']) {
-						$configurableData[$pCObj->getId()][] = array(
-							'attribute_id' => $attributeObject->getId(),
-							'label' => $option['label'],
-							'value_index' => $option['value'],
-						);
-					}
-				}
-			}
-
-			$configurableAttributeData = array();
-			foreach ($confAttr as $attrCode) {
-				$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
-				$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
-				$configurableAttributeData[] = array(
-					'id' => $configurableAtt->getId(),
-					'label' => $configurableAtt->getLabel(),
-					'position' => $superAttribute->getPosition(),
-					'values' => array(),
-					'attribute_id' => $superAttribute->getId(),
-					'attribute_code' => $superAttribute->getAttributeCode(),
-					'frontend_label' => $superAttribute->getFrontend()->getLabel(),
-				);
-			}
-
-			$pPObj->addData(
-				array(
-					'configurable_products_data' => $configurableData,
-					'configurable_attributes_data' => $configurableAttributeData,
-					'can_save_configurable_attributes' => true,
-				)
-			)->save();
-		} catch (Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while linking child product to configurable parent product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
 		}
 		return $this;
 	}
@@ -1101,41 +1034,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
-	 * adding configurable data to a product
-	 * @param Varien_Object $dataObject, the object with data needed to add configurable data to a product
-	 * @param Mage_Catalog_Model_Product $productObject, the product object to set configurable data to
-	 * @return self
-	 */
-	protected function _addConfigurableDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
-	{
-		// we only set child product to parent configurable products products if we
-		// have a simple product that has a style_id that belong to a parent product.
-		if (trim(strtoupper($dataObject->getProductType())) === 'SIMPLE' && trim($dataObject->getExtendedAttributes()->getStyleId()) !== '') {
-			// when style id for an item doesn't match the item client_item_id (sku),
-			// then we have a potential child product that can be added to a configurable parent product
-			if (trim(strtoupper($dataObject->getItemId()->getClientItemId())) !== trim(strtoupper($dataObject->getExtendedAttributes()->getStyleId()))) {
-				// load the parent product using the child style id, because a child that belong to a
-				// parent product will have the parent product style id as the sku to link them together.
-				$parentProduct = $this->_helper->loadProductBySku($dataObject->getExtendedAttributes()->getStyleId());
-				// we have a valid parent configurable product
-				if ($parentProduct->getId()) {
-					if (trim(strtoupper($parentProduct->getTypeId())) === 'CONFIGURABLE') {
-						// We have a valid configurable parent product to set this child to
-						$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
-
-						// We can get color description save in the parent product to be saved to this child product.
-						$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
-						if (!empty($configurableColorData)) {
-							$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
-						}
-					}
-				}
-			}
-		}
-		return $this;
-	}
-
-	/**
 	 * load category by name
 	 *
 	 * @param string $categoryName, the category name to filter the category table
@@ -1220,50 +1118,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			return 'crosssell';
 		}
 		return '';
-	}
-
-	/**
-	 * prepared related, crosssell, upsell array to be set to a product.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to update the product
-	 *
-	 * @return array, composite array contain key for related, crosssell, and upsell data
-	 */
-	protected function _prepareProductLinkData(Varien_Object $dataObject)
-	{
-		if (!$dataObject->hasData('product_links')) {
-			// no product links to process
-			return;
-		}
-		// Product Links
-		$links = array(
-			'related' => array(),
-			'upsell' => array(),
-			'crosssell' => array(),
-		);
-		$pos = array(
-			'related' => 0,
-			'upsell' => 0,
-			'crosssell' => 0,
-		);
-		foreach ($dataObject->getProductLinks() as $link) {
-			$link = new Varien_Object($link);
-			if ($link instanceof Varien_Object && strtoupper($link->getOperationType()) === 'ADD') {
-				$linkId = $this->_helper->loadProductBySku($link->getLinkToUniqueId())->getId();
-				$linkType = $this->_getProducLinkType($link->getLinkType());
-				if ($linkId) {
-					if (isset($pos[$linkType])) {
-						$links[$linkType][$linkId]['position'] = $pos[$linkType]++;
-					} else {
-						Mage::log(
-							sprintf('[ %s ] Encountered unknown link type "%s".', __CLASS__, $linkType),
-							Zend_Log::WARN
-						);
-					}
-				}
-			}
-		}
-		return $links;
 	}
 
 	/**
