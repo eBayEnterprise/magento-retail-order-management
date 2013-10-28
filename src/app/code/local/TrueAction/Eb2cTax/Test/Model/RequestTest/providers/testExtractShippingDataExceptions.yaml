@@ -1,0 +1,10 @@
+ -
+   - allblank
+ -
+   - allrequiredblank
+ -
+   - streetblank
+ -
+   - cityblank
+ -
+   - countrycodeblank
