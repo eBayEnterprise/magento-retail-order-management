@@ -69,6 +69,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 	 */
 	public function testGetOperationUriNonDefaultStore()
 	{
+		$this->assertSame('store_id2', Mage::getStoreConfig('eb2ccore/general/store_id', 'canada'), 'storeid for canada not retrieved');
 		// check to make sure that if the current store has another value for store id,
 		// the store level value is chosen over the default.
 		$this->assertSame(
