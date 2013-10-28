@@ -49,12 +49,14 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Extractor extends Mage_Core_Model
 		$itemIndex = 1; // start index
 		foreach ($inventory as $item) {
 			$gsiClientId = $item->getAttribute('gsi_client_id');
+			$catalogId = $item->getAttribute('catalog_id');
 			// setting item object into the collection of item objects.
 			$collectionOfItems[] = new Varien_Object(
 				array(
+					'catalog_id'    => $catalogId,
 					'gsi_client_id' => $gsiClientId, // setting gsi_client_id id
-					'item_id' => $this->_extractItemId($feedXPath, $itemIndex, $gsiClientId), // get varien object of item id node
-					'measurements' => $this->_extractMeasurements($feedXPath, $itemIndex, $gsiClientId), // get varien object of Measurements node
+					'item_id'       => $this->_extractItemId($feedXPath, $itemIndex, $gsiClientId), // get varien object of item id node
+					'measurements'  => $this->_extractMeasurements($feedXPath, $itemIndex, $gsiClientId), // get varien object of Measurements node
 				)
 			);
 			// increment item index

@@ -7,7 +7,7 @@
 class TrueAction_Eb2cPayment_Model_Config extends TrueAction_Eb2cCore_Model_Config_Abstract
 {
 	protected $_configPaths = array(
-		'is_payment_enabled' => 'eb2cpayment/general/enabled',
+		'is_payment_enabled' => 'eb2ccore/eb2cpayment/enabled',
 		'stored_value_balance_api_uri' => 'eb2c/payment/stored_value_balance_api_uri',
 		'stored_value_redeem_api_uri' => 'eb2c/payment/stored_value_redeem_api_uri',
 		'stored_value_redeem_void_api_uri' => 'eb2c/payment/stored_value_redeem_void_api_uri',

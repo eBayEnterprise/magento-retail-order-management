@@ -62,4 +62,4 @@ eav:
       customer_id: 5
       is_active: 1
 config:
-  default/eb2ctax/api/namespace_url: "http://api.gsicommerce.com/schema/checkout/1.0"
+  default/eb2ccore/eb2ctax_api/namespace_url: "http://api.gsicommerce.com/schema/checkout/1.0"

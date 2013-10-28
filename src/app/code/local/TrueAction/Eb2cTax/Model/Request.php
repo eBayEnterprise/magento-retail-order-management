@@ -1,7 +1,7 @@
 <?php
 /**
  * generate the xml for an EB2C tax and duty quote request.
- * @author mphang
+ * @author Michael Phang <mphang@ebay.com>
  */
 class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 {
@@ -841,13 +841,37 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
-		return array(
-			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
-			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
-			'CountryCode' => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
-			'PostalCode' => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
+		$item = $this->_getQuoteItem($item);
+		$data = array(
+			'Line1'        => trim($item->getEb2cShipFromAddressLine1()),
+			'Line2'        => trim($item->getEb2cShipFromAddressLine2()),
+			'Line3'        => trim($item->getEb2cShipFromAddressLine3()),
+			'Line4'        => trim($item->getEb2cShipFromAddressLine4()),
+			'City'         => trim($item->getEb2cShipFromAddressCity()),
+			'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
+			'CountryCode'  => trim($item->getEb2cShipFromAddressCountryCode()),
+			'PostalCode'   => trim($item->getEb2cShipFromAddressPostalCode()),
 		);
+		$this->_validateShipFromData($data);
+		return $data;
+	}
+
+	/**
+	 * validate the ship from address.
+	 * @param  array               $data address data
+	 * @throws Mage_Core_Exception if Line1, City, or CountryCode is blank.
+	 * @return null
+	 */
+	protected function _validateShipFromData($data)
+	{
+		foreach (array('Line1', 'City', 'CountryCode') as $key) {
+			$value = $data[$key];
+			if ($value === '') {
+				throw new Mage_Core_Exception(
+					'[ ' . __CLASS__ . ' ] unable to extract Line1, City, and CountryCode parts of the ship from address'
+				);
+			}
+		}
 	}
 
 	/**
@@ -860,15 +884,23 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _buildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
 	{
-		return $parent->createChild('AdminOrigin')
-			->addChild('Line1', $adminOrigin['Lines'][0])
-			->addChild('Line2', $adminOrigin['Lines'][1])
-			->addChild('Line3', $adminOrigin['Lines'][2])
-			->addChild('Line4', $adminOrigin['Lines'][3])
-			->addChild('City', $adminOrigin['City'])
+		$adminOriginEl = $parent->createChild('AdminOrigin')
+			->addChild('Line1', $adminOrigin['Lines'][0]);
+		if (trim($adminOrigin['Lines'][1]) !== '') {
+			$adminOriginEl->addChild('Line2', $adminOrigin['Lines'][1]);
+		}
+		if (trim($adminOrigin['Lines'][2]) !== '') {
+			$adminOriginEl->addChild('Line3', $adminOrigin['Lines'][2]);
+		}
+		if (trim($adminOrigin['Lines'][3]) !== '') {
+			$adminOriginEl->addChild('Line4', $adminOrigin['Lines'][3]);
+		}
+		$adminOriginEl->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])
 			->addChild('PostalCode', $adminOrigin['PostalCode']);
+
+		return $adminOriginEl;
 	}
 
 	/**
@@ -897,8 +929,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function checkShippingOriginAddresses(Mage_Sales_Model_Quote $quote=null)
 	{
 		if (!($this->isValid() && $quote && $quote->getId())) {
-			// skip it if the request is bad in the first place or if the quote
-			// passed in is null.
+			// just invalidate the request if the request is bad in the first place or if
+			// the quote passed in is null.
+			$this->invalidate();
 			return;
 		}
 
@@ -907,7 +940,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				if($item = $quote->getItemById($value['id'])) {
 					$itemData = $this->_extractShippingData($item);
 					$shippingOrigin = $value['ShippingOrigin'];
-					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin);
+					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin) ||
+						(bool) array_diff_assoc($shippingOrigin, $itemData);
 				}
 			}
 		}
@@ -933,5 +967,19 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
 			}
 		}
+	}
+
+	/**
+	 * if given a quote_item, the quote_item is returned.
+	 * if given an address_item, the associated quote_item is returned.
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item either a quote_item or an address_item
+	 * @return Mage_Sales_Model_Quote_Item
+	 */
+	protected function _getQuoteItem(Mage_Sales_Model_Quote_Item_Abstract $item)
+	{
+		if ($item instanceof Mage_Sales_Model_Quote_Address_Item) {
+			$item = $item->getQuoteItem();
+		}
+		return $item;
 	}
 }
