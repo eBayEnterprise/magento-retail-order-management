@@ -11,6 +11,7 @@
  */
 class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 {
+	const ORDER_CANCEL_FAILURE_MESSAGE = 'TrueAction_Eb2cOrder_Cancel_Fail_Message';
 	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
@@ -43,8 +44,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * cancel builds, sends Cancel Order Request; returns true or false if we got an answer. Throws exception
-	 * if something went wrong along the way.
+	 * cancel builds, sends Cancel Order Request; returns true or false if we got an answer.
 	 * @param string $orderType, the order type
 	 * @param string $orderId, the order id
 	 * @param string $reasonCode, the reason code
@@ -67,9 +67,9 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * Handles communication with service endpoint. Either returns true or false when successfully receiving a valid
-	 * response or throws an exception if we can't get a valid response.
-	 * @return bool, true successfully cancelled in eb2c otherwise false
+	 * Handles communication with service endpoint. send order cancel request to
+	 * eb2c services and log any request exceptions, or xsd validation
+	 * @return self
 	 */
 	public function sendRequest()
 	{
@@ -101,34 +101,34 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 					'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
 					__CLASS__, $e->getMessage()
 				),
-				Zend_Log::ERR
+				Zend_Log::CRIT
 			);
 		}
 
-		return $this->_processResponse($response);
+		$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
+		$this->_domResponse->loadXML($response);
+
+		return $this;
 	}
 
 	/**
-	 * processing the request response from eb2c
-	 * @param string $response, the response string xml from eb2c request
-	 * @return bool, true successfully cancelled in eb2c otherwise false
+	 * processing the request response from eb2c, throw exception if reponse status is not cancelled
+	 * @return self
 	 */
-	private function _processResponse($response)
+	public function processResponse()
 	{
-		if (trim($response) !== '') {
-			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
-			$this->_domResponse->loadXML($response);
+		if (trim($this->_domResponse->saveXML()) !== '') {
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			$rc = (strtoupper(trim($status)) === 'CANCELLED') ? false : true;
-			if( $rc === true ) {
+			if (strtoupper(trim($status)) === 'CANCELLED')) {
 				Mage::dispatchEvent('eb2c_order_cancel_succeeded', array('order_id' => $this->_orderId));
 			} else {
 				Mage::dispatchEvent('eb2c_order_cancel_failed', array('order_id' => $this->_orderId));
+				throw new TrueAction_Eb2cOrder_Model_Cancel_Exception(
+					Mage::helper('eb2corder')->__(self::ORDER_CANCEL_FAILURE_MESSAGE)
+				);
 			}
-
-			return $rc;
 		}
 
-		return false;
+		return $this;
 	}
 }
