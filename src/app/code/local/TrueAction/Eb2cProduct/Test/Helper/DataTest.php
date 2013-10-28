@@ -123,4 +123,21 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		// type in every environment.
 		$this->assertSame(true, Mage::helper('eb2cproduct')->hasProdType('simple'));
 	}
+
+	/**
+	 * Test looking up a product by sku
+	 * @param  string $sku SKU of product
+	 * @test
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 */
+	public function testGetProductBySku($sku)
+	{
+		$helper = Mage::helper('eb2cproduct');
+		$product = $helper->loadProductBySku($sku);
+		$expected = $this->expected($sku);
+		$this->assertInstanceOf('Mage_Catalog_Model_Product', $product, 'Method should always return a product instance.');
+		$this->assertSame($expected->getId(), $product->getId());
+	}
+
 }
