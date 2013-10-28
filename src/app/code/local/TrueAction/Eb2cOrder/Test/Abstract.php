@@ -98,6 +98,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				'getSku'                    => 'SKU123456',
 				'getTaxAmount'              => '0',
 				'getTaxPercent'             => '0',
+				'getOrder'                  => $this->_getFullMocker('sales/order', array ('getQuoteId' => 1)),
 			)
 		);
 	}

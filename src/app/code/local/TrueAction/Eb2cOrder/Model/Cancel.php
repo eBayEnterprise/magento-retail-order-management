@@ -105,8 +105,11 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 			);
 		}
 
-		$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
-		$this->_domResponse->loadXML($response);
+		if (trim($response) !== '') {
+			// load load response with actual content
+			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
+			$this->_domResponse->loadXML($response);
+		}
 
 		return $this;
 	}
@@ -119,7 +122,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	{
 		if (trim($this->_domResponse->saveXML()) !== '') {
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			if (strtoupper(trim($status)) === 'CANCELLED')) {
+			if (strtoupper(trim($status)) === 'CANCELLED') {
 				Mage::dispatchEvent('eb2c_order_cancel_succeeded', array('order_id' => $this->_orderId));
 			} else {
 				Mage::dispatchEvent('eb2c_order_cancel_failed', array('order_id' => $this->_orderId));
