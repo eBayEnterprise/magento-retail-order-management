@@ -1,0 +1,5 @@
+TrueAction_Eb2cInventory_Quantity_Request_Greater_Message, Sorry for the inconvenience, however, the requested quantity %d is greater than what we currently have in stock %d.
+TrueAction_Eb2cInventory_Quantity_Out_Of_Stock_Message, Sorry for the inconvenience, however, this product is out of stock.
+TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message, Cannot add the item to shopping cart.
+TrueAction_Eb2cInventory_Allocation_Error_Message, Inventory allocation Error.
+
