@@ -3,11 +3,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
-	const DEFAULT_INVENTORY_QTY       = 997;
-	const OPERATION_TYPE_DELETE       = 'DELETE';
-	const OPERATION_TYPE_ADD          = 'ADD';
-	const OPERATION_TYPE_UPDATE       = 'UPDATE';
-	const PRODUCT_TYPE_SIMPLE         = 'simple';
+	const DEFAULT_INVENTORY_QTY = 997;
+	const OPERATION_TYPE_DELETE = 'DELETE';
+	const OPERATION_TYPE_ADD    = 'ADD';
+	const OPERATION_TYPE_UPDATE = 'UPDATE';
 
 	/**
 	 * Initialize model
@@ -61,7 +60,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	{
 		$optionId = 0;
 		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-		// @todo, I just think this was wrong?
 		$attributeOptions = $attributes->getSource()->getAllOptions();
 		foreach ($attributeOptions as $attrOption) {
 			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
@@ -79,17 +77,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 */
 	protected function _addAttributeOption($attribute, $newOption)
 	{
-		$eavAttributeModel  = Mage::getModel('eav/entity_attribute');
-		$eavAttributeCode   = $eavAttributeModel->getIdByCode('catalog_product', $attribute);
-		$eavAttributeObject = $eavAttributeModel->load($eavAttributeCode);
+		$attributeModel = Mage::getModel('eav/entity_attribute');
+		$attributeCode  = $attributeModel->getIdByCode('catalog_product', $attribute);
+		$attributeLoad  = $attributeModel->load($attributeCode);
 
-	//	@todo: I don't think this works right, I think the get is broken.
+		$value['option'] = array($newOption);
+		$order['option'] = 0;
+		$optionData = array('value' => $value, 'order' => $order);
+
+	//	@todo: Test that this is actually adding the option instead of creating it newly each time.
 		$newOptionId = 0;
 		try{
-			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
-			$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
-			$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
-			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
+			$attributeLoad->setData('option', $optionData);
+			$attributeLoad->save();
+
+			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption); // Get the newly created id
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
 				sprintf(
