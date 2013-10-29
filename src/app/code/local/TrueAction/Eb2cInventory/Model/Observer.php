@@ -1,6 +1,11 @@
 <?php
 class TrueAction_Eb2cInventory_Model_Observer
 {
+	const QUANTITY_REQUEST_GREATER_MESSAGE = 'TrueAction_Eb2cInventory_Quantity_Request_Greater_Message';
+	const QUANTITY_OUT_OF_STOCK_MESSAGE = 'TrueAction_Eb2cInventory_Quantity_Out_Of_Stock_Message';
+	const CANNOT_ADD_TO_CART_MESSAGE = 'TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message';
+	const ALLOCATION_ERROR_MESSAGE = 'TrueAction_Eb2cInventory_Allocation_Error_Message';
+
 	/**
 	 * Retrieve shopping cart model object
 	 *
@@ -55,16 +60,16 @@ class TrueAction_Eb2cInventory_Model_Observer
 					$quote->save();
 
 					$this->_getCart()->getCheckoutSession()->addNotice(sprintf(
-						'Sorry for the inconvenience, however, the requested quantity %d is greater than what we currently have in stock %d.',
+						Mage::helper('eb2cinventory')->__(self::QUANTITY_REQUEST_GREATER_MESSAGE),
 						$requestedQty, $availableStock
 					));
 				} elseif ($availableStock <= 0) {
 					// Inventory Quantity is out of stock in eb2c
 					// then, remove item from cart, and then alert customer the inventory is out of stock.
 					$quoteItem->getQuote()->deleteItem($quoteItem);
-					$this->_getCart()->getCheckoutSession()->addNotice('Sorry for the inconvenience, however, this product is out of stock.');
+					$this->_getCart()->getCheckoutSession()->addNotice(Mage::helper('eb2cinventory')->__(self::QUANTITY_OUT_OF_STOCK_MESSAGE));
 					// throwing an error to prevent the successful add to cart message
-					Mage::throwException('Cannot add the item to shopping cart.');
+					Mage::throwException(Mage::helper('eb2cinventory')->__(self::CANNOT_ADD_TO_CART_MESSAGE));
 					// @codeCoverageIgnoreStart
 				}
 				// @codeCoverageIgnoreEnd
@@ -155,7 +160,9 @@ class TrueAction_Eb2cInventory_Model_Observer
 			}
 
 			if (!$isAllocated) {
-				throw new TrueAction_Eb2cInventory_Model_Allocation_Exception('Inventory allocation Error.');
+				throw new TrueAction_Eb2cInventory_Model_Allocation_Exception(
+					Mage::helper('eb2cinventory')->__(self::ALLOCATION_ERROR_MESSAGE)
+				);
 				// @codeCoverageIgnoreStart
 			}
 			// @codeCoverageIgnoreEnd

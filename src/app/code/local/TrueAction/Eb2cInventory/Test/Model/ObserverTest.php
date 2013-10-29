@@ -458,7 +458,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	{
 		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
 			->disableOriginalConstructor()
-			->setMethods(array('requiresAllocation', 'processAllocation', 'filterInventoriedItems'))
+			->setMethods(array('requiresAllocation', 'processAllocation', 'filterInventoriedItems', 'allocateQuoteItems'))
 			->getMock();
 		$allocationMock->expects($this->any())
 			->method('requiresAllocation')
@@ -469,6 +469,9 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$allocationMock->expects($this->any())
 			->method('filterInventoriedItems')
 			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('allocateQuoteItems')
+			->will($this->returnValue('<foo></foo>'));
 
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
