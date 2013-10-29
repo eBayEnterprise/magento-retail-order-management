@@ -118,7 +118,6 @@
 	</frontend>
 	<default>
 		<eb2cpayment>
-			<enabled/>
 			<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>
 			<api_service>payments</api_service>
 			<api_opt_stored_value_balance>storedvalue/balance/GS</api_opt_stored_value_balance>
@@ -141,6 +140,11 @@
 				<stored_value_redeem_file>Payment-Service-StoredValueRedeem-1.0.xsd</stored_value_redeem_file>
 			</xsd>
 		</eb2cpayment>
+		<eb2ccore>
+			<eb2cpayment>
+				<enabled>0</enabled>
+			</eb2cpayment>
+		</eb2ccore>
 	</default>
 	<phpunit>
 		<suite>

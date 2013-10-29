@@ -61,7 +61,9 @@
 		<eb2ccore>
 			<general>
 				<catalog_id />
+				<client_customer_id_prefix />
 				<client_id />
+				<client_order_id_prefix />
 				<store_id />
 			</general>
 			<api>

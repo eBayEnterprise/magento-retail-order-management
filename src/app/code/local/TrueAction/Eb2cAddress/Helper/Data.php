@@ -24,6 +24,18 @@ class TrueAction_Eb2cAddress_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * get the address validation config model
+	 * @return TrueAction_Eb2cCore_Model_Config_Registry
+	 */
+	public function getConfigModel($store=null)
+	{
+		return Mage::getModel('eb2ccore/config_registry')
+			->setStore($store)
+			->addConfigModel(Mage::getModel('eb2caddress/config'))
+			->addConfigModel(Mage::getModel('eb2ccore/config'));
+	}
+
+	/**
 	 * Generate the xml to represent the Eb2c PhysicalAddressType from an address
 	 * @param  Mage_Customer_Model_Address_Abstract
 	 * @param  TrueAction_Dom_Document $doc

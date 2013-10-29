@@ -14,7 +14,7 @@ class TrueAction_Eb2cPayment_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'api_return_format'                   => 'eb2cpayment/api_return_format',
 		'api_service'                         => 'eb2cpayment/api_service',
 		'api_xml_ns'                          => 'eb2ccore/api/xml_namespace',
-		'is_payment_enabled'                  => 'eb2cpayment/enabled',
+		'is_payment_enabled'                  => 'eb2ccore/eb2cpayment/enabled',
 		'xsd_file_paypal_do_auth'             => 'eb2cpayment/xsd/paypal_do_auth_file',
 		'xsd_file_paypal_do_express'          => 'eb2cpayment/xsd/paypal_express_do_file',
 		'xsd_file_paypal_get_express'         => 'eb2cpayment/xsd/paypal_express_get_file',

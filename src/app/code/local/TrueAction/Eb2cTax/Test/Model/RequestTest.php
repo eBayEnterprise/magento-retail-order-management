@@ -37,6 +37,14 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 	public static $namespaceUri = 'http://api.gsicommerce.com/schema/checkout/1.0';
 
+	public static $validShipFromAddress = array(
+		'Line1' => '1 n rosedale st',
+		'City' => 'baltimore',
+		'MainDivision' => 'MD',
+		'CountryCode' => 'US',
+		'PostalCode' => '21229',
+	);
+
 	public $tdRequest    = null;
 	public $destinations = null;
 	public $shipGroups   = null;
@@ -55,6 +63,26 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			array('123453434', '0-4'),
 			array('33333333333333333333333333333333333333331', '0-5'),
 		);
+	}
+
+	/**
+	 * verify if any important part of the shipping address is missing
+	 * @dataProvider dataProvider
+	 * @loadExpectation
+	 */
+	public function testExtractShippingDataExceptions($expectation)
+	{
+		$addrData = $this->expected($expectation)->getData();
+		$this->setExpectedException(
+			'Mage_Core_Exception',
+			'unable to extract Line1, City, and CountryCode parts of the ship from address'
+		);
+		$data = new Mage_Sales_Model_Quote_Item();
+		$data->setData($addrData);
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->getMock();
+		$this->_reflectMethod($request, '_extractShippingData')->invoke($request, $data);
 	}
 
 	/**
@@ -183,18 +211,30 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	protected function _stubQuoteItem(
 		$product=null, $totalQty=1, $id=1, $sku='12345',
-		$children=array(), $childrenCalculated=false, $discountAmt=null
+		$children=array(), $childrenCalculated=false, $discountAmt=null,
+		$shipFromData=null
 	)
 	{
+		if (is_null($shipFromData)) {
+			$shipFromData = self::$validShipFromAddress;
+		}
 		return $this->_buildModelMock('sales/quote_item', array(
-			'getId'                => $this->returnValue($id),
-			'getSku'               => $this->returnValue($sku),
-			'getProduct'           => $this->returnValue($product),
-			'getTotalQty'          => $this->returnValue($totalQty),
-			'getHasChildren'       => $this->returnValue(!empty($children)),
-			'getChildren'          => $this->returnValue($children),
-			'isChildrenCalculated' => $this->returnValue($childrenCalculated),
-			'getDiscountAmount'    => $this->returnValue($discountAmt),
+			'getId'                              => $this->returnValue($id),
+			'getSku'                             => $this->returnValue($sku),
+			'getProduct'                         => $this->returnValue($product),
+			'getTotalQty'                        => $this->returnValue($totalQty),
+			'getHasChildren'                     => $this->returnValue(!empty($children)),
+			'getChildren'                        => $this->returnValue($children),
+			'isChildrenCalculated'               => $this->returnValue($childrenCalculated),
+			'getDiscountAmount'                  => $this->returnValue($discountAmt),
+			'getEb2cShipFromAddressLine1'        => $this->returnValue(isset($shipFromData['Line1']) ? $shipFromData['Line1'] : null),
+			'getEb2cShipFromAddressLine2'        => $this->returnValue(isset($shipFromData['Line2']) ? $shipFromData['Line2'] : null),
+			'getEb2cShipFromAddressLine3'        => $this->returnValue(isset($shipFromData['Line3']) ? $shipFromData['Line3'] : null),
+			'getEb2cShipFromAddressLine4'        => $this->returnValue(isset($shipFromData['Line4']) ? $shipFromData['Line4'] : null),
+			'getEb2cShipFromAddressCity'         => $this->returnValue(isset($shipFromData['City']) ? $shipFromData['City'] : null),
+			'getEb2cShipFromAddressMainDivision' => $this->returnValue(isset($shipFromData['MainDivision']) ? $shipFromData['MainDivision'] : null),
+			'getEb2cShipFromAddressCountryCode'  => $this->returnValue(isset($shipFromData['CountryCode']) ? $shipFromData['CountryCode'] : null),
+			'getEb2cShipFromAddressPostalCode'   => $this->returnValue(isset($shipFromData['PostalCode']) ? $shipFromData['PostalCode'] : null),
 		));
 	}
 
@@ -314,12 +354,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$store = $this->_stubStore();
 		$product = $this->_stubProduct();
 		// mock the items
-		$itemA = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(1),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemA = $this->_stubQuoteItem($product, 1, 1, 1111);
 		$itemA->setData(array(
 			'item_id'                 => 1,
 			'quote_id'                => 1,
@@ -347,12 +382,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 299.9900,
 		));
 
-		$itemB = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(2),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemB = $this->_stubQuoteItem($product, 1, 2, 1112);
 		$itemB->setData(array(
 			'item_id'                 => 2,
 			'quote_id'                => 1,
@@ -380,12 +410,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 129.9900,
 		));
 
-		$itemC = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(3),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemC = $this->_stubQuoteItem($product, 1, 3, 1113);
 		$itemC->setData(array(
 			'item_id' => 3,
 			'quote_id'                => 1,
@@ -587,12 +612,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$product = $this->_stubProduct(true);
 
 		// mock the items
-		$itemA = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(1),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+
+		$itemA = $this->_stubQuoteItem($product, 1, 1, 1111);
 		$itemA->setData(array(
 			'item_id'                 => 1,
 			'quote_id'                => 1,
@@ -620,12 +641,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 299.9900,
 		));
 
-		$itemB = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(2),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemB = $this->_stubQuoteItem($product, 1, 2, 1112);
 		$itemB->setData(array(
 			'item_id'                 => 2,
 			'quote_id'                => 1,
@@ -652,12 +668,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'row_total_incl_tax'      => 129.9900,
 			'base_row_total_incl_tax' => 129.9900,
 		));
-		$itemC = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(3),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemC = $this->_stubQuoteItem($product, 1, 1, 1113);
 		$itemC->setData(array(
 			'item_id'                 => 3,
 			'quote_id'                => 1,
@@ -802,12 +813,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$product = $this->_stubProduct(false);
 
 		// mock the items
-		$itemA = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(1),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemA = $this->_stubQuoteItem($product, 1, 1, 1111);
 		$itemA->setData(array(
 			'item_id'                 => 1,
 			'quote_id'                => 1,
@@ -835,12 +841,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 299.9900,
 		));
 
-		$itemB = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(2),
-			'getProduct'     => $this->returnValue($vProduct),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemB = $this->_stubQuoteItem($vProduct, 1, 2, 1112);
 		$itemB->setData(array(
 			'item_id'                 => 2,
 			'quote_id'                => 1,
@@ -868,12 +869,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'base_row_total_incl_tax' => 129.9900,
 		));
 
-		$itemC = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(3),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$itemC = $this->_stubQuoteItem($product, 1, 3, 1113);
 		$itemC->setData(array(
 			'item_id'                 => 3,
 			'quote_id'                => 1,
@@ -1072,12 +1068,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$product = $this->_stubProduct(false, '12345');
 
 		// mock the items
-		$item = $this->_buildModelMock('sales/quote_item', array(
-			'getId'          => $this->returnValue(4),
-			'getProduct'     => $this->returnValue($product),
-			'getHasChildren' => $this->returnValue(false),
-			'getStore'       => $this->returnValue($store),
-		));
+		$item = $this->_stubQuoteItem($product, 3, 4, 'n2610');
 		$item->setData(array(
 			'item_id'                       => 4,
 			'quote_id'                      => 2,
@@ -1128,6 +1119,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'     => $this->returnValue($product),
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
+			'getQuoteItem'   => $this->returnValue($item),
 		));
 		$addressItemA->setData(array(
 			'address_item_id'         => 5,
@@ -1165,6 +1157,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getProduct'     => $this->returnValue($product),
 			'getHasChildren' => $this->returnValue(false),
 			'getStore'       => $this->returnValue($store),
+			'getQuoteItem'   => $this->returnValue($item),
 		));
 		$addressItemB->setData(array(
 			'address_item_id'         => 6,
@@ -1556,12 +1549,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	public function testCheckDiscountsCouponCode()
 	{
 		$vProduct = $this->_stubProduct(true);
-		$item = $this->_buildModelMock('sales/quote_item', array(
-			'getId'             => $this->returnValue(1),
-			'getSku'            => $this->returnValue('parent_sku'),
-			'getProduct'        => $this->returnValue($vProduct),
-			'getDiscountAmount' => $this->returnValue(10.00),
-		));
+		$item = $this->_stubQuoteItem($vProduct, 1, 1, 'parent_sku', array(), false, 10);
 		$address = $this->_buildModelMock('sales/quote_address', array(
 			'getId'                 => $this->returnValue(1),
 			'getAllNonNominalItems' => $this->returnValue(array($item)),
@@ -1654,11 +1642,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$vProduct->expects($this->any())
 			->method('isVirtual')
 			->will($this->returnValue(true));
-		$item = $this->_buildModelMock('sales/quote_item', array(
-			'getId'      => $this->returnValue(1),
-			'getSku'     => $this->returnValue('parent_sku'),
-			'getProduct' => $this->returnValue($vProduct),
-		));
+		$item = $this->_stubQuoteItem($vProduct, 1, 1, 'parent_sku');
 		$address = $this->_buildModelMock('sales/quote_address', array(
 			'getId'                     => $this->returnValue(1),
 			'getAllNonNominalItems'     => $this->returnValue(array($item)),
@@ -1736,11 +1720,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$vProduct->expects($this->any())
 			->method('isVirtual')
 			->will($this->returnValue(true));
-		$item = $this->_buildModelMock('sales/quote_item', array(
-			'getId'      => $this->returnValue(1),
-			'getSku'     => $this->returnValue('parent_sku'),
-			'getProduct' => $this->returnValue($vProduct),
-		));
+		$item = $this->_stubQuoteItem($vProduct, 1, 1, 'parent_sku');
 		$address = $this->_buildModelMock('sales/quote_address', array(
 			'getId'                     => $this->returnValue(1),
 			'getAllNonNominalItems'     => $this->returnValue(array($item)),
@@ -1857,13 +1837,13 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * verify the request generates xml that passes xsd validation.
 	 * @test
 	 * @large
 	 * @loadFixture loadAdminOriginConfig.yaml
 	 */
 	public function testValidateWithXsd()
 	{
-		$this->_setupBaseUrl();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
@@ -1924,8 +1904,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddresses()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1941,8 +1919,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNoChanges()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1957,8 +1933,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesEmptyQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1973,8 +1947,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesNullQuote()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -1989,8 +1961,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testCheckAddressesChangeMultishipState()
 	{
-		$this->_setupBaseUrl();
-		$this->_mockCookie();
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$this->assertTrue($request->isValid());
@@ -2157,12 +2127,18 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$this->_setupBaseUrl();
 		$quote   = Mage::getModel('sales/quote')->loadByIdWithoutStore(3);
-		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$items   = $quote->getAllVisibleItems();
-		$item    = $items[0];
+		foreach ($items as $item) {
+			$item->addData(array(
+				'eb2c_ship_from_address_line1' => '1 n rosedale st',
+				'eb2c_ship_from_address_city' => 'baltimore',
+				'eb2c_ship_from_address_country_code' => 'US',
+			));
+		}
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
 		$request->checkItemQty($item);
 		$this->assertTrue($request->isValid());
-		$item->setData('qty', 5);
+		$items[0]->setData('qty', 5);
 		$request->checkItemQty($item);
 		$this->assertFalse($request->isValid());
 	}
@@ -2243,6 +2219,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->assertFalse($request->isValid());
 	}
 
+	/**
+	 * @test
+	 * @large
+	 */
 	public function testAddToDestination()
 	{
 		$fn      = $this->_reflectMethod('TrueAction_Eb2cTax_Model_Request', '_addToDestination');
@@ -2444,8 +2424,16 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			->method('getEb2cShipFromAddressPostalCode')
 			->will($this->returnValue('19406'));
 
+		// mock the address items
+		$mockAddressItem = $this->_buildModelMock('sales/quote_address_item', array(
+			'getId'          => $this->returnValue(5),
+			'getHasChildren' => $this->returnValue(false),
+			'getQuoteItem'   => $this->returnValue($mockQuoteItem),
+		));
+
 		return array(
-			array($mockQuoteItem)
+			array($mockQuoteItem),
+			array($mockAddressItem),
 		);
 	}
 
@@ -2466,6 +2454,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 		$this->assertSame(array(
 			'Line1'        => '1075 First Avenue',
+			'Line2'        => '',
+			'Line3'        => '',
+			'Line4'        => '',
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -2543,6 +2534,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * Verify the shipfrom address check invalidates the request only when there is a change.
 	 * @test
 	 * @loadFixture base.yaml
 	 * @large
@@ -2551,22 +2543,22 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote = $this->_stubSingleShipSameAsBill();
 		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
-
-		$this->assertNull(
-			$request->checkShippingOriginAddresses($quote)
-		);
+		$this->assertTrue($request->isValid(), 'request should initially be valid');
+		$request->checkShippingOriginAddresses($quote);
+		$this->assertTrue($request->isValid(), 'request should remain valid if no changes to the address are made');
 
 		// testing with invalid quote
 		$quoteAMock = $this->getMock('Mage_Sales_Model_Quote', array('getId'));
 		$quoteAMock->expects($this->any())
 			->method('getId')
-			->will($this->returnValue(0)
-			);
-		$this->assertNull(
-			$request->checkShippingOriginAddresses($quoteAMock)
-		);
+			->will($this->returnValue(0));
+		$request->checkShippingOriginAddresses($quoteAMock);
+		$this->assertFalse($request->isValid(), 'an invalid quote should invalidate the request');
 
 		// testing when shippingOrigin has changed.
+		$quote = $this->_stubSingleShipSameAsBill();
+		$request = Mage::getModel('eb2ctax/request', array('quote' => $quote));
+		$this->assertTrue($request->isValid(), 'request should initially be valid');
 		$requestReflector = new ReflectionObject($request);
 		$orderItemsProperty = $requestReflector->getProperty('_orderItems');
 		$orderItemsProperty->setAccessible(true);
@@ -2585,7 +2577,8 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 				)
 			)
 		));
-		$this->assertNull($request->checkShippingOriginAddresses($quote));
+		$request->checkShippingOriginAddresses($quote);
+		$this->assertFalse($request->isValid(), 'Expected the request to be invalidated');
 	}
 
 	/**

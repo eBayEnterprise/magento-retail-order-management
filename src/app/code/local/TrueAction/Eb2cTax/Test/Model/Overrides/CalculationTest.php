@@ -6,6 +6,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 {
 	public function setUp()
 	{
+		parent::setUp();
 		$this->_setupBaseUrl();
 
 		$storeMock = $this->getModelMock('core/store', array('convertPrice'));
@@ -60,6 +61,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			'getBaseTaxAmount' => $this->returnValue(23.00),
 		));
 		$this->item = $item;
+	}
+
+	public function tearDown()
+	{
+		parent::tearDown();
+		Mage::getModel('tax/calculation')->unsTaxResponse();
 	}
 
 	/**
@@ -240,7 +247,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	}
 
 	/**
-	 * verify null is returned when quote is null and no previous request exists.
+	 * verify a request object is always returned.
 	 * verify a request object is returned when quote is not null
 	 * verify existing request/response is discarded when quote is not null
 	 * verify same request is returned when quote is null and previous request exists.
@@ -251,8 +258,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->disableOriginalConstructor()
 			->getMock();
 		$calc = Mage::getModel('tax/calculation');
-		$nullVal = $calc->getTaxRequest();
-		$this->assertNull($nullVal);
+		$emptyRequest = $calc->getTaxRequest();
+		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $emptyRequest);
+		$this->assertFalse($emptyRequest->isValid());
 
 		$quoteRequest = $calc->getTaxRequest($quote);
 		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $quoteRequest);
@@ -273,7 +281,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$this->assertNotSame($storedRequest, $quoteRequest);
 		// the stored request should have been removed.
 		$quoteRequest = $calc->getTaxRequest();
-		$this->assertNull($quoteRequest);
+		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $quoteRequest);
 	}
 
 	protected function _mockConfigRegistry($configValues)

@@ -1,2 +1,2 @@
 config:
-  default/eb2ctax/calculation/apply_after_discount: 0
+  default/eb2ccore/eb2ctax_calculation/apply_after_discount: 0
