@@ -46,8 +46,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	);
 
 	protected $_extKeys = array(
+		'brand_description',
+		'brand_name',
+		'buyer_id',
+		'color',
+		'companion_flag',
 		'country_of_origin',
 		'gift_card_tender_code',
+		'hazardous_material_code',
+		'long_description',
 		'lot_tracking_indicator',
 		'ltl_freight_cost',
 		'may_ship_expedite',
@@ -59,20 +66,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		'sales_class',
 		'serial_number_type',
 		'ship_group',
-		'ship_window_min_hour',
 		'ship_window_max_hour',
+		'ship_window_min_hour',
+		'short_description',
 		'street_date',
-		'style_id',
 		'style_description',
+		'style_id',
 		'supplier_name',
 		'supplier_supplier_id',
-		'brand_name',
-		'brand_description',
-		'buyer_id',
-		'companion_flag',
-		'hazardous_material_code',
-		'short_description',
-		'long_description',
 	);
 
 	protected $_extKeysBool = array(
@@ -361,17 +362,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * Special data processor for the product configurable_attributes custom attribute.
 	 * Assigns the CONFIGURABLEATTRIBUTES custom attribute to the product data as configurable_attributes.
-	 * @todo  needs to be reformatted to match the appropriate data format. I think this is a start but will need to be checked.
+	 *
 	 * @param  array         $attrData   Map of custom attribute data: name, operation type, lang and value
 	 * @param  Varien_Object $customData Varien_Object containing all custome attributes data
 	 * @param  Varien_Object $outData    Varien_Object containing all transformed product feed data
 	 */
 	protected function _processConfigurableAttributes($attrData, Varien_Object $customData, Varien_Object $outData)
 	{
-		$helper = Mage::helper('eb2cproduct');
-		$outData->setData('configurable_attributes_data', array_map(function ($el) use ($helper) {
-			return array('attribute_id' => $helper->getProductAttributeId($el));
-		}, explode(',', $attrData['value'])));
+		$configurableAttributeData = array();
+
+		$configurableAttributes = explode(',', $attrData['value']);
+		foreach ($configurableAttributes as $attrCode) {
+			$superAttribute  = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
+			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')->setProductAttribute($superAttribute);
+
+			$configurableAttributeData[] = array(
+				'id'             => $configurableAtt->getId(),
+				'label'          => $configurableAtt->getLabel(),
+				'position'       => $superAttribute->getPosition(),
+				'values'         => array(),
+				'attribute_id'   => $superAttribute->getId(),
+				'attribute_code' => $superAttribute->getAttributeCode(),
+				'frontend_label' => $superAttribute->getFrontend()->getLabel(),
+			);
+		}
+
+		$outData->setData('configurable_attributes_data', $configurableAttributeData);
 	}
 
 	/**
@@ -426,48 +442,81 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 
 	/**
-	 * getting the attribute selected option.
-	 * @param string $attribute, the string attribute code to get the attribute config
-	 * @param string $option, the string attribute option label to get the attribute
+	 * Gets the option id for the option within the given attribute
+	 *
+	 * @param string $attribute, The attribute code
+	 * @param string $option, The option within the attribute
 	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
 	{
-		$optionId = 0;
-		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-		$attributeOptions = $attributes->getSource()->getAllOptions();
+		$attribute = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
+			->setAttributeFilter($attribute->getId())
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false); // @todo false = 'don't use default', but I really don't know what that means.
+
 		foreach ($attributeOptions as $attrOption) {
-			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
-				$optionId = $attrOption['value'];
+			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
+			$optionValue = $attrOption->getValue();
+			if(strtolower($optionValue) === strtolower($option)) {
+				return $optionId;
 			}
 		}
-		return $optionId;
+		return 0;
 	}
 
 	/**
-	 * add new attributes aptions and return the newly inserted option id
-	 * @param string $attribute, the attribute to used to add the new option
-	 * @param string $newOption, the new option to be added for the attribute
+	 * Add new attribute aption and return the newly inserted option id
+	 * @todo newOptionLabel needs to be the array of lang and description, not just a text field
+	 *
+	 * @param string $attribute, the attribute to which the new option is added
+	 * @param string $newOption, the new option itself
 	 * @return int, the newly inserted option id
 	 */
-	protected function _addAttributeOption($attribute, $newOption)
+	protected function _addOptionToAttribute($attribute, $newOption, $newOptionLabel)
 	{
-		$newOptionId = 0;
-		try{
-			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
-			$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
-			$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
-			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
+		$optionsIndex = 0;
+		$values = array();
+		$newAttributeOption = array(
+			'value'  => array(),
+			'order'  => array(),
+			'delete' => array(),
+
+		);
+		$attributeId = Mage::getModel('catalog/resource_eav_attribute')
+			->loadByCode('catalog_product', $attribute)
+			->getAttributeId();
+
+		// This entire set of options belongs to this attribute: 
+		$newAttributeOption['attribute_id'] = $attributeId;
+
+		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption;
+
+		// @todo review scope rules to figure out which store we should use, and how do we figure out language?
+		// Language is an attribute on the description, but dunno how to parse into a specific store.
+		$allStores = Mage::app()->getStores();
+		foreach( $allStores as $oneStore) {
+			$storeId = $oneStore->getId();
+			// @todo: From storeDetails, extract the Language (see spec, it's a naming convention)
+			$storeDetails = $oneStore->load($storeId);
+			$values[$storeId] = $newOptionLabel;
+		}
+		
+		// Set up the option0 to be the default (i.e. admin) store:
+		$newAttributeOption['value'] = array('replace_with_primary_key' => $values);
+		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+		try {
+			$setup->addAttributeOption($newAttributeOption);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
 				sprintf(
-					'[ %s ] The following error has occurred while creating new option "%d"  for attribute: %d in Item Master Feed (%d)',
+					'[ %s ] Error creating Admin option "%s" for attribute "%s": %s',
 					__CLASS__, $newOption, $attribute, $e->getMessage()
 				),
 				Zend_Log::ERR
 			);
 		}
-		return $newOptionId;
+		return $this->_getAttributeOptionId($attribute, $newOption); // Get the newly created id
 	}
 
 	/**
@@ -533,6 +582,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
 		}
 
+		// setting the product's color to a Magento Attribute Id
+		if ($item->getExtendedAttributes()->hasData('color')) {
+			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
+		}
+
+		if( $item->hasData('configurable_attributes_data') ) {
+			$productData->setData('configurable_attributes_data', $item->getData('configurable_attributes_data'));
+		}
+
 		// mark all products that have just been imported as not being clean
 		$productData->setData('is_clean', false);
 
@@ -540,29 +598,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			->addData($this->_getEb2cSpecificAttributeData($item))
 			->save(); // saving the product
 		$this
-			->_addColorToProduct($item, $product)
-			->_addStockItemDataToProduct($item, $product);
+			->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 		return $this;
 	}
 
 	/**
-	 * getting the color option, create it if id doesn't exist or just fetch it from magento db
+	 * Get the id of the Color-Attribute Option for this specific color. Create it if it doesn't exist.
+	 *
 	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
 	 * @return int, the option id
 	 */
-	protected function _getProductColorOptionId(Varien_Object $dataObject)
+	protected function _getProductColorOptionId($colorData)
 	{
 		$colorOptionId = 0;
 
-		// get color attribute data
-		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
 		if (!empty($colorData)) {
-			$colorCode = $this->_getFirstColorCode($colorData);
-			if(trim($colorCode) !== '') {
-				$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
-				if (!$colorOptionId) {
-					$colorOptionId = (int) $this->_addAttributeOption('color', $colorCode);
-				}
+			$colorOptionId = $this->_getAttributeOptionId('color', $colorData[0]['code']);
+			if (!$colorOptionId) {
+				// @fixme language is delievered at colorData[0]['description']['lang']
+				$colorOptionId = $this->_addOptionToAttribute('color', $colorData[0]['code'], $colorData[0]['description']['description']);
 			}
 		}
 		return $colorOptionId;
@@ -576,36 +630,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject)
-			->addData(
-				array(
-					'use_config_backorders' => false,
-					'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
-					'product_id' => $productObject->getId(),
-					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+		if( $productObject->getTypeId() !== Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE ) {
+			Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject)
+				->addData(
+					array(
+						'use_config_backorders' => false,
+						'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
+						'product_id' => $productObject->getId(),
+						'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					)
 				)
-			)
-			->save();
-		return $this;
-	}
-
-	/**
-	 * adding color data product configurable products
-	 * @param Varien_Object $dataObject, the object with data needed to add custom attributes to a product
-	 * @param Mage_Catalog_Model_Product $productObject, the product object to set custom data to
-	 * @return self
-	 */
-	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
-	{
-		$prodHlpr = Mage::helper('eb2cproduct');
-		if (trim(strtoupper($dataObject->getProductType())) === 'CONFIGURABLE' && $prodHlpr->hasEavAttr('color')) {
-			// setting color attribute, with the first record
-			$productObject->addData(
-				array(
-					'color' => $this->_getProductColorOptionId($dataObject),
-					'configurable_color_data' => json_encode($dataObject->getExtendedAttributes()->getColorAttributes()->getColor()),
-				)
-			)->save();
+				->save();
 		}
 		return $this;
 	}
@@ -641,6 +676,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if (!empty($colorData)) {
 			foreach ($colorData as $color) {
 				return $color['code'];
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * getting the first color description from an array of color attributes.
+	 * @param array $colorData, collection of color data
+	 * @return string|null, the first color code
+	 */
+	protected function _getFirstColorLabel(array $colorData)
+	{
+		if (!empty($colorData)) {
+			foreach ($colorData as $color) {
+				// @todo language is delievered here in 'lang'
+				return $color['description'][0]['description'];
 			}
 		}
 		return null;
