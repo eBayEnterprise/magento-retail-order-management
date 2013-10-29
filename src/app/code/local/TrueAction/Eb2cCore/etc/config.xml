@@ -63,6 +63,8 @@
 				<catalog_id />
 				<client_id />
 				<store_id />
+				<client_order_id_prefix />
+				<client_customer_id_prefix />
 				<test_mode />
 			</general>
 			<api>

@@ -18,9 +18,14 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_View extends Mage_Sales_Block_O
 		// instantiate eb2c customer order search class
 		$orderSearchObj = Mage::getModel('eb2corder/customer_order_search');
 
+		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+
 		// making eb2c customer order search request base on current session customer id and then
 		// parse result in a collection of varien object
-		$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary($customerId));
+		$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary(
+			sprintf('%s%s', $cfg->clientCustomerIdPrefix, $customerId)
+		));
 
 		// get order id
 		$orderId = $this->getOrder()->getRealOrderId();

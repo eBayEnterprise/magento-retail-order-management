@@ -55,6 +55,26 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+						<client_order_id_prefix>
+							<label>Client Order Id</label>
+							<comment>A five digit integer to be prepended to order increment id.</comment>
+							<sort_order>40</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-number</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</client_order_id_prefix>
+						<client_customer_id_prefix>
+							<label>Client Customer Id</label>
+							<comment>A five digit integer to be prepended to Customer id.</comment>
+							<sort_order>50</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-number</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</client_customer_id_prefix>
 					</fields>
 				</general>
 				<api>
