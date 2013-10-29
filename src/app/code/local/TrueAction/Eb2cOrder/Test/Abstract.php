@@ -47,6 +47,8 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				'getIncrementId'        => '8675309',
 				'getOrderCurrencyCode'  => 'USD',
 				'getShippingAddress'    => $this->_getMockSalesOrderAddress(),
+				'setState'              => 'self',
+				'save'                  => 'self',
 			)
 		);
 	}
@@ -190,9 +192,16 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				->getMock();
 		}
 		foreach($mockedMethodSet as $method => $returnSet ) {
-			$mock->expects($this->any())
-				->method($method)
-				->will($this->returnValue($returnSet));
+			if ($returnSet === 'self') {
+				$mock->expects($this->any())
+					->method($method)
+					->will($this->returnSelf());
+			} else {
+				$mock->expects($this->any())
+					->method($method)
+					->will($this->returnValue($returnSet));
+			}
+
 		}
 		return $mock;
 	}

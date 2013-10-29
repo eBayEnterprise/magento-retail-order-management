@@ -31,9 +31,27 @@ INVALID_XML;
 	 */
 	public function testOrderCreate()
 	{
-		$this->markTestIncomplete(
-			'This test has not been implemented yet.'
-		);
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
+		$sessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCookieShouldBeReceived')
+			->will($this->returnValue(true));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdQueryParam')
+			->will($this->returnValue('name'));
+		$sessionMock->expects($this->any())
+			->method('getSessionId')
+			->will($this->returnValue(1));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdForHost')
+			->will($this->returnValue(1));
+		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+
 		$this->replaceCoreConfigRegistry();
 		$this->replaceModel(
 			'eb2ccore/api',
@@ -47,7 +65,7 @@ INVALID_XML;
 			->buildRequest($this->getMockSalesOrder())
 			->sendRequest();
 
-		$this->assertSame(true, $status);
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $status);
 	}
 
 	/**
@@ -60,7 +78,26 @@ INVALID_XML;
 		$this->markTestIncomplete(
 			'This test has not been implemented yet.'
 		);
-		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_INVALID_XML), false );
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->with($this->equalTo('https://dev-mode-test.com'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setTimeout')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setXsd')
+			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->returnValue(self::SAMPLE_INVALID_XML));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+		//$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_INVALID_XML), false );
 		Mage::getModel('eb2corder/create')->sendRequest();
 	}
 
