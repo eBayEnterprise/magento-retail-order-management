@@ -7,6 +7,9 @@
 require_once('Mage/Checkout/controllers/OnepageController.php');
 class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_Checkout_OnepageController
 {
+	const TRUEACTION_EB2CINVENTORY_TERMS_AGREEMENT_ERROR = 'TrueAction_Eb2cInventory_Terms_Agreement_Error';
+	const TRUEACTION_EB2CINVENTORY_ERROR_PROCESSING_ORDER = 'TrueAction_Eb2cInventory_Error_Processing_Order';
+
 	/**
 	 * Create order action - overriding for eb2c allocation
 	 */
@@ -30,7 +33,7 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 				if ($diff) {
 					$result['success'] = false;
 					$result['error'] = true;
-					$result['error_messages'] = $this->__('Please agree to all the terms and conditions before placing the order.');
+					$result['error_messages'] = $this->__(self::TRUEACTION_EB2CINVENTORY_TERMS_AGREEMENT_ERROR);
 					$this->getResponse()->setBody(Mage::helper('core')->jsonEncode($result));
 					return;
 				}
@@ -114,7 +117,7 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 			Mage::helper('checkout')->sendPaymentFailedEmail($this->getOnepage()->getQuote(), $e->getMessage());
 			$result['success']  = false;
 			$result['error']    = true;
-			$result['error_messages'] = $this->__('There was an error processing your order. Please contact us or try again later.');
+			$result['error_messages'] = $this->__(self::TRUEACTION_EB2CINVENTORY_ERROR_PROCESSING_ORDER);
 		}
 		$this->getOnepage()->getQuote()->save();
 		/**
