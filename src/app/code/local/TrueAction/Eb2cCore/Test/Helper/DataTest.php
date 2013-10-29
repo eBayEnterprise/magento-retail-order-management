@@ -4,7 +4,8 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Helper_DataTest extends
+	TrueAction_Eb2cCore_Test_Base
 {
 	protected $_helper;
 
@@ -103,11 +104,12 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	 */
 	public function testApiUriCreationNonDefaultStore()
 	{
+		$this->setCurrentStore('canada');
 		$helper = Mage::helper('eb2ccore');
 		// service, operation, params and type
 		$this->assertSame(
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
-			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json', 'canada')
+			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
 
