@@ -3,12 +3,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	extends Mage_Core_Model_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
-	const DEFAULT_INVENTORY_QTY       = 997;
-	const OPERATION_TYPE_DELETE       = 'DELETE';
-	const OPERATION_TYPE_ADD          = 'ADD';
-	const OPERATION_TYPE_UPDATE       = 'UPDATE';
-	const PRODUCT_TYPE_SIMPLE         = 'simple';
-	const PRODUCT_TYPE_CONFIGURABLE   = 'configurable';
+	const DEFAULT_INVENTORY_QTY = 997;
+	const OPERATION_TYPE_DELETE = 'DELETE';
+	const OPERATION_TYPE_ADD    = 'ADD';
+	const OPERATION_TYPE_UPDATE = 'UPDATE';
 
 	/**
 	 * Initialize model
@@ -28,77 +26,101 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 		$prod = Mage::getModel('catalog/product');
 		return $this->addData(array(
-			'default_attribute_set_id' => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
-			'default_store_id' => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
-			'default_store_language_code' => Mage::app()->getLocale()->getLocaleCode(),
-			'eav_entity_attribute' => Mage::getModel('eav/entity_attribute'),
-			'extractor' => Mage::getModel('eb2cproduct/feed_item_extractor'),
-			'feed_model' => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
-			'product' => $prod,
+			'default_attribute_set_id'            => $prod->getResource()->getEntityType()->getDefaultAttributeSetId(),
+			'default_store_id'                    => Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId(),
+			'default_store_language_code'         => Mage::app()->getLocale()->getLocaleCode(),
+			'eav_entity_attribute'                => Mage::getModel('eav/entity_attribute'),
+			'extractor'                           => Mage::getModel('eb2cproduct/feed_item_extractor'),
+			'feed_model'                          => Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs),
+			'product'                             => $prod,
 			'product_type_configurable_attribute' => Mage::getModel('catalog/product_type_configurable_attribute'),
-			'stock_item' => Mage::getModel('cataloginventory/stock_item'),
-			'stock_status' => Mage::getSingleton('cataloginventory/stock_status'),
-			'website_ids' => Mage::getModel('core/website')->getCollection()->getAllIds(),
+			'stock_item'                          => Mage::getModel('cataloginventory/stock_item'),
+			'stock_status'                        => Mage::getSingleton('cataloginventory/stock_status'),
+			'website_ids'                         => Mage::getModel('core/website')->getCollection()->getAllIds(),
 		));
 	}
 
 	/**
-	 * getting the eav attribute object.
-	 * @param string $attribute, the string attribute code to get the attribute config
-	 * @return Mage_Eav_Model_Config
-	 */
-	protected function _getAttribute($attribute)
-	{
-		return Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-	}
-
-	/**
-	 * getting the attribute selected option.
-	 * @param string $attribute, the string attribute code to get the attribute config
-	 * @param string $option, the string attribute option label to get the attribute
+	 * Gets the option id for the option within the given attribute
+	 *
+	 * @param string $attribute, The attribute code
+	 * @param string $option, The option within the attribute
 	 * @return int
 	 */
 	protected function _getAttributeOptionId($attribute, $option)
 	{
-		$optionId = 0;
-		$attributes = Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-		$attributeOptions = $attributes->getSource()->getAllOptions();
+		$attribute = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
+			->setAttributeFilter($attribute->getId())
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false); // @todo false = 'don't use default', but I really don't know what that means.
+
 		foreach ($attributeOptions as $attrOption) {
-			if (strtoupper(trim($attrOption['label'])) === strtoupper(trim($option))) {
-				$optionId = $attrOption['value'];
+			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
+			$optionValue = $attrOption->getValue();
+			if(strtolower($optionValue) === strtolower($option)) {
+				return $optionId;
 			}
 		}
-		return $optionId;
+		return 0;
 	}
 
 	/**
-	 * add new attributes aptions and return the newly inserted option id
-	 * @param string $attribute, the attribute to used to add the new option
-	 * @param string $newOption, the new option to be added for the attribute
+	 * Add new attribute aption and return the newly inserted option id
+	 * @todo newOptionLabel needs to be the array of lang and description, not just a text field
+	 *
+	 * @param string $attribute, the attribute to which the new option is added
+	 * @param string $newOption, the new option itself
 	 * @return int, the newly inserted option id
 	 */
-	protected function _addAttributeOption($attribute, $newOption)
+	protected function _addOptionToAttribute($attribute, $newOption, $newOptionLabel)
 	{
-		$newOptionId = 0;
-		try{
-			$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
-			$attributeObject = Mage::getModel('catalog/resource_eav_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
-			$setup->addAttributeOption(array('attribute_id' => $attributeObject->getAttributeId(),'value' => array('any_option_name' => array($newOption))));
-			$newOptionId = $this->_getAttributeOptionId($attribute, $newOption);
+		$optionsIndex = 0;
+		$values = array();
+		$newAttributeOption = array(
+			'value'  => array(),
+			'order'  => array(),
+			'delete' => array(),
+
+		);
+		$attributeId = Mage::getModel('catalog/resource_eav_attribute')
+			->loadByCode('catalog_product', $attribute)
+			->getAttributeId();
+
+		// This entire set of options belongs to this attribute: 
+		$newAttributeOption['attribute_id'] = $attributeId;
+
+		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption;
+
+		// @todo review scope rules to figure out which store we should use, and how do we figure out language?
+		// Language is an attribute on the description, but dunno how to parse into a specific store.
+		$allStores = Mage::app()->getStores();
+		foreach( $allStores as $oneStore) {
+			$storeId = $oneStore->getId();
+			// @todo: From storeDetails, extract the Language (see spec, it's a naming convention)
+			$storeDetails = $oneStore->load($storeId);
+			$values[$storeId] = $newOptionLabel;
+		}
+		
+		// Set up the option0 to be the default (i.e. admin) store:
+		$newAttributeOption['value'] = array('replace_with_primary_key' => $values);
+		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
+		try {
+			$setup->addAttributeOption($newAttributeOption);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log(
 				sprintf(
-					'[ %s ] The following error has occurred while creating new option "%d"  for attribute: %d in Item Master Feed (%d)',
+					'[ %s ] Error creating Admin option "%s" for attribute "%s": %s',
 					__CLASS__, $newOption, $attribute, $e->getMessage()
 				),
 				Zend_Log::ERR
 			);
 		}
-		return $newOptionId;
+		return $this->_getAttributeOptionId($attribute, $newOption); // Get the newly created id
 	}
 
 	/**
-	 * load product by sku
+	 * Load product by sku
+	 *
 	 * @param string $sku, the product sku to filter the product table
 	 * @return Mage_Catalog_Model_Product
 	 */
@@ -236,7 +258,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 				->_addEb2cSpecificAttributeToProduct($item, $prdObj)
 				->_addCustomAttributeToProduct($item, $prdObj)
 				->_addConfigurableDataToProduct($item, $prdObj)
-				->_addStockItemDataToProduct($item, $prdObj);
+				->_addStockItemDataToProduct($item->getExtendedAttributes()->getBackOrderable(), $prdObj->getId());
+
 		}
 		return $this;
 	}
@@ -254,10 +277,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$colorData = $dataObject->getExtendedAttributes()->getColorAttributes()->getColor();
 		if (!empty($colorData)) {
 			$colorCode = $this->_getFirstColorCode($colorData);
+			$colorLabel = $this->_getFirstColorLabel($colorData);
 			if(trim($colorCode) !== '') {
 				$colorOptionId = (int) $this->_getAttributeOptionId('color', $colorCode);
 				if (!$colorOptionId) {
-					$colorOptionId = (int) $this->_addAttributeOption('color', $colorCode);
+					$colorOptionId = (int) $this->_addOptionToAttribute('color', $colorCode, $colorLabel);
 				}
 			}
 		}
@@ -276,10 +300,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			$prd
 				->unsId()
 				->addData(array(
-					'type_id'          => self::PRODUCT_TYPE_SIMPLE, // default product type
+					'type_id'          => Mage_Catalog_Model_Product_Type::TYPE_SIMPLE, // default product type
 					'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
 					'attribute_set_id' => $this->getDefaultAttributeSetId(),
-					'name'             => 'temporary-name - ' . uniqid(),
+					'name'             => 'temporary-name-' . uniqid() . '-' . $item->getBaseAttributes()->getItemDescription(),
 					'status'           => 0, // default - disabled
 					'sku'              => $item->getItemId()->getClientItemId(),
 					'color'            => $this->_getProductColorOptionId($item),
@@ -308,29 +332,52 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * Create a Parent Product
+	 * Create a Configurable Product
+	 *
+	 * $sku
+	 * $attributeSetId          The Attribute Set Used for this Configurable Product and its UsedProducts
+	 * $configurableAttributes  Which Attributes within the Attribute Set are used to configure the product
 	 * @return Mage_Catalog_Model_Product
 	 */
-	protected function _createMyParent($sku, $attributeSetId, $colorOptionId)
+	protected function _createConfigurableProduct($sku, $attributeSetId, $configurableAttributes)
 	{
-		$newParent = Mage::getModel('catalog/product');
-		$newParentData = array(
-			'type_id'          => self::PRODUCT_TYPE_CONFIGURABLE,
-			'visibility'       => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			'attribute_set_id' => $attributeSetId,
-			'name'             => 'temporary-parent-name - ' . uniqid(),
-			'status'           => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-			'sku'              => $sku,
-			'color'            => $colorOptionId,
-			'website_ids'      => $this->getWebsiteIds(),
-			'store_ids'        => array($this->getDefaultStoreId()),
-			'tax_class_id'     => 0,
-			'url_key'          => $sku,
+		$newConfigurableProduct = Mage::getModel('catalog/product');
+		// The Super Attribute is the glue that holds Configurable to its UsedProduct
+		$configurableAttributeData = array();
+		foreach ($configurableAttributes as $attrCode) {
+			$superAttribute  = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
+			$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
+
+			$configurableAttributeData[] = array(
+				'id'             => $configurableAtt->getId(),
+				'label'          => $configurableAtt->getLabel(),
+				'position'       => $superAttribute->getPosition(),
+				'values'         => array(),
+				'attribute_id'   => $superAttribute->getId(),
+				'attribute_code' => $superAttribute->getAttributeCode(),
+				'frontend_label' => $superAttribute->getFrontend()->getLabel(),
+			);
+		}
+
+		$newConfigurableProductData = array(
+			'type_id'                      => Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
+			'visibility'                   => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'attribute_set_id'             => $attributeSetId,
+			'name'                         => 'configurable-temp-' . uniqid(),
+			'status'                       => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'sku'                          => $sku,
+			'website_ids'                  => $this->getWebsiteIds(),
+			'store_ids'                    => array($this->getDefaultStoreId()),
+			'tax_class_id'                 => 0,
+			'configurable_attributes_data' => $configurableAttributeData,
+			'url_key'                      => $sku,
+			'stock_data'                   => array( 'is_in_stock' => 1, 'qty' => self::DEFAULT_INVENTORY_QTY),
 		);
+
 		try {
-			$newParent->setData($newParentData)->save();
+			$newConfigurableProduct->setData($newConfigurableProductData)->save();
 		} catch (Mage_Core_Exception $e) {
-			Mage::log(sprintf('[ %s ] Create parent sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
+			Mage::log(sprintf('[ %s ] Create configurable product sku %s %s', __CLASS__, $sku, $e->getMessage()), Zend_Log::ERR);
 		}
 		return $this->_loadProductBySku($sku);
 	}
@@ -341,13 +388,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	 * @param Mage_Catalog_Model_Product $parentProductObject, the product object to set stock item data to
 	 * @return self
 	 */
-	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
+	protected function _addStockItemDataToProduct($backOrderable, $productId)
 	{
-		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject->getId());
+		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productId);
 		$stockItem
 			->setQty(self::DEFAULT_INVENTORY_QTY)
 			->setUseConfigBackorders(false)
-			->setBackorders($dataObject->getExtendedAttributes()->getBackOrderable())
+			->setBackorders($backOrderable)
 			->save();
 		return $this;
 	}
@@ -361,7 +408,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	protected function _addColorToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
 		$prodHlpr = Mage::helper('eb2cproduct');
-		if (trim(strtolower($dataObject->getProductType())) === self::PRODUCT_TYPE_CONFIGURABLE && $prodHlpr->hasEavAttr('color')) {
+		if (trim(strtolower($dataObject->getProductType())) === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE && $prodHlpr->hasEavAttr('color')) {
 			// setting color attribute, with the first record
 			$productObject->addData(
 				array(
@@ -407,61 +454,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * link child product to parent configurable product.
-	 * @param Mage_Catalog_Model_Product $pPObj, the parent configurable product object
-	 * @param Mage_Catalog_Model_Product $pCObj, the child product object
-	 * @param array $confAttr, collection of configurable attribute
+	 * Adds the passed in product id to the configurableProduct passed in
+	 * 
+	 * @param $configurableProduct
+	 * @param $usedProduct
 	 * @return self
 	 */
-	protected function _linkChildToParentConfigurableProduct(Mage_Catalog_Model_Product $pPObj, Mage_Catalog_Model_Product $pCObj, array $confAttr)
+	private function _attachProductToConfigurable($configurableProduct, $usedProduct)
 	{
-		try {
-			$configurableData = array();
-			foreach ($confAttr as $configAttribute) {
-				$attributeObject = $this->_getAttribute($configAttribute);
-				$attributeOptions = $attributeObject->getSource()->getAllOptions();
-				foreach ($attributeOptions as $option) {
-					if ((int) $pCObj->getData(strtolower($configAttribute)) === (int) $option['value']) {
-						$configurableData[$pCObj->getId()][] = array(
-							'attribute_id' => $attributeObject->getId(),
-							'label' => $option['label'],
-							'value_index' => $option['value'],
-						);
-					}
-				}
-			}
-
-			$configurableAttributeData = array();
-			foreach ($confAttr as $attrCode) {
-				$superAttribute = $this->getEavEntityAttribute()->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
-				$configurableAtt = $this->getProductTypeConfigurableAttribute()->setProductAttribute($superAttribute);
-				$configurableAttributeData[] = array(
-					'id' => $configurableAtt->getId(),
-					'label' => $configurableAtt->getLabel(),
-					'position' => $superAttribute->getPosition(),
-					'values' => array(),
-					'attribute_id' => $superAttribute->getId(),
-					'attribute_code' => $superAttribute->getAttributeCode(),
-					'frontend_label' => $superAttribute->getFrontend()->getLabel(),
-				);
-			}
-
-			$pPObj->addData(
-				array(
-					'configurable_products_data' => $configurableData,
-					'configurable_attributes_data' => $configurableAttributeData,
-					'can_save_configurable_attributes' => true,
-				)
-			)->save();
-		} catch (Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while linking child product to configurable parent product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
+		$usedProductIds   = $configurableProduct->getTypeInstance()->getUsedProductIds();
+		$usedProductIds[] = $usedProduct->getId();
+		Mage::getResourceModel('catalog/product_type_configurable')
+			->saveProducts($configurableProduct, array_unique($usedProductIds));
 		return $this;
 	}
 
@@ -475,6 +479,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		if (!empty($colorData)) {
 			foreach ($colorData as $color) {
 				return $color['code'];
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * getting the first color description from an array of color attributes.
+	 * @param array $colorData, collection of color data
+	 * @return string|null, the first color code
+	 */
+	protected function _getFirstColorLabel(array $colorData)
+	{
+		if (!empty($colorData)) {
+			foreach ($colorData as $color) {
+				// @todo language is delievered here in 'lang'
+				return $color['description'][0]['description'];
 			}
 		}
 		return null;
@@ -500,39 +520,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		return $visibility;
 	}
 
-	/**
-	 * add color description per locale to a child product of using parent configurable store color attribute data.
-	 * @param Mage_Catalog_Model_Product $childProductObject, the child product object
-	 * @param array $parentColorDescriptionData, collection of configurable color description data
-	 * @return self
-	 */
-	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
-	{
-		try {
-			// This is neccessary to dynamically set value for attributes in different store view.
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
-			$allStores = Mage::app()->getStores();
-			foreach ($parentColorDescriptionData as $cfgColorData) {
-				foreach ($cfgColorData->description as $colorDescription) {
-					foreach ($allStores as $eachStoreId => $val) {
-						// assuming the storeview follow the locale convention.
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
-							$childProductObject->setStoreId($eachStoreId)->addData(array('color_description' => $colorDescription->description))->save();
-						}
-					}
-				}
-			}
-		} catch (Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while adding configurable color data to child product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-		return $this;
-	}
 
 	/**
 	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
@@ -919,41 +906,35 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * adding configurable data to a product
+	 * Adding configurable data to product
+	 *
 	 * @param Varien_Object $dataObject, the object with data needed to add configurable data to a product
 	 * @param Mage_Catalog_Model_Product $productObject, the product object to set configurable data to
 	 * @return self
 	 */
 	protected function _addConfigurableDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		$currentSku  = trim(strtoupper($dataObject->getItemId()->getClientItemId())); // Current Item's SKU
-		$productType = trim(strtolower($dataObject->getProductType()));               // Simple or Configurable, etc.
-		$parentSku   = trim($dataObject->getExtendedAttributes()->getStyleId());      // If applicable, this item's Parent SKU (See Spec for naming details)
+		$currentSku        = trim(strtoupper($dataObject->getItemId()->getClientItemId()));
+		$productType       = trim(strtolower($dataObject->getProductType()));
+		$configurableSku   = trim($dataObject->getExtendedAttributes()->getStyleId());
 
 		/*
 	 	 * When we have a Simple product with a parent sku /different/ from our own sku, we may well
 		 * be a child of a configurable product.
 		 */
-		if ( !empty($parentSku) && $productType === self::PRODUCT_TYPE_SIMPLE && ($currentSku !== strtoupper($parentSku))) {
-			$parentSku = $dataObject->getCatalogId() . '-' . $parentSku; // Prepend the catalogId to the SKU - what we get doesn't have it
-			$parentProduct = $this->_loadProductBySku($parentSku);       // Load the Parent SKU
-			if (!$parentProduct->getId()) {                              // Parent doesn't exists, let's dummy up a parent
-				$parentProduct = $this->_createMyParent($parentSku,
+		if ( !empty($configurableSku) && $productType === Mage_Catalog_Model_Product_Type::TYPE_SIMPLE && ($currentSku !== strtoupper($configurableSku))) {
+			$configurableSku = $dataObject->getCatalogId() . '-' . $configurableSku; // Prepend the catalogId to the SKU - what we get doesn't have it
+			$configurableProduct = $this->_loadProductBySku($configurableSku); // Load the Configurable SKU
+			if (!$configurableProduct->getId()) {                              // Configurable doesn't exists, let's dummy up a parent
+				$configurableProduct = $this->_createConfigurableProduct(
+					$configurableSku,
 					$this->getDefaultAttributeSetId(),
-					$this->_getProductColorOptionId($dataObject)
+					$dataObject->getConfigurableAttributes()
 				);
 			}
 
-			// we have a valid parent configurable product
-			if (trim(strtolower($parentProduct->getTypeId())) === self::PRODUCT_TYPE_CONFIGURABLE) {
-				// We have a valid configurable parent product to set this child to
-				$this->_linkChildToParentConfigurableProduct($parentProduct, $productObject, $dataObject->getConfigurableAttributes());
-
-				// We can get color description save in the parent product to be saved to this child product.
-				$configurableColorData = json_decode($parentProduct->getConfigurableColorData());
-				if (!empty($configurableColorData)) {
-					$this->_addColorDescriptionToChildProduct($productObject, $configurableColorData);
-				}
+			if (trim(strtolower($configurableProduct->getTypeId())) === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE) {
+				$this->_attachProductToConfigurable($configurableProduct, $productObject);
 			}
 		}
 		return $this;
