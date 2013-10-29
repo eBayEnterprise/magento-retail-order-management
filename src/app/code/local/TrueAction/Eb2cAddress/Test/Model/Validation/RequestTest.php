@@ -2,22 +2,21 @@
 /**
  * Test the generation of the xml request to the EB2C address validation service
  */
-class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
 	 * Parts of an address to use when building out the address request
 	 */
 	protected $_addressParts = array(
-		'line1' => '123 Main St',
-		'line2' => 'STE 6',
-		'line3' => 'Foo',
-		'line4' => 'Bar',
-		'city' => 'Auburn',
-		'region_id' => '51',
+		'line1'       => '123 Main St',
+		'line2'       => 'STE 6',
+		'line3'       => 'Foo',
+		'line4'       => 'Bar',
+		'city'        => 'Auburn',
+		'region_id'   => '51',
 		'region_code' => 'PA',
-		'country_id' => 'US',
-		'postcode' => '13021',
+		'country_id'  => 'US',
+		'postcode'    => '13021',
 	);
 
 	/**

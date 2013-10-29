@@ -1,9 +1,9 @@
 <?php
 class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 {
-	const SUGGESTION_INPUT_NAME = 'validation_option';
+	const SUGGESTION_INPUT_NAME         = 'validation_option';
 	const DEFAULT_ADDRESS_FORMAT_CONFIG = 'address_format_full';
-	const NEW_ADDRESS_SELECTION_VALUE = 'new_address';
+	const NEW_ADDRESS_SELECTION_VALUE   = 'new_address';
 
 	protected $_template = 'eb2caddress_frontend/customer/address/suggestions.phtml';
 
@@ -12,10 +12,10 @@ class TrueAction_Eb2cAddress_Block_Suggestions extends Mage_Core_Block_Template
 	 * @var array
 	 */
 	protected $_messages = array(
+		'new_label'         => 'TrueAction_Eb2cAddress_New_Address_Label',
+		'original_label'    => 'TrueAction_Eb2cAddress_Original_Address_Label',
 		'suggested_address' => 'TrueAction_Eb2cAddress_Suggestions_Label',
 		'suggestion_label'  => 'TrueAction_Eb2cAddress_Suggested_Address_Label',
-		'original_label'    => 'TrueAction_Eb2cAddress_Original_Address_Label',
-		'new_label'         => 'TrueAction_Eb2cAddress_New_Address_Label',
 	);
 
 	/**

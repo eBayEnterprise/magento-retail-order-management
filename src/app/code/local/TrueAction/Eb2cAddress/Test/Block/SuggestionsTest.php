@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest extends EcomDev_PHPUnit_Test_Case
 {
 	/**
 	 * Get an instance of the suggestions block to run some tests against.
@@ -91,13 +90,12 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	public function testGetSuggestedAddresses()
 	{
 		$addresses = array();
-		$addresses[] = Mage::getModel('customer/address');
-		$addresses[0]->addData(array(
-			'street' => '123 Main St',
-			'city' => 'King of Prussia',
+		$addresses[] = Mage::getModel('customer/address', array(
+			'street'      => '123 Main St',
+			'city'        => 'King of Prussia',
 			'region_code' => 'PA',
-			'country_id' => 'US',
-			'postcode' => '19406'
+			'country_id'  => 'US',
+			'postcode'    => '19406',
 		));
 		$validator = $this->getModelMock('eb2caddress/validator', array('getSuggestedAddresses'));
 		$validator->expects($this->once())
@@ -135,32 +133,30 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	 */
 	public function testAddressJson()
 	{
-		$address = Mage::getModel('customer/address');
-		$addressData = array(
-			'firstname' => 'Foo',
-			'lastname' => 'Bar',
-			'street' => "123 Main St\nSTE 6\nLine 3\nLine 4",
-			'city' => 'Fooville',
-			'region_id' => 51,
+		$address = Mage::getModel('customer/address', array(
+			'firstname'   => 'Foo',
+			'lastname'    => 'Bar',
+			'street'      => "123 Main St\nSTE 6\nLine 3\nLine 4",
+			'city'        => 'Fooville',
+			'region_id'   => 51,
 			'region_code' => 'PA',
-			'country_id' => 'US',
-			'postcode' => '99999',
-		);
-		$address->addData($addressData);
+			'country_id'  => 'US',
+			'postcode'    => '99999',
+		));
 		$block = $this->_createSuggestionsBlock();
 		$jsonString = $block->getAddressJsonData($address);
 		$this->assertNotNull($jsonString);
 		$jsonData = Mage::helper('core')->jsonDecode($jsonString);
 		$this->assertEquals(
 			array(
-				'street1' => '123 Main St',
-				'street2' => 'STE 6',
-				'street3' => 'Line 3',
-				'street4' => 'Line 4',
-				'city' => 'Fooville',
-				'region_id' => 51,
+				'street1'    => '123 Main St',
+				'street2'    => 'STE 6',
+				'street3'    => 'Line 3',
+				'street4'    => 'Line 4',
+				'city'       => 'Fooville',
+				'region_id'  => 51,
 				'country_id' => 'US',
-				'postcode' => '99999'
+				'postcode'   => '99999',
 			),
 			$jsonData,
 			'JSON Data contains correct data for address.'
@@ -175,49 +171,25 @@ class TrueAction_Eb2cAddress_Test_Block_SuggestionsTest
 	 */
 	public function testGetRenderedAddress()
 	{
-		$address = Mage::getModel('customer/address');
-		$address->addData(array(
-			'firstname' => 'Foo',
-			'lastname' => 'Bar',
-			'street' => '123 Main St',
-			'city' => 'King of Prussia',
+		$expectedFull = 'Foo Bar<br/>123 Main St<br/>King of Prussia, Pennsylvania<br/>19406<br/>United States';
+		$expectedAdOnly = '123 Main St<br/>King of Prussia, Pennsylvania<br/>19406<br/>United States';
+		$address = Mage::getModel('customer/address', array(
+			'firstname'   => 'Foo',
+			'lastname'    => 'Bar',
+			'street'      => '123 Main St',
+			'city'        => 'King of Prussia',
 			'region_code' => 'PA',
-			'region_id' => 51,
-			'country_id' => 'US',
-			'postcode' => '19406'
+			'region_id'   => 51,
+			'country_id'  => 'US',
+			'postcode'    => '19406',
 		));
-		$rendered = $this->_createSuggestionsBlock()->getRenderedAddress($address);
-		$this->assertEquals(
-			"Foo Bar<br/>\n\n123 Main St<br/>\n\n\n\nKing of Prussia, Pennsylvania<br/>\n19406<br/>\nUnited States",
-			$rendered
+		$block = $this->_createSuggestionsBlock();
+		$rendered = preg_replace('/<br\s*\/\>\s+/', '<br/>', $block->getRenderedAddress($address));
+		$this->assertEquals($expectedFull, $rendered);
+		$rendered = preg_replace('/<br\s*\/\>\s+/', '<br/>',
+			$block->setAddressFormat('address_format_address_only')->getRenderedAddress($address)
 		);
-	}
-
-	/**
-	 * Test the rendering of address objects. Not a huge fan of testing against the
-	 * expected HTML markup...seems overly brittle.
-	 * @test
-	 */
-	public function testRenderAddressWithAddressFormatSet()
-	{
-		$address = Mage::getModel('customer/address');
-		$address->addData(array(
-			'firstname' => 'Foo',
-			'lastname' => 'Bar',
-			'street' => '123 Main St',
-			'city' => 'King of Prussia',
-			'region_code' => 'PA',
-			'region_id' => 51,
-			'country_id' => 'US',
-			'postcode' => '19406'
-		));
-		$rendered = $this->_createSuggestionsBlock()
-			->setAddressFormat('address_format_address_only')
-			->getRenderedAddress($address);
-		$this->assertEquals(
-			"123 Main St<br/>\n\n\n\nKing of Prussia, Pennsylvania<br/>\n19406<br/>\nUnited States",
-			$rendered
-		);
+		$this->assertEquals($expectedAdOnly, $rendered);
 	}
 
 	/**
