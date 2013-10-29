@@ -46,7 +46,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 	{
 		$helperMock = $this->getHelperMockBuilder('eb2corder/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfig', 'getOperationUri', 'setXsd', 'request'))
+			->setMethods(array('getConfig', 'getOperationUri'))
 			->getMock();
 		$helperMock->expects($this->exactly(2))
 			->method('getConfig')
