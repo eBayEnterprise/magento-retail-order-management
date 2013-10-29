@@ -1,11 +1,9 @@
 <?php
-
 use EcomDev_PHPUnit_Test_Case_Util as TestUtil;
 
 class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	public function setUp()
 	{
 		parent::setUp();
@@ -342,5 +340,4 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 
 		$addressObserver = Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
 	}
-
 }

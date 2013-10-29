@@ -1,4 +1,3 @@
 config:
   default/eb2ccore/general/client_id: "TAN-EB2CJS"
   default/eb2ccore/general/store_id: "9999"
-  default/eb2c/fraud/developer_mode: 1

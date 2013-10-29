@@ -37,7 +37,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				'getEb2cHostName'       => 'mwest.mage-tandev.net',
 				'getEb2cIpAddress'      => '208.247.73.130',
 				'getEb2cJavascriptData' => implode($reallyBigJavascriptData),
-				'getEb2cReferer'        => 'https://www.google.com/',
+				'getEb2cReferer'        => 'https://example.com/',
 				'getEb2cSessionId'      => '5nqm2sczfncsggzdqylueb2h',
 				'getEb2cUserAgent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36',
 				'getEntityId'           => '711',
@@ -217,9 +217,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			'apiXsdPath'              => '/home/mwest/projects/magento-enterprise/src/app/code/local/TrueAction/Eb2cCore/xsd',
 
 			// Eb2cOrder-specific Values:
-			'developerMode'           => true,
-			'developerCreateUri'      => 'valid-url-here',
-			'developerCancelUri'      => 'valid-url-here',
 			'eb2cPaymentsEnabled'     => true,
 			'statusFeedLocalPath'     => 'some_local_path_for_files',
 			'statusFeedRemotePath'    => 'doesnt_matter_just_some_path',

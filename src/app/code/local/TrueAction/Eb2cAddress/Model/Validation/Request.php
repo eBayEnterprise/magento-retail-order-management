@@ -1,18 +1,14 @@
 <?php
-
 /**
  * Generate the xml request to the AddressValidation service
  * @method Mage_Customer_Model_Address_Abstract getQuote
  * @method TrueAction_Eb2cAddress_Model_Validation_Request setADdress(Mage_Customer_Model_Address_Abstract $address)
  */
-class TrueAction_Eb2cAddress_Model_Validation_Request
-	extends Varien_Object
+class TrueAction_Eb2cAddress_Model_Validation_Request extends Varien_Object
 {
-
-	const API_SERVICE = 'address';
-	const API_OPERATION = 'validate';
-	const API_FORMAT = 'xml';
-
+	const API_SERVICE        = 'address';
+	const API_OPERATION      = 'validate';
+	const API_FORMAT         = 'xml';
 	const DOM_ROOT_NODE_NAME = 'AddressValidationRequest';
 
 	/**
@@ -90,5 +86,4 @@ class TrueAction_Eb2cAddress_Model_Validation_Request
 		);
 		return $fragment;
 	}
-
 }

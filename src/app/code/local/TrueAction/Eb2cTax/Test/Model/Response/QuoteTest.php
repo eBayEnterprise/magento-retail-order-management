@@ -1,10 +1,5 @@
 <?php
 /**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
-/**
  * tests the tax response quote class.
  */
 class TrueAction_Eb2cTax_Test_Model_Response_QuoteTest extends TrueAction_Eb2cCore_Test_Base

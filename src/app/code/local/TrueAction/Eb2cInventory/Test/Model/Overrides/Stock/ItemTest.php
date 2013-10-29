@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Model_Overrides_Stock_ItemTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_item;

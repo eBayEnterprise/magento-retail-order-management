@@ -40,7 +40,7 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			} else {
 				throw new Exception("Unable to get fixture data for key [$key]");
 			}
-		} 
+		}
 		return $fixture;
 	}
 
@@ -55,9 +55,6 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			// Core Values:
 			'clientId'                => 'TAN-OS-CLI',
 			'feedDestinationType'     => 'MAILBOX',
-
-			// Sample non-core Values:
-			'developerMode' => true,
 		);
 
 		// Replace and/ or add to the default configValuePairs if the user has supplied some config values

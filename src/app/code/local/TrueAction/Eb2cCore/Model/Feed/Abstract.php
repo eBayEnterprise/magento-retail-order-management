@@ -4,7 +4,7 @@
  */
 abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_Abstract
 {
-	protected $_coreFeed;    // Handles file fetching, moving, listing, etc.
+	protected $_coreFeed; // Handles file fetching, moving, listing, etc.
 
 	/**
 	 * Processes the DOM loaded into xmlDom. At minimum, you'll have to implement this. You may

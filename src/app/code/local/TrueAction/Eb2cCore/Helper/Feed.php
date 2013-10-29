@@ -1,8 +1,4 @@
 <?php
-/**
- * Helper for Feed Processing
- *
- */
 class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 {
 	const FILETRANSFER_CONFIG_PATH = 'eb2ccore/feed';

@@ -1,16 +1,9 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Model_Sequence extends Mage_Core_Model_Abstract
 {
 	/**
-	 * extract the sequence number from xml feed file.
-	 *
+	 * Extract the sequence number from xml feed file.
 	 * @param string $file, an xml file
-	 *
 	 * @return string, the sequence number
 	 */
 	protected function _extractSequence($file)
@@ -26,7 +19,6 @@ class TrueAction_Eb2cCore_Model_Sequence extends Mage_Core_Model_Abstract
 		if ($correlationId->length) {
 			$sequence = (string) $correlationId->item(0)->nodeValue;
 		}
-
 		return $sequence;
 	}
 
@@ -45,7 +37,6 @@ class TrueAction_Eb2cCore_Model_Sequence extends Mage_Core_Model_Abstract
 				$results[] = array('sequence' => $this->_extractSequence($feed), 'feed' => $feed);
 			}
 		}
-
 		return $results;
 	}
 }

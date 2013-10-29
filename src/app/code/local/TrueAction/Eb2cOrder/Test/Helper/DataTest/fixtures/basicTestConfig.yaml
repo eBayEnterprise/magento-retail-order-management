@@ -5,4 +5,3 @@ config:
   default/eb2ccore/api/region: api_rgn
   default/eb2ccore/general/client_id: client_id
   default/eb2ccore/general/store_id: store_id
-  default/eb2c/order/developer_mode: 0

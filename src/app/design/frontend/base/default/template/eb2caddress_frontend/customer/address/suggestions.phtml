@@ -10,7 +10,7 @@ if ($this->shouldShowSuggestions()): ?>
 		<?php foreach ($this->getSuggestedAddresses() as $idx => $suggestion): ?>
 		<li class="suggestion">
 			<label>
-				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $suggestion->getStashKey() ?>" id="suggestion-<?php echo $idx ?>" data-address-data='<?php echo $this->getAddressJSONData($suggestion) ?>' />
+				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $suggestion->getStashKey() ?>" id="suggestion-<?php echo $idx ?>" data-address-data='<?php echo $this->getAddressJsonData($suggestion) ?>' />
 				<?php echo $this->getSuggestionLabel() ?>
 			</label>
 			<p class="address"><?php echo $this->getRenderedAddress($suggestion) ?></p>
@@ -19,14 +19,14 @@ if ($this->shouldShowSuggestions()): ?>
 		<?php $_originalAddress = $this->getOriginalAddress() ?>
 		<li class="suggestion original">
 			<label>
-				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $_originalAddress->getStashKey() ?>" id="suggestion-original" data-address-data='<?php echo $this->getAddressJSONData($_originalAddress) ?>' />
+				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $_originalAddress->getStashKey() ?>" id="suggestion-original" data-address-data='<?php echo $this->getAddressJsonData($_originalAddress) ?>' />
 				<?php echo $this->getOriginalAddressLabel() ?>
 			</label>
 			<p class="address"><?php echo $this->getRenderedAddress($_originalAddress) ?></p>
 		</li>
 		<li class="suggestion new">
 			<label class="validation-message new-address-message">
-				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $this->getNewAddressSelectionValue() ?>" id="suggestion-new" data-address-data='<?php echo $this->getAddressJSONData($_originalAddress) ?>' />
+				<input type="radio" name="<?php echo $this->getSuggestionInputName() ?>" value="<?php echo $this->getNewAddressSelectionValue() ?>" id="suggestion-new" data-address-data='<?php echo $this->getAddressJsonData($_originalAddress) ?>' />
 				<?php echo $this->getNewAddressLabel() ?>
 			</label>
 		</li>

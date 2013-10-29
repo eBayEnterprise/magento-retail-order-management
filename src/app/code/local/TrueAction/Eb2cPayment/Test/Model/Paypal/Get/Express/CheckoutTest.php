@@ -1,9 +1,4 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_checkout;
@@ -15,12 +10,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Get_Express_CheckoutTest extends 
 	{
 		parent::setUp();
 		$this->_checkout = Mage::getModel('eb2cpayment/paypal_get_express_checkout');
-
-		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
-		$paymentHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalGetExpressCheckoutReply.xml'));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 	}
 
 	public function buildQuoteMock()

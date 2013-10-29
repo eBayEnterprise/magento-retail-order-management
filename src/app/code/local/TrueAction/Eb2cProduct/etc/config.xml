@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-/**
- *
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
--->
 <config>
 	<modules>
 		<TrueAction_Eb2cProduct>
@@ -93,14 +85,9 @@
 		</eb2cproduct_attributes>
 	</global>
 	<default>
-		<eb2c>
-			<product>
-				<api_service>product</api_service>
-				<api_return_format>xml</api_return_format>
-				<config_path>eb2ccore/general</config_path>
-			</product>
-		</eb2c>
 		<eb2cproduct>
+			<api_service>product</api_service>
+			<api_return_format>xml</api_return_format>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
 				<remote_path>/Inbox/</remote_path>

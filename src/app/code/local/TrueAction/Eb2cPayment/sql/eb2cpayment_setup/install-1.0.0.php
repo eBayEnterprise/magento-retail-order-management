@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 
 $installer = new Enterprise_GiftCardAccount_Model_Mysql4_Setup('core_setup');
 $installer->startSetup();
