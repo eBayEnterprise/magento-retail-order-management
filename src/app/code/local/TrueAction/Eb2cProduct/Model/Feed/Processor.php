@@ -485,7 +485,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$product = $this->_helper->prepareProductModel($sku);
 
 		$productData = new Varien_Object();
-		$productData->setData('visibility', $this->_getVisibilityData($item));
+
 		// getting product name/title
 		$productTitle = $this->_getDefaultLocaleTitle($item);
 
@@ -498,8 +498,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass')) {
 			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 		}
+		if( $item->getBaseAttributes()->getCatalogClass()) {
+			$productData->setData('visibility', $this->_getVisibilityData($item));
+		}
 		if ($item->getBaseAttributes()->getItemStatus()) {
-			$productData->setData('status', $item->getBaseAttributes()->getItemStatus());
+			$productData->setData('status', $this->_getItemStatusData($item->getBaseAttributes()->getItemStatus()));
 		}
 		if ($item->getExtendedAttributes()->getMsrp()) {
 			$productData->setData('msrp', $item->getExtendedAttributes()->getMsrp());
@@ -515,7 +518,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		// setting category data
-		$productData->setData('category_ids', $this->_preparedCategoryLinkData($item));
+		if( $item->getCategoryLinks() ) {
+			$productData->setData('category_ids', $this->_preparedCategoryLinkData($item));
+		}
+
 		// Setting product name/title from base attributes
 		$productData->setData('name', ($productTitle !== '')? $productTitle : $product->getName());
 		// setting the product long description according to the store language setting
@@ -658,6 +664,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		return $visibility;
+	}
+
+	/**
+	 * Translate the feed's idea of status to Magento's
+	 *
+	 * @param type $originalStatus as from XML feed E.g., "Active"
+	 * @return Magento-ized version of status
+	 */
+	protected function _getItemStatusData($originalStatus)
+	{
+		$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
+		if(strtoupper($originalStatus) === 'ACTIVE') {
+			$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_ENABLED;
+		}
+		return $mageStatus;
 	}
 
 	/**
