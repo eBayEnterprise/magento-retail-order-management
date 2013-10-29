@@ -41,17 +41,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 	}
 
 	/**
-	 * 	@TODO I don't think this function is actually used.
-	 * getting the eav attribute object.
-	 * @param string $attribute, the string attribute code to get the attribute config
-	 * @return Mage_Eav_Model_Config
-	 */
-	protected function _getAttribute($attribute)
-	{
-		return Mage::getSingleton('eav/config')->getAttribute(Mage_Catalog_Model_Product::ENTITY, $attribute);
-	}
-
-	/**
 	 * Gets the option id for the option within the given attribute
 	 *
 	 * @param string $attribute, The attribute code
@@ -63,7 +52,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		$attribute = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
 		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
 			->setAttributeFilter($attribute->getId())
-			->setStoreFilter(0, false);
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false); // @todo false = 'don't use default', but I really don't know what that means.
 
 		foreach ($attributeOptions as $attrOption) {
 			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
@@ -77,6 +66,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 
 	/**
 	 * Add new attribute aption and return the newly inserted option id
+	 * @todo newOptionLabel needs to be the array of lang and description, not just a text field
 	 *
 	 * @param string $attribute, the attribute to which the new option is added
 	 * @param string $newOption, the new option itself
@@ -92,24 +82,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 			'delete' => array(),
 
 		);
-		$attributeModel = Mage::getModel('catalog/resource_eav_attribute')->loadByCode('catalog_product', $attribute);
+		$attributeId = Mage::getModel('catalog/resource_eav_attribute')
+			->loadByCode('catalog_product', $attribute)
+			->getAttributeId();
 
 		// This entire set of options belongs to this attribute: 
-		$newAttributeOption['attribute_id'] = $attributeModel->getAttributeId();
+		$newAttributeOption['attribute_id'] = $attributeId;
 
-		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption; // Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID
+		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption;
 
 		// @todo review scope rules to figure out which store we should use, and how do we figure out language?
 		// Language is an attribute on the description, but dunno how to parse into a specific store.
 		$allStores = Mage::app()->getStores();
 		foreach( $allStores as $oneStore) {
 			$storeId = $oneStore->getId();
+			// @todo: From storeDetails, extract the Language (see spec, it's a naming convention)
 			$storeDetails = $oneStore->load($storeId);
 			$values[$storeId] = $newOptionLabel;
 		}
 		
 		// Set up the option0 to be the default (i.e. admin) store:
-
 		$newAttributeOption['value'] = array('replace_with_primary_key' => $values);
 		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
 		try {
@@ -528,40 +520,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Item_Master
 		return $visibility;
 	}
 
-	/**
-	 * @TODO I don't think this code is actually called. 
-	 * add color description per locale to a child product of using parent configurable store color attribute data.
-	 * @param Mage_Catalog_Model_Product $childProductObject, the child product object
-	 * @param array $parentColorDescriptionData, collection of configurable color description data
-	 * @return self
-	 */
-	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
-	{
-		try {
-			// This is neccessary to dynamically set value for attributes in different store view.
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
-			$allStores = Mage::app()->getStores();
-			foreach ($parentColorDescriptionData as $cfgColorData) {
-				foreach ($cfgColorData->description as $colorDescription) {
-					foreach ($allStores as $eachStoreId => $val) {
-						// assuming the storeview follow the locale convention.
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
-							$childProductObject->setStoreId($eachStoreId)->addData(array('color_description' => $colorDescription->description))->save();
-						}
-					}
-				}
-			}
-		} catch (Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while adding configurable color data to child product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-		return $this;
-	}
 
 	/**
 	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
