@@ -26,13 +26,11 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param string $operation
 	 * @param array $params
 	 * @param string $format
-	 * @param mixed $store a code, id, or model of a magento store view.
 	 */
-	public function getApiUri($service, $operation, $params=array(), $format='xml', $store=null)
+	public function getApiUri($service, $operation, $params=array(), $format='xml')
 	{
 		$config = Mage::getModel('eb2ccore/config_registry')
-			->addConfigModel(Mage::getSingleton('eb2ccore/config'))
-			->setStore($store);
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 
 		return sprintf(
 			self::URI_FORMAT,

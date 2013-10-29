@@ -58,17 +58,16 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
-	 * @param mixed  $store     the model, id, or code of a magento store.
 	 *
 	 * @return string, the generated operation Uri
 	 */
-	public function getOperationUri($optIndex, $store=null)
+	public function getOperationUri($optIndex)
 	{
 		$operation = '';
 		if (isset($this->_operation[$optIndex])) {
 			$operation = $this->_operation[$optIndex];
 		}
-		$cfg = $this->getConfigModel($store);
+		$cfg = $this->getConfigModel();
 		$apiUri = $operation['dev'];
 		if (!(bool) $this->getConfigModel()->developerMode) {
 			$apiUri = Mage::helper('eb2ccore')->getApiUri(
