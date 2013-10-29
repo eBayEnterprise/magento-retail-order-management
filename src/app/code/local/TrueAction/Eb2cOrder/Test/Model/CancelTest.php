@@ -32,7 +32,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 		$this->assertSame(
 			$this->expected('request')->getXml(),
 			// removing tab, carriage and line breaks from response.
-			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',$domRequest->getValue($request)->saveXML()))
+			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '', $domRequest->getValue($request)->saveXML()))
 		);
 	}
 
@@ -106,7 +106,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 		$this->assertSame(
 			$this->expected('response')->getXml(),
 			// removing tab, carriage and line breaks from response.
-			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',$domResponse->getValue($domReponse)->saveXML()))
+			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '', $domResponse->getValue($domReponse)->saveXML()))
 		);
 	}
 

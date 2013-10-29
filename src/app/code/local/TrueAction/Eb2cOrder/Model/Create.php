@@ -114,33 +114,35 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			$uri = $this->_config->developerCreateUri;
 		}
 		$response = '';
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_xmlRequest), Zend_Log::DEBUG);
-		try {
-			$response = Mage::getModel('eb2ccore/api')
-				->addData(
-					array(
-						'uri' => $uri,
-						'timeout' => $this->_config->serviceOrderTimeout,
-						'xsd' => $this->_config->xsdFileCreate,
+		if ($this->_domRequest instanceof DOMDocument) {
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_xmlRequest), Zend_Log::DEBUG);
+			try {
+				$response = Mage::getModel('eb2ccore/api')
+					->addData(
+						array(
+							'uri' => $uri,
+							'timeout' => $this->_config->serviceOrderTimeout,
+							'xsd' => $this->_config->xsdFileCreate,
+						)
 					)
-				)
-				->request($this->_domRequest);
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending order create request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		} catch(Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
+					->request($this->_domRequest);
+			} catch(Zend_Http_Client_Exception $e) {
+				Mage::log(
+					sprintf(
+						'[ %s ] The following error has occurred while sending order create request to eb2c: (%s).',
+						__CLASS__, $e->getMessage()
+					),
+					Zend_Log::ERR
+				);
+			} catch(Mage_Core_Exception $e) {
+				Mage::log(
+					sprintf(
+						'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
+						__CLASS__, $e->getMessage()
+					),
+					Zend_Log::ERR
+				);
+			}
 		}
 
 		return $this->_processResponse($response);
@@ -575,10 +577,10 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	{
 		// first get all order with state equal to 'new'
 		$orders = $this->_getNewOrders();
-		$currentDate = date("m/d/Y H:i:s", Mage::getModel('core/date')->timestamp(time()));
+		$currentDate = date('m/d/Y H:i:s', Mage::getModel('core/date')->timestamp(time()));
 		Mage::log(
 			sprintf('[ %s ]: Begin order retry now: %s. Found %s new order to be retried',
-			__METHOD__, $currentDate, $orders->count()
+				__METHOD__, $currentDate, $orders->count()
 			),
 			Zend_Log::DEBUG
 		);
@@ -589,7 +591,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 				->sendRequest();
 		}
 
-		$newDate = date("m/d/Y H:i:s", Mage::getModel('core/date')->timestamp(time()));
+		$newDate = date('m/d/Y H:i:s', Mage::getModel('core/date')->timestamp(time()));
 		Mage::log(sprintf('[ %s ]: Order retried finish at: %s', __METHOD__, $newDate), Zend_Log::DEBUG);
 	}
 
