@@ -84,6 +84,17 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Convert Magento Locale Code into a format matching inbound feed, i.e. en_US => en-US
+	 *
+	 * @param string $langCode, the language code
+	 * @return string, the magento expected format
+	 */
+	public static function mageToXmlLangFrmt($langCode)
+	{
+		return str_replace('_', '-', $langCode);
+	}
+
+	/**
 	 * clear magento cache and rebuild inventory status.
 	 *
 	 * @return TrueAction_Eb2cProduct_Helper_Data

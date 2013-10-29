@@ -34,7 +34,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Pricing
 		parent::__construct();
 		$this->_baseXpath = '/Prices/PricePerItem';
 		$this->_feedLocalPath = $this->_config->pricingFeedLocalPath;
-		$this->_feedRemotePath = $this->_config->pricingFeedRemotePath;
+		$this->_feedRemotePath = $this->_config->pricingFeedRemoteReceivedPath;
 		$this->_feedFilePattern = $this->_config->pricingFeedFilePattern;
 		$this->_feedEventType = $this->_config->pricingFeedEventType;
 

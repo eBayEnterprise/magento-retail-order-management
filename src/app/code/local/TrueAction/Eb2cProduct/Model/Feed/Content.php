@@ -96,7 +96,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Content
 		);
 		$this->_baseXpath = '/ContentMaster/Content';
 		$this->_feedLocalPath = $this->_config->contentFeedLocalPath;
-		$this->_feedRemotePath = $this->_config->contentFeedRemotePath;
+		$this->_feedRemotePath = $this->_config->contentFeedRemoteReceivedPath;
 		$this->_feedFilePattern = $this->_config->contentFeedFilePattern;
 		$this->_feedEventType = $this->_config->contentFeedEventType;
 	}

@@ -1,6 +1,7 @@
 <?php
 class TrueAction_Eb2cProduct_Model_Feed
 	extends TrueAction_Eb2cCore_Model_Feed_Abstract
+	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	const INVALID_EVENT_TYPE = 'the document is missing a valid event type node [%s]';
 	const DOCUMENT_START = 'processing file %s';

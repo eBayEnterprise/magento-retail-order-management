@@ -21,7 +21,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Iship
 
 		$this->_baseXpath = '/iShip/Item';
 		$this->_feedLocalPath = $this->_config->iShipFeedLocalPath;
-		$this->_feedRemotePath = $this->_config->iShipFeedRemotePath;
+		$this->_feedRemotePath = $this->_config->iShipFeedRemoteReceivedPath;
 		$this->_feedFilePattern = $this->_config->iShipFeedFilePattern;
 		$this->_feedEventType = $this->_config->iShipFeedEventType;
 	}

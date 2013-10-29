@@ -71,6 +71,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		'buyer_id',
 		'companion_flag',
 		'hazardous_material_code',
+		'short_description',
+		'long_description',
 	);
 
 	protected $_extKeysBool = array(
@@ -90,7 +92,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		$config = Mage::helper('eb2cproduct')->getConfigModel();
 		$this->_helper = Mage::helper('eb2cproduct');
-		$this->_defaultStoreLanguageCode = Mage::app()->getLocale()->getLocaleCode();
+		$this->_defaultStoreLanguageCode = Mage::helper('eb2ccore')->mageToXmlLangFrmt(Mage::app()->getLocale()->getLocaleCode());
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
@@ -146,7 +148,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// prepare base attributes
 		$baseAttributes = new Varien_Object();
 		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
-		foreach (array('catalog_class', 'item_type', 'item_status', 'tax_code') as $key) {
+		foreach (array('catalog_class', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
 			$baseAttributes->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
 		}
 		$outData->setData('base_attributes', $baseAttributes);
@@ -268,24 +270,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				$data['gift_wrap'] = $this->_helper->convertToBoolean($extendedAttributes['gift_wrap']);
 			}
 
-			if (isset($extendedAttributes['long_description'])) {
+			if (isset($extendedAttributes['long_description'])
+					&& !empty($extendedAttributes['long_description']))
+			{
 				// get long description data
 				$longDescriptions = $extendedAttributes['long_description'];
 				foreach ($longDescriptions as $longDescription) {
-					if (strtoupper($longDescriptionetLang()) === strtoupper($this->getDefaultStoreLanguageCode())) {
+					if (strtoupper($longDescription['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
 						// extracting the product long description according to the store language setting
-						$data['long_description'] = $longDescription->getLongDescription();
+						$data['long_description'] = $longDescription['long_description'];
 					}
 				}
 			}
 
-			if (isset($extendedAttributes['short_description'])) {
+			if (isset($extendedAttributes['short_description'])
+					&& !empty($extendedAttributes['short_description']))
+			{
 				// get short description data
 				$shortDescriptions = $extendedAttributes['short_description'];
 				foreach ($shortDescriptions as $shortDescription) {
-					if (strtoupper($shortDescription->getLang()) === strtoupper($this->getDefaultStoreLanguageCode())) {
+					if (strtoupper($shortDescription['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
 						// setting the product short description according to the store language setting
-						$data['short_description'] = $shortDescription->getShortDescription();
+						$data['short_description'] = $shortDescription['short_description'];
 					}
 				}
 			}
@@ -362,7 +368,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _processConfigurableAttributes($attrData, Varien_Object $customData, Varien_Object $outData)
 	{
-		$heler = Mage::helper('eb2cproduct');
+		$helper = Mage::helper('eb2cproduct');
 		$outData->setData('configurable_attributes_data', array_map(function ($el) use ($helper) {
 			return array('attribute_id' => $helper->getProductAttributeId($el));
 		}, explode(',', $attrData['value'])));
@@ -517,7 +523,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('description', $item->getExtendedAttributes()->getData('long_description'));
 		}
 		// setting the product short description according to the store language setting
-		if ($item->hasData('short_description')) {
+		if ($item->getExtendedAttributes()->hasData('short_description')) {
 			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
 		}
 
@@ -608,13 +614,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _getDefaultLocaleTitle(Varien_Object $dataObject)
 	{
 		$title = '';
-		// Setting product name/title from base attributes
-		$baseAttributes = $dataObject->getBaseAttributes();
-		foreach ($baseAttributes as $baseAttribute) {
-			if ($baseAttribute instanceof Varien_Object && trim(strtoupper($baseAttribute->getLang())) === trim(strtoupper($this->getDefaultStoreLanguageCode())) &&
-			trim($baseAttribute->getTitle()) !== '') {
-				// setting the product title according to the store language setting
-				$title = $baseAttribute->getTitle();
+		$titles = $dataObject->getBaseAttributes()->getTitle();
+		if(isset($titles) && !empty($titles)) {
+			foreach ($titles as $title) {
+				if (strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
+					return $title['title'];
+				}
 			}
 		}
 		return $title;
@@ -760,7 +765,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			// setting brand_description attribute
 			$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
 			foreach ($brandDescription as $bDesc) {
-				if (trim(strtoupper($bDesc['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
+				if (trim(strtoupper($bDesc['lang'])) === strtoupper($this->_defaultStoreLanguageCode)) {
 					$data['brand_description'] = $bDesc['description'];
 					break;
 				}
@@ -996,7 +1001,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$size = null;
 			if (!empty($sizeAttributes)){
 				foreach ($sizeAttributes as $sizeData) {
-					if (strtoupper(trim($sizeData['lang'])) === strtoupper($this->getDefaultStoreLanguageCode())) {
+					if (strtoupper(trim($sizeData['lang'])) === strtoupper($this->_defaultStoreLanguageCode)) {
 						$data['size'] = $sizeData['description'];
 						break;
 					}
