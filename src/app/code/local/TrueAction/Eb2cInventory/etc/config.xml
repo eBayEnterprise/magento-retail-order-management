@@ -101,6 +101,15 @@
 		</helpers>
 	</global>
 	<frontend>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cInventory>
+					<files>
+						<default>TrueAction_Eb2cInventory.csv</default>
+					</files>
+				</TrueAction_Eb2cInventory>
+			</modules>
+		</translate>
 		<routers>
 			<trueaction_eb2cinventory>
 				<use>standard</use>

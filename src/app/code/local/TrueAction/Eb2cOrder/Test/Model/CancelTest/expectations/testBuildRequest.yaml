@@ -1,0 +1,2 @@
+request:
+  xml: '<?xml version="1.0" encoding="UTF-8"?><OrderCancelRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" orderType="12345"><CustomerOrderId><![CDATA[RETURN]]></CustomerOrderId><ReasonCode><![CDATA[TestReasonCode]]></ReasonCode><Reason><![CDATA[Testing out a longish reason text right here]]></Reason></OrderCancelRequest>'
