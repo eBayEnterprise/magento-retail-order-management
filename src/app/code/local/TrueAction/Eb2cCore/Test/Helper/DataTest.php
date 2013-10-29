@@ -97,6 +97,21 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	}
 
 	/**
+	 * test generating the API URIs with a non default store.
+	 * @test
+	 * @loadFixture
+	 */
+	public function testApiUriCreationNonDefaultStore()
+	{
+		$helper = Mage::helper('eb2ccore');
+		// service, operation, params and type
+		$this->assertSame(
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
+			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json', 'canada')
+		);
+	}
+
+	/**
 	 * Test checking validity of sftp settings
 	 *
 	 * @param  string $username SFTP username config setting
@@ -188,7 +203,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
 	}
-
 
 	/**
 	 * testing clean method - when rebuild method throw an exception
