@@ -18,6 +18,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * - operation - specific API call of the specified service
 	 * - parameters - optionally any parameters needed by the call
 	 * - format - extension of the requested response format. Currently only xml is supported
+	 * - store - a code, id, or model of a magento store view.
 	 */
 	const URI_FORMAT = 'https://%s-%s.gsipartners.com/v%s.%s/stores/%s/%s/%s%s.%s';
 	/**
