@@ -6,68 +6,122 @@
  */
 class TrueAction_Eb2cPayment_Model_Suppression
 {
+	const PAYMENT_NEED_CONFIGURATION_TITLE = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Title';
+	const PAYMENT_NEED_CONFIGURATION_DESCRIPTION = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Description';
 	/**
-	 * @var array, hold known none eb2c payment modules
+	 * @var array, hold list of eb2c specific payment methods
 	 */
-	protected $_noneEbcPaymentModules = array('Mage_Authorizenet', 'Mage_Paygate', 'Mage_PaypalUk', 'Mage_Paypal');
+	private $_ebcPaymentMthd = array();
+
 	/**
-	 * disabling magento modules from config as well as from ouputing
-	 * @param string $moduleName, the module to disabled
+	 * Initialize payment methods settings, etc
 	 * @return self
 	 */
-	public function disableModule($moduleName)
+	public function __construct()
 	{
-		// Disable the module itself
-		$nodePath = "modules/$moduleName/active";
-		if (Mage::helper('core/data')->isModuleEnabled($moduleName)) {
-			Mage::getConfig()->setNode($nodePath, 0);
+		$this->_ebcPaymentMthd = array(
+			'pbridge',
+			'pbridge_eb2cpayment_cc'
+		);
+		return $this;
+	}
+
+	/**
+	 * query all payment methods from config
+	 * @return Mage_Core_Model_Resource_Config_Data_Collection
+	 */
+	public function queryConfigPayment()
+	{
+		$config = Mage::getResourceModel('core/config_data_collection');
+		$config->getSelect()
+			->where("main_table.path LIKE '%payment%' AND main_table.path LIKE '%active%'");
+		return $config->load();
+	}
+
+	/**
+	 * updating eBay Enterprise payment methods, to enabled or disabled base on the pass value
+	 * @param int $value, 0 to turn payment off, 1 to turn payment on.
+	 * @return self
+	 */
+	public function saveEb2CPaymentMethods($value)
+	{
+		$config = $this->queryConfigPayment();
+		foreach ($this->_ebcPaymentMthd as $mthd) {
+			foreach ($config as $cfg) {
+				$cfgData = explode('/', $cfg->getPath());
+				if (in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() !== $value) {
+					$cfg->setValue($value)->save();
+				}
+			}
 		}
 
-		// Disable its output as well (which was already loaded)
-		$outputPath = "advanced/modules_disable_output/$moduleName";
-		if (!Mage::getStoreConfig($outputPath)) {
-			//Mage::log(sprintf("Inside [%s::%s]\n\r%s: %s\n\r%s: %s", __CLASS__, __METHOD__, 'outputPath', $outputPath, 'class', get_class(Mage::getConfig())), Zend_Log::DEBUG);
-			//Mage::getConfig()->saveConfig($outputPath, 0, 'default', 0);
-			Mage::app()->getStore()->setConfig($outputPath, true);
-		}
-
-		Mage::getConfig()->cleanCache();
+		// reload config
 		Mage::getConfig()->reinit();
 
 		return $this;
 	}
 
 	/**
-	 * disabling non-eb2c payment modules if eb2cpayment is enabled
-	 * @return void
+	 * disabled none eBay Enterprise payment methods
+	 * @return self
 	 */
-	public function disabledNonEb2cPaymentModules()
+	public function disableNoneEb2CPaymentMethods()
 	{
-		$modules = array_keys((array)Mage::getConfig()->getNode('modules')->children());
-		$section = 'advanced';
-		$website = '';
-		$store = '';
-		$groups = array();
-		foreach ($modules as $moduleName) {
-			if ($moduleName !== 'Mage_Adminhtml') {
-				if (in_array($moduleName, $this->_noneEbcPaymentModules)) {
-					$groups['modules_disable_output']['fields'][$moduleName] = array('value' => 1);
-				} else {
-					$groups['modules_disable_output']['fields'][$moduleName] = array('value' => 0);
+		$config = $this->queryConfigPayment();
+		foreach ($this->_ebcPaymentMthd as $mthd) {
+			foreach ($config as $cfg) {
+				$cfgData = explode('/', $cfg->getPath());
+				if (!in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() === 1) {
+					$cfg->setValue(0)->save();
 				}
 			}
 		}
 
-		if (!empty($groups)) {
-			Mage::getSingleton('adminhtml/config_data')
-				->setSection($section)
-				->setWebsite($website)
-				->setStore($store)
-				->setGroups($groups)
-				->save();
+		// reload config
+		Mage::getConfig()->reinit();
 
-			// reinit configuration
-			Mage::getConfig()->reinit();
+		return $this;
+	}
+
+	/**
+	 * delete a notification, by querying the notification_inbox table by title and removing any record found
+	 * @return $this;
+	 */
+	public function removeNotification($title='')
+	{
+		if (trim($title) !== '') {
+			$inbox = Mage::getResourceModel('adminnotification/inbox_collection');
+			$inbox->getSelect()
+				->where(sprintf(
+					"TRIM(UPPER(main_table.title)) = '%s' AND main_table.severity = '%d'",
+					$title, Mage_AdminNotification_Model_Inbox::SEVERITY_CRITICAL
+				));
+			$inbox->load();
+
+			if ($inbox->count()) {
+				// we records let's delete them
+				foreach ($inbox as $ibx) {
+					$ibx->delete();
+				}
+			}
 		}
+
+		return $this;
+	}
+
+	/**
+	 * add configuration notification message to admin dasboard/
+	 * @return $this;
+	 */
+	public function addConfigurationNotification()
+	{
+		Mage::getModel('adminnotification/inbox')->addCritical(
+			Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_TITLE),
+			Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_DESCRIPTION),
+			Mage::getModel('adminhtml/url')->getUrl('adminhtml/system_config/edit', array('section'=>'payment')),
+			false
+		);
+
+		return $this;
 	}
 }

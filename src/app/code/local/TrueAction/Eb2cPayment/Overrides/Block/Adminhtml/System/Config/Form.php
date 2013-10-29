@@ -42,11 +42,22 @@ class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form extend
 						continue;
 					}
 					if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled && strtoupper(trim($sections->label)) === 'PAYMENT METHODS') {
-						if (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && $group->getAttribute('module') !== 'enterprise_pbridge') {
+						if (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && !in_array($group->getAttribute('module'), array('trueaction_pbridge', 'enterprise_pbridge'))) {
 							continue;
 						} elseif (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && strtoupper(trim($group->label)) !== 'PAYMENT BRIDGE') {
-							// disabled dependable payment bridge methods
-							continue;
+							if ($group->getAttribute('module') !== 'trueaction_pbridge') { // allow eBay Enterprise payment method
+								// disabled dependable payment bridge methods
+								continue;
+							}
+						}
+					} else {
+						// don't show eBay Enterprise Payment method
+						if (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && strtoupper(trim($group->label)) !== 'PAYMENT BRIDGE') {
+							// don't allow eBay Enterprise payment method config if eb2cpayment is disabled
+							if ($group->getAttribute('module') === 'trueaction_pbridge') {
+								// disabled dependable payment bridge methods
+								continue;
+							}
 						}
 					}
 
