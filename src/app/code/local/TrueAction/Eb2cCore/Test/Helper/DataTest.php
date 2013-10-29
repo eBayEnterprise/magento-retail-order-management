@@ -111,6 +111,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
+		$this->setCurrentStore('admin');
 	}
 
 	/**
