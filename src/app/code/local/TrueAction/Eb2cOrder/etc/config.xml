@@ -10,6 +10,16 @@
 			<eb2corder>
 				<class>TrueAction_Eb2cOrder_Model</class>
 			</eb2corder>
+			<eav>
+				<rewrite>
+					<entity_type>TrueAction_Eb2cOrder_Overrides_Model_Eav_Entity_Type</entity_type>
+				</rewrite>
+			</eav>
+			<paypal>
+				<rewrite>
+					<express_checkout>TrueAction_Eb2cOrder_Overrides_Model_Paypal_Express_Checkout</express_checkout>
+				</rewrite>
+			</paypal>
 		</models>
 		<helpers>
 			<eb2corder>
@@ -26,6 +36,16 @@
 			</sales>
 		</blocks>
 	</global>
+	<crontab>
+		<jobs>
+			<eb2corder_order_create_retry>
+				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
+				<run>
+					<model>eb2corder/create::retryOrderCreate</model>
+				</run>
+			</eb2corder_order_create_retry>
+		</jobs>
+	</crontab>
 	<frontend>
 		<layout>
 			<updates>
@@ -49,7 +69,7 @@
 	<default>
 		<eb2c>
 			<order>
-				<developer_mode>1</developer_mode>
+				<developer_mode />
 					<!--
 					To view using dumbListener
 					<create_uri>http://virtbox.net:8080/</create_uri>

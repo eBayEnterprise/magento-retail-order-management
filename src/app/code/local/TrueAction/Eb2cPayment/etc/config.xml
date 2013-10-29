@@ -143,7 +143,7 @@
 	<default>
 		<eb2ccore>
 			<eb2cpayment>
-				<enabled></enabled>
+				<enabled>0</enabled>
 			</eb2cpayment>
 		</eb2ccore>
 		<eb2c>

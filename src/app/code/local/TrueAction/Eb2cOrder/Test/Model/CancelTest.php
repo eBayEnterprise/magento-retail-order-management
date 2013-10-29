@@ -2,66 +2,287 @@
 /**
  * Test Suite for the Order_Cancel
  */
-class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cOrder_Test_Abstract
+class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Test_Base
 {
-	const SAMPLE_CANCELLED_XML = <<<CANCELLED_XML
-<OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-  <ResponseStatus>CANCELLED</ResponseStatus>
-</OrderCancelResponse>
-CANCELLED_XML;
-
-	const SAMPLE_FAILED_XML = <<<FAILED_XML
-<OrderCancelResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-  <ResponseStatus>WHOOPS THAT DIDNT WORK</ResponseStatus>
-</OrderCancelResponse>
-FAILED_XML;
-
-	const SAMPLE_INVALID_XML = <<<INVALID_XML
-  <OrderCancelResponse>
-Sorry, this is some invalid stuff right here.
-INVALID_XML;
+	const VFS_ROOT = 'testBase';
 
 	/**
+	 * Test building order cancel request
+	 * @param string $orderType, the order type
+	 * @param string $orderId, the order id
+	 * @param string $reasonCode, the reason code
+	 * @param string $reason, the reason
+	 * @dataProvider dataProvider
+	 * @loadExpectation
 	 * @test
 	 */
-	public function testCancel()
+	public function testBuildRequest($orderType, $orderId, $reasonCode, $reason)
 	{
+		$request = Mage::getModel('eb2corder/cancel')->buildRequest($orderType, $orderId, $reasonCode, $reason);
 
-		$cancelor = Mage::getModel('eb2corder/cancel')
-			->buildRequest(
-				array(
-					'order_id'    => '12345',
-					'order_type'  => 'RETURN',
-					'reason_code' => 'TestReasonCode',
-					'reason'      => 'Testing out a longish reason text right here',
-				)
-			);
+		// assert that buildRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $request);
 
-		// Test that we can receive CANCELLED message succesfully:
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request' => self::SAMPLE_CANCELLED_XML
-			),
-			false
+		$domRequest = $this->_reflectProperty($request, '_domRequest');
+
+		// let's assert that the instance of the reflected property is an insteand of TrueAction_Dom_Document
+		$this->assertInstanceOf('TrueAction_Dom_Document', $domRequest->getValue($request));
+
+		// let's assert that the content in the reflected property document is what we expect from our expected fixtures
+		$this->assertSame(
+			$this->expected('request')->getXml(),
+			// removing tab, carriage and line breaks from response.
+			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '', $domRequest->getValue($request)->saveXML()))
 		);
-		$this->assertSame(true, $cancelor->sendRequest());
-
-		// Test that we can receive !CANCELLED message succesfully
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request' => self::SAMPLE_FAILED_XML
-			),
-			false
-		);
-		$this->assertSame(false, $cancelor->sendRequest());
-
-		// Test that we can receive invalid XML without ill effect:
-		$this->replaceModel( 'eb2ccore/api',
-			array (
-				'request' => self::SAMPLE_INVALID_XML
-			),
-			false
-		);
-		$this->assertSame(false, $cancelor->sendRequest());
 	}
+
+	/**
+	 * Test sending request
+	 * @loadExpectation
+	 * @loadFixture
+	 * @test
+	 */
+	public function testSendRequest()
+	{
+		$helperMock = $this->getHelperMockBuilder('eb2corder/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig', 'getOperationUri'))
+			->getMock();
+		$helperMock->expects($this->exactly(2))
+			->method('getConfig')
+			->will($this->returnValue( (Object) array(
+				'developerMode' => true,
+				'developerCancelUri' => 'https://dev-mode-test.com',
+				'serviceOrderTimeout' => null,
+				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+			)));
+		$helperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('https://dev-mode-test.com'));
+
+		$this->replaceByMock('helper', 'eb2corder', $helperMock);
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->with($this->equalTo('https://dev-mode-test.com'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setTimeout')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setXsd')
+			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->returnValue(
+				file_get_contents($vfs->url(self::VFS_ROOT . '/cancel_response/sample.xml'))
+			));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$cancel = Mage::getModel('eb2corder/cancel');
+
+		$domRequest = $this->_reflectProperty($cancel, '_domRequest');
+		$domRequest->setValue($cancel, Mage::helper('eb2ccore')->getNewDomDocument());
+
+		$domReponse = $cancel->sendRequest();
+
+		// assert that sendRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $domReponse);
+
+		$domResponse = $this->_reflectProperty($domReponse, '_domResponse');
+
+		// let's assert that the instance of the reflected property is an insteand of TrueAction_Dom_Document
+		$this->assertInstanceOf('TrueAction_Dom_Document', $domResponse->getValue($domReponse));
+
+		// let's assert that the content in the reflected property document is what we expect from our expected fixtures
+		$this->assertSame(
+			$this->expected('response')->getXml(),
+			// removing tab, carriage and line breaks from response.
+			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '', $domResponse->getValue($domReponse)->saveXML()))
+		);
+	}
+
+	/**
+	 * Test sending request - when request throw Zend_Http_Client_Exception
+	 * @loadFixture testSendRequest.yaml
+	 * @test
+	 */
+	public function testSendRequestWithZendHttpClientException()
+	{
+		$helperMock = $this->getHelperMockBuilder('eb2corder/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig', 'getOperationUri', 'setXsd', 'request'))
+			->getMock();
+		$helperMock->expects($this->exactly(2))
+			->method('getConfig')
+			->will($this->returnValue( (Object) array(
+				'developerMode' => true,
+				'developerCancelUri' => 'https://dev-mode-test.com',
+				'serviceOrderTimeout' => null,
+				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+			)));
+		$helperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('https://dev-mode-test.com'));
+
+		$this->replaceByMock('helper', 'eb2corder', $helperMock);
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->with($this->equalTo('https://dev-mode-test.com'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setTimeout')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setXsd')
+			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->throwException(new Zend_Http_Client_Exception));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$cancel = Mage::getModel('eb2corder/cancel');
+
+		$domRequest = $this->_reflectProperty($cancel, '_domRequest');
+		$domRequest->setValue($cancel, Mage::helper('eb2ccore')->getNewDomDocument());
+
+		$domReponse = $cancel->sendRequest();
+
+		// assert that sendRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $domReponse);
+
+		$domResponse = $this->_reflectProperty($domReponse, '_domResponse');
+
+		// let's assert that the instance of the reflected property is an insteand of TrueAction_Dom_Document
+		$this->assertNull($domResponse->getValue($domReponse));
+	}
+
+	/**
+	 * Test sending request - when request throw Mage_Core_Exception
+	 * @loadFixture testSendRequest.yaml
+	 * @test
+	 */
+	public function testSendRequestWithMageCoreException()
+	{
+		$helperMock = $this->getHelperMockBuilder('eb2corder/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig', 'getOperationUri', 'setXsd', 'request'))
+			->getMock();
+		$helperMock->expects($this->exactly(2))
+			->method('getConfig')
+			->will($this->returnValue( (Object) array(
+				'developerMode' => true,
+				'developerCancelUri' => 'https://dev-mode-test.com',
+				'serviceOrderTimeout' => null,
+				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+			)));
+		$helperMock->expects($this->any())
+			->method('getOperationUri')
+			->will($this->returnValue('https://dev-mode-test.com'));
+
+		$this->replaceByMock('helper', 'eb2corder', $helperMock);
+
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->with($this->equalTo('https://dev-mode-test.com'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setTimeout')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('setXsd')
+			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->throwException(new Mage_Core_Exception));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$cancel = Mage::getModel('eb2corder/cancel');
+
+		$domRequest = $this->_reflectProperty($cancel, '_domRequest');
+		$domRequest->setValue($cancel, Mage::helper('eb2ccore')->getNewDomDocument());
+
+		$domReponse = $cancel->sendRequest();
+
+		// assert that sendRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $domReponse);
+
+		$domResponse = $this->_reflectProperty($domReponse, '_domResponse');
+
+		// let's assert that the instance of the reflected property is an insteand of TrueAction_Dom_Document
+		$this->assertNull($domResponse->getValue($domReponse));
+	}
+
+	/**
+	 * Test process reponse method with valid response from eb2c
+	 * @loadFixture testSendRequest.yaml
+	 * @test
+	 */
+	public function testProcessResponse()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		$cancel = Mage::getModel('eb2corder/cancel');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML(file_get_contents($vfs->url(self::VFS_ROOT . '/cancel_response/sample.xml')));
+
+		$domResponse = $this->_reflectProperty($cancel, '_domResponse');
+		$domResponse->setValue($cancel, $doc);
+
+		$response = $cancel->processResponse();
+
+		// assert that sendRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $response);
+	}
+
+	/**
+	 * Test process reponse method with fail response
+	 * @loadFixture testProcessResponseFailResponse.yaml
+	 * @expectedException TrueAction_Eb2cOrder_Model_Cancel_Exception
+	 * @test
+	 */
+	public function testProcessResponseWithFailedResponse()
+	{
+		// Begin vfs Setup:
+		$vfs = $this->getFixture()->getVfs();
+
+		$cancel = Mage::getModel('eb2corder/cancel');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML(file_get_contents($vfs->url(self::VFS_ROOT . '/cancel_response/sample.xml')));
+
+		$domResponse = $this->_reflectProperty($cancel, '_domResponse');
+		$domResponse->setValue($cancel, $doc);
+
+		$response = $cancel->processResponse();
+
+		// assert that sendRequest method return itself
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Cancel', $response);
+	}
+
 }
