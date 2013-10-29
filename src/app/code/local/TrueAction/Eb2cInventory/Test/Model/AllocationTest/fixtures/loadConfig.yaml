@@ -8,3 +8,28 @@ config:
   default/eb2c/inventory/allocation_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml"
   default/eb2c/inventory/rollback_allocation_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/RollbackAllocationResponseMessage.xml"
   default/eb2c/inventory/allocation_expired: 60
+scope:
+  website:
+    - website_id: 1
+      code: main
+      name: Main Website
+      default_group_id: 1
+  group:
+    - group_id: 1
+      website_id: 1
+      name: Main Website Store
+      root_category_id: 8
+      default_store_id: 1
+  store:
+    - store_id: 1
+      code: en
+      website_id: 1
+      group_id: 1
+      name: English Store View
+      is_active: 1
+    - store_id: 2
+      code: fr
+      website_id: 1
+      group_id: 1
+      name: French Store View
+      is_active: 1

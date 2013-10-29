@@ -1,3 +1,0 @@
-config:
-  default/eb2c/order/developer_mode: 1
-  default/eb2c/order/developer_cancel_uri: "http://mwest.mage.tandev.net"
