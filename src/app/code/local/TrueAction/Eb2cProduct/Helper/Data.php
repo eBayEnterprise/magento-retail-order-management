@@ -165,6 +165,21 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Ensure the style id matches the same format used by skus
+	 * {catalogId}-{styleId}
+	 * @param  string $styleId   Product style id
+	 * @param  string $catalogId Product catalog id
+	 * @return string            Normalized style id
+	 */
+	public function normalizeStyleId($styleId, $catalogId)
+	{
+		if (strpos($styleId, $catalogId . '-') !== 0) {
+			return sprintf('%s-%s', $catalogId, $styleId);
+		}
+		return $styleId;
+	}
+
+	/**
 	 * @return array list containing the integer id for the root-category of the default store
 	 * @codeCoverageIgnore
 	 * No coverage needed since this is almost all external code.
