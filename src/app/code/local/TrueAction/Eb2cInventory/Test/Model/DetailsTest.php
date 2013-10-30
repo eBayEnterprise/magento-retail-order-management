@@ -185,43 +185,14 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	 * Test getting inventory details
 	 * @param  Mage_Sales_Model_Quote $quote
 	 * @param  string $request The request XML that should be created for the given quote
-	 *
 	 * @dataProvider providerInventoryDetailsQuote
+	 * @loadFixture
 	 * @test
 	 */
 	public function testGetInventoryDetails($quote)
 	{
 		$request = new DOMDocument();
-		$request->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
-			'<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-			<OrderItem itemId="item0" lineId="0">
-			<Quantity><![CDATA[1]]></Quantity>
-			<ShipmentDetails>
-			<ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod>
-			<ShipToAddress>
-			<Line1><![CDATA[One Bagshot Row]]></Line1>
-			<City><![CDATA[Bag End]]></City>
-			<MainDivision><![CDATA[PA]]></MainDivision>
-			<CountryCode><![CDATA[US]]></CountryCode>
-			<PostalCode><![CDATA[19123]]></PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			<OrderItem itemId="item1" lineId="1">
-			<Quantity><![CDATA[2]]></Quantity>
-			<ShipmentDetails>
-			<ShippingMethod><![CDATA[USPSStandard]]></ShippingMethod>
-			<ShipToAddress>
-			<Line1><![CDATA[One Bagshot Row]]></Line1>
-			<City><![CDATA[Bag End]]></City>
-			<MainDivision><![CDATA[PA]]></MainDivision>
-			<CountryCode><![CDATA[US]]></CountryCode>
-			<PostalCode><![CDATA[19123]]></PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			</InventoryDetailsRequestMessage>'
-		)));
+		$request->loadXML('<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></InventoryDetailsRequestMessage>');
 		$response = '<What>Ever</What>';
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
