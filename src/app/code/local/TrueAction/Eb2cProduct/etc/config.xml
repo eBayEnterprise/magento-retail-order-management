@@ -166,6 +166,16 @@
 				</unresolved_product_links>
 			</default>
 		</eb2cproduct_attributes>
+		<events>
+			<product_feed_processing_complete>
+				<observers>
+					<cataloginventory_reindex_all>
+						<class>cataloginventory/indexer_stock</class>
+						<method>reindexAll</method>
+					</cataloginventory_reindex_all>
+				</observers>
+			</product_feed_processing_complete>
+		</events>
 	</global>
 	<default>
 		<eb2cproduct>

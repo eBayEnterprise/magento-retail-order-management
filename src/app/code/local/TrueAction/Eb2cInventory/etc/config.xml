@@ -91,6 +91,16 @@
 				<class>TrueAction_Eb2cInventory_Helper</class>
 			</eb2cinventory>
 		</helpers>
+		<events>
+			<inventory_feed_processing_complete>
+				<observers>
+					<cataloginventory_reindex_all>
+						<class>cataloginventory/indexer_stock</class>
+						<method>reindexAll</method>
+					</cataloginventory_reindex_all>
+				</observers>
+			</inventory_feed_processing_complete>
+		</events>
 	</global>
 	<frontend>
 		<translate>

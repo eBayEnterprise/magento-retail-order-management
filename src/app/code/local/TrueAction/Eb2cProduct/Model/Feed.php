@@ -64,6 +64,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$this->_queue->process();
 		Varien_Profiler::stop(__METHOD__);
 		Mage::getModel('eb2cproduct/feed_cleaner')->cleanAllProducts();
+		Mage::dispatchEvent('product_feed_processing_complete', array());
 		return $filesProcessed;
 	}
 

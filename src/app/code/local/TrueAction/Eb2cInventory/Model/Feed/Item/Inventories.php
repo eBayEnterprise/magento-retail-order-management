@@ -64,8 +64,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 			// If this had failed, we could do this: [mvToErrorDir(feed)]
 		}
 
-		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		Mage::dispatchEvent('inventory_feed_processing_complete', array());
 	}
 
 	/**
@@ -86,7 +85,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 					$mageProduct = $this->getProduct()->loadByAttribute('sku', $mageSku);
 					if ($mageProduct) {
 						// We've retrieved a valid magento product, let's update its stock. We're doing a lightweight load
-						// by only bringing in the stockItem object itself - we are *not* loading the entire product. 
+						// by only bringing in the stockItem object itself - we are *not* loading the entire product.
 						// We could do that - it would also get the stockItem, but would also do a lot more that we don't
 						// really need in this context.
 						Mage::getModel('cataloginventory/stock_item')
