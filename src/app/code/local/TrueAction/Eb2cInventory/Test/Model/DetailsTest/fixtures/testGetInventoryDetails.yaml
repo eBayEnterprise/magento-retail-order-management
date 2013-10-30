@@ -1,0 +1,2 @@
+config:
+  default/eb2ccore/shipmap/USPSStandard: "USPSStandard"
