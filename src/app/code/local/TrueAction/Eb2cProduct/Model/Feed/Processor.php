@@ -660,7 +660,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$titles = $dataObject->getBaseAttributes()->getTitle();
 		if(isset($titles) && !empty($titles)) {
 			foreach ($titles as $title) {
-				if (strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
+				// It's possible $title['title'] doesn't exist, eg we receive <Title xml:lang='en-US' />
+				// As per spec, it's required
+				if ( array_key_exists('title', $title) && array_key_exists('lang', $title)
+					&& strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
 					return $title['title'];
 				}
 			}
