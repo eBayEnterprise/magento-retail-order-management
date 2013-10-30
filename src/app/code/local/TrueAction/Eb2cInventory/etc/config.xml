@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cInventory>
@@ -191,7 +191,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cInventory />
+				<TrueAction_Eb2cInventory/>
 			</modules>
 		</suite>
 	</phpunit>

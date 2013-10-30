@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cAddressFrontend>
-			<version>0.1</version>
+			<version>1.0.0</version>
 		</TrueAction_Eb2cAddressFrontend>
 	</modules>
 	<frontend>

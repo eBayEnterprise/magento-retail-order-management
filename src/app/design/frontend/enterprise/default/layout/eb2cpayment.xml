@@ -1,20 +1,17 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <layout version="0.1.0">
 	<checkout_cart_index>
 		<reference name="checkout.cart">
-			<block type="enterprise_giftcardaccount/checkout_cart_giftcardaccount" template="eb2cpayment/giftcardaccount/cart/block.phtml" name="checkout.cart.giftcardaccount" as="giftcards" />
+			<block type="enterprise_giftcardaccount/checkout_cart_giftcardaccount" template="eb2cpayment/giftcardaccount/cart/block.phtml" name="checkout.cart.giftcardaccount" as="giftcards"/>
 		</reference>
 	</checkout_cart_index>
-
 	<enterprise_giftcardaccount_customer_index translate="label">
 		<label>Customer My Account Gift Card Check Form</label>
 		<replace handle="customer_account"/>
-
 		<reference name="my.account.wrapper">
-			<block type="enterprise_giftcardaccount/account_redeem" name="redeem" template="eb2cpayment/giftcardaccount/account/redeem.phtml" />
+			<block type="enterprise_giftcardaccount/account_redeem" name="redeem" template="eb2cpayment/giftcardaccount/account/redeem.phtml"/>
 		</reference>
 	</enterprise_giftcardaccount_customer_index>
-
 	<customer_account>
 		<reference name="customer_account_navigation">
 			<!--Disabled Gift Card in Customer Account page-->

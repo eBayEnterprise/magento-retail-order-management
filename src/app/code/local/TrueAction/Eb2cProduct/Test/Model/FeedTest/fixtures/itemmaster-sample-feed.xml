@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <ItemMaster xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../XSD/ItemMasterV11.xsd">
 	<MessageHeader>
 		<Standard>GSI</Standard>
@@ -149,7 +149,6 @@
 			<SupplierPartNumber>9843333A</SupplierPartNumber>
 		</DropShipSupplierInformation>
 	</Item>
-
 	<Item operation_type="Add" gsi_client_id="TAN-CLI" catalog_id="70">
 		<ItemId>
 			<ClientItemId>605284499559</ClientItemId>
