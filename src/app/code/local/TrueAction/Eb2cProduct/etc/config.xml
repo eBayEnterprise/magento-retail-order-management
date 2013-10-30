@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-/**
- *
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
--->
 <config>
 	<modules>
 		<TrueAction_Eb2cProduct>
@@ -176,17 +168,9 @@
 		</eb2cproduct_attributes>
 	</global>
 	<default>
-		<eb2c>
-			<product>
-				<api_service>product</api_service>
-				<api_return_format>xml</api_return_format>
-				<config_path>eb2ccore/general</config_path>
-				<processor_update_batch_size>100</processor_update_batch_size>
-				<processor_delete_batch_size>200</processor_delete_batch_size>
-				<processor_max_total_entries>200</processor_max_total_entries>
-			</product>
-		</eb2c>
 		<eb2cproduct>
+			<api_service>product</api_service>
+			<api_return_format>xml</api_return_format>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
 				<remote_path>/Inbox/</remote_path>
@@ -222,6 +206,9 @@
 				<event_type>ImageMaster</event_type>
 				<header_version>2.3.0</header_version>
 			</image_master_feed>
+			<processor_delete_batch_size>200</processor_delete_batch_size>
+			<processor_max_total_entries>200</processor_max_total_entries>
+			<processor_update_batch_size>100</processor_update_batch_size>
 		</eb2cproduct>
 	</default>
 	<phpunit>

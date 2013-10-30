@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	protected $_operation;
@@ -12,22 +7,10 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		$cfg = $this->getConfigModel(null);
 		$this->_operation = array(
-			'check_quantity' => array(
-				'pro' => $cfg->apiOptInventoryQty,
-				'dev' => $cfg->quantityApiUri
-			),
-			'get_inventory_details' => array(
-				'pro' => $cfg->apiOptInventoryDetails,
-				'dev' => $cfg->inventoryDetailUri
-			),
-			'allocate_inventory' => array(
-				'pro' => $cfg->apiOptInventoryAllocation,
-				'dev' => $cfg->allocationUri
-			),
-			'rollback_allocation' => array(
-				'pro' => $cfg->apiOptInventoryRollbackAllocation,
-				'dev' => $cfg->rollbackAllocationUri
-			)
+			'allocate_inventory'    => $cfg->apiOptInventoryAllocation,
+			'check_quantity'        => $cfg->apiOptInventoryQty,
+			'get_inventory_details' => $cfg->apiOptInventoryDetails,
+			'rollback_allocation'   => $cfg->apiOptInventoryRollbackAllocation,
 		);
 	}
 
@@ -58,24 +41,12 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
-	 *
 	 * @return string, the generated operation Uri
 	 */
 	public function getOperationUri($optIndex)
 	{
-		$operation = '';
-		if (isset($this->_operation[$optIndex])) {
-			$operation = $this->_operation[$optIndex];
-		}
 		$cfg = $this->getConfigModel(null);
-		$apiUri = $operation['dev'];
-		if (!(bool) $this->getConfigModel()->developerMode) {
-			$apiUri = Mage::helper('eb2ccore')->getApiUri(
-				$cfg->apiService,
-				$operation['pro']
-			);
-		}
-		return $apiUri;
+		return Mage::helper('eb2ccore')->getApiUri($cfg->apiService, $this->_operation[$optIndex]);
 	}
 
 	/**
@@ -102,5 +73,16 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		$cfg = $this->getConfigModel(null);
 		return implode('-', array($cfg->clientId, $cfg->storeId, $entityId));
+	}
+
+	/**
+	 * Return the eb2c ship method configured to correspond to a known Magento ship method.
+	 * @param string $mageShipMethod
+	 * @return string EB2C ship method
+	 */
+	public function lookupShipMethod($mageShipMethod)
+	{
+		// Deliberately bypass configurator so we can dynamically lookup.
+		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
 	}
 }

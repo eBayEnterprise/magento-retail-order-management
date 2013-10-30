@@ -5,4 +5,3 @@ config:
   default/eb2ccore/api/region: "na"
   default/eb2ccore/api/major_version: 1
   default/eb2ccore/api/minor_version: 10
-  default/eb2c/product/developer_mode: 0

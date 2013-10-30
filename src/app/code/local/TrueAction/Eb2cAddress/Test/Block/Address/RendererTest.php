@@ -1,9 +1,7 @@
 <?php
-
 class TrueAction_Eb2cAddress_Test_Block_Address_RendererTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	public function setUp()
 	{
 		$this->_mockConfig();
@@ -59,5 +57,4 @@ class TrueAction_Eb2cAddress_Test_Block_Address_RendererTest
 			'renderer type should have magic "html_escape" data element which should be set to true'
 		);
 	}
-
 }

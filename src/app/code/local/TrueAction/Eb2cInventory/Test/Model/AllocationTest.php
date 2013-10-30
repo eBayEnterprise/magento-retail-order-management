@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
@@ -195,6 +190,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$products = array();
 		for ($i = 0; $i < 4; $i++) {
 			$products[] = Mage::getModel('catalog/product', array(
+				'website_id' => 1,
 				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
 					// first three items should all be managed stock
 					'manage_stock' => $i !== 3,
@@ -206,6 +202,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$items = array();
 		foreach ($products as $idx => $product) {
 			$items[] = Mage::getModel('sales/quote_item', array(
+				'entity_id' => $idx,
 				'product' => $product,
 				// third item will be virtual, rest will not be
 				'is_virtual' => $idx === 2,
@@ -259,38 +256,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$response = '<What>Ever</What>';
 
 		$request = new DOMDocument();
-		$request->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
-			'<AllocationRequestMessage requestId="' . self::REQUEST_ID . '" reservationId="' .
-			self::RESERVATION_ID . '" xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-			<OrderItem itemId="item0" lineId="0">
-			<Quantity>1</Quantity>
-			<ShipmentDetails>
-			<ShippingMethod>USPSStandard</ShippingMethod>
-			<ShipToAddress>
-			<Line1>One Bagshot Row</Line1>
-			<City>Bag End</City>
-			<MainDivision>PA</MainDivision>
-			<CountryCode>US</CountryCode>
-			<PostalCode>19123</PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			<OrderItem itemId="item1" lineId="1">
-			<Quantity>2</Quantity>
-			<ShipmentDetails>
-			<ShippingMethod>USPSStandard</ShippingMethod>
-			<ShipToAddress>
-			<Line1>One Bagshot Row</Line1>
-			<City>Bag End</City>
-			<MainDivision>PA</MainDivision>
-			<CountryCode>US</CountryCode>
-			<PostalCode>19123</PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			</AllocationRequestMessage>'
-		)));
-
+		$request->loadXML(sprintf('<AllocationRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="%s" reservationId="%s"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></AllocationRequestMessage>', self::REQUEST_ID, self::RESERVATION_ID));
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
@@ -328,7 +294,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$apiModelMock->expects($this->any())
 			->method('request')
 			->will(
-				$this->throwException(new Exception)
+				$this->throwException(new Zend_Http_Client_Exception)
 			);
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
@@ -375,7 +341,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	public function testProcessAllocation($quote, $allocationData)
 	{
 		$this->assertSame(
-			array('Sorry, item "SKU-1234" out of stock.'),
+			array(Mage::helper('eb2cinventory')->__(TrueAction_Eb2cInventory_Model_Allocation::ALLOCATION_QTY_OUT_STOCK_MESSAGE)),
 			$this->_allocation->processAllocation($quote, $allocationData)
 		);
 	}
@@ -482,7 +448,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$updateQuoteWithAllocation = $allocationReflector->getMethod('_updateQuoteWithEb2cAllocation');
 		$updateQuoteWithAllocation->setAccessible(true);
 		$this->assertSame(
-			'Sorry, we only have 1 of item "SKU-1234" in stock.',
+			Mage::helper('eb2cinventory')->__(TrueAction_Eb2cInventory_Model_Allocation::ALLOCATION_QTY_LIMITED_STOCK_MESSAGE),
 			$updateQuoteWithAllocation->invoke($this->_allocation, $quoteItem, $quoteData)
 		);
 	}
@@ -498,14 +464,77 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 * testing rollbackAllocation method
 	 *
 	 * @test
-	 * @dataProvider providerQuoteWithItems
 	 * @loadFixture loadConfig.yaml
 	 */
-	public function testRollbackAllocation($quote)
+	public function testRollbackAllocation()
 	{
+		$customerMock = $this->getModelMockBuilder('customer/customer')
+			->disableOriginalConstructor()
+			->setMethods(array('getGroupId'))
+			->getMock();
+		$customerMock->expects($this->any())
+			->method('getGroupId')
+			->will($this->returnValue(1));
+
+		$customerSessionMock = $this->getModelMockBuilder('customer/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCustomer'))
+			->getMock();
+		$customerSessionMock->expects($this->any())
+			->method('getCustomer')
+			->will($this->returnValue($customerMock));
+		$this->replaceByMock('singleton', 'customer/session', $customerSessionMock);
+
+		$checkoutSessionMock = $this->getModelMockBuilder('checkout/session')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('singleton', 'checkout/session', $checkoutSessionMock);
+
+		// The address to use in the quote for the shipping address
+		$address = $this->_createAddressObject();
+
+		// Group of products to assign to each item. All but one will have managed stock (test filtering)
+		$products = array();
+		for ($i = 0; $i < 4; $i++) {
+			$products[] = Mage::getModel('catalog/product', array(
+				'website_id' => 1,
+				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
+					// first three items should all be managed stock
+					'manage_stock' => $i !== 3,
+				)),
+			));
+		}
+
+		// Items for each of the products. One of these will be a virtual product (test filtering)
+		$items = array();
+		foreach ($products as $idx => $product) {
+			$items[] = Mage::getModel('sales/quote_item', array(
+				'product' => $product,
+				// third item will be virtual, rest will not be
+				'is_virtual' => $idx === 2,
+				'sku' => sprintf('item%s', $idx),
+				'qty' => $idx + 1,
+			));
+		}
+
+		// Create the quote to allocate
+		$quote = Mage::getModel('sales/quote');
+		$quote->setShippingAddress($address);
+		$quote->setEntityId(self::QUOTE_ENTITY_ID);
+		// Add each item to the quote.
+		foreach ($items as $idx => $item) {
+			$quote->addItem($item);
+			// Give the item in id, this normally happens when saving the quote, which
+			// would have happened by now, but as this is being avoided here it needs to be
+			// manually assigned.
+			$item->setId($idx);
+		}
+
 		// Set eb2c allocation data on the inventoried items (the first two from the provider)
 		// This data should be unset when rolling back the allocation.
 		$items = $quote->getAllItems();
+
 		for ($i = 0; $i < 2; $i++) {
 			$items[$i]->addData(array(
 				'eb2c_reservation_id' => 'some data',
@@ -590,7 +619,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
-			->will($this->throwException(new Mage_Core_Exception()));
+			->will($this->throwException(new Zend_Http_Client_Exception('Unit test request fail')));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		// Avoid overly broad coverage as the only assertion in this test is that
@@ -674,7 +703,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 
 	public function providerIsExpired()
 	{
-		$elapseTime = (int) Mage::getStoreConfig('eb2c/inventory/allocation_expired', null) + 15; // configure elapse time plus 15 minute more
+		$elapseTime = (int) Mage::getStoreConfig('eb2cinventory/allocation_expired', null) + 15; // configure elapse time plus 15 minute more
 		$currentDate = new DateTime(gmdate('c'));
 		$intervalFormat = 'PT' . $elapseTime . 'M';
 		$interval = new DateInterval($intervalFormat);

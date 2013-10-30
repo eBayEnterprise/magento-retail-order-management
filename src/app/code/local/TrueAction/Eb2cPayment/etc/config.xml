@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-/**
- *
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
--->
 <config>
 	<modules>
 		<TrueAction_Eb2cPayment>
@@ -126,46 +118,33 @@
 	</frontend>
 	<default>
 		<eb2cpayment>
-			<general>
-				<enabled></enabled>
-			</general>
+			<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>
+			<api_service>payments</api_service>
+			<api_opt_stored_value_balance>storedvalue/balance/GS</api_opt_stored_value_balance>
+			<api_opt_stored_value_redeem>storedvalue/redeem/GS</api_opt_stored_value_redeem>
+			<api_opt_stored_value_redeem_void>storedvalue/redeemvoid/GS</api_opt_stored_value_redeem_void>
+			<api_opt_paypal_set_express_checkout>paypal/setExpress</api_opt_paypal_set_express_checkout>
+			<api_opt_paypal_get_express_checkout>paypal/getExpress</api_opt_paypal_get_express_checkout>
+			<api_opt_paypal_do_express_checkout>paypal/doExpress</api_opt_paypal_do_express_checkout>
+			<api_opt_paypal_do_authorization>paypal/doAuth</api_opt_paypal_do_authorization>
+			<api_opt_paypal_do_void>paypal/void</api_opt_paypal_do_void>
+			<api_return_format>xml</api_return_format>
+			<xsd>
+				<paypal_express_do_file>Payment-Service-PayPalDoExpress-1.0.xsd</paypal_express_do_file>
+				<paypal_express_get_file>Payment-Service-PayPalGetExpress-1.0.xsd</paypal_express_get_file>
+				<paypal_express_set_file>Payment-Service-PayPalSetExpress-1.0.xsd</paypal_express_set_file>
+				<paypal_do_auth_file>Payment-Service-PayPalDoAuth-1.0.xsd</paypal_do_auth_file>
+				<paypal_void_auth_file>Payment-Service-PayPalVoidAuth-1.0.xsd</paypal_void_auth_file>
+				<stored_value_balance_file>Payment-Service-StoredValueBalance-1.0.xsd</stored_value_balance_file>
+				<stored_value_redeem_void_file>Payment-Service-StoredValueRedeemVoid-1.0.xsd</stored_value_redeem_void_file>
+				<stored_value_redeem_file>Payment-Service-StoredValueRedeem-1.0.xsd</stored_value_redeem_file>
+			</xsd>
 		</eb2cpayment>
-		<eb2c>
-			<payment>
-				<developer_mode>0</developer_mode>
-				<stored_value_balance_api_uri></stored_value_balance_api_uri>
-				<stored_value_redeem_api_uri></stored_value_redeem_api_uri>
-				<stored_value_redeem_void_api_uri></stored_value_redeem_void_api_uri>
-				<paypal_set_express_checkout_api_uri></paypal_set_express_checkout_api_uri>
-				<paypal_get_express_checkout_api_uri></paypal_get_express_checkout_api_uri>
-				<paypal_do_express_checkout_api_uri></paypal_do_express_checkout_api_uri>
-				<paypal_do_authorization_api_uri></paypal_do_authorization_api_uri>
-				<paypal_do_void_api_uri></paypal_do_void_api_uri>
-				<enabled_eb2c_debug>1</enabled_eb2c_debug>
-
-				<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>
-				<api_service>payments</api_service>
-				<api_opt_stored_value_balance>storedvalue/balance/GS</api_opt_stored_value_balance>
-				<api_opt_stored_value_redeem>storedvalue/redeem/GS</api_opt_stored_value_redeem>
-				<api_opt_stored_value_redeem_void>storedvalue/redeemvoid/GS</api_opt_stored_value_redeem_void>
-				<api_opt_paypal_set_express_checkout>paypal/setExpress</api_opt_paypal_set_express_checkout>
-				<api_opt_paypal_get_express_checkout>paypal/getExpress</api_opt_paypal_get_express_checkout>
-				<api_opt_paypal_do_express_checkout>paypal/doExpress</api_opt_paypal_do_express_checkout>
-				<api_opt_paypal_do_authorization>paypal/doAuth</api_opt_paypal_do_authorization>
-				<api_opt_paypal_do_void>paypal/void</api_opt_paypal_do_void>
-				<api_return_format>xml</api_return_format>
-				<xsd>
-					<paypal_express_do_file>Payment-Service-PayPalDoExpress-1.0.xsd</paypal_express_do_file>
-					<paypal_express_get_file>Payment-Service-PayPalGetExpress-1.0.xsd</paypal_express_get_file>
-					<paypal_express_set_file>Payment-Service-PayPalSetExpress-1.0.xsd</paypal_express_set_file>
-					<paypal_do_auth_file>Payment-Service-PayPalDoAuth-1.0.xsd</paypal_do_auth_file>
-					<paypal_void_auth_file>Payment-Service-PayPalVoidAuth-1.0.xsd</paypal_void_auth_file>
-					<stored_value_balance_file>Payment-Service-StoredValueBalance-1.0.xsd</stored_value_balance_file>
-					<stored_value_redeem_void_file>Payment-Service-StoredValueRedeemVoid-1.0.xsd</stored_value_redeem_void_file>
-					<stored_value_redeem_file>Payment-Service-StoredValueRedeem-1.0.xsd</stored_value_redeem_file>
-				</xsd>
-			</payment>
-		</eb2c>
+		<eb2ccore>
+			<eb2cpayment>
+				<enabled>0</enabled>
+			</eb2cpayment>
+		</eb2ccore>
 	</default>
 	<phpunit>
 		<suite>

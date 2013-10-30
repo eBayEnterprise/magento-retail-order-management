@@ -1,11 +1,9 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Overrides_Model_Cart extends Mage_Checkout_Model_Cart
 {
+	const TRUEACTION_EB2CINVENTORY_PRODUCT_NOT_EXIST = 'Trueaction_Eb2cinventory_Product_Not_Exist';
+	const TRUEACTION_EB2CINVENTORY_QUOTE_ITEM_NOT_EXIST = 'Trueaction_Eb2cinventory_Quote_Item_Not_Exist';
+
 	/**
 	 * Overriding Add product to shopping cart (quote)
 	 *
@@ -48,7 +46,9 @@ class TrueAction_Eb2cInventory_Overrides_Model_Cart extends Mage_Checkout_Model_
 			}
 			// @codeCoverageIgnoreEnd
 		} else {
-			Mage::throwException(Mage::helper('checkout')->__('The product does not exist.'));
+			Mage::throwException(
+				Mage::helper('checkout')->__(self::TRUEACTION_EB2CINVENTORY_PRODUCT_NOT_EXIST)
+			);
 		}
 
 		Mage::dispatchEvent('checkout_cart_product_add_after', array('quote_item' => $result, 'product' => $product));
@@ -73,7 +73,9 @@ class TrueAction_Eb2cInventory_Overrides_Model_Cart extends Mage_Checkout_Model_
 		try {
 			$item = $this->getQuote()->getItemById($itemId);
 			if (!$item) {
-				Mage::throwException(Mage::helper('checkout')->__('Quote item does not exist.'));
+				Mage::throwException(
+					Mage::helper('checkout')->__(self::TRUEACTION_EB2CINVENTORY_QUOTE_ITEM_NOT_EXIST)
+				);
 				// @codeCoverageIgnoreStart
 			}
 			// @codeCoverageIgnoreEnd

@@ -1,26 +1,22 @@
 <?php
-
 /**
  * Test the generation of the xml request to the EB2C address validation service
  */
-
-class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * Parts of an address to use when building out the address request
 	 */
 	protected $_addressParts = array(
-		'line1' => '123 Main St',
-		'line2' => 'STE 6',
-		'line3' => 'Foo',
-		'line4' => 'Bar',
-		'city' => 'Auburn',
-		'region_id' => '51',
+		'line1'       => '123 Main St',
+		'line2'       => 'STE 6',
+		'line3'       => 'Foo',
+		'line4'       => 'Bar',
+		'city'        => 'Auburn',
+		'region_id'   => '51',
 		'region_code' => 'PA',
-		'country_id' => 'US',
-		'postcode' => '13021',
+		'country_id'  => 'US',
+		'postcode'    => '13021',
 	);
 
 	/**
@@ -78,10 +74,10 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 		$xpath = new DOMXPath($message);
 		$ns = $message->lookupNamespaceUri($message->namespaceURI);
 		$xpath->registerNamespace('x', $ns);
-
+		$config = Mage::helper('eb2caddress')->getConfigModel();
 		$this->assertEquals(
 			$ns,
-			Mage::getStoreConfig('eb2ccore/api/xml_namespace')
+			$config->apiNamespace
 		);
 		$maxSuggestions = $xpath
 			->query('x:AddressValidationRequest/x:Header/x:MaxAddressSuggestions', $message)
@@ -89,7 +85,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 			->textContent;
 		// test that the MaxAddressSuggestions pulled correctly from config
 		$this->assertEquals(
-			Mage::getStoreConfig('eb2caddress/general/max_suggestions'),
+			$config->maxAddressSuggestions,
 			$maxSuggestions
 		);
 		$address = $xpath
@@ -112,5 +108,4 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest
 		$message = $request->getMessage();
 		$this->assertTrue($message->schemaValidate($xsd));
 	}
-
 }

@@ -1,13 +1,10 @@
 <?php
-
 class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	extends EcomDev_PHPUnit_Test_Case
 {
-
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_mockCoreHelper();
 		$this->_mockApiModel();
 		$this->_mockCustomerSession();
 		$this->_mockCheckoutSession();
@@ -43,23 +40,6 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 				'));
 		$this->replaceByMock('model', 'eb2ccore/api', $mock);
 		return $mock;
-	}
-
-	/**
-	 * Replace the eb2ccore/data helper class with a mock.
-	 * @return PHPUnit_Framework_MockObject_MockObject - the mock helper
-	 */
-	protected function _mockCoreHelper($emptyResponse=false)
-	{
-		$mockCoreHelper = $this->getHelperMock(
-			'eb2ccore/data',
-			array('apiUri')
-		);
-		$mockCoreHelper->expects($this->any())
-			->method('apiUri')
-			->will($this->returnValue('https://does.not.matter/as/this/isnot/actually/used.xml'));
-		$this->replaceByMock('helper', 'eb2ccore', $mockCoreHelper);
-		return $mockCoreHelper;
 	}
 
 	/**
@@ -325,11 +305,11 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		// address to feed to validator
 		$address = $this->_createAddress(array(
-			'street' => '1671 Clark Street Rd',
-			'city' => 'Auburn',
+			'street'      => '1671 Clark Street Rd',
+			'city'        => 'Auburn',
 			'region_code' => 'NY',
-			'country_id' => 'US',
-			'postcode' => '13025',
+			'country_id'  => 'US',
+			'postcode'    => '13025',
 		));
 		// original address from response model
 		$origAddress = $this->_createAddress(array(
@@ -1295,5 +1275,4 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			$validator->isValid()
 		);
 	}
-
 }

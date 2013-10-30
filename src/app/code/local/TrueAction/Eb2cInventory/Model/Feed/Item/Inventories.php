@@ -79,19 +79,24 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		if ($feedItemCollection) {
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedItemCollection as $feedItem) {
-				if (trim($feedItem->getItemId()->getClientItemId()) !== '') {
-					// we have a valid item, let's get the product id
-					$this->getProduct()->loadByAttribute('sku', $feedItem->getItemId()->getClientItemId());
-
-					if ($this->getProduct()->getId()) {
-						// we've gotten a valid magento product, let's update its stock
-						$this->getStockItem()->loadByProduct($this->getProduct()->getId())
+				// For inventory, we must prepend the client-id
+				$mageSku = $feedItem->getCatalogId() . '-' . trim($feedItem->getItemId()->getClientItemId());
+				if ($mageSku !== '') {
+					// We have a sku, let's get the product id
+					$mageProduct = $this->getProduct()->loadByAttribute('sku', $mageSku);
+					if ($mageProduct) {
+						// We've retrieved a valid magento product, let's update its stock. We're doing a lightweight load
+						// by only bringing in the stockItem object itself - we are *not* loading the entire product. 
+						// We could do that - it would also get the stockItem, but would also do a lot more that we don't
+						// really need in this context.
+						Mage::getModel('cataloginventory/stock_item')
+							->loadByProduct($mageProduct->getId())
 							->setQty($feedItem->getMeasurements()->getAvailableQuantity())
 							->save();
 					} else {
-						// This item doesn't exists in the Magento App, just logged it as a warning
+						// This item doesn't exist in the Magento App, just logged it as a warning
 						Mage::log(
-							'[' . __CLASS__ . '] Item Inventories Feed SKU (' . $feedItem->getItemId()->getClientItemId() . '), doesn\'t exists in Magento',
+							'[' . __CLASS__ . '] Item Inventories Feed SKU (' . $feedItem->getItemId()->getClientItemId() . '), not found.',
 							Zend_Log::WARN
 						);
 					}

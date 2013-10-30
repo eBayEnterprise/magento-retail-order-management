@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const VFS_ROOT = 'testBase';
