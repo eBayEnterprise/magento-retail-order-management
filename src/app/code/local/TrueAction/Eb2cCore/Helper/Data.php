@@ -90,31 +90,6 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * clear magento cache and rebuild inventory status.
-	 *
-	 * @return TrueAction_Eb2cProduct_Helper_Data
-	 */
-	public function clean()
-	{
-		$cfg = Mage::getModel('eb2ccore/config_registry')
-			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
-
-		if (!(bool) $cfg->feedEnabledReindex) {
-			Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-			return $this;
-		}
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			Mage::getSingleton('cataloginventory/stock_status')->rebuild();
-		} catch (Exception $e) {
-			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
-	}
-
-	/**
 	 * extract node value
 	 *
 	 * @return string, the extracted content

@@ -103,23 +103,4 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 			}
 		}
 	}
-
-	/**
-	 * Clear Magento cache and rebuild inventory status.
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-		return;
-		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
-		}
-	}
 }
