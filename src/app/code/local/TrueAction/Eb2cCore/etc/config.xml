@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cCore>
@@ -20,37 +20,49 @@
 	<crontab>
 		<jobs>
 			<eb2cinventory_feed_item_inventories>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
 				</run>
 			</eb2cinventory_feed_item_inventories>
 			<eb2corder_status_feed>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2corder/status_feed::processFeeds</model>
 				</run>
 			</eb2corder_status_feed>
 			<eb2cproduct_feed_item_master>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2cproduct/feed_item_master::processFeeds</model>
 				</run>
 			</eb2cproduct_feed_item_master>
 			<eb2cproduct_feed_content_master>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2cproduct/feed_content_master::processFeeds</model>
 				</run>
 			</eb2cproduct_feed_content_master>
 			<eb2cproduct_feed_pricing>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2cproduct/feed_item_pricing::processFeeds</model>
 				</run>
 			</eb2cproduct_feed_pricing>
 			<eb2cproduct_feed_iship>
-				<schedule><cron_expr>*/15 * * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2cproduct/feed_i_ship::processFeeds</model>
 				</run>
@@ -60,19 +72,19 @@
 	<default>
 		<eb2ccore>
 			<general>
-				<catalog_id />
-				<client_customer_id_prefix />
-				<client_id />
-				<client_order_id_prefix />
-				<store_id />
+				<catalog_id/>
+				<client_customer_id_prefix/>
+				<client_id/>
+				<client_order_id_prefix/>
+				<store_id/>
 			</general>
 			<api>
 				<environment>api</environment>
-				<key backend_model="adminhtml/system_config_backend_encrypted" />
+				<key backend_model="adminhtml/system_config_backend_encrypted"/>
 				<major_version>1</major_version>
 				<minor_version>0</minor_version>
 				<region>na</region>
-				<timeout />
+				<timeout/>
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
@@ -109,7 +121,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cCore />
+				<TrueAction_Eb2cCore/>
 			</modules>
 		</suite>
 	</phpunit>

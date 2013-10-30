@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cOrder>
@@ -39,7 +39,9 @@
 	<crontab>
 		<jobs>
 			<eb2corder_order_create_retry>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
+				<schedule>
+					<cron_expr>0 3 * * *</cron_expr>
+				</schedule>
 				<run>
 					<model>eb2corder/create::retryOrderCreate</model>
 				</run>
@@ -89,7 +91,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cOrder />
+				<TrueAction_Eb2cOrder/>
 			</modules>
 		</suite>
 	</phpunit>

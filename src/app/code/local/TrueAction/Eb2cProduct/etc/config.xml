@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cProduct>
@@ -32,12 +32,12 @@
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
+					<default/>
 				</tax_code>
 				<is_drop_shipped>
 					<scope>Website</scope>
 					<label>Is Drop Shipped</label>
-					<group></group>
+					<group/>
 					<input_type>boolean</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
@@ -47,29 +47,29 @@
 				<drop_ship_supplier_name>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Name</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_name>
 				<drop_ship_supplier_number>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Number</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_number>
 				<drop_ship_supplier_part>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Part Number</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_part>
 				<price_is_vat_inclusive>
 					<scope>Store</scope>
@@ -99,7 +99,8 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
 				<remote_path>/Inbox/</remote_path>
 				<file_pattern>Content*.xml</file_pattern>
-				<event_type>Content</event_type> <!-- because consistency only matters "sometimes" -->
+				<event_type>Content</event_type>
+				<!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
 			</content_master_feed>
 			<i_ship_feed>
@@ -128,7 +129,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cProduct />
+				<TrueAction_Eb2cProduct/>
 			</modules>
 		</suite>
 	</phpunit>

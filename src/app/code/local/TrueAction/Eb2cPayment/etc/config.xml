@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cPayment>
@@ -149,7 +149,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cPayment />
+				<TrueAction_Eb2cPayment/>
 			</modules>
 		</suite>
 	</phpunit>
