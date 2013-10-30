@@ -14,6 +14,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 	public function setUp()
 	{
 		parent::setUp();
+		$this->clearStoreConfigCache();
 		// FYI: instantiating using regular Mage::getHelper method create
 		// a singleton oject which mess with load fixtures for the config
 		$this->_helper = new TrueAction_Eb2cInventory_Helper_Data();
@@ -77,7 +78,6 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
 		);
-		$this->setCurrentStore('admin');
 	}
 
 	public function providerGetRequestId()
