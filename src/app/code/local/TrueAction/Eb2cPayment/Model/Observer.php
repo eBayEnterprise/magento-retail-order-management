@@ -6,6 +6,9 @@
  */
 class TrueAction_Eb2cPayment_Model_Observer
 {
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_REMOVED = 'TrueAction_Eb2cPayment_GiftCard_Removed';
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_WRONG_ACCOUNT = 'TrueAction_Eb2cPayment_GiftCard_Wrong_Account';
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_NOT_REDEEMABLE = 'TrueAction_Eb2cPayment_GiftCard_Not_Redeemable';
 	/**
 	 * redeem any gift card when 'eb2c_event_dispatch_after_inventory_allocation' event is dispatched
 	 *
@@ -32,11 +35,11 @@ class TrueAction_Eb2cPayment_Model_Observer
 								Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->loadByPanPin($card['pan'], $card['pin'])
 									->removeFromCart();
 								Mage::getSingleton('checkout/session')->addSuccess(
-									Mage::helper('enterprise_giftcardaccount')->__('Gift Card "%s" was removed.', Mage::helper('core')->escapeHtml($card['pan']))
+									Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_REMOVED, Mage::helper('core')->escapeHtml($card['pan']))
 								);
 
 								Mage::throwException(
-									Mage::helper('enterprise_giftcardaccount')->__('Wrong gift card account.')
+									Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_WRONG_ACCOUNT)
 								);
 								// @codeCoverageIgnoreStart
 							}
@@ -75,11 +78,11 @@ class TrueAction_Eb2cPayment_Model_Observer
 								Mage::getModel('enterprise_giftcardaccount/giftcardaccount')->loadByPanPin($card['pan'], $card['pin'])
 									->removeFromCart();
 								Mage::getSingleton('checkout/session')->addSuccess(
-									Mage::helper('enterprise_giftcardaccount')->__('Gift Card "%s" was removed.', Mage::helper('core')->escapeHtml($card['pan']))
+									Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_REMOVED, Mage::helper('core')->escapeHtml($card['pan']))
 								);
 
 								Mage::throwException(
-									Mage::helper('enterprise_giftcardaccount')->__('Gift card account is not redeemable.')
+									Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_NOT_REDEEMABLE)
 								);
 								// @codeCoverageIgnoreStart
 							}

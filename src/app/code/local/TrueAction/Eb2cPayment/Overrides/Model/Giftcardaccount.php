@@ -6,6 +6,8 @@
  */
 class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_GiftCardAccount_Model_Giftcardaccount
 {
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_ACCOUNT_EXISTS = 'TrueAction_Eb2cPayment_GiftCard_Account_Exists';
+
 	/**
 	 * Giftcard pan that was requested for load
 	 *
@@ -173,7 +175,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				foreach ($cards as $one) {
 					if ($one['i'] == $this->getId()) {
 						Mage::throwException(
-							Mage::helper('enterprise_giftcardaccount')->__('This gift card account is already in the quote.')
+							Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_ACCOUNT_EXISTS)
 						);
 						// @codeCoverageIgnoreStart
 					}
