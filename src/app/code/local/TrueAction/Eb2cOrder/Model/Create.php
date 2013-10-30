@@ -314,31 +314,16 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 
 		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
-
-		if (trim($item->getEb2cDeliveryWindowFrom()) !== '' && trim($item->getEb2cShippingWindowFrom()) !== '') {
-			$estDeliveryDate = $orderItem->createChild('EstimatedDeliveryDate');
-			$deliveryWindow = $estDeliveryDate->createChild('DeliveryWindow');
-			$deliveryWindow->createChild('From', $item->getEb2cDeliveryWindowFrom());
-			$deliveryWindow->createChild('To', $item->getEb2cDeliveryWindowTo());
-
-			$shippingWindow = $estDeliveryDate->createChild('ShippingWindow');
-			$shippingWindow->createChild('From', $item->getEb2cShippingWindowFrom());
-			$shippingWindow->createChild('To', $item->getEb2cShippingWindowTo());
-		}
-
 		$orderItem->createChild('ReservationId', $reservationId);
 
 		// Tax on the Merchandise:
 		$merchandiseTaxData = $merchandise->createChild('TaxData');
-		$merchandiseTaxData->createChild('TaxClass', '????');
+		/*$merchandiseTaxData->createChild('TaxClass', '????');*/
 		$merchandiseTaxes = $merchandiseTaxData->createChild('Taxes');
 		$merchandiseTax = $merchandiseTaxes->createChild('Tax');
 		$merchandiseTax->setAttribute('taxType', 'SELLER_USE');
 		$merchandiseTax->setAttribute('taxability', 'TAXABLE');
 		$merchandiseTax->createChild('Situs', 0);
-		$merchandiseJurisdiction = $merchandiseTax->createChild('Jurisdiction', '??Jurisdiction Name??');
-		$merchandiseJurisdiction->setAttribute('jurisdictionLevel', '??State or County Level??');
-		$merchandiseJurisdiction->setAttribute('jurisdictionId', '??Jurisidiction Id??');
 		$merchandiseTax->createChild('EffectiveRate', $item->getTaxPercent());
 		$merchandiseTax->createChild('TaxableAmount', sprintf('%.02f', $item->getPrice() - $item->getTaxAmount()));
 		$merchandiseTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
@@ -360,22 +345,75 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		// End Shipping
 
 		// Duty on the orderItem:
-		$duty = $pricing->createChild('Duty');
-		$duty->createChild('Amount', (float) $order->getBaseTaxAmount());
-		$dutyTaxData = $duty->createChild('TaxData');
-		$dutyTaxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
-		$dutyTaxes = $dutyTaxData->createChild('Taxes');
-		$dutyTax = $dutyTaxes->createChild('Tax');
-		$dutyTax->setAttribute('taxType', 'SELLER_USE');
-		$dutyTax->setAttribute('taxability', 'TAXABLE');
-		$dutyTax->createChild('Situs', 0);
-		$dutyJurisdiction = $dutyTax->createChild('Jurisdiction', '??Jurisdiction Name??');
-		$dutyJurisdiction->setAttribute('jurisdictionLevel', '??State or County Level??');
-		$dutyJurisdiction->setAttribute('jurisdictionId', '??Jurisidiction Id??');
-		$dutyTax->createChild('EffectiveRate', $item->getTaxPercent());
-		$dutyTax->createChild('TaxableAmount', sprintf('%.02f', $item->getPrice() - $item->getTaxAmount()));
-		$dutyTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
+		$this->_buildDuty($pricing, $order, $item, $quoteId);
+
 		// End Duty
+	}
+
+	/**
+	 * getting the quote item id by sku
+	 * @param int $quoteId, the quote  id
+	 * @param int $sku, the item sku
+	 * @return int, the quote item id
+	 */
+	private function _getQuoteItemId($quoteId, $sku)
+	{
+		$quote = Mage::getModel('sales/quote')->load($quoteId);
+
+		$sku = trim(strtoupper($sku));
+		foreach ($quote->getAllItems() as $item) {
+			if (trim(strtoupper($item->getSku())) === $sku) {
+				return $item->getId();
+			}
+		}
+		return 0;
+	}
+
+	/**
+	 * get tax duty data for an order item
+	 * @param int $quoteId, the quote  id
+	 * @param int $sku, the item sku
+	 * @return float, the tax duty amount
+	 */
+	private function _getItemDutyAmount($quoteId, $sku)
+	{
+		$responseQuote = Mage::getResourceModel('eb2ctax/response_quote_collection');
+		$responseQuote->addAttributeToSelect('*')
+			->getSelect()
+			->where(sprintf("main_table.quote_item_id = '%d'", $this->_getQuoteItemId($quoteId, $sku)));
+		$responseQuote->load();
+		if ($responseQuote->count()) {
+			return (float) $responseQuote->getFirstItem()->getCalculatedTax();
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Builds the Duty Node for order
+	 * @param DomElement $pricing, the pricing node to attach duty node to
+	 * @param Mage_Sales_Model_Order $order, the order object
+	 * @param Mage_Sales_Model_Order_Item $item, the order item object
+	 * @param int $quoteId, the quote id associated to the order
+	 * @return void
+	 */
+	private function _buildDuty(DomElement $pricing, $order, $item, $quoteId)
+	{
+		$dutyAmount = $this->_getItemDutyAmount($quoteId, $item->getSku());
+		if ($dutyAmount > 0) {
+			$duty = $pricing->createChild('Duty');
+			$duty->createChild('Amount', $dutyAmount);
+			$dutyTaxData = $duty->createChild('TaxData');
+			$dutyTaxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
+			$dutyTaxes = $dutyTaxData->createChild('Taxes');
+			$dutyTax = $dutyTaxes->createChild('Tax');
+			$dutyTax->setAttribute('taxType', 'SELLER_USE');
+			$dutyTax->setAttribute('taxability', 'TAXABLE');
+			$dutyTax->createChild('Situs', 0);
+			$dutyTax->createChild('EffectiveRate', $item->getTaxPercent());
+			$dutyTax->createChild('TaxableAmount', sprintf('%.02f', $dutyAmount));
+			$dutyTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
+		}
 	}
 
 	/**
@@ -490,8 +528,9 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
 					$paymentContext->createChild('TenderType', $payment->getMethod());
 					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
-					$thisPayment->createChild('PaymentRequestId', '???');
+					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payment->getId()));
 					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
+					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 
 					$auth = $thisPayment->createChild('Authorization');
 					$auth->createChild('ResponseCode', $payment->getCcStatus());
