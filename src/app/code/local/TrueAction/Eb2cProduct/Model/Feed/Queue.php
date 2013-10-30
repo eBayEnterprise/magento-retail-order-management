@@ -57,7 +57,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Queue
 	public function process()
 	{
 		$this->_processor->processDeletions($this->_deletionList->getIterator());
+		$this->_deletionList->exchangeArray(array());
+
 		$this->_processor->processUpdates($this->_upsertList->getIterator());
+		$this->_upsertList->exchangeArray(array());
 	}
 
 	/**
