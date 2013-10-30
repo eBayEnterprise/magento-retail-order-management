@@ -307,18 +307,19 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$merchandise = $pricing->createChild('Merchandise');
 		$merchandise->createChild('Amount', sprintf('%.02f', $item->getQtyOrdered() * $item->getPrice()));
 
-		$discount = $merchandise
-			->createChild('PromotionalDiscounts')
-			->createChild('Discount');
-		$discount->createChild('Id', 'CHANNEL_IDENTIFIER');	// Spec says this *may* be required, schema validation says it *is* required
-		$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
+		if ($item->getDiscountAmount() > 0) {
+			$discount = $merchandise
+				->createChild('PromotionalDiscounts')
+				->createChild('Discount');
+			$discount->createChild('Id', 'CHANNEL_IDENTIFIER');	// Spec says this *may* be required, schema validation says it *is* required
+			$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
+		}
 
 		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
 		$orderItem->createChild('ReservationId', $reservationId);
 
 		// Tax on the Merchandise:
 		$merchandiseTaxData = $merchandise->createChild('TaxData');
-		/*$merchandiseTaxData->createChild('TaxClass', '????');*/
 		$merchandiseTaxes = $merchandiseTaxData->createChild('Taxes');
 		$merchandiseTax = $merchandiseTaxes->createChild('Tax');
 		$merchandiseTax->setAttribute('taxType', 'SELLER_USE');
@@ -346,7 +347,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		// Duty on the orderItem:
 		$this->_buildDuty($pricing, $order, $item, $quoteId);
-
 		// End Duty
 	}
 
