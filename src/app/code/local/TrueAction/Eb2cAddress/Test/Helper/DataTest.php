@@ -175,7 +175,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 		$dom = new TrueAction_Dom_Document();
 		$address = $this->_generateAddressObject();
 		$addressFragment = Mage::helper('eb2caddress')
-			->addressToPhysicalAddressXml($address, $dom);
+			->addressToPhysicalAddressXml($address, $dom, 'test-ns');
 		$fragmentNodes = $addressFragment->childNodes;
 		$this->assertEquals($fragmentNodes->item(0)->nodeName, 'Line1');
 		$this->assertEquals($fragmentNodes->item(0)->textContent, $this->_addressParts['line1_trimmed']);

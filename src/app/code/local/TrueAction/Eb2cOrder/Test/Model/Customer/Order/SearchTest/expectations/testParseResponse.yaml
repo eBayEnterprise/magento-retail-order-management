@@ -1,0 +1,12 @@
+response:
+  id: "order-123"
+  order_type: "SALES"
+  test_type: "TEST_ORDER"
+  modified_time: "2011-02-22T22:09:56+00:00"
+  customer_order_id: "0000120100010200"
+  customer_id: "0000120100003000"
+  order_date: "2010-11-11T18:59:48+00:00"
+  dashboard_rep_id: "admin"
+  status: "Cancelled"
+  order_total: 0.0
+  source: "Web"

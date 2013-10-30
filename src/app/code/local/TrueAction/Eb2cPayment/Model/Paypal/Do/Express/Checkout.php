@@ -16,19 +16,25 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	public function doExpressCheckout($quote)
 	{
 		$responseMessage = '';
-		try{
-			// build request
-			$requestDoc = $this->buildPayPalDoExpressCheckoutRequest($quote);
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
+		// build request
+		$requestDoc = $this->buildPayPalDoExpressCheckoutRequest($quote);
+		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 
+		try{
 			// make request to eb2c for quote items PaypalDoExpressCheckout
 			$responseMessage = Mage::getModel('eb2ccore/api')
 				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_express_checkout'))
 				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalDoExpress)
 				->request($requestDoc);
 
-		}catch(Exception $e){
-			Mage::logException($e);
+		} catch(Zend_Http_Client_Exception $e) {
+			Mage::log(
+				sprintf(
+					'[ %s ] The following error has occurred while sending Do paypal express checkout request to eb2c: (%s).',
+					__CLASS__, $e->getMessage()
+				),
+				Zend_Log::ERR
+			);
 		}
 
 		// Save payment data
@@ -48,6 +54,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoExpressCheckoutRequest = $domDocument->addElement('PayPalDoExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
+		$payPalDoExpressCheckoutRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
 		$payPalDoExpressCheckoutRequest->createChild(
 			'OrderId',
 			(string) $quote->getEntityId()
@@ -74,60 +81,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 		$payPalDoExpressCheckoutRequest->createChild(
 			'ShipToName',
 			(string) $quoteShippingAddress->getName()
-		);
-
-		// creating shippingAddress element
-		$shippingAddress = $payPalDoExpressCheckoutRequest->createChild(
-			'ShippingAddress',
-			null
-		);
-
-		// add Line1
-		$shippingAddress->createChild(
-			'Line1',
-			(string) $quoteShippingAddress->getStreet(1)
-		);
-
-		// add Line2
-		$shippingAddress->createChild(
-			'Line2',
-			(string) $quoteShippingAddress->getStreet(2)
-		);
-
-		// add Line3
-		$shippingAddress->createChild(
-			'Line3',
-			(string) $quoteShippingAddress->getStreet(3)
-		);
-
-		// add Line4
-		$shippingAddress->createChild(
-			'Line4',
-			(string) $quoteShippingAddress->getStreet(4)
-		);
-
-		// add City
-		$shippingAddress->createChild(
-			'City',
-			(string) $quoteShippingAddress->getCity()
-		);
-
-		// add MainDivision
-		$shippingAddress->createChild(
-			'MainDivision',
-			(string) $quoteShippingAddress->getRegion()
-		);
-
-		// add CountryCode
-		$shippingAddress->createChild(
-			'CountryCode',
-			(string) $quoteShippingAddress->getCountryId()
-		);
-
-		// add PostalCode
-		$shippingAddress->createChild(
-			'PostalCode',
-			(string) $quoteShippingAddress->getPostcode()
 		);
 
 		// creating lineItems element

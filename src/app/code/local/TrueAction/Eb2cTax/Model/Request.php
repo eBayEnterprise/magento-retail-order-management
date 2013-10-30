@@ -278,7 +278,18 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$quote->getId() &&
 			$quote->getBillingAddress() &&
 			$quote->getBillingAddress()->getId() &&
+			$this->_hasValidBillingAddress($quote->getBillingAddress()) &&
 			$quote->getItemsCount();
+	}
+
+	/**
+	 * return true if the address has enough information to be useful.
+	 * @param Mage_Sales_Model_Quote_Address $address
+	 * @return boolean
+	 */
+	protected function _hasValidBillingAddress(Mage_Sales_Model_Quote_Address $address)
+	{
+		return (trim($address->getLastname()) !== '') && (trim($address->getFirstname()) !== '');
 	}
 
 	/**
@@ -809,43 +820,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractAdminData()
 	{
-		$storeAddress = Mage::getStoreConfig('general/store_information/address');
-		$countryCode  = Mage::getStoreConfig('general/store_information/merchant_country');
+		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ctax/config'));
 
-		$countryCode = (trim($countryCode) !== '')? $countryCode : 'US';
-
-		$addressArr = explode('\r\n', trim($storeAddress));
-
-		$lineAddress = 'Line1';
-		$cityStateArr = array();
-		if (sizeof($addressArr) > 1) {
-			$lineAddress = $addressArr[0];
-			$cityStateArr = explode(',', trim($addressArr[1]));
-		}
-
-		$city = 'city';
-		$stateZipArr = array();
-		if (sizeof($cityStateArr) > 1) {
-			$city = $cityStateArr[0];
-			$stateZipArr = explode(' ', trim($cityStateArr[1]));
-		}
-
-		$state = 'state';
-		$zipCode = 'zipCode';
-
-		if (sizeof($stateZipArr) > 1) {
-			$state = $stateZipArr[0];
-			$zipCode = $stateZipArr[1];
-		}
-		$data = array(
-			'Line1' => $lineAddress,
-			'City' => $city,
-			'MainDivision' => $state,
-			'CountryCode' => $countryCode,
-			'PostalCode' => $zipCode,
+		return array(
+			'Lines' => array_map(function ($n) use ($cfg) {return $cfg->getConfig("admin_origin_line$n"); }, array(1, 2, 3, 4)),
+			'City' => $cfg->adminOriginCity,
+			'MainDivision' => $cfg->adminOriginMainDivision,
+			'CountryCode' => $cfg->adminOriginCountryCode,
+			'PostalCode' => $cfg->adminOriginPostalCode,
 		);
-
-		return $data;
 	}
 
 	/**
@@ -857,15 +841,13 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
-		$data = array(
-			'Line1'        => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
-			'City'         => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
+		return array(
+			'Line1' => (trim($item->getEb2cShipFromAddressLine1()) !== '') ? $item->getEb2cShipFromAddressLine1() : 'Line1',
+			'City' => (trim($item->getEb2cShipFromAddressCity()) !== '') ? $item->getEb2cShipFromAddressCity() : 'city',
 			'MainDivision' => (trim($item->getEb2cShipFromAddressMainDivision()) !== '') ? $item->getEb2cShipFromAddressMainDivision() : 'State',
-			'CountryCode'  => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
-			'PostalCode'   => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
+			'CountryCode' => (trim($item->getEb2cShipFromAddressCountryCode()) !== '') ? $item->getEb2cShipFromAddressCountryCode() : 'US',
+			'PostalCode' => (trim($item->getEb2cShipFromAddressPostalCode()) !== '') ? $item->getEb2cShipFromAddressPostalCode() : 'Zipcode',
 		);
-
-		return $data;
 	}
 
 	/**
@@ -878,12 +860,23 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	protected function _buildAdminOriginNode(TrueAction_Dom_Element $parent, array $adminOrigin)
 	{
-		return $parent->createChild('AdminOrigin')
-			->addChild('Line1', $adminOrigin['Line1'])
-			->addChild('City', $adminOrigin['City'])
+		$adminOriginEl = $parent->createChild('AdminOrigin')
+			->addChild('Line1', $adminOrigin['Lines'][0]);
+		if (trim($adminOrigin['Lines'][1]) !== '') {
+			$adminOriginEl->addChild('Line2', $adminOrigin['Lines'][1]);
+		}
+		if (trim($adminOrigin['Lines'][2]) !== '') {
+			$adminOriginEl->addChild('Line3', $adminOrigin['Lines'][2]);
+		}
+		if (trim($adminOrigin['Lines'][3]) !== '') {
+			$adminOriginEl->addChild('Line4', $adminOrigin['Lines'][3]);
+		}
+		$adminOriginEl->addChild('City', $adminOrigin['City'])
 			->addChild('MainDivision', $adminOrigin['MainDivision'])
 			->addChild('CountryCode', $adminOrigin['CountryCode'])
 			->addChild('PostalCode', $adminOrigin['PostalCode']);
+
+		return $adminOriginEl;
 	}
 
 	/**

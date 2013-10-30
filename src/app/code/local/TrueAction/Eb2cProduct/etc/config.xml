@@ -175,22 +175,6 @@
 			</default>
 		</eb2cproduct_attributes>
 	</global>
-	<crontab>
-		<jobs>
-			<eb2cproduct_feed_item_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_item_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_item_master>
-			<eb2cproduct_feed_content_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_content_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_content_master>
-		</jobs>
-	</crontab>
 	<default>
 		<eb2c>
 			<product>
@@ -205,35 +189,35 @@
 		<eb2cproduct>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>ItemMaster*.xml</file_pattern>
 				<event_type>ItemMaster</event_type>
 				<header_version>2.3.0</header_version>
 			</item_master_feed>
 			<content_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>Content*.xml</file_pattern>
 				<event_type>Content</event_type> <!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
 			</content_master_feed>
 			<i_ship_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>IShip*.xml</file_pattern>
 				<event_type>iShip</event_type>
 				<header_version>2.3.0</header_version>
 			</i_ship_feed>
 			<item_pricing_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/Pricing/{storeid}/</remote_path>
 				<file_pattern>Price*.xml</file_pattern>
-				<event_type>ItemPricing</event_type>
+				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>
 			<image_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ImageMaster/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/</remote_path>
 				<file_pattern>ImageMetaData*.xml</file_pattern>
 				<event_type>ImageMaster</event_type>
 				<header_version>2.3.0</header_version>

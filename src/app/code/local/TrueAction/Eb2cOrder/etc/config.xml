@@ -16,8 +16,24 @@
 				<class>TrueAction_Eb2cOrder_Helper</class>
 			</eb2corder>
 		</helpers>
+		<blocks>
+			<sales>
+				<rewrite>
+					<order_history>TrueAction_Eb2cOrder_Overrides_Block_Order_History</order_history>
+					<order_recent>TrueAction_Eb2cOrder_Overrides_Block_Order_Recent</order_recent>
+					<order_view>TrueAction_Eb2cOrder_Overrides_Block_Order_View</order_view>
+				</rewrite>
+			</sales>
+		</blocks>
 	</global>
 	<frontend>
+		<layout>
+			<updates>
+				<trueaction_eb2corder module="TrueAction_Eb2cOrder">
+					<file>eb2corder_frontend.xml</file>
+				</trueaction_eb2corder>
+			</updates>
+		</layout>
 		<events>
 			<checkout_type_onepage_save_order_after>
 				<observers>
@@ -43,16 +59,19 @@
 				<developer_cancel_uri>http://virtbox.net/~mwest/fakeb2c/orderCancelRequest.php</developer_cancel_uri>
 				<payments_enabled>false</payments_enabled>
 				<config_path>eb2ccore/general</config_path>
+				<api_search_service>customers</api_search_service>
+				<api_search_operation>orders/get</api_search_operation>
 				<xsd>
 					<create_file>Order-Service-Create-1.0.xsd</create_file>
 					<cancel_file>Order-Service-Cancel-1.0.xsd</cancel_file>
+					<search_file>Order-Service-Search-1.0.xsd</search_file>
 				</xsd>
 			</order>
 		</eb2c>
 		<eb2corder>
 			<status_feed>
 				<local_path>TrueAction/Eb2c/Feed/Order/Status/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>OrderStatus*.xml</file_pattern>
 				<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
 				<event_type>OrderStatus</event_type>

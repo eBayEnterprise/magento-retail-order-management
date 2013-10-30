@@ -52,12 +52,12 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	public function testGetOperationUri()
 	{
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storevalue/balance/GS.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storedvalue/balance/GS.xml',
 			$this->_helper->getOperationUri('get_gift_card_balance')
 		);
 
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storevalue/redeem/GS.xml',
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storedvalue/redeem/GS.xml',
 			$this->_helper->getOperationUri('get_gift_card_redeem')
 		);
 	}

@@ -118,4 +118,27 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
 		return $this;
 	}
+
+	/**
+	 * extract node value
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeVal(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? $nodeList->item(0)->nodeValue : null;
+	}
+
+	/**
+	 * extract node attribute value
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 * @param string $attributeName
+	 */
+	public function extractNodeAttributeVal(DOMNodeList $nodeList, $attributeName)
+	{
+		return ($nodeList->length)? $nodeList->item(0)->getAttribute($attributeName) : null;
+	}
 }
