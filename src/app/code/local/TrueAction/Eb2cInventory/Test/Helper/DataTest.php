@@ -14,6 +14,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 	public function setUp()
 	{
 		parent::setUp();
+		$this->clearStoreConfigCache();
 		// FYI: instantiating using regular Mage::getHelper method create
 		// a singleton oject which mess with load fixtures for the config
 		$this->_helper = new TrueAction_Eb2cInventory_Helper_Data();

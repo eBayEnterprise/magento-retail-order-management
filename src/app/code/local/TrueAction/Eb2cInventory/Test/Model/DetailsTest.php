@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cInventory_Test_Model_DetailsTest
-	extends TrueAction_Eb2cCore_Test_Base
+	extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_details;
 
@@ -10,7 +10,6 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	public function setUp()
 	{
 		parent::setUp();
-		$this->clearStoreConfigCache();
 		$this->_details = Mage::getModel('eb2cinventory/details');
 	}
 
