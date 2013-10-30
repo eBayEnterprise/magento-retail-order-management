@@ -101,8 +101,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	public function processUpdates($dataObjectList)
 	{
-		$message = 'processing ' . count($dataObjectList) . ' updates';
-		Mage::log($message);
+		Mage::log(sprintf('[ %s ] Processing %d updates.', __CLASS__, count($dataObjectList)));
 		foreach ($dataObjectList as $dataObject) {
 			$dataObject = $this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
@@ -111,6 +110,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	public function processDeletions($dataObjectList)
 	{
+		Mage::log(sprintf('[ %s ] Processing %d deletes.', __CLASS__, count($dataObjectList)));
 		foreach ($dataObjectList as $dataObject) {
 			$this->_deleteItem($dataObject);
 		}
