@@ -331,7 +331,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				// }
 				$attributeCode = $this->_underscore($attributeData['name']);
 				// setting custom attributes
-				if (strtoupper($attributeData['operation_type']) === 'DELETE') {
+				if (!isset($attributeData['operation_type'])) {
+					Mage::log(sprintf('[ %s ]: Received custom attribute with no operation type: %s', __CLASS__, $attributeData['name']));
+				} elseif (strtoupper($attributeData['operation_type']) === 'DELETE') {
 					// setting custom attributes to null on operation type 'delete'
 					$custData->setData($attributeCode, null);
 				} else {
@@ -487,7 +489,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			->loadByCode('catalog_product', $attribute)
 			->getAttributeId();
 
-		// This entire set of options belongs to this attribute: 
+		// This entire set of options belongs to this attribute:
 		$newAttributeOption['attribute_id'] = $attributeId;
 
 		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption;
@@ -501,7 +503,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$storeDetails = $oneStore->load($storeId);
 			$values[$storeId] = $newOptionLabel;
 		}
-		
+
 		// Set up the option0 to be the default (i.e. admin) store:
 		$newAttributeOption['value'] = array('replace_with_primary_key' => $values);
 		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
@@ -592,7 +594,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		// mark all products that have just been imported as not being clean
-		$productData->setData('is_clean', false);
+		$productData->setData('is_clean', $this->_helper->convertToBoolean(false));
 
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
@@ -836,10 +838,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($prodHlpr->hasEavAttr('brand_description')) {
 			// setting brand_description attribute
 			$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
-			foreach ($brandDescription as $bDesc) {
-				if (trim(strtoupper($bDesc['lang'])) === strtoupper($this->_defaultStoreLanguageCode)) {
-					$data['brand_description'] = $bDesc['description'];
-					break;
+			if (!empty($brandDescription)) {
+				foreach ($brandDescription as $bDesc) {
+					if (isset($bDesc['lang']) && strtoupper($bDesc['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
+						$data['brand_description'] = $bDesc['description'];
+						break;
+					}
 				}
 			}
 		}
@@ -1049,7 +1053,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 		if ($prodHlpr->hasEavAttr('style_id')) {
 			// setting style_id attribute
-			$data['style_id'] = $dataObject->getExtendedAttributes()->getStyleId();
+			$data['style_id'] = Mage::helper('eb2cproduct')->normalizeStyleId(
+				$dataObject->getExtendedAttributes()->getStyleId(),
+				$dataObject->getCatalogId()
+			);
 		}
 
 		if ($prodHlpr->hasEavAttr('style_description')) {

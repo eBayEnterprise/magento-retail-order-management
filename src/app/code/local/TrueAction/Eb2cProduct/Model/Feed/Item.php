@@ -58,6 +58,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Item
 	}
 
 	protected $_extractMap = array(
+		// "global" attributes which may be relevent to any of the feeds
+		'catalog_id' => './@catalog_id',
+		'gsi_client_id' => './@gsi_client_id',
+		'gsi_store_id' => './@gsi_store_id',
 		// Selling/promotional name.
 		'brand_name' => 'ExtendedAttributes/Brand/Name/text()',
 		// Allows for control of the web store display.

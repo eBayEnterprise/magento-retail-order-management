@@ -31,7 +31,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	 */
 	public function cleanAllProducts()
 	{
-		foreach ($this->getProductsToClean() as $product) {
+		$productsToClean = $this->getProductsToClean();
+		Mage::log(sprintf('[ %s ]: Cleaning %d products.', __CLASS__, $productsToClean->count()));
+		foreach ($productsToClean as $product) {
 			$this->cleanProduct($product);
 		}
 		return $this;
@@ -44,6 +46,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	public function getProductsToClean()
 	{
 		return Mage::getModel('catalog/product')->getCollection()
+			// @todo - order products are processed may be optimizable
 			->addFieldToFilter('is_clean', false)
 			// @todo - trim this down to only the necessary attributes
 			->addAttributeToSelect('*');
@@ -61,7 +64,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		// update configurable relationships
 		if ($product->getTypeId() === 'configurable') {
 			$this->_addUsedProducts($product);
-		} else if ($product->getStyleId() && $product->getStyleId() !== $product->getSku()) {
+		} elseif ($product->getStyleId() && $product->getStyleId() !== $product->getSku()) {
 			$this->_addToCofigurableProduct($product);
 		}
 		$this->markProductClean($product);
@@ -182,16 +185,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		// look up used products by style_id, will match sku of configurable product
 		$addProductIds = Mage::getModel('catalog/product')->getCollection()
 			->addAttributeToSelect('*')
-			->addFieldToFilter('style_id', $product->getSku())
+			->addFieldToFilter('style_id', array('eq' => $product->getSku()))
+			->addFieldToFilter('entity_id', array('neq' => $product->getId()))
 			->getAllIds();
-
 		// merge the found products with any existing links, filtering out any duplicates
-		$usedProductIds = $product->getTypeInstance()->getUsedProductIds();
-		$usedProductIds = array_unique(array_merge($usedProductIds, $addProductIds));
-		if (!empty($usedProductIds)) {
+		$existingIds = $product->getTypeInstance()->getUsedProductIds();
+		$usedProductIds = array_unique(array_merge($existingIds, $addProductIds));
+		// only update used products when there are new products to add to the list
+		if (array_diff($existingIds, $usedProductIds)) {
 			Mage::getResourceModel('catalog/product_type_configurable')
 				->saveProducts($product, array_unique($usedProductIds));
-		} else {
+		} elseif (empty($usedProductIds)) {
 			Mage::log(
 				sprintf('[ %s ]: Expected to find products to use for configurable product %s but found none.', __CLASS__, $product->getSku()),
 				Zend_Log::DEBUG
@@ -217,7 +221,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 			Mage::log(
 				sprintf(
 					'[ %s ]: Expected to find configurable product with sku %s to add product with sku %s to but no such product found',
-					__CLASS__, $product->getStlyeId(), $product->getSku()
+					__CLASS__, $product->getStyleId(), $product->getSku()
 				),
 				Zend_Log::DEBUG
 			);
