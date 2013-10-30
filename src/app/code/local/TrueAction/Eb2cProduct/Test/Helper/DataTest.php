@@ -150,7 +150,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	public function testNormalizeStyleId($styleId, $catalogId)
 	{
 		$normalized = Mage::helper('eb2cproduct')->normalizeStyleId($styleId, $catalogId);
-		$this->assertSame($this->expected('%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
+		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
 	}
 
 }

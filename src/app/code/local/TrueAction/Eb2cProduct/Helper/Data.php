@@ -173,7 +173,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function normalizeStyleId($styleId, $catalogId)
 	{
-		if (strpos($styleId, $catalogId . '-') !== 0) {
+		if (!empty($styleId) && strpos($styleId, $catalogId . '-') !== 0) {
 			return sprintf('%s-%s', $catalogId, $styleId);
 		}
 		return $styleId;
