@@ -1,9 +1,6 @@
 <?php
-
-class TrueAction_Eb2cAddress_Test_Model_Suggestion_GroupTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cAddress_Test_Model_Suggestion_GroupTest extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * Create a new address object using the provided array of data.
 	 * @param array $addressData
@@ -88,13 +85,13 @@ class TrueAction_Eb2cAddress_Test_Model_Suggestion_GroupTest
 		$suggestions = array(Mage::getModel('customer/address'), Mage::getModel('customer/address'));
 		$suggestions[0]->addData(array(
 			'firstname' => 'Foo',
-			'latsname' => 'Bar',
-			'postcode' => '99999-1234',
+			'lastname'  => 'Bar',
+			'postcode'  => '99999-1234',
 		));
 		$suggestions[1]->addData(array(
 			'firstname' => 'Foo',
-			'lastname' => 'Bar',
-			'postcode' => '99999-4321',
+			'lastname'  => 'Bar',
+			'postcode'  => '99999-4321',
 		));
 		$group->setSuggestedAddresses($suggestions);
 
@@ -111,7 +108,5 @@ class TrueAction_Eb2cAddress_Test_Model_Suggestion_GroupTest
 		// should return suggestions and set the has_fresh_suggestions flag to false
 		$this->assertSame($suggestions, $group->getSuggestedAddresses());
 		$this->assertFalse($group->getHasFreshSuggestions());
-
 	}
-
 }

@@ -1,9 +1,4 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
@@ -19,7 +14,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Test getNewDomDocument - although providerApiCall calls it, does not get noted as covered.
-	 *
 	 * @test
 	 */
 	public function testGetNewDomDocument()
@@ -253,7 +247,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Test extractNodeAttributeVal method
-	 *
 	 * @param DOMNodeList $nodeList
 	 * @param string $attributeName
 	 *

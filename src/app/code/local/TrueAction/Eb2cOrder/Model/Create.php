@@ -110,9 +110,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		$consts = $this->_helper->getConstHelper();
 		$uri = $this->_helper->getOperationUri($consts::CREATE_OPERATION);
 
-		if( $this->_config->developerMode ) {
-			$uri = $this->_config->developerCreateUri;
-		}
 		$response = '';
 		if ($this->_domRequest instanceof DOMDocument) {
 			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_xmlRequest), Zend_Log::DEBUG);

@@ -1,11 +1,4 @@
 <?xml version="1.0"?>
-<!--
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
--->
 <layout version="0.1.0">
 	<checkout_cart_index>
 		<reference name="checkout.cart">

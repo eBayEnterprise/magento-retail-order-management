@@ -5,4 +5,3 @@ config:
   default/eb2ccore/api/region: api_rgn
   default/eb2ccore/api/major_version: M
   default/eb2ccore/api/minor_version: m
-  default/eb2c/payment/developer_mode: 0

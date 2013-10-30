@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_observer;
@@ -463,7 +458,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	{
 		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
 			->disableOriginalConstructor()
-			->setMethods(array('requiresAllocation', 'processAllocation', 'filterInventoriedItems'))
+			->setMethods(array('requiresAllocation', 'processAllocation', 'filterInventoriedItems', 'allocateQuoteItems'))
 			->getMock();
 		$allocationMock->expects($this->any())
 			->method('requiresAllocation')
@@ -474,6 +469,9 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$allocationMock->expects($this->any())
 			->method('filterInventoriedItems')
 			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('allocateQuoteItems')
+			->will($this->returnValue('<foo></foo>'));
 
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
@@ -483,7 +481,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 	}
 
 	/**
-	 * testing when a quantity can no be allocated for a quote
+	 * What happens when a quantity can not be allocated for a quote?
 	 *
 	 * @test
 	 * @expectedException TrueAction_Eb2cInventory_Model_Allocation_Exception
@@ -500,12 +498,6 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->method('addError')
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
-
-		$inventoryHelperMock = $this->getHelperMock('eb2cinventory/data', array('getOperationUri'));
-		$inventoryHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml'));
-		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelperMock);
 
 		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
 			->disableOriginalConstructor()

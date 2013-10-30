@@ -1,9 +1,4 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
@@ -102,6 +97,20 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends EcomDev_PHPUnit_Test
 		$this->assertSame(
 			'client_id-store_id-43',
 			$this->_helper->getReservationId($entityId)
+		);
+	}
+
+	/**
+	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 * @test
+	 */
+	public function testConvertShipMethod($mageShipMethod)
+	{
+		$this->assertSame(
+			$this->expected($mageShipMethod)->getEb2cShipMethod(),
+			$this->_helper->lookupShipMethod($mageShipMethod)
 		);
 	}
 }

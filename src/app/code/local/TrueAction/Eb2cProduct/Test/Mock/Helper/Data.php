@@ -1,43 +1,35 @@
 <?php
 /**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
-/**
  * @codeCoverageIgnore
  */
 class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_Case
 {
 	/**
 	 * return a mock of the TrueAction_Eb2cCore_Model_Config_Registry class
-	 *
 	 * @return Mock_TrueAction_Eb2cCore_Model_Config_Registry
 	 */
 	public function buildEb2cCoreModelConfigRegistry()
 	{
-		$properties = new StdClass();
-		$properties->configPath = 'eb2ccore/general';
-		$properties->destinationType = 'MAILBOX';
-		$properties->catalogId = '70';
-		$properties->clientId = 'TAN-CLI';
-		$properties->contentFeedLocalPath = 'vfs://testBase/feed_content_master/';
-		$properties->contentFeedRemoteReceivedPath = '/Content/Master/';
-		$properties->contentFeedFilePattern = 'Content*.xml';
-		$properties->contentFeedEventType = 'ContentMaster';
-		$properties->contentFeedHeaderVersion = '2.3.0';
-		$properties->itemFeedLocalPath = 'vfs://testBase/feed_item_master/';
-		$properties->itemFeedRemoteReceivedPath = '/Item/Master/';
-		$properties->itemFeedFilePattern = 'ItemMaster*.xml';
-		$properties->itemFeedEventType = 'ItemMaster';
-		$properties->itemFeedHeaderVersion = '2.3.0';
-		$properties->iShipFeedLocalPath = 'vfs://testBase/feed_i_ship/';
-		$properties->iShipFeedRemoteReceivedPath = '/I/Ship/';
-		$properties->iShipFeedFilePattern = 'IShip*.xml';
-		$properties->iShipFeedEventType = 'IShip';
-		$properties->iShipFeedHeaderVersion = '2.3.0';
-
-		return $properties;
+		return (object) array(
+			'catalogId'                     => '70',
+			'clientId'                      => 'TAN-CLI',
+			'contentFeedEventType'          => 'ContentMaster',
+			'contentFeedFilePattern'        => 'Content*.xml',
+			'contentFeedHeaderVersion'      => '2.3.0',
+			'contentFeedLocalPath'          => 'vfs://testBase/feed_content_master/',
+			'contentFeedRemoteReceivedPath' => '/Content/Master/',
+			'destinationType'               => 'MAILBOX',
+			'iShipFeedEventType'            => 'IShip',
+			'iShipFeedFilePattern'          => 'IShip*.xml',
+			'iShipFeedHeaderVersion'        => '2.3.0',
+			'iShipFeedLocalPath'            => 'vfs://testBase/feed_i_ship/',
+			'iShipFeedRemoteReceivedPath'   => '/I/Ship/',
+			'itemFeedEventType'             => 'ItemMaster',
+			'itemFeedFilePattern'           => 'ItemMaster*.xml',
+			'itemFeedHeaderVersion'         => '2.3.0',
+			'itemFeedLocalPath'             => 'vfs://testBase/feed_item_master/',
+			'itemFeedRemoteReceivedPath'    => '/Item/Master/',
+		);
 	}
 
 	/**

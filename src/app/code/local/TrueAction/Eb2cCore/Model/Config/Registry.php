@@ -8,8 +8,7 @@
  */
 class TrueAction_Eb2cCore_Model_Config_Registry
 {
-
-	/**
+ 	/**
 	 * The default value to use when looking up config values.
 	 * @var null|string|bool|int|Mage_Core_Model_Store
 	 */
@@ -139,5 +138,4 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 	{
 		trigger_error(sprintf('Cannot write property %s::%s in php shell code on line %d', get_class($this), $name, __LINE__), E_USER_ERROR);
 	}
-
 }

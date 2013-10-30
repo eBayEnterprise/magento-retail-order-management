@@ -76,9 +76,6 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 		$consts = $this->_helper->getConstHelper();
 		$uri = $this->_helper->getOperationUri($consts::CANCEL_OPERATION);
 
-		if( $this->_config->developerMode ) {
-			$uri = $this->_config->developerCancelUri;
-		}
 		$response = '';
 		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_domRequest->saveXML()), Zend_Log::DEBUG);
 		try {

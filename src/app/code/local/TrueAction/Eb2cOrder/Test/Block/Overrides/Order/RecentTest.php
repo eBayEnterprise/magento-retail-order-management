@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_RecentTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**

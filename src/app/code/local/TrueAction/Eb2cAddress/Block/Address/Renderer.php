@@ -1,9 +1,7 @@
 <?php
-
 class TrueAction_Eb2cAddress_Block_Address_Renderer
 	extends Mage_Customer_Block_Address_Renderer_Default
 {
-
 	/**
 	 * @param string $format - the template used to format the address
 	 */
@@ -17,5 +15,4 @@ class TrueAction_Eb2cAddress_Block_Address_Renderer
 		$this->setType($type);
 		return $this;
 	}
-
 }
