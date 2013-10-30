@@ -78,6 +78,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Item
 		'drop_ship_supplier_part_number' => 'DropShipSupplierInformation/SupplierPartNumber/text()',
 		// Indicates the item if fulfilled by a drop shipper. New attribute.
 		'is_drop_shipped' => 'BaseAttributes/IsDropShipped/text()',
+		// The most basic Item Description we'll get is in Item Master. This is not as 'complete' as Title from Content Feed.
+		'item_description' => 'BaseAttributes/ItemDescription/text()',
 		// Identifies the type of item.
 		'item_type' => 'BaseAttributes/ItemType/text()',
 		// Indicates whether an item is active, inactive or other various states.

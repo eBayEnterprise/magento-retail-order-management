@@ -96,14 +96,11 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param  string $sku
 	 * @return Mage_Catalog_Model_Product
 	 */
-	public function prepareProductModel($sku, $type='simple')
+	public function prepareProductModel($sku, $name='')
 	{
 		$product = $this->loadProductBySku($sku);
 		if (!$product->getId()) {
-			$this->applyDummyData($product, $sku);
-			if ($type !== 'simple') {
-				$product->setData('type_id', $type);
-			}
+			$this->applyDummyData($product, $sku, $name);
 		}
 		return $product;
 	}
@@ -114,7 +111,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param  Mage_Catalog_Model_Product $product product model to be autofilled
 	 * @return Mage_Catalog_Model_Product
 	 */
-	public function applyDummyData($product, $sku)
+	public function applyDummyData($product, $sku, $name)
 	{
 		try{
 			$product->setData(
@@ -122,7 +119,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 					'type_id' => 'simple', // default product type
 					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
 					'attribute_set_id' => $product->getResource()->getEntityType()->getDefaultAttributeSetId(),
-					'name' => 'Invalid Product: ' . $sku,
+					'name' => empty($name) ? ('Invalid Product: ' . $sku) : $name,
 					'status' => 0, // default - disabled
 					'sku' => $sku,
 					'website_ids' => $this->getAllWebsiteIds(),

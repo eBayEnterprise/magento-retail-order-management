@@ -149,7 +149,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// prepare base attributes
 		$baseAttributes = new Varien_Object();
 		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
-		foreach (array('catalog_class', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
+		foreach (array('catalog_class', 'item_description', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
 			$baseAttributes->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
 		}
 		$outData->setData('base_attributes', $baseAttributes);
@@ -533,7 +533,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
 			return;
 		}
-		$product = $this->_helper->prepareProductModel($sku);
+		$product = $this->_helper->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
 
 		$productData = new Varien_Object();
 
