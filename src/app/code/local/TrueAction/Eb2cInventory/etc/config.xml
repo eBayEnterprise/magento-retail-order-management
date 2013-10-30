@@ -158,6 +158,13 @@
 		</events>
 	</frontend>
 	<default>
+		<eb2ccore>
+			<shipmap>
+				<!-- Add a Magento shipping method as the tag and an
+				eb2c method as the value to create a mapping. -->
+				<flatrate_flatrate>ANY_STD</flatrate_flatrate>
+			</shipmap>
+		</eb2ccore>
 		<eb2cinventory>
 			<allocation_expired>60</allocation_expired>
 			<api_service>inventory</api_service>
