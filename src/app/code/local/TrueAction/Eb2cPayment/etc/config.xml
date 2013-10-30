@@ -44,6 +44,9 @@
 			</enterprise_giftcardaccount>
 		</helpers>
 		<blocks>
+			<eb2cpayment>
+				<class>TrueAction_Eb2cPayment_Block</class>
+			</eb2cpayment>
 			<enterprise_giftcardaccount>
 				<rewrite>
 					<checkout_cart_giftcardaccount>TrueAction_Eb2cPayment_Overrides_Block_Checkout_Cart_Giftcardaccount</checkout_cart_giftcardaccount>
@@ -141,6 +144,15 @@
 			</eb2corder_order_creation_failure>
 		</events>
 	</frontend>
+	<adminhtml>
+		<layout>
+			<updates>
+				<eb2cpayment>
+					<file>eb2cpayment.xml</file>
+				</eb2cpayment>
+			</updates>
+		</layout>
+	</adminhtml>
 	<default>
 		<eb2cpayment>
 			<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>

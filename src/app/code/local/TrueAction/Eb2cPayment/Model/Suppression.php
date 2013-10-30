@@ -84,44 +84,23 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	}
 
 	/**
-	 * delete a notification, by querying the notification_inbox table by title and removing any record found
-	 * @return $this;
+	 * check eb2c pbrige payment method required setting, return false if anyone of these required
+	 * settings are not valid, otherwise true
+	 * @return bool, true for all valid configuration otherwise false;
 	 */
-	public function removeNotification($title='')
+	public function isEbcPaymentConfigured()
 	{
-		if (trim($title) !== '') {
-			$inbox = Mage::getResourceModel('adminnotification/inbox_collection');
-			$inbox->getSelect()
-				->where(sprintf(
-					"TRIM(UPPER(main_table.title)) = '%s' AND main_table.severity = '%d'",
-					$title, Mage_AdminNotification_Model_Inbox::SEVERITY_CRITICAL
-				));
-			$inbox->load();
+		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2cpayment/method_config'));
 
-			if ($inbox->count()) {
-				// we records let's delete them
-				foreach ($inbox as $ibx) {
-					$ibx->delete();
-				}
-			}
-		}
-
-		return $this;
-	}
-
-	/**
-	 * add configuration notification message to admin dasboard/
-	 * @return $this;
-	 */
-	public function addConfigurationNotification()
-	{
-		Mage::getModel('adminnotification/inbox')->addCritical(
-			Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_TITLE),
-			Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_DESCRIPTION),
-			Mage::getModel('adminhtml/url')->getUrl('adminhtml/system_config/edit', array('section'=>'payment')),
-			false
-		);
-
-		return $this;
+		return (bool) $cfg->pbridgeActive &&
+			trim($cfg->pbridgeMerchantCode) &&
+			trim($cfg->pbridgeMerchantKey) &&
+			trim($cfg->pbridgeGatewayUrl) &&
+			trim($cfg->pbridgeTransferKey) &&
+			(bool) $cfg->ebcPbridgeActive &&
+			trim($cfg->ebcPbridgeTitle) &&
+			trim($cfg->ebcPbridgeAllowSpecific)
+		;
 	}
 }
