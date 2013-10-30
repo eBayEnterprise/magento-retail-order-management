@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_observer;

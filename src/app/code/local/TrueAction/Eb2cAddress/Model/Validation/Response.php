@@ -2,21 +2,19 @@
 /**
  * Responsible for handling the AddressValidationResponse message from EB2C.
  */
-class TrueAction_Eb2cAddress_Model_Validation_Response
-	extends Varien_Object
+class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 {
-
 	/**
 	 * Mapping of XPath expressions used to fetch various parts of the message
 	 * @var array
 	 */
 	protected static $_paths = array(
+		'provider_error'   => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ProviderErrorText',
 		'request_address'  => 'eb2c:AddressValidationResponse/eb2c:RequestAddress',
 		'result_code'      => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ResultCode',
 		'result_errors'    => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ErrorLocations/eb2c:ErrorLocation',
 		'suggestion_count' => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ResultSuggestionCount',
 		'suggestions'      => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:SuggestedAddresses/eb2c:SuggestedAddress',
-		'provider_error'   => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ProviderErrorText'
 	);
 
 	/**
@@ -218,5 +216,4 @@ class TrueAction_Eb2cAddress_Model_Validation_Response
 		}
 		return $this->getData('is_valid');
 	}
-
 }

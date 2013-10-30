@@ -2,7 +2,7 @@
 <config>
 	<modules>
 		<TrueAction_Eb2cAddress>
-			<version>0.1</version>
+			<version>1.0.0</version>
 		</TrueAction_Eb2cAddress>
 	</modules>
 	<global>
@@ -64,13 +64,11 @@
 	</frontend>
 	<default>
 		<eb2ccore>
-			<eb2caddress>
+			<address>
 				<enabled>1</enabled>
 				<max_suggestions>3</max_suggestions>
-			</eb2caddress>
-			<eb2caddress_suggestion_templates>
-				<full_html><![CDATA[{{depend prefix}}{{var prefix}} {{/depend}}{{var firstname}} {{depend middlename}}{{var middlename}} {{/depend}}{{var lastname}}{{depend suffix}} {{var suffix}}{{/depend}}<br/>
-{{depend company}}{{var company}}<br/>{{/depend}}
+				<suggestion_templates>
+					<full_html><![CDATA[{{depend prefix}}{{var prefix}} {{/depend}}{{var firstname}} {{depend middlename}}{{var middlename}} {{/depend}}{{var lastname}}{{depend suffix}} {{var suffix}}{{/depend}}<br/> {{depend company}}{{var company}}<br/>{{/depend}}
 {{if street1}}{{var street1}}<br/>{{/if}}
 {{depend street2}}{{var street2}}<br/>{{/depend}}
 {{depend street3}}{{var street3}}<br/>{{/depend}}
@@ -78,17 +76,18 @@
 {{if city}}{{var city}}, {{/if}}{{if region}}{{var region}}{{/if}}<br/>
 {{if postcode}}{{var postcode}}<br/>{{/if}}
 {{var country}}]]></full_html>
-				<address_only_html><![CDATA[{{if street1}}{{var street1}}<br/>{{/if}}
+					<address_only_html><![CDATA[{{if street1}}{{var street1}}<br/>{{/if}}
 {{depend street2}}{{var street2}}<br/>{{/depend}}
 {{depend street3}}{{var street3}}<br/>{{/depend}}
 {{depend street4}}{{var street4}}<br/>{{/depend}}
 {{if city}}{{var city}}, {{/if}}{{if region}}{{var region}}{{/if}}<br/>
 {{if postcode}}{{var postcode}}<br/>{{/if}}
 {{var country}}]]></address_only_html>
-			</eb2caddress_suggestion_templates>
-			<eb2caddress_xsd>
-				<address_validation_file>Address-Validation-Service-1.0.xsd</address_validation_file>
-			</eb2caddress_xsd>
+				</suggestion_templates>
+				<xsd>
+					<file>Address-Validation-Service-1.0.xsd</file>
+				</xsd>
+			</address>
 		</eb2ccore>
 	</default>
 	<phpunit>

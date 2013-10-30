@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
@@ -54,7 +49,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 		$coreHelperMock->expects($this->once())
 			->method('getApiUri')
 			->with($this->equalTo('customers'), $this->equalTo('orders/get'))
-			->will($this->returnValue('http://fake.apipartner.com/customers/orders/get.xml'));
+			->will($this->returnValue('http://example.com/customers/orders/get.xml'));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
@@ -63,7 +58,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->getMock();
 		$apiModelMock->expects($this->once())
 			->method('setUri')
-			->with($this->equalTo('http://fake.apipartner.com/customers/orders/get.xml'))
+			->with($this->equalTo('http://example.com/customers/orders/get.xml'))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('setXsd')
@@ -114,7 +109,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 		$coreHelperMock->expects($this->once())
 			->method('getApiUri')
 			->with($this->equalTo('customers'), $this->equalTo('orders/get'))
-			->will($this->returnValue('http://fake.apipartner.com/customers/orders/get.xml'));
+			->will($this->returnValue('http://example.com/customers/orders/get.xml'));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
@@ -123,7 +118,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->getMock();
 		$apiModelMock->expects($this->once())
 			->method('setUri')
-			->with($this->equalTo('http://fake.apipartner.com/customers/orders/get.xml'))
+			->with($this->equalTo('http://example.com/customers/orders/get.xml'))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('setXsd')

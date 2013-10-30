@@ -5,7 +5,6 @@ config:
   default/eb2ccore/api/region: api_rgn
   default/eb2ccore/api/major_version: M
   default/eb2ccore/api/minor_version: m
-  default/eb2c/inventory/developer_mode: 0
   default/eb2ccore/general/sftp_username: ""
   default/eb2ccore/general/sftp_password: ""
   default/eb2ccore/general/sftp_location: ""

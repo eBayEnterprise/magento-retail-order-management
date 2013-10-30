@@ -4,8 +4,7 @@
  * @package   TrueAction_Eb2c
  * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
  */
-class TrueAction_Eb2cCore_Test_Helper_DataTest extends
-	TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_helper;
 
@@ -20,7 +19,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends
 
 	/**
 	 * Test getNewDomDocument - although providerApiCall calls it, does not get noted as covered.
-	 *
 	 * @test
 	 */
 	public function testGetNewDomDocument()
@@ -111,6 +109,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
+		$this->setCurrentStore('admin');
 	}
 
 	/**
@@ -269,7 +268,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends
 
 	/**
 	 * Test extractNodeAttributeVal method
-	 *
 	 * @param DOMNodeList $nodeList
 	 * @param string $attributeName
 	 *

@@ -77,6 +77,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
 		);
+		$this->setCurrentStore('admin');
 	}
 
 	public function providerGetRequestId()
@@ -120,6 +121,20 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 		$this->assertSame(
 			'client_id-store_id-43',
 			$this->_helper->getReservationId($entityId)
+		);
+	}
+
+	/**
+	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 * @test
+	 */
+	public function testConvertShipMethod($mageShipMethod)
+	{
+		$this->assertSame(
+			$this->expected($mageShipMethod)->getEb2cShipMethod(),
+			$this->_helper->lookupShipMethod($mageShipMethod)
 		);
 	}
 }

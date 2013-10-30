@@ -1,0 +1,222 @@
+dhl_IE:
+  eb2c_ship_method: null
+dhl_E SAT:
+  eb2c_ship_method: null
+dhl_E:
+  eb2c_ship_method: null
+dhl_N:
+  eb2c_ship_method: null
+dhl_S:
+  eb2c_ship_method: null
+dhl_G:
+  eb2c_ship_method: null
+freeshipping_freeshipping:
+  eb2c_ship_method: null
+usps_Bound Printed Matter:
+  eb2c_ship_method: null
+usps_Express Mail:
+  eb2c_ship_method: null
+usps_Express Mail Flat Rate Envelope:
+  eb2c_ship_method: null
+usps_Express Mail Flat Rate Envelope Hold For Pickup:
+  eb2c_ship_method: null
+usps_Express Mail Hold For Pickup:
+  eb2c_ship_method: null
+usps_Express Mail International:
+  eb2c_ship_method: null
+usps_Express Mail International Flat Rate Envelope:
+  eb2c_ship_method: null
+usps_Express Mail PO to PO:
+  eb2c_ship_method: null
+usps_First-Class Mail International Large Envelope:
+  eb2c_ship_method: null
+usps_First-Class Mail International Letter:
+  eb2c_ship_method: null
+usps_First-Class Mail International Package:
+  eb2c_ship_method: null
+usps_First-Class Mail International Parcel:
+  eb2c_ship_method: null
+usps_First-Class:
+  eb2c_ship_method: USPS_USPS
+usps_First-Class Mail:
+  eb2c_ship_method: null
+usps_First-Class Mail Flat:
+  eb2c_ship_method: null
+usps_First-Class Mail Large Envelope:
+  eb2c_ship_method: null
+usps_First-Class Mail International:
+  eb2c_ship_method: null
+usps_First-Class Mail Letter:
+  eb2c_ship_method: null
+usps_First-Class Mail Parcel:
+  eb2c_ship_method: null
+usps_First-Class Mail Package:
+  eb2c_ship_method: null
+usps_Global Express Guaranteed (GXG):
+  eb2c_ship_method: null
+usps_Global Express Guaranteed Non-Document Non-Rectangular:
+  eb2c_ship_method: null
+usps_Global Express Guaranteed Non-Document Rectangular:
+  eb2c_ship_method: null
+usps_Library Mail:
+  eb2c_ship_method: null
+usps_Media Mail:
+  eb2c_ship_method: null
+usps_Parcel Post:
+  eb2c_ship_method: null
+usps_Priority Mail:
+  eb2c_ship_method: null
+usps_Priority Mail Small Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail Medium Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail Large Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail Flat Rate Envelope:
+  eb2c_ship_method: null
+usps_Priority Mail International:
+  eb2c_ship_method: null
+usps_Priority Mail International Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail International Flat Rate Envelope:
+  eb2c_ship_method: null
+usps_Priority Mail International Small Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail International Medium Flat Rate Box:
+  eb2c_ship_method: null
+usps_Priority Mail International Large Flat Rate Box:
+  eb2c_ship_method: null
+usps_USPS GXG Envelopes:
+  eb2c_ship_method: null
+dhlint_2:
+  eb2c_ship_method: null
+dhlint_5:
+  eb2c_ship_method: null
+dhlint_6:
+  eb2c_ship_method: null
+dhlint_7:
+  eb2c_ship_method: null
+dhlint_9:
+  eb2c_ship_method: null
+dhlint_B:
+  eb2c_ship_method: null
+dhlint_C:
+  eb2c_ship_method: null
+dhlint_D:
+  eb2c_ship_method: null
+dhlint_U:
+  eb2c_ship_method: null
+dhlint_K:
+  eb2c_ship_method: null
+dhlint_L:
+  eb2c_ship_method: null
+dhlint_G:
+  eb2c_ship_method: null
+dhlint_W:
+  eb2c_ship_method: null
+dhlint_I:
+  eb2c_ship_method: null
+dhlint_N:
+  eb2c_ship_method: null
+dhlint_O:
+  eb2c_ship_method: null
+dhlint_R:
+  eb2c_ship_method: null
+dhlint_S:
+  eb2c_ship_method: null
+dhlint_T:
+  eb2c_ship_method: null
+dhlint_X:
+  eb2c_ship_method: null
+fedex_EUROPE_FIRST_INTERNATIONAL_PRIORITY:
+  eb2c_ship_method: null
+fedex_FEDEX_1_DAY_FREIGHT:
+  eb2c_ship_method: null
+fedex_FEDEX_2_DAY_FREIGHT:
+  eb2c_ship_method: null
+fedex_FEDEX_2_DAY:
+  eb2c_ship_method: null
+fedex_FEDEX_2_DAY_AM:
+  eb2c_ship_method: null
+fedex_FEDEX_3_DAY_FREIGHT:
+  eb2c_ship_method: null
+fedex_FEDEX_EXPRESS_SAVER:
+  eb2c_ship_method: null
+fedex_FEDEX_GROUND:
+  eb2c_ship_method: null
+fedex_FIRST_OVERNIGHT:
+  eb2c_ship_method: null
+fedex_GROUND_HOME_DELIVERY:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_ECONOMY:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_ECONOMY_FREIGHT:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_FIRST:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_GROUND:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_PRIORITY:
+  eb2c_ship_method: null
+fedex_INTERNATIONAL_PRIORITY_FREIGHT:
+  eb2c_ship_method: null
+fedex_PRIORITY_OVERNIGHT:
+  eb2c_ship_method: null
+fedex_SMART_POST:
+  eb2c_ship_method: null
+fedex_STANDARD_OVERNIGHT:
+  eb2c_ship_method: null
+fedex_FEDEX_FREIGHT:
+  eb2c_ship_method: null
+fedex_FEDEX_NATIONAL_FREIGHT:
+  eb2c_ship_method: null
+tablerate_bestway:
+  eb2c_ship_method: null
+flatrate_flatrate:
+  eb2c_ship_method: ANY_STD
+ups_1DM:
+  eb2c_ship_method: null
+ups_1DML:
+  eb2c_ship_method: null
+ups_1DA:
+  eb2c_ship_method: null
+ups_1DAL:
+  eb2c_ship_method: null
+ups_1DAPI:
+  eb2c_ship_method: null
+ups_1DP:
+  eb2c_ship_method: null
+ups_1DPL:
+  eb2c_ship_method: null
+ups_2DM:
+  eb2c_ship_method: null
+ups_2DML:
+  eb2c_ship_method: null
+ups_2DA:
+  eb2c_ship_method: null
+ups_2DAL:
+  eb2c_ship_method: null
+ups_3DS:
+  eb2c_ship_method: null
+ups_GND:
+  eb2c_ship_method: null
+ups_GNDCOM:
+  eb2c_ship_method: null
+ups_GNDRES:
+  eb2c_ship_method: null
+ups_STD:
+  eb2c_ship_method: null
+ups_XPR:
+  eb2c_ship_method: null
+ups_WXS:
+  eb2c_ship_method: null
+ups_XPRL:
+  eb2c_ship_method: null
+ups_XDM:
+  eb2c_ship_method: null
+ups_XDML:
+  eb2c_ship_method: null
+ups_XPD:
+  eb2c_ship_method: null
