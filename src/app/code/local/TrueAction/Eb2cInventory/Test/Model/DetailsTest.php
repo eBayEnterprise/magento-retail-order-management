@@ -10,6 +10,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	public function setUp()
 	{
 		parent::setUp();
+		$this->clearStoreConfigCache();
 		$this->_details = Mage::getModel('eb2cinventory/details');
 	}
 
