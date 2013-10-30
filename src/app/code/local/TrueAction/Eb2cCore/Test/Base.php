@@ -76,6 +76,17 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		$this->replaceByMock('model', self::EB2CCORE_CONFIG_REGISTRY_MODEL, $mockConfig);
 	}
 
+	/**
+	 * clears the config cache in the specified store.
+	 * @param  mixed $store a code, id, or model of a magento storm
+	 * @return null
+	 */
+	public function clearStoreConfigCache($store=null)
+	{
+		$store = EcomDev_PHPUnit_Test_Case_Util::app()->getStore($store);
+		$this->_reflectProperty($store, '_configCache')->setValue($store, array());
+	}
+
 	protected function _setupBaseUrl()
 	{
 		parent::setUp();
