@@ -58,5 +58,6 @@ class TrueAction_Eb2cAddress_Model_Observer
 			$body['suggestions'] = $this->_getAddressBlockHtml($controller);
 			$controller->getResponse()->setBody(Mage::helper('core')->jsonEncode($body));
 		}
+		$validator->getAddressCollection()->setHasFreshSuggestions(false);
 	}
 }
