@@ -172,8 +172,17 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	}
 
 	/**
+	 * to be implented in the future, if we have gms extension that can provide the url source and type
+	 * @return array, source data
+	 */
+	private function _getSourceData()
+	{
+		// return empty array since we don't know yet
+		return array();
+	}
+
+	/**
 	 * Build DOM for a complete order
-	 * @todo Get 'OrderSource' and 'OrderSource type' from correct fields
 	 * @param $orderObject a Mage_Sales_Model_Order
 	 * @return self
 	 */
@@ -218,8 +227,11 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		$order->createChild('Locale', 'en_US');
 
-		$orderSource = $order->CreateChild('OrderSource');
-		$orderSource->setAttribute('type', '');
+		$orderSource = $this->_getSourceData();
+		if (!empty($orderSource)) {
+			$orderSource = $order->CreateChild('OrderSource', $orderSource['source']);
+			$orderSource->setAttribute('type', $orderSource['type']);
+		}
 
 		$order->createChild('OrderHistoryUrl',
 		Mage::app()->getStore( $this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . $consts::ORDER_HISTORY_PATH . $this->_o->getEntityId());
