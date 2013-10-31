@@ -81,16 +81,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * When we have failed to create order, dispatch event
-	 * @todo Originally we were going to try some number of times to transmit. Is this still the case?
-	 */
-	private function _finallyFailed()
-	{
-		Mage::dispatchEvent('eb2c_order_create_fail', array('order' => $this->_o));
-		return;
-	}
-
-	/**
 	 * The event observer version of transmit order
 	 * @param Varien_Event_Observer $event, the observer event
 	 * @return void
@@ -183,9 +173,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 	/**
 	 * Build DOM for a complete order
-	 *
-	 * @todo Get tax details for TaxHeader
-	 * @todo Get locale from correct fields
 	 * @todo Get 'OrderSource' and 'OrderSource type' from correct fields
 	 * @param $orderObject a Mage_Sales_Model_Order
 	 * @return self
@@ -281,9 +268,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 	/**
 	 * Builds a single Order Item node inside the Order Items array
-	 *
-	 * @todo support > 1 tax
-	 * @todo get taxType, taxability, Jurisdiction, Situs, EffectiveRate, TaxClass from correct fields
 	 * @param DomElement orderItem
 	 * @param Mage_Sales_Model_Order_Item item
 	 * @param integer webLineId	identifier to indicate the line item's sequence within the order
@@ -370,23 +354,18 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get tax duty data for an order item
+	 * get the tax reponse quote record filtering by the quote item id
 	 * @param int $quoteId, the quote  id
 	 * @param int $sku, the item sku
-	 * @return float, the tax duty amount
+	 * @return TrueAction_Eb2cTax_Model_Response_Quote, the tax duty amount
 	 */
-	private function _getItemDutyAmount($quoteId, $sku)
+	private function _getItemDuty($quoteId, $sku)
 	{
 		$responseQuote = Mage::getResourceModel('eb2ctax/response_quote_collection');
-		$responseQuote->addAttributeToSelect('*')
-			->getSelect()
+		$responseQuote->getSelect()
 			->where(sprintf("main_table.quote_item_id = '%d'", $this->_getQuoteItemId($quoteId, $sku)));
 		$responseQuote->load();
-		if ($responseQuote->count()) {
-			return (float) $responseQuote->getFirstItem()->getCalculatedTax();
-		}
-
-		return 0;
+		return $responseQuote->getFirstItem();
 	}
 
 	/**
@@ -397,12 +376,12 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	 * @param int $quoteId, the quote id associated to the order
 	 * @return void
 	 */
-	private function _buildDuty(DomElement $pricing, $order, $item, $quoteId)
+	private function _buildDuty(DomElement $pricing, Mage_Sales_Model_Order $order, Mage_Sales_Model_Order_Item $item, $quoteId)
 	{
-		$dutyAmount = $this->_getItemDutyAmount($quoteId, $item->getSku());
-		if ($dutyAmount > 0) {
+		$dutyObj = $this->_getItemDuty($quoteId, $item->getSku());
+		if ($dutyObj instanceof TrueAction_Eb2cTax_Model_Response_Quote && (float) $dutyObj->getCalculatedTax() > 0) {
 			$duty = $pricing->createChild('Duty');
-			$duty->createChild('Amount', $dutyAmount);
+			$duty->createChild('Amount', $dutyObj->getCalculatedTax());
 			$dutyTaxData = $duty->createChild('TaxData');
 			$dutyTaxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
 			$dutyTaxes = $dutyTaxData->createChild('Taxes');
@@ -411,8 +390,8 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			$dutyTax->setAttribute('taxability', 'TAXABLE');
 			$dutyTax->createChild('Situs', 0);
 			$dutyTax->createChild('EffectiveRate', $item->getTaxPercent());
-			$dutyTax->createChild('TaxableAmount', sprintf('%.02f', $dutyAmount));
-			$dutyTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
+			$dutyTax->createChild('TaxableAmount', sprintf('%.02f', (float) $dutyObj->getTaxableAmount()));
+			$dutyTax->createChild('CalculatedTax', sprintf('%.02f', (float) $dutyObj->getCalculatedTax()));
 		}
 	}
 
