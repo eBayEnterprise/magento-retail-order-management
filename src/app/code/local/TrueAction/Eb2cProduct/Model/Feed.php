@@ -56,6 +56,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			);
 			$this->_feedFiles = array_merge($this->_feedFiles, $this->_coreFeed->lsInboundDir());
 		}
+
 		foreach($this->_feedFiles as $xmlFeedFile ) {
 			$this->processFile($xmlFeedFile);
 			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
@@ -88,12 +89,14 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 		// Validate Eb2c Header Information
+
 		if ( !Mage::helper('eb2ccore/feed')
 			->validateHeader($dom, $eventType )
 		) {
 			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
 			return;
 		}
+
 		try {
 			$this->_beforeProcessDom($dom);
 		} catch (Mage_Core_Exception $e) {
@@ -101,6 +104,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			Mage::logException($e);
 			return;
 		}
+
 		$this->processDom($dom);
 		Varien_Profiler::stop(__METHOD__);
 	}

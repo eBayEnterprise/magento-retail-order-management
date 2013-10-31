@@ -29,13 +29,22 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	 */
 	public function testCleaningProduct($productId)
 	{
+		$catalogModelProductMock = $this->getModelMockBuilder('catalog/product')
+			->setMethods(array('save'))
+			->getMock();
+		$catalogModelProductMock->expects($this->any())
+			->method('save')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'catalog/product', $catalogModelProductMock);
+
 		$product = Mage::getModel('catalog/product')->load($productId);
 		$cleaner = Mage::getModel('eb2cproduct/feed_cleaner');
 		$cleaner->cleanProduct($product);
 		$expect = $this->expected('entity-%s', $productId);
 
 		$savedProduct = Mage::getModel('catalog/product')->load($productId);
-		$this->_productCleanedAssertions($savedProduct, $expect);
+
+		$this->assertSame(1, (int) $savedProduct->getIsClean());
 	}
 
 	/**
