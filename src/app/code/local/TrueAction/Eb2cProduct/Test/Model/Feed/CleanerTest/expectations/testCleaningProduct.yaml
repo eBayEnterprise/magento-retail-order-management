@@ -10,7 +10,7 @@ entity-2:
   related_products: []
   up_sell_products: []
   cross_sell_products: []
-  used_products: ['child-clean', 'child-dirty']
+  used_products: ['child-dirty']
   unresolved_product_links:
 entity-3:
   is_clean: '1'

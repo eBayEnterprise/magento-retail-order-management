@@ -85,6 +85,50 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->will($this->returnValue('Content'));
 		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
 
+
+		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/pricingmaster'));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeC->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('Price'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_pricing', $feedTypeC);
+
+		$feedTypeD = $this->getModelMock('eb2cproduct/feed_iship', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/ishipmaster'));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeD->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('iShip'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_iship', $feedTypeD);
+
+
 		$testModel = $this->getModelMock('eb2cproduct/feed', array(
 			'_getIterableFor',
 		));
@@ -106,7 +150,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('validateHeader')
 			->will($this->returnValue(true));
 
-		$testModel->ProcessFeeds();
+		$testModel->processFeeds();
 		$feedModel = $this->_reflectProperty($testModel, '_eventTypeModel')->getValue($testModel);
 		$this->assertInstanceOf($model, $feedModel);
 	}
@@ -134,6 +178,91 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testExtraction($scenario, $feedFile)
 	{
+		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeA->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeA->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/itemmaster'));
+		$feedTypeA->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeA->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('ItemMaster'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_item', $feedTypeA);
+
+		$feedTypeB = $this->getModelMock('eb2cproduct/feed_content', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeB->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeB->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/contentmaster'));
+		$feedTypeB->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeB->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('Content'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
+
+
+		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/pricingmaster'));
+		$feedTypeC->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeC->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('Price'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_pricing', $feedTypeC);
+
+		$feedTypeD = $this->getModelMock('eb2cproduct/feed_iship', array(
+			'_construct',
+			'getFeedRemotePath',
+			'getFeedLocalPath',
+			'getFeedFilePattern',
+			'getFeedEventType',
+		));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('some/remote/path'));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('vfs/var/eb2c/ishipmaster'));
+		$feedTypeD->expects($this->atLeastOnce())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('*.xml'));
+		$feedTypeD->expects($this->any())
+			->method('getFeedEventType')
+			->will($this->returnValue('iShip'));
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_iship', $feedTypeD);
+
 		$vfs = $this->getFixture()->getVfs();
 		$filesList = array($vfs->url($feedFile));
 
@@ -180,7 +309,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 
 		$testModel = $this->getModelMock('eb2cproduct/feed', array(
 		));
-		$testModel->ProcessFeeds();
+		$testModel->processFeeds();
 
 		$e = $this->expected('1-1');
 		foreach ($e->getSkus() as $sku) {
