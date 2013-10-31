@@ -1,8 +1,7 @@
 <?php
-class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_helper;
-
 	/**
 	 * setUp method
 	 */
@@ -86,6 +85,22 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		// service, operation, params and type
 		$this->assertSame(
 			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.json',
+			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
+		);
+	}
+
+	/**
+	 * test generating the API URIs with a non default store.
+	 * @test
+	 * @loadFixture
+	 */
+	public function testApiUriCreationNonDefaultStore()
+	{
+		$this->setCurrentStore('canada');
+		$helper = Mage::helper('eb2ccore');
+		// service, operation, params and type
+		$this->assertSame(
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
@@ -191,3 +206,4 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
 }
+

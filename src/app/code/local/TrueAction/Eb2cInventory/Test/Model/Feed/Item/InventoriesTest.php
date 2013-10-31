@@ -225,29 +225,5 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 
 		$vfs->discard();
 	}
-
-	/**
-	 * testing _clean method, to cover exception catch section
-	 *
-	 * @test
-	 */
-	public function testCleanWithException()
-	{
-		$stockStatusMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Status',
-			array('rebuild')
-		);
-		$stockStatusMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Exception));
-
-		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
-		$inventoryFeedModel->setStockStatus($stockStatusMock);
-		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-		$cleanMethod = $inventoriesReflector->getMethod('_clean');
-		$cleanMethod->setAccessible(true);
-		$this->assertNull(
-			$cleanMethod->invoke($inventoryFeedModel)
-		);
-	}
 }
+

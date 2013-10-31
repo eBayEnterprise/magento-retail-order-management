@@ -1,0 +1,66 @@
+scope:
+  website: # Initialize websites
+   -
+    website_id: 2
+    code: usa_website
+    name: USA Website
+    default_group_id: 2
+   -
+    website_id: 3
+    code: canada_website
+    name: Canada Website
+    default_group_id: 3
+   -
+    website_id: 4
+    code: german_website
+    name: German Website
+    default_group_id: 4
+  group: # Initializes store groups
+   -
+    group_id: 2
+    website_id: 2
+    name: USA Store Group
+    default_store_id: 2
+    root_category_id: 2 # Default Category
+   -
+    group_id: 3
+    website_id: 3
+    name: Canada Store Group
+    default_store_id: 3
+    root_category_id: 2 # Default Category
+   -
+    group_id: 4
+    website_id: 4
+    name: German Store Group
+    default_store_id: 4
+    root_category_id: 2 # Default Category
+  store: # Initializes store views
+   -
+    store_id: 2
+    website_id: 2
+    group_id: 2
+    code: usa
+    name: USA Store
+    is_active: 1
+   -
+    store_id: 3
+    website_id: 3
+    group_id: 3
+    code: canada
+    name: Canada Store
+    is_active: 1
+   -
+    store_id: 4
+    website_id: 4
+    group_id: 4
+    code: germany
+    name: Germany Store
+    is_active: 1
+config:
+  stores/canada/eb2ccore/general/store_id: store_id2
+  default/eb2ccore/general/store_id: store_id
+  default/eb2ccore/general/client_id: client_id
+  default/eb2ccore/api/environment: api_env
+  default/eb2ccore/api/region: api_rgn
+  default/eb2ccore/api/major_version: M
+  default/eb2ccore/api/minor_version: m

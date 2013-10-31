@@ -4,34 +4,7 @@ abstract class TrueAction_Eb2cCore_Test_Base
 
 	const EB2CCORE_CONFIG_REGISTRY_MODEL = 'eb2ccore/config_registry';
 
-	protected function _reflectProperty($object, $propName, $accessible=true)
-	{
-		$p = new ReflectionProperty($object, $propName);
-		$p->setAccessible($accessible);
-		return $p;
-	}
-
-	protected function _reflectMethod($object, $methodName, $accessible=true)
-	{
-		$p = new ReflectionMethod($object, $methodName);
-		$p->setAccessible($accessible);
-		return $p;
-	}
-
-	protected function _buildModelMock($alias, array $methods)
-	{
-		$mock = $this->getModelMock($alias, array_keys($methods));
-		foreach ($methods as $name => $will) {
-			if (!is_null($will)) {
-				$mock->expects($this->any())
-					->method($name)
-					->will($will);
-			}
-		}
-		return $mock;
-	}
-
-	public function getLocalFixture($key = null)
+	public function getLocalFixture($key=null)
 	{
 		$fixture = $this->getFixture()->getStorage()->getLocalFixture();
 		if (!is_null($key)) {
@@ -76,6 +49,62 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		$this->replaceByMock('model', self::EB2CCORE_CONFIG_REGISTRY_MODEL, $mockConfig);
 	}
 
+	/**
+	 * clears the config cache in the specified store.
+	 * @param  mixed $store a code, id, or model of a magento storm
+	 * @return null
+	 */
+	public function clearStoreConfigCache($store=null)
+	{
+		$store = EcomDev_PHPUnit_Test_Case_Util::app()->getStore($store);
+		$this->_reflectProperty($store, '_configCache')->setValue($store, array());
+	}
+
+	/**
+	 * @return null
+	 */
+	public function setUp()
+	{
+		EcomDev_PHPUnit_Test_Case_Util::setUp();
+	}
+
+	/**
+	 * performs the following cleanup tasks:
+	 * - discards fixtures
+	 * @return null
+	 */
+	public function tearDown()
+	{
+		EcomDev_PHPUnit_Test_Case_Util::tearDown();
+	}
+
+	protected function _reflectProperty($object, $propName, $accessible=true)
+	{
+		$p = new ReflectionProperty($object, $propName);
+		$p->setAccessible($accessible);
+		return $p;
+	}
+
+	protected function _reflectMethod($object, $methodName, $accessible=true)
+	{
+		$p = new ReflectionMethod($object, $methodName);
+		$p->setAccessible($accessible);
+		return $p;
+	}
+
+	protected function _buildModelMock($alias, array $methods)
+	{
+		$mock = $this->getModelMock($alias, array_keys($methods));
+		foreach ($methods as $name => $will) {
+			if (!is_null($will)) {
+				$mock->expects($this->any())
+					->method($name)
+					->will($will);
+			}
+		}
+		return $mock;
+	}
+
 	protected function _setupBaseUrl()
 	{
 		parent::setUp();
@@ -94,13 +123,5 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			->method('set')
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
-	}
-	public function setUp()
-	{
-		EcomDev_PHPUnit_Test_Case_Util::setUp();
-	}
-	public function tearDown()
-	{
-		EcomDev_PHPUnit_Test_Case_Util::tearDown();
 	}
 }
