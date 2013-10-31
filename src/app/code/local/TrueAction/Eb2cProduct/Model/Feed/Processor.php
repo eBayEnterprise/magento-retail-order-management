@@ -149,7 +149,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// prepare base attributes
 		$baseAttributes = new Varien_Object();
 		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
-		foreach (array('catalog_class', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
+		foreach (array('catalog_class', 'item_description', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
 			$baseAttributes->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
 		}
 		$outData->setData('base_attributes', $baseAttributes);
@@ -418,12 +418,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			if ($dataObject->getEbcPricingEventNumber()) {
 				$startDate = new DateTime($dataObject->getStartDate());
 				$startDate->setTimezone(new DateTimeZone('UTC'));
-				$endDate = new DateTime($dataObject->getEndDate());
-				$endDate->setTimezone(new DateTimeZone('UTC'));
-				$data['price'] = $dataObject->getAlternatePrice();
-				$data['special_price'] = $dataObject->getPrice();
 				$data['special_from_date'] = $startDate->format('Y-m-d H:i:s');
-				$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
+
+				if ($dataObject->getEndDate()) {
+					$endDate = new DateTime($dataObject->getEndDate());
+					$endDate->setTimezone(new DateTimeZone('UTC'));
+					$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
+				}
 			}
 			$outData->addData($data);
 		}
@@ -533,7 +534,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
 			return;
 		}
-		$product = $this->_helper->prepareProductModel($sku);
+		$product = $this->_helper->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
 
 		$productData = new Varien_Object();
 
@@ -550,6 +551,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 		}
 		if( $item->getBaseAttributes()->getCatalogClass()) {
+			// @todo This should be visibilty none if it's a child product. Maybe.
 			$productData->setData('visibility', $this->_getVisibilityData($item));
 		}
 		if ($item->getBaseAttributes()->getItemStatus()) {
@@ -660,7 +662,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$titles = $dataObject->getBaseAttributes()->getTitle();
 		if(isset($titles) && !empty($titles)) {
 			foreach ($titles as $title) {
-				if (strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
+				// It's possible $title['title'] doesn't exist, eg we receive <Title xml:lang='en-US' />
+				// As per spec, it's required
+				if ( array_key_exists('title', $title) && array_key_exists('lang', $title)
+					&& strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
 					return $title['title'];
 				}
 			}

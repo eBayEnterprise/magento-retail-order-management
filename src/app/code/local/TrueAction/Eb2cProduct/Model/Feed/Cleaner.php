@@ -195,6 +195,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		if (array_diff($existingIds, $usedProductIds)) {
 			Mage::getResourceModel('catalog/product_type_configurable')
 				->saveProducts($product, array_unique($usedProductIds));
+			$product
+				->setStatus(Mage_Catalog_Model_Product_Status::STATUS_ENABLED)
+				->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)
+				->save();
 		} elseif (empty($usedProductIds)) {
 			Mage::log(
 				sprintf('[ %s ]: Expected to find products to use for configurable product %s but found none.', __CLASS__, $product->getSku()),
@@ -217,6 +221,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 			$usedProductIds[] = $product->getId();
 			Mage::getResourceModel('catalog/product_type_configurable')
 				->saveProducts($configurableProduct, array_unique($usedProductIds));
+			// @todo: Could this be done more efficiently? Test if it's not already enabled?
+			$configurableProduct
+				->setStatus(Mage_Catalog_Model_Product_Status::STATUS_ENABLED)
+				->setVisibility(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH)
+				->save();
 		} else {
 			Mage::log(
 				sprintf(

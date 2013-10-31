@@ -44,6 +44,9 @@
 			</enterprise_giftcardaccount>
 		</helpers>
 		<blocks>
+			<eb2cpayment>
+				<class>TrueAction_Eb2cPayment_Block</class>
+			</eb2cpayment>
 			<enterprise_giftcardaccount>
 				<rewrite>
 					<checkout_cart_giftcardaccount>TrueAction_Eb2cPayment_Overrides_Block_Checkout_Cart_Giftcardaccount</checkout_cart_giftcardaccount>
@@ -59,6 +62,11 @@
 					<express_shortcut>TrueAction_Eb2cPayment_Overrides_Block_Paypal_Express_Shortcut</express_shortcut>
 				</rewrite>
 			</paypal>
+			<adminhtml>
+				<rewrite>
+					<system_config_form>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form</system_config_form>
+				</rewrite>
+			</adminhtml>
 		</blocks>
 		<resources>
 			<eb2cpayment_setup>
@@ -70,8 +78,28 @@
 				</connection>
 			</eb2cpayment_setup>
 		</resources>
+		<events>
+			<admin_system_config_changed_section_eb2ccore>
+				<observers>
+					<payment_suppression_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cPayment_Model_Observer</class>
+						<method>suppressPaymentModule</method>
+					</payment_suppression_observer>
+				</observers>
+			</admin_system_config_changed_section_eb2ccore>
+		</events>
 	</global>
 	<frontend>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cPayment>
+					<files>
+						<default>TrueAction_Eb2cPayment.csv</default>
+					</files>
+				</TrueAction_Eb2cPayment>
+			</modules>
+		</translate>
 		<routers>
 			<enterprise_giftcardaccount>
 				<args>
@@ -116,6 +144,24 @@
 			</eb2corder_order_creation_failure>
 		</events>
 	</frontend>
+	<adminhtml>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cPayment>
+					<files>
+						<default>TrueAction_Eb2cPayment.csv</default>
+					</files>
+				</TrueAction_Eb2cPayment>
+			</modules>
+		</translate>
+		<layout>
+			<updates>
+				<eb2cpayment>
+					<file>eb2cpayment.xml</file>
+				</eb2cpayment>
+			</updates>
+		</layout>
+	</adminhtml>
 	<default>
 		<eb2cpayment>
 			<api_payment_xml_ns>http://api.gsicommerce.com/schema/payment/1.0</api_payment_xml_ns>

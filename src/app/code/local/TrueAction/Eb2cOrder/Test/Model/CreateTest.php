@@ -251,19 +251,6 @@ INVALID_XML;
 	}
 
 	/**
-	 * Dispatch eb2c_order_create_fail event
-	 * @test
-	 */
-	public function testFinallyFailed()
-	{
-		$orderCreateClass = get_class(Mage::getModel('eb2corder/create'));
-		$privateFinallyFailedMethod = new ReflectionMethod($orderCreateClass, '_finallyFailed');
-		$privateFinallyFailedMethod->setAccessible(true);
-		$privateFinallyFailedMethod->invoke(new $orderCreateClass);
-		$this->assertEventDispatched('eb2c_order_create_fail');
-	}
-
-	/**
 	 * Call the observerCreate method, which is meant to be called by a dispatched event
 	 * Also covers the eb2c payments not enabled case
 	 *
