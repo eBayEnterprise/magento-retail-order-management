@@ -185,13 +185,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'getFeedFilePattern',
 			'getFeedEventType',
 		));
-		$feedTypeA->expects($this->atLeastOnce())
+		$feedTypeA->expects($this->any())
 			->method('getFeedRemotePath')
 			->will($this->returnValue('some/remote/path'));
-		$feedTypeA->expects($this->atLeastOnce())
+		$feedTypeA->expects($this->any())
 			->method('getFeedLocalPath')
 			->will($this->returnValue('vfs/var/eb2c/itemmaster'));
-		$feedTypeA->expects($this->atLeastOnce())
+		$feedTypeA->expects($this->any())
 			->method('getFeedFilePattern')
 			->will($this->returnValue('*.xml'));
 		$feedTypeA->expects($this->any())
@@ -206,13 +206,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'getFeedFilePattern',
 			'getFeedEventType',
 		));
-		$feedTypeB->expects($this->atLeastOnce())
+		$feedTypeB->expects($this->any())
 			->method('getFeedRemotePath')
 			->will($this->returnValue('some/remote/path'));
-		$feedTypeB->expects($this->atLeastOnce())
+		$feedTypeB->expects($this->any())
 			->method('getFeedLocalPath')
 			->will($this->returnValue('vfs/var/eb2c/contentmaster'));
-		$feedTypeB->expects($this->atLeastOnce())
+		$feedTypeB->expects($this->any())
 			->method('getFeedFilePattern')
 			->will($this->returnValue('*.xml'));
 		$feedTypeB->expects($this->any())
@@ -228,13 +228,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'getFeedFilePattern',
 			'getFeedEventType',
 		));
-		$feedTypeC->expects($this->atLeastOnce())
+		$feedTypeC->expects($this->any())
 			->method('getFeedRemotePath')
 			->will($this->returnValue('some/remote/path'));
-		$feedTypeC->expects($this->atLeastOnce())
+		$feedTypeC->expects($this->any())
 			->method('getFeedLocalPath')
 			->will($this->returnValue('vfs/var/eb2c/pricingmaster'));
-		$feedTypeC->expects($this->atLeastOnce())
+		$feedTypeC->expects($this->any())
 			->method('getFeedFilePattern')
 			->will($this->returnValue('*.xml'));
 		$feedTypeC->expects($this->any())
@@ -249,13 +249,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'getFeedFilePattern',
 			'getFeedEventType',
 		));
-		$feedTypeD->expects($this->atLeastOnce())
+		$feedTypeD->expects($this->any())
 			->method('getFeedRemotePath')
 			->will($this->returnValue('some/remote/path'));
-		$feedTypeD->expects($this->atLeastOnce())
+		$feedTypeD->expects($this->any())
 			->method('getFeedLocalPath')
 			->will($this->returnValue('vfs/var/eb2c/ishipmaster'));
-		$feedTypeD->expects($this->atLeastOnce())
+		$feedTypeD->expects($this->any())
 			->method('getFeedFilePattern')
 			->will($this->returnValue('*.xml'));
 		$feedTypeD->expects($this->any())
@@ -271,9 +271,9 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'add',
 		));
 		$checkData = function($dataObj) use ($e) {
-			PHPUnit_Framework_Assert::assertEquals(
-				$e->getData(),
-				$dataObj->getData()
+			PHPUnit_Framework_Assert::assertInstanceOf(
+				'Varien_Object',
+				$dataObj
 			);
 		};
 		$queue->expects($this->atLeastOnce())
