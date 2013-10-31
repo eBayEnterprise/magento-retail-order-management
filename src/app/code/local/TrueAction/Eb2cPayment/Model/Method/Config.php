@@ -9,6 +9,5 @@ class TrueAction_Eb2cPayment_Model_Method_Config extends TrueAction_Eb2cCore_Mod
 		'pbridge_transfer_key'        => 'payment/pbridge/transferkey',
 		'ebc_pbridge_active'          => 'payment/pbridge_eb2cpayment_cc/active',
 		'ebc_pbridge_title'           => 'payment/pbridge_eb2cpayment_cc/title',
-		'ebc_pbridge_allow_specific'  => 'payment/pbridge_eb2cpayment_cc/allowspecific',
 	);
 }

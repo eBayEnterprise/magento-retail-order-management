@@ -94,13 +94,31 @@ class TrueAction_Eb2cPayment_Model_Suppression
 			->addConfigModel(Mage::getSingleton('eb2cpayment/method_config'));
 
 		return (bool) $cfg->pbridgeActive &&
-			trim($cfg->pbridgeMerchantCode) &&
-			trim($cfg->pbridgeMerchantKey) &&
-			trim($cfg->pbridgeGatewayUrl) &&
-			trim($cfg->pbridgeTransferKey) &&
+			(trim($cfg->pbridgeMerchantCode) !== '') &&
+			(trim($cfg->pbridgeMerchantKey) !== '') &&
+			(trim($cfg->pbridgeGatewayUrl) !== '') &&
+			(trim($cfg->pbridgeTransferKey) !== '') &&
 			(bool) $cfg->ebcPbridgeActive &&
-			trim($cfg->ebcPbridgeTitle) &&
-			trim($cfg->ebcPbridgeAllowSpecific)
+			(trim($cfg->ebcPbridgeTitle) !== '')
 		;
+	}
+
+	/**
+	 * check if any none eb2c payment method enabled
+	 * @return self
+	 */
+	public function isAnyNoneEb2CPaymentMethodEnabled()
+	{
+		$config = $this->queryConfigPayment();
+		foreach ($this->_ebcPaymentMthd as $mthd) {
+			foreach ($config as $cfg) {
+				$cfgData = explode('/', $cfg->getPath());
+				if (!in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() === 1) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
