@@ -90,6 +90,21 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Ensure the sku/client id/style id matches the same format expected for skus
+	 * {catalogId}-{item_id}
+	 * @param  string $itemId    Product item/style/client/whatevs id
+	 * @param  string $catalogId Product catalog id
+	 * @return string            Normalized style id
+	 */
+	public function normalizeSku($itemId, $catalogId)
+	{
+		if (!empty($itemId) && strpos($itemId, $catalogId . '-') !== 0) {
+			return sprintf('%s-%s', $catalogId, $itemId);
+		}
+		return $itemId;
+	}
+
+	/**
 	 * extract node value
 	 *
 	 * @return string, the extracted content

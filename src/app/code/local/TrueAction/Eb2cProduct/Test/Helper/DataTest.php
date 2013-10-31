@@ -140,17 +140,4 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($expected->getId(), $product->getId());
 	}
 
-	/**
-	 * Test normalizing a product style id to match formatting for skus
-	 * @param  string $style   The product style id
-	 * @param  string $catalog The product catalog id
-	 * @test
-	 * @dataProvider dataProvider
-	 */
-	public function testNormalizeStyleId($styleId, $catalogId)
-	{
-		$normalized = Mage::helper('eb2cproduct')->normalizeStyleId($styleId, $catalogId);
-		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
-	}
-
 }

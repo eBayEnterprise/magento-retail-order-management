@@ -62,7 +62,7 @@
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 				<available_models>
 					<eb2cinventory>
-						<feed_item_Inventories>1</feed_item_Inventories>
+						<feed_item_inventories>1</feed_item_inventories>
 					</eb2cinventory>
 					<eb2corder>
 						<status_feed>0</status_feed>

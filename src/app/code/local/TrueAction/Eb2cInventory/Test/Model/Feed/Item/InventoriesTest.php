@@ -315,7 +315,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$extractSku->setAccessible(true);
 		$this->assertSame('foo-bar', $extractSku->invoke($fii, new Varien_Object(array(
 			'catalog_id' => 'foo',
-			'client_item_id' => 'bar',
+			'item_id' => new Varien_Object(array('client_item_id' => 'bar')),
 		))));
 	}
 	/**

@@ -1064,7 +1064,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 		if ($prodHlpr->hasEavAttr('style_id')) {
 			// setting style_id attribute
-			$data['style_id'] = Mage::helper('eb2cproduct')->normalizeStyleId(
+			$data['style_id'] = Mage::helper('eb2ccore')->normalizeSku(
 				$dataObject->getExtendedAttributes()->getStyleId(),
 				$dataObject->getCatalogId()
 			);
