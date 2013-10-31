@@ -88,18 +88,18 @@
 					</payment_suppression_observer>
 				</observers>
 			</admin_system_config_changed_section_eb2ccore>
-			<!-- <controller_action_predispatch>
-				<observers>
-					<payment_suppression_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cPayment_Model_Observer</class>
-						<method>suppressPaymentModule</method>
-					</payment_suppression_observer>
-				</observers>
-			</controller_action_predispatch> -->
 		</events>
 	</global>
 	<frontend>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cPayment>
+					<files>
+						<default>TrueAction_Eb2cPayment.csv</default>
+					</files>
+				</TrueAction_Eb2cPayment>
+			</modules>
+		</translate>
 		<routers>
 			<enterprise_giftcardaccount>
 				<args>
@@ -145,6 +145,15 @@
 		</events>
 	</frontend>
 	<adminhtml>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cPayment>
+					<files>
+						<default>TrueAction_Eb2cPayment.csv</default>
+					</files>
+				</TrueAction_Eb2cPayment>
+			</modules>
+		</translate>
 		<layout>
 			<updates>
 				<eb2cpayment>

@@ -6,8 +6,6 @@
  */
 class TrueAction_Eb2cPayment_Model_Suppression
 {
-	const PAYMENT_NEED_CONFIGURATION_TITLE = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Title';
-	const PAYMENT_NEED_CONFIGURATION_DESCRIPTION = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Description';
 	/**
 	 * @var array, hold list of eb2c specific payment methods
 	 */
@@ -99,8 +97,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 			(trim($cfg->pbridgeGatewayUrl) !== '') &&
 			(trim($cfg->pbridgeTransferKey) !== '') &&
 			(bool) $cfg->ebcPbridgeActive &&
-			(trim($cfg->ebcPbridgeTitle) !== '')
-		;
+			(trim($cfg->ebcPbridgeTitle) !== '');
 	}
 
 	/**

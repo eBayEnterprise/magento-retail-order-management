@@ -1,6 +1,9 @@
 <?php
 class TrueAction_Eb2cPayment_Block_Adminhtml_Notifications extends Mage_Adminhtml_Block_Template
 {
+	const PAYMENT_NEED_CONFIGURATION_EB2C_TITLE = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Eb2c_Title';
+	const PAYMENT_NEED_CONFIGURATION_NONE_EB2C_TITLE = 'TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_None_Eb2c_Title';
+
 	/**
 	 * Get array of payment methods that need to be configured
 	 * @return array
@@ -9,11 +12,11 @@ class TrueAction_Eb2cPayment_Block_Adminhtml_Notifications extends Mage_Adminhtm
 	{
 		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
 			if (!Mage::getModel('eb2cpayment/suppression')->isEbcPaymentConfigured()) {
-				return array(Mage::helper('eb2cpayment')->__('Payment Bridge and eBay Enterprise Credit Card'));
+				return array(Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_EB2C_TITLE));
 			}
 		} else {
 			if (!Mage::getModel('eb2cpayment/suppression')->isAnyNoneEb2CPaymentMethodEnabled()) {
-				return array(Mage::helper('eb2cpayment')->__('This store currently have no payment methods'));
+				return array(Mage::helper('eb2cpayment')->__(self::PAYMENT_NEED_CONFIGURATION_NONE_EB2C_TITLE));
 			}
 		}
 
@@ -26,7 +29,7 @@ class TrueAction_Eb2cPayment_Block_Adminhtml_Notifications extends Mage_Adminhtm
 	 */
 	public function getPaymentSectionConfigurationUrl()
 	{
-		return $this->getUrl('adminhtml/system_config/edit', array('section'=>'payment'));
+		return $this->getUrl('adminhtml/system_config/edit', array('section' => 'payment'));
 	}
 
 	/**
