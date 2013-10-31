@@ -8,7 +8,7 @@ class TrueAction_Eb2cInventory_Model_Abstract extends Varien_Object
 	 */
 	public function filterInventoriedItems($item)
 	{
-		return (bool) ($item->getProduct()->getStockItem()->getManageStock() || $item->getIsVirtual());
+		return (bool) ($item->getProduct()->getStockItem()->getManageStock() && !$item->getIsVirtual());
 	}
 
 	/**
