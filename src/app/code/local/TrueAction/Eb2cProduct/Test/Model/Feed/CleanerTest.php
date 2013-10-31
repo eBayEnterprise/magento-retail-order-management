@@ -1,9 +1,6 @@
 <?php
-
-class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2cCore_Test_Base
 {
-
 	/**
 	 * Test getting a collection of products that need to be cleaned.
 	 * @test
@@ -25,9 +22,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
 	/**
 	 * Test updating the product links on a "dirty" product
 	 * @test
-	 * @loadFixture cleanerProductFixtures.yaml
+	 * @loadfixture base.yaml
+	 * @loadfixture cleanerproductfixtures.yaml
 	 * @dataProvider dataProvider
-	 * @param  int $productId Product entity id
+	 * @param int $productId Product entity id
 	 */
 	public function testCleaningProduct($productId)
 	{
@@ -103,5 +101,4 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest
 			'is_clean flag not set properly for ' . $product->getSku()
 		);
 	}
-
 }
