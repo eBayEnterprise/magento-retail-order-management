@@ -1,11 +1,4 @@
-<?xml version="1.0"?>
-<!--
-/**
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
--->
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cPayment>

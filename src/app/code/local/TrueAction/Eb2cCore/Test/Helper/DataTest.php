@@ -1,13 +1,7 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_helper;
-
 	/**
 	 * setUp method
 	 */
@@ -160,72 +154,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$this->assertSame('en_US', Mage::helper('eb2ccore')->xmlToMageLangFrmt($langCode));
 	}
 
-	/**
-	 * testing clean method - with re-index disabled
-	 *
-	 * @test
-	 * @loadFixture configDisableReIndex.yaml
-	 */
-	public function testCleanWithReIndexDisabled()
-	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
-	}
-
-	/**
-	 * testing clean method - with re-index enabled
-	 *
-	 * @test
-	 * @loadFixture configEnableReIndex.yaml
-	 */
-	public function testCleanWithReIndexEnabled()
-	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
-	}
-
-	/**
-	 * testing clean method - when rebuild method throw an exception
-	 *
-	 * @test
-	 * @loadFixture configEnableReIndex.yaml
-	 */
-	public function testCleanWithExceptionThrowCaught()
-	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Mage_Core_Exception));
-
-		$this->replaceByMock('singleton', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
-	}
-
 	public function providerExtractNodeVal()
 	{
 		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
@@ -278,3 +206,4 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
 }
+

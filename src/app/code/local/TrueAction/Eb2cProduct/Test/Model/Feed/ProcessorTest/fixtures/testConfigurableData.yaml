@@ -1,0 +1,85 @@
+eav:
+  catalog_category:
+     -
+      entity_id: 999
+      name: mytestcategory
+      path: 1/999
+  catalog_product:
+     -
+      entity_id: 1
+      type_id: configurable
+      sku: theparent
+      name: theparent
+      short_description: theparent
+      description: theparent
+      weight: 1.0
+      url_key: theparent
+      tax_code: 'thecode'
+      stock:
+        qty: 100.00
+        use_config_backorders: 1
+      website_ids:
+         - 0
+      category_ids:
+         - 999 # Default Category
+      price: 12.99
+      tax_class_id: 2 # Taxable Goods
+      status: 1             # Enabled
+      visibility: 4         # Visible in Catalog & Search
+
+itemmaster-parent-exists:
+   -
+    back_orderable: '1'
+    catalog_class: regular
+    client_item_id: 45-000906014545
+    custom_attributes:
+       -
+        name: ProductType
+        value: simple
+        lang: en-US
+        operation_type: Add
+    hazardous_material_code: '0'
+    # packaging dimensions
+    item_type: MERCH
+    item_status: 'Active'
+    sales_class: advanceOrderLimited
+    style_id: 'theparent'
+
+itemmaster-create-parent:
+   -
+    back_orderable: '1'
+    catalog_class: regular
+    client_item_id: theotherparent
+    custom_attributes:
+       -
+        name: ProductType
+        value: configurable
+        lang: en-US
+        operation_type: Add
+    item_status: 'Active'
+    sales_class: advanceOrderLimited
+    style_id: 'theotherparent'
+   -
+    back_orderable: '1'
+    catalog_class: regular
+    client_item_id: 45-000906014545
+    custom_attributes:
+       -
+        name: ProductType
+        value: simple
+        lang: en-US
+        operation_type: Add
+    drop_ship_supplier_name: Mass Merchants, Intl
+    drop_ship_supplier_number: 9876
+    drop_ship_supplier_part_number: 9843333A
+    is_drop_shipped: 'false'
+    hazardous_material_code: '0'
+    # packaging dimensions
+    item_type: MERCH
+    item_status: 'Active'
+    manufacturer_name: Sony
+    manufacturer_id: Sony_Man_Id
+    msrp: 89.99
+    price: 71.98
+    sales_class: advanceOrderLimited
+    style_id: 'theotherparent'

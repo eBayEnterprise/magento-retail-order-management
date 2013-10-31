@@ -256,38 +256,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$response = '<What>Ever</What>';
 
 		$request = new DOMDocument();
-		$request->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
-			'<AllocationRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="' . self::REQUEST_ID .
-			'" reservationId="' . self::RESERVATION_ID . '">
-			<OrderItem itemId="item0" lineId="0">
-			<Quantity>1</Quantity>
-			<ShipmentDetails>
-			<ShippingMethod>USPSStandard</ShippingMethod>
-			<ShipToAddress>
-			<Line1>One Bagshot Row</Line1>
-			<City>Bag End</City>
-			<MainDivision>PA</MainDivision>
-			<CountryCode>US</CountryCode>
-			<PostalCode>19123</PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			<OrderItem itemId="item1" lineId="1">
-			<Quantity>2</Quantity>
-			<ShipmentDetails>
-			<ShippingMethod>USPSStandard</ShippingMethod>
-			<ShipToAddress>
-			<Line1>One Bagshot Row</Line1>
-			<City>Bag End</City>
-			<MainDivision>PA</MainDivision>
-			<CountryCode>US</CountryCode>
-			<PostalCode>19123</PostalCode>
-			</ShipToAddress>
-			</ShipmentDetails>
-			</OrderItem>
-			</AllocationRequestMessage>'
-		)));
-
+		$request->loadXML(sprintf('<AllocationRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="%s" reservationId="%s"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></AllocationRequestMessage>', self::REQUEST_ID, self::RESERVATION_ID));
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()

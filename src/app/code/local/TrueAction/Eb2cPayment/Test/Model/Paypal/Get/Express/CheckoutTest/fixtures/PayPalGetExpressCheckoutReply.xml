@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <PayPalGetExpressCheckoutReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 	<OrderId>1</OrderId>
 	<ResponseCode>Success</ResponseCode>
@@ -8,15 +8,15 @@
 	<PayerName>
 		<Honorific>Mr.</Honorific>
 		<LastName>John</LastName>
-		<MiddleName></MiddleName>
+		<MiddleName/>
 		<FirstName>Smith</FirstName>
 	</PayerName>
 	<PayerCountry>US</PayerCountry>
 	<BillingAddress>
 		<Line1>123 Main St</Line1>
-		<Line2></Line2>
-		<Line3></Line3>
-		<Line4></Line4>
+		<Line2/>
+		<Line3/>
+		<Line4/>
 		<City>Philadelphia</City>
 		<MainDivision>PA</MainDivision>
 		<CountryCode>US</CountryCode>
@@ -26,9 +26,9 @@
 	<PayerPhone>215-123-4567</PayerPhone>
 	<ShippingAddress>
 		<Line1>123 Main St</Line1>
-		<Line2></Line2>
-		<Line3></Line3>
-		<Line4></Line4>
+		<Line2/>
+		<Line3/>
+		<Line4/>
 		<City>Philadelphia</City>
 		<MainDivision>PA</MainDivision>
 		<CountryCode>US</CountryCode>
