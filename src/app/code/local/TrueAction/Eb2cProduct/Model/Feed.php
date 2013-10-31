@@ -24,10 +24,10 @@ class TrueAction_Eb2cProduct_Model_Feed
 	protected $_queue;
 
 	private $_eventTypes = array(
-		'Price' => 'feed_pricing',
+		'Price'      => 'feed_pricing',
 		'ItemMaster' => 'feed_item',
-		'Content' => 'feed_content',
-		'iShip' => 'feed_iship',
+		'Content'    => 'feed_content',
+		'iShip'      => 'feed_iship',
 	);
 
 	/**

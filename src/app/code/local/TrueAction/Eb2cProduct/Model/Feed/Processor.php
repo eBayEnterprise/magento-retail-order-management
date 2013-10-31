@@ -418,12 +418,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			if ($dataObject->getEbcPricingEventNumber()) {
 				$startDate = new DateTime($dataObject->getStartDate());
 				$startDate->setTimezone(new DateTimeZone('UTC'));
-				$endDate = new DateTime($dataObject->getEndDate());
-				$endDate->setTimezone(new DateTimeZone('UTC'));
-				$data['price'] = $dataObject->getAlternatePrice();
-				$data['special_price'] = $dataObject->getPrice();
 				$data['special_from_date'] = $startDate->format('Y-m-d H:i:s');
-				$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
+
+				if ($dataObject->getEndDate()) {
+					$endDate = new DateTime($dataObject->getEndDate());
+					$endDate->setTimezone(new DateTimeZone('UTC'));
+					$data['special_to_date'] = $endDate->format('Y-m-d H:i:s');
+				}
 			}
 			$outData->addData($data);
 		}
@@ -550,6 +551,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 		}
 		if( $item->getBaseAttributes()->getCatalogClass()) {
+			// @todo This should be visibilty none if it's a child product. Maybe.
 			$productData->setData('visibility', $this->_getVisibilityData($item));
 		}
 		if ($item->getBaseAttributes()->getItemStatus()) {
