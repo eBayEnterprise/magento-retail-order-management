@@ -1,11 +1,11 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cAddressFrontend>
 			<active>true</active>
 			<codePool>local</codePool>
 			<depends>
-				<TrueAction_Eb2cAddress />
+				<TrueAction_Eb2cAddress/>
 			</depends>
 		</TrueAction_Eb2cAddressFrontend>
 	</modules>

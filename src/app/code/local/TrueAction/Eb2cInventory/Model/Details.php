@@ -43,7 +43,8 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	public function buildInventoryDetailsRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
-		$requestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
+		$hlpr = Mage::helper('eb2cinventory');
+		$requestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $hlpr->getXmlNs())->firstChild;
 		foreach($this->getInventoriedItems($quote->getAllItems()) as $item) {
 			// creating orderItem element
 			$orderItem = $requestMessage->createChild('OrderItem', null, array('lineId' => $item->getId(), 'itemId' => $item->getSku()));
@@ -53,7 +54,12 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 			// creating shipping details
 			$shipmentDetails = $orderItem->createChild('ShipmentDetails', null);
 			// add shipment method
-			$shipmentDetails->createChild('ShippingMethod', $shippingAddress->getShippingMethod());
+			$shipMethod = $hlpr->lookupShipMethod($shippingAddress->getShippingMethod());
+			if ($shipMethod) {
+				$shipmentDetails->createChild('ShippingMethod', $shipMethod);
+			} else {
+				throw new Mage_Exception('Please configure an eb2c shipping method for the Magento method '. $shippingAddress->getShippingMethod());
+			}
 			// add ship to address
 			$shipToAddress = $shipmentDetails->createChild('ShipToAddress', null);
 			// add ship to address Line1

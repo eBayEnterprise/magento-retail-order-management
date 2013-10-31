@@ -3,6 +3,8 @@
 require_once('Enterprise/GiftCardAccount/controllers/CartController.php');
 class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends Enterprise_GiftCardAccount_CartController
 {
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_INVALID_PAN = 'TrueAction_Eb2cPayment_GiftCard_Invalid_Pan';
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_INVALID_PIN = 'TrueAction_Eb2cPayment_GiftCard_Invalid_Pin';
 	/**
 	 * Overriding Enterprise add gift card to cart controller
 	 * Add Gift Card to current quote
@@ -16,13 +18,13 @@ class TrueAction_Eb2cPayment_Overrides_GiftCardAccount_CartController extends En
 			$pin = $data['giftcard_pin']; // getting pin data from user input
 			try {
 				if (strlen($code) > TrueAction_Eb2cPayment_Overrides_Helper_Data::GIFT_CARD_PAN_MAX_LENGTH) {
-					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__('Invalid gift card payment account numbers.'));
+					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_INVALID_PAN));
 					// @codeCoverageIgnoreStart
 				}
 				// @codeCoverageIgnoreEnd
 
 				if (strlen($pin) > TrueAction_Eb2cPayment_Overrides_Helper_Data::GIFT_CARD_PIN_MAX_LENGTH) {
-					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__('Invalid gift card personal identification numbers.'));
+					Mage::throwException(Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_INVALID_PIN));
 					// @codeCoverageIgnoreStart
 				}
 				// @codeCoverageIgnoreEnd

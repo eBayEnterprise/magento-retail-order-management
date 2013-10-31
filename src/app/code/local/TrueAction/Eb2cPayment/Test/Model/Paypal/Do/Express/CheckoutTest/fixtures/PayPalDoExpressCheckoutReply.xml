@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <PayPalDoExpressCheckoutReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 	<OrderId>1</OrderId>
 	<ResponseCode>Success</ResponseCode>
