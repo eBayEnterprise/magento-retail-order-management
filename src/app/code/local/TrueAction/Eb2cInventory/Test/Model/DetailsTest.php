@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cInventory_Test_Model_DetailsTest
-	extends TrueAction_Eb2cCore_Test_Base
+	extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_details;
 

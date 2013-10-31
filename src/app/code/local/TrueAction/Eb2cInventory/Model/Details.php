@@ -58,7 +58,10 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 			if ($shipMethod) {
 				$shipmentDetails->createChild('ShippingMethod', $shipMethod);
 			} else {
-				throw new Mage_Exception('Please configure an eb2c shipping method for the Magento method '. $shippingAddress->getShippingMethod());
+				throw new Mage_Exception(
+					'Please configure an eb2c shipping method for the Magento method ' .
+					$shippingAddress->getShippingMethod()
+				);
 			}
 			// add ship to address
 			$shipToAddress = $shipmentDetails->createChild('ShipToAddress', null);
