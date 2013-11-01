@@ -1,0 +1,7 @@
+# eb2c handles emails
+ -
+   - enterprise_rma/rma
+   - sendNewRmaEmail
+ -
+   - enterprise_rma/rma
+   - sendAuthorizeEmail
