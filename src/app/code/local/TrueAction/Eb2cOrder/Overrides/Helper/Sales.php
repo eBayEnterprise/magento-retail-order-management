@@ -18,8 +18,7 @@ class TrueAction_Eb2cOrder_Overrides_Helper_Sales extends Mage_Core_Helper_Data
 
 	public function __construct()
 	{
-		$this->_config = Mage::getModel('eb2ccore/config_registry')
-			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		$this->_config = Mage::helper('eb2corder')->getConfig();
 		$this->_helper = new Mage_Sales_Helper_Data();
 	}
 
