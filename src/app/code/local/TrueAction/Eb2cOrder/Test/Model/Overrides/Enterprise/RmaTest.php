@@ -23,7 +23,7 @@ class TrueAction_Eb2cOrder_Test_Model_Overrides_Enterprise_RmaTest
 	public function testRmaEmailSuppressionOn($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressedFlag' => true
+			'transactionalEmailer' => 'eb2c'
 		));
 		$testModel = $this->getModelMock('enterprise_rma/rma', array('_sendRmaEmailWithItems', 'getIsSendAuthEmail'));
 		$testModel->expects($this->never())
@@ -41,7 +41,7 @@ class TrueAction_Eb2cOrder_Test_Model_Overrides_Enterprise_RmaTest
 	public function testRmaEmailSuppressionOff($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressedFlag' => false
+			'transactionalEmailer' => 'mage'
 		));
 		$testModel = $this->getModelMock('enterprise_rma/rma', array('_sendRmaEmailWithItems', 'getIsSendAuthEmail'));
 		$testModel->expects($this->once())
