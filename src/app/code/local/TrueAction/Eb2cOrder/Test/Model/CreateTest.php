@@ -348,4 +348,67 @@ INVALID_XML;
 		$createModelMock->retryOrderCreate();
 	}
 
+	/**
+	 * Test that when eb2cpayments is explicitly disabled it sends "prepaid" to OMS
+	 * @test
+	 */
+	public function testPaymentRequestGetSendWithPrepaidCreditCardNodeWithWhenEb2cPaymentIsDisabled()
+	{
+		// let test the model responsible for building the payment request xml
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+
+		$helperMock->expects($this->any())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'isPaymentEnabled' => 0
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
+		$sessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCookieShouldBeReceived')
+			->will($this->returnValue(true));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdQueryParam')
+			->will($this->returnValue('name'));
+		$sessionMock->expects($this->any())
+			->method('getSessionId')
+			->will($this->returnValue(1));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdForHost')
+			->will($this->returnValue(1));
+		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+
+		$this->replaceCoreConfigRegistry();
+		$this->replaceModel(
+			'eb2ccore/api',
+			array(
+				'request' => self::SAMPLE_SUCCESS_XML,
+			),
+			false
+		);
+
+		$createObject = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder());
+
+		$domRequest = $this->_reflectProperty($createObject, '_domRequest');
+		// let's test the we have a valid TrueAction_Dom_Document in the class property _domRequest
+		$this->assertInstanceOf('TrueAction_Dom_Document', $domRequest->getValue($createObject));
+
+		$xmlRequest = $this->_reflectProperty($createObject, '_xmlRequest');
+		// let's test request xml has a PrepaidCreditCard node
+		$prepaidContentNode = stristr(stristr(
+		$xmlRequest->getValue($createObject), '<PrepaidCreditCard>', false),
+		'</PrepaidCreditCard>', true);
+
+		$this->assertNotEmpty($prepaidContentNode);
+	}
 }
