@@ -52,11 +52,11 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 		$this->assertTrue($testModel->$testMethod());
 	}
 
-	public function testEmailSuppressionOff($isSuppressed, $testModel, $testMethod)
+	public function testEmailSuppressionOff($testModel, $testMethod)
 	{
 		$this->markTestIncomplete();
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => $isSuppressed
+			'isSalesEmailsSuppressed' => false
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
@@ -68,11 +68,11 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 		$testModel->$testMethod();
 	}
 
-	public function testEmailSuppressionOn($isSuppressed, $testModel, $testMethod)
+	public function testEmailSuppressionOn($testModel, $testMethod)
 	{
 		$this->markTestIncomplete();
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => $isSuppressed
+			'isSalesEmailsSuppressed' => true
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
