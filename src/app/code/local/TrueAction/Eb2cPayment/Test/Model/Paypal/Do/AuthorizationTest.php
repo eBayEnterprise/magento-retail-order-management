@@ -14,17 +14,22 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_AuthorizationTest extends Ecom
 
 	public function buildQuoteMock()
 	{
+		$totals = array();
+		$totals['grand_total'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'grand_total', 'value' => 50.00
+		));
+
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
-			array('getEntityId', 'getQuoteCurrencyCode', 'getBaseGrandTotal')
+			array('getEntityId', 'getQuoteCurrencyCode', 'getTotals')
 		);
 		$quoteMock->expects($this->any())
 			->method('getEntityId')
 			->will($this->returnValue(1234567)
 			);
 		$quoteMock->expects($this->any())
-			->method('getBaseGrandTotal')
-			->will($this->returnValue(50.00)
+			->method('getTotals')
+			->will($this->returnValue($totals)
 			);
 		$quoteMock->expects($this->any())
 			->method('getQuoteCurrencyCode')
