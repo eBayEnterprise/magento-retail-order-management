@@ -2566,10 +2566,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'1' => array(
 				'id' => 1,
 				'ShippingOrigin' => array(
-					'Line1'        => '1075 First Avenue',
-					'Line2'        => 'Line2',
-					'Line3'        => 'Line3',
-					'Line4'        => 'Line4',
+					'Lines'        => array(
+						'1075 First Avenue',
+						'Line2',
+						'Line3',
+						'Line4'
+					),
 					'City'         => 'King Of Prussia',
 					'MainDivision' => 'PA',
 					'CountryCode'  => 'US',
@@ -2603,10 +2605,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'1' => array(
 				'id'           => 1,
 				'AdminOrigin'  => array(
-					'Line1'        => 'This is not a test, it\'s difficulty',
-					'Line2'        => 'Line2',
-					'Line3'        => 'Line3',
-					'Line4'        => 'Line4',
+					'Lines'        => array(
+						'This is not a test, it\'s difficulty',
+						'Line2',
+						'Line3',
+						'Line4'
+					),
 					'City'         => 'King Of Prussia',
 					'MainDivision' => 'PA',
 					'CountryCode'  => 'US',

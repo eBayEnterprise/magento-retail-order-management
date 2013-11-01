@@ -5,5 +5,14 @@ default:
   - drop_ship_supplier_number
   - drop_ship_supplier_part
   - price_is_vat_inclusive
+  - brand_name
+  - size
+  - buyer_name
+  - hazardous_material_code
+  - brand_description
+  - item_type
+  - style_id
+  - is_clean
+  - unresolved_product_links
 prices:
   - price_is_vat_inclusive
