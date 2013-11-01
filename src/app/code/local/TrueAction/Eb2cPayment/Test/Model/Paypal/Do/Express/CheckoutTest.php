@@ -93,11 +93,25 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 			->will($this->returnValue(25.00)
 			);
 
+		$totals = array();
+		$totals['grand_total'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'grand_total', 'value' => 50.00
+		));
+		$totals['subtotal'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'subtotal', 'value' => 50.00
+		));
+		$totals['shipping'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'shipping', 'value' => 10.00
+		));
+		$totals['tax'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'tax', 'value' => 5.00
+		));
+
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array(
 				'getEntityId', 'getQuoteCurrencyCode',
-				'getBaseGrandTotal', 'getSubtotal', 'getShippingAmount', 'getTaxAmount', 'getAllAddresses', 'getPayment'
+				'getTotals', 'getAllAddresses', 'getPayment'
 			)
 		);
 		$quoteMock->expects($this->any())
@@ -105,20 +119,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 			->will($this->returnValue(1234567)
 			);
 		$quoteMock->expects($this->any())
-			->method('getBaseGrandTotal')
-			->will($this->returnValue(50.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getSubtotal')
-			->will($this->returnValue(50.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAmount')
-			->will($this->returnValue(10.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getTaxAmount')
-			->will($this->returnValue(5.00)
+			->method('getTotals')
+			->will($this->returnValue($totals)
 			);
 		$quoteMock->expects($this->any())
 			->method('getQuoteCurrencyCode')
