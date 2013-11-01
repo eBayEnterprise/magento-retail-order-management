@@ -15,11 +15,6 @@
 			<eb2ccore>
 				<class>TrueAction_Eb2cCore_Helper</class>
 			</eb2ccore>
-			<sales>
-				<rewrite>
-					<data>TrueAction_Eb2cCore_Overrides_Helper_Sales</data>
-				</rewrite>
-			</sales>
 		</helpers>
 	</global>
 	<crontab>
