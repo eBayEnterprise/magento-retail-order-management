@@ -93,9 +93,6 @@
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
-			<email>
-				<is_sales_emails_suppressed>0</is_sales_emails_suppressed>
-			</email>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
