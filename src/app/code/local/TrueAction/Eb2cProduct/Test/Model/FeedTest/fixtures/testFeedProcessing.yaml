@@ -1,0 +1,18 @@
+config:
+  default/eb2ccore/feed/delete_remote_feed_files: 1
+  default/eb2cproduct/item_master_feed/local_path: 'Local/Master/'
+  default/eb2cproduct/item_master_feed/remote_path: 'item_remote_path'
+  default/eb2cproduct/item_master_feed/file_pattern: 'Item*Glob'
+  default/eb2cproduct/item_master_feed/event_type: 'ItemMaster'
+  default/eb2cproduct/content_master_feed/local_path: 'Local/Content/'
+  default/eb2cproduct/content_master_feed/remote_path: 'content_remote_path'
+  default/eb2cproduct/content_master_feed/file_pattern: 'Content*Glob'
+  default/eb2cproduct/content_master_feed/event_type: 'Content'
+  default/eb2cproduct/item_pricing_feed/local_path: 'Local/Price/'
+  default/eb2cproduct/item_pricing_feed/remote_path: 'price_remote_path'
+  default/eb2cproduct/item_pricing_feed/file_pattern: 'Price*Glob'
+  default/eb2cproduct/item_pricing_feed/event_type: 'Price'
+  default/eb2cproduct/i_ship_feed/local_path: 'Local/Iship/'
+  default/eb2cproduct/i_ship_feed/remote_path: 'iship_remote_path'
+  default/eb2cproduct/i_ship_feed/file_pattern: 'iShip*Glob'
+  default/eb2cproduct/i_ship_feed/event_type: 'iShip'

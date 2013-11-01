@@ -30,6 +30,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			}));
 		return $dom;
 	}
+
 	/**
 	 * Test Feed Abstract
 	 *
@@ -183,7 +184,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	 * @param  boolean $processSuccess Should processing of the DOM be successful
 	 * @test
 	 * @dataProvider providerFeedProcessing
-	 * @loadFixtures
+	 * @loadFixture
 	 */
 	public function testFeedProcessing($domLoadSuccess, $processSuccess)
 	{

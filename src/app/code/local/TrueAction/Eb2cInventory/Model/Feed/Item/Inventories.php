@@ -55,16 +55,30 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}
-
-			// Remove feed file from local server after finishing processing it.
-			if (file_exists($feed)) {
-				// This assumes that we have process all ok
-				$this->getFeedModel()->mvToArchiveDir($feed);
-			}
-			// If this had failed, we could do this: [mvToErrorDir(feed)]
+			$this->archiveFeed($feed);
 		}
 
 		Mage::dispatchEvent('inventory_feed_processing_complete', array());
+	}
+
+	/**
+	 * Archive the file after processing - move the local copy to the archive dir for the feed
+	 * and delete the file off of the remote sftp server.
+	 * @fixme  Dumb copy paste from the core/model/feed/abstract with minor adjustments to get it
+	 * working here. This class should really just inherit properly.
+	 * @param  string $xmlFeedFile Local path of the file
+	 * @return $this object
+	 */
+	public function archiveFeed($xmlFeedFile)
+	{
+		$config = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'))
+			->addConfigModel(Mage::getSingleton('eb2cinventory/config'));
+		if ($config->deleteRemoteFeedFiles) {
+			$this->getFeedModel()->removeFromRemote($config->feedRemoteReceivedPath, basename($xmlFeedFile));
+		}
+		$this->getFeedModel()->mvToArchiveDir($xmlFeedFile);
+		return $this;
 	}
 
 	/**

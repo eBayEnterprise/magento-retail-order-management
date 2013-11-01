@@ -105,13 +105,17 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 	 * Archive the file after processing - move the local copy to the archive dir for the feed
 	 * and delete the file off of the remote sftp server.
 	 * @param  string $xmlFeedFile Local path of the file
+	 * @param  string $remoteDir   Override the remote file path
 	 * @return $this object
 	 */
-	public function archiveFeed($xmlFeedFile)
+	public function archiveFeed($xmlFeedFile, $remoteDir=null)
 	{
 		$config = Mage::getModel('eb2ccore/config_registry')->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 		if ($config->deleteRemoteFeedFiles) {
-			$this->_coreFeed->removeFromRemote($this->getFeedRemotePath(), basename($xmlFeedFile));
+			$this->_coreFeed->removeFromRemote(
+				!is_null($remoteDir) ? $remoteDir : $this->getFeedRemotePath(),
+				basename($xmlFeedFile)
+			);
 		}
 		$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
 		return $this;

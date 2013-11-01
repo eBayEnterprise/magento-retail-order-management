@@ -54,12 +54,17 @@ class TrueAction_Eb2cProduct_Model_Feed
 				$this->_eventTypeModel->getFeedRemotePath(),
 				$this->_eventTypeModel->getFeedFilePattern()
 			);
-			$this->_feedFiles = array_merge($this->_feedFiles, $this->_coreFeed->lsInboundDir());
+			$remote = $this->_eventTypeModel->getFeedRemotePath();
+			// need to track the local file as well as the remote path so it can be removed after processing
+			$this->_feedFiles = array_merge($this->_feedFiles, array_map(
+				function ($local) use ($remote) { return array('local' => $local, 'remote' => $remote); },
+				$this->_coreFeed->lsInboundDir()
+			));
 		}
 
-		foreach($this->_feedFiles as $xmlFeedFile ) {
-			$this->processFile($xmlFeedFile);
-			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
+		foreach ($this->_feedFiles as $fileDetails) {
+			$this->processFile($fileDetails['local']);
+			$this->archiveFeed($fileDetails['local'], $fileDetails['remote']);
 			$filesProcessed++;
 		}
 		$this->_queue->process();
@@ -75,7 +80,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 	public function processFile($xmlFile)
 	{
 		Varien_Profiler::start(__METHOD__);
-		if ($xmlFile === 'sample-feed-invalid-item-type.xml') print file_get_contents($xmlFile);
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
 			$dom->load($xmlFile);
