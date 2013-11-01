@@ -14,5 +14,6 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'xsd_file_search'            => 'eb2corder/xsd/search_file',
 		'api_search_service'         => 'eb2corder/api_search_service',
 		'api_search_operation'       => 'eb2corder/api_search_operation',
+		'is_sales_emails_suppressed' => 'eb2ccore/email/is_sales_emails_suppressed',
 	);
 }
