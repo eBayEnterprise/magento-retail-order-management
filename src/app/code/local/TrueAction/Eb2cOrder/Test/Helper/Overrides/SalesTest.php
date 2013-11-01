@@ -4,6 +4,8 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 {
 	public function tearDown()
 	{
+		parent::tearDown();
+		// delete the previous helper
 		Mage::unregister('_helper/sales');
 	}
 
@@ -92,9 +94,14 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 		$testModel->$testMethod();
 	}
 
+	/**
+	 * @dataProvider dataProvider
+	 */
 	public function testRmaEmailSuppressionOn()
 	{
-		$this->markTestIncomplete();
+		$this->replaceCoreConfigRegistry(array(
+			'isSalesEmailsSuppressed' => true
+		));
 		$rmaConfig = $this->getModelMockBuilder('enterprise_rma/config')
 			->disableOriginalConstructor()
 			->setMethods('');
