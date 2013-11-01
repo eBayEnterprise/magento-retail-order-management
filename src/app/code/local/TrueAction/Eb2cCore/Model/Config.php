@@ -28,5 +28,6 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'sftp_public_key'             => 'eb2ccore/feed/filetransfer_sftp_ssh_pub_key',
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',
 		'store_id'                    => 'eb2ccore/general/store_id',
+		'is_sales_emails_suppressed'  => 'eb2ccore/email/is_sales_emails_suppressed',
 	);
 }

@@ -15,6 +15,11 @@
 			<eb2ccore>
 				<class>TrueAction_Eb2cCore_Helper</class>
 			</eb2ccore>
+			<sales>
+				<rewrite>
+					<data>TrueAction_Eb2cCore_Overrides_Helper_Sales</data>
+				</rewrite>
+			</sales>
 		</helpers>
 	</global>
 	<crontab>
@@ -88,6 +93,9 @@
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
+			<email>
+				<is_sales_emails_suppressed>0</is_sales_emails_suppressed>
+			</email>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
@@ -102,7 +110,7 @@
 					<eb2cproduct>
 						<!-- TrueAction_Eb2cProduct_Model_Feed -->
 						<feed>1</feed>
-					<!--	
+					<!--
 						<feed_content_master>1</feed_content_master>
 						<feed_image_master>1</feed_image_master>
 						<feed_i_ship>1</feed_i_ship>

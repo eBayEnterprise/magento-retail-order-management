@@ -2,6 +2,26 @@
 class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
+	public function tearDown()
+	{
+		Mage::unregister('_helper/sales');
+	}
+
+	public function testRewrite()
+	{
+		$this->assertInstanceOf('TrueAction_Eb2cCore_Overrides_Helper_Sales', Mage::helper('sales'));
+	}
+
+	/**
+	 * @loadFixture
+	 */
+	public function testConfig()
+	{
+		$config = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		$this->assertSame(true, $config->isSalesEmailsSuppressedFlag);
+	}
+
 	/**
 	 * verify when eb2c is set to handle the emails:
 	 * - the original getter function will not be called
@@ -11,11 +31,9 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 	public function testFlagsWithSuppressionOn($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'emailsSentByEb2cFlag' => true
+			'isSalesEmailsSuppressed' => true
 		));
-		$testModel = $this->getHelperMock('sales/data', array($testMethod));
-		$testModel->expects($this->never())
-			->method($testMethod);
+		$testModel = Mage::helper('sales');
 		$this->assertFalse($testModel->$testMethod());
 	}
 
@@ -28,18 +46,17 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 	public function testFlagsWithSuppressionOff($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'emailsSentByEb2cFlag' => false
+			'isSalesEmailsSuppressed' => false
 		));
 		$testModel = Mage::helper('sales');
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Overrides_Helper_Sales', $testModel);
 		$this->assertTrue($testModel->$testMethod());
 	}
 
-	public function testOrderEmailSuppressionOff($sentByEb2c, $testModel, $testMethod)
+	public function testEmailSuppressionOff($isSuppressed, $testModel, $testMethod)
 	{
 		$this->markTestIncomplete();
 		$this->replaceCoreConfigRegistry(array(
-			'emailsSentByEb2cFlag' => $sentByEb2c
+			'isSalesEmailsSuppressed' => $isSuppressed
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
@@ -51,11 +68,11 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 		$testModel->$testMethod();
 	}
 
-	public function testOrderEmailSuppressionOn($sentByEb2c, $testModel, $testMethod)
+	public function testEmailSuppressionOn($isSuppressed, $testModel, $testMethod)
 	{
 		$this->markTestIncomplete();
 		$this->replaceCoreConfigRegistry(array(
-			'emailsSentByEb2cFlag' => $sentByEb2c
+			'isSalesEmailsSuppressed' => $isSuppressed
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
