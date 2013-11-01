@@ -70,9 +70,7 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * Generate eb2c API Universally unique ID used to globally identify to request.
-	 *
 	 * @param int $entityId, the magento sales_flat_quote entity_id
-	 *
 	 * @return string, the request id
 	 */
 	public function getRequestId($entityId)
@@ -83,5 +81,41 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$cfg->storeId,
 			$entityId
 		));
+	}
+
+	/**
+	 * EBC-238: Return the configured tender type bin the card number is in.
+	 * If none, empty string.
+	 * @param string $pan the card number
+	 * @return string the tender type
+	 */
+	private function _getTenderType($pan)
+	{
+		$cfg = $this->getConfigModel();
+		$tenderTypes = array('GS', 'SP', 'SV', 'VL');
+		foreach($tenderTypes as $tenderType) {
+			list($low, $high) = explode('-', $cfg->getConfig('svc_bin_range_' . $tenderType));
+			$low = trim($low);
+			$high = trim($high);
+			if ($low <= $pan && $pan <= $high) {
+				return $tenderType;
+			}
+		}
+		return '';
+	}
+	/**
+	 * EBC-238: Return the URL with the correct tender type code.
+	 * @param string $optIndex the operation index of the associative array
+	 * @param string $pan the card number
+	 * @return string
+	 */
+	public function getSvcUri($optIndex, $pan)
+	{
+		$tenderType = $this->_getTenderType($pan);
+		if ($tenderType === '') {
+			return '';
+		}
+		$uri = $this->getOperationUri($optIndex);
+		return preg_replace('/GS\.xml$/', "{$tenderType}.xml", $uri);
 	}
 }
