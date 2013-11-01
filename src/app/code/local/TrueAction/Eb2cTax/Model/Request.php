@@ -964,7 +964,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			foreach ($this->_orderItems as $key => $value) {
 				$adminData = $this->_extractAdminData();
 				$adminOrigin = $value['AdminOrigin'];
-				$this->_hasChanges = (bool) array_diff_assoc($adminData, $adminOrigin);
+				$this->_hasChanges = (json_encode($adminData) === json_encode($adminOrigin));
 			}
 		}
 	}
