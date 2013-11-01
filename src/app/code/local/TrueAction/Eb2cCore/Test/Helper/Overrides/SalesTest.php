@@ -52,32 +52,40 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 		$this->assertTrue($testModel->$testMethod());
 	}
 
+	/**
+	 * @dataProvider dataProvider
+	 */
 	public function testEmailSuppressionOff($testModel, $testMethod)
 	{
-		$this->markTestIncomplete();
+		$this->setExpectedException('Mage_Core_Exception', 'this exception is expected');
 		$this->replaceCoreConfigRegistry(array(
 			'isSalesEmailsSuppressed' => false
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
-		$testModel->expects($this->never())
-			->method('_getStore')
+		$testModel->expects($this->any())
+			->method('getStore')
 			->will($this->returnValue($store));
-		$testModel->expects($this->never())
-			->method('_getEmails');
+		$testModel->expects($this->once())
+			->method('_getEmails')
+			->will($this->throwException(
+				new Mage_Core_Exception('this exception is expected')
+			));
 		$testModel->$testMethod();
 	}
 
+	/**
+	 * @dataProvider dataProvider
+	 */
 	public function testEmailSuppressionOn($testModel, $testMethod)
 	{
-		$this->markTestIncomplete();
 		$this->replaceCoreConfigRegistry(array(
 			'isSalesEmailsSuppressed' => true
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
-		$testModel->expects($this->never())
-			->method('_getStore')
+		$testModel->expects($this->any())
+			->method('getStore')
 			->will($this->returnValue($store));
 		$testModel->expects($this->never())
 			->method('_getEmails');
