@@ -11,7 +11,7 @@
 					<show_in_website>1</show_in_website>
 					<show_in_store>0</show_in_store>
 					<fields>
-						<is_sales_emails_suppressed>
+						<transactional_emailer>
 							<label>Handler</label>
 							<comment>If the Exchange Platform is selected, transactional emails will be sent via e-Dialog</comment>
 							<sort_order>1</sort_order>
@@ -20,7 +20,7 @@
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
-						</is_sales_emails_suppressed>
+						</transactional_emailer>
 					</fields>
 				</email>
 			</groups>

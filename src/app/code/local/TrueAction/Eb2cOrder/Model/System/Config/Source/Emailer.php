@@ -10,8 +10,8 @@ class TrueAction_Eb2cOrder_Model_System_Config_Source_Emailer
 	public function toOptionArray()
 	{
 		return array(
-			array('value' => 1, 'label' => Mage::helper('adminhtml')->__('Exchange Platform')),
-			array('value' => 0, 'label' => Mage::helper('adminhtml')->__('Magento')),
+			array('value' => 'eb2c', 'label' => Mage::helper('adminhtml')->__('Exchange Platform')),
+			array('value' => 'mage', 'label' => Mage::helper('adminhtml')->__('Magento')),
 		);
 	}
 
@@ -23,8 +23,8 @@ class TrueAction_Eb2cOrder_Model_System_Config_Source_Emailer
 	public function toArray()
 	{
 		return array(
-			0 => Mage::helper('adminhtml')->__('Exchange Platform'),
-			1 => Mage::helper('adminhtml')->__('Magento'),
+			'eb2c' => Mage::helper('adminhtml')->__('Exchange Platform'),
+			'mage' => Mage::helper('adminhtml')->__('Magento'),
 		);
 	}
 
