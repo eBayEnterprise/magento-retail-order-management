@@ -81,7 +81,7 @@
 	<default>
 		<eb2ccore>
 			<email>
-				<is_sales_emails_suppressed>0</is_sales_emails_suppressed>
+				<transactional_emailer>'mage'</transactional_emailer>
 			</email>
 		</eb2ccore>
 		<eb2corder>

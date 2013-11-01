@@ -1,2 +1,2 @@
 config:
-  default/eb2ccore/email/is_sales_emails_suppressed: eb2c
+  default/eb2ccore/email/transactional_emailer: eb2c
