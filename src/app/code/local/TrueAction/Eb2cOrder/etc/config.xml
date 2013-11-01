@@ -20,6 +20,11 @@
 					<express_checkout>TrueAction_Eb2cOrder_Overrides_Model_Paypal_Express_Checkout</express_checkout>
 				</rewrite>
 			</paypal>
+			<enterprise_rma>
+				<rewrite>
+					<rma>TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma</rma>
+				</rewrite>
+			</enterprise_rma>
 		</models>
 		<helpers>
 			<eb2corder>
