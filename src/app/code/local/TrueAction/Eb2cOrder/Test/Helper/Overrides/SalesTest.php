@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
+class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 	public function tearDown()
