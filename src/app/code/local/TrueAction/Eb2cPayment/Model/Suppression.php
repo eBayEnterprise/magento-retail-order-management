@@ -19,7 +19,8 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	{
 		$this->_ebcPaymentMthd = array(
 			'pbridge',
-			'pbridge_eb2cpayment_cc'
+			'pbridge_eb2cpayment_cc',
+			'paypal_express',
 		);
 		return $this;
 	}
