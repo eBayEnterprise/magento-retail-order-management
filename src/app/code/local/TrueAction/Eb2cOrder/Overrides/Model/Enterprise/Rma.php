@@ -9,9 +9,11 @@ class TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma
 	 */
 	public function sendNewRmaEmail()
 	{
-		/** @var $configRmaEmail Enterprise_Rma_Model_Config */
-		$configRmaEmail = Mage::getSingleton('enterprise_rma/config');
-		return $this->_sendRmaEmailWithItems($configRmaEmail->getRootRmaEmail());
+		if (Mage::helper('eb2corder')->getConfig()->isSalesEmailsSuppressedFlag) {
+			return $this;
+		} else {
+			return parent::sendNewRmaEmail();
+		}
 	}
 
 	/**
@@ -21,11 +23,11 @@ class TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma
 	 */
 	public function sendAuthorizeEmail()
 	{
-		if (!$this->getIsSendAuthEmail()) {
+		if (Mage::helper('eb2corder')->getConfig()->isSalesEmailsSuppressedFlag) {
+			Mage::log('Suppressing RMA authorization email');
 			return $this;
+		} else {
+			return parent::sendAuthorizeEmail();
 		}
-		/** @var $configRmaEmail Enterprise_Rma_Model_Config */
-		$configRmaEmail = Mage::getSingleton('enterprise_rma/config');
-		return $this->_sendRmaEmailWithItems($configRmaEmail->getRootAuthEmail());
 	}
 }
