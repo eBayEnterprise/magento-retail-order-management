@@ -32,7 +32,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	public function testFlagsWithSuppressionOn($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => true
+			'transactionalEmailer' => 'eb2c'
 		));
 		$testModel = Mage::helper('sales');
 		$this->assertFalse($testModel->$testMethod());
@@ -47,7 +47,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	public function testFlagsWithSuppressionOff($testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => false
+			'transactionalEmailer' => 'mage'
 		));
 		$testModel = Mage::helper('sales');
 		$this->assertTrue($testModel->$testMethod());
@@ -60,7 +60,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	{
 		$this->setExpectedException('Mage_Core_Exception', 'this exception is expected');
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => false
+			'transactionalEmailer' => 'mage'
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
@@ -81,7 +81,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	public function testEmailSuppressionOn($testModel, $testMethod)
 	{
 		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => true
+			'transactionalEmailer' => 'eb2c'
 		));
 		$store = Mage::app()->getStore();
 		$testModel = $this->getModelMock($testModel, array('_getEmails', 'getStore'));
