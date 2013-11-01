@@ -448,10 +448,10 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'item_desc' => $item->getName(),
 			'hts_code' => $item->getHtsCode(),
 			'quantity' => $item->getQty(),
-			'merchandise_amount' => $item->getRowTotal(),
-			'merchandise_unit_price' => $this->_getItemOriginalPrice($item),
+			'merchandise_amount' => Mage::app()->getStore()->roundPrice($item->getRowTotal()),
+			'merchandise_unit_price' => Mage::app()->getStore()->roundPrice($this->_getItemOriginalPrice($item)),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
-			'shipping_amount' => $address->getShippingAmount(),
+			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getShippingAmount()),
 			'shipping_tax_class' => $this->_getShippingTaxClass(),
 			'AdminOrigin' => $this->_extractAdminData(),
 			'ShippingOrigin' => $this->_extractShippingData($item),
@@ -688,7 +688,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				'calculateDuty' => $discount["{$type}_discount_calc_duty"]
 			)
 		);
-		$discountNode->createChild('Amount', $discount["{$type}_discount_amount"]);
+		$discountNode->createChild('Amount', Mage::app()->getStore()->roundPrice($discount["{$type}_discount_amount"]));
 	}
 
 	/**
@@ -744,8 +744,8 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 		$unitPriceNode = $orderItem->createChild('Pricing')
 			->createChild('Merchandise')
-			->addChild('Amount', $item['merchandise_amount'])
-			->createChild('UnitPrice', $item['merchandise_unit_price']);
+			->addChild('Amount', Mage::app()->getStore()->roundPrice($item['merchandise_amount']))
+			->createChild('UnitPrice', Mage::app()->getStore()->roundPrice($item['merchandise_unit_price']));
 
 		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
 		if ($taxClass) {
