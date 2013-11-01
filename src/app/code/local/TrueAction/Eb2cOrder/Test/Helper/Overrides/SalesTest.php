@@ -19,8 +19,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 	 */
 	public function testConfig()
 	{
-		$config = Mage::getModel('eb2ccore/config_registry')
-			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		$config = Mage::helper('eb2corder')->getConfig();
 		$this->assertSame(true, $config->isSalesEmailsSuppressedFlag);
 	}
 
