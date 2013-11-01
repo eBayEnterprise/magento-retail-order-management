@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cCore_Overrides_Helper_Sales extends Mage_Core_Helper_Data
+class TrueAction_Eb2cOrder_Overrides_Helper_Sales extends Mage_Core_Helper_Data
 {
 	private static $_overLoadedMethods = array(
 		'canSendNewOrderConfirmationEmail' => true,
