@@ -92,25 +92,4 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 			->method('_getEmails');
 		$testModel->$testMethod();
 	}
-
-	/**
-	 * @dataProvider dataProvider
-	 */
-	public function testRmaEmailSuppressionOn()
-	{
-		$this->replaceCoreConfigRegistry(array(
-			'isSalesEmailsSuppressed' => true
-		));
-		$rmaConfig = $this->getModelMockBuilder('enterprise_rma/config')
-			->disableOriginalConstructor()
-			->setMethods('');
-	}
-
-	public function testRmaEmailSuppressionOff()
-	{
-		$this->markTestIncomplete();
-		$rmaConfig = $this->getModelMockBuilder('enterprise_rma/config')
-			->disableOriginalConstructor()
-			->setMethods('');
-	}
 }
