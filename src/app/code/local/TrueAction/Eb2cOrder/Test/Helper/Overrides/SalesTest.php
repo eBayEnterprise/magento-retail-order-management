@@ -11,7 +11,7 @@ class TrueAction_Eb2cOrder_Test_Helper_Overrides_SalesTest
 
 	public function testRewrite()
 	{
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Overrides_Helper_Sales', Mage::helper('sales'));
+		$this->assertInstanceOf('TrueAction_Eb2cOrder_Overrides_Helper_Sales', Mage::helper('sales'));
 	}
 
 	/**

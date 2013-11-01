@@ -25,6 +25,11 @@
 			<eb2corder>
 				<class>TrueAction_Eb2cOrder_Helper</class>
 			</eb2corder>
+			<sales>
+				<rewrite>
+					<data>TrueAction_Eb2cOrder_Overrides_Helper_Sales</data>
+				</rewrite>
+			</sales>
 		</helpers>
 		<blocks>
 			<sales>
