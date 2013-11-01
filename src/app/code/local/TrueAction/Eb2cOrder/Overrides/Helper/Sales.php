@@ -26,6 +26,7 @@ class TrueAction_Eb2cOrder_Overrides_Helper_Sales extends Mage_Core_Helper_Data
 	{
 		if (isset(self::$_overLoadedMethods[$name])) {
 			if ($this->_config->isSalesEmailsSuppressed) {
+				Mage::log("Suppressing email triggered by [{$name}]");
 				return false;
 			} else {
 				return call_user_func_array(array($this->_helper, $name), $args);

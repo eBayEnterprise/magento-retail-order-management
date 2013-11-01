@@ -10,6 +10,7 @@ class TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma
 	public function sendNewRmaEmail()
 	{
 		if (Mage::helper('eb2corder')->getConfig()->isSalesEmailsSuppressedFlag) {
+			Mage::log('Suppressing new RMA email');
 			return $this;
 		} else {
 			return parent::sendNewRmaEmail();
