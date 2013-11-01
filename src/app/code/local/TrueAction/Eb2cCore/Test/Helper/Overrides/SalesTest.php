@@ -91,4 +91,12 @@ class TrueAction_Eb2cCore_Test_Overrides_Helper_SalesTest
 			->disableOriginalConstructor()
 			->setMethods('');
 	}
+
+	public function testRmaEmailSuppressionOff()
+	{
+		$this->markTestIncomplete();
+		$rmaConfig = $this->getModelMockBuilder('enterprise_rma/config')
+			->disableOriginalConstructor()
+			->setMethods('');
+	}
 }

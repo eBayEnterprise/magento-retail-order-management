@@ -1,19 +1,28 @@
 # eb2c handles emails
  -
+ - sales/order
    - canSendNewOrderConfirmationEmail
  -
+ - sales/order
    - canSendNewOrderEmail
  -
+ - sales/order
    - canSendOrderCommentEmail
  -
+ - sales/order_shipment
    - canSendNewShipmentEmail
  -
+ - sales/order_shipment
    - canSendShipmentCommentEmail
  -
+ - sales/order_invoice
    - canSendNewInvoiceEmail
  -
+ - sales/order_invoice
    - canSendInvoiceCommentEmail
  -
+ - sales/order_creditmemo
    - canSendNewCreditmemoEmail
  -
+ - sales/order_creditmemo
    - canSendCreditmemoCommentEmail
