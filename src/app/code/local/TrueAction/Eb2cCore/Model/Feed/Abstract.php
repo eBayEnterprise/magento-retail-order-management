@@ -89,18 +89,32 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 			try {
 				$this->processFile($xmlFeedFile);
 				$filesProcessed++;
-			} catch (TrueAction_Eb2cCore_Exception_Feed_Failure $e) {
-				echo $e->getMessage();
-				Mage::log(sprintf('[ %s ] Failed to process file, %s.', __CLASS__, $xmlFeedFile), Zend_Log::DEBUG);
+			// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
+			// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
+			// one should just log the error and move on. Leaving out the TrueAction_Core_Feed_Failure
+			// for now as none of the feeds expect to use it.
 			} catch (Mage_Core_Exception $e) {
-				Mage::log(sprintf('[ %s ] Failed to process file, %s. Halting further feed processing.', __CLASS__, $xmlFeedFile), Zend_Log::DEBUG);
-				echo $e->getMessage();
-				break;
+				Mage::log(sprintf('[ %s ] Failed to process file, %s.', __CLASS__, $xmlFeedFile), Zend_Log::WARN);
 			}
-			$this->_coreFeed->removeFromRemote($this->getFeedRemotePath(), basename($xmlFeedFile));
-			$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
+			$this->archiveFeed($xmlFeedFile);
 		}
 		return $filesProcessed;
+	}
+
+	/**
+	 * Archive the file after processing - move the local copy to the archive dir for the feed
+	 * and delete the file off of the remote sftp server.
+	 * @param  string $xmlFeedFile Local path of the file
+	 * @return $this object
+	 */
+	public function archiveFeed($xmlFeedFile)
+	{
+		$config = Mage::getModel('eb2ccore/config_registry')->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		if ($config->deleteRemoteFeedFiles) {
+			$this->_coreFeed->removeFromRemote($this->getFeedRemotePath(), basename($xmlFeedFile));
+		}
+		$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
+		return $this;
 	}
 
 	/**
@@ -112,8 +126,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
 			$dom->load($xmlFile);
-		}
-		catch(Exception $e) {
+		} catch (Exception $e) {
 			Mage::logException($e);
 			return;
 		}
@@ -122,7 +135,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_A
 		if ( !Mage::helper('eb2ccore/feed')
 			->validateHeader($dom, $this->getFeedEventType() )
 		) {
-			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
+			Mage::log(sprintf('[%s] File %s: Invalid header', __CLASS__, $xmlFile), Zend_Log::ERR);
 			return;
 		}
 		$this->processDom($dom);

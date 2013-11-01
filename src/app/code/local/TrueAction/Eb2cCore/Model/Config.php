@@ -14,6 +14,7 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'client_customer_id_prefix'   => 'eb2ccore/general/client_customer_id_prefix',
 		'client_id'                   => 'eb2ccore/general/client_id',
 		'client_order_id_prefix'      => 'eb2ccore/general/client_order_id_prefix',
+		'delete_remote_feed_files'    => 'eb2ccore/feed/delete_remote_feed_files',
 		'feed_available_models'       => 'eb2ccore/feed/available_models',
 		'feed_destination_type'       => 'eb2ccore/feed/destination_type',
 		'feed_enabled_reindex'        => 'eb2ccore/feed/enabled_reindex',

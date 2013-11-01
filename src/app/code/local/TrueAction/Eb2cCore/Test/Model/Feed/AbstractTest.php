@@ -165,13 +165,27 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	}
 
 	/**
-	 * When exceptions are encountered while loading a feed file, the feed
-	 * should not process (it can't). Feed file should be archived (moved to archive dir)
-	 * and removed from the remote.
-	 *
-	 * @test
+	 * Success and fail status of loading xml into a dom document and processing that dom document.
+	 * @return array Expectations for testFeedProcessing
 	 */
-	public function testLoadExceptions()
+	public function providerFeedProcessing()
+	{
+		return array(
+			array(true, true),
+			array(true, false),
+			array(false, true),
+		);
+	}
+
+	/**
+	 * Test processing of the feeds, success and failure
+	 * @param  boolean $domLoadSuccess Should the XML be loaded succesfully
+	 * @param  boolean $processSuccess Should processing of the DOM be successful
+	 * @test
+	 * @dataProvider providerFeedProcessing
+	 * @loadFixtures
+	 */
+	public function testFeedProcessing($domLoadSuccess, $processSuccess)
 	{
 		$fileName = 'dummy_file_name.xml';
 		$remotePath = 'remove_dummy_path';
@@ -195,10 +209,12 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			->with($this->identicalTo($remotePath, $fileName));
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
+		$domStub = $this->_domStub(array($fileName => ($domLoadSuccess ? $domLoadSuccess : new Mage_Core_Exception),));
+
 		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
 		$coreHelper->expects($this->any())
 			->method('getNewDomDocument')
-			->will($this->returnValue($this->_domStub(array($fileName => new Exception(),))));
+			->will($this->returnValue($domStub));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
 
 		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
@@ -220,8 +236,100 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 				'fs_tool'           => $mockFs,
 			))
 		);
+		// if dom document was loaded successfully, the message should be validated and processed
+		if ($domLoadSuccess) {
+			$feedHelper = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
+			$feedHelper->expects($this->once())
+				->method('validateHeader')
+				->with($this->identicalTo($domStub), $this->identicalTo('OrderStatus'))
+				->will($this->returnValue(true));
+			$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
+
+			$processReturn = $this->returnValue(null);
+			if (!$processSuccess) {
+				$processReturn = $this->throwException(new Mage_Core_Exception);
+			}
+			$model->expects($this->once())
+				->method('processDom')
+				->with($this->identicalTo($domStub))
+				->will($processReturn);
+		}
+
 		// dom loading exceptions are caught and consider the file as processed
-		$this->assertSame(1, $model->processFeeds());
+		$expectedProcessed = !$processSuccess ? 0 : 1;
+		$this->assertSame($expectedProcessed, $model->processFeeds());
+	}
+
+	/**
+	 * Provider for testFileArchiving
+	 * @return array should remote file be deleted
+	 */
+	public function providerFileArchive()
+	{
+		return array(
+			array(true),
+			array(false),
+		);
+	}
+
+	/**
+	 * Test archival of feed files, should always move to the archive dir
+	 * but only delete from remote if configured to.
+	 * @param  boolean $deleteRemoteConfig Should the remote file be delted.
+	 * @test
+	 * @dataProvider providerFileArchive
+	 */
+	public function testFileArchiving($deleteRemoteConfig)
+	{
+		$fileName = 'dummy_file_name.xml';
+		$filePath = 'inbound' . DS . $fileName;
+		$remotePath = 'remove_dummy_path';
+		$filePattern = 'Oh*My*Glob';
+
+		$mockConfig = $this->getModelMock('eb2ccore/config_registry', array('__get'));
+		$mockConfig->expects($this->any())
+			->method('__get')
+			->will($this->returnValueMap(array(array('deleteRemoteFeedFiles', $deleteRemoteConfig))));
+		$this->replaceByMock('model', 'eb2ccore/config_registry', $mockConfig);
+
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('mvToArchiveDir', 'removeFromRemote',))
+			->getMock();
+		$coreFeed->expects($this->once())
+			->method('mvToArchiveDir')
+			->with($this->identicalTo($filePath));
+		if ($deleteRemoteConfig) {
+			$coreFeed->expects($this->once())
+				->method('removeFromRemote')
+				->with($this->identicalTo($remotePath, $fileName));
+		} else {
+			$coreFeed->expects($this->never())
+				->method('removeFromRemote');
+		}
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+
+		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
+		$mockFs->expects($this->any())
+			->method('setAllowCreateFolders')
+			->will($this->returnSelf());
+		$mockFs->expects($this->any())
+			->method('open')
+			->will($this->returnSelf());
+
+		$model = $this->getMockForAbstractClass(
+			self::CLASS_TESTED,
+			array('param' => array(
+				'feed_config'       => 'dummy_config',
+				'feed_event_type'   => 'OrderStatus',
+				'feed_file_pattern' => $filePattern,
+				'feed_local_path'   => 'inbound',
+				'feed_file_pattern' => $filePattern,
+				'feed_remote_path'  => $remotePath,
+				'fs_tool'           => $mockFs,
+			))
+		);
+		$model->archiveFeed($filePath);
 	}
 
 	/**
