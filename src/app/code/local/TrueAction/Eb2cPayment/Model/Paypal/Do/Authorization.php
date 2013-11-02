@@ -44,6 +44,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 	 */
 	public function buildPayPalDoAuthorizationRequest($quote)
 	{
+		$totals = $quote->getTotals();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoAuthorizationRequest = $domDocument->addElement('PayPalDoAuthorizationRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 		$payPalDoAuthorizationRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
@@ -54,7 +55,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization extends Mage_Core_Mod
 
 		$payPalDoAuthorizationRequest->createChild(
 			'Amount',
-			sprintf('%.02f', $quote->getBaseGrandTotal()),
+			sprintf('%.02f', (isset($totals['grand_total']) ? $totals['grand_total']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
