@@ -75,6 +75,7 @@ abstract class TrueAction_Eb2cCore_Test_Base
 	 */
 	public function tearDown()
 	{
+		Mage::app()->setCurrentStore(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
 		EcomDev_PHPUnit_Test_Case_Util::tearDown();
 	}
 
