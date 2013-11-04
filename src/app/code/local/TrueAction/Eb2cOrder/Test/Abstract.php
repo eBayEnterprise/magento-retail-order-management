@@ -39,9 +39,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				'getEb2cJavascriptData' => implode($reallyBigJavascriptData),
 				'getEb2cReferer'        => 'https://example.com/',
 				'getEb2cSessionId'      => '5nqm2sczfncsggzdqylueb2h',
-				'getEb2cUserAgent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36',
-				'getEntityId'           => '711',
-				'getGrandTotal'         => '1776',
+				'getEb2cUserAgent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36', 'getEntityId'           => '711', 'getGrandTotal'         => '1776',
 				'getGrandTotal'         => '1776',
 				'getId'                 => '666',
 				'getIncrementId'        => '8675309',
@@ -166,16 +164,22 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		return $this->_getFullMocker(
 			'sales/order_payment',
 			array (
-				'getAmountAuthorized' => '1776',
-				'getCcApproval'       => 'APP123456',
-				'getCcAvsStatus'      => 'Z',
-				'getCcCidStatus'      => 'Y',
-				'getCcExpMonth'       => '12',
-				'getCcExpYear'        => '2015',
-				'getCcStatus'         => true,
-				'getMethod'           => 'Pbridge_eb2cpayment_cc',
-				'getId'               => 1,
-				'getCreatedAt'        => '2013-10-25 17:06:28',
+				'getAdditionalInformation' => array(
+					array('avs_response_code', 'pb_avsResponseCode'),
+					array('bank_authorization_code', 'pb_bankAuthorizationCode'),
+					array('cvv2_response_code', 'pb_cvv2ResponseCode'),
+					array('response_code', 'pb_responseCode'),
+				),
+				'getAmountAuthorized'      => '1776',
+				'getCcApproval'            => 'APP123456',
+				'getCcAvsStatus'           => 'Z',
+				'getCcCidStatus'           => 'Y',
+				'getCcExpMonth'            => '12',
+				'getCcExpYear'             => '2015',
+				'getCcStatus'              => true,
+				'getMethod'                => 'Pbridge_eb2cpayment_cc',
+				'getId'                    => 1,
+				'getCreatedAt'             => '2013-10-25 17:06:28',
 			)
 		);
 	}
@@ -202,6 +206,7 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			)
 		);
 	}
+
 
 	/**
 	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for Eb2cOrder Testing.
@@ -266,7 +271,14 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				->getMock();
 		}
 		foreach($mockedMethodSet as $method => $returnSet ) {
-			if ($returnSet === 'self') {
+			if (is_array($returnSet) 
+				&& (count($returnSet) > 1) 
+				&& is_array($returnSet[0]))
+			{
+				$mock->expects($this->any())
+					->method($method)
+					->will($this->returnValueMap($returnSet));
+			} else if ($returnSet === 'self') {
 				$mock->expects($this->any())
 					->method($method)
 					->will($this->returnSelf());

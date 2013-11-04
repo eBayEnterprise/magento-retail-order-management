@@ -411,4 +411,71 @@ INVALID_XML;
 
 		$this->assertNotEmpty($prepaidContentNode);
 	}
+
+	/**
+	 * Tests for correctly as parsed from Pbridge Credit Card extensions 'additional_information' variable.
+	 *
+	 * @test
+	 */
+	public function testPbridgeGetAdditionalInformation()
+	{
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue( (Object) array(
+				'isPaymentEnabled' => true,
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$sessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(
+				array(
+					'getSessionId',
+				)
+			)
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getSessionId')
+			->will($this->returnValue(1));
+		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+
+		$this->replaceCoreConfigRegistry();
+
+		$orderCreator = Mage::getModel('eb2corder/create')
+			->buildRequest($this->getMockSalesOrder());
+
+		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
+		$xmlRequestValue = $reflectXmlRequest->getValue($orderCreator);
+
+		$testDom = new DOMDocument();
+		$testDom->loadXML($xmlRequestValue);
+
+		$this->assertStringStartsWith(
+				'pb_avsResponseCode',
+				$testDom->getElementsByTagName('AVSResponseCode')->item(0)->nodeValue,
+				'AVS Response Code was incorrect.'
+		);
+
+		$this->assertStringStartsWith(
+				'pb_bankAuthorizationCode',
+				$testDom->getElementsByTagName('BankAuthorizationCode')->item(0)->nodeValue,
+				'BankAuthorizationCode was incorrect.'
+		);
+
+		$this->assertStringStartsWith(
+				'pb_cvv2ResponseCode',
+				$testDom->getElementsByTagName('CVV2ResponseCode')->item(0)->nodeValue,
+				'CVV2ResponseCode was incorrect.'
+		);
+
+		$this->assertStringStartsWith(
+				'pb_responseCode',
+				$testDom->getElementsByTagName('ResponseCode')->item(0)->nodeValue,
+				'ResponseCode was incorrect.'
+		);
+	}
 }

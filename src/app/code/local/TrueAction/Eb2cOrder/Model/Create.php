@@ -524,10 +524,12 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 
 					$auth = $thisPayment->createChild('Authorization');
-					$auth->createChild('ResponseCode', $payment->getCcStatus());
-					$auth->createChild('BankAuthorizationCode', $payment->getCcApproval());
-					$auth->createChild('CVV2ResponseCode', $payment->getCcCidStatus());
-					$auth->createChild('AVSResponseCode', $payment->getCcAvsStatus());
+
+					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
+					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
+					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
+					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
+
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
 				} elseif ($payMethodNode === 'PayPal') {
@@ -548,7 +550,6 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 		} else {
 			$thisPayment = $payments->createChild('PrepaidCreditCard');
 			$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
-
 		}
 	}
 
