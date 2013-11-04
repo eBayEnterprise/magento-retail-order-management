@@ -430,16 +430,24 @@ INVALID_XML;
 			)));
 		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
 
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
 		$sessionMock = $this->getModelMockBuilder('core/session')
 			->disableOriginalConstructor()
-			->setMethods(
-				array(
-					'getSessionId',
-				)
-			)
+			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
 			->getMock();
 		$sessionMock->expects($this->any())
+			->method('getCookieShouldBeReceived')
+			->will($this->returnValue(true));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdQueryParam')
+			->will($this->returnValue('name'));
+		$sessionMock->expects($this->any())
 			->method('getSessionId')
+			->will($this->returnValue(1));
+		$sessionMock->expects($this->any())
+			->method('getSessionIdForHost')
 			->will($this->returnValue(1));
 		$this->replaceByMock('singleton', 'core/session', $sessionMock);
 
