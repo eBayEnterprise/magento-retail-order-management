@@ -20,19 +20,19 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'catalogId' => '45',
 			'gsiClientId' => 'MAGTNA',
 			'pricingFeedLocalPath' => self::VFS_ROOT . DS . 'pricing',
-			'pricingFeedRemotePath' => '/',
+			'pricingFeedRemoteReceivedPath' => '/',
 			'pricingFeedFilePattern' => '*.xml',
 			'pricingFeedEventType' => 'Price',
 			'itemFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
-			'itemFeedRemotePath' => '/',
+			'itemFeedRemoteReceivedPath' => '/',
 			'itemFeedFilePattern' => '*.xml',
 			'itemFeedEventType' => 'Item',
 			'contentFeedLocalPath' => self::VFS_ROOT . DS . 'contentmaster',
-			'contentFeedRemotePath' => '/',
+			'contentFeedRemoteReceivedPath' => '/',
 			'contentFeedFilePattern' => '*.xml',
 			'contentFeedEventType' => 'Content',
 			'iShipFeedLocalPath' => self::VFS_ROOT . DS . 'iship',
-			'iShipFeedRemotePath' => '/',
+			'iShipFeedRemoteReceivedPath' => '/',
 			'iShipFeedFilePattern' => '*.xml',
 			'iShipFeedEventType' => 'iShip',
 			'processorUpdateBatchSize' => 1,
@@ -95,7 +95,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->will($this->returnValue('Content'));
 		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
 
-
 		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
 			'_construct',
 			'getFeedRemotePath',
@@ -137,7 +136,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('getFeedEventType')
 			->will($this->returnValue('iShip'));
 		$this->replaceByMock('singleton', 'eb2cproduct/feed_iship', $feedTypeD);
-
 
 		$testModel = $this->getModelMock('eb2cproduct/feed', array(
 			'_getIterableFor',
@@ -230,7 +228,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('getFeedEventType')
 			->will($this->returnValue('Content'));
 		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
-
 
 		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
 			'_construct',
@@ -445,4 +442,62 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		$this->assertSame(4, $model->processFeeds());
 	}
 
+	/**
+	 * @ticket EBC-240
+	 * @loadFixture
+	 * @loadExpectation
+	 */
+	public function testDescriptionClobbering()
+	{
+		$this->_mockConfigWithDefaults();
+		$vfs = $this->getFixture()->getVfs();
+		$coreHelper = $this->getHelperMock('eb2ccore/data', array(
+			'validateHeader',
+		));
+		$coreHelper->expects($this->any())
+			->method('validateHeader')
+			->will($this->returnValue(true));
+
+		$filesList = array(
+			$vfs->url('var/eb2c/itemmaster/feed.xml'),
+			$vfs->url('var/eb2c/contentmaster/feed.xml'),
+		);
+		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
+			'fetchFeedsFromRemote',
+			'lsInboundDir',
+			'mvToArchiveDir',
+		));
+		$coreFeed->expects($this->atLeastOnce())
+			->method('lsInboundDir')
+			->will($this->returnValue($filesList));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+
+		Mage::getModel('eb2cproduct/feed')->processFeeds();
+
+		$helper = Mage::helper('eb2cproduct');
+		$product = $helper->loadProductBySku('testsku');
+		$this->assertNotNull($product->getId(), 'product could not be loaded');
+		$e = $this->expected('test');
+		$this->assertSame($product->getDescription(), $e->getDescription());
+		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
+
+		$filesList[] = $vfs->url('var/eb2c/pricing/feed.xml');
+		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
+			'fetchFeedsFromRemote',
+			'lsInboundDir',
+			'mvToArchiveDir',
+		));
+		$coreFeed->expects($this->atLeastOnce())
+			->method('lsInboundDir')
+			->will($this->returnValue($filesList));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+
+		Mage::getModel('eb2cproduct/feed')->processFeeds();
+
+		$helper = Mage::helper('eb2cproduct');
+		$product = $helper->loadProductBySku('testsku');
+		$this->assertNotNull($product->getId(), 'product could not be reloaded');
+		$this->assertSame($product->getDescription(), $e->getDescription());
+		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
+	}
 }

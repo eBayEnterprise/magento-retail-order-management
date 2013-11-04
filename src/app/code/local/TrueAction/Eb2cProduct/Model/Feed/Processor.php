@@ -150,7 +150,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$baseAttributes = new Varien_Object();
 		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
 		foreach (array('catalog_class', 'item_description', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
-			$baseAttributes->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
+			if ($dataObject->hasData($key)) {
+				$baseAttributes->setData($key, $dataObject->getData($key));
+			}
 		}
 		$outData->setData('base_attributes', $baseAttributes);
 
@@ -197,11 +199,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		)));
 
 		foreach ($this->_extKeys as $key) {
-			$extData->setData($key, $dataObject->hasData($key) ? $dataObject->getData($key) : false);
+			if ($dataObject->hasData($key)) {
+				$extData->setData($key, $dataObject->getData($key));
+			}
 		}
 		// handle values that need to be booleans
 		foreach ($this->_extKeysBool as $key) {
-			$extData->setData($key, $dataObject->hasData($key) ? $this->_helper->convertToBoolean($dataObject->getData($key)) : false);
+			if ($dataObject->hasData($key)) {
+				$extData->setData($key, $this->_helper->convertToBoolean($dataObject->getData($key)));
+			}
 		}
 
 		$this->_preparePricingEventData($dataObject, $extData);
