@@ -39,7 +39,9 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				'getEb2cJavascriptData' => implode($reallyBigJavascriptData),
 				'getEb2cReferer'        => 'https://example.com/',
 				'getEb2cSessionId'      => '5nqm2sczfncsggzdqylueb2h',
-				'getEb2cUserAgent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36', 'getEntityId'           => '711', 'getGrandTotal'         => '1776',
+				'getEb2cUserAgent'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.95 Safari/537.36',
+				'getEntityId'           => '711',
+				'getGrandTotal'         => '1776',
 				'getGrandTotal'         => '1776',
 				'getId'                 => '666',
 				'getIncrementId'        => '8675309',
@@ -207,7 +209,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		);
 	}
 
-
 	/**
 	 * Replaces the Magento eb2ccore/config_registry model. I.e., this is your config for Eb2cOrder Testing.
 	 *
@@ -271,14 +272,11 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 				->getMock();
 		}
 		foreach($mockedMethodSet as $method => $returnSet ) {
-			if (is_array($returnSet) 
-				&& (count($returnSet) > 1) 
-				&& is_array($returnSet[0]))
-			{
+			if (is_array($returnSet) && (count($returnSet) > 1) && is_array($returnSet[0])) {
 				$mock->expects($this->any())
 					->method($method)
 					->will($this->returnValueMap($returnSet));
-			} else if ($returnSet === 'self') {
+			} elseif ($returnSet === 'self') {
 				$mock->expects($this->any())
 					->method($method)
 					->will($this->returnSelf());
