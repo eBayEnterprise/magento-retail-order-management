@@ -13,6 +13,7 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 */
 	public function redeemGiftCard($observer)
 	{
+
 		$quote = $observer->getEvent()->getQuote();
 		$giftCard = unserialize($quote->getGiftCards());
 
@@ -20,10 +21,12 @@ class TrueAction_Eb2cPayment_Model_Observer
 			foreach ($giftCard as $card) {
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's redeem gift card in eb2c.
-					$storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')->getRedeem($card['pan'], $card['pin'], $quote->getId(), $card['ba']);
+					$storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')->getRedeem($card['pan'], $card['pin'], $quote->getId(), $quote->getGiftCardsAmountUsed());
+
 					if ($storeValueRedeemReply) {
 						$redeemData = Mage::getModel('eb2cpayment/stored_value_redeem')->parseResponse($storeValueRedeemReply);
 						if ($redeemData) {
+							$quote->save();
 							// making sure we have the right data
 							if (isset($redeemData['responseCode']) && strtoupper(trim($redeemData['responseCode'])) === 'FAIL') {
 								// removed gift card from the shopping cart
@@ -63,7 +66,7 @@ class TrueAction_Eb2cPayment_Model_Observer
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's RedeemVoid gift card in eb2c.
 					$storeValueRedeemVoidReply = Mage::getModel('eb2cpayment/stored_value_redeem_void')
-						->getRedeemVoid($card['pan'], $card['pin'], $quote->getId(), $card['ba']);
+						->getRedeemVoid($card['pan'], $card['pin'], $quote->getId(), $quote->getGiftCardsAmountUsed());
 					if ($storeValueRedeemVoidReply) {
 						$redeemVoidData = Mage::getModel('eb2cpayment/stored_value_redeem_void')->parseResponse($storeValueRedeemVoidReply);
 						if ($redeemVoidData) {
@@ -113,6 +116,9 @@ class TrueAction_Eb2cPayment_Model_Observer
 			// let's disable any none eBay Enterprise payment method
 			Mage::getModel('eb2cpayment/suppression')->disableNoneEb2CPaymentMethods();
 		}
+
+		// last thing make sure free payment method is enabled regardless of eb2cpayment method on or off
+		Mage::getModel('eb2cpayment/suppression')->enableFreePaymentMethod();
 
 		return $this;
 	}
