@@ -45,23 +45,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		$this->replaceCoreConfigRegistry();
 		$this->replaceModel(
@@ -100,23 +84,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		$this->replaceCoreConfigRegistry();
 		$this->replaceModel(
@@ -144,23 +112,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		$this->replaceCoreConfigRegistry();
 		$this->replaceModel(
@@ -262,23 +214,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		// Mock the core config registry, only value passed is the vfs filename
 		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
@@ -370,23 +306,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		$this->replaceCoreConfigRegistry();
 		$this->replaceModel(
@@ -433,23 +353,7 @@ INVALID_XML;
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
 
-		$sessionMock = $this->getModelMockBuilder('core/session')
-			->disableOriginalConstructor()
-			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('getCookieShouldBeReceived')
-			->will($this->returnValue(true));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdQueryParam')
-			->will($this->returnValue('name'));
-		$sessionMock->expects($this->any())
-			->method('getSessionId')
-			->will($this->returnValue(1));
-		$sessionMock->expects($this->any())
-			->method('getSessionIdForHost')
-			->will($this->returnValue(1));
-		$this->replaceByMock('singleton', 'core/session', $sessionMock);
+		$this->replaceCoreSession();
 
 		$this->replaceCoreConfigRegistry();
 
@@ -463,27 +367,106 @@ INVALID_XML;
 		$testDom->loadXML($xmlRequestValue);
 
 		$this->assertStringStartsWith(
-				'pb_avsResponseCode',
-				$testDom->getElementsByTagName('AVSResponseCode')->item(0)->nodeValue,
-				'AVS Response Code was incorrect.'
+			'pb_avsResponseCode',
+			$testDom->getElementsByTagName('AVSResponseCode')->item(0)->nodeValue,
+			'AVS Response Code was incorrect.'
 		);
 
 		$this->assertStringStartsWith(
-				'pb_bankAuthorizationCode',
-				$testDom->getElementsByTagName('BankAuthorizationCode')->item(0)->nodeValue,
-				'BankAuthorizationCode was incorrect.'
+			'pb_bankAuthorizationCode',
+			$testDom->getElementsByTagName('BankAuthorizationCode')->item(0)->nodeValue,
+			'BankAuthorizationCode was incorrect.'
 		);
 
 		$this->assertStringStartsWith(
-				'pb_cvv2ResponseCode',
-				$testDom->getElementsByTagName('CVV2ResponseCode')->item(0)->nodeValue,
-				'CVV2ResponseCode was incorrect.'
+			'pb_cvv2ResponseCode',
+			$testDom->getElementsByTagName('CVV2ResponseCode')->item(0)->nodeValue,
+			'CVV2ResponseCode was incorrect.'
 		);
 
 		$this->assertStringStartsWith(
-				'pb_responseCode',
-				$testDom->getElementsByTagName('ResponseCode')->item(0)->nodeValue,
-				'ResponseCode was incorrect.'
+			'pb_responseCode',
+			$testDom->getElementsByTagName('ResponseCode')->item(0)->nodeValue,
+			'ResponseCode was incorrect.'
 		);
+	}
+
+	/**
+	 * Test that when eb2cpayments turn on and the payment method is 'Free' and the order getGiftCardsAmount is greater than zero then
+	 * StoreValueCard get send in the order create request
+	 * @test
+	 */
+	public function testStoredValueCardNodeIsUseWhenGiftCardIsAddedtoTheOrder()
+	{
+		// let test the model responsible for building the payment request xml
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+
+		$helperMock->expects($this->any())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'isPaymentEnabled' => 1
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
+		$this->replaceCoreSession();
+
+		$this->replaceCoreConfigRegistry();
+		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
+
+		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder3());
+
+		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
+		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
+		// let's test request xml has a StoredValueCard node
+		$storedValueCardContentNode = stristr(stristr(
+		$xmlRequest->getValue($orderCreator), '<StoredValueCard>', false),
+		'</StoredValueCard>', true);
+
+		$this->assertNotEmpty($storedValueCardContentNode);
+	}
+
+	/**
+	 * Test that when eb2cpayments turn on and the payment method is 'Free' and the order getGiftCardsAmount is zero then
+	 * PrepaidCreditCard get send in the order create request
+	 * @test
+	 */
+	public function testPrepaidCreditCardNodeIsUseWhenThePaymentMethodIsFreeButNoGiftCardIsUsed()
+	{
+		// let test the model responsible for building the payment request xml
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+
+		$helperMock->expects($this->any())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'isPaymentEnabled' => 1
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
+		$this->replaceCoreSession();
+		$this->replaceCoreConfigRegistry();
+		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
+
+		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder4());
+
+		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
+		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
+		// let's test request xml has a PrepaidCreditCard node
+		$prepaidCreditCardContentNode = stristr(stristr(
+		$xmlRequest->getValue($orderCreator), '<PrepaidCreditCard>', false),
+		'</PrepaidCreditCard>', true);
+
+		$this->assertNotEmpty($prepaidCreditCardContentNode);
 	}
 }
