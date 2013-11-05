@@ -117,9 +117,6 @@ class TrueAction_Eb2cPayment_Model_Observer
 			Mage::getModel('eb2cpayment/suppression')->disableNoneEb2CPaymentMethods();
 		}
 
-		// last thing make sure free payment method is enabled regardless of eb2cpayment method on or off
-		Mage::getModel('eb2cpayment/suppression')->enableFreePaymentMethod();
-
 		return $this;
 	}
 }
