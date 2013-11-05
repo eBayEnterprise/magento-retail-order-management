@@ -514,9 +514,8 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			foreach($this->_o->getAllPayments() as $payment) {
 				$payMethodNode = $this->_ebcPaymentMethodMap[ucfirst($payment->getMethod())];
 
-				$thisPayment = $payments->createChild($payMethodNode);
-
 				if ($payMethodNode === 'CreditCard') {
+					$thisPayment = $payments->createChild($payMethodNode);
 					$paymentContext = $thisPayment->createChild('PaymentContext');
 					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
 					$paymentContext->createChild('TenderType', $payment->getMethod());
@@ -535,6 +534,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
 				} elseif ($payMethodNode === 'PayPal') {
+					$thisPayment = $payments->createChild($payMethodNode);
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 					$thisPayment->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
@@ -550,6 +550,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 				} elseif ($payMethodNode === 'StoredValueCard') {
 					// the payment method is free and there is gift card for the order
 					if ($this->_o->getGiftCardsAmount() > 0) {
+						$thisPayment = $payments->createChild($payMethodNode);
 						$paymentContext = $thisPayment->createChild('PaymentContext');
 						$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
 						$paymentContext->createChild('TenderType', $payment->getMethod());
