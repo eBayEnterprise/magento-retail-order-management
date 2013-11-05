@@ -421,7 +421,6 @@ INVALID_XML;
 
 		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder3());
 
-		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
 		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
 		// let's test request xml has a StoredValueCard node
 		$storedValueCardContentNode = stristr(stristr(
@@ -460,7 +459,6 @@ INVALID_XML;
 
 		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder4());
 
-		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
 		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
 		// let's test request xml has a PrepaidCreditCard node
 		$prepaidCreditCardContentNode = stristr(stristr(
@@ -468,5 +466,50 @@ INVALID_XML;
 		'</PrepaidCreditCard>', true);
 
 		$this->assertNotEmpty($prepaidCreditCardContentNode);
+	}
+
+	/**
+	 * Test that mock  if source was implemented and was returning the right data, the source node would be included the order create
+	 * PrepaidCreditCard get send in the order create request
+	 * @test
+	 */
+	public function testSourceNodeWillBeIncludedWhenSourceIsImplemented()
+	{
+		// let test the model responsible for building the payment request xml
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+
+		$helperMock->expects($this->any())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'isPaymentEnabled' => 1
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$_SERVER['HTTP_ACCEPT'] = '/';
+		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+
+		$this->replaceCoreSession();
+		$this->replaceCoreConfigRegistry();
+		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
+
+		$orderCreateMock = $this->getModelMockBuilder('eb2corder/create')
+			->setMethods(array('_getSourceData'))
+			->getMock();
+		$orderCreateMock->expects($this->any())
+			->method('_getSourceData')
+			->will($this->returnValue(array('source' => 'Fetchback', 'type' => 'PPC')));
+		$this->replaceByMock('model', 'eb2corder/create', $orderCreateMock);
+
+		$xmlRequest = $orderCreateMock->buildRequest($this->getMockSalesOrder())->getXmlRequest();
+		// let's test request xml has a OrderSource node
+		$orderSourceContentNode = stristr(stristr($xmlRequest, '<OrderSource>', false), '</OrderSource>', true);
+
+		// Stop here and mark this test as incomplete.
+		$this->markTestIncomplete('This test has not been implemented yet.');
+
+		$this->assertNotEmpty($orderSourceContentNode);
 	}
 }
