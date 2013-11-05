@@ -21,6 +21,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 			'pbridge',
 			'pbridge_eb2cpayment_cc',
 			'paypal_express',
+			'free',
 		);
 		return $this;
 	}
@@ -118,35 +119,5 @@ class TrueAction_Eb2cPayment_Model_Suppression
 		}
 
 		return false;
-	}
-
-	/**
-	 * query free payment methods from config
-	 * @return Mage_Core_Model_Config_Data
-	 */
-	public function queryFreePaymentMethod()
-	{
-		$config = Mage::getResourceModel('core/config_data_collection');
-		$config->getSelect()
-			->where("main_table.path = 'payment/free/active'");
-
-		return $config->load()->getFirstItem();
-	}
-
-	/**
-	 * check if any none eb2c payment method enabled
-	 * @return self
-	 */
-	public function enableFreePaymentMethod()
-	{
-		$cfg = $this->queryFreePaymentMethod();
-		if ($cfg instanceof Mage_Core_Model_Config_Data) {
-			if ((int) $cfg->getValue() !== 1) {
-				$cfg->setValue(1)->save();
-			}
-		}
-		// reload config
-		Mage::getConfig()->reinit();
-		return $this;
 	}
 }
