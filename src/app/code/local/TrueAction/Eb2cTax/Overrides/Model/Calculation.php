@@ -73,7 +73,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		if ($quote) {
 			// delete old response/request
 			$this->unsTaxResponse();
-			return Mage::getModel('eb2ctax/request', array('quote' => $quote));
+			return Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
 		}
 		$response = $this->getTaxResponse();
 		return $response ? $response->getRequest() : Mage::getModel('eb2ctax/request');

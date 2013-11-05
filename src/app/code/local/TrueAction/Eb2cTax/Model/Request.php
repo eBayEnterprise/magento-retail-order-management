@@ -7,7 +7,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 {
 	const EMAIL_MAX_LENGTH         = 70;
 	const NUM_STREET_LINES         = 4;
-	protected $_helper             = null;
 	protected $_xml                = '';
 	protected $_doc                = null;
 	protected $_tdRequest          = null;
@@ -15,7 +14,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_billingInfoRef     = '';
 	protected $_billingEmailRef    = '';
 	protected $_hasChanges         = false;
-	protected $_store              = null;
+	protected $_storeId            = null;
 	protected $_isMultiShipping    = false;
 	protected $_emailAddresses     = array();
 	protected $_destinations       = array();
@@ -38,12 +37,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected function _construct()
 	{
 		$quote         = $this->getQuote();
-		$this->_helper = Mage::helper('tax');
 		$this->setIsMultiShipping(0);
 		if ($this->_isQuoteUsable($quote)) {
-			$this->_store = $quote->getStore();
-			$this->setBillingAddress($quote->getBillingAddress());
-			$this->setShippingAddress($quote->getShippingAddress());
+			$this->_storeId = $quote->getStore()->getId();
 			$this->_processQuote();
 		}
 	}
@@ -54,7 +50,39 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 */
 	public function getStore()
 	{
-		return $this->_store;
+		return Mage::app()->getStore($this->_storeId);
+	}
+
+	/**
+	 * @return  Mage_Sales_Model_Quote Quote object the tax request is for.
+	 */
+	public function getQuote()
+	{
+		return $this->getQuoteId() !== null ? Mage::getModel('sales/quote')->load($this->getQuoteId()): null;
+	}
+
+	/**
+	 * @return  Mage_Sales_Model_Quote_Address Billing addres for the quote
+	 */
+	public function getBillingAddress()
+	{
+		$quote = $this->getQuote();
+		if ($quote) {
+			return $quote->getBillingAddress();
+		}
+		return null;
+	}
+
+	/**
+	 * @return  Mage_Sales_Model_Quote_Address Shipping addres for the quote
+	 */
+	public function getShippingAddress()
+	{
+		$quote = $this->getQuote();
+		if ($quote) {
+			return $quote->getShippingAddress();
+		}
+		return null;
 	}
 
 	/**
@@ -526,7 +554,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		return $this->_checkLength(
 			Mage::getStoreConfig(
 				Mage_Tax_Model_Config::CONFIG_XML_PATH_SHIPPING_TAX_CLASS,
-				$this->getStore()
+				$this->_storeId
 			),
 			1, 40
 		);
@@ -534,15 +562,16 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _buildTaxDutyRequest()
 	{
+		$helper = Mage::helper('tax');
 		try {
-			$this->_namespaceUri = $this->_helper->getNamespaceUri($this->getStore());
+			$this->_namespaceUri = $helper->getNamespaceUri($this->_storeId);
 			$this->_doc->addElement('TaxDutyQuoteRequest', null, $this->_namespaceUri);
 			$tdRequest          = $this->_doc->documentElement;
 			$billingInformation = $tdRequest->addChild(
 				'Currency',
 				$this->getQuote()->getQuoteCurrencyCode()
 			)
-				->addChild('VATInclusivePricing', (int) $this->_helper->getVatInclusivePricingFlag($this->getStore()))
+				->addChild('VATInclusivePricing', (int) $helper->getVatInclusivePricingFlag($this->_storeId))
 				->addChild(
 					'CustomerTaxId',
 					$this->_checkLength($this->getBillingAddress()->getTaxId(), 0, 40)
