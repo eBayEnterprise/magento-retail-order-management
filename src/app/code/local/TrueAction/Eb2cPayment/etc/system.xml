@@ -31,7 +31,7 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 							<comment>Select Yes/No selector to enable/disable paypal express payment method.</comment>
-							<depends><enabled>1</enabled></depends>s
+							<depends><enabled>1</enabled></depends>
 						</enable_paypal_express>
 						<sandbox_flag translate="label">
 							<label>PayPal Sandbox Mode</label>
@@ -42,6 +42,7 @@
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<shared>1</shared>
+							<depends><enabled>1</enabled></depends>
 						</sandbox_flag>
 					</fields>
 				</eb2cpayment>
