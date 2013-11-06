@@ -542,10 +542,10 @@ class TrueAction_Eb2cOrder_Model_Create
 
 					$auth = $thisPayment->createChild('Authorization');
 
-					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
+					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
 					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
-					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
+					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
 
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
