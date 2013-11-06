@@ -172,7 +172,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				// Shipping weight of the item.
 				'mass_unit_of_measure' => $dataObject->hasData($section . '_mass_unit_of_measure') ? $dataObject->getData($section . '_mass_unit_of_measure') : false,
 				// Shipping weight of the item.
-				'weight' => $dataObject->hasData($section . '_weight') ? $dataObject->getData($section . '_weight') : false,
+				'weight' => $dataObject->hasData($section . '_mass_weight') ? $dataObject->getData($section . '_mass_weight') : false,
 				'packaging' => new Varien_Object(array(
 					// Unit of measure used for these dimensions.
 					'unit_of_measure' => $dataObject->hasData($section . '_packaging_mass_unit_of_measure') ? $dataObject->getData($section . '_packaging_mass_unit_of_measure') : false,
