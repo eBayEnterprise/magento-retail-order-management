@@ -5,37 +5,58 @@
  * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
  */
 class TrueAction_Eb2cPayment_Model_Suppression
+	extends Varien_Object
 {
 	/**
-	 * @var array, hold list of eb2c specific payment methods
+	 * Payment methods that should be enabled when eb2c payments is enabled
+	 * @var array
 	 */
-	private $_ebcPaymentMthd = array();
+	protected $_eb2cPaymentMethods = array(
+		'pbridge',
+		'pbridge_eb2cpayment_cc',
+	);
 
 	/**
-	 * Initialize payment methods settings, etc
-	 * @return self
+	 * Payment methods that are allowed to be active while eb2c payments is enabled
+	 * @var array
 	 */
-	public function __construct()
+	protected $_whitelistPaymentMethods = array(
+		'paypal_express',
+		'free',
+	);
+
+	/**
+	 * All payment methods allowed while Eb2c Payments is enabled - a merge of
+	 * eb2cPaymentMethods and whitelistPaymentMethods
+	 * @var array
+	 */
+	protected $_allowedPaymentMethods = array();
+
+	/**
+	 * Core config model used to update config values
+	 * @var Mage_Core_Model_Config
+	 */
+	protected $_configModel;
+
+	/**
+	 * Setup the config model and allowed payment methods
+	 */
+	protected function _construct()
 	{
-		$this->_ebcPaymentMthd = array(
-			'pbridge',
-			'pbridge_eb2cpayment_cc',
-			'paypal_express',
-			'free',
+		$this->_configModel = Mage::getConfig();
+		$this->_allowedPaymentMethods = array_merge(
+			$this->_whitelistPaymentMethods,
+			$this->_eb2cPaymentMethods
 		);
-		return $this;
 	}
 
 	/**
-	 * query all payment methods from config
-	 * @return Mage_Core_Model_Resource_Config_Data_Collection
+	 * Get the relevent store id if there is one, otherwise null for the default/active store
+	 * @return int|null Store id or null
 	 */
-	public function queryConfigPayment()
+	protected function _getStoreId()
 	{
-		$config = Mage::getResourceModel('core/config_data_collection');
-		$config->getSelect()
-			->where("main_table.path LIKE '%payment%' AND main_table.path LIKE '%active%'");
-		return $config->load();
+		return $this->getStore() ? $this->getStore()->getId() : null;
 	}
 
 	/**
@@ -45,41 +66,34 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function saveEb2CPaymentMethods($value)
 	{
-		$config = $this->queryConfigPayment();
-		foreach ($this->_ebcPaymentMthd as $mthd) {
-			foreach ($config as $cfg) {
-				$cfgData = explode('/', $cfg->getPath());
-				if (in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() !== $value) {
-					$cfg->setValue($value)->save();
-				}
-			}
+		$config = Mage::app()->getStore($this->_getStoreId())->getConfig('payment');
+		// when enabled, should enable all allowed payment methods
+		// when disabled, should only disable methods exclusive to eb2c payments
+		foreach ($this->_eb2cPaymentMethods as $method) {
+			// @todo we need a better way of determining and setting the scope and scope id
+			$this->_configModel->saveConfig('payment/' . $method . '/active', $value, 'default', 0);
 		}
-
-		// reload config
-		Mage::getConfig()->reinit();
-
+		// when enabling eb2c payments, free payments need to be enabled...this is a bit
+		// hackish but should be ok
+		if ($value === '1') {
+			$this->_configModel->saveConfig('payment/free/active', $value, 'default', 0);
+		}
+		$this->_configModel->reinit();
 		return $this;
 	}
 
 	/**
-	 * disabled none eBay Enterprise payment methods
+	 * disabled non-eBay Enterprise payment methods
 	 * @return self
 	 */
-	public function disableNoneEb2CPaymentMethods()
+	public function disableNonEb2CPaymentMethods()
 	{
-		$config = $this->queryConfigPayment();
-		foreach ($this->_ebcPaymentMthd as $mthd) {
-			foreach ($config as $cfg) {
-				$cfgData = explode('/', $cfg->getPath());
-				if (!in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() === 1) {
-					$cfg->setValue(0)->save();
-				}
+		foreach ($this->getActivePaymentMethods() as $method => $methodConfig) {
+			if (!$this->isMethodAllowed($method)) {
+				$this->_configModel->saveConfig('payment/' . $method . '/active', 0, 'default', 0);
 			}
 		}
-
-		// reload config
-		Mage::getConfig()->reinit();
-
+		$this->_configModel->reinit();
 		return $this;
 	}
 
@@ -91,6 +105,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	public function isEbcPaymentConfigured()
 	{
 		$cfg = Mage::getModel('eb2ccore/config_registry')
+			->setStore($this->_getStoreId())
 			->addConfigModel(Mage::getSingleton('eb2cpayment/method_config'));
 
 		return (bool) $cfg->pbridgeActive &&
@@ -103,21 +118,53 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	}
 
 	/**
-	 * check if any none eb2c payment method enabled
-	 * @return self
+	 * check if any non-eb2c payment method enabled
+	 * @return boolean true if any non-allowed payment method is enabled
 	 */
-	public function isAnyNoneEb2CPaymentMethodEnabled()
+	public function isAnyNonEb2CPaymentMethodEnabled()
 	{
-		$config = $this->queryConfigPayment();
-		foreach ($this->_ebcPaymentMthd as $mthd) {
-			foreach ($config as $cfg) {
-				$cfgData = explode('/', $cfg->getPath());
-				if (!in_array($mthd, explode('/', $cfg->getPath())) && (int) $cfg->getValue() === 1) {
-					return true;
-				}
+		Mage::log($this->getActivePaymentMethods());
+		foreach ($this->getActivePaymentMethods() as $method => $methodConfig) {
+			if (!$this->isMethodAllowed($method)) {
+				Mage::log($method);
+				return true;
 			}
 		}
-
 		return false;
 	}
+
+	/**
+	 * Get only payment methods that are currently active.
+	 * @return array Maps of config values for active payment methods
+	 */
+	public function getActivePaymentMethods()
+	{
+		return array_filter(
+			$this->getPaymentMethods(),
+			function ($e) { return $e['active'] === '1'; }
+		);
+	}
+
+	/**
+	 * Get all payment methods
+	 * @return array Maps of config values for all payment methods
+	 */
+	public function getPaymentMethods()
+	{
+		return array_filter(
+			Mage::app()->getStore($this->_getStoreId())->getConfig('payment'),
+			function ($e) { return isset($e['active']); }
+		);
+	}
+
+	/**
+	 * Is the payment method allowed while eb2c payments are enabled.
+	 * @param  string  $paymentMethodName name of the payment method in config
+	 * @return boolean                    true if allowed, false if not
+	 */
+	public function isMethodAllowed($paymentMethodName)
+	{
+		return in_array($paymentMethodName, $this->_allowedPaymentMethods);
+	}
+
 }
