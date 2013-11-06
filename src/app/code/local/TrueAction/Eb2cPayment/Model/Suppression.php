@@ -64,19 +64,19 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 * @param int $value, 0 to turn payment off, 1 to turn payment on.
 	 * @return self
 	 */
-	public function saveEb2CPaymentMethods($value)
+	public function saveEb2CPaymentMethods($enabled)
 	{
 		$config = Mage::app()->getStore($this->_getStoreId())->getConfig('payment');
 		// when enabled, should enable all allowed payment methods
 		// when disabled, should only disable methods exclusive to eb2c payments
 		foreach ($this->_eb2cPaymentMethods as $method) {
 			// @todo we need a better way of determining and setting the scope and scope id
-			$this->_configModel->saveConfig('payment/' . $method . '/active', $value, 'default', 0);
+			$this->_configModel->saveConfig('payment/' . $method . '/active', $enabled, 'default', 0);
 		}
-		// when enabling eb2c payments, free payments need to be enabled...this is a bit
-		// hackish but should be ok
-		if ($value === '1') {
-			$this->_configModel->saveConfig('payment/free/active', $value, 'default', 0);
+		// when enabling eb2c payments, free payments need to be enabled...
+		// this is a bit hackish
+		if ($enabled) {
+			$this->_configModel->saveConfig('payment/free/active', $enabled, 'default', 0);
 		}
 		$this->_configModel->reinit();
 		return $this;
@@ -88,13 +88,30 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function disableNonEb2CPaymentMethods()
 	{
-		foreach ($this->getActivePaymentMethods() as $method => $methodConfig) {
-			if (!$this->isMethodAllowed($method)) {
-				$this->_configModel->saveConfig('payment/' . $method . '/active', 0, 'default', 0);
+		// disable all prohibited active payment methods at the default level
+		$this->_disablePaymentMethods($this->getActivePaymentMethods(null), 'default', 0);
+		// in case any payment method was enabled at a more specific level, need to make
+		// sure those are all cleared out as well.
+		foreach (Mage::app()->getWebsites() as $website) {
+			$this->_disablePaymentMethods($this->getActivePaymentMethods($website), 'websites', $website->getId());
+			$this->_configModel->reinit();
+			foreach ($website->getGroups() as $group) {
+				foreach ($group->getStores() as $store) {
+					$this->_disablePaymentMethods($this->getActivePaymentMethods($store), 'stores', $store->getId());
+				}
 			}
 		}
 		$this->_configModel->reinit();
 		return $this;
+	}
+
+	protected function _disablePaymentMethods($methodConfigs, $scope, $scopeId)
+	{
+		foreach ($methodConfigs as $method => $config) {
+			if (!$this->isMethodAllowed($method)) {
+				$this->_configModel->saveConfig('payment/' . $method . '/active', 0, $scope, $scopeId);
+			}
+		}
 	}
 
 	/**
@@ -123,11 +140,11 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function isAnyNonEb2CPaymentMethodEnabled()
 	{
-		Mage::log($this->getActivePaymentMethods());
-		foreach ($this->getActivePaymentMethods() as $method => $methodConfig) {
-			if (!$this->isMethodAllowed($method)) {
-				Mage::log($method);
-				return true;
+		foreach (Mage::app()->getStores() as $store) {
+			foreach ($this->getActivePaymentMethods($store) as $method => $methodConfig) {
+				if (!$this->isMethodAllowed($method)) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -135,12 +152,13 @@ class TrueAction_Eb2cPayment_Model_Suppression
 
 	/**
 	 * Get only payment methods that are currently active.
+	 * @param  Mage_Core_Model_Store|Mage_Core_Model_Website $configSource Where config should be pulled from.
 	 * @return array Maps of config values for active payment methods
 	 */
-	public function getActivePaymentMethods()
+	public function getActivePaymentMethods($configSource=null)
 	{
 		return array_filter(
-			$this->getPaymentMethods(),
+			$this->getPaymentMethods($configSource),
 			function ($e) { return $e['active'] === '1'; }
 		);
 	}
@@ -149,10 +167,20 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 * Get all payment methods
 	 * @return array Maps of config values for all payment methods
 	 */
-	public function getPaymentMethods()
+	public function getPaymentMethods($configSource=null)
 	{
+		// make sure the given config source is either a store or website
+		// so config can be pulled from it
+		if (!($configSource instanceof Mage_Core_Model_Store || $configSource instanceof Mage_Core_Model_Website)) {
+			$configSource = $this->getStore() ?: Mage::app()->getStore(null);
+		}
 		return array_filter(
-			Mage::app()->getStore($this->_getStoreId())->getConfig('payment'),
+			// When getting config from a store, will be arrays, when from websites, will be Mage_Core_Model_Config_Elements.
+			// Convert the objects to arrays so both can be handled consistently.
+			array_map(
+				function ($e) { return ($e instanceof Mage_Core_Model_Config_Element) ? $e->asArray() : $e; },
+				$configSource->getConfig('payment')
+			),
 			function ($e) { return isset($e['active']); }
 		);
 	}
