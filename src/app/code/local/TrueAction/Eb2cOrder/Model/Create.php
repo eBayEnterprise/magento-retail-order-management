@@ -16,39 +16,39 @@
  * checkout_type_multishipping_create_orders_single
  *
  */
-class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cOrder_Model_Create
 {
 	const	GENDER_MALE = 1;
 
 	/**
 	 * @var Mage_Sales_Model_Order, Magento Order Object
 	 */
-	private $_o = null;
+	private $_o;
 
 	/**
 	 * @var string, Human readable XML
 	 */
-	private $_xmlRequest = null;
+	private $_xmlRequest;
 
 	/**
 	 * @var string, Human readable XML
 	 */
-	private $_xmlResponse = null;
+	private $_xmlResponse;
 
 	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
-	private $_domRequest = null;
+	private $_domRequest;
 
 	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
-	private $_domResponse = null;
+	private $_domResponse;
 
 	/**
 	 * @var array, Saves an array of item_id's for use in shipping node
 	 */
-	private $_orderItemRef = array();
+	private $_orderItemRef;
 
 	/**
 	 * @var TrueAction_Eb2cOrder_Helper_Data, helper Object
@@ -66,7 +66,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 	 */
 	private $_ebcPaymentMethodMap = array();
 
-	protected function _construct()
+	public function __construct()
 	{
 		$this->_helper = Mage::helper('eb2corder');
 		$this->_config = $this->_helper->getConfig();
@@ -79,6 +79,22 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery', // Not use
 			'Free' => 'StoredValueCard',
 		);
+		// initiaze these class properties in the constructor.
+		$this->_o = null;
+		$this->_xmlRequest = null;
+		$this->_xmlResponse = null;
+		$this->_domRequest = null;
+		$this->_domResponse = null;
+		$this->_orderItemRef = array();
+	}
+
+	/**
+	 * getter method to retrieve _xmlRequest property
+	 * @see _xmlRequest
+	 */
+	public function getXmlRequest()
+	{
+		return $this->_xmlRequest;
 	}
 
 	/**
@@ -103,7 +119,7 @@ class TrueAction_Eb2cOrder_Model_Create extends Mage_Core_Model_Abstract
 
 		$response = '';
 		if ($this->_domRequest instanceof DOMDocument) {
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_xmlRequest), Zend_Log::DEBUG);
+			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->getXmlRequest()), Zend_Log::DEBUG);
 			try {
 				$response = Mage::getModel('eb2ccore/api')
 					->addData(
