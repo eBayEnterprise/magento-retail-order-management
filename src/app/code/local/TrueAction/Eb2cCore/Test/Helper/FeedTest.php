@@ -18,6 +18,40 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 			array('no-event-feed'),
 		);
 	}
+
+	/**
+	 * @dataProvider dataProvider
+	 * @loadFixture
+	 * @loadExpectation
+	 */
+	public function testGetMessageDate($feedDir)
+	{
+		$vfs = $this->getFixture()->getVfs();
+		$url = $vfs->url('var/eb2c/' . $feedDir . '/feed.xml');
+		$testModel = Mage::helper('eb2ccore/feed');
+		$e = $this->expected($feedDir);
+		$dateObj = $testModel->getMessageDate($url);
+		$this->assertNotNull($dateObj);
+		$this->assertSame(
+			$e->getDate(),
+			$dateObj->format('Y-m-d H:i:s')
+		);
+	}
+
+	/**
+	 * @dataProvider dataProvider
+	 * @loadFixture
+	 */
+	public function testGetMessageDateFail($feedDir)
+	{
+		$vfs = $this->getFixture()->getVfs();
+		$url = $vfs->url('var/eb2c/' . $feedDir . '/feed.xml');
+		$testModel = Mage::helper('eb2ccore/feed');
+		$dateObj = $testModel->getMessageDate($url);
+		$this->assertNotNull($dateObj);
+		$this->assertSame(filemtime($url), $dateObj->getTimeStamp());
+	}
+
 	/**
 	 * validateHeader should be true when the header has the expected DestinationId and Event Type nodes.
 	 * @test

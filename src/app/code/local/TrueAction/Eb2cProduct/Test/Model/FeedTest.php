@@ -4,11 +4,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 {
 	const VFS_ROOT = 'var/eb2c';
 
-	public function setUp()
-	{
-		parent::setUp();
-	}
-
 	public function tearDown()
 	{
 		parent::tearDown();
@@ -20,6 +15,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		Mage::unregister('_singleton/eb2cproduct/feed_queue');
 		Mage::unregister('_model/eb2cproduct/feed_processor');
 		Mage::unregister('_model/eb2ccore/feed');
+		Mage::unregister('_helper/eb2ccore/feed');
 	}
 
 	/**
@@ -56,79 +52,85 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	}
 
 	/**
+	 * verify comparing to feed file entries will yield the correct result
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testCompareFeedFiles($scenario)
+	{
+		$e = $this->expected($scenario);
+		$testModel = Mage::getModel('eb2cproduct/feed');
+		$result = $this->_reflectMethod($testModel, '_compareFeedFiles')
+			->invoke(
+				$testModel,
+				$e->getArrayA(),
+				$e->getArrayB()
+			);
+		$this->assertSame((int) $e->getResult(), $result);
+	}
+
+	/**
 	 * @ticket EBC-240
-	 * @loadFixture feedConfig.yaml
-	 * @loadFixture testDescriptionClobbering.yaml
+	 * @loadFixture
 	 * @loadExpectation
 	 */
 	public function testDescriptionClobbering()
 	{
 		$vfs = $this->getFixture()->getVfs();
-		$coreHelper = $this->getHelperMock('eb2ccore/data', array(
+
+		$coreFeedHelper = $this->getHelperMock('eb2ccore/feed', array(
+			'getMessageDate',
 			'validateHeader',
 		));
-		$coreHelper->expects($this->any())
+		$coreFeedHelper->expects($this->any())
+			->method('getMessageDate')
+			->will($this->returnValue(DateTime::createFromFormat('U', 0)));
+		$coreFeedHelper->expects($this->any())
 			->method('validateHeader')
 			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
 
 		$filesList = array(
-			$vfs->url('var/eb2c/pricing/feed.xml'),
+			$vfs->url('var/eb2c/itemmaster/feed.xml'),
+			$vfs->url('var/eb2c/contentmaster/feed.xml'),
 		);
-		// setup the core feed model
 		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
 			'fetchFeedsFromRemote',
 			'lsInboundDir',
 			'mvToArchiveDir',
-			'removeFromRemote',
 		));
 		$coreFeed->expects($this->atLeastOnce())
 			->method('lsInboundDir')
-			->will($this->onConsecutiveCalls(
-				$filesList,
-				array(),
-				array(),
-				array()
-			));
+			->will($this->returnValue($filesList));
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
-		// setup the product helper
-		$helper = $this->getHelperMock('eb2cproduct/data', array(
-			'loadProductBySku'
+		Mage::getModel('eb2cproduct/feed')->processFeeds();
+
+		$helper = Mage::helper('eb2cproduct');
+		$product = $helper->loadProductBySku('testsku');
+		$this->assertNotNull($product->getId(), 'product could not be loaded');
+		$e = $this->expected('test');
+		$this->assertSame($product->getDescription(), $e->getDescription());
+		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
+
+		$filesList[] = $vfs->url('var/eb2c/pricing/feed.xml');
+		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
+			'fetchFeedsFromRemote',
+			'lsInboundDir',
+			'mvToArchiveDir',
 		));
-		$helper->expects($this->any())
-			->method('loadProductBySku')
-			->will($this->returnValue(Mage::getModel('catalog/product')));
-		$this->replaceByMock('helper', 'eb2cproduct', $helper);
+		$coreFeed->expects($this->atLeastOnce())
+			->method('lsInboundDir')
+			->will($this->returnValue($filesList));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
-		// setup the processor model
-		$dataChecker = function($dataObj) {
-			$extendedData = $dataObj->getExtendedAttributes()->getData();
-			PHPUnit_Framework_Assert::assertFalse(
-				array_key_exists('long_description', $extendedData),
-				'long description should not exist'
-			);
-			PHPUnit_Framework_Assert::assertFalse(
-				array_key_exists('short_description', $extendedData),
-				'short description should not exist'
-			);
-			$data = $dataObj->getBaseAttributes()->getData();
-			PHPUnit_Framework_Assert::assertFalse(
-				array_key_exists('item_description', $data),
-				'short description should not exist'
-			);
-		};
+		Mage::getModel('eb2cproduct/feed')->processFeeds();
 
-		$processor = $this->getModelMock('eb2cproduct/feed_processor', array(
-			'_synchProduct'
-		));
-		$processor->expects($this->once())
-			->method('_synchProduct')
-			->will($this->returnCallback($dataChecker));
-
-		$testModel = Mage::getModel('eb2cproduct/feed');
-		$queue = $this->_reflectProperty($testModel, '_queue')->getValue($testModel);
-		$this->_reflectProperty($queue, '_processor')->setValue($queue, $processor);
-		$testModel->processFeeds();
+		$helper = Mage::helper('eb2cproduct');
+		$product = $helper->loadProductBySku('testsku');
+		$this->assertNotNull($product->getId(), 'product could not be reloaded');
+		$this->assertSame($product->getDescription(), $e->getDescription());
+		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
 	}
 
 	/**
@@ -476,6 +478,14 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		$ishipRemote = 'iship_remote_path';
 		$ishipGlob   = 'iShip*Glob';
 
+		$coreFeedHelper = $this->getHelperMock('eb2ccore/feed', array(
+			'getMessageDate',
+		));
+		$coreFeedHelper->expects($this->any())
+			->method('getMessageDate')
+			->will($this->returnValue(DateTime::createFromFormat('U', 0)));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
+
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
@@ -540,4 +550,77 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		$this->assertSame(4, $model->processFeeds());
 	}
 
+	/**
+	 * verify feed files are sorted by message date and then type.
+	 * @loadFixture
+	 */
+	public function testFeedFileSorting()
+	{
+		$vfs = $this->getFixture()->getVfs();
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'setupDirs',
+				'fetchFeedsFromRemote',
+				'lsInboundDir',
+				'mvToArchiveDir',
+				'removeFromRemote',
+			))
+			->getMock();
+		$contentLs = array(
+			$vfs->url('var/eb2c/contentmaster/feed.xml'),
+		);
+		$ishipLs = array(
+			$vfs->url('var/eb2c/iship/feed.xml'),
+		);
+		$priceLs = array(
+			$vfs->url('var/eb2c/pricing/feed.xml'),
+		);
+		$itemLs = array(
+			$vfs->url('var/eb2c/itemmaster/feed.xml'),
+			$vfs->url('var/eb2c/itemmaster/feed2.xml')
+		);
+		$coreFeed->expects($this->exactly(4))
+			->method('lsInboundDir')
+			->will($this->onConsecutiveCalls(
+				// these have to be arranged in the order order of the
+				// _eventTypes array in the feed model.
+				$itemLs,
+				$contentLs,
+				$priceLs,
+				$ishipLs
+			));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+		$testModel = $this->getModelMock('eb2cproduct/feed', array(
+			'processFile',
+		));
+
+		// make sure the files are processed in the correct order
+		$testModel->expects($this->at(0))
+			->method('processFile')
+			->with($contentLs[0]);
+		$testModel->expects($this->at(1))
+			->method('processFile')
+			->with($priceLs[0]);
+		$testModel->expects($this->at(2))
+			->method('processFile')
+			->with($itemLs[0]);
+		$testModel->expects($this->at(3))
+			->method('processFile')
+			->with($ishipLs[0]);
+		$testModel->expects($this->at(4))
+			->method('processFile')
+			->with($itemLs[1]);
+
+		// setup the queue to terminate the test early after we have the necessary results
+		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
+			'process',
+		));
+		$queue->expects($this->once())
+			->method('process')
+			->will($this->throwException(new Exception('Forced Test Termination')));
+		$this->setExpectedException('Exception', 'Forced Test Termination');
+		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
+		$testModel->processFeeds();
+	}
 }

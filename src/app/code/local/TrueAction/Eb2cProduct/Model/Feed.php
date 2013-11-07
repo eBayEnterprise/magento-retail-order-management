@@ -23,10 +23,16 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	protected $_queue;
 
+	/**
+	 * feed event types.
+	 * WARNING: the order here determines the order the feeds will run.
+	 * TODO: this should be moved out to the xml config.
+	 * @var array
+	 */
 	private $_eventTypes = array(
-		'Price'      => 'feed_pricing',
 		'ItemMaster' => 'feed_item',
 		'Content'    => 'feed_content',
+		'Price'      => 'feed_pricing',
 		'iShip'      => 'feed_iship',
 	);
 
@@ -44,11 +50,12 @@ class TrueAction_Eb2cProduct_Model_Feed
 	{
 		Varien_Profiler::start(__METHOD__);
 		$filesProcessed = 0;
+		$coreFeedHelper = Mage::helper('eb2ccore/feed');
 		// fetch all files for all feeds.
 		foreach (array_keys($this->_eventTypes) as $eventType) {
 			$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
-			$this->_setupCoreFeed();
+			$this->_coreFeed = $this->_setupCoreFeed();
 
 			$this->_coreFeed->fetchFeedsFromRemote(
 				$this->_eventTypeModel->getFeedRemotePath(),
@@ -57,11 +64,19 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$remote = $this->_eventTypeModel->getFeedRemotePath();
 			// need to track the local file as well as the remote path so it can be removed after processing
 			$this->_feedFiles = array_merge($this->_feedFiles, array_map(
-				function ($local) use ($remote) { return array('local' => $local, 'remote' => $remote); },
+				function ($local) use ($remote, $eventType, $coreFeedHelper) {
+					$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
+					return array(
+						'local' => $local,
+						'remote' => $remote,
+						'timestamp' => $timeStamp,
+						'type' => $eventType
+					); },
 				$this->_coreFeed->lsInboundDir()
 			));
 		}
-
+		// sort the feed files
+		usort($this->_feedFiles, array($this, '_compareFeedFiles'));
 		foreach ($this->_feedFiles as $fileDetails) {
 			$this->processFile($fileDetails['local']);
 			$this->archiveFeed($fileDetails['local'], $fileDetails['remote']);
@@ -143,7 +158,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	protected function _beforeProcessDom(TrueAction_Dom_Document $dom)
 	{
 		$this->_checkPreconditions();
-		$this->_setupCoreFeed();
+		$this->_coreFeed = $this->_setupCoreFeed();
 		$this->_xpath = $this->_eventTypeModel->getNewXpath($dom);
 		if (!$this->_xpath) {
 			$message = '[ ' . __CLASS__ . ' ] unable to get DOMXPath object from model ' .
@@ -151,6 +166,23 @@ class TrueAction_Eb2cProduct_Model_Feed
 			Mage::throwException($message);
 		}
 		return $this;
+	}
+
+	/**
+	 * compare feedFile entries and return an integer to represent whether
+	 * $a has higher, same, or lower priority than $b
+	 * @param  array  $a entry in _feedFiles
+	 * @param  array  $b entry in _feedFiles
+	 * @return int
+	 */
+	protected function _compareFeedFiles(array $a, array $b)
+	{
+		$timeDiff = $a['timestamp'] - $b['timestamp'];
+		if ($timeDiff !== 0) {
+			return $timeDiff;
+		}
+		$types = array_keys($this->_eventTypes);
+		return (int) (array_search($a['type'], $types) - array_search($b['type'], $types));
 	}
 
 	protected function _determineEventType($doc)
@@ -204,8 +236,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		);
 
 		// Ready to set up the core feed helper, which manages files and directories:
-		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
-		return $this;
+		return Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 	}
 
 	/**

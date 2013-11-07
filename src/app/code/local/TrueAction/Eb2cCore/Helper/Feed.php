@@ -23,6 +23,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 			return false;
 		}
 	}
+
 	/**
 	 * Validate the event type.
 	 * @param bool whether the event type matches for the given feed.
@@ -38,6 +39,57 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 			return false;
 		}
 	}
+
+	/**
+	 * get a DateTime object for when the message was created.
+	 * if no date can be retrieved a datetime object with a unix timestamp
+	 * of 0 will be returned.
+	 * @param  string  $filename path to the xml file
+	 * @return DateTime
+	 */
+	public function getMessageDate($filename)
+	{
+		$dateObj = null;
+		$reader = new XMLReader();
+		$reader->open($filename);
+		// the following 2 variables prevent the edge case where we get a large file
+		// with a node depth < 2
+		$elementsRead = 0;
+		$maxElements = 2;
+		// the date/time node is at depth 2
+		$targetDepth = 2;
+		// navigate to within the message header
+		while ($reader->depth < $targetDepth && $elementsRead <= $maxElements && $reader->read()) {
+			// ignore whitespace
+			if ($reader->nodeType !== XMLReader::ELEMENT) {
+				continue;
+			}
+		}
+		$dateNode = null;
+		// at this point we should be at the depth where the creation date is.
+		// if we stopped on the node, then grab it
+		if ($reader->localName === 'CreateDateAndTime') {
+			$dateNode = $reader->expand();
+		} elseif ($reader->next('CreateDateAndTime')) {
+			// otherwise go to the next instance of it
+			$dateNode = $reader->expand();
+		}
+		if (!($dateNode && $dateNode->nodeValue)) {
+			// use the file's local modified time as the failover
+			$default = filemtime($filename);
+			// if that doesn't work use the start of the epoch
+			$dateObj = DateTime::createFromFormat('U', $default === false ? 0 : $default);
+			Mage::log(
+				'[' . __CLASS__ . "] Unable to read the message date from file [$filename]",
+				Zend_Log::WARN
+			);
+		} else {
+			$dateNode = $reader->expand();
+			$dateObj = DateTime::createFromFormat('Y-m-d\TH:i:sO', $dateNode->nodeValue);
+		}
+		return $dateObj;
+	}
+
 	/**
 	 * Ensure this Feed is for the client ID configured here, and event type matches.
 	 * @link https://trueaction.atlassian.net/wiki/display/EBC/Message+Header+Validation
