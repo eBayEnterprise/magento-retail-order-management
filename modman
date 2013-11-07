@@ -7,6 +7,7 @@
 
 # TrueAction_Eb2cCore
 src/shell/* shell/
+src/app/etc/eb2c.xml.sample app/etc/eb2c.xml.sample
 src/app/etc/modules/*.xml app/etc/modules/
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
 src/app/locale/en_US/* app/locale/en_US/
