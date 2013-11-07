@@ -29,7 +29,8 @@ class TrueAction_Eb2cProduct_Test_Model_Image_ExportTest extends TrueAction_Eb2c
 	 *
 	 * @todo fix this from an expectedException. It's being thrown because we can't pass xsd validate - we can't pass
 	 * the validate because we don't have 'Message-Header-1.0.xsd'
-	 * @expectedException Mage_Core_Exception
+	 * XXXXexpectedException Mage_Core_Exception
+	 * @test
 	 */
 	public function testBuilder()
 	{
