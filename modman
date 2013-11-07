@@ -6,6 +6,7 @@
 @import extensions/aoe_scheduler
 
 # TrueAction_Eb2cCore
+connect/ebay_enterprise_connect.xml var/connect/ebay_enterprise_connect.xml
 src/shell/* shell/
 src/app/etc/eb2c.xml.sample app/etc/eb2c.xml.sample
 src/app/etc/modules/*.xml app/etc/modules/
