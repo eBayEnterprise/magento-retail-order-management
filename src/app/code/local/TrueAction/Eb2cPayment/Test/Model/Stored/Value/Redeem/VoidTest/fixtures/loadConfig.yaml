@@ -1,5 +1,11 @@
 config:
-  default/eb2c/payment/developer_mode: 1
-  default/eb2ccore/general/store_id: "ABCD"
-  default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2c/payment/stored_value_redeem_void_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/StoredValueRedeemVoidReply.xml"
+  default/eb2ccore/api/environment: apiEnv
+  default/eb2ccore/api/major_version: M
+  default/eb2ccore/api/minor_version: m
+  default/eb2ccore/api/region: apiRgn
+  default/eb2ccore/general/client_id: clientId
+  default/eb2ccore/general/store_id: storeId
+  default/eb2ccore/payment/svc_bin_range/GS: "10-20"
+  default/eb2ccore/payment/svc_bin_range/SP: "21-30"
+  default/eb2ccore/payment/svc_bin_range/SV: "31-40"
+  default/eb2ccore/payment/svc_bin_range/VL: "41-50"

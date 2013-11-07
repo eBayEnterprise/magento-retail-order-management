@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cCore>
-			<version>0.1</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cCore>
 	</modules>
 	<global>
@@ -17,27 +17,48 @@
 			</eb2ccore>
 		</helpers>
 	</global>
+	<crontab>
+		<jobs>
+			<eb2cinventory_feed_item_inventories>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
+				<run>
+					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
+				</run>
+			</eb2cinventory_feed_item_inventories>
+			<eb2cproduct_feed>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
+				<run>
+					<model>eb2cproduct/feed::processFeeds</model>
+				</run>
+			</eb2cproduct_feed>
+		</jobs>
+	</crontab>
 	<default>
 		<eb2ccore>
 			<general>
-				<catalog_id />
-				<client_id />
-				<store_id />
-				<test_mode />
+				<catalog_id/>
+				<client_customer_id_prefix/>
+				<client_id/>
+				<client_order_id_prefix/>
+				<store_id/>
 			</general>
 			<api>
 				<environment>api</environment>
-				<key backend_model="adminhtml/system_config_backend_encrypted" />
+				<key backend_model="adminhtml/system_config_backend_encrypted"/>
 				<major_version>1</major_version>
 				<minor_version>0</minor_version>
 				<region>na</region>
-				<timeout />
+				<timeout/>
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 				<xsd_path><![CDATA[http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/]]></xsd_path>
 			</api>
 			<feed>
-				<enabled_reindex>0</enabled_reindex>
 				<destination_type>MAILBOX</destination_type>
+				<delete_remote_feed_files>1</delete_remote_feed_files>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 				<available_models>
@@ -45,20 +66,13 @@
 						<feed_item_Inventories>1</feed_item_Inventories>
 					</eb2cinventory>
 					<eb2corder>
-						<status_feed>1</status_feed>
+						<status_feed>0</status_feed>
 					</eb2corder>
 					<eb2cproduct>
-						<feed_content_master>1</feed_content_master>
-						<feed_image_master>1</feed_image_master>
-						<feed_i_ship>1</feed_i_ship>
-						<feed_item_master>1</feed_item_master>
-						<feed_item_pricing>1</feed_item_pricing>
+						<feed>1</feed>
 					</eb2cproduct>
 				</available_models>
 			</feed>
-			<development>
-				<test_mode />
-			</development>
 			<service>
 				<order>
 					<timeout>15</timeout>
@@ -72,7 +86,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cCore />
+				<TrueAction_Eb2cCore/>
 			</modules>
 		</suite>
 	</phpunit>

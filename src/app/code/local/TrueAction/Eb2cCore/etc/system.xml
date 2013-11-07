@@ -1,15 +1,15 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<tabs>
 		<eb2c translate="label" module="eb2ccore">
-			<label>EB2C</label>
+			<label>eBay Enterprise</label>
 			<sort_order>550</sort_order>
 		</eb2c>
 	</tabs>
 	<sections>
 		<eb2ccore translate="label" module="eb2ccore">
 			<class>separator-top</class>
-			<label>Core</label>
+			<label>Exchange Platform</label>
 			<tab>eb2c</tab>
 			<frontend_type>text</frontend_type>
 			<sort_order>0</sort_order>
@@ -55,10 +55,30 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>0</show_in_store>
 						</store_id>
+						<client_order_id_prefix>
+							<label>Client Order Id</label>
+							<comment>A five digit integer to be prepended to order increment id.</comment>
+							<sort_order>40</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-number</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</client_order_id_prefix>
+						<client_customer_id_prefix>
+							<label>Client Customer Id</label>
+							<comment>A five digit integer to be prepended to Customer id.</comment>
+							<sort_order>50</sort_order>
+							<frontend_type>text</frontend_type>
+							<validate>validate-number</validate>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>0</show_in_store>
+						</client_customer_id_prefix>
 					</fields>
 				</general>
 				<api>
-					<label>API</label>
+					<label>Web Services</label>
 					<frontend_type>text</frontend_type>
 					<sort_order>6</sort_order>
 					<show_in_default>1</show_in_default>
@@ -67,7 +87,7 @@
 					<fields>
 						<key>
 							<label>API Key</label>
-							<comment>The api key for EB2C web services.</comment>
+							<comment>The API key for the Exchange Platform web services</comment>
 							<sort_order>70</sort_order>
 							<frontend_type>obscure</frontend_type>
 							<validate>validate-password</validate>
@@ -96,7 +116,7 @@
 					</fields>
 				</api>
 				<feed>
-					<label>Feed</label>
+					<label>Batch Feeds</label>
 					<frontend_type>text</frontend_type>
 					<sort_order>7</sort_order>
 					<show_in_default>1</show_in_default>
@@ -158,26 +178,6 @@
 						</sftp_location>
 					</fields>
 				</feed>
-				<development>
-					<label>Development</label>
-					<frontend_type>text</frontend_type>
-					<sort_order>8</sort_order>
-					<show_in_default>1</show_in_default>
-					<show_in_website>0</show_in_website>
-					<show_in_store>0</show_in_store>
-					<fields>
-						<test_mode>
-							<label>Test Mode</label>
-							<comment>Should messages be sent as tests?</comment>
-							<sort_order>90</sort_order>
-							<frontend_type>select</frontend_type>
-							<source_model>adminhtml/system_config_source_yesno</source_model>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</test_mode>
-					</fields>
-				</development>
 			</groups>
 		</eb2ccore>
 	</sections>

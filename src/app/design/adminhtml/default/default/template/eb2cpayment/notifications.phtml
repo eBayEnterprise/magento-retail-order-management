@@ -1,0 +1,8 @@
+<?php $paymentNotice = $this->getEbcPaymentNotice(); ?>
+<?php if($paymentNotice):?>
+<div class="notification-global">
+	<strong><?php echo $this->helper('eb2cpayment')->__('Payment methods need to be configured:') ?></strong>
+	<?php echo implode(', ', $paymentNotice)?>.
+	<?php echo $this->helper('eb2cpayment')->__('Click here to go to <a href="%s">Payment Method Configuration Section</a> and configured payment method settings.', $this->getPaymentSectionConfigurationUrl());?>
+</div>
+<?php endif;?>

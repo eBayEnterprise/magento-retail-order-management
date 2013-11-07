@@ -68,7 +68,7 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 			->will($this->returnValue(true));
 
 		// The transport protocol is mocked - we just pretend we got files
-		$this->replaceModel('filetransfer/protocol_types_sftp', array('getAllFiles' => true,));
+		$this->replaceModel('filetransfer/protocol_types_sftp', array('getAllFiles' => true, 'deleteFile' => true));
 
 		// Mock the core config registry, only value passed is the vfs filename
 		$this->replaceCoreConfigRegistry(

@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	/**
@@ -84,27 +79,36 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * clear magento cache and rebuild inventory status.
+	 * Convert Magento Locale Code into a format matching inbound feed, i.e. en_US => en-US
 	 *
-	 * @return TrueAction_Eb2cProduct_Helper_Data
+	 * @param string $langCode, the language code
+	 * @return string, the magento expected format
 	 */
-	public function clean()
+	public static function mageToXmlLangFrmt($langCode)
 	{
-		$cfg = Mage::getModel('eb2ccore/config_registry')
-			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		return str_replace('_', '-', $langCode);
+	}
 
-		if (!(bool) $cfg->feedEnabledReindex) {
-			Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-			return $this;
-		}
-		Mage::log(sprintf('[ %s ] Start rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		try {
-			// STOCK STATUS
-			Mage::getSingleton('cataloginventory/stock_status')->rebuild();
-		} catch (Exception $e) {
-			Mage::log(sprintf('[ %s ] %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
-		}
-		Mage::log(sprintf('[ %s ] Done rebuilding stock data for all products.', __CLASS__), Zend_Log::DEBUG);
-		return $this;
+	/**
+	 * extract node value
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 */
+	public function extractNodeVal(DOMNodeList $nodeList)
+	{
+		return ($nodeList->length)? $nodeList->item(0)->nodeValue : null;
+	}
+
+	/**
+	 * extract node attribute value
+	 *
+	 * @return string, the extracted content
+	 * @param DOMNodeList $nodeList
+	 * @param string $attributeName
+	 */
+	public function extractNodeAttributeVal(DOMNodeList $nodeList, $attributeName)
+	{
+		return ($nodeList->length)? $nodeList->item(0)->getAttribute($attributeName) : null;
 	}
 }

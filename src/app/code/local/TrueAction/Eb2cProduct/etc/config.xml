@@ -1,16 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-/**
- *
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
--->
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cProduct>
-			<version>1.0.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cProduct>
 	</modules>
 	<global>
@@ -40,12 +32,12 @@
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
+					<default/>
 				</tax_code>
 				<is_drop_shipped>
 					<scope>Website</scope>
 					<label>Is Drop Shipped</label>
-					<group></group>
+					<group/>
 					<input_type>boolean</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
@@ -55,29 +47,29 @@
 				<drop_ship_supplier_name>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Name</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_name>
 				<drop_ship_supplier_number>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Number</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_number>
 				<drop_ship_supplier_part>
 					<scope>Website</scope>
 					<label>Drop Ship Supplier Part Number</label>
-					<group></group>
+					<group/>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default></default>
+					<default/>
 				</drop_ship_supplier_part>
 				<price_is_vat_inclusive>
 					<scope>Store</scope>
@@ -89,72 +81,148 @@
 					<default>N</default>
 					<backend_type>int</backend_type>
 				</price_is_vat_inclusive>
+				<brand_name>
+					<scope>Website</scope>
+					<label>Brand Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</brand_name>
+				<size>
+					<scope>Website</scope>
+					<label>Size</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default></default>
+				</size>
+				<buyer_name>
+					<scope>Website</scope>
+					<label>Buyer Name</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</buyer_name>
+				<hazardous_material_code>
+					<scope>Website</scope>
+					<label>Hazardous Material Code</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</hazardous_material_code>
+				<brand_description>
+					<scope>Website</scope>
+					<label>Brand Description</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</brand_description>
+				<item_type>
+					<scope>Website</scope>
+					<label>eBay Enterprise Item Type</label>
+					<group></group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</item_type>
+				<style_id>
+					<scope>Website</scope>
+					<label>Style Id</label>
+					<group>General</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</style_id>
+				<is_clean>
+					<scope>Website</scope>
+					<label>Is Clean</label>
+					<group></group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default>N</default>
+					<backend_type>int</backend_type>
+				</is_clean>
+				<unresolved_product_links>
+					<scope>Website</scope>
+					<label>Unresolved Product Links</label>
+					<group></group>
+					<input_type>textarea</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+					<backend_type>text</backend_type>
+				</unresolved_product_links>
 			</default>
 		</eb2cproduct_attributes>
+		<events>
+			<product_feed_processing_complete>
+				<observers>
+					<cataloginventory_reindex_all>
+						<class>cataloginventory/indexer_stock</class>
+						<method>reindexAll</method>
+					</cataloginventory_reindex_all>
+				</observers>
+			</product_feed_processing_complete>
+		</events>
 	</global>
-	<crontab>
-		<jobs>
-			<eb2cproduct_feed_item_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_item_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_item_master>
-			<eb2cproduct_feed_content_master>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cproduct/feed_content_master::processFeeds</model>
-				</run>
-			</eb2cproduct_feed_content_master>
-		</jobs>
-	</crontab>
 	<default>
-		<eb2c>
-			<product>
-				<api_service>product</api_service>
-				<api_return_format>xml</api_return_format>
-				<config_path>eb2ccore/general</config_path>
-			</product>
-		</eb2c>
 		<eb2cproduct>
+			<api_service>product</api_service>
+			<api_return_format>xml</api_return_format>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>ItemMaster*.xml</file_pattern>
 				<event_type>ItemMaster</event_type>
 				<header_version>2.3.0</header_version>
 			</item_master_feed>
 			<content_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>Content*.xml</file_pattern>
-				<event_type>Content</event_type> <!-- because consistency only matters "sometimes" -->
+				<event_type>Content</event_type>
+				<!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
 			</content_master_feed>
 			<i_ship_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>IShip*.xml</file_pattern>
 				<event_type>iShip</event_type>
 				<header_version>2.3.0</header_version>
 			</i_ship_feed>
 			<item_pricing_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/Pricing/{storeid}/</remote_path>
 				<file_pattern>Price*.xml</file_pattern>
-				<event_type>ItemPricing</event_type>
+				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>
 			<image_export>
 				<local_path>TrueAction/Eb2c/Feed/Product/ImageExport/</local_path>
 				<xsd>Image-Feed-1.0.xsd</xsd>
 			</image_export>
+			<processor_delete_batch_size>200</processor_delete_batch_size>
+			<processor_max_total_entries>200</processor_max_total_entries>
+			<processor_update_batch_size>100</processor_update_batch_size>
 		</eb2cproduct>
 	</default>
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cProduct />
+				<TrueAction_Eb2cProduct/>
 			</modules>
 		</suite>
 	</phpunit>

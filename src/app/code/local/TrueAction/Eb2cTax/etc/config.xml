@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cTax>
-			<version>0.1.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cTax>
 	</modules>
 	<global>
@@ -106,33 +106,33 @@
 		</sales>
 	</global>
 	<default>
-		<eb2ctax>
-			<calculation>
+		<eb2ccore>
+			<eb2ctax_calculation>
 				<apply_after_discount>1</apply_after_discount>
 				<vat_inclusive_pricing>0</vat_inclusive_pricing>
-			</calculation>
-			<admin_origin>
-				<line1 />
-				<line2>N/A</line2>
-				<line3>N/A</line3>
-				<line4>N/A</line4>
-				<city />
-				<main_division />
+			</eb2ctax_calculation>
+			<eb2ctax_admin_origin>
+				<line1/>
+				<line2/>
+				<line3/>
+				<line4/>
+				<city/>
+				<main_division/>
 				<country_code>US</country_code>
-				<postal_code />
-			</admin_origin>
-			<defaults>
+				<postal_code/>
+			</eb2ctax_admin_origin>
+			<eb2ctax_defaults>
 				<duty_amount_code>eb2c-duty-amount</duty_amount_code>
-			</defaults>
-			<xsd>
+			</eb2ctax_defaults>
+			<eb2ctax_xsd>
 				<quote_request_file>TaxDutyFee-QuoteRequest-1.0.xsd</quote_request_file>
-			</xsd>
-		</eb2ctax>
+			</eb2ctax_xsd>
+		</eb2ccore>
 	</default>
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cTax />
+				<TrueAction_Eb2cTax/>
 			</modules>
 		</suite>
 	</phpunit>

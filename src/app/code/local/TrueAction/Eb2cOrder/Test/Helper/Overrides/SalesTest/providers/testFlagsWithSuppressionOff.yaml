@@ -1,0 +1,19 @@
+# let magento handle emails
+ -
+   - canSendNewOrderConfirmationEmail
+ -
+   - canSendNewOrderEmail
+ -
+   - canSendOrderCommentEmail
+ -
+   - canSendNewShipmentEmail
+ -
+   - canSendShipmentCommentEmail
+ -
+   - canSendNewInvoiceEmail
+ -
+   - canSendInvoiceCommentEmail
+ -
+   - canSendNewCreditmemoEmail
+ -
+   - canSendCreditmemoCommentEmail

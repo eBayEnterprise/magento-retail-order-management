@@ -1,13 +1,7 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
-class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_helper;
-
 	/**
 	 * setUp method
 	 */
@@ -19,7 +13,6 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 
 	/**
 	 * Test getNewDomDocument - although providerApiCall calls it, does not get noted as covered.
-	 *
 	 * @test
 	 */
 	public function testGetNewDomDocument()
@@ -97,6 +90,22 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 	}
 
 	/**
+	 * test generating the API URIs with a non default store.
+	 * @test
+	 * @loadFixture
+	 */
+	public function testApiUriCreationNonDefaultStore()
+	{
+		$this->setCurrentStore('canada');
+		$helper = Mage::helper('eb2ccore');
+		// service, operation, params and type
+		$this->assertSame(
+			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
+			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
+		);
+	}
+
+	/**
 	 * Test checking validity of sftp settings
 	 *
 	 * @param  string $username SFTP username config setting
@@ -145,70 +154,56 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 		$this->assertSame('en_US', Mage::helper('eb2ccore')->xmlToMageLangFrmt($langCode));
 	}
 
-	/**
-	 * testing clean method - with re-index disabled
-	 *
-	 * @test
-	 * @loadFixture configDisableReIndex.yaml
-	 */
-	public function testCleanWithReIndexDisabled()
+	public function providerExtractNodeVal()
 	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<Product><Item><sku>1234</sku></Item></Product>');
+		$xpath = new DOMXPath($doc);
+		$items = $xpath->query('//Item');
+		$skuNode = null;
+		foreach($items as $item) {
+			$skuNode = $xpath->query('sku/text()', $item);
+		}
+		return array(array($skuNode));
 	}
 
 	/**
-	 * testing clean method - with re-index enabled
+	 * Test extractNodeVal method
+	 *
+	 * @param DOMNodeList $nodeList
 	 *
 	 * @test
-	 * @loadFixture configEnableReIndex.yaml
+	 * @dataProvider providerExtractNodeVal
 	 */
-	public function testCleanWithReIndexEnabled()
+	public function testExtractNodeVal(DOMNodeList $nodeList)
 	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
+		$this->assertSame('1234', Mage::helper('eb2ccore')->extractNodeVal($nodeList));
 	}
 
+	public function providerExtractNodeAttributeVal()
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<Product><Item><sku gsi_client_id="TAN-CLI">1234</sku></Item></Product>');
+		$xpath = new DOMXPath($doc);
+		$items = $xpath->query('//Item');
+		$skuNode = null;
+		foreach($items as $item) {
+			$skuNode = $xpath->query('sku', $item);
+		}
+		return array(array($skuNode, 'gsi_client_id'));
+	}
 
 	/**
-	 * testing clean method - when rebuild method throw an exception
+	 * Test extractNodeAttributeVal method
+	 * @param DOMNodeList $nodeList
+	 * @param string $attributeName
 	 *
 	 * @test
-	 * @loadFixture configEnableReIndex.yaml
+	 * @dataProvider providerExtractNodeAttributeVal
 	 */
-	public function testCleanWithExceptionThrowCaught()
+	public function testExtractNodeAttributeVal(DOMNodeList $nodeList, $attributeName)
 	{
-		$stockStatusModelMock = $this->getModelMockBuilder('cataloginventory/stock_status')
-			->disableOriginalConstructor()
-			->setMethods(array('rebuild'))
-			->getMock();
-
-		$stockStatusModelMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Mage_Core_Exception));
-
-		$this->replaceByMock('singleton', 'cataloginventory/stock_status', $stockStatusModelMock);
-
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Helper_Data', Mage::helper('eb2ccore')->clean());
+		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
 }
+

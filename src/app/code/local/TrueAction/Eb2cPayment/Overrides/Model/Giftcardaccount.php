@@ -1,11 +1,8 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_GiftCardAccount_Model_Giftcardaccount
 {
+	const TRUEACTION_EB2CPAYMENT_GIFTCARD_ACCOUNT_EXISTS = 'TrueAction_Eb2cPayment_GiftCard_Account_Exists';
+
 	/**
 	 * Giftcard pan that was requested for load
 	 *
@@ -89,16 +86,13 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				$balanceData = Mage::getModel('eb2cpayment/stored_value_balance')->parseResponse($storeValueBalanceReply);
 				if ($balanceData) {
 					$balanceData['pin'] = $pin;
+					$balanceData['paymentAccountUniqueId'] = $pan; // the return pan might be tokenized.
 					// making sure we have the right data
-					if (isset($balanceData['paymentAccountUniqueId']) && $balanceData['paymentAccountUniqueId'] === $pan) {
-						// We have the right gift card info from eb2c let's add it to to magento enteprise giftcard account
-						// Let's first check if pan and pin already exists in magento enterprise gift card
-						$mgGiftCard = $this->_filterGiftCardByPanPin();
-						if ($mgGiftCard->count()) {
-							$this->_updateGiftCardWithEb2cData($mgGiftCard->getFirstItem(), $balanceData);
-						} else {
-							$this->_addGiftCardWithEb2cData($balanceData);
-						}
+					$mgGiftCard = $this->_filterGiftCardByPanPin();
+					if ($mgGiftCard->count()) {
+						$this->_updateGiftCardWithEb2cData($mgGiftCard->getFirstItem(), $balanceData);
+					} else {
+						$this->_addGiftCardWithEb2cData($balanceData);
 					}
 				}
 			}
@@ -176,7 +170,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				foreach ($cards as $one) {
 					if ($one['i'] == $this->getId()) {
 						Mage::throwException(
-							Mage::helper('enterprise_giftcardaccount')->__('This gift card account is already in the quote.')
+							Mage::helper('enterprise_giftcardaccount')->__(self::TRUEACTION_EB2CPAYMENT_GIFTCARD_ACCOUNT_EXISTS)
 						);
 						// @codeCoverageIgnoreStart
 					}

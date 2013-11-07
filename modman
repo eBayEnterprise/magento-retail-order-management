@@ -2,6 +2,8 @@
 @import extensions/dom
 @import extensions/filetransfer
 @import extensions/mage_log
+@import extensions/pbridge
+@import extensions/aoe_scheduler
 
 # TrueAction_Eb2cCore
 src/shell/* shell/
@@ -22,3 +24,5 @@ src/skin/frontend/base/default/js/* skin/frontend/base/default/js/
 # TrueAction_Eb2c_Payment
 src/app/design/frontend/enterprise/default/template/eb2cpayment app/design/frontend/enterprise/default/template/eb2cpayment
 src/app/design/frontend/enterprise/default/layout/eb2cpayment.xml app/design/frontend/enterprise/default/layout/eb2cpayment.xml
+src/app/design/adminhtml/default/default/template/eb2cpayment app/design/adminhtml/default/default/template/eb2cpayment
+src/app/design/adminhtml/default/default/layout/eb2cpayment.xml app/design/adminhtml/default/default/layout/eb2cpayment.xml

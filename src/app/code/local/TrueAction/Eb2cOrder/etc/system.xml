@@ -1,37 +1,29 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<sections>
-		<eb2corder translate="label" module="eb2corder">
-			<label>Orders</label>
-			<tab>eb2c</tab>
-			<frontend_type>text</frontend_type>
-			<sort_order>400</sort_order>
-			<show_in_default>1</show_in_default>
-			<show_in_website>1</show_in_website>
-			<show_in_store>1</show_in_store>
+		<eb2ccore>
 			<groups>
-				<status_feed translate="label">
-					<label>Status Feed</label>
+				<email>
+					<label>Transactional Email Handling</label>
 					<frontend_type>text</frontend_type>
-					<sort_order>100</sort_order>
+					<sort_order>10</sort_order>
 					<show_in_default>1</show_in_default>
 					<show_in_website>1</show_in_website>
-					<show_in_store>1</show_in_store>
+					<show_in_store>0</show_in_store>
 					<fields>
-						<remote_path translate="label">
-							<label>Remote Path</label>
-							<comment>
-								<![CDATA[Remote Path containing Order Status Feeds]]>
-							</comment>
-							<sort_order>1000</sort_order>
-							<frontend_type>text</frontend_type>
+						<transactional_emailer>
+							<label>Handler</label>
+							<comment>If the Exchange Platform is selected, transactional emails will be sent via e-Dialog</comment>
+							<sort_order>1</sort_order>
+							<frontend_type>select</frontend_type>
+							<source_model>eb2corder/system_config_source_emailer</source_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
-							<show_in_store>1</show_in_store>
-						</remote_path>
+							<show_in_store>0</show_in_store>
+						</transactional_emailer>
 					</fields>
-				</status_feed>
+				</email>
 			</groups>
-		</eb2corder>
+		</eb2ccore>
 	</sections>
 </config>

@@ -1,8 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cOrder>
-			<version>0.1.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cOrder>
 	</modules>
 	<global>
@@ -10,14 +10,62 @@
 			<eb2corder>
 				<class>TrueAction_Eb2cOrder_Model</class>
 			</eb2corder>
+			<eav>
+				<rewrite>
+					<entity_type>TrueAction_Eb2cOrder_Overrides_Model_Eav_Entity_Type</entity_type>
+				</rewrite>
+			</eav>
+			<paypal>
+				<rewrite>
+					<express_checkout>TrueAction_Eb2cOrder_Overrides_Model_Paypal_Express_Checkout</express_checkout>
+				</rewrite>
+			</paypal>
+			<enterprise_rma>
+				<rewrite>
+					<rma>TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma</rma>
+				</rewrite>
+			</enterprise_rma>
 		</models>
 		<helpers>
 			<eb2corder>
 				<class>TrueAction_Eb2cOrder_Helper</class>
 			</eb2corder>
+			<sales>
+				<rewrite>
+					<data>TrueAction_Eb2cOrder_Overrides_Helper_Sales</data>
+				</rewrite>
+			</sales>
 		</helpers>
+		<blocks>
+			<sales>
+				<rewrite>
+					<order_history>TrueAction_Eb2cOrder_Overrides_Block_Order_History</order_history>
+					<order_recent>TrueAction_Eb2cOrder_Overrides_Block_Order_Recent</order_recent>
+					<order_view>TrueAction_Eb2cOrder_Overrides_Block_Order_View</order_view>
+				</rewrite>
+			</sales>
+		</blocks>
 	</global>
+	<crontab>
+		<jobs>
+			<eb2corder_order_create_retry>
+				<schedule>
+					<cron_expr>0 3 * * *</cron_expr>
+				</schedule>
+				<run>
+					<model>eb2corder/create::retryOrderCreate</model>
+				</run>
+			</eb2corder_order_create_retry>
+		</jobs>
+	</crontab>
 	<frontend>
+		<layout>
+			<updates>
+				<trueaction_eb2corder module="TrueAction_Eb2cOrder">
+					<file>eb2corder_frontend.xml</file>
+				</trueaction_eb2corder>
+			</updates>
+		</layout>
 		<events>
 			<checkout_type_onepage_save_order_after>
 				<observers>
@@ -31,28 +79,22 @@
 		</events>
 	</frontend>
 	<default>
-		<eb2c>
-			<order>
-				<developer_mode>1</developer_mode>
-					<!--
-					To view using dumbListener
-					<create_uri>http://virtbox.net:8080/</create_uri>
-					<cancel_uri>http://virtbox.net:8080/</cancel_uri>
-					-->
-				<developer_create_uri>http://virtbox.net/~mwest/fakeb2c/orderCreateRequest.php</developer_create_uri>
-				<developer_cancel_uri>http://virtbox.net/~mwest/fakeb2c/orderCancelRequest.php</developer_cancel_uri>
-				<payments_enabled>false</payments_enabled>
-				<config_path>eb2ccore/general</config_path>
-				<xsd>
-					<create_file>Order-Service-Create-1.0.xsd</create_file>
-					<cancel_file>Order-Service-Cancel-1.0.xsd</cancel_file>
-				</xsd>
-			</order>
-		</eb2c>
+		<eb2ccore>
+			<email>
+				<transactional_emailer>'mage'</transactional_emailer>
+			</email>
+		</eb2ccore>
 		<eb2corder>
+			<api_search_service>customers</api_search_service>
+			<api_search_operation>orders/get</api_search_operation>
+			<xsd>
+				<create_file>Order-Service-Create-1.0.xsd</create_file>
+				<cancel_file>Order-Service-Cancel-1.0.xsd</cancel_file>
+				<search_file>Order-Service-Search-1.0.xsd</search_file>
+			</xsd>
 			<status_feed>
 				<local_path>TrueAction/Eb2c/Feed/Order/Status/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>OrderStatus*.xml</file_pattern>
 				<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
 				<event_type>OrderStatus</event_type>
@@ -64,7 +106,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cOrder />
+				<TrueAction_Eb2cOrder/>
 			</modules>
 		</suite>
 	</phpunit>

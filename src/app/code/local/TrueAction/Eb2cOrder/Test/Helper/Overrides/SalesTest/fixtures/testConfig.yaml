@@ -1,0 +1,2 @@
+config:
+  default/eb2ccore/email/transactional_emailer: eb2c

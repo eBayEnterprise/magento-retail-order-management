@@ -251,4 +251,39 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 
 		$feed->fetchFeedsFromRemote('foo', '*.foo');
 	}
+
+	/**
+	 * @large
+	 * @test
+	 */
+	public function testRemoveFromRemote()
+	{
+		$dir = 'dir/path';
+		$file = 'file';
+		// The transport protocol is mocked
+		$mockSftp = $this->getMock(
+			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
+			array( 'deleteFile')
+		);
+
+		$mockSftp
+			->expects($this->any())
+			->method('deleteFile')
+			->with($this->identicalTo($dir), $this->identicalTo($file))
+			->will($this->returnValue(true));
+
+		$this->replaceByMock(
+			'model',
+			'filetransfer/protocol_types_sftp',
+			$mockSftp
+		);
+
+		$feed = Mage::getModel('eb2ccore/feed', array(
+			'fs_tool' => $this->_mockFsTool,
+			'base_dir' => $this->_vfs->url(self::TESTBASE_DIR_NAME),
+		));
+
+		$feed->removeFromRemote($dir, $file);
+	}
+
 }

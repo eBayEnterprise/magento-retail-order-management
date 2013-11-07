@@ -1,86 +1,53 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
-	protected $_helper;
-
 	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-		$this->_helper = Mage::helper('eb2cpayment');
-	}
-
-	/**
-	 * testing getXmlNs method
-	 *
 	 * @test
 	 */
 	public function testGetXmlNs()
 	{
-		$this->assertSame(
-			'http://api.gsicommerce.com/schema/checkout/1.0',
-			$this->_helper->getXmlNs()
-		);
+		$hlpr = Mage::helper('eb2cpayment');
+		$this->assertSame('http://api.gsicommerce.com/schema/checkout/1.0', $hlpr->getXmlNs());
+		$this->assertSame('http://api.gsicommerce.com/schema/payment/1.0', $hlpr->getPaymentXmlNs());
 	}
-
 	/**
-	 * testing getPaymentXmlNs method
-	 *
-	 * @test
-	 */
-	public function testGetPaymentXmlNs()
-	{
-		$this->assertSame(
-			'http://api.gsicommerce.com/schema/payment/1.0',
-			$this->_helper->getPaymentXmlNs()
-		);
-	}
-
-	/**
-	 * testing getOperationUri method
-	 *
 	 * @test
 	 * @loadFixture loadConfig.yaml
 	 */
 	public function testGetOperationUri()
 	{
-		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storedvalue/balance/GS.xml',
-			$this->_helper->getOperationUri('get_gift_card_balance')
-		);
-
-		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/storedvalue/redeem/GS.xml',
-			$this->_helper->getOperationUri('get_gift_card_redeem')
-		);
+		$hlpr = Mage::helper('eb2cpayment');
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml', $hlpr->getOperationUri('get_gift_card_balance'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/redeem/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem_void'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/doAuth.xml', $hlpr->getOperationUri('get_paypal_do_authorization'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/doExpress.xml', $hlpr->getOperationUri('get_paypal_do_express_checkout'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/void.xml', $hlpr->getOperationUri('get_paypal_do_void'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/getExpress.xml', $hlpr->getOperationUri('get_paypal_get_express_checkout'));
+		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/setExpress.xml', $hlpr->getOperationUri('get_paypal_set_express_checkout'));
 	}
-
-	public function providerGetRequestId()
-	{
-		return array(
-			array('100000060')
-		);
-	}
-
 	/**
-	 * testing helper data getRequestId method
-	 *
 	 * @test
 	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerGetRequestId
+	 * @dataProvider dataProvider
 	 */
 	public function testGetRequestId($incrementId)
 	{
-		$this->assertSame(
-			'client_id-store_id-100000060',
-			$this->_helper->getRequestId($incrementId)
-		);
+		$this->assertSame('clientId-storeId-100000060', Mage::helper('eb2cpayment')->getRequestId($incrementId));
+	}
+	/**
+	 * Test that we return the correct SVC url for the given PAN
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 * @dataProvider dataProvider
+	 */
+	public function testGetSvcUri($partOptIndex, $pan, $tenderType)
+	{
+		$hlpr = Mage::helper('eb2cpayment');
+		$optIndex = 'get_gift_card_' . $partOptIndex;
+		$exp = sprintf('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/%s/%s.xml', str_replace('_', '', $partOptIndex), $tenderType);
+		$this->assertSame($exp, $hlpr->getSvcUri($optIndex, $pan));
+		// Expect the empty string when the $pan is out of range.
+		$this->assertSame('', $hlpr->getSvcUri($optIndex, '65'));
 	}
 }

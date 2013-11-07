@@ -1,24 +1,21 @@
 <?php
-
-class TrueAction_Eb2cAddress_Test_Helper_DataTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cAddress_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
 {
-
 	protected $_addressParts = array(
-		'line1' => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn Street",
-		'line1_trimmed' => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn",
-		'line2' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
-		'line2_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
-		'line3' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
-		'line3_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
-		'line4' => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
-		'line4_trimmed' => '1234567890123456789012345678901234567890123456789012345678901234567890',
-		'city' => '1234567890123456789012345678901234567890',
-		'city_trimmed' => '12345678901234567890123456789012345',
-		'region_id' => '51',
-		'region_code' => 'PA',
-		'country_id' => 'US',
-		'postcode' => '12345678901234567890',
+		'line1'            => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn Street",
+		'line1_trimmed'    => "123 Don't you wish you lived hére tøó at this place Ï like to call Mæn",
+		'line2'            => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line2_trimmed'    => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'line3'            => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line3_trimmed'    => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'line4'            => '12345678901234567890123456789012345678901234567890123456789012345678901234567890',
+		'line4_trimmed'    => '1234567890123456789012345678901234567890123456789012345678901234567890',
+		'city'             => '1234567890123456789012345678901234567890',
+		'city_trimmed'     => '12345678901234567890123456789012345',
+		'region_id'        => '51',
+		'region_code'      => 'PA',
+		'country_id'       => 'US',
+		'postcode'         => '12345678901234567890',
 		'postcode_trimmed' => '123456789012345'
 	);
 
@@ -213,5 +210,4 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest
 		$this->assertSame($address->getCountry(), $this->_addressParts['country_id']);
 		$this->assertSame($address->getPostcode(), $this->_addressParts['postcode']);
 	}
-
 }

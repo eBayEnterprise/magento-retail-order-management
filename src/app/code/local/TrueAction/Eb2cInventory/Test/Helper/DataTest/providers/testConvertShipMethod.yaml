@@ -1,0 +1,222 @@
+-
+  - dhl_IE
+-
+  - dhl_E SAT
+-
+  - dhl_E
+-
+  - dhl_N
+-
+  - dhl_S
+-
+  - dhl_G
+-
+  - freeshipping_freeshipping
+-
+  - usps_Bound Printed Matter
+-
+  - usps_Express Mail
+-
+  - usps_Express Mail Flat Rate Envelope
+-
+  - usps_Express Mail Flat Rate Envelope Hold For Pickup
+  -
+  - usps_Express Mail Hold For Pickup
+-
+  - usps_Express Mail International
+-
+  - usps_Express Mail International Flat Rate Envelope
+-
+  - usps_Express Mail PO to PO
+-
+  - usps_First-Class Mail International Large Envelope
+-
+  - usps_First-Class Mail International Letter
+-
+  - usps_First-Class Mail International Package
+-
+  - usps_First-Class Mail International Parcel
+-
+  - usps_First-Class
+-
+  - usps_First-Class Mail
+-
+  - usps_First-Class Mail Flat
+-
+  - usps_First-Class Mail Large Envelope
+-
+  - usps_First-Class Mail International
+-
+  - usps_First-Class Mail Letter
+-
+  - usps_First-Class Mail Parcel
+-
+  - usps_First-Class Mail Package
+-
+  - usps_Global Express Guaranteed (GXG)
+-
+  - usps_Global Express Guaranteed Non-Document Non-Rectangular
+-
+  - usps_Global Express Guaranteed Non-Document Rectangular
+-
+  - usps_Library Mail
+-
+  - usps_Media Mail
+-
+  - usps_Parcel Post
+-
+  - usps_Priority Mail
+-
+  - usps_Priority Mail Small Flat Rate Box
+-
+  - usps_Priority Mail Medium Flat Rate Box
+-
+  - usps_Priority Mail Large Flat Rate Box
+-
+  - usps_Priority Mail Flat Rate Box
+-
+  - usps_Priority Mail Flat Rate Envelope
+-
+  - usps_Priority Mail International
+-
+  - usps_Priority Mail International Flat Rate Box
+-
+  - usps_Priority Mail International Flat Rate Envelope
+-
+  - usps_Priority Mail International Small Flat Rate Box
+-
+  - usps_Priority Mail International Medium Flat Rate Box
+-
+  - usps_Priority Mail International Large Flat Rate Box
+-
+  - usps_USPS GXG Envelopes
+-
+  - dhlint_2
+-
+  - dhlint_5
+-
+  - dhlint_6
+-
+  - dhlint_7
+-
+  - dhlint_9
+-
+  - dhlint_B
+-
+  - dhlint_C
+-
+  - dhlint_D
+-
+  - dhlint_U
+-
+  - dhlint_K
+-
+  - dhlint_L
+-
+  - dhlint_G
+-
+  - dhlint_W
+-
+  - dhlint_I
+-
+  - dhlint_N
+-
+  - dhlint_O
+-
+  - dhlint_R
+-
+  - dhlint_S
+-
+  - dhlint_T
+-
+  - dhlint_X
+-
+  - fedex_EUROPE_FIRST_INTERNATIONAL_PRIORITY
+-
+  - fedex_FEDEX_1_DAY_FREIGHT
+-
+  - fedex_FEDEX_2_DAY_FREIGHT
+-
+  - fedex_FEDEX_2_DAY
+-
+  - fedex_FEDEX_2_DAY_AM
+-
+  - fedex_FEDEX_3_DAY_FREIGHT
+-
+  - fedex_FEDEX_EXPRESS_SAVER
+-
+  - fedex_FEDEX_GROUND
+-
+  - fedex_FIRST_OVERNIGHT
+-
+  - fedex_GROUND_HOME_DELIVERY
+-
+  - fedex_INTERNATIONAL_ECONOMY
+-
+  - fedex_INTERNATIONAL_ECONOMY_FREIGHT
+-
+  - fedex_INTERNATIONAL_FIRST
+-
+  - fedex_INTERNATIONAL_GROUND
+-
+  - fedex_INTERNATIONAL_PRIORITY
+-
+  - fedex_INTERNATIONAL_PRIORITY_FREIGHT
+-
+  - fedex_PRIORITY_OVERNIGHT
+-
+  - fedex_SMART_POST
+-
+  - fedex_STANDARD_OVERNIGHT
+-
+  - fedex_FEDEX_FREIGHT
+-
+  - fedex_FEDEX_NATIONAL_FREIGHT
+-
+  - tablerate_bestway
+-
+  - flatrate_flatrate
+-
+  - ups_1DM
+-
+  - ups_1DML
+-
+  - ups_1DA
+-
+  - ups_1DAL
+-
+  - ups_1DAPI
+-
+  - ups_1DP
+-
+  - ups_1DPL
+-
+  - ups_2DM
+-
+  - ups_2DML
+-
+  - ups_2DA
+-
+  - ups_2DAL
+-
+  - ups_3DS
+-
+  - ups_GND
+-
+  - ups_GNDCOM
+-
+  - ups_GNDRES
+-
+  - ups_STD
+-
+  - ups_XPR
+-
+  - ups_WXS
+-
+  - ups_XPRL
+-
+  - ups_XDM
+-
+  - ups_XDML
+-
+  - ups_XPD

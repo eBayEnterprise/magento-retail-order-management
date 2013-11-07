@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout version="0.1.0">
+	<customer_account_index>
+		<replace handle="customer_account_dashboard_top"/>
+		<reference name="customer_account_dashboard">
+			<block type="sales/order_recent" name="customer_account_dashboard_top" as="top" template="eb2corder_frontend/order/recent.phtml"/>
+		</reference>
+	</customer_account_index>
+</layout>

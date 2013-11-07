@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const VFS_ROOT = 'testBase';
@@ -21,6 +16,29 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->method('getAllFiles')
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
+	}
+
+	/**
+	 * Stub dom documents created by the core helper
+	 * @param  array $loadResults Results of load calls, assoc array of filename => returnValue|Exception
+	 * @return TrueAction_Dom_Document  Stubbed DOM document
+	 */
+	protected function _domStub($loadResults)
+	{
+		$dom = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$dom->expects($this->any())
+			->method('load')
+			->will($this->returnCallback(function ($arg) use ($loadResults) {
+				if (isset($loadResults[$arg])) {
+					if ($loadResults[$arg] instanceof Exception) {
+						throw $loadResults[$arg];
+					} else {
+						return $loadResults[$arg];
+					}
+				}
+				return null;
+			}));
+		return $dom;
 	}
 
 	/**
@@ -176,83 +194,67 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	}
 
 	/**
-	 * testing processFeeds method, with valid ftp settings - throw connection exceptions
-	 *
+	 * Test processing of the feeds, success and failure
 	 * @test
-	 * @medium
-	 * @loadFixture sample-data.yaml
+	 * @loadFixture testFeedProcessing.yaml
 	 */
-	public function testProcessFeeds()
+	public function testFeedProcessing()
 	{
-		// Begin vfs Setup:
-		$vfs = $this->getFixture()->getVfs();
+		$fileName = 'dummy_file_name.xml';
+		$remotePath = 'fake_remote_path';
+		$filePattern = 'Oh*My*Glob';
 
-		$inventoryFeedModel = Mage::getModel(
-			'eb2cinventory/feed_item_inventories',
-			array(
-				'base_dir' => $vfs->url(self::VFS_ROOT),
-				'fs_tool'  => $this->_getMockFsTool($vfs)
-			)
-		);
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
+			->getMock();
+		$coreFeed->expects($this->once())
+			->method('fetchFeedsFromRemote')
+			->with($this->identicalTo($remotePath), $this->identicalTo($filePattern));
+		$coreFeed->expects($this->once())
+			->method('lsInboundDir')
+			->will($this->returnValue(array($fileName)));
+		$coreFeed->expects($this->once())
+			->method('mvToArchiveDir')
+			->with($this->identicalTo($fileName));
+		$coreFeed->expects($this->once())
+			->method('removeFromRemote')
+			->with($this->identicalTo($remotePath, $fileName));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
-		$this->_replaceFileTransferHelper();
+		$domStub = $this->_domStub(array($fileName => true,));
 
-		// test with mock product and stock item
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('loadByAttribute', 'getId')
-		);
-		$productMock->expects($this->any())
-			->method('loadByAttribute')
+		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
+		$coreHelper->expects($this->any())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domStub));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
+
+		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
+		$mockFs->expects($this->any())
+			->method('setAllowCreateFolders')
+			->will($this->returnSelf());
+		$mockFs->expects($this->any())
+			->method('open')
+			->will($this->returnSelf());
+		$model = Mage::getModel('eb2cinventory/feed_item_inventories', array(
+			'feed_config'       => 'dummy_config',
+			'feed_event_type'   => 'ItemInventories',
+			'feed_file_pattern' => $filePattern,
+			'feed_local_path'   => 'inbound',
+			'feed_file_pattern' => $filePattern,
+			'feed_remote_path'  => $remotePath,
+			'fs_tool'           => $mockFs,
+		));
+		// if dom document was loaded successfully, the message should be validated and processed
+		$feedHelper = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
+		$feedHelper->expects($this->once())
+			->method('validateHeader')
+			->with($this->identicalTo($domStub), $this->identicalTo('ItemInventories'))
 			->will($this->returnValue(true));
-		$productMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
 
-		$stockItemMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Item',
-			array('loadByProduct', 'setQty', 'save')
-		);
-		$stockItemMock->expects($this->any())
-			->method('loadByProduct')
-			->will($this->returnSelf());
-		$stockItemMock->expects($this->any())
-			->method('setQty')
-			->will($this->returnSelf());
-		$stockItemMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf());
-
-		$inventoryFeedModel->setProduct($productMock);
-		$inventoryFeedModel->setStockItem($stockItemMock);
-
-		$this->assertNull($inventoryFeedModel->processFeeds());
-
-		$vfs->discard();
+		$model->processFeeds();
 	}
 
-	/**
-	 * testing _clean method, to cover exception catch section
-	 *
-	 * @test
-	 */
-	public function testCleanWithException()
-	{
-		$stockStatusMock = $this->getMock(
-			'Mage_CatalogInventory_Model_Stock_Status',
-			array('rebuild')
-		);
-		$stockStatusMock->expects($this->any())
-			->method('rebuild')
-			->will($this->throwException(new Exception));
-
-		$inventoryFeedModel = Mage::getModel('eb2cinventory/feed_item_inventories');
-		$inventoryFeedModel->setStockStatus($stockStatusMock);
-		$inventoriesReflector = new ReflectionObject($inventoryFeedModel);
-		$cleanMethod = $inventoriesReflector->getMethod('_clean');
-		$cleanMethod->setAccessible(true);
-		$this->assertNull(
-			$cleanMethod->invoke($inventoryFeedModel)
-		);
-	}
 }

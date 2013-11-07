@@ -55,17 +55,30 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 				// run inventory updates
 				$this->_inventoryUpdates($domDocument);
 			}
-
-			// Remove feed file from local server after finishing processing it.
-			if (file_exists($feed)) {
-				// This assumes that we have process all ok
-				$this->getFeedModel()->mvToArchiveDir($feed);
-			}
-			// If this had failed, we could do this: [mvToErrorDir(feed)]
+			$this->archiveFeed($feed);
 		}
 
-		// After all feeds have been process, let's clean magento cache and rebuild inventory status
-		$this->_clean();
+		Mage::dispatchEvent('inventory_feed_processing_complete', array());
+	}
+
+	/**
+	 * Archive the file after processing - move the local copy to the archive dir for the feed
+	 * and delete the file off of the remote sftp server.
+	 * @fixme  Dumb copy paste from the core/model/feed/abstract with minor adjustments to get it
+	 * working here. This class should really just inherit properly.
+	 * @param  string $xmlFeedFile Local path of the file
+	 * @return $this object
+	 */
+	public function archiveFeed($xmlFeedFile)
+	{
+		$config = Mage::getModel('eb2ccore/config_registry')
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'))
+			->addConfigModel(Mage::getSingleton('eb2cinventory/config'));
+		if ($config->deleteRemoteFeedFiles) {
+			$this->getFeedModel()->removeFromRemote($config->feedRemoteReceivedPath, basename($xmlFeedFile));
+		}
+		$this->getFeedModel()->mvToArchiveDir($xmlFeedFile);
+		return $this;
 	}
 
 	/**
@@ -79,43 +92,29 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		if ($feedItemCollection) {
 			// we've import our feed data in a varien object we can work with
 			foreach ($feedItemCollection as $feedItem) {
-				if (trim($feedItem->getItemId()->getClientItemId()) !== '') {
-					// we have a valid item, let's get the product id
-					$this->getProduct()->loadByAttribute('sku', $feedItem->getItemId()->getClientItemId());
-
-					if ($this->getProduct()->getId()) {
-						// we've gotten a valid magento product, let's update its stock
-						$this->getStockItem()->loadByProduct($this->getProduct()->getId())
+				// For inventory, we must prepend the client-id
+				$mageSku = $feedItem->getCatalogId() . '-' . trim($feedItem->getItemId()->getClientItemId());
+				if ($mageSku !== '') {
+					// We have a sku, let's get the product id
+					$mageProduct = $this->getProduct()->loadByAttribute('sku', $mageSku);
+					if ($mageProduct) {
+						// We've retrieved a valid magento product, let's update its stock. We're doing a lightweight load
+						// by only bringing in the stockItem object itself - we are *not* loading the entire product.
+						// We could do that - it would also get the stockItem, but would also do a lot more that we don't
+						// really need in this context.
+						Mage::getModel('cataloginventory/stock_item')
+							->loadByProduct($mageProduct->getId())
 							->setQty($feedItem->getMeasurements()->getAvailableQuantity())
 							->save();
 					} else {
-						// This item doesn't exists in the Magento App, just logged it as a warning
+						// This item doesn't exist in the Magento App, just logged it as a warning
 						Mage::log(
-							'[' . __CLASS__ . '] Item Inventories Feed SKU (' . $feedItem->getItemId()->getClientItemId() . '), doesn\'t exists in Magento',
+							'[' . __CLASS__ . '] Item Inventories Feed SKU (' . $feedItem->getItemId()->getClientItemId() . '), not found.',
 							Zend_Log::WARN
 						);
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * Clear Magento cache and rebuild inventory status.
-	 * @return void
-	 */
-	protected function _clean()
-	{
-		Mage::log(sprintf('[ %s ] Disabled during testing; manual reindex required', __METHOD__), Zend_Log::WARN);
-		return;
-		try {
-			// CLEAN CACHE
-			Mage::app()->cleanCache();
-
-			// STOCK STATUS
-			$this->getStockStatus()->rebuild();
-		} catch (Exception $e) {
-			Mage::log('[' . __CLASS__ . '] ' . $e->getMessage(), Zend_Log::WARN);
 		}
 	}
 }

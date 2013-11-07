@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cFraud>
-			<version>1.0.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cFraud>
 	</modules>
 	<global>
@@ -93,7 +93,7 @@
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cFraud />
+				<TrueAction_Eb2cFraud/>
 			</modules>
 		</suite>
 	</phpunit>

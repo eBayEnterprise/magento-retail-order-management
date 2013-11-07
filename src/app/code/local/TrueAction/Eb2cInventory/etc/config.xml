@@ -1,16 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-/**
- *
- * @category    TrueAction
- * @package     TrueAction_Eb2c
- * @copyright   Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
--->
+<?xml version="1.0" encoding="utf-8"?>
 <config>
 	<modules>
 		<TrueAction_Eb2cInventory>
-			<version>1.0.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cInventory>
 	</modules>
 	<global>
@@ -99,8 +91,27 @@
 				<class>TrueAction_Eb2cInventory_Helper</class>
 			</eb2cinventory>
 		</helpers>
+		<events>
+			<inventory_feed_processing_complete>
+				<observers>
+					<cataloginventory_reindex_all>
+						<class>cataloginventory/indexer_stock</class>
+						<method>reindexAll</method>
+					</cataloginventory_reindex_all>
+				</observers>
+			</inventory_feed_processing_complete>
+		</events>
 	</global>
 	<frontend>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cInventory>
+					<files>
+						<default>TrueAction_Eb2cInventory.csv</default>
+					</files>
+				</TrueAction_Eb2cInventory>
+			</modules>
+		</translate>
 		<routers>
 			<trueaction_eb2cinventory>
 				<use>standard</use>
@@ -156,54 +167,41 @@
 			</eb2c_allocation_onepage_save_order_action_before>
 		</events>
 	</frontend>
-	<crontab>
-		<jobs>
-			<eb2cinventory_feed_item_inventories>
-				<schedule><cron_expr>0 3 * * *</cron_expr></schedule>
-				<run>
-					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
-				</run>
-			</eb2cinventory_feed_item_inventories>
-		</jobs>
-	</crontab>
 	<default>
-		<eb2c>
-			<inventory>
-				<developer_mode>0</developer_mode>
-				<quantity_api_uri></quantity_api_uri>
-				<inventory_detail_uri></inventory_detail_uri>
-				<allocation_uri></allocation_uri>
-				<rollback_allocation_uri></rollback_allocation_uri>
-				<allocation_expired>60</allocation_expired>
-				<config_path>eb2ccore/general</config_path>
-				<api_service>inventory</api_service>
-				<api_opt_inventory_qty>quantity/get</api_opt_inventory_qty>
-				<api_opt_inventory_details>details/get</api_opt_inventory_details>
-				<api_opt_inventory_allocation>allocations/create</api_opt_inventory_allocation>
-				<api_opt_inventory_rollback_allocation>allocations/delete</api_opt_inventory_rollback_allocation>
-				<api_return_format>xml</api_return_format>
-				<xsd>
-					<allocation_file>Inventory-Service-Allocation-1.0.xsd</allocation_file>
-					<details_file>Inventory-Service-InventoryDetails-1.0.xsd</details_file>
-					<quantity_file>Inventory-Service-Quantity-1.0.xsd</quantity_file>
-					<rollback_file>Inventory-Service-RollbackAllocation-1.0.xsd</rollback_file>
-				</xsd>
-			</inventory>
-		</eb2c>
+		<eb2ccore>
+			<shipmap>
+				<!-- Add a Magento shipping method as the tag and an
+				eb2c method as the value to create a mapping. -->
+				<flatrate_flatrate>ANY_STD</flatrate_flatrate>
+			</shipmap>
+		</eb2ccore>
 		<eb2cinventory>
-			<inventory_feed>
+			<allocation_expired>60</allocation_expired>
+			<api_service>inventory</api_service>
+			<api_opt_inventory_qty>quantity/get</api_opt_inventory_qty>
+			<api_opt_inventory_details>details/get</api_opt_inventory_details>
+			<api_opt_inventory_allocation>allocations/create</api_opt_inventory_allocation>
+			<api_opt_inventory_rollback_allocation>allocations/delete</api_opt_inventory_rollback_allocation>
+			<api_return_format>xml</api_return_format>
+			<xsd>
+				<allocation_file>Inventory-Service-Allocation-1.0.xsd</allocation_file>
+				<details_file>Inventory-Service-InventoryDetails-1.0.xsd</details_file>
+				<quantity_file>Inventory-Service-Quantity-1.0.xsd</quantity_file>
+				<rollback_file>Inventory-Service-RollbackAllocation-1.0.xsd</rollback_file>
+			</xsd>
+			<feed>
 				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
-				<remote_path></remote_path>
+				<remote_path>/Inbox/</remote_path>
 				<file_pattern>*inventatpfull*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>
 				<header_version>2.3.0</header_version>
-			</inventory_feed>
+			</feed>
 		</eb2cinventory>
 	</default>
 	<phpunit>
 		<suite>
 			<modules>
-				<TrueAction_Eb2cInventory />
+				<TrueAction_Eb2cInventory/>
 			</modules>
 		</suite>
 	</phpunit>

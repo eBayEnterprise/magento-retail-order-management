@@ -14,12 +14,19 @@ class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
 		$responseMessage = '';
 		// build request
 		$requestDoc = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
-
+		$hlpr = Mage::helper('eb2cpayment');
+		// HACK: EBC-238
+		// Replace the "GS" at the end of the url with the right tender type for the SVC.
+		$uri = $hlpr->getSvcUri('get_gift_card_redeem', $pan);
+		if ($uri === '') {
+			Mage::log(sprintf('[ %s ] pan "%s" is out of range of any configured tender type bin.', __CLASS__, $pan), Zend_Log::ERR);
+			return '';
+		}
 		try {
 			// make request to eb2c for Gift Card Redeem
 			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_gift_card_redeem'))
-				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem)
+				->setUri($uri)
+				->setXsd($hlpr->getConfigModel()->xsdFileStoredValueRedeem)
 				->request($requestDoc);
 		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(

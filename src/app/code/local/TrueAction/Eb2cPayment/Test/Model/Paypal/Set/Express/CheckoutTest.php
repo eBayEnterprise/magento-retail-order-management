@@ -1,9 +1,4 @@
 <?php
-/**
- * @category  TrueAction
- * @package   TrueAction_Eb2c
- * @copyright Copyright (c) 2013 True Action (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_checkout;
@@ -15,12 +10,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 	{
 		parent::setUp();
 		$this->_checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
-
-		$paymentHelperMock = $this->getHelperMock('eb2cpayment/data', array('getOperationUri'));
-		$paymentHelperMock->expects($this->any())
-			->method('getOperationUri')
-			->will($this->returnValue('http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/PayPalSetExpressCheckoutReply.xml'));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
 
 		$urlMock = $this->getModelMockBuilder('core/url')
 			->disableOriginalConstructor()
@@ -81,11 +70,24 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 			->will($this->returnValue(25.00)
 			);
 
+		$totals = array();
+		$totals['grand_total'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'grand_total', 'value' => 50.00
+		));
+		$totals['subtotal'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'subtotal', 'value' => 50.00
+		));
+		$totals['shipping'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'shipping', 'value' => 10.00
+		));
+		$totals['tax'] = Mage::getModel('sales/quote_address_total', array(
+			'code' => 'tax', 'value' => 5.00
+		));
+
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array(
-				'getEntityId', 'getBaseGrandTotal', 'getSubtotal', 'getShippingAmount',
-				'getTaxAmount', 'getQuoteCurrencyCode', 'getAllAddresses'
+				'getEntityId', 'getTotals', 'getQuoteCurrencyCode', 'getAllAddresses'
 			)
 		);
 		$quoteMock->expects($this->any())
@@ -93,20 +95,8 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 			->will($this->returnValue(1234567)
 			);
 		$quoteMock->expects($this->any())
-			->method('getBaseGrandTotal')
-			->will($this->returnValue(50.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getSubtotal')
-			->will($this->returnValue(50.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAmount')
-			->will($this->returnValue(10.00)
-			);
-		$quoteMock->expects($this->any())
-			->method('getTaxAmount')
-			->will($this->returnValue(5.00)
+			->method('getTotals')
+			->will($this->returnValue($totals)
 			);
 		$quoteMock->expects($this->any())
 			->method('getQuoteCurrencyCode')

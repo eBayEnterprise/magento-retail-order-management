@@ -1,0 +1,7 @@
+config:
+  default/eb2ccore/general/store_id: 'storeId'
+  default/eb2cproduct/item_pricing_feed/local_path: TrueAction/Eb2c/Feed/Product/Pricing/
+  default/eb2cproduct/item_pricing_feed/remote_path: /Inbox/Pricing/{storeid}/
+  default/eb2cproduct/item_pricing_feed/file_pattern: Price*.xml
+  default/eb2cproduct/item_pricing_feed/event_type: Price
+  default/eb2cproduct/item_pricing_feed/header_version: 2.3.0

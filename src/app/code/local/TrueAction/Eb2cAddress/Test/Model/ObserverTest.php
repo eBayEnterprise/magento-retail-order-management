@@ -1,21 +1,12 @@
 <?php
-
 use EcomDev_PHPUnit_Test_Case_Util as TestUtil;
 
 class TrueAction_Eb2cAddress_Test_Model_ObserverTest
-	extends EcomDev_PHPUnit_Test_Case
+	extends TrueAction_Eb2cCore_Test_Base
 {
-
 	public function setUp()
 	{
-		parent::setUp();
-		TestUtil::setUp();
-	}
-
-	public function tearDown()
-	{
-		parent::tearDown();
-		TestUtil::tearDown();
+		$this->_setupBaseUrl();
 	}
 
 	protected function _mockConfig($enabled)
@@ -147,10 +138,18 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testResponseSuggestionsNoErrors()
 	{
-		$validator = $this->getModelMock('eb2caddress/validator', array('isValid'));
+		$suggestionGroup = $this->getModelMock('eb2caddress/suggestion_group', array('setHasFreshSuggestions'));
+		$suggestionGroup->expects($this->once())
+			->method('setHasFreshSuggestions')
+			->with($this->isFalse())
+			->will($this->returnSelf());
+		$validator = $this->getModelMock('eb2caddress/validator', array('isValid', 'getAddressCollection'));
 		// when there aren't errors in the response, this shouldn't get called
 		$validator->expects($this->never())
 			->method('isValid');
+		$validator->expects($this->once())
+			->method('getAddressCollection')
+			->will($this->returnValue($suggestionGroup));
 		$this->replaceByMock('model', 'eb2caddress/validator', $validator);
 
 		$response = $this->getMock('Mage_Core_Controller_Response_Http', array('getBody', 'setBody'));
@@ -342,5 +341,4 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 
 		$addressObserver = Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
 	}
-
 }

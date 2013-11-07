@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_Model_Abstract
 {
 	/**
@@ -52,6 +47,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 	 */
 	public function buildPayPalDoExpressCheckoutRequest($quote)
 	{
+		$totals = $quote->getTotals();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoExpressCheckoutRequest = $domDocument->addElement('PayPalDoExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 		$payPalDoExpressCheckoutRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
@@ -73,7 +69,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 
 		$payPalDoExpressCheckoutRequest->createChild(
 			'Amount',
-			sprintf('%.02f', $quote->getBaseGrandTotal()),
+			sprintf('%.02f', (isset($totals['grand_total']) ? $totals['grand_total']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
@@ -92,21 +88,21 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends Mage_Core_
 		// add LineItemsTotal
 		$lineItems->createChild(
 			'LineItemsTotal',
-			sprintf('%.02f', $quote->getSubtotal()), // integer value doesn't get added only string
+			sprintf('%.02f', (isset($totals['subtotal']) ? $totals['subtotal']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
 		// add ShippingTotal
 		$lineItems->createChild(
 			'ShippingTotal',
-			sprintf('%.02f', $quote->getShippingAddress()->getShippingAmount()),
+			sprintf('%.02f', (isset($totals['shipping']) ? $totals['shipping']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 
 		// add TaxTotal
 		$lineItems->createChild(
 			'TaxTotal',
-			sprintf('%.02f', $quote->getTaxAmount()),
+			sprintf('%.02f', (isset($totals['tax']) ? $totals['tax']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 		if ($quote) {

@@ -1,9 +1,4 @@
 config:
-  default/eb2c/inventory/developer_mode: 1
   default/eb2c/core/store_id: "ABCD"
   default/eb2c/core/client_id: "TAN-CLI"
-  default/eb2c/inventory/quantity_api_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/QuantityResponseMessage.xml"
-  default/eb2c/inventory/inventory_detail_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/InventoryDetailsResponseMessage.xml"
-  default/eb2c/inventory/allocation_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/AllocationResponseMessage.xml"
-  default/eb2c/inventory/rollback_allocation_uri: "http://eb2c.rgabriel.mage.tandev.net/eb2c/api/request/RollbackAllocationResponseMessage.xml"
-  default/eb2c/inventory/allocation_expired: 60
+  default/eb2cinventory/allocation_expired: 60

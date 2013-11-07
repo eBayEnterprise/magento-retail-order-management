@@ -1,9 +1,4 @@
 <?php
-/**
- * @category   TrueAction
- * @package    TrueAction_Eb2c
- * @copyright  Copyright (c) 2013 True Action Network (http://www.trueaction.com)
- */
 class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	public $configModel;
@@ -15,38 +10,14 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 		$cfg = $this->getConfigModel(null);
 
 		$this->_operation = array(
-			'get_gift_card_balance' => array(
-				'pro' => $cfg->apiOptStoredValueBalance,
-				'dev' => $cfg->storedValueBalanceApiUri
-			),
-			'get_gift_card_redeem' => array(
-				'pro' => $cfg->apiOptStoredValueRedeem,
-				'dev' => $cfg->storedValueRedeemApiUri
-			),
-			'get_gift_card_redeem_void' => array(
-				'pro' => $cfg->apiOptStoredValueRedeemVoid,
-				'dev' => $cfg->storedValueRedeemVoidApiUri
-			),
-			'get_paypal_set_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalSetExpressCheckout,
-				'dev' => $cfg->paypalSetExpressCheckoutApiUri
-			),
-			'get_paypal_get_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalGetExpressCheckout,
-				'dev' => $cfg->paypalGetExpressCheckoutApiUri
-			),
-			'get_paypal_do_express_checkout' => array(
-				'pro' => $cfg->apiOptPaypalDoExpressCheckout,
-				'dev' => $cfg->paypalDoExpressCheckoutApiUri
-			),
-			'get_paypal_do_authorization' => array(
-				'pro' => $cfg->apiOptPaypalDoAuthorization,
-				'dev' => $cfg->paypalDoAuthorizationApiUri
-			),
-			'get_paypal_do_void' => array(
-				'pro' => $cfg->apiOptPaypalDoVoid,
-				'dev' => $cfg->paypalDoVoidApiUri
-			)
+			'get_gift_card_balance'           => $cfg->apiOptStoredValueBalance,
+			'get_gift_card_redeem'            => $cfg->apiOptStoredValueRedeem,
+			'get_gift_card_redeem_void'       => $cfg->apiOptStoredValueRedeemVoid,
+			'get_paypal_do_authorization'     => $cfg->apiOptPaypalDoAuthorization,
+			'get_paypal_do_express_checkout'  => $cfg->apiOptPaypalDoExpressCheckout,
+			'get_paypal_do_void'              => $cfg->apiOptPaypalDoVoid,
+			'get_paypal_get_express_checkout' => $cfg->apiOptPaypalGetExpressCheckout,
+			'get_paypal_set_express_checkout' => $cfg->apiOptPaypalSetExpressCheckout,
 		);
 	}
 
@@ -89,31 +60,17 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * Generate eb2c API operation Uri from configuration settings and constants
 	 * @param string $optIndex, the operation index of the associative array
-	 *
 	 * @return string, the generated operation Uri
 	 */
 	public function getOperationUri($optIndex)
 	{
-		$operation = '';
-		if (isset($this->_operation[$optIndex])) {
-			$operation = $this->_operation[$optIndex];
-		}
 		$cfg = $this->getConfigModel(null);
-		$apiUri = $operation['dev'];
-		if (!(bool) $cfg->developerMode) {
-			$apiUri = Mage::helper('eb2ccore')->getApiUri(
-				$cfg->apiService,
-				$operation['pro']
-			);
-		}
-		return $apiUri;
+		return Mage::helper('eb2ccore')->getApiUri($cfg->apiService, $this->_operation[$optIndex]);
 	}
 
 	/**
 	 * Generate eb2c API Universally unique ID used to globally identify to request.
-	 *
 	 * @param int $entityId, the magento sales_flat_quote entity_id
-	 *
 	 * @return string, the request id
 	 */
 	public function getRequestId($entityId)
@@ -124,5 +81,41 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 			$cfg->storeId,
 			$entityId
 		));
+	}
+
+	/**
+	 * EBC-238: Return the configured tender type bin the card number is in.
+	 * If none, empty string.
+	 * @param string $pan the card number
+	 * @return string the tender type
+	 */
+	private function _getTenderType($pan)
+	{
+		$cfg = $this->getConfigModel();
+		$tenderTypes = array('GS', 'SP', 'SV', 'VL');
+		foreach($tenderTypes as $tenderType) {
+			list($low, $high) = explode('-', $cfg->getConfig('svc_bin_range_' . $tenderType));
+			$low = trim($low);
+			$high = trim($high);
+			if ($low <= $pan && $pan <= $high) {
+				return $tenderType;
+			}
+		}
+		return '';
+	}
+	/**
+	 * EBC-238: Return the URL with the correct tender type code.
+	 * @param string $optIndex the operation index of the associative array
+	 * @param string $pan the card number
+	 * @return string
+	 */
+	public function getSvcUri($optIndex, $pan)
+	{
+		$tenderType = $this->_getTenderType($pan);
+		if ($tenderType === '') {
+			return '';
+		}
+		$uri = $this->getOperationUri($optIndex);
+		return preg_replace('/GS\.xml$/', "{$tenderType}.xml", $uri);
 	}
 }
