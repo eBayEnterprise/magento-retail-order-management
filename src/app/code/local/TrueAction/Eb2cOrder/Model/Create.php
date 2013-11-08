@@ -210,7 +210,10 @@ class TrueAction_Eb2cOrder_Model_Create
 
 		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_domRequest->formatOutput = true;
-		$orderCreateRequest = $this->_domRequest->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
+		$orderCreateRequest = $this
+			->_domRequest
+			->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)
+			->firstChild;
 		$orderCreateRequest->setAttribute('orderType', $consts::ORDER_TYPE);
 		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
 
@@ -328,7 +331,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 		}
 
-		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
+		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
 		$orderItem->createChild('ReservationId', $reservationId);
 
 		// Tax on the Merchandise:

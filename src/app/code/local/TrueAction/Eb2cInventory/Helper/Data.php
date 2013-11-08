@@ -74,15 +74,4 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		$cfg = $this->getConfigModel(null);
 		return implode('-', array($cfg->clientId, $cfg->storeId, $entityId));
 	}
-
-	/**
-	 * Return the eb2c ship method configured to correspond to a known Magento ship method.
-	 * @param string $mageShipMethod
-	 * @return string EB2C ship method
-	 */
-	public function lookupShipMethod($mageShipMethod)
-	{
-		// Deliberately bypass configurator so we can dynamically lookup.
-		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
-	}
 }
