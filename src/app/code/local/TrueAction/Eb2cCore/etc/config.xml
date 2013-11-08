@@ -58,7 +58,6 @@
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
-				<delete_remote_feed_files>1</delete_remote_feed_files>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 				<available_models>
