@@ -569,11 +569,12 @@ class TrueAction_Eb2cOrder_Model_Create
 				} elseif ($payMethodNode === 'StoredValueCard') {
 					// the payment method is free and there is gift card for the order
 					if ($this->_o->getGiftCardsAmount() > 0) {
+						$pan = $this->_getOrderGiftCardPan($this->_o);
 						$thisPayment = $payments->createChild($payMethodNode);
 						$paymentContext = $thisPayment->createChild('PaymentContext');
 						$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-						$paymentContext->createChild('TenderType', $payment->getMethod());
-						$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
+						$paymentContext->createChild('TenderType', Mage::helper('eb2cpayment')->getTenderType($pan));
+						$paymentContext->createChild('PaymentAccountUniqueId', $pan)->setAttribute('isToken', 'false');
 
 						$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 						$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGiftCardsAmount()));
@@ -588,6 +589,24 @@ class TrueAction_Eb2cOrder_Model_Create
 			$thisPayment = $payments->createChild('PrepaidCreditCard');
 			$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 		}
+	}
+
+	/**
+	 * get order stored value pan
+	 * @param Mage_Sales_Model_Order $order, the order object
+	 * @return string, the pan
+	 */
+	private function _getOrderGiftCardPan(Mage_Sales_Model_Order $order)
+	{
+		$giftCardData = unserialize($order->getGiftCards());
+		if (!empty($giftCardData)) {
+			foreach ($giftCardData as $gcData) {
+				if (isset($gcData['pan']) && trim($gcData['pan']) !== '') {
+					return $gcData['pan'];
+				}
+			}
+		}
+		return '';
 	}
 
 	/**

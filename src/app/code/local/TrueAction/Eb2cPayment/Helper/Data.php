@@ -89,7 +89,7 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param string $pan the card number
 	 * @return string the tender type
 	 */
-	private function _getTenderType($pan)
+	public function getTenderType($pan)
 	{
 		$cfg = $this->getConfigModel();
 		$tenderTypes = array('GS', 'SP', 'SV', 'VL');
@@ -111,7 +111,7 @@ class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getSvcUri($optIndex, $pan)
 	{
-		$tenderType = $this->_getTenderType($pan);
+		$tenderType = $this->getTenderType($pan);
 		if ($tenderType === '') {
 			return '';
 		}

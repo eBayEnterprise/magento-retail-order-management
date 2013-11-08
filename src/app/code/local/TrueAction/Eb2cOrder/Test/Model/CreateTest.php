@@ -401,14 +401,19 @@ INVALID_XML;
 		// let test the model responsible for building the payment request xml
 		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+			->setMethods(array('getConfigModel', 'getTenderType'))
 			->getMock();
 
 		$helperMock->expects($this->any())
 			->method('getConfigModel')
 			->will($this->returnValue((object) array(
-				'isPaymentEnabled' => 1
+				'isPaymentEnabled' => 1,
+				'' => 'VL'
 			)));
+		$helperMock->expects($this->any())
+			->method('getTenderType')
+			->will($this->returnValue('VL'));
+
 		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
 
 		$_SERVER['HTTP_ACCEPT'] = '/';
