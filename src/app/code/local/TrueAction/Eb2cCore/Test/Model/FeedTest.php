@@ -269,7 +269,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$mockSftp
 			->expects($this->any())
 			->method('deleteFile')
-			->with($this->identicalTo($dir), $this->identicalTo($file))
+			->with($this->identicalTo($dir . DS . $file))
 			->will($this->returnValue(true));
 
 		$this->replaceByMock(

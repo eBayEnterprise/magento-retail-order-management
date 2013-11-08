@@ -139,9 +139,10 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	 */
 	public function removeFromRemote($remotePath, $fileName)
 	{
+		$cfg = Mage::helper('eb2ccore/feed');
 		$this->_remoteCall(
 			array(Mage::helper('filetransfer'), 'deleteFile'),
-			array($remotePath, $fileName)
+			array($remotePath . DS . $fileName, $cfg::FILETRANSFER_CONFIG_PATH)
 		);
 	}
 
