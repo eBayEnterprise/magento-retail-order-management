@@ -145,7 +145,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$this->assertSame(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Inventories/', $feed->getBaseDir());
 		$this->assertInstanceOf('TrueAction_Eb2cInventory_Model_Feed_Item_Extractor', $feed->getExtractor());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Item', $feed->getStockItem());
-		$this->assertInstanceOf('Mage_Catalog_Model_Product', $feed->getProduct());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Status', $feed->getStockStatus());
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed', $feed->getFeedModel());
 		// make sure the core feed model was instantiated with the proper magic data
@@ -242,7 +241,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			'feed_event_type'   => 'ItemInventories',
 			'feed_file_pattern' => $filePattern,
 			'feed_local_path'   => 'inbound',
-			'feed_file_pattern' => $filePattern,
 			'feed_remote_path'  => $remotePath,
 			'fs_tool'           => $mockFs,
 		));
@@ -256,5 +254,92 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 
 		$model->processFeeds();
 	}
-
+	/**
+	 * @test
+	 */
+	public function testUpdateInventories()
+	{
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_extractSku', '_updateInventory'));
+		$fii
+			->expects($this->once())
+			->method('_extractSku')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue('123'));
+		$fii
+			->expects($this->once())
+			->method('_updateInventory')
+			->with($this->isType('string'), $this->isType('integer'))
+			->will($this->returnSelf());
+		$sampleFeed = array(new Varien_Object(array(
+			'catalog_id' => 'foo',
+			'client_item_id' => 'bar',
+			'measurements' => new Varien_Object(array('available_quantity' => 3)),
+		)));
+		$fii->updateInventories($sampleFeed); // Just verify the right inner methods are called.
+	}
+	/**
+	 * @test
+	 */
+	public function testSetProdQty()
+	{
+		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'setQty', 'save'));
+		$stockItem
+			->expects($this->once())
+			->method('loadByProduct')
+			->with($this->isType('integer'))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('setQty')
+			->with($this->isType('integer'))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'cataloginventory/stock_item', $stockItem);
+		$fii = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$ref = new ReflectionObject($fii);
+		$setProdQty = $ref->getMethod('_setProdQty');
+		$setProdQty->setAccessible(true);
+		$setProdQty->invoke($fii, 1, 1); // Just verify the right inner methods are called.
+	}
+	/**
+	 * @test
+	 */
+	public function testExtractSku()
+	{
+		$fii = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$ref = new ReflectionObject($fii);
+		$extractSku = $ref->getMethod('_extractSku');
+		$extractSku->setAccessible(true);
+		$this->assertSame('foo-bar', $extractSku->invoke($fii, new Varien_Object(array(
+			'catalog_id' => 'foo',
+			'client_item_id' => 'bar',
+		))));
+	}
+	/**
+	 * @test
+	 */
+	public function testUpdateInventory()
+	{
+		$prod = $this->getModelMock('catalog/product', array('getIdBySku'));
+		$prod
+			->expects($this->once())
+			->method('getIdBySku')
+			->with($this->isType('string'))
+			->will($this->returnValue(123));
+		$this->replaceByMock('model', 'catalog/product', $prod);
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_setProdQty'));
+		$fii
+			->expects($this->once())
+			->method('_setProdQty')
+			->with($this->equalTo(123), $this->equalTo(1))
+			->will($this->returnSelf());
+		$refFii = new ReflectionObject($fii);
+		$updateInventory = $refFii->getMethod('_updateInventory');
+		$updateInventory->setAccessible(true);
+		$updateInventory->invoke($fii, '45-987', 1); // Just verify the right inner methods are called.
+	}
 }
+
