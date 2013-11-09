@@ -3,7 +3,6 @@ class TrueAction_Eb2cCore_Model_Indexer
 {
 	/**
 	 * Reindex everything; basically does what the command line shell script does
-	 *
 	 */
 	public function reindexAll()
 	{
@@ -17,9 +16,11 @@ class TrueAction_Eb2cCore_Model_Indexer
 					Mage::dispatchEvent($process->getIndexerCode() . '_shell_reindex_after');
 					Mage::log('[ ' . __CLASS__ . ' ] ' . $process->getIndexer()->getName() . ' index rebuilt successfully', Zend_Log::INFO);
 				} catch (Mage_Core_Exception $e) {
+					// @codeCoverageIgnoreStart
 					Mage::logException($e);
 				} catch (Exception $e) {
 					Mage::logException($e);
+					// @codeCoverageIgnoreEnd
 				}
 			}
 		}
