@@ -60,23 +60,48 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 	 * testing requestQuantity method, when exception is throw from API call
 	 *
 	 * @test
-	 * @dataProvider providerRequestQuantity
+	 * @dataProvider dataProvider
 	 */
-	public function testRequestQuantityRequesetException($qty, $itemId, $sku)
+	public function testRequestQuantityRequesetException($exception, $expectException)
 	{
+		$this->setExpectedException($expectException);
 		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
+			->will($this->throwException(new $exception));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$this->assertSame(
-			0,
-			$this->_quantity->requestQuantity($qty, $itemId, $sku)
-		);
+		$this->_quantity->requestQuantity(1, 1, '1234-TA');
+	}
+
+	/**
+	 * verify a TrueAction_Eb2cInventory_Exception_Cart exception is thrown for failures that do not block the cart.
+	 * verify a TrueAction_Eb2cInventory_Exception_Cart_Interrupt is thrown for failures that should block the cart.
+	 *
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testRequestQuantityStatusExceptions($status, $exception)
+	{
+		if (is_string($exception)) {
+			$this->setExpectedException($exception);
+		}
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request', 'getStatus'));
+		$apiModelMock->expects($this->any())
+			->method('getStatus')
+			->will($this->returnValue($status));
+		$apiModelMock->expects($this->any())
+			->method('setUri')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->returnValue(''));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$this->_quantity->requestQuantity(1, 1, '1234-TA');
 	}
 
 	/**

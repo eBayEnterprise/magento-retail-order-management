@@ -41,41 +41,60 @@ class TrueAction_Eb2cInventory_Model_Observer
 			// this cart quote has allocation data, therefore, rollback eb2c inventory allocation
 			$allocation->rollbackAllocation($quote);
 		}
-
 		if ($productId) {
 			// we only do quantity check for product with manage stock only
 			if ($allocation->filterInventoriedItems($quoteItem)) {
 				// We have a valid product, let's check Eb2c Quantity
-				$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
-				if ($availableStock < $requestedQty && $availableStock > 0) {
-					// Inventory Quantity is less in eb2c than what user requested from magento front-end
-					// then, remove item from cart, and then alert customers of the available stock number of this inventory
-					// set cart item to eb2c available qty
-					$quoteItem->setQty($availableStock);
+				try {
+					$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
+					// if there is no answer then let the customer go ahead since the check will be done again
+					// later
+					if ($availableStock < $requestedQty && $availableStock > 0) {
+						// Inventory Quantity is less in eb2c than what user requested from magento front-end
+						// then, remove item from cart, and then alert customers of the available stock number of this inventory
+						// set cart item to eb2c available qty
+						$quoteItem->setQty($availableStock);
 
-					// re-calculate totals
-					$quote->collectTotals();
+						// re-calculate totals
+						$quote->collectTotals();
 
-					// save the quote
-					$quote->save();
+						// save the quote
+						$quote->save();
 
-					$this->_getCart()->getCheckoutSession()->addNotice(sprintf(
-						Mage::helper('eb2cinventory')->__(self::QUANTITY_REQUEST_GREATER_MESSAGE),
-						$requestedQty, $availableStock
-					));
-				} elseif ($availableStock <= 0) {
-					// Inventory Quantity is out of stock in eb2c
-					// then, remove item from cart, and then alert customer the inventory is out of stock.
-					$quoteItem->getQuote()->deleteItem($quoteItem);
-					$this->_getCart()->getCheckoutSession()->addNotice(Mage::helper('eb2cinventory')->__(self::QUANTITY_OUT_OF_STOCK_MESSAGE));
-					// throwing an error to prevent the successful add to cart message
-					Mage::throwException(Mage::helper('eb2cinventory')->__(self::CANNOT_ADD_TO_CART_MESSAGE));
+						$this->_getCart()->getCheckoutSession()->addNotice(sprintf(
+							Mage::helper('eb2cinventory')->__(self::QUANTITY_REQUEST_GREATER_MESSAGE),
+							$requestedQty, $availableStock
+						));
+					} elseif ($availableStock <= 0) {
+						// Inventory Quantity is out of stock in eb2c
+						// then, remove item from cart, and then alert customer the inventory is out of stock.
+						$quoteItem->getQuote()->deleteItem($quoteItem);
+						$this->_getCart()->getCheckoutSession()->addNotice(
+							Mage::helper('eb2cinventory')->__(self::QUANTITY_OUT_OF_STOCK_MESSAGE)
+						);
+						$this->_interruptAddToCart();
+						// @codeCoverageIgnoreStart
+					}
+					// @codeCoverageIgnoreEnd
+				} catch (TrueAction_Eb2cInventory_Exception_Cart_Interrupt $e) {
+					Mage::log('[ ' . __CLASS__ . ' ] Unable to update cart: ' . $e->getMessage(), Zend_Log::ERR);
+					$this->_interruptAddToCart();
 					// @codeCoverageIgnoreStart
+				} catch (TrueAction_Eb2cInventory_Exception_Cart $e) {
+					// @codeCoverageIgnoreEnd
+					Mage::log('[ ' . __CLASS__ . ' ] Updated cart, but with error: ' . $e->getMessage(), Zend_Log::WARN);
 				}
-				// @codeCoverageIgnoreEnd
 			}
 		}
 	}
+
+	protected function _interruptAddToCart()
+	{
+		// throwing an error to prevent the successful add to cart message
+		Mage::throwException(Mage::helper('eb2cinventory')->__(self::CANNOT_ADD_TO_CART_MESSAGE));
+		// @codeCoverageIgnoreStart
+	}
+	// @codeCoverageIgnoreEnd
 
 	/**
 	 * Rollback allocation if cart has reservation data, triggering sales_quote_remove_item event will run this method.

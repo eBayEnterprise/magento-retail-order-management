@@ -23,6 +23,10 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	private $_schemaValidationErrors;
 
 	/**
+	 * the status code from the previous request.
+	 */
+
+	/**
 	 * Call the API.
 	 *
 	 * @param DOMDocument $doc The document to send in the request body
@@ -63,6 +67,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 		if ($response->isSuccessful()) {
 			return $response->getBody();
 		} else {
+			$this->setStatus($response->getStatus());
 			Mage::log(
 				sprintf('[ %s ] Received response from %s with status %s', __CLASS__, $client->getUri(), $response->getStatus()),
 				Zend_Log::WARN

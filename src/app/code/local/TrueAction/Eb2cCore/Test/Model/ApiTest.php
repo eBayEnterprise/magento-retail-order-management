@@ -93,7 +93,7 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			->setUri($apiUri);
 		$this->assertNotEmpty($api->request($request));
 	}
- 
+
 	/**
 	 * Test that request throws exception when xsd is not set.
 	 * @expectedException TrueAction_Eb2cCore_Exception
@@ -115,6 +115,59 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 		$doc->appendChild($doc->createElement('_'));
 		Mage::getModel('eb2ccore/api')->setXsd('Address-Validation-Datatypes-1.0.xsd')->request($doc);
 	}
+	/**
+	 * testing request() method will store the status when the request is not successful
+	 *
+	 * @test
+	 */
+	public function testRequestStatus()
+	{
+		$data = $this->providerApiCall();
+		$request = $data[0][0];
+		$apiUri = $data[0][1];
+		$xsdName = $data[0][2];
+
+		$strType = gettype('');
+
+		$configConstraint = new PHPUnit_Framework_Constraint_And();
+		$configConstraint->setConstraints(array(
+			$this->arrayHasKey('adapter'),
+			$this->arrayHasKey('timeout')
+		));
+
+		$httpResponse = $this->getMock('Zend_Http_Response', array('isSuccessful'), array(401, array()));
+		$httpResponse->expects($this->once())
+			->method('isSuccessful')
+			->will($this->returnValue(false));
+
+		$httpClient = $this->getMock('Varien_Http_Client', array('setHeaders', 'setUri', 'setConfig', 'setRawData', 'setEncType', 'request'));
+		$httpClient->expects($this->once())
+			->method('setHeaders')
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setUri')
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setConfig')
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setRawData')
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setEncType')
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('request')
+			->will($this->returnValue($httpResponse));
+
+		$api = Mage::getModel('eb2ccore/api')
+			->setHttpClient($httpClient)
+			->setXsd($xsdName)
+			->setUri($apiUri);
+		$this->assertEmpty($api->request($request));
+		$this->assertSame(401, $api->getStatus());
+	}
+
 	/**
 	 * Test setting http client to something silly
 	 * @expectedException Exception
