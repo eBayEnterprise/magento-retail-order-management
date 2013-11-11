@@ -140,4 +140,4 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($expected->getId(), $product->getId());
 	}
 
-}
+	}
