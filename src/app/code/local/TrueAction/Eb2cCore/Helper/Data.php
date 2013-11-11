@@ -111,4 +111,15 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return ($nodeList->length)? $nodeList->item(0)->getAttribute($attributeName) : null;
 	}
+
+	/**
+	 * Return the eb2c ship method configured to correspond to a known Magento ship method.
+	 * @param string $mageShipMethod
+	 * @return string EB2C ship method
+	 */
+	public function lookupShipMethod($mageShipMethod)
+	{
+		// Deliberately bypass configurator so we can dynamically lookup.
+		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
+	}
 }

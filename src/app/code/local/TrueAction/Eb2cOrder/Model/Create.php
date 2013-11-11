@@ -210,7 +210,10 @@ class TrueAction_Eb2cOrder_Model_Create
 
 		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_domRequest->formatOutput = true;
-		$orderCreateRequest = $this->_domRequest->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
+		$orderCreateRequest = $this
+			->_domRequest
+			->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)
+			->firstChild;
 		$orderCreateRequest->setAttribute('orderType', $consts::ORDER_TYPE);
 		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
 
@@ -328,7 +331,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 		}
 
-		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
+		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
 		$orderItem->createChild('ReservationId', $reservationId);
 
 		// Tax on the Merchandise:
@@ -542,10 +545,10 @@ class TrueAction_Eb2cOrder_Model_Create
 
 					$auth = $thisPayment->createChild('Authorization');
 
-					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
+					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
 					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
-					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
+					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
 
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
@@ -566,11 +569,12 @@ class TrueAction_Eb2cOrder_Model_Create
 				} elseif ($payMethodNode === 'StoredValueCard') {
 					// the payment method is free and there is gift card for the order
 					if ($this->_o->getGiftCardsAmount() > 0) {
+						$pan = $this->_getOrderGiftCardPan($this->_o);
 						$thisPayment = $payments->createChild($payMethodNode);
 						$paymentContext = $thisPayment->createChild('PaymentContext');
 						$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-						$paymentContext->createChild('TenderType', $payment->getMethod());
-						$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
+						$paymentContext->createChild('TenderType', Mage::helper('eb2cpayment')->getTenderType($pan));
+						$paymentContext->createChild('PaymentAccountUniqueId', $pan)->setAttribute('isToken', 'false');
 
 						$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 						$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGiftCardsAmount()));
@@ -585,6 +589,24 @@ class TrueAction_Eb2cOrder_Model_Create
 			$thisPayment = $payments->createChild('PrepaidCreditCard');
 			$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 		}
+	}
+
+	/**
+	 * get order stored value pan
+	 * @param Mage_Sales_Model_Order $order, the order object
+	 * @return string, the pan
+	 */
+	private function _getOrderGiftCardPan(Mage_Sales_Model_Order $order)
+	{
+		$giftCardData = unserialize($order->getGiftCards());
+		if (!empty($giftCardData)) {
+			foreach ($giftCardData as $gcData) {
+				if (isset($gcData['pan']) && trim($gcData['pan']) !== '') {
+					return $gcData['pan'];
+				}
+			}
+		}
+		return '';
 	}
 
 	/**

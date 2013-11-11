@@ -93,7 +93,28 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			->setUri($apiUri);
 		$this->assertNotEmpty($api->request($request));
 	}
+ 
+	/**
+	 * Test that request throws exception when xsd is not set.
+	 * @expectedException TrueAction_Eb2cCore_Exception
+	 * @test
+	 */
+	public function testRequestNoXsd()
+	{
+		Mage::getModel('eb2ccore/api')->request(new DOMDocument());
+	}
 
+	/**
+	 * Test that request throws exception when xsd is not set.
+	 * @expectedException TrueAction_Eb2cCore_Exception
+	 * @test
+	 */
+	public function testRequestInvalidXml()
+	{
+		$doc = new DOMDocument();
+		$doc->appendChild($doc->createElement('_'));
+		Mage::getModel('eb2ccore/api')->setXsd('Address-Validation-Datatypes-1.0.xsd')->request($doc);
+	}
 	/**
 	 * Test setting http client to something silly
 	 * @expectedException Exception

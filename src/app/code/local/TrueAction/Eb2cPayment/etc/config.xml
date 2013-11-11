@@ -187,15 +187,6 @@
 			</xsd>
 		</eb2cpayment>
 		<eb2ccore>
-			<payment>
-				<!-- EBC-238: Configure tender type bins as ranges of values low-high -->
-				<svc_bin_range>
-					<GS>0-0</GS>
-					<SP>0-0</SP>
-					<SV>0-0</SV>
-					<VL>0-0</VL>
-				</svc_bin_range>
-			</payment>
 			<eb2cpayment>
 				<enabled>0</enabled>
 			</eb2cpayment>

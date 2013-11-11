@@ -23,7 +23,6 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 
 		$this->setExtractor(Mage::getModel('eb2cinventory/feed_item_extractor'))
 			->setStockItem(Mage::getModel('cataloginventory/stock_item'))
-			->setProduct(Mage::getModel('catalog/product'))
 			->setStockStatus(Mage::getSingleton('cataloginventory/stock_status'))
 			->setFeedModel(Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs));
 
@@ -36,7 +35,7 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 	 */
 	public function processFeeds()
 	{
-		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$cfg = Mage::helper('eb2cinventory')->getConfigModel();
 		$coreHelperFeed = Mage::helper('eb2ccore/feed');
 
@@ -47,13 +46,13 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 
 		foreach ($this->getFeedModel()->lsInboundDir() as $feed) {
 			// load feed files to dom object
-			$domDocument->load($feed);
+			$doc->load($feed);
 
 			$expectEventType = $cfg->feedEventType;
 			// validate feed header
-			if ($coreHelperFeed->validateHeader($domDocument, $expectEventType)) {
+			if ($coreHelperFeed->validateHeader($doc, $expectEventType)) {
 				// run inventory updates
-				$this->_inventoryUpdates($domDocument);
+				$this->updateInventories($this->getExtractor()->extractInventoryFeed($doc));
 			}
 			$this->archiveFeed($feed);
 		}
@@ -80,41 +79,61 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		$this->getFeedModel()->mvToArchiveDir($xmlFeedFile);
 		return $this;
 	}
+	/**
+	 * Set the available quantity for a given item.
+	 * @param int $id the product id to update
+	 * @param int $qty the amount to set
+	 * @return self
+	 */
+	protected function _setProdQty($id, $qty)
+	{
+		Mage::getModel('cataloginventory/stock_item')
+			->loadByProduct($id)
+			->setQty($qty)
+			->save();
+		return $this;
+	}
 
 	/**
-	 * Update cataloginventory/stock_item with eb2c feed data.
-	 * @param DOMDocument $doc, the dom document with the loaded feed data
-	 * @return void
+	 * Return the SKU, which is the catalog_id dash the client item id.
+	 * @param Varien_Object $feedItem extracted from the feed xml.
+	 * @return string the stock keeping unit.
 	 */
-	protected function _inventoryUpdates($doc)
+	protected function _extractSku(Varien_Object $feedItem)
 	{
-		$feedItemCollection = $this->getExtractor()->extractInventoryFeed($doc);
-		if ($feedItemCollection) {
-			// we've import our feed data in a varien object we can work with
-			foreach ($feedItemCollection as $feedItem) {
-				// For inventory, we must prepend the client-id
-				$mageSku = $feedItem->getCatalogId() . '-' . trim($feedItem->getItemId()->getClientItemId());
-				if ($mageSku !== '') {
-					// We have a sku, let's get the product id
-					$mageProduct = $this->getProduct()->loadByAttribute('sku', $mageSku);
-					if ($mageProduct) {
-						// We've retrieved a valid magento product, let's update its stock. We're doing a lightweight load
-						// by only bringing in the stockItem object itself - we are *not* loading the entire product.
-						// We could do that - it would also get the stockItem, but would also do a lot more that we don't
-						// really need in this context.
-						Mage::getModel('cataloginventory/stock_item')
-							->loadByProduct($mageProduct->getId())
-							->setQty($feedItem->getMeasurements()->getAvailableQuantity())
-							->save();
-					} else {
-						// This item doesn't exist in the Magento App, just logged it as a warning
-						Mage::log(
-							'[' . __CLASS__ . '] Item Inventories Feed SKU (' . $feedItem->getItemId()->getClientItemId() . '), not found.',
-							Zend_Log::WARN
-						);
-					}
-				}
-			}
+		return $feedItem->getCatalogId() . '-' . $feedItem->getClientItemId();
+	}
+	/**
+	 * Update the inventory level for a given sku.
+	 * @param string $sku the stock-keeping unit.
+	 * @param int $qty the new quantity available to promise.
+	 * @return self
+	 */
+	protected function _updateInventory($sku, $qty)
+	{
+		// Get product id from sku.
+		$id = Mage::getModel('catalog/product')->getIdBySku($sku);
+		if ($id) {
+			$this->_setProdQty($id, $qty);
+		} else {
+			// @codeCoverageIgnoreStart
+			Mage::log(sprintf('[ %s ] SKU "%s" not found for inventory update.', __CLASS__, $sku), Zend_Log::WARN);
+			// @codeCoverageIgnoreEnd
 		}
+		return $this;
+	}
+	/**
+	 * Update cataloginventory/stock_item with eb2c feed data.
+	 * @param array $feedItems the extracted collection of inventory data
+	 * @return self
+	 */
+	public function updateInventories(array $feedItems)
+	{
+		foreach ($feedItems as $feedItem) {
+			$sku = $this->_extractSku($feedItem);
+			$qty = $feedItem->getMeasurements()->getAvailableQuantity();
+			$this->_updateInventory($sku, $qty);
+		}
+		return $this;
 	}
 }

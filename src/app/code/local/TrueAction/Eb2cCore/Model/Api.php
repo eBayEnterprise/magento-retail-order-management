@@ -31,11 +31,11 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	public function request(DOMDocument $doc)
 	{
 		if (!$this->hasXsd()) {
-			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation has not been set.');
+			throw new TrueAction_Eb2cCore_Exception('XSD for schema validation has not been set.');
 		}
 
-		if (!$this->schemaValidate($doc)) {
-			Mage::throwException('[ ' . __CLASS__ . ' ] Schema validation failed.');
+		if (!$this->_schemaValidate($doc)) {
+			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.');
 		}
 
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server

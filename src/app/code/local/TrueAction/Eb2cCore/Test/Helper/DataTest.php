@@ -205,5 +205,18 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	{
 		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
+	/**
+	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
+	 * @loadFixture
+	 * @dataProvider dataProvider
+	 * @test
+	 */
+	public function testConvertShipMethod($mageShipMethod)
+	{
+		$this->assertSame(
+			$this->expected($mageShipMethod)->getEb2cShipMethod(),
+			Mage::helper('eb2ccore')->lookupShipMethod($mageShipMethod)
+		);
+	}
 }
 

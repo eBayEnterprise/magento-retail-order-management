@@ -1,0 +1,7 @@
+config:
+  global/events/shell_reindex_init_process/observers/enterprise_index/class: 'TrueAction_Eb2cCore_Test_Model_Indexertest'
+  global/events/shell_reindex_init_process/observers/enterprise_index/method: 'mockShellReindexInitProcess'
+  global/events/shell_reindex_finalize_process/observers/enterprise_index/class: 'TrueAction_Eb2cCore_Test_Model_Indexertest'
+  global/events/shell_reindex_finalize_process/observers/enterprise_index/method: 'mockShellReindexFinalizeProcess'
+  global/events/catalogsearch_fulltext_shell_reindex_after/observers/enterprise_index/class: 'TrueAction_Eb2cCore_Test_Model_Indexertest'
+  global/events/catalogsearch_fulltext_shell_reindex_after/observers/enterprise_index/method: 'mockCatalogSearchFullTextAfterProcess'

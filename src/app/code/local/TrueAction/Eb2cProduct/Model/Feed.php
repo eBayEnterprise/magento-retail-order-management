@@ -93,7 +93,6 @@ class TrueAction_Eb2cProduct_Model_Feed
 		$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 		// Validate Eb2c Header Information
-
 		if ( !Mage::helper('eb2ccore/feed')
 			->validateHeader($dom, $eventType )
 		) {
@@ -104,7 +103,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		try {
 			$this->_beforeProcessDom($dom);
 		} catch (Mage_Core_Exception $e) {
-			Mage::log(sprintf('File %s: error while preparing to process DOM', $xmlFile));
+			Mage::log(sprintf('File %s: error while preparing to process DOM', $xmlFile), Zend_Log::ERR);
 			Mage::logException($e);
 			return;
 		}
