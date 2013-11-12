@@ -1,9 +1,5 @@
 <?php
-/**
- */
-// TODO: REMOVE DEPENDENCY ON MAGE_CORE_MODEL_ABSTRACT::_UNDERSCORE METHOD
-class TrueAction_Eb2cProduct_Model_Feed_Processor
-	extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstract
 {
 	/**
 	 * list of all attribute codes within the set identified by $_attributeCodesSetId
@@ -211,7 +207,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		$this->_preparePricingEventData($dataObject, $extData);
-		// FIXME: CLEAN UP CIRCULAR ASSIGNMENTS
+		// @todo clean up circular assignments
 		$outData->setData('extended_attributes', $extData);
 		$extData->addData(
 			// get extended attributes data containing (gift wrap, color, long/short descriptions)
@@ -262,9 +258,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	/**
 	 * extract extended attribute data such as (gift_wrap
-	 *
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
-	 *
 	 * @return array, composite array containing description data, gift wrap, color... etc
 	 */
 	protected function _getContentExtendedAttributeData(Varien_Object $dataObject)
@@ -453,16 +447,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * Gets the option id for the option within the given attribute
 	 *
-	 * @param string $attribute, The attribute code
+	 * @param string $attributeCode, The attribute code
 	 * @param string $option, The option within the attribute
 	 * @return int
+	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception if attributeCode is not found.
 	 */
-	protected function _getAttributeOptionId($attribute, $option)
+	protected function _getAttributeOptionId($attributeCode, $option)
 	{
-		$attribute = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attribute);
+		$attributeEntity = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attributeCode);
+		if (!$attributeEntity->getId()) {
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$attributeCode'.");
+		}
 		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
-			->setAttributeFilter($attribute->getId())
-			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false); // @todo false = 'don't use default', but I really don't know what that means.
+			->setAttributeFilter($attributeEntity->getId())
+			// @todo false = 'don't use default', but I really don't know what that means.
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false);
 
 		foreach ($attributeOptions as $attrOption) {
 			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
@@ -490,11 +489,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			'value'  => array(),
 			'order'  => array(),
 			'delete' => array(),
-
 		);
 		$attributeId = Mage::getModel('catalog/resource_eav_attribute')
 			->loadByCode('catalog_product', $attribute)
 			->getAttributeId();
+		if (!$attributeId) {
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot add option to undefined attribute code '$attribute'.");
+		}
 
 		// This entire set of options belongs to this attribute:
 		$newAttributeOption['attribute_id'] = $attributeId;
@@ -614,7 +615,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	/**
 	 * Get the id of the Color-Attribute Option for this specific color. Create it if it doesn't exist.
-	 *
+	 * @todo This is probably more specific than we really need it to be. All attributes should be processed in a similar manner - special handling of 'color' should be revisited.0
 	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
 	 * @return int, the option id
 	 */
@@ -1197,22 +1198,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			}
 		}
 		return explode('/', $fullPath);
-	}
-
-	/**
-	 * convert the linktype into a version usable by magento
-	 * @param  string $lt link type extracted from the document
-	 * @return string     the converted string or the empty string if conversion is not possible
-	 */
-	protected function _getProducLinkType($lt)
-	{
-		$lt = strtoupper($lt);
-		if ($lt === 'ES_UPSELLING') {
-			return 'upsell';
-		} elseif ($lt === 'ES_CROSSSELLING') {
-			return 'crosssell';
-		}
-		return '';
 	}
 
 	/**

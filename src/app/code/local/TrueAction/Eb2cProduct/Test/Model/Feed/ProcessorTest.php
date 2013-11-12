@@ -139,4 +139,30 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
 		$testModel->processUpdates($processList);
 	}
+
+	/**
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
+	 * @expectedExceptionMessage _getAttributeOptionId
+	 */
+	public function testExceptionInGetAttributeOptionId()
+	{
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$fn = $this->_reflectMethod($testModel, '_getAttributeOptionId');
+		$fn->invoke($testModel, '', '');
+	}
+
+	/**
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
+	 * @expectedExceptionMessage _addOptionToAttribute
+	 */
+	public function testExceptionInAddOptionToAttribute()
+	{
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
+		$fn->invoke($testModel, '', '', '');
+	}
 }
