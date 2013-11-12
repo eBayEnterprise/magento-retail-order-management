@@ -46,6 +46,13 @@
 				</rewrite>
 			</sales>
 		</blocks>
+		<resources>
+			<eb2corder_setup>
+				<setup>
+					<module>TrueAction_Eb2cOrder</module>
+				</setup>
+			</eb2corder_setup>
+		</resources>
 	</global>
 	<crontab>
 		<jobs>

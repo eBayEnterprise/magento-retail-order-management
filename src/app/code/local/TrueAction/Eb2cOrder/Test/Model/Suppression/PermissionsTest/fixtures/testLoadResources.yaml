@@ -1,0 +1,17 @@
+resources_xml_string: |
+  <config>
+    <admin>
+      <eb2corder>
+        <permissions>
+          <deny>
+              <admin.customer />
+              <admin.customer.manage />
+              <admin.customer.manage.reward_balance />
+              <admin.customer.rates />
+              <admin.sales />
+              <admin.sales.order />
+          </deny>
+        </permissions>
+      </eb2corder>
+    </admin>
+  </config>
