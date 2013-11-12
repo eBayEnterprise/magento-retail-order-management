@@ -259,11 +259,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 	 */
 	protected function _mockCollectEventSubscriber()
 	{
-		$mockObserver = $this->getModelMock('tax/observer', array('taxEventSendRequest'));
-		$mockObserver->expects($this->once())
+		$stubObserver = $this->getModelMock('tax/observer', array('taxEventSendRequest'));
+		$stubObserver->expects($this->once())
 			->method('taxEventSendRequest')
 			->will($this->returnSelf());
-		$this->replaceByMock('singleton', 'tax/observer', $mockObserver);
+		$this->replaceByMock('singleton', 'tax/observer', $stubObserver);
 	}
 
 	/**

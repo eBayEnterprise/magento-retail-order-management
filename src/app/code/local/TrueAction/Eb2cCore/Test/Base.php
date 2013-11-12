@@ -18,6 +18,21 @@ abstract class TrueAction_Eb2cCore_Test_Base
 	}
 
 	/**
+	 * @todo Is this the best way to do this?
+	 * Mocks an Observer, use this as an configuration option as shown. Needed a 'null' stubObserver to bypass
+	 *  dispatch functionality in a specific test.
+	 *
+	 * config:
+	 *   global/events/Name_Of_Your_Dispatched_Event/observers/Your_Observers_Name/class: 'TrueAction_YourTest_Class'
+	 *   global/events/Name_Of_Your_Dispatched_Event/observers/Your_Observers_Name/method: 'stubObserver'
+	 *
+	 */
+	public function stubObserver($observerArgs)
+	{
+		return $this;
+	}
+
+	/**
 	 * Replaces the Magento eb2ccore/config_registry model.
 	 *
 	 * @param array name/ value map

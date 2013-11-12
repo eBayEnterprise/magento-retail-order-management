@@ -81,25 +81,6 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 
 	/**
 	 * @loadFixture
-	 * @large
-	 */
-	public function testProductLinks()
-	{
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('contentmaster1'));
-		$testModel->processUpdates(array($dataObj));
-
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$col = $product->getRelatedLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getUpSellLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getCrossSellLinkCollection();
-		$this->assertSame(1, count($col));
-	}
-
-	/**
-	 * @loadFixture
 	 */
 	public function testStockItemData()
 	{
@@ -110,6 +91,7 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
 		$this->assertSame('0', $stock->getData('backorders'));
 		$this->assertSame('1', $stock->getData('use_config_backorders'));
+		$this->assertSame('100.0000', $stock->getData('qty'));
 		// run test
 		$testModel->processUpdates(array($dataObj));
 		// verify results
@@ -117,6 +99,7 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
 		$this->assertSame('1', $stock->getData('backorders'));
 		$this->assertSame('0', $stock->getData('use_config_backorders'));
+		$this->assertSame('100.0000', $stock->getData('qty'));
 	}
 
 	/**
@@ -144,7 +127,6 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 	 * Testing that we throw proper exception if we can't find an attribute
 	 *
 	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
-	 * @expectedExceptionMessage _getAttributeOptionId
 	 */
 	public function testExceptionInGetAttributeOptionId()
 	{
@@ -157,7 +139,6 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 	 * Testing that we throw proper exception if we can't find an attribute
 	 *
 	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
-	 * @expectedExceptionMessage _addOptionToAttribute
 	 */
 	public function testExceptionInAddOptionToAttribute()
 	{

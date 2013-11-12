@@ -14,9 +14,8 @@ pricing1:
   item_id:
     client_item_id: sku1
   extended_attributes:
-    price: '86.38'
+    price: '67.98'
     msrp: '100.77'
-    special_price: '67.98'
     special_from_date: 2012-10-04 05:00:00
     special_to_date: 2014-08-17 05:00:00
     price_is_vat_inclusive: '0'
@@ -32,7 +31,7 @@ itemmaster1:
    - extended_attributes
    - custom_attributes
    - product_type
-   - configurable_attributes
+   - configurable_attributes_data
   base_attributes:
     catalog_class: regular
     drop_shipped: '0'
@@ -57,10 +56,10 @@ itemmaster1:
         # sequence:
   size_attributes:
     size:
-  configurable_attributes: [ fee, fi, fo, fum ]
+  configurable_attributes_data: [ fee, fi, fo, fum ]
   extended_attributes:
-    allow_gift_message: false
-    back_orderable: false
+    allow_gift_message: '1'
+    back_orderable: '0'
     brand_name: New Brand
     brand_description:
        -

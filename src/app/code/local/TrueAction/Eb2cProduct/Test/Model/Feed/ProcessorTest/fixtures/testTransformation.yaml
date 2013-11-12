@@ -6,14 +6,13 @@ pricing1:
   ebc_pricing_event_number: '19780815'
   price: '67.98'
   msrp: '100.77'
-  alternate_price: '86.38'
   start_date: 2012-10-04T00:00:00-05:00
   end_date: 2014-08-17T00:00:00-05:00
   price_vat_inclusive: 'false'
 
 itemmaster1:
-  # allow_gift_message:
-  # back_orderable:
+  allow_gift_message: true 
+  back_orderable: false
   brand_name: New Brand
   brand_description:
      -
