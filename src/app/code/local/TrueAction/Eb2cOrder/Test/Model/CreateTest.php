@@ -517,5 +517,110 @@ INVALID_XML;
 
 		$this->assertNotEmpty($orderSourceContentNode);
 	}
-}
 
+	/**
+	 * Test getting tax quotes for a given item
+	 * @test
+	 * @dataProvider dataProvider
+	 * @loadFixture  testGettingTaxQuotesForItem.yaml
+	 */
+	public function testGettingTaxQuotesForItem($taxType)
+	{
+		$itemMock = $this->getModelMockBuilder('sales/order_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getQuoteItemId'))
+			->getMock();
+		$itemMock->expects($this->any())
+			->method('getQuoteItemId')
+			->will($this->returnValue(15));
+		$taxQuotes = Mage::getModel('eb2corder/create')->getItemTaxQuotes($itemMock, $taxType);
+		$this->assertSame($this->expected('set-%s', $taxType)->getCount(), $taxQuotes->count());
+	}
+
+	/**
+	 * Test building out a DOMDocumentFragment for tax nodes
+	 * @test
+	 */
+	public function testBuildingTaxNodes()
+	{
+		$taxQuotes = array();
+		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
+			'id' => '1',
+			'quote_item_id' => '15',
+			'type' => '0',
+			'tax_type' => 'SALES',
+			'taxability' => 'TAXABLE',
+			'jurisdiction' => 'PENNSYLVANIA',
+			'jurisdiction_id' => '31152',
+			'jurisdiction_level' => 'STATE',
+			'imposition' => 'Sales and Use Tax',
+			'imposition_type' => 'General Sales and Use Tax',
+			'situs' => 'ADMINISTRATIVE_ORIGIN',
+			'effective_rate' => 0.06,
+			'taxable_amount' => 43.96,
+			'calculated_tax' => 2.64,
+		));
+		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
+			'id' => '2',
+			'quote_item_id' => '15',
+			'type' => '0',
+			'tax_type' => 'CONSUMER_USE',
+			'taxability' => 'TAXABLE',
+			'jurisdiction' => 'PENNSYLVANIA',
+			'jurisdiction_id' => '31152',
+			'jurisdiction_level' => 'STATE',
+			'imposition' => 'Some Other Tax',
+			'imposition_type' => 'General Sales and Use Tax',
+			'situs' => 'ADMINISTRATIVE_ORIGIN',
+			'effective_rate' => 0.01,
+			'taxable_amount' => 43.96,
+			'calculated_tax' => 00.44,
+		));
+
+		$taxQuotesCollection = $this->getModelMockBuilder('eb2ctax/resource_response_quote_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getIterator', 'count'))
+			->getMock();
+		$taxQuotesCollection->expects($this->any())
+			->method('getIterator')
+			->will($this->returnValue(new ArrayIterator($taxQuotes)));
+		$taxQuotesCollection->expects($this->any())
+			->method('count')
+			->will($this->returnValue(2));
+
+		$create = Mage::getModel('eb2corder/create');
+		$request = $this->_reflectProperty($create, '_domRequest');
+		$request->setValue($create, new TrueAction_Dom_Document());
+		$method = $this->_reflectMethod($create, '_buildTaxDataNodes');
+		$taxFragment = $method->invoke($create, $taxQuotesCollection);
+
+		// probe the tax fragment a bit to hopefully ensure the nodes are all populated right
+		$this->assertSame(1, $taxFragment->childNodes->length);
+		$this->assertSame('TaxData', $taxFragment->firstChild->nodeName);
+		$this->assertSame('Taxes', $taxFragment->firstChild->firstChild->nodeName);
+		$taxes = $taxFragment->firstChild->firstChild;
+		$this->assertSame(2, $taxes->childNodes->length);
+		foreach ($taxes->childNodes as $idx => $taxNode) {
+			$this->assertSame('Tax', $taxNode->nodeName);
+			// check the attributes on the Tax node
+			$attrs = $taxNode->attributes;
+			$this->assertSame($taxQuotes[$idx]->getTaxType(), $attrs->getNamedItem('taxType')->nodeValue);
+			$this->assertSame($taxQuotes[$idx]->getTaxability(), $attrs->getNamedItem('taxability')->nodeValue);
+			foreach ($taxNode->childNodes as $taxData) {
+				// test a few of the child nodes, making sure they're getting set properly per tax quote
+				switch ($taxData->nodeName) {
+					case 'Situs':
+						$this->assertSame($taxQuotes[$idx]->getSitus(), $taxData->nodeValue);
+						break;
+					case 'EffectiveRate':
+						$this->assertSame($taxQuotes[$idx]->getEffectiveRate(), (float) $taxData->nodeValue);
+						break;
+					case 'Imposition':
+						$this->assertSame($taxQuotes[$idx]->getImposition(), $taxData->nodeValue);
+						break;
+				}
+			}
+		}
+	}
+
+}

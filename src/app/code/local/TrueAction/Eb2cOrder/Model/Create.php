@@ -208,7 +208,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		$this->_o = $orderObject;
 		$consts = $this->_helper->getConstHelper();
 
-		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->_domRequest->formatOutput = true;
 		$orderCreateRequest = $this
 			->_domRequest
@@ -320,6 +320,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		$orderItem->createChild('Description')->createChild('Description', $item->getName());
 
 		$pricing = $orderItem->createChild('Pricing');
+
 		$merchandise = $pricing->createChild('Merchandise');
 		$merchandise->createChild('Amount', sprintf('%.02f', $item->getQtyOrdered() * $item->getPrice()));
 
@@ -331,100 +332,110 @@ class TrueAction_Eb2cOrder_Model_Create
 			$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 		}
 
-		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
-		$orderItem->createChild('ReservationId', $reservationId);
-
 		// Tax on the Merchandise:
-		$merchandiseTaxData = $merchandise->createChild('TaxData');
-		$merchandiseTaxes = $merchandiseTaxData->createChild('Taxes');
-		$merchandiseTax = $merchandiseTaxes->createChild('Tax');
-		$merchandiseTax->setAttribute('taxType', 'SELLER_USE');
-		$merchandiseTax->setAttribute('taxability', 'TAXABLE');
-		$merchandiseTax->createChild('Situs', 0);
-		$merchandiseTax->createChild('EffectiveRate', $item->getTaxPercent());
-		$merchandiseTax->createChild('TaxableAmount', sprintf('%.02f', $item->getPrice() - $item->getTaxAmount()));
-		$merchandiseTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
+		$merchTaxFragment = $this->_buildTaxDataNodes(
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::MERCHANDISE)
+		);
+		if ($merchTaxFragment->hasChildNodes()) {
+			$merchandise->appendChild($merchTaxFragment);
+		}
 		$merchandise->createChild('UnitPrice', sprintf('%.02f', $item->getPrice()));
 		// End Merchandise
 
 		// Shipping on the orderItem:
 		$shipping = $pricing->createChild('Shipping');
 		$shipping->createChild('Amount', (float) $order->getBaseShippingAmount());
-
-		$shippingTaxData = $shipping->createChild('TaxData');
-		$shippingTaxes = $shippingTaxData->createChild('Taxes');
-		$shippingTax = $shippingTaxes->createChild('Tax');
-		$shippingTax->setAttribute('taxType', 'SELLER_USE');
-		$shippingTax->setAttribute('taxability', 'TAXABLE');
-		$shippingTax->createChild('Situs', 0);
-		$shippingTax->createChild('EffectiveRate', 0);
-		$shippingTax->createChild('CalculatedTax', sprintf('%.02f', 0));
+		$shippingTaxFragment = $this->_buildTaxDataNodes(
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING)
+		);
+		if ($shippingTaxFragment->hasChildNodes()) {
+			$shipping->appendChild($shippingTaxFragment);
+		}
 		// End Shipping
 
 		// Duty on the orderItem:
-		$this->_buildDuty($pricing, $order, $item, $quoteId);
+		$dutyFragment = $this->_buildDuty($item);
+		if ($dutyFragment->hasChildNodes()) {
+			$pricing->appendChild($dutyFragment);
+		}
 		// End Duty
+
+		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
+		$orderItem->createChild('ReservationId', $reservationId);
 	}
 
 	/**
-	 * getting the quote item id by sku
-	 * @param int $quoteId, the quote  id
-	 * @param int $sku, the item sku
-	 * @return int, the quote item id
+	 * Build TaxData nodes for the item
+	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for tax types.
+	 * @param  TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes Collection of tax quotes to build tax nodes for
+	 * @return DOMDocumentFragment                  A DOM fragment of the nodes
 	 */
-	private function _getQuoteItemId($quoteId, $sku)
+	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes)
 	{
-		$quote = Mage::getModel('sales/quote')->load($quoteId);
-
-		$sku = trim(strtoupper($sku));
-		foreach ($quote->getAllItems() as $item) {
-			if (trim(strtoupper($item->getSku())) === $sku) {
-				return $item->getId();
+		$taxFragment = $this->_domRequest->createDocumentFragment();
+		if ($taxQuotes->count()) {
+			$taxData = $taxFragment->appendChild(
+				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
+			);
+			$taxes = $taxData->createChild('Taxes');
+			foreach ($taxQuotes as $taxQuote) {
+				$taxNode = $taxes->createChild('Tax');
+				// need to actually get these value from somewhere
+				$taxNode->setAttribute('taxType', $taxQuote->getTaxType());
+				$taxNode->setAttribute('taxability', $taxQuote->getTaxability());
+				$taxNode->createChild('Situs', $taxQuote->getSitus());
+				$jurisdiction = $taxNode->createChild('Jurisdiction', $taxQuote->getJurisdiction());
+				$jurisdiction->setAttribute('jurisdictionLevel', $taxQuote->getJurisdictionLevel());
+				$jurisdiction->setAttribute('jurisdictionId', $taxQuote->getJurisdictionId());
+				$imposition = $taxNode->createChild('Imposition', $taxQuote->getImposition());
+				$imposition->setAttribute('impositionType', $taxQuote->getImpositionType());
+				$taxNode->createChild('EffectiveRate', $taxQuote->getEffectiveRate());
+				$taxNode->createChild('TaxableAmount', $taxQuote->getTaxableAmount());
+				$taxNode->createChild('CalculatedTax', $taxQuote->getCalculatedTax());
 			}
 		}
-		return 0;
+		return $taxFragment;
 	}
 
 	/**
-	 * get the tax reponse quote record filtering by the quote item id
-	 * @param int $quoteId, the quote  id
-	 * @param int $sku, the item sku
-	 * @return TrueAction_Eb2cTax_Model_Response_Quote, the tax duty amount
+	 * Get tax quotes for an item.
+	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for available tax types.
+	 * @param  Mage_Sales_Model_Order_Item $orderItem The order item to get tax quotes for
+	 * @param  int                         $taxType   The type of tax quotes to load
+	 * @return TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection
 	 */
-	private function _getItemDuty($quoteId, $sku)
+	public function getItemTaxQuotes(Mage_Sales_Model_Order_Item $orderItem, $taxType)
 	{
-		$responseQuote = Mage::getResourceModel('eb2ctax/response_quote_collection');
-		$responseQuote->getSelect()
-			->where(sprintf("main_table.quote_item_id = '%d'", $this->_getQuoteItemId($quoteId, $sku)));
-		$responseQuote->load();
-		return $responseQuote->getFirstItem();
+		$taxQuotes = Mage::getModel('eb2ctax/response_quote')->getCollection();
+		$taxQuotes->addFieldToFilter('quote_item_id', $orderItem->getQuoteItemId())
+			->addFieldToFilter('type', $taxType);
+		return $taxQuotes;
 	}
 
 	/**
 	 * Builds the Duty Node for order
-	 * @param DomElement $pricing, the pricing node to attach duty node to
-	 * @param Mage_Sales_Model_Order $order, the order object
 	 * @param Mage_Sales_Model_Order_Item $item, the order item object
-	 * @param int $quoteId, the quote id associated to the order
-	 * @return void
+	 * @return DOMFragment
 	 */
-	private function _buildDuty(DomElement $pricing, Mage_Sales_Model_Order $order, Mage_Sales_Model_Order_Item $item, $quoteId)
+	private function _buildDuty(Mage_Sales_Model_Order_Item $item)
 	{
-		$dutyObj = $this->_getItemDuty($quoteId, $item->getSku());
-		if ($dutyObj instanceof TrueAction_Eb2cTax_Model_Response_Quote && (float) $dutyObj->getCalculatedTax() > 0) {
-			$duty = $pricing->createChild('Duty');
-			$duty->createChild('Amount', $dutyObj->getCalculatedTax());
-			$dutyTaxData = $duty->createChild('TaxData');
-			$dutyTaxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
-			$dutyTaxes = $dutyTaxData->createChild('Taxes');
-			$dutyTax = $dutyTaxes->createChild('Tax');
-			$dutyTax->setAttribute('taxType', 'SELLER_USE');
-			$dutyTax->setAttribute('taxability', 'TAXABLE');
-			$dutyTax->createChild('Situs', 0);
-			$dutyTax->createChild('EffectiveRate', $item->getTaxPercent());
-			$dutyTax->createChild('TaxableAmount', sprintf('%.02f', (float) $dutyObj->getTaxableAmount()));
-			$dutyTax->createChild('CalculatedTax', sprintf('%.02f', (float) $dutyObj->getCalculatedTax()));
+		$dutyFragment = $this->_domRequest->createDocumentFragment();
+		$dutyQuotes = $this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::DUTY);
+		if ($dutyQuotes->count()) {
+			$duty = $dutyFragment->createChild('Duty');
+			$dutyTotal = 0;
+			foreach ($dutyQuotes as $dutyQuote) {
+				$dutyTotal += $dutyQuote->getCalculatedTax();
+			}
+			if ($dutyTotal > 0) {
+				$duty->createChild('Amount', $dutyTotal);
+				$dutyTax = $this->_buildTaxDataNodes($dutyQuotes);
+				if ($dutyTax->hasChildNodes()) {
+					$dury->addChild($dutyTax);
+				}
+			}
 		}
+		return $dutyFragment;
 	}
 
 	/**
