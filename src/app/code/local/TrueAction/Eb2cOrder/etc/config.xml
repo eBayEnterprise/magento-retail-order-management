@@ -33,6 +33,7 @@
 			<sales>
 				<rewrite>
 					<data>TrueAction_Eb2cOrder_Overrides_Helper_Sales</data>
+					<guest>TrueAction_Eb2cOrder_Overrides_Helper_Sales_Guest</guest>
 				</rewrite>
 			</sales>
 		</helpers>

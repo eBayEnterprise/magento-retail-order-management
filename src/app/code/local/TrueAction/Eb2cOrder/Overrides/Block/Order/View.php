@@ -7,6 +7,9 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_View extends Mage_Sales_Block_O
 	 */
 	protected function _prepareLayout()
 	{
+		// get order id
+		$orderId = $this->getOrder()->getRealOrderId();
+
 		// assigned current session customer id to a local variable
 		$customerId = Mage::getSingleton('customer/session')->getCustomer()->getId();
 
@@ -16,14 +19,30 @@ class TrueAction_Eb2cOrder_Overrides_Block_Order_View extends Mage_Sales_Block_O
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 
-		// making eb2c customer order search request base on current session customer id and then
-		// parse result in a collection of varien object
-		$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary(
-			sprintf('%s%s', $cfg->clientCustomerIdPrefix, $customerId)
-		));
-
-		// get order id
-		$orderId = $this->getOrder()->getRealOrderId();
+		if ($customerId > 0) {
+			// we have a registered customer
+			// making eb2c customer order search request base on current session order id and then
+			// parse result in a collection of varien object
+			$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary(
+				sprintf('%s%s', $cfg->clientCustomerIdPrefix, $customerId), $orderId
+			));
+		} else {
+			// we have a guest customer
+			// let check the session for previous eb2c order result
+			$orderHistorySearchResults = Mage::getSingleton('core/session')->getEbcGuestCustomerOrderResults();
+			if (empty($orderHistorySearchResults)) {
+				// we have nothing in the session let's proceed to make search call to eb2c
+				$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary(
+					sprintf('%s%s', $cfg->clientCustomerIdPrefix, $customerId), $orderId
+				));
+			} elseif (!isset($orderHistorySearchResults[$orderId])) {
+				// just for precautions if the search data doesn't match the current $orderId,
+				// let's make a call to eb2c just to get the right data
+				$orderHistorySearchResults = $orderSearchObj->parseResponse($orderSearchObj->requestOrderSummary(
+					sprintf('%s%s', $cfg->clientCustomerIdPrefix, $customerId), $orderId
+				));
+			}
+		}
 
 		// get eb2c order data
 		$ebcData = (isset($orderHistorySearchResults[$orderId]))? $orderHistorySearchResults[$orderId] : null;
