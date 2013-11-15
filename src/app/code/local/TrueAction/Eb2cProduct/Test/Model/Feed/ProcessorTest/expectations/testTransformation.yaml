@@ -61,10 +61,10 @@ itemmaster1:
     allow_gift_message: true 
     back_orderable: false
     brand_name: New Brand
-    brand_description:
-       -
-        lang: en-US
-        description: New Brand
+    #brand_description:
+    #   -
+    #    lang: en-US
+    #    description: 'New Brand XYZ'
     # buyer_name:
     # buyer_id:
     # companion_flag:

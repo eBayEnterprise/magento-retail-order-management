@@ -147,4 +147,33 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
 		$fn->invoke($testModel, '', '', '');
 	}
+
+
+	/**
+	 * Given a mapped array containing language, parse should return
+	 * a flattened array, keyed by language
+	 * @test
+	 */
+	public function testParseTranslations()
+	{
+		$sampleInput = array (
+			array (
+				'lang'        => 'en-US',
+				'description' => 'An en-US translation',
+			),
+			array (
+				'lang'        => 'ja-JP',
+				'description' => 'ja-JP に変換',
+			),
+		);
+
+		$expectedOutput = array (
+			'en-US' => 'An en-US translation',
+			'ja-JP' => 'ja-JP に変換',
+		);
+
+		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$fn = $this->_reflectMethod($testModel, '_parseTranslations');
+		$this->assertSame( $expectedOutput, $fn->invoke($testModel, $sampleInput));
+	}
 }

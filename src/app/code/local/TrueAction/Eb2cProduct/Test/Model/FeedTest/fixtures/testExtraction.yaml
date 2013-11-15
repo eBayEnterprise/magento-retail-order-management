@@ -139,7 +139,17 @@ vfs:
                   <StyleID>25077</StyleID>
                 </Style>
               </ExtendedAttributes>
-              <CustomAttributes></CustomAttributes>
+              <CustomAttributes>
+                <Attribute name="ProductType" operation_type="Add" is_list="false" dt="string" xml:lang="en-US">
+                  <Value>Simple</Value>
+                </Attribute>
+                <Attribute name="ProductType" operation_type="Add" is_list="false" dt="string" xml:lang="ja-JP">
+                  <Value>シンプル</Value>
+                </Attribute>
+                <Attribute name="ProductType" operation_type="Add" is_list="false" dt="string" xml:lang="he-IL">
+                  <Value>פשוט</Value>
+                </Attribute>
+              </CustomAttributes>
             </Item>
           </ItemMaster>
         sample-feed-invalid-item-type.xml: |
@@ -192,12 +202,17 @@ vfs:
               <ExtendedAttributes>
                 <AllowGiftMessage>false</AllowGiftMessage>
                 <Brand>
-                  <Description xml:lang="en-US"/>
+                  <Name>McFarlane Toys 1001125</Name>
+                  <Description xml:lang="en-US">McFarlane Toys 1001125</Description>
+                  <Description xml:lang="ja-JP">マクファーレントイズ1001125</Description>
+                  <Description xml:lang="he-IL">1001125 צעצועי מקפרליין</Description>
                 </Brand>
                 <ColorAttributes>
                   <Color>
-                    <Code>White</Code>
-                    <Description xml:lang="en-US">WHITE</Description>
+                    <Code>100</Code>
+                    <Description xml:lang="en-US">VANILLA</Description>
+                    <Description xml:lang="ja-JP">Vanilla</Description>
+                    <Description xml:lang="he-IL">וניל</Description>
                   </Color>
                 </ColorAttributes>
                 <ItemDimension>

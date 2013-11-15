@@ -29,16 +29,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 	 */
 	public function extract(DOMXPath $xpath, DOMElement $node)
 	{
-		$result = array();
 		try {
 			$nodes = $xpath->query($this->_baseXpath, $node);
 		} catch (Exception $e) {
-			Mage::throwException(
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception(
 				'[ ' . get_called_class() . ' ] the xpath "' . $this->_baseXpath . '" could not be queried: ' . $e->getMessage()
 			);
-			// @codeCovergeIgnoreStart
 		}
-		// @codeCoverageIgnoreEnd
+
 		foreach ($nodes as $child) {
 			$value = null;
 			$nodeList = $xpath->query($this->_valueXpath, $child);
@@ -53,15 +51,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Color
 				continue;
 			}
 
-			$result[] = array(
-				$this->_valueKeyAlias => $value,
-				'description' => array(
-					'description' => trim($xpath->query('Description/text()', $child)->item(0)->nodeValue),
-					'lang' => trim($xpath->query('Description/@xml:lang', $child)->item(0)->nodeValue),
-				)
+			$localizedValues = array();
+			$localizedValuesNodes = $xpath->query('Description', $child);
+			foreach ($localizedValuesNodes as $valueElement) {
+				$localizedValues[$valueElement->getAttribute('xml:lang')] = $valueElement->nodeValue;
+			}
+		}
+
+		$result = array();
+		if ($value) {
+			$result = array(
+				$this->_baseKey => array(
+					$this->_valueKeyAlias => $value,
+					'localization'        => $localizedValues,
+				),
 			);
 		}
-		return empty($result) ? array() : array($this->_baseKey => $result);
+		return $result;
 	}
 
 	/**

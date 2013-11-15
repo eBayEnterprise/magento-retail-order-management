@@ -20,6 +20,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected $_defaultStoreLanguageCode;
 
 	/**
+	 * A map of store Ids to LanguageCodes
+	 * @var array 
+	 */
+	protected $_storeLanguageCodeMap = array();
+
+	/**
 	 * list of attribute codes that are not setup on the system but were in the feed.
 	 * @var array
 	 */
@@ -42,7 +48,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	);
 
 	protected $_extKeys = array(
-		'brand_description',
 		'brand_name',
 		'buyer_id',
 		'color',
@@ -89,10 +94,61 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	{
 		$config = Mage::helper('eb2cproduct')->getConfigModel();
 		$this->_helper = Mage::helper('eb2cproduct');
+		// @todo - I'm suspicious of this decision here for language
 		$this->_defaultStoreLanguageCode = Mage::helper('eb2ccore')->mageToXmlLangFrmt(Mage::app()->getLocale()->getLocaleCode());
+		$this->_initStoreLanguageCodeMap();
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
+	}
+
+	/**
+	 * Sets the default translation, returns an array of translations that have note yet been applied
+	 * @return array
+	 */
+	protected function _setDefaultTranslation($source, $target, $fieldName, $translationsArrayName)
+	{
+		// Set default product long description
+		$translationsToApply = array();
+		if ($source->getExtendedAttributes()->hasData($translationsArrayName)) {
+			$translationsToApply = $source->getExtendedAttributes()->getData($translationsArrayName);
+			// Assign the 'default' translation
+			if (array_key_exists($this->_defaultStoreLanguageCode, $translationsToApply)) {
+				$target->setData($fieldName, $translationsToApply[$this->_defaultStoreLanguageCode]);
+				unset($translationsToApply[$this->_defaultStoreLanguageCode]);
+			}
+		}
+		return $translationsToApply;
+	}
+
+	/**
+	 * If key exists in array, return its value, otherwise return false
+	 *
+	 * @return boolean
+	 */
+	protected function _getTranslation($languageCode, $arrayOfTranslations)
+	{
+		return array_key_exists($languageCode, $arrayOfTranslations) ?
+			$arrayOfTranslations[$languageCode] : false;
+	}
+
+	/**
+	 * Creates a map of language codes (as dervied from the store view code) to store ids
+	 * @todo The parse-language-from-store-view code might need to be closer to Eb2cCore.
+	 */
+	protected function _initStoreLanguageCodeMap()
+	{
+		foreach (Mage::app()->getStores() as $storeId) {
+			$storeCodeParsed = explode('_', Mage::app()->getStore($storeId)->getCode(), 3);
+			if (count($storeCodeParsed) > 2) {
+				$this->_storeLanguageCodeMap[$storeCodeParsed[2]]
+					= Mage::app()->getStore($storeId)->getId();
+			} else {
+				Mage::log('Incompatible Store View Name ignored: "' . Mage::app()->getStore($storeId)->getName() . '"',
+					Zend_log::INFO);
+			}
+		}
+		return $this;
 	}
 
 	public function processUpdates($dataObjectList)
@@ -187,9 +243,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			// Unique identifier to denote the item manufacturer.
 			'id' => $dataObject->hasData('manufacturer_id') ? $dataObject->getData('manufacturer_id') : false,
 		)));
+
+		// @todo Does this actually do anything?
 		$extData->setData('size_attributes', new Varien_Object(array(
 			'size' => $dataObject->getData('size')
 		)));
+
+		// @todo Does this actually do anything?
 		$extData->setData('color_attributes', new Varien_Object(array(
 			'color' => $dataObject->getData('color')
 		)));
@@ -276,29 +336,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 				$data['gift_wrap'] = $this->_helper->parseBool($extendedAttributes['gift_wrap']);
 			}
 
-			if (isset($extendedAttributes['long_description'])
-					&& !empty($extendedAttributes['long_description']))
-			{
-				// get long description data
-				$longDescriptions = $extendedAttributes['long_description'];
-				foreach ($longDescriptions as $longDescription) {
-					if (strtoupper($longDescription['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
-						// extracting the product long description according to the store language setting
-						$data['long_description'] = $longDescription['long_description'];
-					}
+			if (isset($extendedAttributes['long_description']) && !empty($extendedAttributes['long_description'])) {
+				foreach( $extendedAttributes['long_description'] as $longDescription ) {
+					$data['long_description_set'][$longDescription['lang']] = $longDescription['long_description'];
 				}
 			}
 
-			if (isset($extendedAttributes['short_description'])
-					&& !empty($extendedAttributes['short_description']))
-			{
-				// get short description data
-				$shortDescriptions = $extendedAttributes['short_description'];
-				foreach ($shortDescriptions as $shortDescription) {
-					if (strtoupper($shortDescription['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
-						// setting the product short description according to the store language setting
-						$data['short_description'] = $shortDescription['short_description'];
-					}
+			if (isset($extendedAttributes['short_description']) && !empty($extendedAttributes['short_description'])) {
+				foreach( $extendedAttributes['short_description'] as $shortDescription ) {
+					$data['short_description_set'][$shortDescription['lang']] = $shortDescription['short_description'];
 				}
 			}
 		}
@@ -480,13 +526,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * Add new attribute aption and return the newly inserted option id
-	 * @todo newOptionLabel needs to be the array of lang and description, not just a text field
 	 *
 	 * @param string $attribute, the attribute to which the new option is added
-	 * @param string $newOption, the new option itself
+	 * @param array $newOption, the new option itself
+	 * 	The format of the 'newOption' is an array:
+	 * 		'code'          => 'admin_value',
+	 *		'localizations' => array(
+	 *				'en-US' => 'English',
+	 *				'he-IL' => 'עברית',
+	 * 				'ja-JP' => '日本人',
+	 *			)
 	 * @return int, the newly inserted option id
 	 */
-	protected function _addOptionToAttribute($attribute, $newOption, $newOptionLabel)
+	protected function _addOptionToAttribute($attribute, $newOption)
 	{
 		$optionsIndex = 0;
 		$values = array();
@@ -505,19 +557,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		// This entire set of options belongs to this attribute:
 		$newAttributeOption['attribute_id'] = $attributeId;
 
-		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption;
-
-		// @todo review scope rules to figure out which store we should use, and how do we figure out language?
-		// Language is an attribute on the description, but dunno how to parse into a specific store.
-		$allStores = Mage::app()->getStores();
-		foreach( $allStores as $oneStore) {
-			$storeId = $oneStore->getId();
-			// @todo: From storeDetails, extract the Language (see spec, it's a naming convention)
-			$storeDetails = $oneStore->load($storeId);
-			$values[$storeId] = $newOptionLabel;
+		// Default Store (i.e., 'Admin') takes the value of 'code'.
+		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption['code'];
+		foreach($this->_storeLanguageCodeMap as $lang => $storeId) {
+			if (!empty($newOption['localization'][$lang]) ) {
+				// Each store view now gets its own localization, if one has been provided.
+				$values[$storeId] = $newOption['localization'][$lang];
+			}
 		}
 
-		// Set up the option0 to be the default (i.e. admin) store:
 		$newAttributeOption['value'] = array('replace_with_primary_key' => $values);
 		$setup = new Mage_Eav_Model_Entity_Setup('core_setup');
 		try {
@@ -526,12 +574,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			Mage::log(
 				sprintf(
 					'[ %s ] Error creating Admin option "%s" for attribute "%s": %s',
-					__CLASS__, $newOption, $attribute, $e->getMessage()
+					__CLASS__, $newOption['code'], $attribute, $e->getMessage()
 				),
 				Zend_Log::ERR
 			);
 		}
-		return $this->_getAttributeOptionId($attribute, $newOption); // Get the newly created id
+		return $this->_getAttributeOptionId($attribute, $newOption['code']); // Get the newly created id
 	}
 
 	/**
@@ -550,8 +598,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 		$productData = new Varien_Object();
 
-		// getting product name/title
-		$productTitle = $this->_getDefaultLocaleTitle($item);
+		// getting product name/title.
+		// @todo: Title is awkwardly handled here. Should be handled more w/ _setDefaultTranslation(), but
+		// even that needs to be refactored at some point.
+		$productTitleSet = $this->_getProductTitleSet($item);
+		$productTitle    = $this->_getTranslation($this->_defaultStoreLanguageCode, $productTitleSet);
+		unset($productTitleSet[$this->_defaultStoreLanguageCode]);
 
 		if ($item->hasProductType()) {
 			$productData->setData('type_id', $item->getProductType());
@@ -588,15 +640,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 
 		// Setting product name/title from base attributes
-		$productData->setData('name', ($productTitle !== '')? $productTitle : $product->getName());
-		// setting the product long description according to the store language setting
-		if ($item->getExtendedAttributes()->hasData('long_description')) {
-			$productData->setData('description', $item->getExtendedAttributes()->getData('long_description'));
-		}
-		// setting the product short description according to the store language setting
-		if ($item->getExtendedAttributes()->hasData('short_description')) {
-			$productData->setData('short_description', $item->getExtendedAttributes()->getData('short_description'));
-		}
+		$productData->setData('name', ($productTitle) ? $productTitle : $product->getName());
+
+		// Set default product long description
+		$longDescriptionSet = $this
+			->_setDefaultTranslation($item, $productData, 'description', 'long_description_set');
+
+		// Set default short description:
+		$shortDescriptionSet = $this
+			->_setDefaultTranslation($item, $productData, 'short_description', 'short_description_set');
+
+		// Set default brand description:
+		$brandDescriptionSet = $this
+			->_setDefaultTranslation($item, $productData, 'brand_description', 'brand_description_set');
 
 		// setting the product's color to a Magento Attribute Id
 		if ($item->getExtendedAttributes()->hasData('color')) {
@@ -615,8 +671,67 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
 			->save(); // saving the product
+		$defaultProductId = $product->getId();
 		$this
 			->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
+
+		// Process other-than-default language stuff:
+		/** 
+		 * @todo brandSet and productTitleSet
+		 * The Big Idea:
+		 * - examine each of longDescriptionSet, shortDescriptionSet, brandSet, and producTitleSet
+		 * - if set for this language, then use it.
+		 * - if not specified, leave it alone
+		 * - this code doesn't know how to UNSET a language'd field.
+		 * - anyway, that's my 'first-pass idea' at doing this a single-save per language
+		 */
+
+		// @todo man this is goofy test. Or maybe isn't it. Unsure. Getting tired. If any of these
+		// language-sensitive fields are filled in, process them.
+		if (!empty($longDescriptionSet) || !empty($shortDescriptionSet)
+			|| !empty($brandDescriptionSet) || !empty($productTitleSet)) {
+			foreach($this->_storeLanguageCodeMap as $lang => $storeId) {
+				if ($lang === $this->_defaultStoreLanguageCode) {
+					continue; // Skip default store language - it's already been done
+				}
+				// @todo do I have to set Current Store every time?
+				// @todo do I have to re-load the product every time?
+				// See http://www.fabrizio-branca.de/whats-wrong-with-the-new-url-keys-in-magento.html for 
+				// details about why url_key has to be set specially. It's a Magento 1.13 'problem'.
+				Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+				$altProduct =
+					Mage::getModel('catalog/product')->load($defaultProductId)
+					->setStoreId($storeId)
+					->setUrlKey(false);
+
+				// We could /always/ setFieldName(value), by using altProduct->getValue(). But that
+				// would turn off the 'default flag' and make the store view hold more than it really
+				// should be.
+				$longDescription  = $this->_getTranslation($lang, $longDescriptionSet);
+				if( $longDescription ) {
+					$altProduct->setDescription($longDescription);
+				}
+
+				$shortDescription = $this->_getTranslation($lang, $shortDescriptionSet);
+				if( $shortDescription ) {
+					$altProduct->setShortDescription($shortDescription);
+				}
+
+				$brandDescription = $this->_getTranslation($lang, $brandDescriptionSet);
+				if( $brandDescription ) {
+					$altProduct->setBrandDescription($brandDescription);
+				}
+
+				$productTitle = $this->_getTranslation($lang, $productTitleSet);
+				if( $productTitle ) {
+					$altProduct->setName($brandDescription);
+				}
+
+				// Only set what we've been provided.
+				$altProduct->save();
+			}
+		}
+
 		return $this;
 	}
 
@@ -631,10 +746,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$colorOptionId = 0;
 
 		if (!empty($colorData)) {
-			$colorOptionId = $this->_getAttributeOptionId('color', $colorData[0]['code']);
+			$colorOptionId = $this->_getAttributeOptionId('color', $colorData['code']);
 			if (!$colorOptionId) {
-				// @fixme language is delievered at colorData[0]['description']['lang']
-				$colorOptionId = $this->_addOptionToAttribute('color', $colorData[0]['code'], $colorData[0]['description']['description']);
+				$colorOptionId = $this->_addOptionToAttribute('color', $colorData);
 			}
 		}
 		return $colorOptionId;
@@ -664,27 +778,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * getting default locale title that match magento default locale
+	 * Return array of titles, keyed by lang code
 	 *
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the default product title
-	 *
-	 * @return string
+	 * @return array
 	 */
-	protected function _getDefaultLocaleTitle(Varien_Object $dataObject)
+	protected function _getProductTitleSet(Varien_Object $dataObject)
 	{
-		$title = '';
+		$titleData = array();
 		$titles = $dataObject->getBaseAttributes()->getTitle();
+
 		if(isset($titles) && !empty($titles)) {
 			foreach ($titles as $title) {
 				// It's possible $title['title'] doesn't exist, eg we receive <Title xml:lang='en-US' />
 				// As per spec, it's required
-				if ( array_key_exists('title', $title) && array_key_exists('lang', $title)
-					&& strtoupper($title['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
-					return $title['title'];
+				if (array_key_exists('title', $title) && array_key_exists('lang', $title)) {
+					$titleData[$title['lang']] = $title['title'];
 				}
 			}
 		}
-		return $title;
+		return $titleData;
 	}
 
 	/**
@@ -854,17 +967,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			$data['hts_codes'] = $dataObject->getHtsCode();
 		}
 
+		// Get default lang and translations for brand_description
 		if ($prodHlpr->hasEavAttr('brand_description')) {
-			// setting brand_description attribute
-			$brandDescription = $dataObject->getExtendedAttributes()->getBrandDescription();
-			if (!empty($brandDescription)) {
-				foreach ($brandDescription as $bDesc) {
-					if (isset($bDesc['lang']) && strtoupper($bDesc['lang']) === strtoupper($this->_defaultStoreLanguageCode)) {
-						$data['brand_description'] = $bDesc['description'];
-						break;
-					}
-				}
-			}
+			$data['brand_description_set'] = $this->_parseTranslations(
+				$dataObject->getExtendedAttributes()->getBrandDescription()
+			);
 		}
 
 		if ($prodHlpr->hasEavAttr('buyer_name')) {
@@ -1111,6 +1218,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
+	 * Flattens translations into arrays keyed by language
+	 * @return array in the form a['lang-code'] = 'localized value'
+	 */
+	protected function _parseTranslations($languageSet)
+	{
+		$parsedLanguages = array();
+		if (!empty($languageSet)) {
+			foreach ($languageSet as $language) {
+				$parsedLanguages[$language['lang']] = $language['description'];
+			}
+		}
+		return $parsedLanguages;
+	}
+
+	/**
 	 * @param  array  $attributeList list of attributes we want to exist
 	 * @return array                 subset of $attributeList that actually exist
 	 */
@@ -1191,29 +1313,29 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			foreach ($categoryLinks as $link) {
 				$categories = explode('-', $link['name']);
 				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
-					foreach($categories as $category) {
+						foreach($categories as $category) {
 						$categoryObject = Mage::getModel('catalog/category')->load(
 							$this->_loadCategoryByName(ucwords($category))->getId()
 						);
 						if ($categoryObject->getId()) {
-							// we have a valid category in the system let's delete it
+								// we have a valid category in the system let's delete it
 							$categoryObject->delete();
+							}
 						}
-					}
-				} else {
-					// adding or changing category import mode
+					} else {
+						// adding or changing category import mode
 					$path = sprintf('%s/%s', $this->_getDefaultParentCategoryId(), $this->_getStoreRootCategoryId());
-					foreach($categories as $category) {
+						foreach($categories as $category) {
 						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
 						if ($categoryId) {
 							$path .= '/' . $categoryId;
 						}
 					}
-					$fullPath .= '/' . $path;
+						$fullPath .= '/' . $path;
+					}
 				}
 			}
-		}
 		return explode('/', $fullPath);
 	}
 
-}
+				}

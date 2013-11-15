@@ -11,13 +11,13 @@ pricing1:
   price_vat_inclusive: 'false'
 
 itemmaster1:
-  allow_gift_message: true 
-  back_orderable: false
+  allow_gift_message: "1"
+  back_orderable: "0"
   brand_name: New Brand
-  brand_description:
-     -
-      lang: en-US
-      description: New Brand
+  #brand_description:
+  #   -
+  #    lang: en-US
+  #    description: New Brand
   # buyer_name:
   # buyer_id:
   catalog_class: regular
