@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const VFS_ROOT = 'var/eb2c';
 
