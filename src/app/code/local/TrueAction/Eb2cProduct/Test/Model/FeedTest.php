@@ -76,6 +76,8 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testDescriptionClobbering()
 	{
+		$this->markTestSkipped('Takes too long.');
+		$this->_mockConfigWithDefaults();
 		$vfs = $this->getFixture()->getVfs();
 
 		$coreFeedHelper = $this->getHelperMock('eb2ccore/feed', array(
@@ -398,6 +400,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testFeedIntegration()
 	{
+		$this->markTestSkipped('takes too long');
 		$vfs = $this->getFixture()->getVfs();
 		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
 			'fetchFeedsFromRemote',
