@@ -1,9 +1,69 @@
 <?php
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	const DEFAULT_STOCK_DATA_QTY = 0;
-
-	private $_types;
+	protected $_types;
+	/**
+	 * @var array boilerplate for initializing a new product with limited information.
+	 */
+	protected $_prodTplt;
+	/**
+	 * @return array the static defaults for a new product
+	 */
+	protected function _getProdTplt()
+	{
+		if (!$this->_prodTplt) {
+			$cfg = $this->getConfigModel();
+			$defStockData = array(
+				'is_in_stock'  => $cfg->dummyInStockFlag,
+				'manage_stock' => $cfg->dummyManageStockFlag,
+				'qty'          => (int) $cfg->dummyStockQuantity,
+			);
+			$this->_prodTplt = array(
+				'attribute_set_id'  => (int) $this->_getDefProdAttSetId(),
+				'category_ids'      => array($this->_getDefStoreRootCatId()),
+				'description'       => $cfg->dummyDescription,
+				'price'             => (float) $cfg->dummyPrice,
+				'short_description' => $cfg->dummyShortDescription,
+				'status'            => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+				'stock_data'        => $defStockData,
+				'store_ids'         => array($this->_getDefStoreId()),
+				'tax_class_id'      => (int) $cfg->dummyTaxClassId,
+				'type_id'           => (int) $cfg->dummyTypeId,
+				'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+				'website_ids'       => $this->_getAllWebsiteIds(),
+				'weight'            => (int) $cfg->dummyWeight,
+			);
+		}
+		return $this->_prodTplt;
+	}
+	/**
+	 * @return array all website ids
+	 */
+	protected function _getAllWebsiteIds()
+	{
+		return (array) Mage::getModel('core/website')->getCollection()->getAllIds();
+	}
+	/**
+	 * @return int the default store id
+	 */
+	protected function _getDefStoreId()
+	{
+		return (int) Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId();
+	}
+	/**
+	 * @return int the root category id for the default store
+	 */
+	protected function _getDefStoreRootCatId()
+	{
+		return (int) Mage::app()->getStore()->getRootCategoryId();
+	}
+	/**
+	 * @return int the default attribute set id for all products.
+	 */
+	protected function _getDefProdAttSetId()
+	{
+		return (int) Mage::getModel('eav/entity_type')->loadByCode('catalog_product')->getDefaultAttributeSetId();
+	}
 
 	/**
 	 * Parse a string into a boolean.
@@ -110,53 +170,26 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		$product = $this->loadProductBySku($sku);
 		if (!$product->getId()) {
-			$this->applyDummyData($product, $sku, $name);
+			$this->_applyDummyData($product, $sku, $name);
 		}
 		return $product;
 	}
 
 	/**
-	 * fill a product model with dummy data so that it can be saved and edited later
+	 * Fill a product model with dummy data so that it can be saved and edited later.
 	 * @see http://www.magentocommerce.com/boards/viewthread/289906/
-	 * @param  Mage_Catalog_Model_Product $product product model to be autofilled
-	 * @return Mage_Catalog_Model_Product
+	 * @param Mage_Catalog_Model_Product $prod product model to be autofilled
+	 * @param string $sku the new product's sku
+	 * @param string $name the new product's name
+	 * return Mage_Catalog_Model_Product
 	 */
-	public function applyDummyData($product, $sku, $name)
+	protected function _applyDummyData(Mage_Catalog_Model_Product $prod, $sku, $name)
 	{
-		try{
-			$product->setData(
-				array(
-					'type_id' => 'simple', // default product type
-					'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE, // default not visible
-					'attribute_set_id' => $product->getResource()->getEntityType()->getDefaultAttributeSetId(),
-					'name' => empty($name) ? ('Invalid Product: ' . $sku) : $name,
-					'status' => 0, // default - disabled
-					'sku' => $sku,
-					'website_ids' => $this->getAllWebsiteIds(),
-					'category_ids' => $this->_getDefaultCategoryIds(),
-					'description' => 'This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.',
-					'short_description' => 'Invalid product. Please do not attempt to purchase.',
-					'price' => 0,
-					'weight' => 0,
-					'url_key' => $sku,
-					'store_ids' => array($this->getDefaultStoreId()),
-					'stock_data' => array('is_in_stock' => 1, 'qty' => self::DEFAULT_STOCK_DATA_QTY, 'manage_stock' => 1),
-					'tax_class_id' => 0,
-				)
-			);
-		} catch (Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] Failed to apply dummy data to product: %s',
-					__CLASS__,
-					$e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-		return $product;
+		$prodData = $this->_getProdTplt();
+		$prodData['name'] = $name ?: "Invalid Product: $sku";
+		$prodData['sku'] = $prodData['url_key'] = $sku;
+		return $prod->addData($prodData);
 	}
-
 	/**
 	 * load product by sku
 	 * @param string $sku, the product sku to filter the product table
@@ -170,25 +203,5 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->where('e.sku = ?', $sku);
 		return $products->getFirstItem();
 	}
-
-	/**
-	 * @return array list containing the integer id for the root-category of the default store
-	 * @codeCoverageIgnore
-	 * No coverage needed since this is almost all external code.
-	 */
-	protected function _getDefaultCategoryIds()
-	{
-		$storeId = $this->getDefaultStoreId();
-		return array(Mage::app()->getStore($storeId)->getRootCategoryId());
-	}
-
-	public function getAllWebsiteIds()
-	{
-		return Mage::getModel('core/website')->getCollection()->getAllIds();
-	}
-
-	public function getDefaultStoreId()
-	{
-		return null;
-	}
 }
+
