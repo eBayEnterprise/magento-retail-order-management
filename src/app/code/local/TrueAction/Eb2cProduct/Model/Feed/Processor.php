@@ -144,7 +144,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 		// prepare base attributes
 		$baseAttributes = new Varien_Object();
-		$baseAttributes->setData('drop_shipped', $this->_helper->convertToBoolean($dataObject->getData('is_drop_shipped')));
+		$baseAttributes->setData('drop_shipped', $this->_helper->parseBool($dataObject->getData('is_drop_shipped')));
 		foreach (array('catalog_class', 'item_description', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
 			if ($dataObject->hasData($key)) {
 				$baseAttributes->setData($key, $dataObject->getData($key));
@@ -202,7 +202,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		// handle values that need to be booleans
 		foreach ($this->_extKeysBool as $key) {
 			if ($dataObject->hasData($key)) {
-				$extData->setData($key, $this->_helper->convertToBoolean($dataObject->getData($key)));
+				$extData->setData($key, $this->_helper->parseBool($dataObject->getData($key)));
 			}
 		}
 
@@ -268,7 +268,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		if (!empty($extendedAttributes)) {
 			if (isset($extendedAttributes['gift_wrap'])) {
 				// extracting gift_wrapping_available
-				$data['gift_wrap'] = $this->_helper->convertToBoolean($extendedAttributes['gift_wrap']);
+				$data['gift_wrap'] = $this->_helper->parseBool($extendedAttributes['gift_wrap']);
 			}
 
 			if (isset($extendedAttributes['long_description'])
@@ -409,7 +409,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected function _preparePricingEventData(Varien_Object $dataObject, Varien_Object $outData)
 	{
 		if ($dataObject->hasEbcPricingEventNumber()) {
-			$priceIsVatInclusive = $this->_helper->convertToBoolean($dataObject->getPriceVatInclusive());
+			$priceIsVatInclusive = $this->_helper->parseBool($dataObject->getPriceVatInclusive());
 			$data = array(
 				'price' => $dataObject->getPrice(),
 				'msrp' => $dataObject->getMsrp(),
@@ -603,7 +603,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 
 		// mark all products that have just been imported as not being clean
-		$productData->setData('is_clean', $this->_helper->convertToBoolean(false));
+		$productData->setData('is_clean', $this->_helper->parseBool(false));
 
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))

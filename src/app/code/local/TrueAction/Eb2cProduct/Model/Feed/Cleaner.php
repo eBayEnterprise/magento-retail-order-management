@@ -251,7 +251,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		$isClean = empty($unresolvedLinks);
 
 		// update flag on product
-		$product->setIsClean(Mage::helper('eb2cproduct')->convertToBoolean($isClean));
+		$product->setIsClean(Mage::helper('eb2cproduct')->parseBool($isClean));
 		if (!$isClean) {
 			Mage::log(sprintf('[ %s ]: Product, %s, has not be fully cleaned.', __CLASS__, $product->getSku()), Zend_Log::DEBUG);
 		}

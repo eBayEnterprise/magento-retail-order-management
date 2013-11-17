@@ -138,6 +138,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	/**
 	 * verify a file's feed type is identified properly and the correct models
 	 * are used.
+	 * @loadFixture feedConfig.yaml
 	 * @dataProvider dataProvider
 	 * @loadFixture
 	 * @large

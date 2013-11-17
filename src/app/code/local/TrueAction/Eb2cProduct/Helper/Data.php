@@ -6,18 +6,26 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	private $_types;
 
 	/**
-	 * convert a string into a boolean value.
-	 * @see  http://php.net/manual/en/function.is-bool.php
-	 * @param   string
-	 * @return  string
+	 * Parse a string into a boolean.
+	 * @param string $s the string to parse
+	 * @return bool
 	 */
-	public function convertToBoolean($value)
+	public function parseBool($s)
 	{
-		return in_array(
-			strtolower($value),
-			array('true', '1', 'on', 'yes', 'y'),
-			true
-		) ? '1' : '0';
+		if (!is_string($s)) {
+			return (bool) $s;
+		}
+		switch (strtolower($s)) {
+			case '1':
+			case 'on':
+			case 't':
+			case 'true':
+			case 'y':
+			case 'yes':
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	/**
