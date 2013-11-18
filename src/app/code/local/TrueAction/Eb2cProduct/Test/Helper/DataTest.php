@@ -132,6 +132,32 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
+	 * Should throw an exception when creating a dummy product template
+	 * if the configuration specifies an invalid Magento product type
+	 * This test will use hasProdType() so has a real, if marginal, environmental
+	 * dependence.
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Config_Exception
+	 */
+	public function testInvalidDummyTypeFails()
+	{
+		$fakeCfg = new StdClass();
+		$fakeCfg->dummyTypeId = 'someWackyTypeThatWeHopeDoesntExist';
+		$hlpr = $this->getHelperMock('eb2cproduct/data', array(
+			'getConfigModel',
+		));
+		$hlpr->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($fakeCfg));
+
+		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
+		$getProdTplt = $hlpRef->getMethod('_getProdTplt');
+		$getProdTplt->setAccessible(true);
+		$getProdTplt->invoke($hlpr);
+	}
+
+
+	/**
 	 * Test looking up a product by sku
 	 * @param  string $sku SKU of product
 	 * @test
@@ -178,7 +204,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$fakeCfg->dummyPrice = 45.67;
 		$fakeCfg->dummyShortDescription = 'hello';
 		$fakeCfg->dummyTaxClassId = 890;
-		$fakeCfg->dummyTypeId = 135;
+		$fakeCfg->dummyTypeId = 'simple';
 		$fakeCfg->dummyWeight = 79;
 		$hlpr = $this->getHelperMock('eb2cproduct/data', array(
 			'_getAllWebsiteIds',
@@ -216,7 +242,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 			),
 			'store_ids'         => array(531),
 			'tax_class_id'      => 890,
-			'type_id'           => 135,
+			'type_id'           => 'simple',
 			'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
 			'website_ids'       => array(980),
 			'weight'            => 79,

@@ -67,10 +67,10 @@ class TrueAction_Eb2cProduct_Model_Feed
 				function ($local) use ($remote, $eventType, $coreFeedHelper) {
 					$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
 					return array(
-						'local' => $local,
-						'remote' => $remote,
+						'local'     => $local,
+						'remote'    => $remote,
 						'timestamp' => $timeStamp,
-						'type' => $eventType
+						'type'      => $eventType
 					); },
 				$this->_coreFeed->lsInboundDir()
 			));
@@ -163,7 +163,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		if (!$this->_xpath) {
 			$message = '[ ' . __CLASS__ . ' ] unable to get DOMXPath object from model ' .
 				get_class($this->_eventTypeModel);
-			Mage::throwException($message);
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception($message);
 		}
 		return $this;
 	}
@@ -195,7 +195,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		}
 		if (array_search($eventType, array_keys($this->_eventTypes)) === false) {
 			$message = sprintf(self::INVALID_EVENT_TYPE, $eventType);
-			throw new Mage_Core_Exception($message);
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception($message);
 		}
 		return $eventType;
 	}
@@ -247,31 +247,23 @@ class TrueAction_Eb2cProduct_Model_Feed
 	{
 		// Where is the remote path?
 		if( is_null($this->_eventTypeModel->getFeedRemotePath()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedRemotePath'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedRemotePath'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// What is the file pattern for remote retrieval?
 		if( is_null($this->_eventTypeModel->getFeedFilePattern()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedFilePattern'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedFilePattern'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// Where is the local path?
 		if( is_null($this->_eventTypeModel->getFeedLocalPath()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedLocalPath'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedLocalPath'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// Where is the event type we're processing?
 		if( is_null($this->_eventTypeModel->getFeedEventType()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedEventType'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedEventType'));
 		}
-		// @codeCoverageIgnoreEnd
 	}
 
 	/**

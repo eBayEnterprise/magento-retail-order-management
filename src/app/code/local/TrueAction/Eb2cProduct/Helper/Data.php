@@ -13,6 +13,9 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		if (!$this->_prodTplt) {
 			$cfg = $this->getConfigModel();
+			if (!$this->hasProdType($cfg->dummyTypeId)) {
+				throw new TrueAction_Eb2cProduct_Model_Config_Exception('Config Error: dummy type id is invalid.');
+			}
 			$defStockData = array(
 				'is_in_stock'  => $cfg->dummyInStockFlag,
 				'manage_stock' => $cfg->dummyManageStockFlag,
@@ -28,7 +31,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 				'stock_data'        => $defStockData,
 				'store_ids'         => array($this->_getDefStoreId()),
 				'tax_class_id'      => (int) $cfg->dummyTaxClassId,
-				'type_id'           => (int) $cfg->dummyTypeId,
+				'type_id'           => $cfg->dummyTypeId,
 				'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
 				'website_ids'       => $this->_getAllWebsiteIds(),
 				'weight'            => (int) $cfg->dummyWeight,
