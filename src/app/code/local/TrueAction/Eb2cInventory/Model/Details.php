@@ -14,7 +14,7 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 		// can't make the details request.
 		if ($quote && $quote->getShippingAddress() && $this->getInventoriedItems($quote->getAllItems())) {
 			// build request
-			$requestDoc = $this->buildInventoryDetailsRequestMessage($quote);
+			$requestDoc = $this->_buildInventoryDetailsRequestMessage($quote);
 			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 			try {
 				// make request to eb2c for inventory details
@@ -34,52 +34,77 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 		}
 		return $responseMessage;
 	}
-
+	/**
+	 * Take a quote address and interpolate it into a ShipmentDetails xml node string.
+	 * @param Mage_Sales_Model_Quote_Address $address the address object to get data from
+	 * @return string
+	 */
+	protected function _buildShipmentDetailsXml(Mage_Sales_Model_Quote_Address $address)
+	{
+		// Address line data
+		$lines = '';
+		for ($i = 1; $i <= 4; $i++) {
+			$st = $address->getStreet($i);
+			if ($st) {
+				$lines .= sprintf('<Line%d>%s</Line%d>', $i, $st, $i);
+			}
+		}
+		return sprintf(
+			'<ShipmentDetails><ShippingMethod>%s</ShippingMethod><ShipToAddress>%s<City>%s</City><MainDivision>%s</MainDivision><CountryCode>%s</CountryCode><PostalCode>%s</PostalCode></ShipToAddress></ShipmentDetails>',
+			Mage::helper('eb2ccore')->lookupShipMethod($address->getShippingMethod()),
+			$lines,
+			$address->getCity(),
+			$address->getRegionCode(),
+			$address->getCountryId(),
+			$address->getPostcode()
+		);
+	}
+	/**
+	 * Take a single quote item and shipment details xml node string.
+	 * Extract the data from the quote item and return an xml string.
+	 * @param Mage_Sales_Model_Quote_Item $item the item to get data from
+	 * @param string $shipDet the shipment details xml node string.
+	 * @return string
+	 */
+	protected function _buildOrderItemXml(Mage_Sales_Model_Quote_Item $item, $shipDet)
+	{
+		return sprintf(
+			'<OrderItem lineId="%s" itemId="%s"><Quantity>%d</Quantity>%s</OrderItem>',
+			$item->getId(),
+			$item->getSku(),
+			$item->getQty(),
+			$shipDet
+		);
+	}
+	/**
+	 * Take an array of quote items and a quote address.
+	 * Concatenate the results of applying buildOrderItemXml to each.
+	 * @param array $items array of Mage_Sales_Model_Quote_Item
+	 * @param Mage_Sales_Model_Quote_Address $address
+	 * @return string
+	 */
+	protected function _buildOrderItemsXml(array $items, $address)
+	{
+		if (empty($items)) {
+			return '';
+		}
+		return $this->_buildOrderItemXml(array_shift($items), $this->_buildShipmentDetailsXml($address)) . $this->_buildOrderItemsXml($items, $address);
+	}
 	/**
 	 * Build Inventory Details request.
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
-	public function buildInventoryDetailsRequestMessage(Mage_Sales_Model_Quote $quote)
+	protected function _buildInventoryDetailsRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
-		$coreHlpr = Mage::helper('eb2ccore');
-		$domDocument = $coreHlpr->getNewDomDocument();
-		$hlpr = Mage::helper('eb2cinventory');
-		$requestMessage = $domDocument->addElement('InventoryDetailsRequestMessage', null, $hlpr->getXmlNs())->firstChild;
-		foreach($this->getInventoriedItems($quote->getAllItems()) as $item) {
-			// creating orderItem element
-			$orderItem = $requestMessage->createChild('OrderItem', null, array('lineId' => $item->getId(), 'itemId' => $item->getSku()));
-			// add quantity, FYI: integer value doesn't get added only string
-			$orderItem->createChild('Quantity', (string) $item->getQty());
-			$shippingAddress = $quote->getShippingAddress();
-			// creating shipping details
-			$shipmentDetails = $orderItem->createChild('ShipmentDetails', null);
-			// add shipment method
-			$shipMethod = $coreHlpr->lookupShipMethod($shippingAddress->getShippingMethod());
-			if ($shipMethod) {
-				$shipmentDetails->createChild('ShippingMethod', $shipMethod);
-			} else {
-				throw new Mage_Exception(
-					'Please configure an eb2c shipping method for the Magento method ' .
-					$shippingAddress->getShippingMethod()
-				);
-			}
-			// add ship to address
-			$shipToAddress = $shipmentDetails->createChild('ShipToAddress', null);
-			// add ship to address Line1
-			$shipToAddress->createChild('Line1', $shippingAddress->getStreet(1));
-			// add ship to address City
-			$shipToAddress->createChild('City', $shippingAddress->getCity());
-			// add ship to address MainDivision
-			$shipToAddress->createChild('MainDivision', $shippingAddress->getRegionCode());
-			// add ship to address CountryCode
-			$shipToAddress->createChild('CountryCode', $shippingAddress->getCountryId());
-			// add ship to address PostalCode
-			$shipToAddress->createChild('PostalCode', $shippingAddress->getPostcode());
-		}
-		return $domDocument;
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML(sprintf(
+			'<InventoryDetailsRequestMessage xmlns="%s">%s</InventoryDetailsRequestMessage>',
+			Mage::helper('eb2cinventory')->getXmlNs(),
+			$this->_buildOrderItemsXml($this->getInventoriedItems($quote->getAllItems()), $quote->getShippingAddress())
+		));
+		return $doc;
 	}
-
 	/**
 	 * Parse inventory details response xml.
 	 * @param string $responseMessage the xml response from eb2c

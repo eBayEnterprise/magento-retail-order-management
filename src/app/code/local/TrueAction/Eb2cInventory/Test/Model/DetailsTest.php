@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cInventory_Test_Model_DetailsTest
-	extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_details;
 
@@ -183,8 +182,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 
 	/**
 	 * Test getting inventory details
-	 * @param  Mage_Sales_Model_Quote $quote
-	 * @param  string $request The request XML that should be created for the given quote
+	 * @param Mage_Sales_Model_Quote $quote
 	 * @dataProvider providerInventoryDetailsQuote
 	 * @loadFixture
 	 * @test
@@ -206,7 +204,12 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			->with($this->callback(function ($arg) use ($request) {
 					// compare the canonicalized XML of the TrueAction_Dom_Document
 					// passed to the request method to the expected XML for this quote
-					return $request->C14N() === $arg->C14N();
+					if ($request->C14N() === $arg->C14N()) {
+						return true;
+					}
+					echo $request->C14N() . "\n";
+					echo $arg->C14N() . "\n";
+					return false;
 				}))
 			->will($this->returnValue($response));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
@@ -274,10 +277,158 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			$item->setId($idx);
 		}
 
-		$detailsMock = $this->getModelMock('eb2cinventory/details', array('buildInventoryDetailsRequestMessage'));
+		$detailsMock = $this->getModelMock('eb2cinventory/details', array('_buildInventoryDetailsRequestMessage'));
 		$detailsMock->expects($this->any())
 			->method('buildInventoryDetailsRequestMessage')
 			->will($this->returnValue(''));
 		$this->assertSame('', $this->_details->getInventoryDetails($quote));
 	}
+	/**
+	 * Test that buildInventoryDetailsRequestMessage takes a quote,
+	 * passes the order items and address in the quote downstream
+	 * and returns a DOMDocument.
+	 * @test
+	 */
+	public function testBuildInventoryDetailsRequestMessage()
+	{
+		$quote = $this->getModelMock('sales/quote', array('getAllItems', 'getShippingAddress'));
+		$quote
+			->expects($this->once())
+			->method('getAllItems')
+			->will($this->returnValue(array()));
+		$quote
+			->expects($this->once())
+			->method('getShippingAddress')
+			->will($this->returnValue(Mage::getModel('sales/quote_address')));
+		$deets = $this->getModelMock('eb2cinventory/details', array('_buildOrderItemsXml', 'getInventoriedItems'));
+		$deets
+			->expects($this->once())
+			->method('_buildOrderItemsXml')
+			->with($this->isType('array'), $this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
+			->will($this->returnValue('<OrderItemStub></OrderItemStub>'));
+		$deets
+			->expects($this->once())
+			->method('getInventoriedItems')
+			->with($this->isType('array'))
+			->will($this->returnValue(array()));
+		$invDeetReqMsg = $this->_invokeProt($deets, '_buildInventoryDetailsRequestMessage', array($quote));
+		$this->assertInstanceOf('DOMDocument', $invDeetReqMsg);
+		$this->assertSame(
+			'<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItemStub></OrderItemStub></InventoryDetailsRequestMessage>',
+			$invDeetReqMsg->C14N()
+		);
+	}
+	/**
+	 * Test that buildOrderItemsXml takes an array of quote items
+	 * and a quote address and concatenates the result of calling testBuildOrderItemXml
+	 * on each of them.
+	 * @test
+	 */
+	public function testBuildOrderItemsXml()
+	{
+		$deets = $this->getModelMock('eb2cinventory/details', array('_buildOrderItemXml', '_buildShipmentDetailsXml'));
+		$deets
+			->expects($this->once())
+			->method('_buildShipmentDetailsXml')
+			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
+			->will($this->returnValue('<ShipStub/>'));
+		$deets
+			->expects($this->atLeastOnce())
+			->method('_buildOrderItemXml')
+			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Item'), $this->equalTo('<ShipStub/>'))
+			->will($this->returnValue('<OrderItemStub/>'));
+		$this->assertSame('<OrderItemStub/>', $this->_invokeProt($deets, '_buildOrderItemsXml', array(
+			array(Mage::getModel('sales/quote_item')),
+			Mage::getModel('sales/quote_address')
+		)));
+	}
+	/**
+	 * Test that buildOrderItemXml takes a quote item and shipment details string,
+	 * extracts the expected values from the item and returns a string.
+	 * @test
+	 */
+	public function testBuildOrderItemXml()
+	{
+		$item = $this->getModelMock('sales/quote_item', array('getId', 'getSku', 'getQty'));
+		$item
+			->expects($this->once())
+			->method('getId')
+			->will($this->returnValue('id'));
+		$item
+			->expects($this->once())
+			->method('getSku')
+			->will($this->returnValue('sku'));
+		$item
+			->expects($this->once())
+			->method('getQty')
+			->will($this->returnValue(1));
+		$deets = Mage::getModel('eb2cinventory/details');
+		$this->assertSame(
+			'<OrderItem lineId="id" itemId="sku"><Quantity>1</Quantity><ShipmentDetails/></OrderItem>',
+			$this->_invokeProt($deets, '_buildOrderItemXml', array($item, '<ShipmentDetails/>'))
+		);
+	}
+	/**
+	 * Test that buildShipmentDetailsXml takes a quote address and returns a string.
+	 * @test
+	 */
+	public function testBuildShipmentDetailsXml()
+	{
+		$helper = $this->getHelperMock('eb2ccore/data', array('lookupShipMethod'));
+		$helper
+			->expects($this->once())
+			->method('lookupShipMethod')
+			->with($this->equalTo('method'))
+			->will($this->returnValue('mapped'));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$address = $this->getModelMock(
+			'sales/quote_address',
+			array('getShippingMethod', 'getStreet', 'getCity', 'getRegionCode', 'getCountryId', 'getPostcode')
+		);
+		$address
+			->expects($this->once())
+			->method('getShippingMethod')
+			->will($this->returnValue('method'));
+		$address
+			->expects($this->atLeastOnce())
+			->method('getStreet')
+			->with($this->isType('int'))
+			->will($this->returnValue('street'));
+		$address
+			->expects($this->once())
+			->method('getCity')
+			->will($this->returnValue('city'));
+		$address
+			->expects($this->once())
+			->method('getRegionCode')
+			->will($this->returnValue('state'));
+		$address
+			->expects($this->once())
+			->method('getCountryId')
+			->will($this->returnValue('country'));
+		$address
+			->expects($this->once())
+			->method('getPostcode')
+			->will($this->returnValue('zip'));
+		$deets = Mage::getModel('eb2cinventory/details');
+		$this->assertSame(
+			'<ShipmentDetails><ShippingMethod>mapped</ShippingMethod><ShipToAddress><Line1>street</Line1><Line2>street</Line2><Line3>street</Line3><Line4>street</Line4><City>city</City><MainDivision>state</MainDivision><CountryCode>country</CountryCode><PostalCode>zip</PostalCode></ShipToAddress></ShipmentDetails>',
+			$this->_invokeProt($deets, '_buildShipmentDetailsXml', array($address))
+		);
+	}
+	/**
+	 * Invoke a protected method and return the results.
+	 * @param mixed $obj the object that has the method
+	 * @param string $meth the method name to invoke
+	 * @param array $args the arguments to pass
+	 * @return mixed
+	 */
+	protected function _invokeProt($obj, $meth, $args)
+	{
+		$ref = new ReflectionObject($obj);
+		$prot = $ref->getMethod($meth);
+		$prot->setAccessible(true);
+		return $prot->invokeArgs($obj, $args);
+	}
 }
+
