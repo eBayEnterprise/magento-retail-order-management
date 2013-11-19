@@ -2,629 +2,973 @@
 class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
-	const VFS_ROOT = 'var/eb2c';
-
-	public function tearDown()
+	/**
+	 * Test running the feed
+	 * @test
+	 */
+	public function testProcessFeeds()
 	{
-		parent::tearDown();
-		// clear out the feed type config models
-		Mage::unregister('_singleton/eb2cproduct/feed_item');
-		Mage::unregister('_singleton/eb2cproduct/feed_content');
-		Mage::unregister('_singleton/eb2cproduct/feed_iship');
-		Mage::unregister('_singleton/eb2cproduct/feed_pricing');
-		Mage::unregister('_singleton/eb2cproduct/feed_queue');
-		Mage::unregister('_model/eb2cproduct/feed_processor');
-		Mage::unregister('_model/eb2ccore/feed');
-		Mage::unregister('_helper/eb2ccore/feed');
+		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getMessageDate'))
+			->getMock();
+		$coreFeedHelperMock->expects($this->exactly(4))
+			->method('getMessageDate')
+			->will($this->returnValue(DateTime::createFromFormat('U', 0)));
+
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern'))
+			->getMock();
+		$feedItemModelMock->expects($this->exactly(2))
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('ItemMaster*.xml'));
+
+		$feedContentModelMock = $this->getModelMockBuilder('eb2cproduct/feed_content')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern'))
+			->getMock();
+		$feedContentModelMock->expects($this->at(0))
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedContentModelMock->expects($this->at(1))
+			->method('getFeedFilePattern')
+			->will($this->returnValue('Content*.xml'));
+		$feedContentModelMock->expects($this->at(2))
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+
+		$feedPricingModelMock = $this->getModelMockBuilder('eb2cproduct/feed_pricing')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern'))
+			->getMock();
+		$feedPricingModelMock->expects($this->exactly(2))
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/Pricing/ABCD123/'));
+		$feedPricingModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('Price*.xml'));
+
+		$feedIshipModelMock = $this->getModelMockBuilder('eb2cproduct/feed_iship')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern'))
+			->getMock();
+		$feedIshipModelMock->expects($this->exactly(2))
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedIshipModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('IShip*.xml'));
+
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array('process'))
+			->getMock();
+		$feedQueueModelMock->expects($this->once())
+			->method('process')
+			->will($this->returnValue(null));
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$coreFeedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir'))
+			->getMock();
+		$coreFeedModelMock->expects($this->at(0))
+			->method('fetchFeedsFromRemote')
+			->with($this->equalTo('/Inbox/'), $this->equalTo('ItemMaster*.xml'));
+		$coreFeedModelMock->expects($this->at(2))
+			->method('fetchFeedsFromRemote')
+			->with($this->equalTo('/Inbox/'), $this->equalTo('Content*.xml'));
+		$coreFeedModelMock->expects($this->at(4))
+			->method('fetchFeedsFromRemote')
+			->with($this->equalTo('/Inbox/Pricing/ABCD123/'), $this->equalTo('Price*.xml'));
+		$coreFeedModelMock->expects($this->at(6))
+			->method('fetchFeedsFromRemote')
+			->with($this->equalTo('/Inbox/'), $this->equalTo('IShip*.xml'));
+		$coreFeedModelMock->expects($this->at(1))
+			->method('lsInboundDir')
+			->will($this->returnValue(array('/ItemMaster/sample-feed.xml')));
+		$coreFeedModelMock->expects($this->at(3))
+			->method('lsInboundDir')
+			->will($this->returnValue(array('/ContentMaster/sample-feed.xml')));
+		$coreFeedModelMock->expects($this->at(5))
+			->method('lsInboundDir')
+			->will($this->returnValue(array('/Pricing/sample-feed.xml')));
+		$coreFeedModelMock->expects($this->at(7))
+			->method('lsInboundDir')
+			->will($this->returnValue(array('/iShip/sample-feed.xml')));
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModelMock);
+
+		$feedCleanerModelMock = $this->getModelMockBuilder('eb2cproduct/feed_cleaner')
+			->setMethods(array('cleanAllProducts'))
+			->getMock();
+		$feedCleanerModelMock->expects($this->once())
+			->method('cleanAllProducts')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelMock);
+
+		$coreIndexerModelMock = $this->getModelMockBuilder('eb2ccore/indexer')
+			->disableOriginalConstructor()
+			->setMethods(array('reindexAll'))
+			->getMock();
+		$coreIndexerModelMock->expects($this->once())
+			->method('reindexAll')
+			->will($this->returnValue(null));
+		$this->replaceByMock('model', 'eb2ccore/indexer', $coreIndexerModelMock);
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getEventTypeModel', '_setupCoreFeed', '_compareFeedFiles', 'processFile', 'archiveFeed'))
+			->getMock();
+		$feedModelMock->expects($this->at(0))
+			->method('_getEventTypeModel')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue($feedItemModelMock));
+		$feedModelMock->expects($this->at(2))
+			->method('_getEventTypeModel')
+			->with($this->equalTo('Content'))
+			->will($this->returnValue($feedContentModelMock));
+		$feedModelMock->expects($this->at(4))
+			->method('_getEventTypeModel')
+			->with($this->equalTo('Price'))
+			->will($this->returnValue($feedPricingModelMock));
+		$feedModelMock->expects($this->at(6))
+			->method('_getEventTypeModel')
+			->with($this->equalTo('iShip'))
+			->will($this->returnValue($feedIshipModelMock));
+		$feedModelMock->expects($this->exactly(4))
+			->method('_setupCoreFeed')
+			->will($this->returnValue($coreFeedModelMock));
+		$feedModelMock->expects($this->any())
+			->method('_compareFeedFiles')
+			->with($this->isType('array'))
+			->will($this->returnValue(0));
+		$feedModelMock->expects($this->exactly(4))
+			->method('processFile')
+			->will($this->returnValue(null));
+		$feedModelMock->expects($this->exactly(4))
+			->method('archiveFeed')
+			->will($this->returnValue(null));
+
+		$this->assertSame(4, $feedModelMock->processFeeds());
 	}
 
 	/**
-	 * Mock out the config registry with some default values.
-	 * @return $this object
+	 * Test processFile method
+	 * @test
 	 */
-	protected function _mockConfigWithDefaults()
+	public function testProcessFile()
 	{
-		$this->replaceCoreConfigRegistry(array(
-			'clientId' => 'MAGTNA',
-			'catalogId' => '45',
-			'gsiClientId' => 'MAGTNA',
-			'pricingFeedLocalPath' => self::VFS_ROOT . DS . 'pricing',
-			'pricingFeedRemoteReceivedPath' => '/',
-			'pricingFeedFilePattern' => '*.xml',
-			'pricingFeedEventType' => 'Price',
-			'itemFeedLocalPath' => self::VFS_ROOT . DS . 'itemmaster',
-			'itemFeedRemoteReceivedPath' => '/',
-			'itemFeedFilePattern' => '*.xml',
-			'itemFeedEventType' => 'Item',
-			'contentFeedLocalPath' => self::VFS_ROOT . DS . 'contentmaster',
-			'contentFeedRemoteReceivedPath' => '/',
-			'contentFeedFilePattern' => '*.xml',
-			'contentFeedEventType' => 'Content',
-			'iShipFeedLocalPath' => self::VFS_ROOT . DS . 'iship',
-			'iShipFeedRemoteReceivedPath' => '/',
-			'iShipFeedFilePattern' => '*.xml',
-			'iShipFeedEventType' => 'iShip',
-			'processorUpdateBatchSize' => 1,
-			'processorDeleteBatchSize' => 1,
-			'processorMaxTotalEntries' => 1,
-		));
-		return $this;
+		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$domMock->expects($this->once())
+			->method('load')
+			->with($this->equalTo('/ItemMaster/sample-feed.xml'))
+			->will($this->returnSelf());
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domMock));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('validateHeader'))
+			->getMock();
+		$coreFeedHelperMock->expects($this->once())
+			->method('validateHeader')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'), $this->equalTo('ItemMaster'))
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getEventTypeModel', '_determineEventType', '_beforeProcessDom', 'processDom'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getEventTypeModel')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue($feedItemModelMock));
+		$feedModelMock->expects($this->once())
+			->method('_determineEventType')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue('ItemMaster'));
+		$feedModelMock->expects($this->once())
+			->method('_beforeProcessDom')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnSelf());
+		$feedModelMock->expects($this->once())
+			->method('processDom')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnSelf());
+
+		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+	}
+
+	/**
+	 * Test processFile method, where loading the file to the
+	 * domdocument will throw an exception
+	 * @test
+	 */
+	public function testProcessFileDomLoadExceptionThrown()
+	{
+		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$domMock->expects($this->once())
+			->method('load')
+			->with($this->equalTo('/ItemMaster/sample-feed.xml'))
+			->will($this->throwException(
+				new Exception('UnitTest Simulate Throw Exception on Dom load')
+			));
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domMock));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		Mage::getModel('eb2cproduct/feed')->processFile('/ItemMaster/sample-feed.xml');
+	}
+
+	/**
+	 * Test processFile method, core feed validateHeader is invalid
+	 * @test
+	 */
+	public function testProcessFileWithInvalidHeader()
+	{
+		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$domMock->expects($this->once())
+			->method('load')
+			->with($this->equalTo('/ItemMaster/sample-feed.xml'))
+			->will($this->returnSelf());
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domMock));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('validateHeader'))
+			->getMock();
+		$coreFeedHelperMock->expects($this->once())
+			->method('validateHeader')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'), $this->equalTo('ItemMaster'))
+			->will($this->returnValue(false));
+
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getEventTypeModel', '_determineEventType'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getEventTypeModel')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue($feedItemModelMock));
+		$feedModelMock->expects($this->once())
+			->method('_determineEventType')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue('ItemMaster'));
+
+		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+	}
+
+	/**
+	 * Test processFile method, where the internal _beforeProcessDom method throw
+	 * an exception
+	 * @test
+	 */
+	public function testProcessFileWhereBeforeProccessDomThowException()
+	{
+		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$domMock->expects($this->once())
+			->method('load')
+			->with($this->equalTo('/ItemMaster/sample-feed.xml'))
+			->will($this->returnSelf());
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domMock));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('validateHeader'))
+			->getMock();
+		$coreFeedHelperMock->expects($this->once())
+			->method('validateHeader')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'), $this->equalTo('ItemMaster'))
+			->will($this->returnValue(true));
+
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getEventTypeModel', '_determineEventType', '_beforeProcessDom'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getEventTypeModel')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue($feedItemModelMock));
+		$feedModelMock->expects($this->once())
+			->method('_determineEventType')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue('ItemMaster'));
+		$feedModelMock->expects($this->once())
+			->method('_beforeProcessDom')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->throwException(
+				new Mage_Core_Exception('UnitTest Simulate _beforeProcessDom method Throw Exception')
+			));
+
+		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+	}
+
+	/**
+	 * Test processDom method
+	 * @test
+	 */
+	public function testProcessDom()
+	{
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array('add'))
+			->getMock();
+		$feedQueueModelMock->expects($this->once())
+			->method('add')
+			->with($this->isInstanceOf('Varien_Object'), $this->equalTo('Update'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$unitvalidatorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_unitvalidator')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$unitvalidatorModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(true));
+
+		$operationTypeModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_operationtype')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$operationTypeModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue('Update'));
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getUnitValidationExtractor', 'getOperationExtractor'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getUnitValidationExtractor')
+			->will($this->returnValue($unitvalidatorModelMock));
+		$feedItemModelMock->expects($this->once())
+			->method('getOperationExtractor')
+			->will($this->returnValue($operationTypeModelMock));
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getIterableFor', '_extractData'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getIterableFor')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(array(new DOMElement('sku', '1234'))));
+		$feedModelMock->expects($this->once())
+			->method('_extractData')
+			->with($this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(new Varien_Object(array('sku' => '1234'))));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$feedModelMock->processDom($domMock)
+		);
+	}
+
+	/**
+	 * Test beforeProcessDom method
+	 * @test
+	 */
+	public function testBeforeProcessDom()
+	{
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewXpath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getNewXpath')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(new DOMXPath(new TrueAction_Dom_Document('1.0', 'UTF-8'))));
+
+		$coreFeedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_checkPreconditions', '_setupCoreFeed'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_checkPreconditions')
+			->will($this->returnValue(null));
+		$feedModelMock->expects($this->once())
+			->method('_setupCoreFeed')
+			->will($this->returnValue($coreFeedModelMock));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$this->_reflectMethod($feedModelMock, '_beforeProcessDom')->invoke($feedModelMock, $domMock)
+		);
+	}
+
+	/**
+	 * Test beforeProcessDom method, when xpath is not undefined and
+	 * Mage_Core_Exception is then thrown
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testBeforeProcessDomWithMageCoreExceptionThrown()
+	{
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewXpath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getNewXpath')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(null));
+
+		$coreFeedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_checkPreconditions', '_setupCoreFeed'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_checkPreconditions')
+			->will($this->returnValue(null));
+		$feedModelMock->expects($this->once())
+			->method('_setupCoreFeed')
+			->will($this->returnValue($coreFeedModelMock));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$this->_reflectMethod($feedModelMock, '_beforeProcessDom')->invoke($feedModelMock, $domMock)
+		);
 	}
 
 	/**
 	 * verify comparing to feed file entries will yield the correct result
-	 * @loadExpectation
-	 * @dataProvider dataProvider
 	 */
-	public function testCompareFeedFiles($scenario)
+	public function testCompareFeedFiles()
 	{
-		$e = $this->expected($scenario);
-		$testModel = Mage::getModel('eb2cproduct/feed');
-		$result = $this->_reflectMethod($testModel, '_compareFeedFiles')
-			->invoke(
-				$testModel,
-				$e->getArrayA(),
-				$e->getArrayB()
-			);
-		$this->assertSame((int) $e->getResult(), $result);
-	}
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
 
-	/**
-	 * @ticket EBC-240
-	 * @loadFixture
-	 * @loadExpectation
-	 */
-	public function testDescriptionClobbering()
-	{
-		$this->markTestSkipped('Takes too long.');
-		$this->_mockConfigWithDefaults();
-		$vfs = $this->getFixture()->getVfs();
-
-		$coreFeedHelper = $this->getHelperMock('eb2ccore/feed', array(
-			'getMessageDate',
-			'validateHeader',
-		));
-		$coreFeedHelper->expects($this->any())
-			->method('getMessageDate')
-			->will($this->returnValue(DateTime::createFromFormat('U', 0)));
-		$coreFeedHelper->expects($this->any())
-			->method('validateHeader')
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
-
-		$filesList = array(
-			$vfs->url('var/eb2c/itemmaster/feed.xml'),
-			$vfs->url('var/eb2c/contentmaster/feed.xml'),
-		);
-		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
-			'fetchFeedsFromRemote',
-			'lsInboundDir',
-			'mvToArchiveDir',
-		));
-		$coreFeed->expects($this->atLeastOnce())
-			->method('lsInboundDir')
-			->will($this->returnValue($filesList));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-
-		Mage::getModel('eb2cproduct/feed')->processFeeds();
-
-		$helper = Mage::helper('eb2cproduct');
-		$product = $helper->loadProductBySku('testsku');
-		$this->assertNotNull($product->getId(), 'product could not be loaded');
-		$e = $this->expected('test');
-		$this->assertSame($product->getDescription(), $e->getDescription());
-		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
-
-		$filesList[] = $vfs->url('var/eb2c/pricing/feed.xml');
-		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
-			'fetchFeedsFromRemote',
-			'lsInboundDir',
-			'mvToArchiveDir',
-		));
-		$coreFeed->expects($this->atLeastOnce())
-			->method('lsInboundDir')
-			->will($this->returnValue($filesList));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-
-		Mage::getModel('eb2cproduct/feed')->processFeeds();
-
-		$helper = Mage::helper('eb2cproduct');
-		$product = $helper->loadProductBySku('testsku');
-		$this->assertNotNull($product->getId(), 'product could not be reloaded');
-		$this->assertSame($product->getDescription(), $e->getDescription());
-		$this->assertSame($product->getShortDescription(), $e->getShortDescription());
-	}
-
-	/**
-	 * verify a file's feed type is identified properly and the correct models
-	 * are used.
-	 * @loadFixture feedConfig.yaml
-	 * @dataProvider dataProvider
-	 * @loadFixture
-	 * @large
-	 */
-	public function testFeedModelSelection($feedFile, $model)
-	{
-		$vfs = $this->getFixture()->getVfs();
-		$filesList = array($vfs->url($feedFile));
-		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeA->expects($this->atLeastOnce())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeA->expects($this->atLeastOnce())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/itemmaster'));
-		$feedTypeA->expects($this->atLeastOnce())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeA->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('ItemMaster'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_item', $feedTypeA);
-
-		$feedTypeB = $this->getModelMock('eb2cproduct/feed_content', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeB->expects($this->atLeastOnce())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeB->expects($this->atLeastOnce())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/contentmaster'));
-		$feedTypeB->expects($this->atLeastOnce())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeB->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('Content'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
-
-		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeC->expects($this->atLeastOnce())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeC->expects($this->atLeastOnce())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/pricing'));
-		$feedTypeC->expects($this->atLeastOnce())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeC->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('Price'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_pricing', $feedTypeC);
-
-		$feedTypeD = $this->getModelMock('eb2cproduct/feed_iship', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeD->expects($this->atLeastOnce())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeD->expects($this->atLeastOnce())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/iship'));
-		$feedTypeD->expects($this->atLeastOnce())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeD->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('iShip'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_iship', $feedTypeD);
-
-		$testModel = $this->getModelMock('eb2cproduct/feed', array(
-			'_getIterableFor',
-		));
-		$testModel->expects($this->atLeastOnce())
-			->method('_getIterableFor')
-			->will($this->returnValue(array()));
-		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
-			'fetchFeedsFromRemote',
-			'lsInboundDir',
-			'mvToArchiveDir',
-			'removeFromRemote',
-		));
-		$coreFeed->expects($this->atLeastOnce())
-			->method('lsInboundDir')
-			->will($this->returnValue($filesList));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-		$coreHelper = $this->getHelperMock('eb2ccore/data', array(
-			'validateHeader',
-		));
-		$coreHelper->expects($this->any())
-			->method('validateHeader')
-			->will($this->returnValue(true));
-
-		$testModel->processFeeds();
-		$feedModel = $this->_reflectProperty($testModel, '_eventTypeModel')->getValue($testModel);
-		$this->assertInstanceOf($model, $feedModel);
-	}
-
-	/**
-	 * verify a unit that fails initial validation will not be extracted.
-	 * @loadFixture
-	 * @dataProvider dataProvider
-	 */
-	public function testUnitValidationFail($feedFile)
-	{
-		$vfs = $this->getFixture()->getVfs();
-		$filesList = array($vfs->url($feedFile));
-
-		$testModel = $this->getModelMock('eb2cproduct/feed', array('_extractData'));
-		$testModel->expects($this->never())
-			->method('_extractData');
-		$testModel->processFile($filesList[0]);
-	}
-
-	/**
-	 * @loadFixture feedConfig.yaml
-	 * @loadFixture
-	 * @loadExpectation
-	 * @dataProvider dataProvider
-	 */
-	public function testExtraction($scenario, $feedFile)
-	{
-		$feedTypeA = $this->getModelMock('eb2cproduct/feed_item', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeA->expects($this->any())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeA->expects($this->any())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/itemmaster'));
-		$feedTypeA->expects($this->any())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeA->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('ItemMaster'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_item', $feedTypeA);
-
-		$feedTypeB = $this->getModelMock('eb2cproduct/feed_content', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeB->expects($this->any())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeB->expects($this->any())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/contentmaster'));
-		$feedTypeB->expects($this->any())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeB->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('Content'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_content', $feedTypeB);
-
-		$feedTypeC = $this->getModelMock('eb2cproduct/feed_pricing', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeC->expects($this->any())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeC->expects($this->any())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/pricing'));
-		$feedTypeC->expects($this->any())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeC->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('Price'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_pricing', $feedTypeC);
-
-		$feedTypeD = $this->getModelMock('eb2cproduct/feed_iship', array(
-			'_construct',
-			'getFeedRemotePath',
-			'getFeedLocalPath',
-			'getFeedFilePattern',
-			'getFeedEventType',
-		));
-		$feedTypeD->expects($this->any())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('some/remote/path'));
-		$feedTypeD->expects($this->any())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('var/eb2c/iship'));
-		$feedTypeD->expects($this->any())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('*.xml'));
-		$feedTypeD->expects($this->any())
-			->method('getFeedEventType')
-			->will($this->returnValue('iShip'));
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_iship', $feedTypeD);
-
-		$vfs = $this->getFixture()->getVfs();
-		$filesList = array($vfs->url($feedFile));
-
-		$e = $this->expected($scenario);
-		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
-			'add',
-		));
-		$checkData = function($dataObj) use ($e) {
-			PHPUnit_Framework_Assert::assertInstanceOf(
-				'Varien_Object',
-				$dataObj
-			);
-		};
-		$queue->expects($this->atLeastOnce())
-			->method('add')
-			->with(
-				$this->isInstanceOf('Varien_Object'),
-				$this->identicalTo('ADD')
+		$testData = array(
+			array(
+				'expect' => 0,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
+			),
+			array(
+				'expect' => -1,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'Content', 'timestamp' => 1),
+			),
+			array(
+				'expect' => 2,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'Price', 'timestamp' => 1),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 1),
+			),
+			array(
+				'expect' => -1,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
+			),
+			array(
+				'expect' => 1,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
+			),
+			array(
+				'expect' => 1,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 1),
+			),
+			array(
+				'expect' => -1,
+				'a' => array('local' => 'FeedFileA.xml', 'type' => 'Price', 'timestamp' => 1),
+				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 2),
 			)
-			->will($this->returnCallback($checkData));
-
-		$testModel = Mage::getModel('eb2cproduct/feed');
-		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
-
-		$testModel->processFile($filesList[0]);
-	}
-
-	/**
-	 * @loadFixture feedConfig.yaml
-	 * @loadFixture
-	 * @loadExpectation
-	 */
-	public function testFeedIntegration()
-	{
-		$this->markTestSkipped('takes too long');
-		$vfs = $this->getFixture()->getVfs();
-		$coreFeed = $this->getModelMock('eb2ccore/feed', array(
-			'fetchFeedsFromRemote',
-			'lsInboundDir',
-			'mvToArchiveDir',
-			'removeFromRemote',
-		));
-		$coreFeed->expects($this->any())
-			->method('lsInboundDir')
-			->will($this->onConsecutiveCalls(
-				array($vfs->url('var/eb2c/pricing/feed.xml')),
-				array($vfs->url('var/eb2c/itemmaster/feed.xml')),
-				array($vfs->url('var/eb2c/contentmaster/feed.xml')),
-				array($vfs->url('var/eb2c/iship/feed.xml'))
-			));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-
-		$testModel = Mage::getModel('eb2cproduct/feed');
-		$testModel->processFeeds();
-
-		$e = $this->expected('1-1');
-		foreach ($e->getSkus() as $sku) {
-			// check the results
-			$products = Mage::getResourceModel('catalog/product_collection');
-			$products->addAttributeToSelect('*')
-				->getSelect()
-				->where('e.sku = ?', $sku);
-			$product = $products->getFirstItem();
-			$e = $this->expected($sku);
-			$this->markTestIncomplete('the expectations and fixture feed xml need to be finished');
-			$this->assertSame($e->getTypeId(), $product->getTypeId());
-			$this->assertSame($e->getSku(), $product->getSku());
-			$this->assertSame($e->getName(), $product->getName());
-			$this->assertSame($e->getDescription(), $product->getDescription());
-			$this->assertSame($e->getShortDescription(), $product->getShortDescription());
-			$this->assertSame($e->getWeight(), $product->getWeight());
-			$this->assertSame($e->getUrlKey(), $product->getUrlKey());
-			$this->assertEquals($e->getWebsiteIds(), $product->getWebsiteIds());
-			$this->assertEquals($e->getCategoryIds(), $product->getCategoryIds());
-			$this->assertSame($e->getSpecialPrice(), $product->getSpecialPrice());
-			$this->assertSame($e->getSpecialFromDate(), $product->getSpecialFromDate());
-			$this->assertSame($e->getSpecialToDate(), $product->getSpecialToDate());
-			$this->assertSame($e->getPrice(), $product->getPrice());
-			$this->assertSame($e->getMsrp(), $product->getMsrp());
-			$this->assertSame($e->getTaxClassId(), $product->getTaxClassId());
-			$this->assertSame($e->getStatus(), $product->getStatus());
-			$this->assertSame($e->getVisibility(), $product->getVisibility());
-			$this->assertSame($e->getPriceIsVatInclusive(), $product->getPriceIsVatInclusive());
+		);
+		foreach ($testData as $data) {
+			$this->assertSame(
+				$data['expect'],
+				$this->_reflectMethod($feedModelMock, '_compareFeedFiles')->invoke($feedModelMock, $data['a'], $data['b'])
+			);
 		}
 	}
 
 	/**
-	 * Test processing of the feeds, success and failure
-	 * @param  boolean $domLoadSuccess Should the XML be loaded succesfully
-	 * @param  boolean $processSuccess Should processing of the DOM be successful
+	 * Test _determineEventType method
 	 * @test
-	 * @loadFixture
 	 */
-	public function testFeedProcessing()
+	public function testDetermineEventType()
 	{
-		$itemFile   = 'ItemMaster.xml';
-		$itemPath   = 'Local/Master/' . DS . $itemFile;
-		$itemRemote = 'item_remote_path';
-		$itemGlob   = 'Item*Glob';
-
-		$contentFile   = 'Content.xml';
-		$contentPath   = 'Local/Content/' . DS . $contentFile;
-		$contentRemote = 'content_remote_path';
-		$contentGlob   = 'Content*Glob';
-
-		$priceFile   = 'Price.xml';
-		$pricePath   = 'Local/Price/' . DS . $priceFile;
-		$priceRemote = 'price_remote_path';
-		$priceGlob   = 'Price*Glob';
-
-		$ishipFile   = 'Iship.xml';
-		$ishipPath   = 'Local/Iship/' . DS . $ishipFile;
-		$ishipRemote = 'iship_remote_path';
-		$ishipGlob   = 'iShip*Glob';
-
-		$coreFeedHelper = $this->getHelperMock('eb2ccore/feed', array(
-			'getMessageDate',
-		));
-		$coreFeedHelper->expects($this->any())
-			->method('getMessageDate')
-			->will($this->returnValue(DateTime::createFromFormat('U', 0)));
-		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelper);
-
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
+			->setMethods(array())
 			->getMock();
-		$coreFeed->expects($this->exactly(4))
-			->method('fetchFeedsFromRemote')
-			->with(
-				$this->logicalOr(
-					$this->identicalTo($itemRemote),
-					$this->identicalTo($contentRemote),
-					$this->identicalTo($priceRemote),
-					$this->identicalTo($ishipRemote)
-				),
-				$this->logicalOr(
-					$this->identicalTo($itemGlob),
-					$this->identicalTo($contentGlob),
-					$this->identicalTo($priceGlob),
-					$this->identicalTo($ishipGlob)
-				)
+		foreach (array('ItemMaster', 'Content', 'Price', 'iShip') as $eventType) {
+			$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+			$doc->loadXML(sprintf('<root><MessageHeader><EventType>%s</EventType></MessageHeader></root>', $eventType));
+			$this->assertSame(
+				$eventType,
+				$this->_reflectMethod($feedModelMock, '_determineEventType')->invoke($feedModelMock, $doc)
 			);
-		$coreFeed->expects($this->exactly(4))
-			->method('lsInboundDir')
-			->will($this->onConsecutiveCalls(
-				array($pricePath), array($itemPath), array($contentPath), array($ishipPath)
-			));
-		$coreFeed->expects($this->exactly(4))
-			->method('mvToArchiveDir')
-			->with($this->logicalOr(
-				$this->identicalTo($itemPath),
-				$this->identicalTo($contentPath),
-				$this->identicalTo($pricePath),
-				$this->identicalTo($ishipPath)
-			));
-		$coreFeed->expects($this->exactly(4))
-			->method('removeFromRemote')
-			->with(
-				$this->logicalOr(
-					$this->identicalTo($itemRemote),
-					$this->identicalTo($contentRemote),
-					$this->identicalTo($priceRemote),
-					$this->identicalTo($ishipRemote)
-				),
-				$this->logicalOr(
-					$this->logicalOr($itemFile),
-					$this->logicalOr($contentFile),
-					$this->logicalOr($priceFile),
-					$this->logicalOr($ishipFile)
-				)
-			);
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-
-		$model = $this->getModelMock('eb2cproduct/feed', array('processFile'));
-		$model->expects($this->exactly(4))
-			->method('processFile')
-			->with($this->logicalOr(
-				$this->logicalOr($itemPath),
-				$this->logicalOr($contentPath),
-				$this->logicalOr($pricePath),
-				$this->logicalOr($ishipPath)
-			));
-
-		$this->assertSame(4, $model->processFeeds());
+		}
 	}
 
 	/**
-	 * verify feed files are sorted by message date and then type.
-	 * @loadFixture
+	 * Test _determineEventType method, with wrong event type
+	 * will throw Mage_Core_Exception
+	 * @test
+	 * @expectedException Mage_Core_Exception
 	 */
-	public function testFeedFileSorting()
+	public function testDetermineEventTypeWithWrongEvenTypeThrowException()
 	{
-		$vfs = $this->getFixture()->getVfs();
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
-			->setMethods(array(
-				'setupDirs',
-				'fetchFeedsFromRemote',
-				'lsInboundDir',
-				'mvToArchiveDir',
-				'removeFromRemote',
-			))
+			->setMethods(array())
 			->getMock();
-		$contentLs = array(
-			$vfs->url('var/eb2c/contentmaster/feed.xml'),
+		$eventType = 'WrongEventType';
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML(sprintf('<root><MessageHeader><EventType>%s</EventType></MessageHeader></root>', $eventType));
+		$this->assertSame(
+			$eventType,
+			$this->_reflectMethod($feedModelMock, '_determineEventType')->invoke($feedModelMock, $doc)
 		);
-		$ishipLs = array(
-			$vfs->url('var/eb2c/iship/feed.xml'),
-		);
-		$priceLs = array(
-			$vfs->url('var/eb2c/pricing/feed.xml'),
-		);
-		$itemLs = array(
-			$vfs->url('var/eb2c/itemmaster/feed.xml'),
-			$vfs->url('var/eb2c/itemmaster/feed2.xml')
-		);
-		$coreFeed->expects($this->exactly(4))
-			->method('lsInboundDir')
-			->will($this->onConsecutiveCalls(
-				// these have to be arranged in the order order of the
-				// _eventTypes array in the feed model.
-				$itemLs,
-				$contentLs,
-				$priceLs,
-				$ishipLs
-			));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-		$testModel = $this->getModelMock('eb2cproduct/feed', array(
-			'processFile',
-		));
+	}
 
-		// make sure the files are processed in the correct order
-		$testModel->expects($this->at(0))
-			->method('processFile')
-			->with($contentLs[0]);
-		$testModel->expects($this->at(1))
-			->method('processFile')
-			->with($priceLs[0]);
-		$testModel->expects($this->at(2))
-			->method('processFile')
-			->with($itemLs[0]);
-		$testModel->expects($this->at(3))
-			->method('processFile')
-			->with($ishipLs[0]);
-		$testModel->expects($this->at(4))
-			->method('processFile')
-			->with($itemLs[1]);
+	/**
+	 * Test _extractData method
+	 * @test
+	 */
+	public function testExtractData()
+	{
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array('extract'))
+			->getMock();
+		$feedExtractorXpathModelMock->expects($this->once())
+			->method('extract')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(array('sku' => '1234')));
 
-		// setup the queue to terminate the test early after we have the necessary results
-		$queue = $this->getModelMock('eb2cproduct/feed_queue', array(
-			'process',
-		));
-		$queue->expects($this->once())
-			->method('process')
-			->will($this->throwException(new Exception('Forced Test Termination')));
-		$this->setExpectedException('Exception', 'Forced Test Termination');
-		$this->_reflectProperty($testModel, '_queue')->setValue($testModel, $queue);
-		$testModel->processFeeds();
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getExtractors'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getExtractors')
+			->will($this->returnValue(array($feedExtractorXpathModelMock)));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<root><sku>1234</sku></root>');
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath($doc));
+
+		$result = $this->_reflectMethod($feedModelMock, '_extractData')->invoke($feedModelMock, new DOMElement('sku', '1234'));
+
+		$this->assertSame(array('sku' => '1234'), $result->getData());
+	}
+
+	/**
+	 * Test _getEventTypeModel method
+	 * @test
+	 */
+	public function testGetEventTypeModel()
+	{
+		$testData = array(
+			array('event' => 'ItemMaster', 'class' => 'TrueAction_Eb2cProduct_Model_Feed_Item'),
+			array('event' => 'Content', 'class' => 'TrueAction_Eb2cProduct_Model_Feed_Content'),
+			array('event' => 'Price', 'class' => 'TrueAction_Eb2cProduct_Model_Feed_Pricing'),
+			array('event' => 'iShip', 'class' => 'TrueAction_Eb2cProduct_Model_Feed_Iship')
+		);
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		foreach ($testData as $data) {
+			$this->assertInstanceOf(
+				$data['class'],
+				$this->_reflectMethod($feedModelMock, '_getEventTypeModel')->invoke($feedModelMock, $data['event'])
+			);
+		}
+	}
+
+	/**
+	 * Test _getIterableFor method
+	 * @test
+	 */
+	public function testGetIterableFor()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getBaseXpath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getBaseXpath')
+			->will($this->returnValue('/ItemMaster/Item'));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<ItemMaster><Item><sku>1234</sku></Item></ItemMaster>');
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath($doc));
+
+		$this->assertInstanceOf(
+			'DOMNodeList', $this->_reflectMethod($feedModelMock, '_getIterableFor')->invoke($feedModelMock, $doc)
+		);
+	}
+
+	/**
+	 * Test _setupCoreFeed method
+	 * @test
+	 */
+	public function testSetupCoreFeed()
+	{
+		$coreFeedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeedModelMock);
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedLocalPath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('/ItemMaster/'));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cCore_Model_Feed',
+			$this->_reflectMethod($feedModelMock, '_setupCoreFeed')->invoke($feedModelMock)
+		);
+	}
+
+	/**
+	 * Test _checkPreconditions method
+	 * @test
+	 */
+	public function testCheckPreconditions()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern', 'getFeedLocalPath', 'getFeedEventType'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('ItemMaster*.xml'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('/ItemMaster/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedEventType')
+			->will($this->returnValue('ItemMaster'));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$this->_reflectMethod($feedModelMock, '_checkPreconditions')->invoke($feedModelMock);
+	}
+
+	/**
+	 * Test _checkPreconditions method, throw Mage_Core_Exception when FeedRemotePath is null
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCheckPreconditionsThrowExceptionWhenFeedRemotePathIsNull()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedRemotePath')
+			->will($this->returnValue(null));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_missingConfigMessage'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_missingConfigMessage')
+			->with($this->equalTo('FeedRemotePath'))
+			->will($this->returnValue(sprintf(
+				"%s was not setup correctly; 'FeedRemotePath' not configured.",
+				get_class($feedItemModelMock)
+			)));
+		$this->replaceByMock('model', 'eb2cproduct/feed', $feedModelMock);
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$this->_reflectMethod($feedModelMock, '_checkPreconditions')->invoke($feedModelMock);
+	}
+
+	/**
+	 * Test _checkPreconditions method, throw Mage_Core_Exception when FeedFilePattern is null
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCheckPreconditionsThrowExceptionWhenFeedFilePatternIsNull()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath','getFeedFilePattern'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue(null));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_missingConfigMessage'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_missingConfigMessage')
+			->with($this->equalTo('FeedFilePattern'))
+			->will($this->returnValue(sprintf(
+				"%s was not setup correctly; 'FeedFilePattern' not configured.",
+				get_class($feedItemModelMock)
+			)));
+		$this->replaceByMock('model', 'eb2cproduct/feed', $feedModelMock);
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$this->_reflectMethod($feedModelMock, '_checkPreconditions')->invoke($feedModelMock);
+	}
+
+	/**
+	 * Test _checkPreconditions method, throw Mage_Core_Exception when FeedLocalPath is null
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCheckPreconditionsThrowExceptionWhenFeedLocalPathIsNull()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern','getFeedLocalPath'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('ItemMaster*.xml'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedLocalPath')
+			->will($this->returnValue(null));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_missingConfigMessage'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_missingConfigMessage')
+			->with($this->equalTo('FeedLocalPath'))
+			->will($this->returnValue(sprintf(
+				"%s was not setup correctly; 'FeedLocalPath' not configured.",
+				get_class($feedItemModelMock)
+			)));
+		$this->replaceByMock('model', 'eb2cproduct/feed', $feedModelMock);
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$this->_reflectMethod($feedModelMock, '_checkPreconditions')->invoke($feedModelMock);
+	}
+
+	/**
+	 * Test _checkPreconditions method, throw Mage_Core_Exception when FeedEventType is null
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testCheckPreconditionsThrowExceptionWhenFeedEventTypeIsNull()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedRemotePath', 'getFeedFilePattern', 'getFeedLocalPath','getFeedEventType'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedRemotePath')
+			->will($this->returnValue('/Inbox/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedFilePattern')
+			->will($this->returnValue('ItemMaster*.xml'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedLocalPath')
+			->will($this->returnValue('/ItemMaster/'));
+		$feedItemModelMock->expects($this->once())
+			->method('getFeedEventType')
+			->will($this->returnValue(null));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_missingConfigMessage'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_missingConfigMessage')
+			->with($this->equalTo('FeedEventType'))
+			->will($this->returnValue(sprintf(
+				"%s was not setup correctly; 'FeedEventType' not configured.",
+				get_class($feedItemModelMock)
+			)));
+		$this->replaceByMock('model', 'eb2cproduct/feed', $feedModelMock);
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		$this->_reflectMethod($feedModelMock, '_checkPreconditions')->invoke($feedModelMock);
+	}
+
+	/**
+	 * Test _missingConfigMessage method
+	 * @test
+	 */
+	public function testMissingConfigMessage()
+	{
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+
+		foreach (array('FeedRemotePath', 'FeedFilePattern', 'FeedLocalPath', 'FeedEventType') as $mConfig) {
+			$this->assertSame(
+				sprintf("%s was not setup correctly; '%s' not configured.", get_class($feedItemModelMock), $mConfig),
+				$this->_reflectMethod($feedModelMock, '_missingConfigMessage')->invoke($feedModelMock, $mConfig)
+			);
+		}
 	}
 }
