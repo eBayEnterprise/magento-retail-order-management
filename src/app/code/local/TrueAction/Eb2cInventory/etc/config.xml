@@ -94,10 +94,10 @@
 		<events>
 			<inventory_feed_processing_complete>
 				<observers>
-					<cataloginventory_reindex_all>
-						<class>cataloginventory/indexer_stock</class>
+					<eb2c_reindex_all>
+						<class>eb2ccore/indexer</class>
 						<method>reindexAll</method>
-					</cataloginventory_reindex_all>
+					</eb2c_reindex_all>
 				</observers>
 			</inventory_feed_processing_complete>
 		</events>

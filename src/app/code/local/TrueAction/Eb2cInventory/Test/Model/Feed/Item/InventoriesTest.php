@@ -252,7 +252,16 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
 
+		// ensure we trigger the reindexer.
+		$indexer = $this->getModelMock('eb2ccore/indexer', array('reindexAll'));
+		$indexer->expects($this->once())
+			->method('reindexAll');
+		$this->replaceByMock('model', 'eb2ccore/indexer', $indexer);
+
 		$model->processFeeds();
+
+		// Make sure the event got fired.
+		$this->assertEventDispatched('inventory_feed_processing_complete');
 	}
 	/**
 	 * @test
