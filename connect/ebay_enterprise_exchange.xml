@@ -77,6 +77,8 @@
 			<target>mage</target>
 			<target>mageweb</target>
 			<target>magedesign</target>
+			<target>mageweb</target>
+			<target>magedesign</target>
 			<target>magedesign</target>
 			<target>magedesign</target>
 			<target>mageskin</target>
@@ -106,6 +108,8 @@
 			<path>TrueAction</path>
 			<path>shell/eb2c.php</path>
 			<path>js/trueaction_eb2cfraud</path>
+			<path>frontend/base/default/template/eb2corder_frontend</path>
+			<path>frontend/base/default/layout/eb2corder_frontend.xml</path>
 			<path>frontend/base/default/template/eb2caddress_frontend</path>
 			<path>frontend/base/default/layout/eb2caddress_frontend.xml</path>
 			<path>frontend/enterprise/default/template/eb2caddress_frontend</path>
@@ -135,6 +139,8 @@
 			<type>dir</type>
 			<type>dir</type>
 			<type>file</type>
+			<type>dir</type>
+			<type>dir</type>
 			<type>dir</type>
 			<type>dir</type>
 			<type>file</type>
@@ -188,8 +194,12 @@
 			<include/>
 			<include/>
 			<include/>
+			<include/>
+			<include/>
 		</include>
 		<ignore>
+			<ignore/>
+			<ignore/>
 			<ignore/>
 			<ignore/>
 			<ignore/>
