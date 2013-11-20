@@ -168,6 +168,14 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	}
 
 	/**
+	 * verify the language code string is converted to EB2C's format.
+	 */
+	public function testMageToXmlLangFrmt()
+	{
+		$this->assertSame('en-US', Mage::helper('eb2ccore')->mageToXmlLangFrmt('en_US'));
+	}
+
+	/**
 	 * Test extractNodeVal method
 	 *
 	 * @param DOMNodeList $nodeList
@@ -205,7 +213,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	{
 		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
-	
+
 	/**
 	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
 	 * @loadFixture
@@ -233,4 +241,3 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
 	}
 }
-
