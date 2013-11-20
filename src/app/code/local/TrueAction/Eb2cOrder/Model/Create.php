@@ -253,8 +253,10 @@ class TrueAction_Eb2cOrder_Model_Create
 			$orderSourceNode->setAttribute('type', $orderSource['type']);
 		}
 
-		$order->createChild('OrderHistoryUrl',
-		Mage::app()->getStore( $this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . $consts::ORDER_HISTORY_PATH . $this->_o->getEntityId());
+		$order->createChild(
+			'OrderHistoryUrl',
+			Mage::helper('eb2corder')->getOrderHistoryUrl($this->_o)
+		);
 
 		$order->createChild('OrderTotal', sprintf('%.02f', $this->_o->getGrandTotal()));
 

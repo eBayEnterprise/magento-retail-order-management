@@ -80,4 +80,24 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends TrueAction_Eb2cOrder_Tes
 			Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($ebcStatus)
 		);
 	}
+
+	/**
+	 * Test getting an order history URL for a given store
+	 * @test
+	 */
+	public function testOrderHistoryUrl()
+	{
+		$order = Mage::getModel('sales/order', array('store_id' => 1, 'entity_id' => 5));
+
+		$urlMock = $this->getModelMock('core/url', array('getUrl'));
+		$urlMock->expects($this->once())
+			->method('getUrl')
+			->with($this->identicalTo('sales/order/view'), $this->identicalTo(array('_store' => 1, 'order_id' => 5)))
+			->will($this->returnValue('http://test.example.com/mocked/order/create'));
+		$this->replaceByMock('model', 'core/url', $urlMock);
+		$this->assertSame(
+			'http://test.example.com/mocked/order/create',
+			Mage::helper('eb2corder')->getOrderHistoryUrl($order)
+		);
+	}
 }

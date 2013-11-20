@@ -34,6 +34,11 @@ class TrueAction_Eb2cOrder_Helper_Data extends Mage_Core_Helper_Abstract
 		return Mage::helper('eb2ccore')->getApiUri($consts::SERVICE, $operation);
 	}
 
+	public function getOrderHistoryUrl($order)
+	{
+		return Mage::getUrl('sales/order/view', array('_store' => $order->getStoreId(), 'order_id' => $order->getId()));
+	}
+
 	/**
 	 * eb2c order status to magento status and state
 	 * @return array
