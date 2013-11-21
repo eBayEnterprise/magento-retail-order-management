@@ -321,13 +321,23 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get a list of all items for $address
+	 * Get a list of all items for $address
+	 * As there's not way to combine the address objects non-nominal and visible
+	 * item filtering, one of the two needs to be replicated here,
+	 * which is currently the visibile items filter.
+	 *
 	 * @param  Mage_Sales_Model_Quote_Address $address
 	 * @return array(Mage_Sales_Model_Quote_Item_Abstract)
 	 */
 	protected function _getItemsForAddress(Mage_Sales_Model_Quote_Address $address)
 	{
-		return $address->getAllNonNominalItems();
+		$items = array();
+		foreach ($address->getAllNonNominalItems() as $item) {
+			if (!$item->getParentItemId()) {
+				$items[] = $item;
+			}
+		}
+		return $items;
 	}
 
 	/**
@@ -476,7 +486,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'item_desc' => $item->getName(),
 			'hts_code' => $item->getHtsCode(),
 			'quantity' => $item->getQty(),
+			// @todo this needs to be the right value when the item is a child
 			'merchandise_amount' => Mage::app()->getStore()->roundPrice($item->getRowTotal()),
+			// @todo this needs to be the right value when the item is a child
 			'merchandise_unit_price' => Mage::app()->getStore()->roundPrice($this->_getItemOriginalPrice($item)),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
 			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getShippingAmount()),

@@ -2695,4 +2695,33 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$price = $getItemOriginalPrice->invoke($request, $item);
 		$this->assertSame(12.34, $price);
 	}
+
+	/**
+	 * Test getting all items for an address - should return all non-nominal, "visible" items
+	 * @test
+	 */
+	public function testGettingItemsForAddress()
+	{
+		$items = array();
+		$items[] = $this->getModelMock('sales/quote_item', array('getParentItemId'));
+		$items[0]->expects($this->any())
+			->method('getParentItemId')
+			->will($this->returnValue(23));
+		$items[] = $this->getModelMock('sales/quote_item', array('getParentItemId'));
+		$items[1]->expects($this->any())
+			->method('getParentItemId')
+			->will($this->returnValue(null));
+		$address = $this->getModelMock('sales/quote_address', array('getAllNonNominalItems'));
+		$address->expects($this->any())
+			->method('getAllNonNominalItems')
+			->will($this->returnValue($items));
+
+		$request = Mage::getModel('eb2ctax/request');
+		$method = $this->_reflectMethod($request, '_getItemsForAddress');
+		$itemsForAddress = $method->invoke($request, $address);
+
+		$this->assertSame(1, count($itemsForAddress));
+		$this->assertSame($items[1], $itemsForAddress[0]);
+	}
+
 }
