@@ -608,7 +608,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 
 		// mark all products that have just been imported as not being clean
-		$productData->setData('is_clean', $this->_helper->parseBool(false));
+		// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
+		// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
+		$productData->setData('is_clean', 0);
 
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
