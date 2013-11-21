@@ -219,6 +219,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		if ($dataObject->hasData('product_links')) {
 			$outData->setData('product_links', $dataObject->getData('product_links'));
 		}
+
+		// let's check if there's category link
+		if ($dataObject->hasData('category_links')) {
+			$outData->setData('category_links', $dataObject->getData('category_links'));
+		}
 		return $outData;
 	}
 
@@ -1148,7 +1153,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * get parent default category id
-	 *
 	 * @return int, default parent category id
 	 */
 	protected function _getDefaultParentCategoryId()
@@ -1162,95 +1166,52 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
+	 * get store root category id
+	 * @return int, store root category id
+	 */
+	protected function _getStoreRootCategoryId()
+	{
+		return Mage::app()->getWebsite(true)->getDefaultStore()->getRootCategoryId();
+	}
+
+	/**
 	 * prepared category data.
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to update the product
-	 *
+	 * @param Varien_Object $item, the object with data needed to update the product
 	 * @return array, category data
 	 */
-	protected function _preparedCategoryLinkData(Varien_Object $dataObject)
+	protected function _preparedCategoryLinkData(Varien_Object $item)
 	{
 		// Product Category Link
-		$categoryLinks = $dataObject->getCategoryLinks();
+		$categoryLinks = $item->getCategoryLinks();
 		$fullPath = 0;
 
 		if (!empty($categoryLinks)) {
 			foreach ($categoryLinks as $link) {
-				if ($link instanceof Varien_Object) {
-					$categories = explode('-', $link->getName());
-					if (strtoupper(trim($link->getImportMode())) === 'DELETE') {
-						foreach($categories as $category) {
-							$this->setCategory($this->_loadCategoryByName(ucwords($category)));
-							if ($this->getCategory()->getId()) {
-								// we have a valid category in the system let's delete it
-								$this->getCategory()->delete();
-							}
+				$categories = explode('-', $link['name']);
+				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
+					foreach($categories as $category) {
+						$categoryObject = Mage::getModel('catalog/category')->load(
+							$this->_loadCategoryByName(ucwords($category))->getId()
+						);
+						if ($categoryObject->getId()) {
+							// we have a valid category in the system let's delete it
+							$categoryObject->delete();
 						}
-					} else {
-						// adding or changing category import mode
-						$path = $this->getDefaultRootCategoryId();
-						foreach($categories as $category) {
-							$path .= '/' . $this->_addCategory(ucwords($category), $path);
-						}
-						$fullPath .= '/' . $path;
 					}
+				} else {
+					// adding or changing category import mode
+					$path = sprintf('%s/%s', $this->_getDefaultParentCategoryId(), $this->_getStoreRootCategoryId());
+					foreach($categories as $category) {
+						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
+						if ($categoryId) {
+							$path .= '/' . $categoryId;
+						}
+					}
+					$fullPath .= '/' . $path;
 				}
 			}
 		}
 		return explode('/', $fullPath);
-	}
-
-	/**
-	 * add category to magento, check if already exist and return the category id
-	 *
-	 * @param string $categoryName, the category to either add or get category id from magento
-	 * @param string $path, delimited string of the category depth path
-	 *
-	 * @return int, the category id
-	 */
-	protected function _addCategory($categoryName, $path)
-	{
-		$categoryId = 0;
-		if (trim($categoryName) !== '') {
-			// let's check if category already exists
-			$this->setCategory($this->_loadCategoryByName($categoryName));
-			$categoryId = $this->getCategory()->getId();
-			if (!$categoryId) {
-				// category doesn't currently exists let's add it.
-				try {
-					$this->getCategory()->setAttributeSetId($this->getDefaultCategoryAttributeSetId())
-						->setStoreId($this->getDefaultStoreId())
-						->addData(
-							array(
-								'name' => $categoryName,
-								'path' => $path, // parent relationship..
-								'description' => $categoryName,
-								'is_active' => 1,
-								'is_anchor' => 0, //for layered navigation
-								'page_layout' => 'default',
-								'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
-								'image' => null,
-								'thumbnail' => null,
-							)
-						)
-						->save();
-
-					$categoryId = $this->getCategory()->getId();
-				} catch (Mage_Core_Exception $e) {
-					Mage::logException($e);
-				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
-					Mage::log(
-						sprintf(
-							'[ %s ] The following error has occurred while adding categories product for Content Master Feed (%d)',
-							__CLASS__, $e->getMessage()
-						),
-						Zend_Log::ERR
-					);
-				}
-			}
-		}
-
-		return $categoryId;
 	}
 
 }
