@@ -198,36 +198,36 @@
 			<include/>
 		</include>
 		<ignore>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
-			<ignore/>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
+			<ignore>#[Tt]est#</ignore>
 		</ignore>
 	</contents>
 </_>
