@@ -1,6 +1,10 @@
 <?php
 class TrueAction_Eb2cOrder_Overrides_Helper_Sales extends Mage_Core_Helper_Data
 {
+	const MAXIMUM_AVAILABLE_NUMBER = Mage_Sales_Helper_Data::MAXIMUM_AVAILABLE_NUMBER;
+
+	protected $_moduleName = 'Mage_Sales';
+
 	private static $_overLoadedMethods = array(
 		'canSendNewOrderConfirmationEmail' => true,
 		'canSendNewOrderEmail' => true,
