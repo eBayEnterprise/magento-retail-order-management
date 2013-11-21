@@ -47,7 +47,7 @@
 				<store_id/>
 			</general>
 			<api>
-				<environment>api</environment>
+				<hostname></hostname>
 				<key backend_model="adminhtml/system_config_backend_encrypted"/>
 				<major_version>1</major_version>
 				<minor_version>0</minor_version>

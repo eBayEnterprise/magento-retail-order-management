@@ -1,7 +1,6 @@
 config:
-  default/eb2ccore/api/environment: api_env
   default/eb2ccore/api/major_version: M
   default/eb2ccore/api/minor_version: m
-  default/eb2ccore/api/region: api_rgn
+  default/eb2ccore/api/hostname: api.example.com
   default/eb2ccore/general/client_id: client_id
   default/eb2ccore/general/store_id: store_id

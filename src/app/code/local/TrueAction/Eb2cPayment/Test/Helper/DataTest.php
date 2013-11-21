@@ -17,14 +17,14 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	public function testGetOperationUri()
 	{
 		$hlpr = Mage::helper('eb2cpayment');
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml', $hlpr->getOperationUri('get_gift_card_balance'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/redeem/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem_void'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/doAuth.xml', $hlpr->getOperationUri('get_paypal_do_authorization'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/doExpress.xml', $hlpr->getOperationUri('get_paypal_do_express_checkout'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/void.xml', $hlpr->getOperationUri('get_paypal_do_void'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/getExpress.xml', $hlpr->getOperationUri('get_paypal_get_express_checkout'));
-		$this->assertSame('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/paypal/setExpress.xml', $hlpr->getOperationUri('get_paypal_set_express_checkout'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml', $hlpr->getOperationUri('get_gift_card_balance'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeem/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml', $hlpr->getOperationUri('get_gift_card_redeem_void'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/paypal/doAuth.xml', $hlpr->getOperationUri('get_paypal_do_authorization'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/paypal/doExpress.xml', $hlpr->getOperationUri('get_paypal_do_express_checkout'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/paypal/void.xml', $hlpr->getOperationUri('get_paypal_do_void'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/paypal/getExpress.xml', $hlpr->getOperationUri('get_paypal_get_express_checkout'));
+		$this->assertSame('https://api.example.com/vM.m/stores/storeId/payments/paypal/setExpress.xml', $hlpr->getOperationUri('get_paypal_set_express_checkout'));
 	}
 	/**
 	 * @test
@@ -45,7 +45,7 @@ class TrueAction_Eb2cPayment_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	{
 		$hlpr = Mage::helper('eb2cpayment');
 		$optIndex = 'get_gift_card_' . $partOptIndex;
-		$exp = sprintf('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/%s/%s.xml', str_replace('_', '', $partOptIndex), $tenderType);
+		$exp = sprintf('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/%s/%s.xml', str_replace('_', '', $partOptIndex), $tenderType);
 		$this->assertSame($exp, $hlpr->getSvcUri($optIndex, $pan));
 		// Expect the empty string when the $pan is out of range.
 		$this->assertSame('', $hlpr->getSvcUri($optIndex, '65'));

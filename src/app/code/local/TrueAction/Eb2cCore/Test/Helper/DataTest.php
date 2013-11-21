@@ -65,8 +65,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	public function testApiUriCreation()
 	{
 		$this->_mockConfig(array(
-			array('apiEnvironment', 'api_env'),
-			array('apiRegion', 'api_rgn'),
+			array('apiHostname', 'api.example.com'),
 			array('apiMajorVersion', 'M'),
 			array('apiMinorVersion', 'm'),
 			array('storeId', 'store_id'),
@@ -74,17 +73,17 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$helper = Mage::helper('eb2ccore');
 		// simplest case - just a service and operation
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/address/validate.xml',
+			'https://api.example.com/vM.m/stores/store_id/address/validate.xml',
 			$helper->getApiUri('address', 'validate')
 		);
 		// service, operation and params
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/creditcard/auth/VC.xml',
+			'https://api.example.com/vM.m/stores/store_id/payments/creditcard/auth/VC.xml',
 			$helper->getApiUri('payments', 'creditcard', array('auth', 'VC'))
 		);
 		// service, operation, params and type
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.json',
+			'https://api.example.com/vM.m/stores/store_id/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
@@ -100,7 +99,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$helper = Mage::helper('eb2ccore');
 		// service, operation, params and type
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
+			'https://api.example.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
