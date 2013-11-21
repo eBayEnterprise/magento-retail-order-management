@@ -83,6 +83,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 */
 	public function testStockItemData()
 	{
+		$this->markTestSkipped('Too slow. Make processUpdates faster.');
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
 		$dataObj = new Varien_Object($this->getLocalFixture('itemmaster-exists'));
 		// confirm preconditions
@@ -107,6 +108,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 */
 	public function testConfigurableData($scenario)
 	{
+		$this->markTestSkipped('Too slow. Make processUpdates faster. (Also, only test it once.)');
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
 		$extractedUnits = $this->getLocalFixture($scenario);
 		$processList = array();
