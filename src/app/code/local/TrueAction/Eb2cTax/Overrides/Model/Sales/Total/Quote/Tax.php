@@ -22,7 +22,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	public function __construct()
 	{
 		$this->setCode('tax');
-		$this->_helper         = Mage::helper('tax');
 		$this->_calculator     = Mage::getSingleton('tax/calculation');
 		$this->_config         = Mage::getSingleton('tax/config');
 		$this->_weeeHelper     = Mage::helper('weee');
@@ -148,7 +147,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$baseHiddenTax  = null;
 		$hiddenTax      = null;
 
-		if ($this->_helper->getApplyTaxAfterDiscount()) { // tax only what you pay
+		if (Mage::helper('eb2ctax')->getApplyTaxAfterDiscount()) { // tax only what you pay
 			$baseDiscountAmount = $item->getBaseDiscountAmount();
 
 			// calculate the full tax amount
@@ -214,7 +213,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$address->setShippingTaxable($taxable);
 
 		// process final shipping tax data
-		if ($this->_helper->getApplyTaxAfterDiscount()) {
+		if (Mage::helper('eb2ctax')->getApplyTaxAfterDiscount()) {
 			$baseTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'shipping');
 			$this->_processShippingHiddenTax($baseTaxDiscount, $address);
 			$baseTax  -= $baseTaxDiscount;

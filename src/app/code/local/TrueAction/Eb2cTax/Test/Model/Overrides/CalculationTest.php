@@ -306,11 +306,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	{
 		$response = $this->_mockResponseWithAll();
 
-		Mage::unregister('_helper/tax');
-		$this->_mockConfigRegistry(array(
-			array('taxApplyAfterDiscount', $isAfterDiscounts),
-			array('taxDutyRateCode', 'eb2c-duty-amount'),
-		));
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('__', 'taxDutyAmountRateCode', 'getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->any())
+			->method('__')
+			->will($this->returnArgument(0));
+		$helper->expects($this->any())
+			->method('taxDutyAmountRateCode')
+			->will($this->returnValue('eb2c-duty-amount'));
+		$helper->expects($this->any())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue($isAfterDiscounts));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($response);
@@ -362,19 +371,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	{
 		$response = $this->_mockResponseWithDuplicates();
 
-		Mage::unregister('_helper/tax');
-
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(
-				array('taxApplyAfterDiscount', true),
-				array('taxDutyRateCode', 'eb2c-duty-amount'),
-			)));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('__', 'taxDutyAmountRateCode', 'getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->any())
+			->method('__')
+			->will($this->returnArgument(0));
+		$helper->expects($this->any())
+			->method('taxDutyAmountRateCode')
+			->will($this->returnValue('eb2c-duty-amount'));
+		$helper->expects($this->any())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($response);
