@@ -1,6 +1,188 @@
 <?php
 class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
+	/**
+	 * Test _setDefaultTranslation method
+	 * @test
+	 */
+	public function testSetDefaultTranslation()
+	{
+		$longDescriptionSet = array(
+			'en-US' => "The Little People Lil' Kingdom Palace lets preschoolers experience fun,
+			imaginative house play as they discover this classic 'storybook' theme with the
+			charm of Little People characters. The palace features surprise action and music to add to your li",
+			'fr-FR' => "Le Little People Lil-Uni Palais permet d'âge préscolaire expérience amusante,
+			Maison imaginative jouer comme ils découvrent ce thème classique \"de livre de contes» avec la
+			charme de Little People caractères. Le palais dispose d'une action surprise et de la musique à ajouter à votre li"
+		);
+
+		$source = new Varien_Object(array(
+			'extended_attributes' => new Varien_Object(array(
+				'long_description_set' => $longDescriptionSet
+			)),
+		));
+
+		$target = $this->getMock('Varien_Object');
+		$target->expects($this->at(0))
+			->method('setData')
+			->with($this->equalTo('description'), $this->equalTo($longDescriptionSet['en-US']))
+			->will($this->returnSelf());
+		$target->expects($this->at(1))
+			->method('setData')
+			->with($this->equalTo('description'), $this->equalTo($longDescriptionSet['fr-FR']))
+			->will($this->returnSelf());
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		foreach (array('en-US', 'fr-FR') as $lCode) {
+			$this->_reflectProperty($feedProcessorModelMock, '_defaultStoreLanguageCode')->setValue($feedProcessorModelMock, $lCode);
+			$newLongDescriptionSet = $longDescriptionSet;
+			unset($newLongDescriptionSet[$lCode]);
+			$this->assertSame(
+				$newLongDescriptionSet,
+				$this->_reflectMethod($feedProcessorModelMock, '_setDefaultTranslation')
+					->invoke($feedProcessorModelMock, $source, $target, 'description', 'long_description_set')
+			);
+		}
+	}
+
+	/**
+	 * Test _getTranslation method
+	 * @test
+	 */
+	public function testGetTranslation()
+	{
+		$englishTxt = "The Little People Lil' Kingdom Palace lets preschoolers experience fun,
+			imaginative house play as they discover this classic 'storybook' theme with the
+			charm of Little People characters. The palace features surprise action and music to add to your li";
+		$frenchTxt = "Le Little People Lil-Uni Palais permet d'âge préscolaire expérience amusante,
+			Maison imaginative jouer comme ils découvrent ce thème classique \"de livre de contes» avec la
+			charme de Little People caractères. Le palais dispose d'une action surprise et de la musique à ajouter à votre li";
+		$arrayOfTranslations = array(
+			'en-US' => $englishTxt,
+			'fr-FR' => $frenchTxt,
+		);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$testData = array(
+			array(
+				'expect' => $englishTxt,
+				'languageCode' => 'en-US',
+			),
+			array(
+				'expect' => $frenchTxt,
+				'languageCode' => 'fr-FR',
+			),
+			array(
+				'expect' => false,
+				'languageCode' => 'es-SP',
+			)
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame(
+				$data['expect'],
+				$this->_reflectMethod($feedProcessorModelMock, '_getTranslation')
+					->invoke($feedProcessorModelMock, $data['languageCode'], $arrayOfTranslations)
+			);
+		}
+	}
+
+	/**
+	 * Test _getAllStores method
+	 * @test
+	 */
+	public function testGetAllStores()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		// there's no currently loaded store
+		$this->assertEmpty(
+			$this->_reflectMethod($feedProcessorModelMock, '_getAllStores')
+				->invoke($feedProcessorModelMock)
+		);
+	}
+
+	/**
+	 * Test _getStoreById method
+	 * @test
+	 */
+	public function testGetStoreById()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertInstanceOf(
+			'Mage_Core_Model_Store',
+			$this->_reflectMethod($feedProcessorModelMock, '_getStoreById')
+				->invoke($feedProcessorModelMock, 0)
+		);
+	}
+
+	/**
+	 * Test _initStoreLanguageCodeMap method
+	 * @test
+	 */
+	public function testInitStoreLanguageCodeMap()
+	{
+		$this->markTestIncomplete(
+			'This test has not been implemented yet.'
+		);
+		$coreStoreModelMock = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(array('getCode', 'getId'))
+			->getMock();
+		$coreStoreModelMock->expects($this->at(0))
+			->method('getCode')
+			->will($this->returnValue('en_US'));
+		$coreStoreModelMock->expects($this->at(1))
+			->method('getCode')
+			->will($this->returnValue('fr_FR'));
+		$coreStoreModelMock->expects($this->at(2))
+			->method('getCode')
+			->will($this->returnValue('es_SP'));
+
+		$this->replaceByMock('model', 'eb2ccore/Store', $coreStoreModelMock);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_getAllStores', '_getStoreById'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getAllStores')
+			->will($this->returnValue(range(1, 3)));
+		$feedProcessorModelMock->expects($this->at(2))
+			->method('_getStoreById')
+			->with($this->equalTo(1))
+			->will($this->returnValue($coreStoreModelMock));
+		$feedProcessorModelMock->expects($this->at(3))
+			->method('_getStoreById')
+			->with($this->equalTo(2))
+			->will($this->returnValue($coreStoreModelMock));
+		$feedProcessorModelMock->expects($this->at(4))
+			->method('_getStoreById')
+			->with($this->equalTo(3))
+			->will($this->returnValue($coreStoreModelMock));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_initStoreLanguageCodeMap')
+				->invoke($feedProcessorModelMock)
+		);
+	}
+
 	const VFS_ROOT = 'var/eb2c';
 
 	/**

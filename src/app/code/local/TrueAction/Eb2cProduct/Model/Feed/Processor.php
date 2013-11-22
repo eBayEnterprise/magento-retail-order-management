@@ -21,7 +21,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * A map of store Ids to LanguageCodes
-	 * @var array 
+	 * @var array
 	 */
 	protected $_storeLanguageCodeMap = array();
 
@@ -104,10 +104,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * Sets the default translation, returns an array of translations that have note yet been applied
+	 * @param Varien_Object $source, the source object find the source to get the language data from
+	 * @param Varien_Object $target, the target to set the source language data to
+	 * @param string $fieldName, the field to set the translation find in from source to the target object
+	 * @param string $translationsArrayName, the name of the source node to get the language translation data from
 	 * @return array
 	 */
 	protected function _setDefaultTranslation($source, $target, $fieldName, $translationsArrayName)
 	{
+		Mage::log(sprintf("source = %s\ntarget = %s\nfieldName = %s\ntranslationsArrayName = %s", print_r($source, true), print_r($target, true), $fieldName, print_r($translationsArrayName, true)), Zend_log::DEBUG);
 		// Set default product long description
 		$translationsToApply = array();
 		if ($source->getExtendedAttributes()->hasData($translationsArrayName)) {
@@ -123,7 +128,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * If key exists in array, return its value, otherwise return false
-	 *
+	 * @param string $languageCode, the language code key that must exists in the translation array
+	 * @param array $arrayOfTranslations, collection of translation with language code composite keys
 	 * @return boolean
 	 */
 	protected function _getTranslation($languageCode, $arrayOfTranslations)
@@ -133,19 +139,46 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
+	 * get an array of magento's stores
+	 * @return array, an array of magento's store
+	 */
+	protected function _getAllStores()
+	{
+		return Mage::app()->getStores();
+	}
+
+	/**
+	 * get store by store id
+	 * @param int $storeId, the store id to get the store object from
+	 * @return Mage_Core_Model_Store
+	 */
+	protected function _getStoreById($storeId)
+	{
+		return Mage::app()->getStore($storeId);
+	}
+
+	/**
 	 * Creates a map of language codes (as dervied from the store view code) to store ids
 	 * @todo The parse-language-from-store-view code might need to be closer to Eb2cCore.
+	 * @return self
 	 */
 	protected function _initStoreLanguageCodeMap()
 	{
-		foreach (Mage::app()->getStores() as $storeId) {
-			$storeCodeParsed = explode('_', Mage::app()->getStore($storeId)->getCode(), 3);
+		foreach ($this->_getAllStores() as $storeId) {
+			print_r(
+				array(
+					'storeId' => $storeId
+				)
+			);
+			$storeCodeParsed = explode('_', $this->_getStoreById($storeId)->getCode(), 3);
 			if (count($storeCodeParsed) > 2) {
 				$this->_storeLanguageCodeMap[$storeCodeParsed[2]]
-					= Mage::app()->getStore($storeId)->getId();
+					= $this->_getStoreById($storeId)->getId();
 			} else {
-				Mage::log('Incompatible Store View Name ignored: "' . Mage::app()->getStore($storeId)->getName() . '"',
-					Zend_log::INFO);
+				Mage::log(
+					sprintf('Incompatible Store View Name ignored: "%s"', $this->_getStoreById($storeId)->getName()),
+					Zend_log::INFO
+				);
 			}
 		}
 		return $this;
@@ -676,7 +709,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 
 		// Process other-than-default language stuff:
-		/** 
+		/**
 		 * @todo brandSet and productTitleSet
 		 * The Big Idea:
 		 * - examine each of longDescriptionSet, shortDescriptionSet, brandSet, and producTitleSet
@@ -696,7 +729,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 				}
 				// @todo do I have to set Current Store every time?
 				// @todo do I have to re-load the product every time?
-				// See http://www.fabrizio-branca.de/whats-wrong-with-the-new-url-keys-in-magento.html for 
+				// See http://www.fabrizio-branca.de/whats-wrong-with-the-new-url-keys-in-magento.html for
 				// details about why url_key has to be set specially. It's a Magento 1.13 'problem'.
 				Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 				$altProduct =
