@@ -33,17 +33,6 @@ itemmaster1:
       # sequence:
   # companion_flag:
   # country_of_origin:
-  custom_attributes:
-     -
-      name: ProductType
-      value: simple
-      lang: en-US
-      operation_type: Add
-     -
-      name: ConfigurableAttributes
-      value: 'fee,fi,fo,fum'
-      lang: en-US
-      operation_type: Add
   drop_ship_supplier_name: Mass Merchants, Intl
   drop_ship_supplier_number: 9876
   drop_ship_supplier_part_number: 9843333A

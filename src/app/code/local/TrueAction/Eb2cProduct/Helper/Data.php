@@ -1,6 +1,8 @@
 <?php
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
+	private $_customAttributeCodeSets = array();
+
 	protected $_types;
 	/**
 	 * @var array boilerplate for initializing a new product with limited information.
@@ -66,6 +68,22 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	protected function _getDefProdAttSetId()
 	{
 		return (int) Mage::getModel('eav/entity_type')->loadByCode('catalog_product')->getDefaultAttributeSetId();
+	}
+
+	/**
+	 * @return string the default locale language code 
+	 */
+	public function getDefaultLanguageCode()
+	{
+		return Mage::helper('eb2ccore')->mageToXmlLangFrmt(Mage::app()->getLocale()->getLocaleCode());
+	}
+
+	/**
+	 * @return int default attribute set id; possibly un-necessary function @_@
+	 */
+	public function getDefaultProductAttributeSetId()
+	{
+		return $this->_getDefProdAttSetId();
 	}
 
 	/**
@@ -206,5 +224,36 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->where('e.sku = ?', $sku);
 		return $products->getFirstItem();
 	}
-}
 
+	/**
+	 * Return an array of attribute_codes
+	 * @return array
+	 */
+	public function getCustomAttributeCodeSet($attributeSetId)
+	{
+		if( empty($this->_customAttributeCodeSets[$attributeSetId]) ) {
+			$codeSet = array();
+			$attributeSet = Mage::getModel('catalog/product_attribute_api')->items($attributeSetId);
+			foreach ($attributeSet as $attribute) {
+				$codeSet[]=$attribute['code'];
+			}
+			$this->_customAttributeCodeSets[$attributeSetId] = $codeSet;
+		}
+		return $this->_customAttributeCodeSets[$attributeSetId];
+	}
+
+	/**
+	 * Flattens translations into arrays keyed by language
+	 * @return array in the form a['lang-code'] = 'localized value'
+	 */
+	public function parseTranslations($languageSet)
+	{
+		$parsedLanguages = array();
+		if (!empty($languageSet)) {
+			foreach ($languageSet as $language) {
+				$parsedLanguages[$language['lang']] = $language['description'];
+			}
+		}
+		return $parsedLanguages;
+	}
+}

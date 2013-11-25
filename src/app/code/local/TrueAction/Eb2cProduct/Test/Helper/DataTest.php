@@ -271,4 +271,32 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($name ?: "Invalid Product: $sku", $prod->getName());
 		$this->assertSame($sku, $prod->getUrlKey());
 	}
+
+
+	/**
+	 * Given a mapped array containing language, parse should return
+	 * a flattened array, keyed by language
+	 * @test
+	 */
+	public function testParseTranslations()
+	{
+		$sampleInput = array (
+			array (
+				'lang'        => 'en-US',
+				'description' => 'An en-US translation',
+			),
+			array (
+				'lang'        => 'ja-JP',
+				'description' => 'ja-JP に変換',
+			),
+		);
+
+		$expectedOutput = array (
+			'en-US' => 'An en-US translation',
+			'ja-JP' => 'ja-JP に変換',
+		);
+
+		$this->assertSame($expectedOutput,
+			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
+	}
 }

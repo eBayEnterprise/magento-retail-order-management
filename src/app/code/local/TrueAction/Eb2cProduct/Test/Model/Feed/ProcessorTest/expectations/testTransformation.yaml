@@ -29,9 +29,6 @@ itemmaster1:
    - base_attributes
    - drop_ship_supplier_information
    - extended_attributes
-   - custom_attributes
-   - product_type
-   - configurable_attributes_data
   base_attributes:
     catalog_class: regular
     drop_shipped: false
@@ -138,7 +135,6 @@ contentmaster1:
    - item_id
    - base_attributes
    - extended_attributes
-   - custom_attributes
    - configurable_attributes
   catalog_id: '45'
   gsi_client_id: MAGTNA
@@ -183,12 +179,6 @@ contentmaster1:
        -
         lang: en-US
         title: LeapFrog Leapster Educational Game Cartridge - Arcade Word Chasers
-  custom_attributes:
-     -
-      name: TRUBRANDJDA
-      value: LeapFrog
-      operation_type: Add
-      lang: 'en-US'
 iship1:
   catalog_class: regular
   client_item_id: 45-000906011391
