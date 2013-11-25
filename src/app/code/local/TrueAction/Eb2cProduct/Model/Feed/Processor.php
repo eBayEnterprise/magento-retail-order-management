@@ -9,7 +9,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	/**
 	 * A map of store Ids to LanguageCodes
-	 * @var array
 	 */
 	protected $_storeLanguageCodeMap = array();
 
@@ -227,10 +226,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			$this->_getLocalizations($extData, 'short_description'));
 
 		$outData->setData('extended_attributes', $extData);
-		$extData->addData(
-			// get extended attributes data containing (gift wrap, color, long/short descriptions)
-			$this->_getContentExtendedAttributeData($outData)
-		);
+		$extData->addData($this->_getGiftWrap($outData));
 		///////
 		$customAttributes = $dataObject->getCustomAttributes();
 		if( $customAttributes ) {
@@ -286,13 +282,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
 	 * @return array, composite array containing description data, gift wrap, color... etc
 	 */
-	protected function _getContentExtendedAttributeData(Varien_Object $dataObject)
+	protected function _getGiftWrap(Varien_Object $dataObject)
 	{
 		$data = array();
 		$extendedAttributes = $dataObject->getExtendedAttributes()->getData();
 		if (!empty($extendedAttributes)) {
 			if (isset($extendedAttributes['gift_wrap'])) {
-				// extracting gift_wrapping_available
 				$data['gift_wrap'] = $this->_helper->parseBool($extendedAttributes['gift_wrap']);
 			}
 		}
@@ -587,8 +582,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
 		}
 
-		if( $item->hasData('configurable_attributes_data') ) {
-			$productData->setData('configurable_attributes_data', $item->getData('configurable_attributes_data'));
+		if ($item->hasData('configurable_attributes_data')) {
+			$productData->setData('configurable_attributes_data',
+				$this->_helper->getConfigurableAttributesData($productData->getTypeId(), $item, $product));
 		}
 
 		// Gathers up all translatable fields, applies the defaults;  whatever's left are
@@ -605,7 +601,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
 			->save(); // saving the product
-		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
+		$this->_addStockItemDataToProduct($item, $product);
 
 		// Alternate languages /must/ happen after default product has been saved:
 		if( $translations ) {
@@ -687,7 +683,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 		return $this;
 	}
-
 
 	/**
 	 * Get the id of the Color-Attribute Option for this specific color. Create it if it doesn't exist.

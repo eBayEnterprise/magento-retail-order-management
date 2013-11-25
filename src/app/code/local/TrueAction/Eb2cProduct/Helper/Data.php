@@ -256,4 +256,46 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $parsedLanguages;
 	}
+
+	/**
+	 * Gets array of configurable_attributes_data.
+	 * Magento will not let us (re)set a Configurable Product's already-set Configurable Attributes
+	 * Here we unset anything that's already been set
+	 * @return array
+	 */
+	public function getConfigurableAttributesData($productTypeId, Varien_Object $source, Mage_Catalog_Model_Product $product)
+	{
+		// We test that the existing product is /already/ configurable - since we could be changing a 'dummy-product' from
+		// 'simple' to 'configurable', in which case we don't need to check existing attributes
+		if ($productTypeId === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE
+			&& $product->getId() && $product->getTypeId() === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE )
+		{
+			$currentAttributeSet = $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product);
+			if ($currentAttributeSet) {
+				$source->setData('configurable_attributes_data',
+					$this->_mergeConfigurableAttributes(
+						$currentAttributeSet,
+						$source->getData('configurable_attributes_data')
+					)
+				);
+			}
+		}
+		return $source->getData('configurable_attributes_data');
+	}
+
+	/**
+	 * Return an array that has removed already-existing attributes
+	 * @return array
+	 */
+	protected function _mergeConfigurableAttributes($currentAttributeSet, $newAttributeSet)
+	{
+		foreach (array_keys($newAttributeSet) as $idx) {
+			foreach ($currentAttributeSet as $currentAttribute) {
+				if ($newAttributeSet[$idx]['attribute_id'] === $currentAttribute['attribute_id']) {
+					unset($newAttributeSet[$idx]);
+				}
+			}
+		}
+		return $newAttributeSet;
+	}
 }
