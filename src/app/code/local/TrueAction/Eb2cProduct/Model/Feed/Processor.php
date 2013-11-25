@@ -90,6 +90,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected $_deleteBatchSize = 100;
 	protected $_maxTotalEntries = 100;
 
+	/**
+	 * hold an instance of eb2cproduct/data helper
+	 * @var TrueAction_Eb2cProduct_Helper_Data
+	 */
+	protected $_helper = null;
+
 	public function __construct()
 	{
 		$config = Mage::helper('eb2cproduct')->getConfigModel();
@@ -165,18 +171,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected function _initStoreLanguageCodeMap()
 	{
 		foreach ($this->_getAllStores() as $storeId) {
-			print_r(
-				array(
-					'storeId' => $storeId
-				)
-			);
-			$storeCodeParsed = explode('_', $this->_getStoreById($storeId)->getCode(), 3);
+			$storeObject = $this->_getStoreById($storeId);
+			$storeCodeParsed = explode('_', $storeObject->getCode(), 3);
 			if (count($storeCodeParsed) > 2) {
-				$this->_storeLanguageCodeMap[$storeCodeParsed[2]]
-					= $this->_getStoreById($storeId)->getId();
+				$this->_storeLanguageCodeMap[$storeCodeParsed[2]] = $storeObject->getId();
 			} else {
 				Mage::log(
-					sprintf('Incompatible Store View Name ignored: "%s"', $this->_getStoreById($storeId)->getName()),
+					sprintf('Incompatible Store View Name ignored: "%s"', $storeObject->getName()),
 					Zend_log::INFO
 				);
 			}
@@ -184,6 +185,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		return $this;
 	}
 
+	/**
+	 * processing list of product to be added or updated
+	 * @param array $dataObjectList
+	 * @return void
+	 */
 	public function processUpdates($dataObjectList)
 	{
 		Mage::log(sprintf('[ %s ] Processing %d updates.', __CLASS__, count($dataObjectList)));
@@ -193,6 +199,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 	}
 
+	/**
+	 * processing list of product to be deleted
+	 * @param array $dataObjectList
+	 * @return void
+	 */
 	public function processDeletions($dataObjectList)
 	{
 		Mage::log(sprintf('[ %s ] Processing %d deletes.', __CLASS__, count($dataObjectList)));
@@ -342,10 +353,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			} else {
 				// this item doesn't exists in magento let simply log it
 				Mage::log(
-					sprintf(
-						'[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento',
-						__CLASS__, $dataObject->getItemId()->getClientItemId()
-					),
+					sprintf('[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento', __CLASS__, $sku),
 					Zend_Log::WARN
 				);
 			}
@@ -403,7 +411,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 		$custData = new Varien_Object();
 		$outData->setData('custom_attributes', $custData);
-		$coreHelper = Mage::helper('eb2ccore');
 		foreach ($customAttrs as $attributeData) {
 			if (!isset($attributeData['name'])) {
 				// skip the attribute
