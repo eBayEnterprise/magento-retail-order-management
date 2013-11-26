@@ -21,12 +21,38 @@
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
 						</enabled>
-						<enable_paypal_express translate="label comment">
-							<label>Enabled Paypal Express</label>
-							<config_path>payment/paypal_express/active</config_path>
+						<enable_pbridge_creditcard translate="label comment">
+							<label>Enable Credit Card</label>
+							<config_path>payment/pbridge_eb2cpayment_cc/active</config_path>
 							<frontend_type>select</frontend_type>
 							<source_model>adminhtml/system_config_source_yesno</source_model>
 							<sort_order>2</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<comment>
+								<model>eb2cpayment/adminhtml_comment</model>
+							</comment>
+							<depends><enabled>1</enabled></depends>
+						</enable_pbridge_creditcard>
+						<enable_stored_value translate="label comment">
+							<label>Enable Stored Value Card</label>
+							<config_path>giftcard/general/is_redeemable</config_path>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>3</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<comment>Select Yes/No selector to enable/disable stored value.</comment>
+							<depends><enabled>1</enabled></depends>
+						</enable_stored_value>
+						<enable_paypal_express translate="label comment">
+							<label>Enable Paypal Express</label>
+							<config_path>payment/paypal_express/active</config_path>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>4</sort_order>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>
