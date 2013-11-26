@@ -1,6 +1,63 @@
 <?php
 class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
+	/**
+	 * Test processUpdates method
+	 * @test
+	 */
+	public function testProcessUpdates()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_transformData', '_synchProduct', '_logFeedErrorStatistics'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_transformData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(new Varien_Object()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_synchProduct')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(null));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_logFeedErrorStatistics')
+			->will($this->returnValue(null));
+
+		$dataArrayObject = new ArrayObject(array(new Varien_Object()));
+
+		$feedProcessorModelMock->processUpdates($dataArrayObject->getIterator());
+	}
+
+	/**
+	 * Test _logFeedErrorStatistics method
+	 * @test
+	 */
+	public function testLogFeedErrorStatistics()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')
+			->setValue($feedProcessorModelMock, array(
+				'invalid_language' => 5,
+				'invalid_operation_type' => 3,
+				'missing_operation_type' => 2,
+				'missing_attribute' => 1,
+			));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_logFeedErrorStatistics')->invoke($feedProcessorModelMock)
+		);
+
+		$this->assertSame(
+			array(),
+			$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')->getValue($feedProcessorModelMock)
+		);
+	}
+
 	const VFS_ROOT = 'var/eb2c';
 
 	/**
@@ -74,54 +131,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$testModel->expects($this->atLeastOnce())
 			->method('_synchProduct')
 			->will($this->returnCallback($checkData));
-		$dataObj = new Varien_Object($this->getLocalFixture($scenario));
-		$testModel->processUpdates(array($dataObj));
-	}
-
-	/**
-	 * @loadFixture
-	 */
-	public function testStockItemData()
-	{
-		$this->markTestSkipped('Too slow. Make processUpdates faster.');
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('itemmaster-exists'));
-		// confirm preconditions
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('0', $stock->getData('backorders'));
-		$this->assertSame('1', $stock->getData('use_config_backorders'));
-		$this->assertSame('100.0000', $stock->getData('qty'));
-		// run test
-		$testModel->processUpdates(array($dataObj));
-		// verify results
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('1', $stock->getData('backorders'));
-		$this->assertSame('0', $stock->getData('use_config_backorders'));
-		$this->assertSame('100.0000', $stock->getData('qty'));
-	}
-
-	/**
-	 * @loadFixture
-	 * @dataProvider dataProvider
-	 */
-	public function testConfigurableData($scenario)
-	{
-		$this->markTestSkipped('Too slow. Make processUpdates faster. (Also, only test it once.)');
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$extractedUnits = $this->getLocalFixture($scenario);
-		$processList = array();
-		foreach ($extractedUnits as $extractedUnit) {
-			$processList[] = new Varien_Object($extractedUnit);
-		}
-		$dataObj = new Varien_Object();
-		// confirm preconditions
-		// assert theparent exists
-		// assert theotherparent doesnt exist
-		// assert 45-000906014545 doesnt exist
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$testModel->processUpdates($processList);
+		$dataArrayObject = new ArrayObject(array(new Varien_Object($this->getLocalFixture($scenario))));
+		$testModel->processUpdates($dataArrayObject->getIterator());
 	}
 
 	/**
