@@ -203,4 +203,20 @@ class TrueAction_Eb2cPayment_Model_Suppression
 		return in_array($paymentMethodName, $this->_allowedPaymentMethods);
 	}
 
+	/**
+	 * @param  string  $section name of the configuration section
+	 * @param  string  $group   name of the configuration group within $section
+	 * @return boolean          true if the config should be supppressed in the system config; false otherwise
+	 */
+	public function isConfigSuppressed($section, $group='')
+	{
+		$isPaymentEnabled = Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled;
+		return (
+			($section === 'payment' &&
+				($isPaymentEnabled && $group && !$this->isMethodAllowed($group)) ||
+				(!$isPaymentEnabled && $group === 'pbridge_eb2cpayment_cc')
+			) ||
+			($section === 'giftcard' && $isPaymentEnabled)
+		);
+	}
 }

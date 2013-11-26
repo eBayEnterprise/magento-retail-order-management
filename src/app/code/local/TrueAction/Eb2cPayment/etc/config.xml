@@ -65,6 +65,7 @@
 			<adminhtml>
 				<rewrite>
 					<system_config_form>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form</system_config_form>
+					<system_config_tabs>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Tabs</system_config_tabs>
 				</rewrite>
 			</adminhtml>
 		</blocks>
