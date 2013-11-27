@@ -299,38 +299,4 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($expectedOutput,
 			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
 	}
-
-	/**
-	 * mergeConfigurableAttributes should remove from 'newAttributeSet' anything that's
-	 * already in 'currentAttributSet'
-	 */
-	public function test_mergeConfigurableAttributes()
-	{
-        $hlpr = $this->getHelperMock('eb2cproduct/data');
-		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
-		$mergeConfigurableAttributesMethod = $hlpRef->getMethod('_mergeConfigurableAttributes');
-		$mergeConfigurableAttributesMethod->setAccessible(true);
-
-		// Current and new are the same, so we should get an empty array back
-		$currentAttributeSet = array(
-			array(
-				'attribute_id' => 666,
-			)
-		);
-		$newAttributeSet = $currentAttributeSet;
-		$result = $mergeConfigurableAttributesMethod->invoke($hlpr, $currentAttributeSet, $newAttributeSet);
-		$this->assertTrue(is_array($result));
-		$this->assertEmpty($result);
-
-		// We should get back an array containing only attribute_id 667
-		$addAttributeSet = array (
-			array(
-				'attribute_id' => 667,
-			)
-		);
-		$newAttributeSet[] = $addAttributeSet[0];
-		$result = $mergeConfigurableAttributesMethod->invoke($hlpr, $currentAttributeSet, $newAttributeSet);
-		$this->assertSame(1, count($result));
-		$this->assertSame($result[0]['attribute_id'], $addAttributeSet['attribute_id']);
-	}
 }

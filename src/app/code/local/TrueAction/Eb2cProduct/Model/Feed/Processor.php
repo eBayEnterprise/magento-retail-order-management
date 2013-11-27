@@ -582,9 +582,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
 		}
 
-		if ($item->hasData('configurable_attributes_data')) {
-			$productData->setData('configurable_attributes_data',
-				$this->_helper->getConfigurableAttributesData($productData->getTypeId(), $item, $product));
+		$configurableAttributesData = Mage::helper('eb2cproduct')
+				->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
+		if ($configurableAttributesData) {
+			$productData->setData('configurable_attributes_data', $configurableAttributesData);
 		}
 
 		// Gathers up all translatable fields, applies the defaults;  whatever's left are
