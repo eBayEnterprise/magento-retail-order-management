@@ -13,7 +13,7 @@ class TrueAction_Eb2cPayment_Model_Adminhtml_Comment
 	}
 
 	/**
-	 * return the paymenthod configuration section rul
+	 * return the payment method configuration section URL
 	 * @return string
 	 */
 	protected function _getUrl()
