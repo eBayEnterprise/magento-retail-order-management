@@ -253,6 +253,8 @@ INVALID_XML;
 		$this->replaceCoreConfigRegistry(array(
 			'serviceOrderTimeout' => 100,
 			'xsdFileCreate' => 'example.xsd',
+			'apiService' => 'orders',
+			'apiCreateOperation' => 'create',
 		));
 
 		$helperStub = $this->getHelperMock('eb2corder/data', array('getOperationUri'));
@@ -318,6 +320,7 @@ INVALID_XML;
 		$this->replaceCoreConfigRegistry(array(
 			'serviceOrderTimeout' => 100,
 			'xsdFileCreate' => 'example.xsd',
+			'apiCreateOperation' => 'create',
 		));
 
 		$helperStub = $this->getHelperMock('eb2corder/data', array('getOperationUri'));

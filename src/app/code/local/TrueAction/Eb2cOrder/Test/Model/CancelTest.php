@@ -55,6 +55,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 				'developerCancelUri' => 'https://dev-mode-test.com',
 				'serviceOrderTimeout' => null,
 				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+				'apiCancelOperation' => 'cancel',
 			)));
 		$helperMock->expects($this->any())
 			->method('getOperationUri')
@@ -128,6 +129,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 				'developerCancelUri' => 'https://dev-mode-test.com',
 				'serviceOrderTimeout' => null,
 				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+				'apiCancelOperation' => 'cancel',
 			)));
 		$helperMock->expects($this->any())
 			->method('getOperationUri')
@@ -192,6 +194,7 @@ class TrueAction_Eb2cOrder_Test_Model_CancelTest extends TrueAction_Eb2cCore_Tes
 				'developerCancelUri' => 'https://dev-mode-test.com',
 				'serviceOrderTimeout' => null,
 				'xsdFileCancel' => 'Order-Service-Cancel-1.0.xsd',
+				'apiCancelOperation' => 'cancel',
 			)));
 		$helperMock->expects($this->any())
 			->method('getOperationUri')

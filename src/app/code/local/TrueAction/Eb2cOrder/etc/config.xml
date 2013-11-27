@@ -93,6 +93,19 @@
 			</email>
 		</eb2ccore>
 		<eb2corder>
+			<api>
+				<service>orders</service>
+				<return_format>xml</return_format>
+				<create_operation>create</create_operation>
+				<cancel_operation>cancel</cancel_operation>
+				<create_dom_root_node_name>OrderCreateRequest</create_dom_root_node_name>
+				<cancel_dom_root_node_name>OrderCancelRequest</cancel_dom_root_node_name>
+				<order_type>SALES</order_type>
+				<level_of_service>REGULAR</level_of_service>
+				<ship_group_destination_id>dest_1</ship_group_destination_id>
+				<ship_group_billing_id>billing_1</ship_group_billing_id>
+				<order_history_path>sales/order/view/order_id/</order_history_path>
+			</api>
 			<api_search_service>customers</api_search_service>
 			<api_search_operation>orders/get</api_search_operation>
 			<xsd>

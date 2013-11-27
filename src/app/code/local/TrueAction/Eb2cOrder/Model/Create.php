@@ -112,8 +112,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	public function sendRequest()
 	{
-		$consts = Mage::helper('eb2corder')->getConstHelper();
-		$uri = Mage::helper('eb2corder')->getOperationUri($consts::CREATE_OPERATION);
+		$uri = Mage::helper('eb2corder')->getOperationUri($this->_config->apiCreateOperation);
 
 		$response = '';
 		if ($this->_domRequest instanceof DOMDocument) {
@@ -206,19 +205,18 @@ class TrueAction_Eb2cOrder_Model_Create
 	public function buildRequest(Mage_Sales_Model_Order $orderObject)
 	{
 		$this->_o = $orderObject;
-		$consts = Mage::helper('eb2corder')->getConstHelper();
 
 		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->_domRequest->formatOutput = true;
 		$orderCreateRequest = $this
 			->_domRequest
-			->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)
+			->addElement($this->_config->apiCreateDomRootNodeName, null, $this->_config->apiXmlNs)
 			->firstChild;
-		$orderCreateRequest->setAttribute('orderType', $consts::ORDER_TYPE);
+		$orderCreateRequest->setAttribute('orderType', $this->_config->apiOrderType);
 		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
 
 		$order = $orderCreateRequest->createChild('Order');
-		$order->setAttribute('levelOfService', $consts::LEVEL_OF_SERVICE);
+		$order->setAttribute('levelOfService', $this->_config->apiLevelOfService);
 		$order->setAttribute('customerOrderId', $this->_o->getIncrementId());
 
 		$this->_buildCustomer($order->createChild('Customer'));
@@ -453,10 +451,9 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected function _buildShipGroup(DomElement $shipGroup)
 	{
-		$consts = Mage::helper('eb2corder')->getConstHelper();
 		$shipGroup->setAttribute('id', 'shipGroup_1');
 		$shipGroup->setAttribute('chargeType', $this->_getShippingChargeType($this->_o));
-		$shipGroup->createChild('DestinationTarget')->setAttribute('ref', $consts::SHIPGROUP_DESTINATION_ID);
+		$shipGroup->createChild('DestinationTarget')->setAttribute('ref', $this->_config->apiShipGroupDestinationId);
 		$orderItems = $shipGroup->createChild('OrderItems');
 		foreach ($this->_orderItemRef as $orderItemRef) {
 			$shipItem = $orderItems->createChild('Item');
@@ -471,12 +468,11 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected function _buildShipping(DomElement $shipping)
 	{
-		$consts = Mage::helper('eb2corder')->getConstHelper();
 		$destinations = $shipping->createChild('Destinations');
 		// Ship-To
 		$sa = $this->_o->getShippingAddress();
 		$dest = $destinations->createChild('MailingAddress');
-		$dest->setAttribute('id', $consts::SHIPGROUP_DESTINATION_ID);
+		$dest->setAttribute('id', $this->_config->apiShipGroupDestinationId);
 		$this->_buildPersonName($dest->createChild('PersonName'), $sa);
 		$this->_buildAddress($dest->createChild('Address'), $sa);
 		$dest->createChild('Phone', $sa->getTelephone());
@@ -484,7 +480,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		// Bill-To
 		$ba = $this->_o->getBillingAddress();
 		$billing = $destinations->createChild('MailingAddress');
-		$billing->setAttribute('id', $consts::SHIPGROUP_BILLING_ID);
+		$billing->setAttribute('id', $this->_config->apiShipGroupBillingId);
 		$this->_buildPersonName($billing->createChild('PersonName'), $ba);
 		$this->_buildAddress($billing->createChild('Address'), $ba);
 		$billing->createChild('Phone', $ba->getTelephone());
@@ -533,8 +529,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected function _buildPayment($payment)
 	{
-		$consts = Mage::helper('eb2corder')->getConstHelper();
-		$payment->createChild('BillingAddress')->setAttribute('ref', $consts::SHIPGROUP_BILLING_ID);
+		$payment->createChild('BillingAddress')->setAttribute('ref', $this->_config->apiShipGroupBillingId);
 		$this->_buildPayments($payment->createChild('Payments'));
 	}
 
