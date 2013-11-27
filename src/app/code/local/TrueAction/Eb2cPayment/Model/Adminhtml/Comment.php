@@ -1,13 +1,15 @@
 <?php
 class TrueAction_Eb2cPayment_Model_Adminhtml_Comment
 {
+	const COMMENT_VERBIAGE = 'TrueAction_Eb2cPayment_Admin_System_Config_PBridge_Comments';
+
 	/**
 	 * return the comment content
 	 * @return string
 	 */
 	public function getCommentText()
 	{
-		return sprintf('click here to <a href="%s">Configure Payment Bridge</a>', $this->_getUrl());
+		return sprintf(Mage::helper('eb2cpayment')->__(self::COMMENT_VERBIAGE), $this->_getUrl());
 	}
 
 	/**
