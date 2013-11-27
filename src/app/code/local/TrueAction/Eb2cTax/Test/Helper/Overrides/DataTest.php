@@ -110,7 +110,6 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 
 	/**
 	 * @test
-	 * @expectedException Mage_Core_Exception
 	 * @loadFixture sendRequestConfig.yaml
 	 */
 	public function testSendRequestWithExceptionThrown()

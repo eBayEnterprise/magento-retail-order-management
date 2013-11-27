@@ -83,6 +83,10 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 			->method('save')
 			->will($this->returnSelf());
 
+		// mock out observers that would trigger during this test
+		$taxMock = $this->getModelMock('tax/observer', array());
+		$this->replaceByMock('model', 'tax/observer', $taxMock);
+
 		$this->assertSame(
 			$this->_details,
 			$this->_details->processInventoryDetails($quoteMock, $inventoryData)
@@ -99,6 +103,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 		$this->assertSame($itemData['shipFromAddress_mainDivision'], $item->getEb2cShipFromAddressMainDivision());
 		$this->assertSame($itemData['shipFromAddress_countryCode'], $item->getEb2cShipFromAddressCountryCode());
 		$this->assertSame($itemData['shipFromAddress_postalCode'], $item->getEb2cShipFromAddressPostalCode());
+		$this->assertEventDispatched('eb2cinventory_details_process_after');
 	}
 
 	public function providerParseResponse()

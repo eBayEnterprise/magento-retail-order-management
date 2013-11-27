@@ -163,6 +163,7 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 		}
 		// Save the quote
 		$quote->save();
+		Mage::dispatchEvent('eb2cinventory_details_process_after', array('quote' => $quote));
 		return $this;
 	}
 

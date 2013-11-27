@@ -1,6 +1,6 @@
 set-1,2-2,3,4:
-  taxes: "2,3,4,1,2"
+  taxes: [ 2, 3, 4, 1, 2 ]
 set--1,2:
   taxes: null
 set-1,2-:
-  taxes: "1,2"
+  taxes: [ 1, 2 ]
