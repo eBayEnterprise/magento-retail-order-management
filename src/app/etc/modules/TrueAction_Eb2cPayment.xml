@@ -4,6 +4,10 @@
 		<TrueAction_Eb2cPayment>
 			<active>true</active>
 			<codePool>local</codePool>
+			<depends>
+				<Enterprise_GiftCardAccount />
+				<Mage_Paypal />
+			</depends>
 		</TrueAction_Eb2cPayment>
 	</modules>
 </config>
