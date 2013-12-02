@@ -914,4 +914,44 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		);
 	}
 
+	/**
+	 * verify the helper is called to translate the shipping method
+	 */
+	public function testBuildAllocationRequestMessageShippingMethod()
+	{
+		$item = $this->getModelMock('sales/quote_item', array('getQty', 'setQty'));
+		$item->expects($this->any())
+			->method('getQty')
+			->will($this->returnValue(1));
+
+		$address = $this->getModelMock('sales/quote_address', array('getShippingMethod', 'getAllItems'));
+		$address->expects($this->any())
+			->method('getShippingMethod')
+			->will($this->returnValue('mage_ship_method'));
+		$address->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array()));
+
+		$quote = $this->getModelMock('sales/quote', array('getAllAddresses', 'getShippingAddress'));
+		$quote->expects($this->any())
+			->method('getAllAddresses')
+			->will($this->returnValue(array($address)));
+		$quote->expects($this->any())
+			->method('getShippingAddress')
+			->will($this->returnValue($address));
+
+		$helper = $this->getHelperMock('eb2ccore/data', array('lookupShipMethod'));
+		$helper->expects($this->atLeastOnce())
+			->method('lookupShipMethod')
+			->with($this->identicalTo('mage_ship_method'))
+			->will($this->throwException(new Mage_Core_Exception('Test Complete')));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$this->setExpectedException('Mage_Core_Exception', 'Test Complete');
+
+		$testModel = $this->getModelMock('eb2cinventory/allocation', array('getInventoriedItems'));
+		$testModel->expects($this->once())
+			->method('getInventoriedItems')
+			->will($this->returnValue(array($item)));
+		$testModel->buildAllocationRequestMessage($quote);
+	}
 }
