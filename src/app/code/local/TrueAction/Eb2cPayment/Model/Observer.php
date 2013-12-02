@@ -21,7 +21,8 @@ class TrueAction_Eb2cPayment_Model_Observer
 			foreach ($giftCard as $card) {
 				if (isset($card['ba']) && isset($card['pan']) && isset($card['pin'])) {
 					// We have a valid record, let's redeem gift card in eb2c.
-					$storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')->getRedeem($card['pan'], $card['pin'], $quote->getId(), $quote->getGiftCardsAmountUsed());
+					$storeValueRedeemReply = Mage::getModel('eb2cpayment/stored_value_redeem')
+						->getRedeem($card['pan'], $card['pin'], $quote->getId(), $quote->getGiftCardsAmountUsed());
 
 					if ($storeValueRedeemReply) {
 						$redeemData = Mage::getModel('eb2cpayment/stored_value_redeem')->parseResponse($storeValueRedeemReply);

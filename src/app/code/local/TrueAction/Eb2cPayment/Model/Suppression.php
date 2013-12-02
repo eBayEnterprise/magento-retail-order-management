@@ -11,7 +11,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 * Payment methods that should be enabled when eb2c payments is enabled
 	 * @var array
 	 */
-	protected $_eb2cPaymentMethods = array(
+	protected $_ebcPaymentMethods = array(
 		'pbridge',
 		'pbridge_eb2cpayment_cc',
 	);
@@ -37,7 +37,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function getAllowedPaymentConfigGroups()
 	{
-		return $this->_eb2cPaymentMethods;
+		return $this->_ebcPaymentMethods;
 	}
 
 	/**
@@ -54,7 +54,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 		$this->_configModel = Mage::getConfig();
 		$this->_allowedPaymentMethods = array_merge(
 			$this->_whitelistPaymentMethods,
-			$this->_eb2cPaymentMethods
+			$this->_ebcPaymentMethods
 		);
 	}
 
@@ -76,7 +76,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	{
 		// when enabled, should enable all allowed payment methods
 		// when disabled, should only disable methods exclusive to eb2c payments
-		foreach ($this->_eb2cPaymentMethods as $method) {
+		foreach ($this->_ebcPaymentMethods as $method) {
 			// @todo we need a better way of determining and setting the scope and scope id
 			$this->_configModel->saveConfig('payment/' . $method . '/active', $enabled, 'default', 0);
 		}
@@ -90,6 +90,15 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	}
 
 	/**
+	 * abstracting returning an array of websites
+	 * @return array of Mage_Core_Model_Website
+	 */
+	protected function _getWebsites()
+	{
+		return Mage::app()->getWebsites();
+	}
+
+	/**
 	 * disabled non-eBay Enterprise payment methods
 	 * @return self
 	 */
@@ -99,7 +108,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 		$this->_disablePaymentMethods($this->getActivePaymentMethods(null), 'default', 0);
 		// in case any payment method was enabled at a more specific level, need to make
 		// sure those are all cleared out as well.
-		foreach (Mage::app()->getWebsites() as $website) {
+		foreach ($this->_getWebsites() as $website) {
 			$this->_disablePaymentMethods($this->getActivePaymentMethods($website), 'websites', $website->getId());
 			$this->_configModel->reinit();
 			foreach ($website->getGroups() as $group) {
@@ -111,7 +120,13 @@ class TrueAction_Eb2cPayment_Model_Suppression
 		$this->_configModel->reinit();
 		return $this;
 	}
-
+	/**
+	 * disabling passed payment configs data.
+	 * @param array $methodConfigs, list of config payment methods to be disabled
+	 * @param string $scope, (default, stores, websites)
+	 * @param int $scopeId
+	 * @return void
+	 */
 	protected function _disablePaymentMethods($methodConfigs, $scope, $scopeId)
 	{
 		foreach ($methodConfigs as $method => $config) {
@@ -142,12 +157,21 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	}
 
 	/**
+	 * abstracting returning an array of stores
+	 * @return array of Mage_Core_Model_Store
+	 */
+	protected function _getStores()
+	{
+		return Mage::app()->getStores();
+	}
+
+	/**
 	 * check if any non-eb2c payment method enabled
 	 * @return boolean true if any non-allowed payment method is enabled
 	 */
 	public function isAnyNonEb2CPaymentMethodEnabled()
 	{
-		foreach (Mage::app()->getStores() as $store) {
+		foreach ($this->_getStores() as $store) {
 			foreach ($this->getActivePaymentMethods($store) as $method => $methodConfig) {
 				if (!$this->isMethodAllowed($method)) {
 					return true;
