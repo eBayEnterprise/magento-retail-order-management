@@ -194,30 +194,30 @@
 			<api_return_format>xml</api_return_format>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>ItemMaster*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>ItemMaster_*.xml</file_pattern>
 				<event_type>ItemMaster</event_type>
 				<header_version>2.3.0</header_version>
 			</item_master_feed>
 			<content_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>Content*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>Content_*.xml</file_pattern>
 				<event_type>Content</event_type>
 				<!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
 			</content_master_feed>
 			<i_ship_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>IShip*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>iShip_*.xml</file_pattern>
 				<event_type>iShip</event_type>
 				<header_version>2.3.0</header_version>
 			</i_ship_feed>
 			<item_pricing_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
-				<remote_path>/Inbox/Pricing/{storeid}/</remote_path>
-				<file_pattern>Price*.xml</file_pattern>
+				<remote_path>/Inbox/Channel/{storeid}/Pricing</remote_path>
+				<file_pattern>Price_*.xml</file_pattern>
 				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>
