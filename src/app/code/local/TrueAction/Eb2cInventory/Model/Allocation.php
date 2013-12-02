@@ -64,7 +64,8 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 */
 	public function buildAllocationRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
-		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
+		$coreHelper = Mage::helper('eb2ccore');
+		$domDocument = $coreHelper->getNewDomDocument();
 		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
 		$allocationRequestMessage->setAttribute('requestId', Mage::helper('eb2cinventory')->getRequestId($quote->getEntityId()));
 		$allocationRequestMessage->setAttribute('reservationId', Mage::helper('eb2cinventory')->getReservationId($quote->getEntityId()));
@@ -78,7 +79,10 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 				// creating shipping details
 				$shipmentDetails = $quoteItem->createChild('ShipmentDetails', null);
 				// add shipment method
-				$shipmentDetails->createChild('ShippingMethod', $shippingAddress->getShippingMethod());
+				$shipmentDetails->createChild(
+					'ShippingMethod',
+					$coreHelper->lookupShipMethod($shippingAddress->getShippingMethod())
+				);
 				// add ship to address
 				$shipToAddress = $shipmentDetails->createChild('ShipToAddress', null);
 				// add ship to address Line 1
