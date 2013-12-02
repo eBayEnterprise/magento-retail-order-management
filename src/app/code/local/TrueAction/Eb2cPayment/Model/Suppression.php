@@ -74,7 +74,6 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function saveEb2CPaymentMethods($enabled)
 	{
-		$config = Mage::app()->getStore($this->_getStoreId())->getConfig('payment');
 		// when enabled, should enable all allowed payment methods
 		// when disabled, should only disable methods exclusive to eb2c payments
 		foreach ($this->_eb2cPaymentMethods as $method) {
