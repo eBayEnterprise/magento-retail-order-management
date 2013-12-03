@@ -19,16 +19,6 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends TrueAction_Eb2cOrder_Tes
 	}
 
 	/**
-	 * Accessing constants using our helper and '::' accessor
-	 * @test
-	 */
-	public function testGetConstHelper()
-	{
-		$consts = $this->_helper->getConstHelper();
-		$this->assertSame($consts::CREATE_OPERATION, 'create');
-	}
-
-	/**
 	 * Make sure we get back a TrueAction_Eb2cCore_Model_Config_Registry and that
 	 * we can see some sensible values in it.
 	 * @test
@@ -55,15 +45,14 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends TrueAction_Eb2cOrder_Tes
 	 */
 	public function testGetOperationUri()
 	{
-		$consts = $this->_helper->getConstHelper();
 		$this->assertStringEndsWith(
 			'create.xml',
-			$this->_helper->getOperationUri($consts::CREATE_OPERATION)
+			$this->_helper->getOperationUri('create')
 		);
 
 		$this->assertStringEndsWith(
 			'cancel.xml',
-			$this->_helper->getOperationUri($consts::CANCEL_OPERATION)
+			$this->_helper->getOperationUri('cancel')
 		);
 	}
 

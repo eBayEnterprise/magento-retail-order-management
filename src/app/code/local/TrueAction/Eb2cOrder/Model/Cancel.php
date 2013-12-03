@@ -53,10 +53,9 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	 */
 	public function buildRequest($orderType, $orderId, $reasonCode, $reason)
 	{
-		$consts = $this->_helper->getConstHelper();
 		$this->_orderId = $orderId;
 		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
-		$cancelRequest = $this->_domRequest->addElement($consts::CANCEL_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
+		$cancelRequest = $this->_domRequest->addElement($this->_config->apiCancelDomRootNodeName, null, $this->_config->apiXmlNs)->firstChild;
 		$cancelRequest->addAttribute('orderType', $orderType);
 		$cancelRequest->addChild('CustomerOrderId', $this->_orderId)
 			->addChild('ReasonCode', $reasonCode)
@@ -73,8 +72,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	 */
 	public function sendRequest()
 	{
-		$consts = $this->_helper->getConstHelper();
-		$uri = $this->_helper->getOperationUri($consts::CANCEL_OPERATION);
+		$uri = $this->_helper->getOperationUri($this->_config->apiCancelOperation);
 
 		$response = '';
 		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_domRequest->saveXML()), Zend_Log::DEBUG);

@@ -19,7 +19,6 @@ class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form extend
 		$this->_initObjects();
 
 		$form = new Varien_Data_Form();
-
 		$sections = $this->_configFields->getSection(
 			$this->getSectionCode(),
 			$this->getWebsiteCode(),
@@ -28,6 +27,8 @@ class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form extend
 		if (empty($sections)) {
 			$sections = array();
 		}
+		$allowedGroups = Mage::getModel('eb2cpayment/suppression')
+			->getAllowedPaymentConfigGroups();
 
 		foreach ($sections as $section) {
 			if (!$this->_canShowField($section)) {
@@ -41,27 +42,20 @@ class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form extend
 					if (!$this->_canShowField($group)) {
 						continue;
 					}
-					if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled && strtoupper(trim($sections->label)) === 'PAYMENT METHODS') {
-						if (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' &&
-						!in_array($group->getAttribute('module'), array('trueaction_pbridge', 'enterprise_pbridge'))) {
-							continue;
-						} elseif (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && strtoupper(trim($group->label)) !== 'PAYMENT BRIDGE') {
-							if ($group->getAttribute('module') !== 'trueaction_pbridge') { // allow eBay Enterprise payment method
-								// disabled dependable payment bridge methods
+
+					if ($section->getName() === 'payment') {
+						if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
+							if (!in_array($group->getName(), $allowedGroups)) {
 								continue;
 							}
-						}
-					} else {
-						// don't show eBay Enterprise Payment method
-						if (strtoupper(trim($sections->label)) === 'PAYMENT METHODS' && strtoupper(trim($group->label)) !== 'PAYMENT BRIDGE') {
+						} else {
 							// don't allow eBay Enterprise payment method config if eb2cpayment is disabled
-							if ($group->getAttribute('module') === 'trueaction_pbridge') {
+							if ($group->getName() === 'pbridge_eb2cpayment_cc') {
 								// disabled dependable payment bridge methods
 								continue;
 							}
 						}
 					}
-
 					$this->_initGroup($form, $group, $section);
 				}
 			}

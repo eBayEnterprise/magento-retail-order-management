@@ -52,46 +52,29 @@
 			</eb2ctax_setup>
 		</resources>
 		<events>
-			<eb2ctax_subtotal_collect_before>
+			<eb2cinventory_details_process_after>
 				<observers>
 					<tax>
 						<class>tax/observer</class>
 						<method>taxEventSendRequest</method>
 					</tax>
 				</observers>
-			</eb2ctax_subtotal_collect_before>
-			<sales_quote_add_item>
+			</eb2cinventory_details_process_after>
+			<!-- Disable observers used by the tax module that no longer apply -->
+			<catalog_prepare_price_select>
 				<observers>
 					<tax>
-						<class>tax/observer</class>
-						<method>salesEventItemAdded</method>
+						<type>disabled</type>
 					</tax>
 				</observers>
-			</sales_quote_add_item>
-			<checkout_cart_product_update_after>
+			</catalog_prepare_price_select>
+			<catalog_product_collection_load_after>
 				<observers>
 					<tax>
-						<class>tax/observer</class>
-						<method>cartEventProductUpdated</method>
+						<type>disabled</type>
 					</tax>
 				</observers>
-			</checkout_cart_product_update_after>
-			<sales_quote_remove_item>
-				<observers>
-					<tax>
-						<class>tax/observer</class>
-						<method>salesEventItemRemoved</method>
-					</tax>
-				</observers>
-			</sales_quote_remove_item>
-			<sales_quote_item_qty_set_after>
-				<observers>
-					<tax>
-						<class>tax/observer</class>
-						<method>salesEventItemQtyUpdated</method>
-					</tax>
-				</observers>
-			</sales_quote_item_qty_set_after>
+			</catalog_product_collection_load_after>
 		</events>
 		<sales>
 			<quote>

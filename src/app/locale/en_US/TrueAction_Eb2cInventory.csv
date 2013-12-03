@@ -1,10 +1,10 @@
-TrueAction_Eb2cInventory_Allocation_Error_Message, Inventory allocation Error.
-TrueAction_Eb2cInventory_Allocation_Qty_Limited_Stock_Message, Sorry, we only have %d of item "%s" in stock.
-TrueAction_Eb2cInventory_Allocation_Qty_Out_Stock_Message, Sorry, item "%s" out of stock.
-TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message, Cannot add the item to shopping cart.
-TrueAction_Eb2cInventory_Error_Processing_Order,There was an error processing your order. Please contact us or try again later.
-Trueaction_Eb2cinventory_Product_Not_Exist,The product does not exist.
-TrueAction_Eb2cInventory_Quantity_Out_Of_Stock_Message, Sorry for the inconvenience, however, this product is out of stock.
-TrueAction_Eb2cInventory_Quantity_Request_Greater_Message, Sorry for the inconvenience, however, the requested quantity %d is greater than what we currently have in stock %d.
-Trueaction_Eb2cinventory_Quote_Item_Not_Exist,Quote item does not exist.
-TrueAction_Eb2cInventory_Terms_Agreement_Error,Please agree to all the terms and conditions before placing the order.
+"TrueAction_Eb2cInventory_Allocation_Error_Message", "Inventory allocation Error."
+"TrueAction_Eb2cInventory_Allocation_Qty_Limited_Stock_Message", "Sorry, we only have %d of item "%s" in stock."
+"TrueAction_Eb2cInventory_Allocation_Qty_Out_Stock_Message", "Sorry, item "%s" out of stock."
+"TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message", "Cannot add the item to shopping cart."
+"TrueAction_Eb2cInventory_Error_Processing_Order", "There was an error processing your order. Please contact us or try again later."
+"Trueaction_Eb2cinventory_Product_Not_Exist", "The product does not exist."
+"TrueAction_Eb2cInventory_Quantity_Out_Of_Stock_Message", "Sorry for the inconvenience, however, this product is out of stock."
+"TrueAction_Eb2cInventory_Quantity_Request_Greater_Message", "Sorry for the inconvenience, however, the requested quantity %d is greater than what we currently have in stock %d."
+"Trueaction_Eb2cinventory_Quote_Item_Not_Exist", "Quote item does not exist."
+"TrueAction_Eb2cInventory_Terms_Agreement_Error", "Please agree to all the terms and conditions before placing the order."

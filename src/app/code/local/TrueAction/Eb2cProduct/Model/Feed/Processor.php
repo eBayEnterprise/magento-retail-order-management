@@ -94,18 +94,34 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		return $this;
 	}
 
-	public function processUpdates($dataObjectList)
+	/**
+	 * transform each product item data to be imported and processing
+	 * adding or updating item to Magento catalog
+	 * @param ArrayIterator $dataObjectList, list of product data to be imported
+	 * @return self
+	 */
+	public function processUpdates(ArrayIterator $dataObjectList)
 	{
-		Mage::log(sprintf('[ %s ] Processing %d updates.', __CLASS__, count($dataObjectList)));
+		Mage::log(sprintf('[ %s ] Processing %d updates.', __CLASS__, count($dataObjectList)), Zend_Log::INFO);
 		foreach ($dataObjectList as $dataObject) {
 			$dataObject = $this->_transformData($dataObject);
 			$this->_synchProduct($dataObject);
 		}
-		if (!empty($this->_customAttributeErrors)) {
-			Mage::log(sprintf('[ %s ] Feed Error Statistics %s', __CLASS__,
-				print_r($this->_customAttributeErrors, true)), Zend_Log::DEBUG);
-			unset($this->_customAttributeErrors);
+		$this->_logFeedErrorStatistics();
+		return $this;
+	}
+
+	/**
+	 * log any custom error that occurred while processing feed import and
+	 * set _customAttributeErrors property to an empty array.
+	 * @return self
+	 */
+	protected function _logFeedErrorStatistics()
+	{
+		foreach($this->_customAttributeErrors as $err) {
+			Mage::log(sprintf('[ %s ] Feed Error Statistics %s', __CLASS__, print_r($err, true)), Zend_Log::DEBUG);
 		}
+		array_splice($this->_customAttributeErrors, 0); // truncate array
 		return $this;
 	}
 

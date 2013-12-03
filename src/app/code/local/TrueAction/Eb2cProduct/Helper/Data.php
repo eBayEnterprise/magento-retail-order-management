@@ -1,9 +1,10 @@
 <?php
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	private $_customAttributeCodeSets = array();
-
-	protected $_types;
+	/**
+	 * @see self::getCustomAttributeCodeSet
+	 */
+	protected $_customAttributeCodeSets = array();
 	/**
 	 * @var array boilerplate for initializing a new product with limited information.
 	 */
@@ -71,7 +72,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * @return string the default locale language code 
+	 * @return string the default locale language code
 	 */
 	public function getDefaultLanguageCode()
 	{
@@ -152,10 +153,8 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function hasProdType($type)
 	{
-		if (!$this->_types) {
-			$this->_types = array_keys(Mage_Catalog_Model_Product_Type::getTypes());
-		}
-		return in_array($type, $this->_types);
+		$types = Mage_Catalog_Model_Product_Type::getTypes();
+		return isset($types[$type]);
 	}
 
 	/**
@@ -166,7 +165,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function extractNodeVal(DOMNodeList $nodeList)
 	{
-		return ($nodeList->length)? $nodeList->item(0)->nodeValue : null;
+		return ($nodeList->length) ? $nodeList->item(0)->nodeValue : null;
 	}
 
 	/**
@@ -178,7 +177,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function extractNodeAttributeVal(DOMNodeList $nodeList, $attributeName)
 	{
-		return ($nodeList->length)? $nodeList->item(0)->getAttribute($attributeName) : null;
+		return ($nodeList->length) ? $nodeList->item(0)->getAttribute($attributeName) : null;
 	}
 
 	/**

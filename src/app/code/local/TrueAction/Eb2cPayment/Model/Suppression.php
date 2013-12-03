@@ -33,6 +33,14 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	protected $_allowedPaymentMethods = array();
 
 	/**
+	 * @return  array list of groups from the payment config that should be rendered.
+	 */
+	public function getAllowedPaymentConfigGroups()
+	{
+		return $this->_eb2cPaymentMethods;
+	}
+
+	/**
 	 * Core config model used to update config values
 	 * @var Mage_Core_Model_Config
 	 */
