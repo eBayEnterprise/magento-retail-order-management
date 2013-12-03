@@ -66,9 +66,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 	public function __construct()
 	{
-		$this->_helper = Mage::helper('eb2cproduct');
-		$config = $this->_helper->getConfigModel();
-		$this->_defaultLanguageCode = $this->_helper->getDefaultLanguageCode();
+		$config = Mage::helper('eb2cproduct')->getConfigModel();
+		$this->_defaultLanguageCode = Mage::helper('eb2cproduct')->getDefaultLanguageCode();
 		$this->_initLanguageCodeMap();
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
@@ -166,7 +165,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 		// prepare base attributes
 		$baseAttributes = new Varien_Object();
-		$baseAttributes->setData('drop_shipped', $this->_helper->parseBool($dataObject->getData('is_drop_shipped')));
+		$baseAttributes->setData('drop_shipped', Mage::helper('eb2cproduct')->parseBool($dataObject->getData('is_drop_shipped')));
 		foreach (array('catalog_class', 'item_description', 'item_type', 'item_status', 'tax_code', 'title') as $key) {
 			if ($dataObject->hasData($key)) {
 				$baseAttributes->setData($key, $dataObject->getData($key));
@@ -228,13 +227,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		// handle values that need to be booleans
 		foreach ($this->_extKeysBool as $key) {
 			if ($dataObject->hasData($key)) {
-				$extData->setData($key, $this->_helper->parseBool($dataObject->getData($key)));
+				$extData->setData($key, Mage::helper('eb2cproduct')->parseBool($dataObject->getData($key)));
 			}
 		}
 
 		$this->_preparePricingEventData($dataObject, $extData);
 		// @todo clean up circular assignments
-
 		$outData->setData('long_description',
 			$this->_getLocalizations($extData, 'long_description'));
 
@@ -242,7 +240,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			$this->_getLocalizations($extData, 'short_description'));
 
 		$outData->setData('extended_attributes', $extData);
-		$extData->addData($this->_getGiftWrap($outData));
+		$extendedAttributes = $outData->getExtendedAttributes()->getData();
+		$giftWrapData = array();
+		if (!empty($extendedAttributes) && isset($extendedAttributes['gift_wrap'])) {
+			$giftWrapData['gift_wrap'] = Mage::helper('eb2cproduct')->parseBool($extendedAttributes['gift_wrap']);
+		}
+		$extData->addData($giftWrapData);
 		///////
 		$customAttributes = $dataObject->getCustomAttributes();
 		if( $customAttributes ) {
@@ -270,7 +273,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$sku = $dataObject->getClientItemId();
 		if ($sku) {
 			// we have a valid item, let's check if this product already exists in Magento
-			$product = $this->_helper->loadProductBySku($sku);
+			$product = Mage::helper('eb2cproduct')->loadProductBySku($sku);
 
 			if ($product->getId()) {
 				try {
@@ -304,7 +307,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$extendedAttributes = $dataObject->getExtendedAttributes()->getData();
 		if (!empty($extendedAttributes)) {
 			if (isset($extendedAttributes['gift_wrap'])) {
-				$data['gift_wrap'] = $this->_helper->parseBool($extendedAttributes['gift_wrap']);
+				$data['gift_wrap'] = Mage::helper('eb2cproduct')->parseBool($extendedAttributes['gift_wrap']);
 			}
 		}
 		return $data;
@@ -335,14 +338,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	 */
 	protected function _prepareCustomAttributes($customAttributes, Varien_Object $outData)
 	{
-		$attributeSetId  = $this->_helper->getDefaultProductAttributeSetId();
+		$attributeSetId  = Mage::helper('eb2cproduct')->getDefaultProductAttributeSetId();
 		foreach($customAttributes as $attribute) {
 			if ($attribute['name'] === 'AttributeSet') {
 				$attributeSetId = $attribute['value'];
 				break;
 			}
 		}
-		$customAttributeSet =  $this->_helper->getCustomAttributeCodeSet($attributeSetId);
+		$customAttributeSet =  Mage::helper('eb2cproduct')->getCustomAttributeCodeSet($attributeSetId);
 
 		$cookedAttributes = array();
 		foreach ($customAttributes as $customAttribute) {
@@ -422,7 +425,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected function _preparePricingEventData(Varien_Object $dataObject, Varien_Object $outData)
 	{
 		if ($dataObject->hasEbcPricingEventNumber()) {
-			$priceIsVatInclusive = $this->_helper->parseBool($dataObject->getPriceVatInclusive());
+			$priceIsVatInclusive = Mage::helper('eb2cproduct')->parseBool($dataObject->getPriceVatInclusive());
 			$data = array(
 				'price' => $dataObject->getPrice(),
 				'msrp' => $dataObject->getMsrp(),
@@ -556,7 +559,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
 			return;
 		}
-		$product = $this->_helper->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
+		$product = Mage::helper('eb2cproduct')->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
 
 		$productData = new Varien_Object();
 
@@ -903,7 +906,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 
 		// Get default lang and translations for brand_description
 		if ($prodHlpr->hasEavAttr('brand_description')) {
-			$data['brand_description'] = $this->_helper->parseTranslations(
+			$data['brand_description'] = Mage::helper('eb2cproduct')->parseTranslations(
 				$dataObject->getExtendedAttributes()->getBrandDescription()
 			);
 		}
