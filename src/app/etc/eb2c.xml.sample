@@ -32,6 +32,13 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<VL>9900000000000000-9900000010000000</VL>
 				</svc_bin_range>
 			</payment>
+			<feed>
+				<!--
+				This setting will enable (1) or disable (0) the deletion of files from the remote
+				SFTP server after processing the feed files.
+				-->
+				<delete_remote_feed_files>1</delete_remote_feed_files>
+			</feed>
 		</eb2ccore>
 	</default>
 </config>

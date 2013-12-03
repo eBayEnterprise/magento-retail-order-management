@@ -90,7 +90,7 @@
 							<comment>The API key for the Exchange Platform web services</comment>
 							<sort_order>70</sort_order>
 							<frontend_type>obscure</frontend_type>
-							<validate>validate-password</validate>
+							<validate>required-entry</validate>
 							<backend_model>adminhtml/system_config_backend_encrypted</backend_model>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
@@ -106,13 +106,13 @@
 							<show_in_website>0</show_in_website>
 							<show_in_store>0</show_in_store>
 						</timeout>
-						<environment>
-							<label>API Environment</label>
+						<hostname>
+							<label>API Hostname</label>
 							<frontend_type>text</frontend_type>
 							<show_in_default>1</show_in_default>
 							<show_in_website>0</show_in_website>
 							<show_in_store>0</show_in_store>
-						</environment>
+						</hostname>
 					</fields>
 				</api>
 				<feed>
@@ -168,7 +168,7 @@
 						<filetransfer_sftp_password>
 							<label>SFTP Key</label>
 							<comment>The private key for authenticating to the feeds service. (The feeds service must be provided a corresponding public key.)</comment>
-							<validate>validate-password</validate>
+							<validate>required-entry</validate>
 						</filetransfer_sftp_password>
 						<!-- END HACK -->
 						<sftp_location>

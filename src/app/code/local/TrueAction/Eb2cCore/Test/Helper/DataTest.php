@@ -65,8 +65,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	public function testApiUriCreation()
 	{
 		$this->_mockConfig(array(
-			array('apiEnvironment', 'api_env'),
-			array('apiRegion', 'api_rgn'),
+			array('apiHostname', 'api.example.com'),
 			array('apiMajorVersion', 'M'),
 			array('apiMinorVersion', 'm'),
 			array('storeId', 'store_id'),
@@ -74,17 +73,17 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$helper = Mage::helper('eb2ccore');
 		// simplest case - just a service and operation
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/address/validate.xml',
+			'https://api.example.com/vM.m/stores/store_id/address/validate.xml',
 			$helper->getApiUri('address', 'validate')
 		);
 		// service, operation and params
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/payments/creditcard/auth/VC.xml',
+			'https://api.example.com/vM.m/stores/store_id/payments/creditcard/auth/VC.xml',
 			$helper->getApiUri('payments', 'creditcard', array('auth', 'VC'))
 		);
 		// service, operation, params and type
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.json',
+			'https://api.example.com/vM.m/stores/store_id/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
@@ -100,7 +99,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$helper = Mage::helper('eb2ccore');
 		// service, operation, params and type
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
+			'https://api.example.com/vM.m/stores/store_id2/inventory/allocations/delete.json',
 			$helper->getApiUri('inventory', 'allocations', array('delete'), 'json')
 		);
 	}
@@ -168,6 +167,14 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	}
 
 	/**
+	 * verify the language code string is converted to EB2C's format.
+	 */
+	public function testMageToXmlLangFrmt()
+	{
+		$this->assertSame('en-US', Mage::helper('eb2ccore')->mageToXmlLangFrmt('en_US'));
+	}
+
+	/**
 	 * Test extractNodeVal method
 	 *
 	 * @param DOMNodeList $nodeList
@@ -205,6 +212,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	{
 		$this->assertSame('TAN-CLI', Mage::helper('eb2ccore')->extractNodeAttributeVal($nodeList, $attributeName));
 	}
+
 	/**
 	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
 	 * @loadFixture
@@ -218,5 +226,17 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 			Mage::helper('eb2ccore')->lookupShipMethod($mageShipMethod)
 		);
 	}
-}
 
+	/**
+	 * Test normalizing a product style id to match formatting for skus
+	 * @param  string $style   The product style id
+	 * @param  string $catalog The product catalog id
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testNormalizeSku($styleId, $catalogId)
+	{
+		$normalized = Mage::helper('eb2ccore')->normalizeSku($styleId, $catalogId);
+		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
+	}
+}

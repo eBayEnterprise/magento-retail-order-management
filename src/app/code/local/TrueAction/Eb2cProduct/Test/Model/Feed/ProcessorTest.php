@@ -1,7 +1,63 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
+	/**
+	 * Test processUpdates method
+	 * @test
+	 */
+	public function testProcessUpdates()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_transformData', '_synchProduct', '_logFeedErrorStatistics'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_transformData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(new Varien_Object()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_synchProduct')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(null));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_logFeedErrorStatistics')
+			->will($this->returnValue(null));
+
+		$dataArrayObject = new ArrayObject(array(new Varien_Object()));
+
+		$feedProcessorModelMock->processUpdates($dataArrayObject->getIterator());
+	}
+
+	/**
+	 * Test _logFeedErrorStatistics method
+	 * @test
+	 */
+	public function testLogFeedErrorStatistics()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')
+			->setValue($feedProcessorModelMock, array(
+				'invalid_language' => 5,
+				'invalid_operation_type' => 3,
+				'missing_operation_type' => 2,
+				'missing_attribute' => 1,
+			));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_logFeedErrorStatistics')->invoke($feedProcessorModelMock)
+		);
+
+		$this->assertSame(
+			array(),
+			$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')->getValue($feedProcessorModelMock)
+		);
+	}
+
 	const VFS_ROOT = 'var/eb2c';
 
 	/**
@@ -75,68 +131,31 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$testModel->expects($this->atLeastOnce())
 			->method('_synchProduct')
 			->will($this->returnCallback($checkData));
-		$dataObj = new Varien_Object($this->getLocalFixture($scenario));
-		$testModel->processUpdates(array($dataObj));
+		$dataArrayObject = new ArrayObject(array(new Varien_Object($this->getLocalFixture($scenario))));
+		$testModel->processUpdates($dataArrayObject->getIterator());
 	}
 
 	/**
-	 * @loadFixture
-	 * @large
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
-	public function testProductLinks()
+	public function testExceptionInGetAttributeOptionId()
 	{
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('contentmaster1'));
-		$testModel->processUpdates(array($dataObj));
-
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$col = $product->getRelatedLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getUpSellLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getCrossSellLinkCollection();
-		$this->assertSame(1, count($col));
+		$fn = $this->_reflectMethod($testModel, '_getAttributeOptionId');
+		$fn->invoke($testModel, '', '');
 	}
 
 	/**
-	 * @loadFixture
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
-	public function testStockItemData()
+	public function testExceptionInAddOptionToAttribute()
 	{
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('itemmaster-exists'));
-		// confirm preconditions
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('0', $stock->getData('backorders'));
-		$this->assertSame('1', $stock->getData('use_config_backorders'));
-		// run test
-		$testModel->processUpdates(array($dataObj));
-		// verify results
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('1', $stock->getData('backorders'));
-		$this->assertSame('0', $stock->getData('use_config_backorders'));
-	}
-
-	/**
-	 * @loadFixture
-	 * @dataProvider dataProvider
-	 */
-	public function testConfigurableData($scenario)
-	{
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$extractedUnits = $this->getLocalFixture($scenario);
-		$processList = array();
-		foreach ($extractedUnits as $extractedUnit) {
-			$processList[] = new Varien_Object($extractedUnit);
-		}
-		$dataObj = new Varien_Object();
-		// confirm preconditions
-		// assert theparent exists
-		// assert theotherparent doesnt exist
-		// assert 45-000906014545 doesnt exist
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$testModel->processUpdates($processList);
+		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
+		$fn->invoke($testModel, '', '', '');
 	}
 }

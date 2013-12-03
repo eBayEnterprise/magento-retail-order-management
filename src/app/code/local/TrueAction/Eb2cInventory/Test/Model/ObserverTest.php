@@ -131,12 +131,90 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$allocationMock->expects($this->any())
 			->method('filterInventoriedItems')
 			->will($this->returnValue(true));
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
+
+		$this->_observer->checkEb2cInventoryQuantity($observer);
+	}
+
+	/**
+	 * verify Mage_Core_Exception is thrown when requestQantity raises the cart_interrupt exception.
+	 * @test
+	 * @dataProvider providerCheckEb2cInventoryQuantity
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCheckEb2cInventoryExceptionInterruptsCart($observer)
+	{
+		$this->setExpectedException('Mage_Core_Exception', 'TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message');
+		// testing when available stock is less, than what shopper requested.
+		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
+			->disableOriginalConstructor()
+			->setMethods(array('requestQuantity'))
+			->getMock();
+		$quantityMock->expects($this->any())
+			->method('requestQuantity')
+			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart_Interrupt()));
+
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
+
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
+			->disableOriginalConstructor()
+			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
 
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
-		$this->assertNull(
-			$this->_observer->checkEb2cInventoryQuantity($observer)
-		);
+		$this->_observer->checkEb2cInventoryQuantity($observer);
+	}
+
+	/**
+	 * verify the cart operation is unimpeded when the cart exception is thrown.
+	 * @test
+	 * @dataProvider providerCheckEb2cInventoryQuantity
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function testCheckEb2cInventoryExceptionNotInterruptCart($observer)
+	{
+		// testing when available stock is less, than what shopper requested.
+		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
+			->disableOriginalConstructor()
+			->setMethods(array('requestQuantity'))
+			->getMock();
+		$quantityMock->expects($this->any())
+			->method('requestQuantity')
+			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart()));
+
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
+
+		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
+			->disableOriginalConstructor()
+			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
+			->getMock();
+		$allocationMock->expects($this->any())
+			->method('hasAllocation')
+			->will($this->returnValue(true));
+		$allocationMock->expects($this->any())
+			->method('rollbackAllocation')
+			->will($this->returnValue(null));
+		$allocationMock->expects($this->any())
+			->method('filterInventoriedItems')
+			->will($this->returnValue(true));
+		$itemMock = $observer->getEvent()->getItem();
+		$itemMock->expects($this->any())
+			->method('setQty')
+			->will($this->throwException(new Mage_Core_Exception('this is a failure')));
+
+		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
+
+		$this->_observer->checkEb2cInventoryQuantity($observer);
 	}
 
 	/**
@@ -175,10 +253,13 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			->will($this->returnValue(true));
 
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
+		$itemMock = $observer->getEvent()->getItem();
+		$itemMock->expects($this->any())
+			->method('setQty')
+			->with($this->identicalTo(0.5))
+			->will($this->returnSelf());
 
-		$this->assertNull(
-			$this->_observer->checkEb2cInventoryQuantity($observer)
-		);
+		$this->_observer->checkEb2cInventoryQuantity($observer);
 	}
 
 	/**

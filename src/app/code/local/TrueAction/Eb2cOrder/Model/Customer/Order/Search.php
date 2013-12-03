@@ -2,17 +2,17 @@
 class TrueAction_Eb2cOrder_Model_Customer_Order_Search
 {
 	/**
-	 * Cutomer Order Search from eb2c.
-	 *
+	 * Cutomer Order Search from eb2c, when orderId parameter is passed the request to eb2c is filter
+	 * by customerOrderId instead of querying eb2c by the customer id to get all order relating to this customer
 	 * @param int $customerId, the magento customer id to query eb2c with
-	 *
+	 * @param string $orderId, the magento order increment id to query eb2c with
 	 * @return string the eb2c response to the request.
 	 */
-	public function requestOrderSummary($customerId)
+	public function requestOrderSummary($customerId, $orderId='')
 	{
 		$responseMessage = '';
 		// build request
-		$requestDoc = $this->buildOrderSummaryRequest($customerId);
+		$requestDoc = $this->buildOrderSummaryRequest($customerId, $orderId);
 		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 		$cfg = Mage::helper('eb2corder')->getConfig();
 
@@ -38,25 +38,26 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search
 
 	/**
 	 * Build OrderSummary request.
-	 *
 	 * @param int $customerId, the customer id to generate request XML from
-	 *
+	 * @param string $orderId, the magento order increment id to query eb2c with
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildOrderSummaryRequest($customerId)
+	public function buildOrderSummaryRequest($customerId, $orderId='')
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$orderSummaryRequest = $domDocument->addElement('OrderSummaryRequest', null, Mage::helper('eb2corder')->getConfig()->apiXmlNs)->firstChild;
 		$orderSearch = $orderSummaryRequest->createChild('OrderSearch', null, array());
-		$orderSearch->createChild('CustomerId', (string) $customerId);
+		if (trim($orderId) !== '') {
+			$orderSearch->createChild('CustomerOrderId', (string) $orderId);
+		} else {
+			$orderSearch->createChild('CustomerId', (string) $customerId);
+		}
 		return $domDocument;
 	}
 
 	/**
 	 * Parse customer Order Summary reply xml.
-	 *
 	 * @param string $orderSummaryReply the xml response from eb2c
-	 *
 	 * @return array, a collection of Varien_Object with response data
 	 */
 	public function parseResponse($orderSummaryReply)

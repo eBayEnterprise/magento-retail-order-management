@@ -1,4 +1,6 @@
 config:
+  global/events/product_feed_processing_complete/observers/eb2c_reindex_all/class: 'TrueAction_Eb2cCore_Test_Model_FeedTest'
+  global/events/product_feed_processing_complete/observers/eb2c_reindex_all/method: 'stubObserver'
   default/eb2ccore/general/client_id: 'MAGTNA'
   default/eb2ccore/general/catalog_id: '45'
   default/eb2cproduct/pricing_feed/local_path: 'var/eb2c/pricing'

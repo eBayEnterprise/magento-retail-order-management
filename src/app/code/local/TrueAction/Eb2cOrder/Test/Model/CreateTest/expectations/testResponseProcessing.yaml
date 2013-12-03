@@ -1,0 +1,4 @@
+success:
+  order_state: 'processing'
+failed:
+  order_state: 'new'

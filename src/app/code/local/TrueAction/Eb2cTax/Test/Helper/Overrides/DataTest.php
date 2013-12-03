@@ -91,7 +91,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'setUri'));
 		$apiModelMock->expects($this->once())
 			->method('setUri')
-			->with($this->identicalTo('https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/taxes/quote.xml'))
+			->with($this->identicalTo('https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
@@ -110,7 +110,6 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 
 	/**
 	 * @test
-	 * @expectedException Mage_Core_Exception
 	 * @loadFixture sendRequestConfig.yaml
 	 */
 	public function testSendRequestWithExceptionThrown()
@@ -125,7 +124,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$apiModelMock = $this->getMock('TrueAction_Eb2cCore_Model_Api', array('setUri', 'request'));
 		$apiModelMock->expects($this->any())
 			->method('setUri')
-			->with($this->identicalTo('https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/taxes/quote.xml'))
+			->with($this->identicalTo('https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')

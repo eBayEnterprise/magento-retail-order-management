@@ -15,7 +15,6 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	public function __construct()
 	{
 		parent::__construct();
-		$this->_coreHelper = Mage::helper('eb2ccore');
 		$this->_configRegistry = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ctax/config'));
 	}
@@ -27,25 +26,22 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 	 */
 	public function sendRequest(TrueAction_Eb2cTax_Model_Request $request)
 	{
-		$uri = $this->_coreHelper->getApiUri(
+		$uri = Mage::helper('eb2ccore')->getApiUri(
 			$this->_service,
-			$this->_operation,
-			array(),
-			$this->_responseFormat
+			$this->_operation
 		);
+		$responseData = array();
 		try {
 			$response = Mage::getModel('eb2ccore/api')
 				->setUri($uri)
 				->setXsd($this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest)
 				->request($request->getDocument());
-		} catch(Exception $e) {
-			Mage::throwException('TaxDutyFee communications error: ' . $e->getMessage() );
+			$responseData = array('xml' => $response, 'request' => $request);
+		} catch (Exception $e) {
+			Mage::log('[' . __CLASS__ . '] TaxDutyFee communications error: ' . $e->getMessage());
 		}
 
-		$response = Mage::getModel('eb2ctax/response', array(
-			'xml'     => $response,
-			'request' => $request
-		));
+		$response = Mage::getModel('eb2ctax/response', $responseData);
 		return $response;
 	}
 

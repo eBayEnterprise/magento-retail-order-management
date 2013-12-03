@@ -252,7 +252,16 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
 
+		// ensure we trigger the reindexer.
+		$indexer = $this->getModelMock('eb2ccore/indexer', array('reindexAll'));
+		$indexer->expects($this->once())
+			->method('reindexAll');
+		$this->replaceByMock('model', 'eb2ccore/indexer', $indexer);
+
 		$model->processFeeds();
+
+		// Make sure the event got fired.
+		$this->assertEventDispatched('inventory_feed_processing_complete');
 	}
 	/**
 	 * @test
@@ -315,7 +324,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$extractSku->setAccessible(true);
 		$this->assertSame('foo-bar', $extractSku->invoke($fii, new Varien_Object(array(
 			'catalog_id' => 'foo',
-			'client_item_id' => 'bar',
+			'item_id' => new Varien_Object(array('client_item_id' => 'bar')),
 		))));
 	}
 	/**

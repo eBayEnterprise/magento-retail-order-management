@@ -22,12 +22,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Extractor_ColorTest
 		$this->assertSame(
 			array(
 				'thefoo' => array(
-					array(
-						'value' => '1',
-						'description' => array(
-							'description' => 'desc1',
-							'lang' => 'en_US'
-						)
+					'value' => '1',
+					'localization' => array(
+						'en_US' => 'desc1',
 					)
 				)
 			),
@@ -52,12 +49,45 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Extractor_ColorTest
 		$this->assertSame(
 			array(
 				'thefoo' => array(
-					array(
-						'code' => '1',
-						'description' => array(
-							'description' => 'desc1',
-							'lang' => 'en_US'
-						)
+					'code' => '1',
+					'localization' => array(
+						'en_US' => 'desc1',
+					)
+				)
+			),
+			$result
+		);
+	}
+
+	public function testMultipleLocalizations()
+	{
+		$xml = '
+			<ColorAttributes>
+				<Color>
+					<Code>700</Code>
+					<Description xml:lang="en-US">Vanilla</Description>
+					<Description xml:lang="ja-JP">バニラ</Description>
+					<Description xml:lang="he-IL">וניל</Description>
+				</Color>
+			</ColorAttributes>';
+
+		$base = array('theColor' => 'Color');
+		$valueAlias = array('code' => 'Code/text()');
+
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML($xml);
+		$xpath = new DOMXPath($doc);
+		$x = Mage::getModel('eb2cproduct/feed_extractor_color', array($base, $valueAlias));
+		$result = $x->extract($xpath, $doc->documentElement);
+
+		$this->assertSame(
+			array(
+				'theColor' => array(
+					'code' => '700',
+					'localization' => array(
+						'en-US' => 'Vanilla',
+						'ja-JP' => 'バニラ',
+						'he-IL' => 'וניל',
 					)
 				)
 			),

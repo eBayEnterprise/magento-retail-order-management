@@ -14,7 +14,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Pricing
 		'gsi_store_id' => './@gsi_store_id',
 		'price' => 'Event[last()]/Price/text()',
 		'msrp' => 'Event[last()]/MSRP/text()',
-		'alternate_price' => 'Event[last()]/AlternatePrice1/text()',
 		'start_date' => 'Event[last()]/StartDate/text()',
 		'end_date' => 'Event[last()]/EndDate/text()',
 		'price_vat_inclusive' => 'Event[last()]/PriceVatInclusive/text()',

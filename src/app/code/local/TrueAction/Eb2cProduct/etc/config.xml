@@ -179,6 +179,17 @@
 	</global>
 	<default>
 		<eb2cproduct>
+			<dummy>
+				<!-- Default values for product attributes where Vanilla Magento doesn't already have defaults. -->
+				<description>This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.</description>
+				<in_stock>1</in_stock>
+				<manage_stock>1</manage_stock>
+				<short_description>invalid product. Please do not attempt to purchase.</short_description>
+				<stock_quantity>0</stock_quantity>
+				<tax_class_id>0</tax_class_id>
+				<type_id>simple</type_id>
+				<weight>0</weight>
+			</dummy>
 			<api_service>product</api_service>
 			<api_return_format>xml</api_return_format>
 			<item_master_feed>

@@ -25,320 +25,13 @@ This is a fine mess ollie.
 INVALID_XML;
 
 	/**
-	 * Create an Order, with success reponse status
-	 * @medium
-	 * @test
-	 */
-	public function testOrderCreateWithSuccessResponseStatus()
-	{
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$helperMock->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue( (Object) array(
-				'isPaymentEnabled' => true,
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel(
-			'eb2ccore/api',
-			array(
-				'request' => self::SAMPLE_SUCCESS_XML,
-			),
-			false
-		);
-
-		$status = Mage::getModel('eb2corder/create')
-			->buildRequest($this->getMockSalesOrder())
-			->sendRequest();
-
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $status);
-	}
-
-	/**
-	 * Create an Order, with success reponse status and payment method return paypal express
-	 * @medium
-	 * @test
-	 */
-	public function testOrderCreateWithSuccessResponseStatusPaymentMethodIsPaypal()
-	{
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$helperMock->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue( (Object) array(
-				'isPaymentEnabled' => true,
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel(
-			'eb2ccore/api',
-			array(
-				'request' => self::SAMPLE_SUCCESS_XML,
-			),
-			false
-		);
-
-		$status = Mage::getModel('eb2corder/create')
-			->buildRequest($this->getMockSalesOrder2())
-			->sendRequest();
-
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $status);
-	}
-
-	/**
-	 * Create an Order, with failed reponse status
-	 * @medium
-	 * @test
-	 */
-	public function testOrderCreateWithFailedResponseStatus()
-	{
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel(
-			'eb2ccore/api',
-			array(
-				'request' => self::SAMPLE_FAILED_XML,
-			),
-			false
-		);
-
-		$status = Mage::getModel('eb2corder/create')
-			->buildRequest($this->getMockSalesOrder())
-			->sendRequest();
-
-		$this->assertInstanceOf('TrueAction_Eb2cOrder_Model_Create', $status);
-	}
-
-	/**
-	 * Testing when sendRequest will throw Zend_Http_Client_Exception by request method
-	 * @test
-	 */
-	public function testSendRequestWithZendHttpClientException()
-	{
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
-			->getMock();
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->with($this->equalTo('https://dev-mode-test.com'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('setTimeout')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('setXsd')
-			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$create = Mage::getModel('eb2corder/create');
-		$domRequest = $this->_reflectProperty($create, '_domRequest');
-		$domRequest->setValue($create, Mage::helper('eb2ccore')->getNewDomDocument());
-
-		$o = $this->_reflectProperty($create, '_o');
-		$o->setValue($create, $this->getMockSalesOrder());
-
-		$create->sendRequest();
-	}
-
-	/**
-	 * Testing when sendRequest will throw Mage_Core_Exception by request method
-	 * @test
-	 */
-	public function testSendRequestWithMageCoreException()
-	{
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'setTimeout', 'setXsd', 'request'))
-			->getMock();
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->with($this->equalTo('https://dev-mode-test.com'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('setTimeout')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('setXsd')
-			->with($this->equalTo('Order-Service-Cancel-1.0.xsd'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Mage_Core_Exception));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$create = Mage::getModel('eb2corder/create');
-		$domRequest = $this->_reflectProperty($create, '_domRequest');
-		$domRequest->setValue($create, Mage::helper('eb2ccore')->getNewDomDocument());
-
-		$o = $this->_reflectProperty($create, '_o');
-		$o->setValue($create, $this->getMockSalesOrder());
-
-		$create->sendRequest();
-	}
-
-	/**
-	 * Call the observerCreate method, which is meant to be called by a dispatched event
-	 * Also covers the eb2c payments not enabled case
-	 *
-	 * @large
-	 * @test
-	 */
-	public function testObserverCreate()
-	{
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		// Mock the core config registry, only value passed is the vfs filename
-		$this->replaceModel( 'eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML), false );
-		$this->replaceCoreConfigRegistry( array('isPaymentEnabled' => false)); // Serves dual purpose, cover payments not enabled case.
-
-		Mage::getModel('eb2corder/create')->observerCreate(
-			$this->replaceModel(
-				'varien/event_observer',
-				array(
-					'getEvent' =>
-					$this->replaceModel(
-						'varien/event',
-						array(
-							'getOrder' => $this->getMockSalesOrder()
-						)
-					)
-				)
-			)
-		);
-	}
-
-	/**
-	 * Test the retryOrderCreate method that will be called by a cron job to retry any
-	 * order with the state "new"
-	 * @test
-	 */
-	public function testRetryOrderCreate()
-	{
-		$newCollection = new Varien_Data_Collection();
-		$newCollection->addItem($this->getMockSalesOrder());
-
-		$salesResourceModelOrderMock = $this->getResourceModelMockBuilder('sales/order_collection')
-			->disableOriginalConstructor()
-			->setMethods(array('addAttributeToSelect', 'getSelect', 'where', 'load'))
-			->getMock();
-
-		$salesResourceModelOrderMock->expects($this->once())
-			->method('addAttributeToSelect')
-			->with($this->equalTo('*'))
-			->will($this->returnSelf());
-		$salesResourceModelOrderMock->expects($this->once())
-			->method('getSelect')
-			->will($this->returnSelf());
-		$salesResourceModelOrderMock->expects($this->once())
-			->method('where')
-			->with($this->equalTo("main_table.state = 'new'"))
-			->will($this->returnSelf());
-		$salesResourceModelOrderMock->expects($this->once())
-			->method('load')
-			->will($this->returnValue($newCollection));
-
-		$this->replaceByMock('resource_model', 'sales/order_collection', $salesResourceModelOrderMock);
-
-		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
-			->disableOriginalConstructor()
-			->setMethods(array('buildRequest', 'sendRequest'))
-			->getMock();
-		$createModelMock->expects($this->once())
-			->method('buildRequest')
-			->with($this->isInstanceOf('Mage_Sales_Model_Order'))
-			->will($this->returnSelf());
-		$createModelMock->expects($this->any())
-			->method('sendRequest')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/api', $createModelMock);
-
-		$createModelMock->retryOrderCreate();
-	}
-
-	/**
-	 * Test that when eb2cpayments is explicitly disabled it sends "prepaid" to OMS
-	 * @test
-	 */
-	public function testPaymentRequestGetSendWithPrepaidCreditCardNodeWithWhenEb2cPaymentIsDisabled()
-	{
-		// let test the model responsible for building the payment request xml
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-
-		$helperMock->expects($this->any())
-			->method('getConfigModel')
-			->will($this->returnValue((object) array(
-				'isPaymentEnabled' => 0
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel(
-			'eb2ccore/api',
-			array(
-				'request' => self::SAMPLE_SUCCESS_XML,
-			),
-			false
-		);
-
-		$createObject = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder());
-
-		$domRequest = $this->_reflectProperty($createObject, '_domRequest');
-		// let's test the we have a valid TrueAction_Dom_Document in the class property _domRequest
-		$this->assertInstanceOf('TrueAction_Dom_Document', $domRequest->getValue($createObject));
-
-		$xmlRequest = $this->_reflectProperty($createObject, '_xmlRequest');
-		// let's test request xml has a PrepaidCreditCard node
-		$prepaidContentNode = stristr(stristr(
-		$xmlRequest->getValue($createObject), '<PrepaidCreditCard>', false),
-		'</PrepaidCreditCard>', true);
-
-		$this->assertNotEmpty($prepaidContentNode);
-	}
-
-	/**
 	 * Tests for correctly as parsed from Pbridge Credit Card extensions 'additional_information' variable.
 	 *
 	 * @test
 	 */
 	public function testPbridgeGetAdditionalInformation()
 	{
+		$this->markTestIncomplete('overly broad test');
 		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
 			->disableOriginalConstructor()
 			->setMethods(array('getConfigModel'))
@@ -392,130 +85,469 @@ INVALID_XML;
 	}
 
 	/**
-	 * Test that when eb2cpayments turn on and the payment method is 'Free' and the order getGiftCardsAmount is greater than zero then
-	 * StoreValueCard get send in the order create request
+	 * Test getting tax quotes for a given item
 	 * @test
+	 * @dataProvider dataProvider
 	 */
-	public function testStoredValueCardNodeIsUseWhenGiftCardIsAddedtoTheOrder()
+	public function testGettingTaxQuotesForItem($taxType)
 	{
-		// let test the model responsible for building the payment request xml
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+		$item = $this->getModelMock('sales/order_item', array('getQuoteItemId'));
+		$item->expects($this->any())
+			->method('getQuoteItemId')
+			->will($this->returnValue(23));
+		$quoteCollection = $this->getModelMockBuilder('eb2ctax/resource_response_quote_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel', 'getTenderType'))
+			->setMethods(array('addFieldToFilter'))
 			->getMock();
+		$quoteCollection->expects($this->exactly(2))
+			->method('addFieldToFilter')
+			->will($this->returnSelf());
+		$quoteCollection->expects($this->at(0))
+			->method('addFieldToFilter')
+			->with($this->identicalTo('quote_item_id'), $this->identicalTo(23));
+		$quoteCollection->expects($this->at(1))
+			->method('addFieldToFilter')
+			->with($this->identicalTo('type'), $this->identicalTo($taxType));
 
-		$helperMock->expects($this->any())
-			->method('getConfigModel')
-			->will($this->returnValue((object) array(
-				'isPaymentEnabled' => 1,
-				'' => 'VL'
-			)));
-		$helperMock->expects($this->any())
-			->method('getTenderType')
-			->will($this->returnValue('VL'));
+		$taxQuote = $this->getModelMock('eb2ctax/response_quote', array('getCollection'));
+		$taxQuote->expects($this->any())
+			->method('getCollection')
+			->will($this->returnValue($quoteCollection));
+		$this->replaceByMock('model', 'eb2ctax/response_quote', $taxQuote);
 
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
-
-		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder3());
-
-		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
-		// let's test request xml has a StoredValueCard node
-		$storedValueCardContentNode = stristr(stristr(
-		$xmlRequest->getValue($orderCreator), '<StoredValueCard>', false),
-		'</StoredValueCard>', true);
-
-		$this->assertNotEmpty($storedValueCardContentNode);
+		$create = Mage::getModel('eb2corder/create');
+		$collection = $create->getItemTaxQuotes($item, $taxType);
 	}
 
 	/**
-	 * Test that when eb2cpayments turn on and the payment method is 'Free' and the order getGiftCardsAmount is zero then
-	 * PrepaidCreditCard get send in the order create request
+	 * Test building out a DOMDocumentFragment for tax nodes
 	 * @test
 	 */
-	public function testPrepaidCreditCardNodeIsUseWhenThePaymentMethodIsFreeButNoGiftCardIsUsed()
+	public function testBuildingTaxNodes()
 	{
-		// let test the model responsible for building the payment request xml
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+		$taxQuotes = array();
+		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
+			'id' => '1',
+			'quote_item_id' => '15',
+			'type' => '0',
+			'tax_type' => 'SALES',
+			'taxability' => 'TAXABLE',
+			'jurisdiction' => 'PENNSYLVANIA',
+			'jurisdiction_id' => '31152',
+			'jurisdiction_level' => 'STATE',
+			'imposition' => 'Sales and Use Tax',
+			'imposition_type' => 'General Sales and Use Tax',
+			'situs' => 'ADMINISTRATIVE_ORIGIN',
+			'effective_rate' => 0.06,
+			'taxable_amount' => 43.96,
+			'calculated_tax' => 2.64,
+		));
+		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
+			'id' => '2',
+			'quote_item_id' => '15',
+			'type' => '0',
+			'tax_type' => 'CONSUMER_USE',
+			'taxability' => 'TAXABLE',
+			'jurisdiction' => 'PENNSYLVANIA',
+			'jurisdiction_id' => '31152',
+			'jurisdiction_level' => 'STATE',
+			'imposition' => 'Some Other Tax',
+			'imposition_type' => 'General Sales and Use Tax',
+			'situs' => 'ADMINISTRATIVE_ORIGIN',
+			'effective_rate' => 0.01,
+			'taxable_amount' => 43.96,
+			'calculated_tax' => 00.44,
+		));
+
+		$taxQuotesCollection = $this->getModelMockBuilder('eb2ctax/resource_response_quote_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+			->setMethods(array('getIterator', 'count'))
 			->getMock();
+		$taxQuotesCollection->expects($this->any())
+			->method('getIterator')
+			->will($this->returnValue(new ArrayIterator($taxQuotes)));
+		$taxQuotesCollection->expects($this->any())
+			->method('count')
+			->will($this->returnValue(2));
 
-		$helperMock->expects($this->any())
-			->method('getConfigModel')
-			->will($this->returnValue((object) array(
-				'isPaymentEnabled' => 1
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+		$create = Mage::getModel('eb2corder/create');
+		$request = $this->_reflectProperty($create, '_domRequest');
+		$request->setValue($create, new TrueAction_Dom_Document());
+		$method = $this->_reflectMethod($create, '_buildTaxDataNodes');
+		$taxFragment = $method->invoke($create, $taxQuotesCollection);
 
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
+		// probe the tax fragment a bit to hopefully ensure the nodes are all populated right
+		$this->assertSame(1, $taxFragment->childNodes->length);
+		$this->assertSame('TaxData', $taxFragment->firstChild->nodeName);
+		$this->assertSame('Taxes', $taxFragment->firstChild->firstChild->nodeName);
+		$taxes = $taxFragment->firstChild->firstChild;
+		$this->assertSame(2, $taxes->childNodes->length);
+		foreach ($taxes->childNodes as $idx => $taxNode) {
+			$this->assertSame('Tax', $taxNode->nodeName);
+			// check the attributes on the Tax node
+			$attrs = $taxNode->attributes;
+			$this->assertSame($taxQuotes[$idx]->getTaxType(), $attrs->getNamedItem('taxType')->nodeValue);
+			$this->assertSame($taxQuotes[$idx]->getTaxability(), $attrs->getNamedItem('taxability')->nodeValue);
+			foreach ($taxNode->childNodes as $taxData) {
+				// test a few of the child nodes, making sure they're getting set properly per tax quote
+				switch ($taxData->nodeName) {
+					case 'Situs':
+						$this->assertSame($taxQuotes[$idx]->getSitus(), $taxData->nodeValue);
+						break;
+					case 'EffectiveRate':
+						$this->assertSame($taxQuotes[$idx]->getEffectiveRate(), (float) $taxData->nodeValue);
+						break;
+					case 'Imposition':
+						$this->assertSame($taxQuotes[$idx]->getImposition(), $taxData->nodeValue);
+						break;
+				}
+			}
+		}
+	}
 
-		$this->replaceCoreSession();
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
+	public function testGettingXmlRequest()
+	{
+		$create = Mage::getModel('eb2corder/create');
 
-		$orderCreator = Mage::getModel('eb2corder/create')->buildRequest($this->getMockSalesOrder4());
+		$this->assertNull($create->getXmlRequest(), 'XML Request properly should be null on new instance.');
 
-		$xmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
-		// let's test request xml has a PrepaidCreditCard node
-		$prepaidCreditCardContentNode = stristr(stristr(
-		$xmlRequest->getValue($orderCreator), '<PrepaidCreditCard>', false),
-		'</PrepaidCreditCard>', true);
+		$xmlRequest = '<foo><bar /></foo>';
+		$xmlRequestProp = $this->_reflectProperty($create, '_xmlRequest');
+		$xmlRequestProp->setValue($create, $xmlRequest);
 
-		$this->assertNotEmpty($prepaidCreditCardContentNode);
+		$this->assertSame($xmlRequest, $create->getXmlRequest());
+	}
+	/**
+	 * When the observer triggers, the create model should build a new request
+	 * and send it.
+	 * @test
+	 */
+	public function testObserverCreate()
+	{
+		$order = Mage::getModel('sales/order');
+		$event = new Varien_Event(array('order' => $order));
+		$observer = new Varien_Event_Observer(array('event' => $event));
+
+		$create = $this->getModelMockBuilder('eb2corder/create')
+			->disableOriginalConstructor()
+			->setMethods(array('buildRequest', 'sendRequest'))
+			->getMock();
+		$create->expects($this->once())
+			->method('buildRequest')
+			->with($this->identicalTo($order))
+			->will($this->returnSelf());
+		$create->expects($this->once())
+			->method('sendRequest')
+			->will($this->returnSelf());
+		$create->observerCreate($observer);
 	}
 
 	/**
-	 * Test that mock  if source was implemented and was returning the right data, the source node would be included the order create
-	 * PrepaidCreditCard get send in the order create request
+	 * Successful sending of the request should take the already constructed OrderCreate
+	 * request and send it via the Eb2cCore Api model	and then process the response.
 	 * @test
 	 */
-	public function testSourceNodeWillBeIncludedWhenSourceIsImplemented()
+	public function testSendRequest()
 	{
-		// let test the model responsible for building the payment request xml
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
+		$requestDoc = new TrueAction_Dom_Document();
+		$this->replaceCoreConfigRegistry(array(
+			'serviceOrderTimeout' => 100,
+			'xsdFileCreate' => 'example.xsd',
+			'apiService' => 'orders',
+			'apiCreateOperation' => 'create',
+		));
+
+		$helperStub = $this->getHelperMock('eb2corder/data', array('getOperationUri'));
+		$helperStub->expects($this->once())
+			->method('getOperationUri')
+			->with($this->identicalTo('create'))
+			->will($this->returnValue('http://example.com/order/create.xml'));
+		$this->replaceByMock('helper', 'eb2corder', $helperStub);
+
+		$apiStub = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
+		$apiStub->expects($this->any())
+			->method('addData')
+			->with($this->logicalAnd(
+				$this->arrayHasKey('uri'),
+				$this->arrayHasKey('timeout'),
+				$this->arrayHasKey('xsd')
+			))
+			->will($this->returnSelf());
+		$apiStub->expects($this->once())
+			->method('request')
+			->with($this->identicalTo($requestDoc))
+			->will($this->returnValue(self::SAMPLE_SUCCESS_XML));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiStub);
+
+		$create = $this->getModelMockBuilder('eb2corder/create')
+			->setMethods(array('_processResponse', 'getXmlRequest'))
 			->getMock();
+		$create->expects($this->once())
+			->method('_processResponse')
+			->with($this->identicalTo(self::SAMPLE_SUCCESS_XML))
+			->will($this->returnSelf());
+		$create->expects($this->any())
+			->method('getXmlRequest')
+			->will($this->returnValue(''));
+		$createRequest = $this->_reflectProperty($create, '_domRequest');
+		$createRequest->setValue($create, $requestDoc);
 
-		$helperMock->expects($this->any())
-			->method('getConfigModel')
-			->will($this->returnValue((object) array(
-				'isPaymentEnabled' => 1
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-
-		$this->replaceCoreSession();
-		$this->replaceCoreConfigRegistry();
-		$this->replaceModel('eb2ccore/api', array('request' => self::SAMPLE_SUCCESS_XML,), false);
-
-		$orderCreateMock = $this->getModelMockBuilder('eb2corder/create')
-			->setMethods(array('_getSourceData'))
-			->getMock();
-		$orderCreateMock->expects($this->any())
-			->method('_getSourceData')
-			->will($this->returnValue(array('source' => 'Fetchback', 'type' => 'PPC')));
-		$this->replaceByMock('model', 'eb2corder/create', $orderCreateMock);
-
-		$xmlRequest = $orderCreateMock->buildRequest($this->getMockSalesOrder())->getXmlRequest();
-		// let's test request xml has a OrderSource node
-		$orderSourceContentNode = stristr(stristr($xmlRequest, '<OrderSource>', false), '</OrderSource>', true);
-
-		// Stop here and mark this test as incomplete.
-		$this->markTestIncomplete('This test has not been implemented yet.');
-
-		$this->assertNotEmpty($orderSourceContentNode);
+		$create->sendRequest();
 	}
+
+	/**
+	 * Provider for the types of exceptions that the Api model could throw when
+	 * attempting to make a request.
+	 * @return array  Arguments arrays containing the different Exceptions
+	 */
+	public function providerApiExceptions()
+	{
+		return array(
+			array(new Zend_Http_Client_Exception),
+			array(new Mage_Core_Exception),
+		);
+	}
+
+	/**
+	 * Test the handling of exceptions from the Api model. Any expected exceptions should
+	 * be caught and logged. Process response should then be given an empty response.
+	 * @test
+	 * @dataProvider providerApiExceptions
+	 */
+	public function testSendRequestExceptions($exception)
+	{
+		$requestDoc = new TrueAction_Dom_Document();
+		$this->replaceCoreConfigRegistry(array(
+			'serviceOrderTimeout' => 100,
+			'xsdFileCreate' => 'example.xsd',
+			'apiCreateOperation' => 'create',
+		));
+
+		$helperStub = $this->getHelperMock('eb2corder/data', array('getOperationUri'));
+		$helperStub->expects($this->once())
+			->method('getOperationUri')
+			->with($this->identicalTo('create'))
+			->will($this->returnValue('http://example.com/order/create.xml'));
+		$this->replaceByMock('helper', 'eb2corder', $helperStub);
+
+		$apiStub = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
+		$apiStub->expects($this->any())
+			->method('addData')
+			->with($this->logicalAnd(
+				$this->arrayHasKey('uri'),
+				$this->arrayHasKey('timeout'),
+				$this->arrayHasKey('xsd')
+			))
+			->will($this->returnSelf());
+		$apiStub->expects($this->once())
+			->method('request')
+			->with($this->identicalTo($requestDoc))
+			->will($this->throwException($exception));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiStub);
+
+		$create = $this->getModelMockBuilder('eb2corder/create')
+			->setMethods(array('_processResponse', 'getXmlRequest'))
+			->getMock();
+		$create->expects($this->once())
+			->method('_processResponse')
+			->with($this->identicalTo(''))
+			->will($this->returnSelf());
+		$create->expects($this->any())
+			->method('getXmlRequest')
+			->will($this->returnValue(''));
+
+		$createRequest = $this->_reflectProperty($create, '_domRequest');
+		$createRequest->setValue($create, $requestDoc);
+
+		$create->sendRequest();
+	}
+
+	/**
+	 * Data provider of sample XML responses and the status reported in each
+	 * @return array  Argument arrays of xml string and status code string
+	 */
+	public function providerServiceResponses()
+	{
+		return array(
+			array(self::SAMPLE_SUCCESS_XML, 'success'),
+			array(self::SAMPLE_FAILED_XML, 'failed'),
+			array('', 'failed'), // when the xml is empty, there will be no status but the 'failed' here is used as a signal to the test
+		);
+	}
+
+	/**
+	 * Processing of the responses from the Eb2c order create service.
+	 * When successful, should set order status to processing
+	 * When failed, should set order status to new
+	 *
+	 * @param  string $response       [description]
+	 * @param  string $responseStatus [description]
+	 * @test
+	 * @dataProvider providerServiceResponses
+	 */
+	public function testResponseProcessing($response, $responseStatus)
+	{
+		$orderMock = $this->getModelMock('sales/order', array('save'));
+		$orderMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$create = Mage::getModel('eb2corder/create');
+		$orderProperty = $this->_reflectProperty($create, '_o');
+		$orderProperty->setValue($create, $orderMock);
+		$processMethod = $this->_reflectMethod($create, '_processResponse');
+		$processMethod->invoke($create, $response);
+		$this->assertSame(
+			$this->expected($responseStatus)->getOrderState(),
+			$orderMock->getState(),
+			'Order status not set properly for the reponse status'
+		);
+		$responseProp = $this->_reflectProperty($create, '_domResponse');
+		$responseDom = $responseProp->getValue($create);
+		if (empty($response)) {
+			$this->assertNull($responseDom, 'Empty response should result in no Response DOM object');
+		} else {
+			$this->assertInstanceOf('TrueAction_Dom_Document', $responseDom, 'Response DOM should be a TrueAction_Dom_Document');
+		}
+	}
+
+	/**
+	 * @todo  this method will need to be dramatically refactored to have any chance of being tested well
+	 * @test
+	 */
+	public function testBuildingRequests()
+	{
+		$this->markTestIncomplete('test not yet implemented');
+	}
+
+	/**
+	 * Building out the customer XML for a given order
+	 * @param  array $customerData Customer data for the given order
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testBuildingCustomerNodes($customerData)
+	{
+		$this->replaceCoreConfigRegistry(array(
+			'clientCustomerIdPrefix' => '12345',
+		));
+		$order = Mage::getModel('sales/order', $customerData);
+
+		$create = Mage::getModel('eb2corder/create');
+		$orderProp = $this->_reflectProperty($create, '_o');
+		$orderProp->setValue($create, $order);
+
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$customer = $doc->appendChild($doc->createElement('root', null))->appendChild($doc->createElement('Customer', null));
+
+		$buildCustomerMethod = $this->_reflectMethod($create, '_buildCustomer');
+		$buildCustomerMethod->invoke($create, $customer);
+		$this->assertSame('12345' . $customerData['customer_id'], $customer->getAttribute('customerId'));
+		$this->assertSame($customerData['customer_prefix'], $customer->getElementsByTagName('Honorific')->item(0)->nodeValue);
+		$lastname = (isset($customerData['customer_suffix']) && !empty($customerData['customer_suffix']))
+			? $customerData['customer_lastname'] . ' ' . $customerData['customer_suffix']
+			: $customerData['customer_lastname'];
+		$this->assertSame($lastname, $customer->getElementsByTagName('LastName')->item(0)->nodeValue);
+		$this->assertSame($customerData['customer_firstname'], $customer->getElementsByTagName('FirstName')->item(0)->nodeValue);
+		if (isset($customerData['customer_dob'])) {
+			$this->assertSame($customerData['customer_dob'], $customer->getElementsByTagName('DateOfBirth')->item(0)->nodeValue);
+		} else {
+			$this->assertSame(0, $customer->getElementsByTagName('DateOfBirth')->length);
+		}
+		if (isset($customerData['customer_gender'])) {
+			$this->assertSame(
+				($customerData['customer_gender'] === 1) ? 'M' : 'F',
+				$customer->getElementsByTagName('Gender')->item(0)->nodeValue
+			);
+		}
+		$this->assertSame($customerData['customer_email'], $customer->getElementsByTagName('EmailAddress')->item(0)->nodeValue);
+		$this->assertSame($customerData['customer_taxvat'], $customer->getElementsByTagName('CustomerTaxId')->item(0)->nodeValue);
+	}
+
+	/**
+	 * Building the XML nodes for a given order item
+	 * @todo  This method should really be broken down into some smaller chunks to make this test less complicated
+	 * @param array   $itemData    Order item object data
+	 * @param array   $orderData   Order object data
+	 * @param boolean $merchTax    Should this item have merchandise taxes
+	 * @param boolean $shippingTax Should this item have shipping taxes
+	 * @param boolean $dutyTax     Should this item have duty taxes
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testBuildOrderItemNodes($itemData, $orderData, $merchTax, $shippingTax, $dutyTax)
+	{
+		$order = Mage::getModel('sales/order', $orderData);
+		$item = Mage::getModel('sales/order_item', $itemData);
+		$item->setOrder($order);
+
+		if (!isset($itemData['eb2c_reservation_id'])) {
+			$invHelper = $this->getHelperMock('eb2cinventory/data', array('getRequestId'));
+			$invHelper->expects($this->once())
+				->method('getRequestId')
+				->with($orderData['quote_id'])
+				->will($this->returnValue('generated_reservation_id'));
+			$this->replaceByMock('helper', 'eb2cinventory', $invHelper);
+		}
+
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$itemElement = $doc->appendChild($doc->createElement('root', null))->appendChild($doc->createElement('Item', null));
+
+		// DOMDocumentFragments for mocked responses to _buildTaxDataNodes and _buildDuty
+		$emptyFragment = $doc->createDocumentFragment();
+		$taxFragment = $doc->createDocumentFragment();
+		$taxFragment->appendChild($doc->createElement('MockedTaxNodes'));
+		$dutyFragment = $doc->createDocumentFragment();
+		$dutyFragment->appendChild($doc->createElement('MockedDutyNodes'));
+
+		$create = $this->getModelMock(
+			'eb2corder/create',
+			array('_buildTaxDataNodes', 'getItemTaxQuotes', '_buildDuty', '_getItemShippingAmount', '_getShippingChargeType')
+		);
+		$create->expects($this->exactly(2))
+			->method('_buildTaxDataNodes')
+			->will($this->onConsecutiveCalls(
+				$merchTax ? $taxFragment : $emptyFragment,
+				$shippingTax ? $taxFragment : $emptyFragment
+			));
+		$create->expects($this->exactly(2))
+			->method('getItemTaxQuotes')
+			->with(
+				$this->identicalTo($item),
+				$this->logicalOr(
+					$this->identicalTo(TrueAction_Eb2cTax_Model_Response_Quote::MERCHANDISE),
+					$this->identicalTo(TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING)
+				)
+			)
+			->will($this->returnValue(Mage::getModel('eb2ctax/resource_response_quote_collection')));
+		$create->expects($this->any())
+			->method('_buildDuty')
+			->will(
+				$this->returnValue($dutyTax ? $dutyFragment : $emptyFragment)
+			);
+		$create->expects($this->any())
+			->method('_getShippingChargeType')
+			->will($this->returnValue('FLATRATE'));
+		$create->expects($this->any())
+			->method('_getItemShippingAmount')
+			->will($this->returnValue(5.00));
+
+		$orderProp = $this->_reflectProperty($create, '_o');
+		$orderProp->setValue($create, $order);
+
+		$buildOrderItemMethod = $this->_reflectMethod($create, '_buildOrderItem');
+		$buildOrderItemMethod->invoke($create, $itemElement, $item, 1);
+
+		// the itemElement should have been modified, adding the item nodes onto it
+		$this->assertTrue($itemElement->hasChildNodes(), 'No child nodes added to Item node');
+
+		$expectedChildNodes = array('ItemId', 'Quantity', 'Description', 'Pricing', 'ShippingMethod', 'ReservationId');
+		$includedChildNodes = array();
+		foreach ($itemElement->childNodes as $node) {
+			$includedChildNodes[] = $node->nodeName;
+		}
+		$diff = array_diff($expectedChildNodes, $includedChildNodes);
+		$this->assertEmpty($diff, 'Item is missing required child nodes - ' . implode(', ', $diff));
+	}
+
 }
-

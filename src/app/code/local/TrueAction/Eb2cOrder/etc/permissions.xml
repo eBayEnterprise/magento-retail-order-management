@@ -1,0 +1,42 @@
+<config>
+	<admin>
+		<eb2corder>
+			<permissions>
+				<deny>
+					<admin.sales.order.actions.hold />
+					<admin.sales.order.actions.creditmemo />
+					<admin.sales.order.actions.unhold />
+					<admin.sales.order.actions.ship />
+					<admin.sales.order.actions.emails />
+					<admin.sales.order.actions.comment />
+					<admin.sales.order.actions.invoice />
+					<admin.sales.order.actions.capture />
+					<admin.sales.order.actions.email />
+					<admin.sales.order.actions.edit />
+					<admin.sales.order.actions.review_payment />
+					<admin.sales.order.actions.cancel />
+					<admin.sales.order.actions.create.reward_spend />
+					<admin.sales.enterprise_rma />
+					<admin.sales.enterprise_rma.rma_manage />
+					<admin.sales.enterprise_rma.rma_attribute />
+					<admin.sales.transactions />
+					<admin.sales.transactions.fetch />
+					<admin.sales.recurring_profile />
+					<admin.sales.billing_agreement />
+					<admin.sales.billing_agreement.actions />
+					<admin.sales.billing_agreement.actions.view />
+					<admin.sales.billing_agreement.actions.manage />
+					<admin.sales.billing_agreement.actions.use />
+					<admin.sales.tax />
+					<admin.sales.tax.classes_customer />
+					<admin.sales.tax.classes_product />
+					<admin.sales.tax.import_export />
+					<admin.sales.tax.rates />
+					<admin.sales.tax.rules />
+ 					<admin.customer.manage.reward_balance />
+					<admin.customer.rates />
+				</deny>
+			</permissions>
+		</eb2corder>
+	</admin>
+</config>

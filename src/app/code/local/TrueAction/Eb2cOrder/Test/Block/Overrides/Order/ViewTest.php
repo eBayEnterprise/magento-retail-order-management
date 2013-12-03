@@ -104,4 +104,369 @@ class TrueAction_Eb2cOrder_Test_Block_Overrides_Order_ViewTest extends TrueActio
 		$prepareLayout = $this->_reflectMethod($orderViewBlockMock, '_prepareLayout');
 		$prepareLayout->invoke($orderViewBlockMock);
 	}
+
+	/**
+	 * Test overriding sales/order_view block for guest order view search result
+	 * and retrieve customer search result from eb2c oms from the session
+	 * @test
+	 */
+	public function testPrepareLayoutGuestOrderViewRetrieveResultFromSession()
+	{
+		$coreBlockTemplateMock = $this->getBlockMockBuilder('core/template')
+			->disableOriginalConstructor()
+			->getMock();
+
+		$paymentHelperMock = $this->getHelperMockBuilder('payment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getInfoBlock', 'parseResponse'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getInfoBlock')
+			->will($this->returnValue($coreBlockTemplateMock));
+		$this->replaceByMock('helper', 'payment', $paymentHelperMock);
+
+		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
+			->disableOriginalConstructor()
+			->setMethods(array('requestOrderSummary', 'parseResponse'))
+			->getMock();
+		$customerOrderSearchMock->expects($this->never())
+			->method('requestOrderSummary')
+			->will($this->returnValue('<foo></foo>'));
+		$customerOrderSearchMock->expects($this->never())
+			->method('parseResponse')
+			->will($this->returnValue(array('0005406000000' => new Varien_Object(array(
+				'id' => 'order-123',
+				'order_type' => 'SALES',
+				'test_type' => 'TEST_ORDER',
+				'modified_time' => '2011-02-22T22:09:56+00:00',
+				'customer_order_id' => '0005406000000',
+				'customer_id' => '1',
+				'order_date' => '2011-02-22T22:09:56+00:00',
+				'dashboard_rep_id' => 'admin',
+				'status' => 'Cancelled',
+				'order_total' => 0.0,
+				'source' => 'Web',
+			)))));
+		$this->replaceByMock('model', 'eb2corder/customer_order_search', $customerOrderSearchMock);
+
+		$coreSessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getEbcGuestCustomerOrderResults'))
+			->getMock();
+		$coreSessionMock->expects($this->any())
+			->method('getEbcGuestCustomerOrderResults')
+			->will($this->returnValue(array('0005406000000' => new Varien_Object(array(
+				'id' => 'order-123',
+				'order_type' => 'SALES',
+				'test_type' => 'TEST_ORDER',
+				'modified_time' => '2011-02-22T22:09:56+00:00',
+				'customer_order_id' => '0005406000000',
+				'customer_id' => '1',
+				'order_date' => '2011-02-22T22:09:56+00:00',
+				'dashboard_rep_id' => 'admin',
+				'status' => 'Cancelled',
+				'order_total' => 0.0,
+				'source' => 'Web',
+			)))));
+		$this->replaceByMock('singleton', 'core/session', $coreSessionMock);
+
+		$sessionMock = $this->getModelMockBuilder('customer/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCustomer', 'getId'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCustomer')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(0));
+		$this->replaceByMock('singleton', 'customer/session', $sessionMock);
+
+		$paymentInfoObject = Mage::getModel('sales/order_payment');
+
+		$orderObject = Mage::getModel('sales/order');
+		$orderObject->addData(array(
+			'real_order_id' => '0005406000000',
+			'status' => 'pending',
+			'payment' => $paymentInfoObject,
+		));
+		$orderObject->setPayment($paymentInfoObject);
+
+		$layoutMock = $this->getModelMockBuilder('core/layout')
+			->disableOriginalConstructor()
+			->setMethods(array('getBlock', 'setTitle'))
+			->getMock();
+		$layoutMock->expects($this->any())
+			->method('getBlock')
+			->with($this->equalTo('head'))
+			->will($this->returnSelf());
+		$layoutMock->expects($this->any())
+			->method('setTitle')
+			->with($this->equalTo('Order # 0005406000000'));
+
+		$orderViewBlockMock = $this->getBlockMockBuilder('sales/order_view')
+			->disableOriginalConstructor()
+			->setMethods(array('getLayout', 'setChild', 'getOrder', 'setOrders', '__construct'))
+			->getMock();
+		$orderViewBlockMock->expects($this->any())
+			->method('getLayout')
+			->will($this->returnValue($layoutMock));
+		$orderViewBlockMock->expects($this->any())
+			->method('setChild')
+			->with($this->equalTo('payment_info'), $this->isInstanceOf('Mage_Core_Block_Template'));
+		$orderViewBlockMock->expects($this->any())
+			->method('getOrder')
+			->will($this->returnValue($orderObject));
+		$orderViewBlockMock->expects($this->any())
+			->method('setOrders')
+			->with($this->isInstanceOf('Varien_Data_Collection'));
+		$orderViewBlockMock->expects($this->any())
+			->method('__construct')
+			->will($this->returnSelf());
+		$this->replaceByMock('block', 'sales/order_view', $orderViewBlockMock);
+
+		$prepareLayout = $this->_reflectMethod($orderViewBlockMock, '_prepareLayout');
+		$prepareLayout->invoke($orderViewBlockMock);
+	}
+
+	/**
+	 * Test overriding sales/order_view block for guest order view search result
+	 * and no retrieve customer search result from eb2c oms from the session
+	 * @test
+	 */
+	public function testPrepareLayoutGuestOrderViewRetrieveNoResultFromSession()
+	{
+		$coreBlockTemplateMock = $this->getBlockMockBuilder('core/template')
+			->disableOriginalConstructor()
+			->getMock();
+
+		$paymentHelperMock = $this->getHelperMockBuilder('payment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getInfoBlock', 'parseResponse'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getInfoBlock')
+			->will($this->returnValue($coreBlockTemplateMock));
+		$this->replaceByMock('helper', 'payment', $paymentHelperMock);
+
+		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
+			->disableOriginalConstructor()
+			->setMethods(array('requestOrderSummary', 'parseResponse'))
+			->getMock();
+		$customerOrderSearchMock->expects($this->once())
+			->method('requestOrderSummary')
+			->with($this->equalTo('0'), $this->equalTo('0005406000000'))
+			->will($this->returnValue('<foo></foo>'));
+		$customerOrderSearchMock->expects($this->once())
+			->method('parseResponse')
+			->with($this->equalTo('<foo></foo>'))
+			->will($this->returnValue(array('0005406000000' => new Varien_Object(array(
+				'id' => 'order-123',
+				'order_type' => 'SALES',
+				'test_type' => 'TEST_ORDER',
+				'modified_time' => '2011-02-22T22:09:56+00:00',
+				'customer_order_id' => '0005406000000',
+				'customer_id' => '1',
+				'order_date' => '2011-02-22T22:09:56+00:00',
+				'dashboard_rep_id' => 'admin',
+				'status' => 'Cancelled',
+				'order_total' => 0.0,
+				'source' => 'Web',
+			)))));
+		$this->replaceByMock('model', 'eb2corder/customer_order_search', $customerOrderSearchMock);
+
+		$coreSessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getEbcGuestCustomerOrderResults'))
+			->getMock();
+		$coreSessionMock->expects($this->any())
+			->method('getEbcGuestCustomerOrderResults')
+			->will($this->returnValue(array()));
+		$this->replaceByMock('singleton', 'core/session', $coreSessionMock);
+
+		$sessionMock = $this->getModelMockBuilder('customer/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCustomer', 'getId'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCustomer')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(0));
+		$this->replaceByMock('singleton', 'customer/session', $sessionMock);
+
+		$paymentInfoObject = Mage::getModel('sales/order_payment');
+
+		$orderObject = Mage::getModel('sales/order');
+		$orderObject->addData(array(
+			'real_order_id' => '0005406000000',
+			'status' => 'pending',
+			'payment' => $paymentInfoObject,
+		));
+		$orderObject->setPayment($paymentInfoObject);
+
+		$layoutMock = $this->getModelMockBuilder('core/layout')
+			->disableOriginalConstructor()
+			->setMethods(array('getBlock', 'setTitle'))
+			->getMock();
+		$layoutMock->expects($this->any())
+			->method('getBlock')
+			->with($this->equalTo('head'))
+			->will($this->returnSelf());
+		$layoutMock->expects($this->any())
+			->method('setTitle')
+			->with($this->equalTo('Order # 0005406000000'));
+
+		$orderViewBlockMock = $this->getBlockMockBuilder('sales/order_view')
+			->disableOriginalConstructor()
+			->setMethods(array('getLayout', 'setChild', 'getOrder', 'setOrders', '__construct'))
+			->getMock();
+		$orderViewBlockMock->expects($this->any())
+			->method('getLayout')
+			->will($this->returnValue($layoutMock));
+		$orderViewBlockMock->expects($this->any())
+			->method('setChild')
+			->with($this->equalTo('payment_info'), $this->isInstanceOf('Mage_Core_Block_Template'));
+		$orderViewBlockMock->expects($this->any())
+			->method('getOrder')
+			->will($this->returnValue($orderObject));
+		$orderViewBlockMock->expects($this->any())
+			->method('setOrders')
+			->with($this->isInstanceOf('Varien_Data_Collection'));
+		$orderViewBlockMock->expects($this->any())
+			->method('__construct')
+			->will($this->returnSelf());
+		$this->replaceByMock('block', 'sales/order_view', $orderViewBlockMock);
+
+		$prepareLayout = $this->_reflectMethod($orderViewBlockMock, '_prepareLayout');
+		$prepareLayout->invoke($orderViewBlockMock);
+	}
+
+	/**
+	 * Test overriding sales/order_view block for guest order view search result
+	 * and retrieve customer search result from eb2c oms from the session but return wrong search result
+	 * @test
+	 */
+	public function testPrepareLayoutGuestOrderViewRetrieveResultFromSessionButReturnWrongSearchResults()
+	{
+		$coreBlockTemplateMock = $this->getBlockMockBuilder('core/template')
+			->disableOriginalConstructor()
+			->getMock();
+
+		$paymentHelperMock = $this->getHelperMockBuilder('payment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getInfoBlock', 'parseResponse'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getInfoBlock')
+			->will($this->returnValue($coreBlockTemplateMock));
+		$this->replaceByMock('helper', 'payment', $paymentHelperMock);
+
+		$customerOrderSearchMock = $this->getModelMockBuilder('eb2corder/customer_order_search')
+			->disableOriginalConstructor()
+			->setMethods(array('requestOrderSummary', 'parseResponse'))
+			->getMock();
+		$customerOrderSearchMock->expects($this->once())
+			->method('requestOrderSummary')
+			->with($this->equalTo('0'), $this->equalTo('0005406000000'))
+			->will($this->returnValue('<foo></foo>'));
+		$customerOrderSearchMock->expects($this->once())
+			->method('parseResponse')
+			->with($this->equalTo('<foo></foo>'))
+			->will($this->returnValue(array('0005406000000' => new Varien_Object(array(
+				'id' => 'order-123',
+				'order_type' => 'SALES',
+				'test_type' => 'TEST_ORDER',
+				'modified_time' => '2011-02-22T22:09:56+00:00',
+				'customer_order_id' => '0005406000000',
+				'customer_id' => '1',
+				'order_date' => '2011-02-22T22:09:56+00:00',
+				'dashboard_rep_id' => 'admin',
+				'status' => 'Cancelled',
+				'order_total' => 0.0,
+				'source' => 'Web',
+			)))));
+		$this->replaceByMock('model', 'eb2corder/customer_order_search', $customerOrderSearchMock);
+
+		$coreSessionMock = $this->getModelMockBuilder('core/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getEbcGuestCustomerOrderResults'))
+			->getMock();
+		$coreSessionMock->expects($this->any())
+			->method('getEbcGuestCustomerOrderResults')
+			->will($this->returnValue(array('0005406000001' => new Varien_Object(array(
+				'id' => 'order-123',
+				'order_type' => 'SALES',
+				'test_type' => 'TEST_ORDER',
+				'modified_time' => '2011-02-22T22:09:56+00:00',
+				'customer_order_id' => '0005406000000',
+				'customer_id' => '1',
+				'order_date' => '2011-02-22T22:09:56+00:00',
+				'dashboard_rep_id' => 'admin',
+				'status' => 'Cancelled',
+				'order_total' => 0.0,
+				'source' => 'Web',
+			)))));
+		$this->replaceByMock('singleton', 'core/session', $coreSessionMock);
+
+		$sessionMock = $this->getModelMockBuilder('customer/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getCustomer', 'getId'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('getCustomer')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(0));
+		$this->replaceByMock('singleton', 'customer/session', $sessionMock);
+
+		$paymentInfoObject = Mage::getModel('sales/order_payment');
+
+		$orderObject = Mage::getModel('sales/order');
+		$orderObject->addData(array(
+			'real_order_id' => '0005406000000',
+			'status' => 'pending',
+			'payment' => $paymentInfoObject,
+		));
+		$orderObject->setPayment($paymentInfoObject);
+
+		$layoutMock = $this->getModelMockBuilder('core/layout')
+			->disableOriginalConstructor()
+			->setMethods(array('getBlock', 'setTitle'))
+			->getMock();
+		$layoutMock->expects($this->any())
+			->method('getBlock')
+			->with($this->equalTo('head'))
+			->will($this->returnSelf());
+		$layoutMock->expects($this->any())
+			->method('setTitle')
+			->with($this->equalTo('Order # 0005406000000'));
+
+		$orderViewBlockMock = $this->getBlockMockBuilder('sales/order_view')
+			->disableOriginalConstructor()
+			->setMethods(array('getLayout', 'setChild', 'getOrder', 'setOrders', '__construct'))
+			->getMock();
+		$orderViewBlockMock->expects($this->any())
+			->method('getLayout')
+			->will($this->returnValue($layoutMock));
+		$orderViewBlockMock->expects($this->any())
+			->method('setChild')
+			->with($this->equalTo('payment_info'), $this->isInstanceOf('Mage_Core_Block_Template'));
+		$orderViewBlockMock->expects($this->any())
+			->method('getOrder')
+			->will($this->returnValue($orderObject));
+		$orderViewBlockMock->expects($this->any())
+			->method('setOrders')
+			->with($this->isInstanceOf('Varien_Data_Collection'));
+		$orderViewBlockMock->expects($this->any())
+			->method('__construct')
+			->will($this->returnSelf());
+		$this->replaceByMock('block', 'sales/order_view', $orderViewBlockMock);
+
+		$prepareLayout = $this->_reflectMethod($orderViewBlockMock, '_prepareLayout');
+		$prepareLayout->invoke($orderViewBlockMock);
+	}
+
 }

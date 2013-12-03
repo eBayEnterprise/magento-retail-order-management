@@ -51,10 +51,17 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 */
 	protected $_namespaceUri = '';
 
+	/**
+	 * When a response object is instantiated with the results of a tax request,
+	 * constructor will be given:
+	 * - xml: the xml response from the tax service
+	 * - request: the request object
+	 */
 	protected function _construct()
 	{
 		$this->_doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$this->_doc->preserveWhiteSpace = false;
+		// Magic 'xml' data set when instantiated with the results of a tax response
 		if ($this->hasXml()) {
 			$xml = $this->getXml();
 			$isDocOk = $this->_checkXml($xml);
@@ -185,7 +192,8 @@ class TrueAction_Eb2cTax_Model_Response extends Mage_Core_Model_Abstract
 	 * compare an OrderItem element with the corresponding element in the request
 	 * to make sure we got back what we sent.
 	 * return true if all items match; false otherwise.
-	 * @param  TrueAction_Dom_Element $itemNode OrderItem element from the request
+	 * @param  TrueAction_Dom_Document $requestDoc  The request document
+	 * @param  TrueAction_Dom_Document $responseDoc The response document
 	 * @return bool
 	 */
 	protected function _validateResponseItems($requestDoc, $responseDoc)

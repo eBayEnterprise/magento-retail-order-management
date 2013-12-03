@@ -19,9 +19,9 @@ dropAllTables() {
 dropAllTables
 
 # Fetch the Magento ee and sample data.
-scp mage.tandev.net:/home/shared/ee/enterprise-1.13.0.0.tar-2013-04-09-02-46-53.gz mage.tandev.net:/home/shared/sample_data/magento_enterprise_sample_data_for_1.12.0.0-2012-04-23-11-43-17.zip .
+scp mage.tandev.net:/home/shared/ee/enterprise-1.13.1.0.tar-2013-11-19-03-06-28.gz mage.tandev.net:/home/shared/sample_data/magento_enterprise_sample_data_for_1.12.0.0-2012-04-23-11-43-17.zip .
 rm -rf magento
-tar -xzpf enterprise-1.13.0.0.tar-2013-04-09-02-46-53.gz
+tar -xzpf enterprise-1.13.1.0.tar-2013-11-19-03-06-28.gz
 cd magento
 unzip -oq ../magento_enterprise_sample_data_for_1.12.0.0-2012-04-23-11-43-17.zip
 mysql jenkins_mage_eb2c < magento_enterprise_sample_data_for_1.12.0.0.sql

@@ -42,22 +42,22 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 	public function testGetOperationUri()
 	{
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/quantity/get.xml',
+			'https://api.example.com/vM.m/stores/store_id/inventory/quantity/get.xml',
 			$this->_helper->getOperationUri('check_quantity')
 		);
 
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/details/get.xml',
+			'https://api.example.com/vM.m/stores/store_id/inventory/details/get.xml',
 			$this->_helper->getOperationUri('get_inventory_details')
 		);
 
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/create.xml',
+			'https://api.example.com/vM.m/stores/store_id/inventory/allocations/create.xml',
 			$this->_helper->getOperationUri('allocate_inventory')
 		);
 
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id/inventory/allocations/delete.xml',
+			'https://api.example.com/vM.m/stores/store_id/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
 		);
 	}
@@ -75,7 +75,7 @@ class TrueAction_Eb2cInventory_Test_Helper_DataTest extends TrueAction_Eb2cCore_
 		// check to make sure that if the current store has another value for store id,
 		// the store level value is chosen over the default.
 		$this->assertSame(
-			'https://api_env-api_rgn.gsipartners.com/vM.m/stores/store_id2/inventory/allocations/delete.xml',
+			'https://api.example.com/vM.m/stores/store_id2/inventory/allocations/delete.xml',
 			$this->_helper->getOperationUri('rollback_allocation')
 		);
 	}

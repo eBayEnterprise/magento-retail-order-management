@@ -47,7 +47,7 @@
 				<store_id/>
 			</general>
 			<api>
-				<environment>api</environment>
+				<hostname></hostname>
 				<key backend_model="adminhtml/system_config_backend_encrypted"/>
 				<major_version>1</major_version>
 				<minor_version>0</minor_version>
@@ -58,12 +58,11 @@
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>
-				<delete_remote_feed_files>1</delete_remote_feed_files>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
 				<available_models>
 					<eb2cinventory>
-						<feed_item_Inventories>1</feed_item_Inventories>
+						<feed_item_inventories>1</feed_item_inventories>
 					</eb2cinventory>
 					<eb2corder>
 						<status_feed>0</status_feed>

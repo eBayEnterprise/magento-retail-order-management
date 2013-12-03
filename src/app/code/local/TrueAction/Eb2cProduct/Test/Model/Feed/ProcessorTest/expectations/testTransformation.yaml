@@ -14,12 +14,11 @@ pricing1:
   item_id:
     client_item_id: sku1
   extended_attributes:
-    price: '86.38'
+    price: '67.98'
     msrp: '100.77'
-    special_price: '67.98'
     special_from_date: 2012-10-04 05:00:00
     special_to_date: 2014-08-17 05:00:00
-    price_is_vat_inclusive: '0'
+    price_is_vat_inclusive: false 
 
 itemmaster1:
   keys:
@@ -30,12 +29,9 @@ itemmaster1:
    - base_attributes
    - drop_ship_supplier_information
    - extended_attributes
-   - custom_attributes
-   - product_type
-   - configurable_attributes
   base_attributes:
     catalog_class: regular
-    drop_shipped: '0'
+    drop_shipped: false
     item_type: MERCH
     item_status: 'Active'
     tax_code: '76800'
@@ -57,15 +53,15 @@ itemmaster1:
         # sequence:
   size_attributes:
     size:
-  configurable_attributes: [ fee, fi, fo, fum ]
+  configurable_attributes_data: [ fee, fi, fo, fum ]
   extended_attributes:
-    allow_gift_message: false
+    allow_gift_message: true 
     back_orderable: false
     brand_name: New Brand
-    brand_description:
-       -
-        lang: en-US
-        description: New Brand
+    #brand_description:
+    #   -
+    #    lang: en-US
+    #    description: 'New Brand XYZ'
     # buyer_name:
     # buyer_id:
     # companion_flag:
@@ -139,7 +135,6 @@ contentmaster1:
    - item_id
    - base_attributes
    - extended_attributes
-   - custom_attributes
    - configurable_attributes
   catalog_id: '45'
   gsi_client_id: MAGTNA
@@ -157,12 +152,12 @@ contentmaster1:
   extended_attributes:
     category_links:
        -
-        default: 'false'
+        default: false
         catalog_id: '45'
         import_mode: Update
         name: Toys-Category-Learning & Educational Toys-Electronic Learning
     gift_wrap:
-    gift_wrapping_available: 'Y'
+    gift_wrapping_available: true 
     long_description:
        -
         lang: en-US
@@ -184,17 +179,11 @@ contentmaster1:
        -
         lang: en-US
         title: LeapFrog Leapster Educational Game Cartridge - Arcade Word Chasers
-  custom_attributes:
-     -
-      name: TRUBRANDJDA
-      value: LeapFrog
-      operation_type: Add
-      lang: 'en-US'
 iship1:
   catalog_class: regular
   client_item_id: 45-000906011391
-  is_drop_shipped: 'false'
-  item_description: 25077 2I TAN CXL SMOOT
+  is_drop_shipped: false
+  item_description: '25077 2I TAN CXL SMOOT'
   item_type: MERCH
   item_status: 'Active'
   tax_code: '76800'
@@ -203,9 +192,9 @@ iship1:
       destination_country: USA
       hts_code: abc123
       mfn_duty_rate: '1.02'
-      restricted: 'true'
+      restricted: true
      -
       destination_country: CAN
       hts_code: def456
       mfn_duty_rate: '0.98'
-      restricted: 'false'
+      restricted: false

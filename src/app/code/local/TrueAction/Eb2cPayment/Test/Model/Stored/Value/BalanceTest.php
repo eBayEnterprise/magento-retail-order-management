@@ -12,7 +12,7 @@ class TrueAction_Eb2cPayment_Test_Model_Stored_Value_BalanceTest extends EcomDev
 		$reqXmlFrmt = '<StoredValueBalanceRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><PaymentAccountUniqueId isToken="false">%d</PaymentAccountUniqueId><Pin>%d</Pin><CurrencyCode>USD</CurrencyCode></StoredValueBalanceRequest>';
 		$resXml = '<StoredValueBalanceReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><PaymentAccountUniqueId isToken="true">1</PaymentAccountUniqueId><ResponseCode>Success</ResponseCode><BalanceAmount currencyCode="USD">1.00</BalanceAmount></StoredValueBalanceReply>';
 		$reqXml = sprintf($reqXmlFrmt, $pan, $pin);
-		$apiUrl = sprintf('https://apiEnv-apiRgn.gsipartners.com/vM.m/stores/storeId/payments/storedvalue/balance/%s.xml', $tenderType);
+		$apiUrl = sprintf('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/%s.xml', $tenderType);
 		$api = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$api->expects($this->any())
 			->method('setUri')

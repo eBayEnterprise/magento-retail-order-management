@@ -1,0 +1,33 @@
+-
+  -
+    customer_id: 100000001
+    customer_prefix: Mrs.
+    customer_lastname: Doe
+    customer_suffix:
+    customer_middlename: Anyone
+    customer_firstname: Jane
+    customer_gender: 2
+    customer_dob: 04-05-1980
+    customer_email: test@example.com
+    customer_taxvat: id604
+-
+  -
+    customer_id: 100000001
+    customer_prefix: Mr.
+    customer_lastname: Doe
+    customer_suffix: Sr.
+    customer_middlename: Anyone
+    customer_firstname: John
+    customer_gender: 1
+    customer_email: test@example.com
+    customer_taxvat: id604
+-
+  -
+    customer_id: 100000001
+    customer_prefix: Mrs.
+    customer_lastname: Doe
+    customer_middlename: Anyone
+    customer_firstname: Jane
+    customer_dob: 04-05-1980
+    customer_email: test@example.com
+    customer_taxvat:

@@ -343,12 +343,19 @@ XML;
 		$doc->loadXML($xml);
 		$node = $doc->documentElement->firstChild;
 		$a = array(
-			'node'           => $node,
-			'code'           => 'PENNSYLVANIA-Sales and Use Tax',
-			'situs'          => 'DESTINATION',
-			'effective_rate' => 0.06,
-			'taxable_amount' => 2.00,
-			'calculated_tax' => 0.12,
+			'node'               => $node,
+			'code'               => 'PENNSYLVANIA-Sales and Use Tax',
+			'tax_type'           => 'SELLER_USE',
+			'taxability'         => 'TAXABLE',
+			'jurisdiction'       => 'PENNSYLVANIA',
+			'jurisdiction_id'    => '31152',
+			'jurisdiction_level' => 'STATE',
+			'imposition'         => 'Sales and Use Tax',
+			'imposition_type'    => 'General Sales and Use Tax',
+			'situs'              => 'DESTINATION',
+			'effective_rate'     => 0.06,
+			'taxable_amount'     => 2.00,
+			'calculated_tax'     => 0.12,
 		);
 		$obj = Mage::getModel('eb2ctax/response_quote', array('node' => $node));
 		$this->assertSame($a, $obj->getData());

@@ -108,7 +108,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	protected function _linkProducts(Mage_Catalog_Model_Product $product, $linkUpdates, $linkType)
 	{
 		$opFilter = function ($operation) {
-			return function ($el) use ($operation) { return strtolower($el['operation_type']) === $operation; };
+			return function ($el) use ($operation) {
+				return strtolower($el['operation_type']) === $operation;
+			};
 		};
 		$skuMap = function ($link) {
 			return $link['link_to_unique_id'];
@@ -191,8 +193,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		// merge the found products with any existing links, filtering out any duplicates
 		$existingIds = $product->getTypeInstance()->getUsedProductIds();
 		$usedProductIds = array_unique(array_merge($existingIds, $addProductIds));
+
+		// sorting both addProductIds and existingIds just to make sure their indices match
+		asort($addProductIds);
+		asort($existingIds);
+
 		// only update used products when there are new products to add to the list
-		if (array_diff($existingIds, $usedProductIds)) {
+		// update used product when there are addProductIds that are not in existingIds.
+		if (array_diff($addProductIds, $existingIds)) {
 			Mage::getResourceModel('catalog/product_type_configurable')
 				->saveProducts($product, array_unique($usedProductIds));
 			$product
@@ -251,7 +259,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		$isClean = empty($unresolvedLinks);
 
 		// update flag on product
-		$product->setIsClean(Mage::helper('eb2cproduct')->convertToBoolean($isClean));
+		$product->setIsClean($isClean);
+
 		if (!$isClean) {
 			Mage::log(sprintf('[ %s ]: Product, %s, has not be fully cleaned.', __CLASS__, $product->getSku()), Zend_Log::DEBUG);
 		}

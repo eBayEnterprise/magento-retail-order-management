@@ -94,10 +94,10 @@
 		<events>
 			<inventory_feed_processing_complete>
 				<observers>
-					<cataloginventory_reindex_all>
-						<class>cataloginventory/indexer_stock</class>
+					<eb2c_reindex_all>
+						<class>eb2ccore/indexer</class>
 						<method>reindexAll</method>
-					</cataloginventory_reindex_all>
+					</eb2c_reindex_all>
 				</observers>
 			</inventory_feed_processing_complete>
 		</events>
@@ -185,7 +185,7 @@
 			<feed>
 				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
 				<remote_path>/Inbox/</remote_path>
-				<file_pattern>*inventatpfull*.xml</file_pattern>
+				<file_pattern>*inventatp*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>
 				<header_version>2.3.0</header_version>
 			</feed>

@@ -93,16 +93,6 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 			->save();
 		return $this;
 	}
-
-	/**
-	 * Return the SKU, which is the catalog_id dash the client item id.
-	 * @param Varien_Object $feedItem extracted from the feed xml.
-	 * @return string the stock keeping unit.
-	 */
-	protected function _extractSku(Varien_Object $feedItem)
-	{
-		return $feedItem->getCatalogId() . '-' . $feedItem->getClientItemId();
-	}
 	/**
 	 * Update the inventory level for a given sku.
 	 * @param string $sku the stock-keeping unit.
@@ -123,12 +113,27 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		return $this;
 	}
 	/**
+	 * Get the sku from the feedItem object
+	 * @param Varien_Object $feedItem a nested object of item info
+	 * @return string the sku
+	 */
+	protected function _extractSku(Varien_Object $feedItem)
+	{
+		return Mage::helper('eb2ccore')->normalizeSku(
+			$feedItem->getItemId()->getClientItemId(),
+			$feedItem->getCatalogId()
+		);
+	}
+	/**
 	 * Update cataloginventory/stock_item with eb2c feed data.
 	 * @param array $feedItems the extracted collection of inventory data
 	 * @return self
 	 */
 	public function updateInventories(array $feedItems)
 	{
+		// @codeCoverageIgnoreStart
+		Mage::log(sprintf('[ %s ] Updating inventory for %d items', __CLASS__, count($feedItems)), Zend_Log::INFO);
+		// @codeCoverageIgnoreEnd
 		foreach ($feedItems as $feedItem) {
 			$sku = $this->_extractSku($feedItem);
 			$qty = $feedItem->getMeasurements()->getAvailableQuantity();

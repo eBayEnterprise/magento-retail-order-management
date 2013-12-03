@@ -23,10 +23,16 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	protected $_queue;
 
+	/**
+	 * feed event types.
+	 * WARNING: the order here determines the order the feeds will run.
+	 * TODO: this should be moved out to the xml config.
+	 * @var array
+	 */
 	private $_eventTypes = array(
-		'Price'      => 'feed_pricing',
 		'ItemMaster' => 'feed_item',
 		'Content'    => 'feed_content',
+		'Price'      => 'feed_pricing',
 		'iShip'      => 'feed_iship',
 	);
 
@@ -40,28 +46,58 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 	protected $_eventTypeModel = null;
 
+	/**
+	 * suppress the core feed's initialization
+	 * create necessary internal models.
+	 * @return [type] [description]
+	 */
+	protected function _construct()
+	{
+		$this->_eventTypeExtractor = Mage::getModel(
+			'eb2cproduct/feed_extractor_xpath',
+			array(array('event_type' => self::EVENT_TYPE_XPATH))
+		);
+		$this->_queue = Mage::getSingleton('eb2cproduct/feed_queue');
+	}
+
+	/**
+	 * run all feeds define in the _evenType class property
+	 * @return int, the number of process feed xml file
+	 */
 	public function processFeeds()
 	{
 		Varien_Profiler::start(__METHOD__);
 		$filesProcessed = 0;
+		$coreFeedHelper = Mage::helper('eb2ccore/feed');
 		// fetch all files for all feeds.
 		foreach (array_keys($this->_eventTypes) as $eventType) {
 			$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
-			$this->_setupCoreFeed();
+			$this->_coreFeed = $this->_setupCoreFeed();
 
 			$this->_coreFeed->fetchFeedsFromRemote(
 				$this->_eventTypeModel->getFeedRemotePath(),
 				$this->_eventTypeModel->getFeedFilePattern()
 			);
 			$remote = $this->_eventTypeModel->getFeedRemotePath();
+
 			// need to track the local file as well as the remote path so it can be removed after processing
 			$this->_feedFiles = array_merge($this->_feedFiles, array_map(
-				function ($local) use ($remote) { return array('local' => $local, 'remote' => $remote); },
+				function ($local) use ($remote, $eventType, $coreFeedHelper) {
+					$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
+					return array(
+						'local' => $local,
+						'remote' => $remote,
+						'timestamp' => $timeStamp,
+						'type' => $eventType
+					); },
 				$this->_coreFeed->lsInboundDir()
 			));
 		}
-
+		// sort the feed files
+		// hidding error from built-in usort php function because of the known bug
+		// Warning: usort(): Array was modified by the user comparison function
+		@usort($this->_feedFiles, array($this, '_compareFeedFiles'));
 		foreach ($this->_feedFiles as $fileDetails) {
 			$this->processFile($fileDetails['local']);
 			$this->archiveFeed($fileDetails['local'], $fileDetails['remote']);
@@ -76,6 +112,8 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 	/**
 	 * Processes a single xml file.
+	 * @param string $xmlFile, the xml file to be loaded into domdocument
+	 * @return void
 	 */
 	public function processFile($xmlFile)
 	{
@@ -96,7 +134,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		if ( !Mage::helper('eb2ccore/feed')
 			->validateHeader($dom, $eventType )
 		) {
-			Mage::log('File ' . $xmlFile . ': Invalid header', Zend_Log::ERR);
+			Mage::log(sprintf('File %s: Invalid header', $xmlFile), Zend_Log::ERR);
 			return;
 		}
 
@@ -143,14 +181,33 @@ class TrueAction_Eb2cProduct_Model_Feed
 	protected function _beforeProcessDom(TrueAction_Dom_Document $dom)
 	{
 		$this->_checkPreconditions();
-		$this->_setupCoreFeed();
+		$this->_coreFeed = $this->_setupCoreFeed();
 		$this->_xpath = $this->_eventTypeModel->getNewXpath($dom);
 		if (!$this->_xpath) {
-			$message = '[ ' . __CLASS__ . ' ] unable to get DOMXPath object from model ' .
-				get_class($this->_eventTypeModel);
-			Mage::throwException($message);
+			Mage::throwException(sprintf('[ %s ] unable to get DOMXPath object from model %s',
+				__CLASS__, get_class($this->_eventTypeModel)
+			));
+			// @codeCoverageIgnoreStart
 		}
+		// @codeCoverageIgnoreEnd
 		return $this;
+	}
+
+	/**
+	 * compare feedFile entries and return an integer to represent whether
+	 * $a has higher, same, or lower priority than $b
+	 * @param  array  $a entry in _feedFiles
+	 * @param  array  $b entry in _feedFiles
+	 * @return int
+	 */
+	protected function _compareFeedFiles(array $a, array $b)
+	{
+		$timeDiff = $a['timestamp'] - $b['timestamp'];
+		if ($timeDiff !== 0) {
+			return $timeDiff;
+		}
+		$types = array_keys($this->_eventTypes);
+		return (int) (array_search($a['type'], $types) - array_search($b['type'], $types));
 	}
 
 	protected function _determineEventType($doc)
@@ -163,7 +220,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 		}
 		if (array_search($eventType, array_keys($this->_eventTypes)) === false) {
 			$message = sprintf(self::INVALID_EVENT_TYPE, $eventType);
-			throw new Mage_Core_Exception($message);
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception($message);
 		}
 		return $eventType;
 	}
@@ -186,9 +243,14 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	protected function _getEventTypeModel($eventType)
 	{
-		return Mage::getSingleton('eb2cproduct/' . $this->_eventTypes[$eventType]);
+		return Mage::getSingleton(sprintf('eb2cproduct/%s', $this->_eventTypes[$eventType]));
 	}
 
+	/**
+	 * getting the nodelist for the dom document
+	 * @param TrueAction_Dom_Document $doc, the document got get the nodelist
+	 * @return DOMNodeList
+	 */
 	protected function _getIterableFor(TrueAction_Dom_Document $doc)
 	{
 		$baseXpath = $this->_eventTypeModel->getBaseXpath();
@@ -196,73 +258,54 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return $iterable;
 	}
 
+	/**
+	 * getting eb2ccore/feed model instantiated object
+	 * @return TrueAction_Eb2cCore_Model_Feed
+	 */
 	protected function _setupCoreFeed()
 	{
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array(
-			'base_dir' => Mage::getBaseDir('var') . DS . $this->_eventTypeModel->getFeedLocalPath()
+			'base_dir' => sprintf('%s%s%s', Mage::getBaseDir('var'), DS, $this->_eventTypeModel->getFeedLocalPath())
 		);
 
 		// Ready to set up the core feed helper, which manages files and directories:
-		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
-		return $this;
+		return Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
 	}
 
 	/**
 	 * check the eventTypeModel to see if it is properly configured.
-	 * @return [type] [description]
+	 * @return void | throw a Mage_Core_Exception
 	 */
 	protected function _checkPreconditions()
 	{
 		// Where is the remote path?
 		if( is_null($this->_eventTypeModel->getFeedRemotePath()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedRemotePath'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedRemotePath'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// What is the file pattern for remote retrieval?
 		if( is_null($this->_eventTypeModel->getFeedFilePattern()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedFilePattern'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedFilePattern'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// Where is the local path?
 		if( is_null($this->_eventTypeModel->getFeedLocalPath()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedLocalPath'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedLocalPath'));
 		}
-		// @codeCoverageIgnoreEnd
 
 		// Where is the event type we're processing?
 		if( is_null($this->_eventTypeModel->getFeedEventType()) ) {
-			Mage::throwException($this->_missingConfigMessage('FeedEventType'));
-			// @codeCoverageIgnoreStart
+			throw new TrueAction_Eb2cProduct_Model_Config_Exception($this->_missingConfigMessage('FeedEventType'));
 		}
-		// @codeCoverageIgnoreEnd
 	}
 
 	/**
 	 * Returns a message string for an exception message
 	 * @param string $missingConfigName which config name is missing.
 	 */
-	private function _missingConfigMessage($missingConfigName)
+	protected function _missingConfigMessage($missingConfigName)
 	{
-		return get_class($this->_eventTypeModel) . " was not setup correctly; '$missingConfigName' not configured.";
-	}
-
-	/**
-	 * suppress the core feed's initialization
-	 * create necessary internal models.
-	 * @return [type] [description]
-	 */
-	protected function _construct()
-	{
-		$this->_eventTypeExtractor = Mage::getModel(
-			'eb2cproduct/feed_extractor_xpath',
-			array(array('event_type' => self::EVENT_TYPE_XPATH))
-		);
-		$this->_queue = Mage::getSingleton('eb2cproduct/feed_queue');
+		return sprintf("%s was not setup correctly; '%s' not configured.", get_class($this->_eventTypeModel), $missingConfigName);
 	}
 }

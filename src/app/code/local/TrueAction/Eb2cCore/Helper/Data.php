@@ -3,9 +3,8 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	/**
 	 * Service URI has the following format:
-	 * https://{env}-{rr}.gsipartners.com/v{M}.{m}/stores/{storeid}/{service}/{operation}{/parameters}.{format}
-	 * - env - GSI Environment to access
-	 * - rr - Geographic region - na, eu, ap
+	 * https://{host}/v{M}.{m}/stores/{storeid}/{service}/{operation}{/parameters}.{format}
+	 * - host - EE Excnahge Platform domain
 	 * - M - major version of the API
 	 * - m - minor version of the API
 	 * - storeid - GSI assigned store identifier
@@ -14,7 +13,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * - parameters - optionally any parameters needed by the call
 	 * - format - extension of the requested response format. Currently only xml is supported
 	 */
-	const URI_FORMAT = 'https://%s-%s.gsipartners.com/v%s.%s/stores/%s/%s/%s%s.%s';
+	const URI_FORMAT = 'https://%s/v%s.%s/stores/%s/%s/%s%s.%s';
 	/**
 	 * Get the API URI for the given service/request.
 	 * @param string $service
@@ -29,8 +28,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 
 		return sprintf(
 			self::URI_FORMAT,
-			$config->apiEnvironment,
-			$config->apiRegion,
+			$config->apiHostname,
 			$config->apiMajorVersion,
 			$config->apiMinorVersion,
 			$config->storeId,
@@ -87,6 +85,21 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public static function mageToXmlLangFrmt($langCode)
 	{
 		return str_replace('_', '-', $langCode);
+	}
+
+	/**
+	 * Ensure the sku/client id/style id matches the same format expected for skus
+	 * {catalogId}-{item_id}
+	 * @param  string $itemId    Product item/style/client/whatevs id
+	 * @param  string $catalogId Product catalog id
+	 * @return string            Normalized style id
+	 */
+	public function normalizeSku($itemId, $catalogId)
+	{
+		if (!empty($itemId) && strpos($itemId, $catalogId . '-') !== 0) {
+			return sprintf('%s-%s', $catalogId, $itemId);
+		}
+		return $itemId;
 	}
 
 	/**

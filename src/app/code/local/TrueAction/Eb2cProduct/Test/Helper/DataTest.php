@@ -10,8 +10,15 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$configRegistryModelMock = $this->getModelMockBuilder('eb2ccore/config_registry')
 			->disableOriginalConstructor()
 			->setMethods(array(
-				'setStore', 'addConfigModel', 'getStore', '_getStoreConfigValue', 'getConfigFlag', 'getConfig', '_magicNameToConfigKey',
-				'__get', '__set'
+				'__get',
+				'__set',
+				'_getStoreConfigValue',
+				'_magicNameToConfigKey',
+				'addConfigModel',
+				'getConfig',
+				'getConfigFlag',
+				'getStore',
+				'setStore',
 			))
 			->getMock();
 
@@ -125,6 +132,32 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	}
 
 	/**
+	 * Should throw an exception when creating a dummy product template
+	 * if the configuration specifies an invalid Magento product type
+	 * This test will use hasProdType() so has a real, if marginal, environmental
+	 * dependence.
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Config_Exception
+	 */
+	public function testInvalidDummyTypeFails()
+	{
+		$fakeCfg = new StdClass();
+		$fakeCfg->dummyTypeId = 'someWackyTypeThatWeHopeDoesntExist';
+		$hlpr = $this->getHelperMock('eb2cproduct/data', array(
+			'getConfigModel',
+		));
+		$hlpr->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($fakeCfg));
+
+		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
+		$getProdTplt = $hlpRef->getMethod('_getProdTplt');
+		$getProdTplt->setAccessible(true);
+		$getProdTplt->invoke($hlpr);
+	}
+
+
+	/**
 	 * Test looking up a product by sku
 	 * @param  string $sku SKU of product
 	 * @test
@@ -139,18 +172,131 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertInstanceOf('Mage_Catalog_Model_Product', $product, 'Method should always return a product instance.');
 		$this->assertSame($expected->getId(), $product->getId());
 	}
-
 	/**
-	 * Test normalizing a product style id to match formatting for skus
-	 * @param  string $style   The product style id
-	 * @param  string $catalog The product catalog id
+	 * Test the various dummy defaults.
+	 * @test
+	 */
+	public function testGetDefaults()
+	{
+		$hlpr = Mage::helper('eb2cproduct');
+		$hlpRef = new ReflectionObject($hlpr);
+		$getAllWebsiteIds = $hlpRef->getMethod('_getAllWebsiteIds');
+		$getDefProdAttSetId = $hlpRef->getMethod('_getDefProdAttSetId');
+		$getDefStoreId = $hlpRef->getMethod('_getDefStoreId');
+		$getDefStoreRootCatId = $hlpRef->getMethod('_getDefStoreRootCatId');
+		$getAllWebsiteIds->setAccessible(true);
+		$getDefProdAttSetId->setAccessible(true);
+		$getDefStoreId->setAccessible(true);
+		$getDefStoreRootCatId->setAccessible(true);
+		$this->assertInternalType('array', $getAllWebsiteIds->invoke($hlpr));
+		$this->assertInternalType('integer', $getDefProdAttSetId->invoke($hlpr));
+		$this->assertInternalType('integer', $getDefStoreId->invoke($hlpr));
+		$this->assertInternalType('integer', $getDefStoreRootCatId->invoke($hlpr));
+	}
+
+	public function testBuildDummyBoilerplate()
+	{
+		$fakeCfg = new StdClass();
+		$fakeCfg->dummyInStockFlag = true;
+		$fakeCfg->dummyManageStockFlag = true;
+		$fakeCfg->dummyStockQuantity = 123;
+		$fakeCfg->dummyDescription = 'hello world';
+		$fakeCfg->dummyPrice = 45.67;
+		$fakeCfg->dummyShortDescription = 'hello';
+		$fakeCfg->dummyTaxClassId = 890;
+		$fakeCfg->dummyTypeId = 'simple';
+		$fakeCfg->dummyWeight = 79;
+		$hlpr = $this->getHelperMock('eb2cproduct/data', array(
+			'_getAllWebsiteIds',
+			'_getDefProdAttSetId',
+			'_getDefStoreId',
+			'_getDefStoreRootCatId',
+			'getConfigModel',
+		));
+		$hlpr->expects($this->once())
+			->method('_getAllWebsiteIds')
+			->will($this->returnValue(array(980)));
+		$hlpr->expects($this->once())
+			->method('_getDefProdAttSetId')
+			->will($this->returnValue(132));
+		$hlpr->expects($this->once())
+			->method('_getDefStoreId')
+			->will($this->returnValue(531));
+		$hlpr->expects($this->once())
+			->method('_getDefStoreRootCatId')
+			->will($this->returnValue(771));
+		$hlpr->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($fakeCfg));
+		$expected = array(
+			'attribute_set_id'  => 132,
+			'category_ids'      => array(771),
+			'description'       => 'hello world',
+			'price'             => 45.67,
+			'short_description' => 'hello',
+			'status'            => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'stock_data'        => array(
+				'is_in_stock'  => true,
+				'manage_stock' => true,
+				'qty'          => 123,
+			),
+			'store_ids'         => array(531),
+			'tax_class_id'      => 890,
+			'type_id'           => 'simple',
+			'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'website_ids'       => array(980),
+			'weight'            => 79,
+		);
+		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
+		$getProdTplt = $hlpRef->getMethod('_getProdTplt');
+		$getProdTplt->setAccessible(true);
+		$this->assertSame($expected, $getProdTplt->invoke($hlpr));
+	}
+	/**
 	 * @test
 	 * @dataProvider dataProvider
 	 */
-	public function testNormalizeStyleId($styleId, $catalogId)
+	public function testApplyDummyData($sku, $name=null)
 	{
-		$normalized = Mage::helper('eb2cproduct')->normalizeStyleId($styleId, $catalogId);
-		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
+		$hlpr = $this->getHelperMock('eb2cproduct/data', array('_getProdTplt'));
+		$hlpr->expects($this->once())
+			->method('_getProdTplt')
+			->will($this->returnValue(array()));
+		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
+		$applyDummyDataMethod = $hlpRef->getMethod('_applyDummyData');
+		$applyDummyDataMethod->setAccessible(true);
+
+		$prod = $applyDummyDataMethod->invoke($hlpr, Mage::getModel('catalog/product'), $sku, $name);
+		$this->assertSame($sku, $prod->getSku());
+		$this->assertSame($name ?: "Invalid Product: $sku", $prod->getName());
+		$this->assertSame($sku, $prod->getUrlKey());
 	}
 
+
+	/**
+	 * Given a mapped array containing language, parse should return
+	 * a flattened array, keyed by language
+	 * @test
+	 */
+	public function testParseTranslations()
+	{
+		$sampleInput = array (
+			array (
+				'lang'        => 'en-US',
+				'description' => 'An en-US translation',
+			),
+			array (
+				'lang'        => 'ja-JP',
+				'description' => 'ja-JP に変換',
+			),
+		);
+
+		$expectedOutput = array (
+			'en-US' => 'An en-US translation',
+			'ja-JP' => 'ja-JP に変換',
+		);
+
+		$this->assertSame($expectedOutput,
+			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
+	}
 }
