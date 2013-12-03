@@ -65,6 +65,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected $_deleteBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
 
+	/**
+	 * @var TrueAction_Eb2cProduct_Helper_Data
+	 */
+	protected $_helper = null;
+
 	public function __construct()
 	{
 		$this->_helper = Mage::helper('eb2cproduct');
@@ -559,64 +564,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$sku = $item->getItemId()->getClientItemId();
 		if ($sku === '' || is_null($sku)) {
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
-			return;
+			return $this;
 		}
 		$product = $this->_helper->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
 
-		$productData = new Varien_Object();
-
-		if ($item->hasProductType()) {
-			$productData->setData('type_id', $item->getProductType());
-		}
-		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasWeight()) {
-			$productData->setData('weight', $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight());
-		}
-		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass')) {
-			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
-		}
-		if( $item->getBaseAttributes()->getCatalogClass()) {
-			$productData->setData('visibility', $this->_getVisibilityData($item));
-		}
-		if ($item->getBaseAttributes()->getItemStatus()) {
-			$productData->setData('status', $this->_getItemStatusData($item->getBaseAttributes()->getItemStatus()));
-		}
-		if ($item->getExtendedAttributes()->getMsrp()) {
-			$productData->setData('msrp', $item->getExtendedAttributes()->getMsrp());
-		}
-		if ($item->getExtendedAttributes()->getPrice()) {
-			$productData->setData('price', $item->getExtendedAttributes()->getPrice());
-		}
-		if ($item->getItemId()->getClientItemId()) {
-			$productData->setData('url_key', $item->getItemId()->getClientItemId());
-		}
-		if ($item->getProductLinks()) {
-			$productData->setData('unresolved_product_links', serialize($item->getProductLinks()));
-		}
-
-		// setting category data
-		if( $item->getCategoryLinks() ) {
-			$productData->setData('category_ids', $this->_preparedCategoryLinkData($item));
-		}
-
-		// setting the product's color to a Magento Attribute Id
-		if ($item->getExtendedAttributes()->hasData('color')) {
-			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
-		}
-
-		if( $item->hasData('configurable_attributes_data') ) {
-			$productData->setData('configurable_attributes_data', $item->getData('configurable_attributes_data'));
-		}
+		$productData = new Varien_Object($this->_preparedProductData($item));
 
 		// Gathers up all translatable fields, applies the defaults;  whatever's left are
 		// alternate language codes that have to be applied /after/ the default product is saved
 		$translations = $this->_applyDefaultTranslations(
 			$productData, $this->_mergeTranslations($item)
 		);
-
-		// mark all products that have just been imported as not being clean
-		// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
-		// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
-		$productData->setData('is_clean', 0);
 
 		$product->addData($productData->getData())
 			->addData($this->_getEb2cSpecificAttributeData($item))
@@ -631,11 +589,142 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
+	 * abstracting calling serialize method
+	 * @param mixed, $object
+	 * @return string, a serialize string
+	 */
+	protected function _serializeData($object)
+	{
+		return serialize($object);
+	}
+
+	/**
+	 * define mapping between magento fields and varien object imported data
+	 * @param Varien_Object $item, extract product data
+	 * @return array
+	 */
+	protected function _mapProductData(Varien_Object $item)
+	{
+		return array(
+			'type_id' => array('map' => 'product_type', 'extractor' => array()),
+			'weight' => array('map' => 'extended_attributes/item_dimension_shipping/weight', 'extractor' => array()),
+			'mass' => array('map' => 'extended_attributes/item_dimension_shipping/mass_unit_of_measure', 'extractor' => array()),
+			'visibility' => array(
+				'map' => 'base_attributes/catalog_class',
+				'extractor' => array('argument' => array($item), 'object' => $this, 'method' => '_getVisibilityData')
+			),
+			'status' => array(
+				'map' => 'base_attributes/item_status',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getItemStatusData')
+			),
+			'msrp' => array('map' => 'extended_attributes/msrp', 'extractor' => array()),
+			'price' => array('map' => 'extended_attributes/price', 'extractor' => array()),
+			'url_key' => array('map' => 'item_id/client_item_id', 'extractor' => array()),
+			'unresolved_product_links' => array(
+				'map' => 'product_links',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_serializeData')
+			),
+			// setting category data
+			'category_ids' => array(
+				'map' => 'category_links',
+				'extractor' => array('argument' => array($item), 'object' => $this, 'method' => '_preparedCategoryLinkData')
+			),
+			// setting the product's color to a Magento Attribute Id
+			'color' => array(
+				'map' => 'extended_attributes/color',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getProductColorOptionId')
+			),
+			'configurable_attributes_data' => array('map' => 'configurable_attributes_data', 'extractor' => array()),
+			// mark all products that have just been imported as not being clean
+			// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
+			// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
+			'is_clean' => array('map' => 'static', 'extractor' => array('value' => 0)),
+		);
+	}
+
+	/**
+	 * prepared product data
+	 * @param Varien_Object $item, extract product data
+	 * @return array
+	 */
+	protected function _preparedProductData(Varien_Object $item)
+	{
+		$dataDefinitionMap = $this->_mapProductData($item);
+		$data = array();
+
+		foreach ($dataDefinitionMap as $field => $map) {
+			if (!empty($map) && isset($map['map']) && isset($map['extractor'])) {
+				if ($map['map'] === 'static') {
+					$data[$field] = $map['extractor']['value'];
+				} else {
+					$value = $this->_extractMapData($map, $item);
+					if (is_string($value) && trim($value) !== '') {
+						$data[$field] = $value;
+					} else {
+						$data[$field] = $value;
+					}
+				}
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * extract magento map data
+	 * @param array $map, contain information about how to extract the data
+	 * @param Varien_Object $item, extract product data
+	 * @return mixed, the value
+	 */
+	protected function _extractMapData(array $map, Varien_Object $item)
+	{
+		if (trim($map['map']) === '') {
+			return '';
+		}
+		$routeArr = explode('/', $map['map']);
+		$extractor = $map['extractor'];
+		$size = count($routeArr);
+		if ($size === 1) {
+			if (empty($extractor)) {
+				return $item->getData($routeArr[0]);
+			} else {
+				if (is_string($extractor['argument'])) {
+					return call_user_func_array(array($extractor['object'], $extractor['method']), array($item->getData($routeArr[0])));
+				} elseif (is_array($extractor['argument'])) {
+					return call_user_func_array(array($extractor['object'], $extractor['method']), $extractor['argument']);
+				}
+			}
+		} else {
+			$object = null;
+			for ($i = 0; $i < ($size - 1); $i++) {
+				if ($i === 0) {
+					$object = $item->getData($routeArr[$i]);
+				} elseif ($object InstanceOf Varien_Object) {
+					$object = $object->getData($routeArr[$i]);
+				}
+			}
+			if ($object InstanceOf Varien_Object) {
+				if (empty($extractor)) {
+					return $object->getData($routeArr[$size - 1]);
+				} else {
+					if (is_string($extractor['argument'])) {
+						return call_user_func_array(array($extractor['object'], $extractor['method']), array($object->getData($routeArr[$size - 1])));
+					} elseif (is_array($extractor['argument'])) {
+						return call_user_func_array(array($extractor['object'], $extractor['method']), $extractor['argument']);
+					}
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * Merges translation-enabled fields into one array.
 	 * @todo Also does some mapping too, which really should be abstracted down to a lower level I think.
+	 * @param Varien_Object $item
 	 * @return array of attribute_codes => array(languages)
 	 */
-	protected function _mergeTranslations($item)
+	protected function _mergeTranslations(Varien_Object $item)
 	{
 		$translations = array();
 

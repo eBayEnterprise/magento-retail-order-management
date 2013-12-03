@@ -58,6 +58,308 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		);
 	}
 
+	/**
+	 * Test _synchProduct method
+	 * @test
+	 */
+	public function testSynchProduct()
+	{
+		$productModelMock = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('addData', 'save', 'getId'))
+			->getMock();
+		$productModelMock->expects($this->at(0))
+			->method('addData')
+			->with($this->equalTo(array(
+				'type_id' => 'simple',
+				'weight' => 2.5,
+				'mass' => 'lbs',
+				'visibility' => 4,
+				'status' => 1,
+				'msrp' => 10.95,
+				'price' => 15.95,
+				'url_key' => 'T123EST',
+				'unresolved_product_links' => 'a:1:{i:0;a:1:{i:0;s:6:"HTC150";}}',
+				'category_ids' => array(1,2,3,4),
+				'color' => 1,
+				'configurable_attributes_data' => array(),
+				'is_clean' => 0
+			)))
+			->will($this->returnSelf());
+		$productModelMock->expects($this->at(1))
+			->method('addData')
+			->with($this->equalTo(array()))
+			->will($this->returnSelf());
+		$productModelMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$productModelMock->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(1));
+
+		$item = new Varien_Object(array(
+			'item_id' => new Varien_Object(array(
+				'client_item_id' => 'T123EST',
+			)),
+			'base_attributes' => new Varien_Object(array(
+				'item_description' => 'T123EST Long Description',
+				'catalog_class' => 'regular',
+				'item_status' => 'active',
+			)),
+			'extended_attributes' => new Varien_Object(array(
+				'item_dimension_shipping' => new Varien_Object(array(
+					'weight' => 2.5,
+					'mass' => 'lbs',
+					'mass_unit_of_measure' => 'lbs',
+				)),
+				'msrp' => 10.95,
+				'price' => 15.95,
+				'color' => array(),
+			)),
+			'product_type' => 'simple',
+			'product_links' => array(array('HTC150')),
+			'category_links' => array(array('toys-category')),
+			'configurable_attributes_data' => array(),
+			'is_clean' => 0,
+		));
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('prepareProductModel'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('prepareProductModel')
+			->with($this->equalTo('T123EST'), $this->equalTo('T123EST Long Description'))
+			->will($this->returnValue($productModelMock));
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'_mergeTranslations',
+				'_applyDefaultTranslations',
+				'_getEb2cSpecificAttributeData',
+				'_addStockItemDataToProduct',
+				'_applyAlternateTranslations',
+				'_preparedProductData'
+			))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_mergeTranslations')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(array()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_applyDefaultTranslations')
+			->with($this->isInstanceOf('Varien_Object'), $this->isType('array'))
+			->will($this->returnValue(array('long_description' => array(
+				'en_US' => 'Test Product', 'fr_FR' => 'produit d\'essai'
+			))));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getEb2cSpecificAttributeData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(array()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_addStockItemDataToProduct')
+			->with($this->isInstanceOf('Varien_Object'), $this->isInstanceOf('Mage_Catalog_Model_Product'))
+			->will($this->returnValue(array()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_applyAlternateTranslations')
+			->with($this->equalTo(1), $this->isType('array'))
+			->will($this->returnSelf());
+		$feedProcessorModelMock->expects($this->once())
+			->method('_preparedProductData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(array(
+				'type_id' => 'simple',
+				'weight' => 2.5,
+				'mass' => 'lbs',
+				'visibility' => 4,
+				'status' => 1,
+				'msrp' => 10.95,
+				'price' => 15.95,
+				'url_key' => 'T123EST',
+				'unresolved_product_links' => 'a:1:{i:0;a:1:{i:0;s:6:"HTC150";}}',
+				'category_ids' => array(1,2,3,4),
+				'color' => 1,
+				'configurable_attributes_data' => array(),
+				'is_clean' => 0
+			)));
+
+		$this->_reflectProperty($feedProcessorModelMock, '_helper')->setValue($feedProcessorModelMock, $productHelperMock);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_synchProduct')->invoke($feedProcessorModelMock, $item)
+		);
+	}
+
+	/**
+	 * Test _synchProduct method, with invalid sku from feed
+	 * @test
+	 */
+	public function testSynchProductInvalidSkuFromFeed()
+	{
+		$item = new Varien_Object(array(
+			'item_id' => new Varien_Object(array(
+				'client_item_id' => null,
+			)),
+		));
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_synchProduct')->invoke($feedProcessorModelMock, $item)
+		);
+	}
+
+	/**
+	 * Test _preparedProductData method
+	 * @test
+	 */
+	public function testPreparedProductData()
+	{
+		$item = new Varien_Object(array(
+			'item_id' => new Varien_Object(array(
+				'client_item_id' => 'T123EST',
+			)),
+			'base_attributes' => new Varien_Object(array(
+				'item_description' => 'T123EST Long Description',
+				'catalog_class' => 'regular',
+				'item_status' => 'active',
+			)),
+			'extended_attributes' => new Varien_Object(array(
+				'item_dimension_shipping' => new Varien_Object(array(
+					'weight' => 2.5,
+					'mass' => 'lbs',
+					'mass_unit_of_measure' => 'lbs',
+				)),
+				'msrp' => 10.95,
+				'price' => 15.95,
+				'color' => array(),
+			)),
+			'product_type' => 'simple',
+			'product_links' => array(array('HTC150')),
+			'category_links' => array(array('name' => 'toys-category', 'import_mode' => 'Update')),
+			'configurable_attributes_data' => array(),
+			'is_clean' => 0,
+		));
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_getVisibilityData', '_serializeData', '_getItemStatusData', '_preparedCategoryLinkData', '_getProductColorOptionId'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getVisibilityData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_serializeData')
+			->with($this->isType('array'))
+			->will($this->returnValue('a:1:{i:0;a:1:{i:0;s:6:"HTC150";}}'));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getItemStatusData')
+			->with($this->equalTo('active'))
+			->will($this->returnValue(Mage_Catalog_Model_Product_Status::STATUS_ENABLED));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_preparedCategoryLinkData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(array(1,2,3,4)));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getProductColorOptionId')
+			->with($this->isType('array'))
+			->will($this->returnValue(1));
+
+		$this->assertSame(
+			array(
+				'type_id' => 'simple',
+				'weight' => 2.5,
+				'mass' => 'lbs',
+				'visibility' => 4,
+				'status' => 1,
+				'msrp' => 10.95,
+				'price' => 15.95,
+				'url_key' => 'T123EST',
+				'unresolved_product_links' => 'a:1:{i:0;a:1:{i:0;s:6:"HTC150";}}',
+				'category_ids' => array(1,2,3,4),
+				'color' => 1,
+				'configurable_attributes_data' => array(),
+				'is_clean' => 0
+			),
+			$this->_reflectMethod($feedProcessorModelMock, '_preparedProductData')->invoke($feedProcessorModelMock, $item)
+		);
+
+	}
+
+	/**
+	 * Test _extractMapData method, testing all the edge cases
+	 * @test
+	 */
+	public function testExtractMapData()
+	{
+		$testData = array(
+			array(
+				'expect' => 'T123EST',
+				'map' => array('map' => 'item_id/client_item_id', 'extractor' => array()),
+				'item' => new Varien_Object(array(
+					'item_id' => new Varien_Object(array(
+						'client_item_id' => 'T123EST',
+					)),
+				))
+			),
+			array(
+				'expect' => '',
+				'map' => array('map' => '', 'extractor' => array()),
+				'item' => new Varien_Object(array(
+					'item_id' => new Varien_Object(),
+				))
+			),
+			array(
+				'expect' => '',
+				'map' => array('map' => 'fake-path', 'extractor' => array('argument' => new Varien_Object())),
+				'item' => new Varien_Object(array(
+					'item_id' => new Varien_Object(),
+				))
+			),
+			array(
+				'expect' => '',
+				'map' => array('map' => 'fake_path/more_fake', 'extractor' => array('argument' => new Varien_Object())),
+				'item' => new Varien_Object(array(
+					'fake_path' => new Varien_Object(),
+				))
+			)
+		);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		foreach ($testData as $data) {
+			$this->assertSame(
+				$data['expect'],
+				$this->_reflectMethod($feedProcessorModelMock, '_extractMapData')->invoke($feedProcessorModelMock, $data['map'], $data['item'])
+			);
+		}
+	}
+
+	/**
+	 * Test _serializeData method
+	 * @test
+	 */
+	public function testSerializeData()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->assertSame(
+			'a:1:{i:0;a:1:{i:0;s:6:"HTC150";}}',
+			$this->_reflectMethod($feedProcessorModelMock, '_serializeData')->invoke($feedProcessorModelMock, array(array('HTC150')))
+		);
+	}
+
 	const VFS_ROOT = 'var/eb2c';
 
 	/**
