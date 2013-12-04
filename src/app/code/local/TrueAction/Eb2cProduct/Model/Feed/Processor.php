@@ -70,6 +70,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	 */
 	protected $_helper = null;
 
+	/**
+	 * define mapping between magento fields and varien object imported data
+	 * @var array
+	 */
+	protected $_mapProductField = array();
+
 	public function __construct()
 	{
 		$this->_helper = Mage::helper('eb2cproduct');
@@ -79,6 +85,42 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
+
+		$this->_mapProductField = array(
+			'type_id' => array('map' => 'product_type', 'extractor' => array()),
+			'weight' => array('map' => 'extended_attributes/item_dimension_shipping/weight', 'extractor' => array()),
+			'mass' => array('map' => 'extended_attributes/item_dimension_shipping/mass_unit_of_measure', 'extractor' => array()),
+			'visibility' => array(
+				'map' => 'base_attributes/catalog_class',
+				'extractor' => array('argument' => 'item', 'object' => $this, 'method' => '_getVisibilityData')
+			),
+			'status' => array(
+				'map' => 'base_attributes/item_status',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getItemStatusData')
+			),
+			'msrp' => array('map' => 'extended_attributes/msrp', 'extractor' => array()),
+			'price' => array('map' => 'extended_attributes/price', 'extractor' => array()),
+			'url_key' => array('map' => 'item_id/client_item_id', 'extractor' => array()),
+			'unresolved_product_links' => array(
+				'map' => 'product_links',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_serializeData')
+			),
+			// setting category data
+			'category_ids' => array(
+				'map' => 'category_links',
+				'extractor' => array('argument' => 'item', 'object' => $this, 'method' => '_preparedCategoryLinkData')
+			),
+			// setting the product's color to a Magento Attribute Id
+			'color' => array(
+				'map' => 'extended_attributes/color',
+				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getProductColorOptionId')
+			),
+			'configurable_attributes_data' => array('map' => 'configurable_attributes_data', 'extractor' => array()),
+			// mark all products that have just been imported as not being clean
+			// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
+			// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
+			'is_clean' => array('map' => 'static', 'extractor' => array('value' => 0)),
+		);
 	}
 
 	/**
@@ -568,7 +610,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		}
 		$product = $this->_helper->prepareProductModel($sku, $item->getBaseAttributes()->getItemDescription());
 
-		$productData = new Varien_Object($this->_preparedProductData($item));
+		$productData = new Varien_Object($this->_prepareProductData($item));
 
 		// Gathers up all translatable fields, applies the defaults;  whatever's left are
 		// alternate language codes that have to be applied /after/ the default product is saved
@@ -599,68 +641,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * define mapping between magento fields and varien object imported data
-	 * @param Varien_Object $item, extract product data
-	 * @return array
-	 */
-	protected function _mapProductData(Varien_Object $item)
-	{
-		return array(
-			'type_id' => array('map' => 'product_type', 'extractor' => array()),
-			'weight' => array('map' => 'extended_attributes/item_dimension_shipping/weight', 'extractor' => array()),
-			'mass' => array('map' => 'extended_attributes/item_dimension_shipping/mass_unit_of_measure', 'extractor' => array()),
-			'visibility' => array(
-				'map' => 'base_attributes/catalog_class',
-				'extractor' => array('argument' => array($item), 'object' => $this, 'method' => '_getVisibilityData')
-			),
-			'status' => array(
-				'map' => 'base_attributes/item_status',
-				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getItemStatusData')
-			),
-			'msrp' => array('map' => 'extended_attributes/msrp', 'extractor' => array()),
-			'price' => array('map' => 'extended_attributes/price', 'extractor' => array()),
-			'url_key' => array('map' => 'item_id/client_item_id', 'extractor' => array()),
-			'unresolved_product_links' => array(
-				'map' => 'product_links',
-				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_serializeData')
-			),
-			// setting category data
-			'category_ids' => array(
-				'map' => 'category_links',
-				'extractor' => array('argument' => array($item), 'object' => $this, 'method' => '_preparedCategoryLinkData')
-			),
-			// setting the product's color to a Magento Attribute Id
-			'color' => array(
-				'map' => 'extended_attributes/color',
-				'extractor' => array('argument' => 'value', 'object' => $this, 'method' => '_getProductColorOptionId')
-			),
-			'configurable_attributes_data' => array('map' => 'configurable_attributes_data', 'extractor' => array()),
-			// mark all products that have just been imported as not being clean
-			// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
-			// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
-			'is_clean' => array('map' => 'static', 'extractor' => array('value' => 0)),
-		);
-	}
-
-	/**
 	 * prepared product data
 	 * @param Varien_Object $item, extract product data
 	 * @return array
 	 */
-	protected function _preparedProductData(Varien_Object $item)
+	protected function _prepareProductData(Varien_Object $item)
 	{
-		$dataDefinitionMap = $this->_mapProductData($item);
 		$data = array();
-
-		foreach ($dataDefinitionMap as $field => $map) {
-			if (!empty($map) && isset($map['map']) && isset($map['extractor'])) {
+		foreach ($this->_mapProductField as $field => $map) {
+			if (isset($map['map']) && isset($map['extractor'])) {
 				if ($map['map'] === 'static') {
 					$data[$field] = $map['extractor']['value'];
 				} else {
 					$value = $this->_extractMapData($map, $item);
-					if (is_string($value) && trim($value) !== '') {
-						$data[$field] = $value;
-					} else {
+					if (is_array($value) || trim($value) !== '') {
 						$data[$field] = $value;
 					}
 				}
@@ -677,39 +671,41 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	 */
 	protected function _extractMapData(array $map, Varien_Object $item)
 	{
-		if (trim($map['map']) === '') {
+		if ($map['map'] === '') {
 			return '';
 		}
 		$routeArr = explode('/', $map['map']);
 		$extractor = $map['extractor'];
+		$argument = (isset($extractor['argument']))? $extractor['argument'] : null;
+		$object = (isset($extractor['object']))? $extractor['object'] : null;
+		$method = (isset($extractor['method']))? $extractor['method'] : null;
+
 		$size = count($routeArr);
 		if ($size === 1) {
 			if (empty($extractor)) {
 				return $item->getData($routeArr[0]);
 			} else {
-				if (is_string($extractor['argument'])) {
+				if ($argument === 'value') {
 					return call_user_func_array(array($extractor['object'], $extractor['method']), array($item->getData($routeArr[0])));
-				} elseif (is_array($extractor['argument'])) {
-					return call_user_func_array(array($extractor['object'], $extractor['method']), $extractor['argument']);
+				} elseif ($argument === 'item') {
+					return call_user_func_array(array($extractor['object'], $extractor['method']), array($item));
 				}
 			}
 		} else {
-			$object = null;
-			for ($i = 0; $i < ($size - 1); $i++) {
-				if ($i === 0) {
-					$object = $item->getData($routeArr[$i]);
-				} elseif ($object InstanceOf Varien_Object) {
+			$object = $item->getData($routeArr[0]);
+			for ($i = 1; $i < ($size - 1); $i++) {
+				if ($object instanceof Varien_Object) {
 					$object = $object->getData($routeArr[$i]);
 				}
 			}
-			if ($object InstanceOf Varien_Object) {
+			if ($object instanceof Varien_Object) {
 				if (empty($extractor)) {
 					return $object->getData($routeArr[$size - 1]);
 				} else {
-					if (is_string($extractor['argument'])) {
+					if ($argument === 'value') {
 						return call_user_func_array(array($extractor['object'], $extractor['method']), array($object->getData($routeArr[$size - 1])));
-					} elseif (is_array($extractor['argument'])) {
-						return call_user_func_array(array($extractor['object'], $extractor['method']), $extractor['argument']);
+					} elseif ($argument === 'item') {
+						return call_user_func_array(array($extractor['object'], $extractor['method']), array($item));
 					}
 				}
 			}
