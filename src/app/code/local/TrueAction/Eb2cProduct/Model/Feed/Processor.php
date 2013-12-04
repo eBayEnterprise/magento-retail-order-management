@@ -618,15 +618,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
 		$productData->setData('is_clean', 0);
 
-		$product->addData($productData->getData())
-			->addData($this->_getEb2cSpecificAttributeData($item))
-			->save(); // saving the product
-		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
-
-		// Alternate languages /must/ happen after default product has been saved:
-		if( $translations ) {
-			$this->_applyAlternateTranslations($product->getId(), $translations);
+		$canSave = true;
+		if ($product->getTypeId() === 'configurable' && !$product->getCanSaveConfigurableAttributes()) {
+			$canSave = false;
+			Mage::log(
+				sprintf('[%s] can not save configurable product (%s), because there is no configurable attributes for this product', __METHOD__, $sku),
+				Zend_Log::DEBUG
+			);
 		}
+
+		if ($canSave) {
+			$product->addData($productData->getData())
+				->addData($this->_getEb2cSpecificAttributeData($item))
+				->save(); // saving the product
+			$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
+
+			// Alternate languages /must/ happen after default product has been saved:
+			if( $translations ) {
+				$this->_applyAlternateTranslations($product->getId(), $translations);
+			}
+		}
+
 		return $this;
 	}
 
@@ -1210,28 +1222,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 			foreach ($categoryLinks as $link) {
 				$categories = explode('-', $link['name']);
 				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
-						foreach($categories as $category) {
+					foreach($categories as $category) {
 						$categoryObject = Mage::getModel('catalog/category')->load(
 							$this->_loadCategoryByName(ucwords($category))->getId()
 						);
 						if ($categoryObject->getId()) {
-								// we have a valid category in the system let's delete it
+							// we have a valid category in the system let's delete it
 							$categoryObject->delete();
-							}
 						}
-					} else {
-						// adding or changing category import mode
+					}
+				} else {
+					// adding or changing category import mode
 					$path = sprintf('%s/%s', $this->_getDefaultParentCategoryId(), $this->_getStoreRootCategoryId());
-						foreach($categories as $category) {
+					foreach($categories as $category) {
 						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
 						if ($categoryId) {
-							$path .= '/' . $categoryId;
+							$path .= sprintf('/%s', $categoryId);
 						}
 					}
-						$fullPath .= '/' . $path;
-					}
+					$fullPath .= sprintf('/%s', $path);
 				}
 			}
+		}
 		return explode('/', $fullPath);
 	}
 }

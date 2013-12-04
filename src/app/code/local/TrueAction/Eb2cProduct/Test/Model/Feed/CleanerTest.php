@@ -78,11 +78,17 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	public function testCleanProductWithConfigurableProduct()
 	{
 		$product = $this->getModelMockBuilder('catalog/product')
-			->setMethods(array('getTypeId', 'save'))
+			->setMethods(array('getTypeId', 'getStyleId', 'getSku', 'save'))
 			->getMock();
 		$product->expects($this->once())
 			->method('getTypeId')
 			->will($this->returnValue('configurable'));
+		$product->expects($this->once())
+			->method('getStyleId')
+			->will($this->returnValue('1234'));
+		$product->expects($this->once())
+			->method('getSku')
+			->will($this->returnValue('1234'));
 		$product->expects($this->once())
 			->method('save')
 			->will($this->returnSelf());
@@ -116,8 +122,27 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	 */
 	public function testCleanProductWithChildConfigurableProduct()
 	{
+		$parent = $this->getModelMockBuilder('catalog/product')
+			->setMethods(array('getId', 'getCanSaveConfigurableAttributes'))
+			->getMock();
+		$parent->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(19));
+		$parent->expects($this->once())
+			->method('getCanSaveConfigurableAttributes')
+			->will($this->returnValue(true));
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->setMethods(array('loadProductBySku'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('loadProductBySku')
+			->with($this->equalTo('1234-Configurable'))
+			->will($this->returnValue($parent));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
 		$product = $this->getModelMockBuilder('catalog/product')
-			->setMethods(array('getTypeId', 'save', 'getSku', 'getStyleId'))
+			->setMethods(array('getTypeId', 'save', 'getSku', 'getStyleId', 'getCanSaveConfigurableAttributes'))
 			->getMock();
 		$product->expects($this->once())
 			->method('getTypeId')
@@ -125,7 +150,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 		$product->expects($this->once())
 			->method('getSku')
 			->will($this->returnValue('1234-Simple'));
-		$product->expects($this->exactly(2))
+		$product->expects($this->once())
 			->method('getStyleId')
 			->will($this->returnValue('1234-Configurable'));
 		$product->expects($this->once())
@@ -141,6 +166,70 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 			->will($this->returnSelf());
 		$feedCleanerModelProductMock->expects($this->once())
 			->method('_addToCofigurableProduct')
+			->with($this->isInstanceOf('Mage_Catalog_Model_Product'))
+			->will($this->returnSelf());
+		$feedCleanerModelProductMock->expects($this->once())
+			->method('markProductClean')
+			->with($this->isInstanceOf('Mage_Catalog_Model_Product'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelProductMock);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Cleaner',
+			Mage::getModel('eb2cproduct/feed_cleaner')->cleanProduct($product)
+		);
+	}
+
+	/**
+	 * Test cleanProduct method, when the product is a child of a configurable
+	 * but configurable product has no configurable attributes
+	 * @test
+	 */
+	public function testCleanProductWithChildConfigurableProductNoConfigurableAttributes()
+	{
+		$parent = $this->getModelMockBuilder('catalog/product')
+			->setMethods(array('getId', 'getCanSaveConfigurableAttributes', 'getSku'))
+			->getMock();
+		$parent->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(19));
+		$parent->expects($this->once())
+			->method('getCanSaveConfigurableAttributes')
+			->will($this->returnValue(false));
+		$parent->expects($this->once())
+			->method('getSku')
+			->will($this->returnValue('1234-Configurable'));
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->setMethods(array('loadProductBySku'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('loadProductBySku')
+			->with($this->equalTo('1234-Configurable'))
+			->will($this->returnValue($parent));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$product = $this->getModelMockBuilder('catalog/product')
+			->setMethods(array('getTypeId', 'save', 'getSku', 'getStyleId', 'getCanSaveConfigurableAttributes'))
+			->getMock();
+		$product->expects($this->once())
+			->method('getTypeId')
+			->will($this->returnValue('simple'));
+		$product->expects($this->once())
+			->method('getSku')
+			->will($this->returnValue('1234-Simple'));
+		$product->expects($this->once())
+			->method('getStyleId')
+			->will($this->returnValue('1234-Configurable'));
+		$product->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$feedCleanerModelProductMock = $this->getModelMockBuilder('eb2cproduct/feed_cleaner')
+			->setMethods(array('_resolveProductLinks', 'markProductClean'))
+			->getMock();
+		$feedCleanerModelProductMock->expects($this->once())
+			->method('_resolveProductLinks')
 			->with($this->isInstanceOf('Mage_Catalog_Model_Product'))
 			->will($this->returnSelf());
 		$feedCleanerModelProductMock->expects($this->once())

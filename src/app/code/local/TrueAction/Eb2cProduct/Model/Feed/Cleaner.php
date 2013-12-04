@@ -61,11 +61,26 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	{
 		// resolved any hanging linked products
 		$this->_resolveProductLinks($product);
+		$styleId = $product->getStyleId();
+		$sku = $product->getSku();
+
 		// update configurable relationships
 		if ($product->getTypeId() === 'configurable') {
 			$this->_addUsedProducts($product);
-		} elseif ($product->getStyleId() && $product->getStyleId() !== $product->getSku()) {
-			$this->_addToCofigurableProduct($product);
+		} elseif ($styleId && $styleId !== $sku) {
+			$parent = Mage::helper('eb2cproduct')->loadProductBySku($styleId);
+			if ($parent->getId() && $parent->getCanSaveConfigurableAttributes()) {
+				$this->_addToCofigurableProduct($product);
+			} else {
+				Mage::log(
+					sprintf(
+						'[%s] can not add child product (%s), to configurable product (%s) because configurable product has no configurable attributes',
+						__METHOD__,
+						$sku, $parent->getSku()
+					),
+					Zend_Log::DEBUG
+				);
+			}
 		}
 		$this->markProductClean($product);
 		$product->save();
