@@ -11,7 +11,7 @@ class TrueAction_Eb2cProduct_Model_Image_Export_Config
 		'include_empty_galleries' => 'eb2cproduct/image_export/include_empty_galleries',
 		'remote_path'             => 'eb2cproduct/image_export/remote_path',
 		'filename_format'         => 'eb2cproduct/image_export/filename_format',
-		'api_xml_ns'              => 'eb2ccore/api/xml_namespace',
+		'api_xml_ns'              => 'eb2cproduct/image_export/api/xml_namespace',
 		'xsd_file_image_export'   => 'eb2cproduct/image_export/xsd',
 		'local_path'              => 'eb2cproduct/image_export/local_path',
 

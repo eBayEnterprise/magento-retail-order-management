@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2013 rel. 2 sp2 (x64) (http://www.altova.com) by Rahul (private) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
-	<xs:include schemaLocation="Message-Header-1.0.xsd"/>
+	<xs:include schemaLocation="messageHeader.xsd"/>
 	<xs:element name="ItemImages">
 		<xs:annotation>
 			<xs:documentation>Comment describing your root element</xs:documentation>
@@ -9,7 +9,7 @@
 		<xs:complexType>
 			<xs:sequence>
 				<xs:element ref="MessageHeader"/>
-				<xs:element name="Item">
+				<xs:element name="Item" maxOccurs="unbounded">
 					<xs:complexType>
 						<xs:sequence>
 							<xs:element name="Images">
@@ -19,7 +19,7 @@
 									</xs:sequence>
 								</xs:complexType>
 							</xs:element>
-							<xs:element name="CustomAttributes">
+							<xs:element name="CustomAttributes" minOccurs="0">
 								<xs:complexType>
 									<xs:sequence>
 										<xs:element name="CustomAttribute">

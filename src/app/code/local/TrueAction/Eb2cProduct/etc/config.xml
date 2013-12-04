@@ -222,8 +222,13 @@
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>
 			<image_export>
+				<api>
+					<xml_namespace />
+				</api>
 				<local_path>TrueAction/Eb2c/Feed/Product/ImageExport/</local_path>
-				<xsd>Image-Feed-1.0.xsd</xsd>
+				<xsd>Image_Feed.xsd</xsd>
+				<include_empty_galleries>true</include_empty_galleries>
+				<filename_format>\I\m\a\g\e\E\x\p\o\r\t_YmdHis</filename_format>
 			</image_export>
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>

@@ -28,7 +28,7 @@ after the decimal represents a minor
 upgrade/modification to the framework.</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="VersionReleaseNumber">
+				<xs:element name="VersionReleaseNumber" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Release number within the current message
 header version number.</xs:documentation>
@@ -77,7 +77,7 @@ message pertains.</xs:documentation>
 						<xs:documentation>Encapsulates message identification information unique to the GSI Xchange</xs:documentation>
 					</xs:annotation>
 				</xs:element>
-				<xs:element name="CreateDateAndType">
+				<xs:element name="CreateDateAndTime">
 					<xs:annotation>
 						<xs:documentation>Original message creation date and time
 assigned by the Source. Follows ISO 8601
