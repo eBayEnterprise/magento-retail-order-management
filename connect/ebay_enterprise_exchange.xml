@@ -10,7 +10,7 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>0.9.3</version>
+	<version>0.9.5</version>
 	<stability>devel</stability>
 	<notes>Initial release</notes>
 	<authors>
@@ -100,6 +100,7 @@
 			<target>mageetc</target>
 			<target>mageetc</target>
 			<target>mageetc</target>
+			<target>magelocale</target>
 		</target>
 		<path>
 			<path/>
@@ -132,6 +133,7 @@
 			<path>modules/TrueAction_ActiveConfig.xml</path>
 			<path>modules/TrueAction_FileTransfer.xml</path>
 			<path>eb2c.xml.sample</path>
+			<path>en_US</path>
 		</path>
 		<type>
 			<type>file</type>
@@ -164,6 +166,7 @@
 			<type>file</type>
 			<type>file</type>
 			<type>file</type>
+			<type>dir</type>
 		</type>
 		<include>
 			<include/>
@@ -196,8 +199,10 @@
 			<include/>
 			<include/>
 			<include/>
+			<include>#TrueAction_Eb2c.*#</include>
 		</include>
 		<ignore>
+			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>
