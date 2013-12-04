@@ -106,10 +106,11 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			->will($this->returnValue(true));
 
 		// The transport protocol is mocked - we just pretend we got files
-		$mockSftp = $this->getMock(
-			'TrueAction_FileTransfer_Model_Protocol_Types_Sftp',
-			array( 'getAllFiles', 'deleteFile')
-		);
+		$mockSftp = $this
+			->getModelMockBuilder('filetransfer/protocol_types_sftp')
+			->disableOriginalConstructor()
+			->setMethods(array( 'getAllFiles', 'deleteFile'))
+			->getMock();
 
 		$mockSftp
 			->expects($this->any())
