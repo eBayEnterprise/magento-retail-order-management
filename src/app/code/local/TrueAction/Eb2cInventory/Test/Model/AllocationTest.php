@@ -178,105 +178,65 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	}
 
 	/**
-	 * Provider method for a quote with 4 items - 1 non-managed stock, 1 virtual, 2 managed
-	 * @return array
-	 */
-	public function providerQuoteWithItems()
-	{
-		// The address to use in the quote for the shipping address
-		$address = $this->_createAddressObject();
-
-		// Group of products to assign to each item. All but one will have managed stock (test filtering)
-		$products = array();
-		for ($i = 0; $i < 4; $i++) {
-			$products[] = Mage::getModel('catalog/product', array(
-				'website_id' => 1,
-				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
-					// first three items should all be managed stock
-					'manage_stock' => $i !== 3,
-				)),
-			));
-		}
-
-		// Items for each of the products. One of these will be a virtual product (test filtering)
-		$items = array();
-		foreach ($products as $idx => $product) {
-			$items[] = Mage::getModel('sales/quote_item', array(
-				'entity_id' => $idx,
-				'product' => $product,
-				// third item will be virtual, rest will not be
-				'is_virtual' => $idx === 2,
-				'sku' => sprintf('item%s', $idx),
-				'qty' => $idx + 1,
-			));
-		}
-
-		// Create the quote to allocate
-		$quote = Mage::getModel('sales/quote');
-		$quote->setShippingAddress($address);
-		$quote->setEntityId(self::QUOTE_ENTITY_ID);
-		// Add each item to the quote.
-		foreach ($items as $idx => $item) {
-			$quote->addItem($item);
-			// Give the item in id, this normally happens when saving the quote, which
-			// would have happened by now, but as this is being avoided here it needs to be
-			// manually assigned.
-			$item->setId($idx);
-		}
-
-		return array(
-			array($quote),
-		);
-	}
-
-	/**
 	 * testing building inventory details request message
 	 *
 	 * @test
-	 * @dataProvider providerQuoteWithItems
 	 */
-	public function testAllocateQuoteItems($quote)
+	public function testAllocateQuoteItems()
 	{
-		// Stub out the Eb2cInventory helper to ensure a consistent request and reservation id
-		$invHelper = $this->getHelperMock('eb2cinventory/data', array('getRequestId', 'getReservationId'));
-		$invHelper->expects($this->once())
-			->method('getRequestId')
-			// entity id set on the quote in the provider
-			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
-			->will($this->returnValue(self::REQUEST_ID));
-		$invHelper->expects($this->once())
-			->method('getReservationId')
-			// entity id set on the quote in the provider
-			->with($this->identicalTo(self::QUOTE_ENTITY_ID))
-			->will($this->returnValue(self::RESERVATION_ID));
-		$this->replaceByMock('helper', 'eb2cinventory', $invHelper);
+		$uri = 'https://some.u.r/i';
+		$xsd = 'allocationschema.xsd';
+		$this->replaceCoreConfigRegistry(array(
+			'xsdFileAllocation' => $xsd
+		));
+
+		$helper = $this->getHelperMock('eb2cinventory/data', array('getOperationUri'));
+		$this->replaceByMock('helper', 'eb2cinventory', $helper);
+		$helper->expects($this->once())
+			->method('getOperationUri')
+			->with($this->identicalTo('allocate_inventory'))
+			->will($this->returnValue($uri));
+
+		// Mock the API to verify the request is made with the proper request
+		$api = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('setUri', 'setXsd', 'request'))
+			->getMock();
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+		$api->expects($this->once())
+			->method('setUri')
+			->with($this->identicalTo($uri))
+			->will($this->returnSelf());
+		$api->expects($this->once())
+			->method('setXsd')
+			->with($this->identicalTo($xsd))
+			->will($this->returnSelf());
+
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXml('<inventoryallocation />');
+
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array('getShippingAddress'))
+			->getMock();
+		$quote->expects($this->once())
+			->method('getShippingAddress')
+			->will($this->returnValue(New Varien_Object()));
+		$testModel = $this->getModelMock('eb2cinventory/allocation', array('buildAllocationRequestMessage'));
+		$testModel->expects($this->once())
+			->method('buildAllocationRequestMessage')
+			->with($this->identicalTo($quote))
+			->will($this->returnValue($doc));
 
 		// Canned response from the API. Should be what finally gets returned
 		// from the allocateQuoteItems method when successful.
 		$response = '<What>Ever</What>';
-
-		$request = new DOMDocument();
-		$request->loadXML(sprintf('<AllocationRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="%s" reservationId="%s"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></AllocationRequestMessage>', self::REQUEST_ID, self::RESERVATION_ID));
-		// Mock the API to verify the request is made with the proper request
-		$api = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'request'))
-			->getMock();
-		$api->expects($this->once())
-			->method('setUri')
-			->will($this->returnSelf());
-		// Validate the request message matches the expected message
 		$api->expects($this->once())
 			->method('request')
-			->with($this->callback(function ($arg) use ($request) {
-					// compare the canonicalized XML of the TrueAction_Dom_Document
-					// passed to the request method to the expected XML for this quote
-					return $request->C14N() === $arg->C14N();
-				}))
+			->with($this->identicalTo($doc))
 			->will($this->returnValue($response));
-		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$this->markTestIncomplete('test is failing');
-		$this->assertSame($response, $this->_allocation->allocateQuoteItems($quote));
+		// Validate the request message matches the expected message
+		$this->assertSame($response, $testModel->allocateQuoteItems($quote));
 	}
 
 	/**
