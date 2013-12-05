@@ -127,7 +127,13 @@ class TrueAction_Eb2cProduct_Model_Feed
 			return;
 		}
 
-		$eventType = $this->_determineEventType($dom);
+		try {
+			$eventType = $this->_determineEventType($dom);
+		} catch (TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
+			Mage::log(sprintf('The following Event Type error occurred: %s', $e->getMessage()), Zend_Log::ERR);
+			return;
+		}
+
 		$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 		// Validate Eb2c Header Information

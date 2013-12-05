@@ -622,10 +622,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// Find out that setting the 'is_clean' attribute to false wasn't add the attribute relationship
 		// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
 		$productData->setData('is_clean', 0);
-
 		$product->addData($productData->getData())
-			->addData($this->_getEb2cSpecificAttributeData($item))
-			->save(); // saving the product
+			->addData($this->_getEb2cSpecificAttributeData($item));
+		try {
+			$product->save(); // saving the product
+		} catch(PDOException $e) {
+			Mage::logException($e);
+		}
 		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 
 		// Alternate languages /must/ happen after default product has been saved:
