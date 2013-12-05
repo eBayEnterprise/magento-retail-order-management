@@ -618,9 +618,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		// to the catalog_product_entity_int table, that's why the cleaner wasn't running.
 		$productData->setData('is_clean', 0);
 
-		$product->addData($productData->getData())
-			->addData($this->_getEb2cSpecificAttributeData($item))
-			->save(); // saving the product
+		try {
+			$product->addData($productData->getData())
+				->addData($this->_getEb2cSpecificAttributeData($item))
+				->save(); // saving the product
+		} catch(Exception $e) {
+			Mage::logException($e);
+		}
 		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 
 		// Alternate languages /must/ happen after default product has been saved:
