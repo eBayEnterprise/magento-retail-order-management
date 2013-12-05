@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Feed_Processor
 {
 	const DEFAULT_BATCH_SIZE = 128;
 	/**
