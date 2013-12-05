@@ -68,19 +68,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		if ($product->getTypeId() === 'configurable') {
 			$this->_addUsedProducts($product);
 		} elseif ($styleId && $styleId !== $sku) {
-			$parent = Mage::helper('eb2cproduct')->loadProductBySku($styleId);
-			if ($parent->getId() && $parent->getCanSaveConfigurableAttributes()) {
-				$this->_addToCofigurableProduct($product);
-			} else {
-				Mage::log(
-					sprintf(
-						'[%s] can not add child product (%s), to configurable product (%s) because configurable product has no configurable attributes',
-						__METHOD__,
-						$sku, $parent->getSku()
-					),
-					Zend_Log::DEBUG
-				);
-			}
+			$this->_addToCofigurableProduct($product);
 		}
 		$this->markProductClean($product);
 		$product->save();

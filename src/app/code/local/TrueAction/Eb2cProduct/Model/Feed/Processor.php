@@ -65,6 +65,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected $_deleteBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
 
+	const DEFAULT_ATTRIBUTE_SET = 'Default';
+
 	public function __construct()
 	{
 		$this->_helper = Mage::helper('eb2cproduct');
@@ -401,9 +403,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	protected function _processConfigurableAttributes($attrData, Varien_Object $outData)
 	{
 		$configurableAttributeData = array();
+		$attributeObj = Mage::getModel('eb2cproduct/feed_attribute');
 
 		$configurableAttributes = explode(',', $attrData['value']);
 		foreach ($configurableAttributes as $attrCode) {
+			if (!$attributeObj->isAttributeInAttributeSet($attrCode, self::DEFAULT_ATTRIBUTE_SET)) {
+				// attribute is not in the attribute set let's added
+				$attributeObj->addAttributeToAttributeSet($attrCode, self::DEFAULT_ATTRIBUTE_SET);
+				Mage::log(
+					sprintf(
+						'[%s] Configurable Attribute (%s) was added to %s attribute set.',
+						__METHOD__, $attrCode, self::DEFAULT_ATTRIBUTE_SET
+					),
+					Zend_Log::DEBUG
+				);
+			}
+
 			$superAttribute  = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
 			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')->setProductAttribute($superAttribute);
 
@@ -619,12 +634,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 		$productData->setData('is_clean', 0);
 
 		$canSave = true;
+		// saving alreay exists configurable product will throw error
 		if ($product->getTypeId() === 'configurable' && !$product->getCanSaveConfigurableAttributes()) {
 			$canSave = false;
-			Mage::log(
-				sprintf('[%s] can not save configurable product (%s), because there is no configurable attributes for this product', __METHOD__, $sku),
-				Zend_Log::DEBUG
-			);
 		}
 
 		if ($canSave) {
