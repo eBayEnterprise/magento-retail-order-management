@@ -24,11 +24,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 */
 	protected function _filterGiftCardByPanPin()
 	{
-		$giftcardaccount = Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection');
-		$giftcardaccount->getSelect()->where('main_table.eb2c_pan = ?', $this->_requestedPan) // add filter by pan.
-			->where('main_table.eb2c_pin = ?', $this->_requestedPin); // add filter by pin
-
-		return $giftcardaccount->load();
+		return Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection')
+			->addFieldToFilter('eb2c_pan', array('eq' => $this->_requestedPan))  // add filter by pan.
+			->addFieldToFilter('eb2c_pin', array('eq' => $this->_requestedPin)) // add filter by pan.
+			->load();
 	}
 
 	/**
@@ -40,16 +39,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	 */
 	public function giftCardPinByPan($pan)
 	{
-		$pin = '';
-		$giftcardaccount = Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection');
-		$giftcardaccount->getSelect()->where('main_table.eb2c_pan = ?', $pan); // add filter by pan.
-		$giftcardaccount->load();
-		if (count($giftcardaccount)) {
-			$card = $giftcardaccount->getFirstItem();
-			$pin = $card->getEb2cPin();
-		}
-
-		return $pin;
+		return (string) Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection')
+			->addFieldToFilter('eb2c_pan', array('eq' => $pan)) // add filter by pan.
+			->getFirstItem()
+			->getEb2cPin();
 	}
 
 	/**
