@@ -583,6 +583,9 @@ INVALID_XML;
 			->disableOriginalConstructor()
 			->setMethods(array('none'))
 			->getMock();
-		$this->_reflectMethod($testModel, '_getNewOrders')->invoke($testModel);
+		$this->assertSame(
+			$collection,
+			$this->_reflectMethod($testModel, '_getNewOrders')->invoke($testModel)
+		);
 	}
 }
