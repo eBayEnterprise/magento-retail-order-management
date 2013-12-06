@@ -721,10 +721,9 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected function _getNewOrders()
 	{
-		$orders = Mage::getResourceModel('sales/order_collection');
-		$orders->addAttributeToSelect('*')
-			->getSelect()
-			->where("main_table.state = 'new'");
-		return $orders->load();
+		return Mage::getResourceModel('sales/order_collection')
+			->addAttributeToSelect('*')
+			->addFieldToFilter('state', array('eq' => 'new'))
+			->load();
 	}
 }
