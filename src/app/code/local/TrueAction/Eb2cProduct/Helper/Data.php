@@ -217,11 +217,10 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function loadProductBySku($sku)
 	{
-		$products = Mage::getResourceModel('catalog/product_collection');
-		$products->addAttributeToSelect('*');
-		$products->getSelect()
-			->where('e.sku = ?', $sku);
-		return $products->getFirstItem();
+		return Mage::getResourceModel('catalog/product_collection')
+			->addAttributeToSelect('*')
+			->addFieldToFilter('sku', array('eq' => $sku))
+			->getFirstItem();
 	}
 
 	/**
