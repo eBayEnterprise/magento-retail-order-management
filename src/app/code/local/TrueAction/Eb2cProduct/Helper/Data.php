@@ -2,7 +2,7 @@
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
 	/**
-	 * @see self::getCustomAttributeCodeSet
+	 * @see self::getCustomAttributeCodeSet - method
 	 */
 	protected $_customAttributeCodeSets = array();
 	/**
@@ -72,11 +72,21 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * abstracting getting locale code
+	 * @return string, the locale code
+	 * @codeCoverageIgnore
+	 */
+	protected function _getLocaleCode()
+	{
+		return Mage::app()->getLocale()->getLocaleCode();
+	}
+
+	/**
 	 * @return string the default locale language code
 	 */
 	public function getDefaultLanguageCode()
 	{
-		return Mage::helper('eb2ccore')->mageToXmlLangFrmt(Mage::app()->getLocale()->getLocaleCode());
+		return Mage::helper('eb2ccore')->mageToXmlLangFrmt($this->_getLocaleCode());
 	}
 
 	/**
@@ -201,7 +211,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param Mage_Catalog_Model_Product $prod product model to be autofilled
 	 * @param string $sku the new product's sku
 	 * @param string $name the new product's name
-	 * return Mage_Catalog_Model_Product
+	 * @return Mage_Catalog_Model_Product
 	 */
 	protected function _applyDummyData(Mage_Catalog_Model_Product $prod, $sku, $name)
 	{
@@ -226,6 +236,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * Return an array of attribute_codes
+	 * @param int $attributeSetId
 	 * @return array
 	 */
 	public function getCustomAttributeCodeSet($attributeSetId)
@@ -234,7 +245,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			$codeSet = array();
 			$attributeSet = Mage::getModel('catalog/product_attribute_api')->items($attributeSetId);
 			foreach ($attributeSet as $attribute) {
-				$codeSet[]=$attribute['code'];
+				$codeSet[] = $attribute['code'];
 			}
 			$this->_customAttributeCodeSets[$attributeSetId] = $codeSet;
 		}
@@ -243,9 +254,10 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * Flattens translations into arrays keyed by language
+	 * @param array $languageSet
 	 * @return array in the form a['lang-code'] = 'localized value'
 	 */
-	public function parseTranslations($languageSet)
+	public function parseTranslations(array $languageSet)
 	{
 		$parsedLanguages = array();
 		if (!empty($languageSet)) {
