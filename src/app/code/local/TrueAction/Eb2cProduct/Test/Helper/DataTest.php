@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cProduct_Test_Helper_DataTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * testing getConfigModel method
@@ -156,7 +157,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$getProdTplt->invoke($hlpr);
 	}
 
-
 	/**
 	 * Test looking up a product by sku
 	 * @param  string $sku SKU of product
@@ -272,7 +272,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($sku, $prod->getUrlKey());
 	}
 
-
 	/**
 	 * Given a mapped array containing language, parse should return
 	 * a flattened array, keyed by language
@@ -296,7 +295,219 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 			'ja-JP' => 'ja-JP に変換',
 		);
 
-		$this->assertSame($expectedOutput,
-			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
+		$this->assertSame($expectedOutput, Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
+	}
+
+	/**
+	 * Test getDefaultLanguageCode the feed
+	 * @test
+	 */
+	public function testGetDefaultLanguageCode()
+	{
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('mageToXmlLangFrmt'))
+			->getMock();
+		$coreHelperMock::staticExpects($this->once())
+			->method('mageToXmlLangFrmt')
+			->with($this->equalTo('en_US'))
+			->will($this->returnValue('en-US'));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('_getLocaleCode'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('_getLocaleCode')
+			->will($this->returnValue('en_US'));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$this->assertSame('en-US', Mage::helper('eb2cproduct')->getDefaultLanguageCode());
+	}
+
+	/**
+	 * Test getDefaultProductAttributeSetId the feed
+	 * @test
+	 */
+	public function testGetDefaultProductAttributeSetId()
+	{
+		$entityTypeModelMock = $this->getModelMockBuilder('eav/entity_type')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByCode', 'getDefaultAttributeSetId'))
+			->getMock();
+		$entityTypeModelMock->expects($this->once())
+			->method('loadByCode')
+			->with($this->equalTo('catalog_product'))
+			->will($this->returnSelf());
+		$entityTypeModelMock->expects($this->once())
+			->method('getDefaultAttributeSetId')
+			->will($this->returnValue(4));
+		$this->replaceByMock('model', 'eav/entity_type', $entityTypeModelMock);
+
+		$this->assertSame(4, Mage::helper('eb2cproduct')->getDefaultProductAttributeSetId());
+	}
+
+	/**
+	 * Test parseBool the feed
+	 * @test
+	 */
+	public function testParseBool()
+	{
+		$testData = array(
+			array('expect' => true, 's' => true),
+			array('expect' => false, 's' => false),
+			array('expect' => false, 's' => array()),
+			array('expect' => true, 's' => array(range(1, 4))),
+			array('expect' => true, 's' => '1'),
+			array('expect' => true, 's' => 'on'),
+			array('expect' => true, 's' => 't'),
+			array('expect' => true, 's' => 'true'),
+			array('expect' => true, 's' => 'y'),
+			array('expect' => true, 's' => 'yes'),
+			array('expect' => false, 's' => 'false'),
+			array('expect' => false, 's' => 'off'),
+			array('expect' => false, 's' => 'f'),
+			array('expect' => false, 's' => 'n'),
+		);
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], Mage::helper('eb2cproduct')->parseBool($data['s']));
+		}
+	}
+
+	/**
+	 * Test getProductAttributeId the feed
+	 * @test
+	 */
+	public function testGetProductAttributeId()
+	{
+		$entityAttributeModelMock = $this->getModelMockBuilder('eav/entity_attribute')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByCode', 'getId'))
+			->getMock();
+		$entityAttributeModelMock->expects($this->once())
+			->method('loadByCode')
+			->with($this->equalTo('catalog_product'), $this->equalTo('color'))
+			->will($this->returnSelf());
+		$entityAttributeModelMock->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(92));
+		$this->replaceByMock('model', 'eav/entity_attribute', $entityAttributeModelMock);
+
+		$this->assertSame(92, Mage::helper('eb2cproduct')->getProductAttributeId('color'));
+	}
+
+	/**
+	 * Test extractNodeVal method
+	 * @test
+	 */
+	public function testExtractNodeVal()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<root><Description xml:lang="en_US">desc1</Description></root>');
+		$xpath = new DOMXPath($doc);
+		$this->assertSame('desc1', Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('Description', $doc->documentElement)));
+	}
+
+	/**
+	 * Test extractNodeAttributeVal method
+	 * @test
+	 */
+	public function testExtractNodeAttributeVal()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<root><Description xml:lang="en_US">desc1</Description></root>');
+		$xpath = new DOMXPath($doc);
+		$this->assertSame('en_US', Mage::helper('eb2cproduct')->extractNodeAttributeVal($xpath->query('Description', $doc->documentElement), 'xml:lang'));
+	}
+
+	/**
+	 * Test prepareProductModel the feed
+	 * @test
+	 */
+	public function testPrepareProductModel()
+	{
+		$productModelMockA = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getId'))
+			->getMock();
+		$productModelMockA->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(0));
+		$productModelMockB = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getId'))
+			->getMock();
+		$productModelMockB->expects($this->never())
+			->method('getId')
+			->will($this->returnValue(1));
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('loadProductBySku', '_applyDummyData'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('loadProductBySku')
+			->with($this->equalTo('TST-1234'))
+			->will($this->returnValue($productModelMockA));
+		$productHelperMock->expects($this->once())
+			->method('_applyDummyData')
+			->with(
+				$this->isInstanceOf('Mage_Catalog_Model_Product'),
+				$this->equalTo('TST-1234'),
+				$this->equalTo('Test Product Title')
+			)
+			->will($this->returnValue($productModelMockB));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$this->assertInstanceOf(
+			'Mage_Catalog_Model_Product',
+			Mage::helper('eb2cproduct')->prepareProductModel('TST-1234', 'Test Product Title')
+		);
+	}
+
+	/**
+	 * Test getCustomAttributeCodeSet the feed
+	 * @test
+	 */
+	public function testGetCustomAttributeCodeSet()
+	{
+		$apiModelMock = $this->getModelMockBuilder('catalog/product_attribute_api')
+			->disableOriginalConstructor()
+			->setMethods(array('items'))
+			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('items')
+			->with($this->equalTo(172))
+			->will($this->returnValue(array(
+				array('code' => 'brand_name'),
+				array('code' => 'brand_description'),
+				array('code' => 'is_drop_shipped'),
+				array('code' => 'drop_ship_supplier_name')
+			)));
+		$this->replaceByMock('model', 'catalog/product_attribute_api', $apiModelMock);
+
+		$helper = Mage::helper('eb2cproduct');
+		$this->assertSame(array(), $this->_reflectProperty($helper, '_customAttributeCodeSets')->getValue($helper));
+
+		$this->assertSame(
+			array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name'),
+			Mage::helper('eb2cproduct')->getCustomAttributeCodeSet(172)
+		);
+
+		$this->assertSame(
+			array(172 => array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name')),
+			$this->_reflectProperty($helper, '_customAttributeCodeSets')->getValue($helper)
+		);
+	}
+
+	/**
+	 * Test _getLocaleCode the feed
+	 * @test
+	 */
+	public function testGetLocaleCode()
+	{
+		$helper = Mage::helper('eb2cproduct');
+		$this->assertSame('en_US', $this->_reflectMethod($helper, '_getLocaleCode')->invoke($helper));
 	}
 }
