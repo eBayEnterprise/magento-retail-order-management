@@ -550,4 +550,39 @@ INVALID_XML;
 		$this->assertEmpty($diff, 'Item is missing required child nodes - ' . implode(', ', $diff));
 	}
 
+	/**
+	 * verify the order collection filters are prepared properly
+	 */
+	public function testGetNewOrders()
+	{
+		$collection = $this->getResourceModelMockBuilder('sales/order_collection')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'addAttributeToSelect',
+				'addFieldToFilter',
+				'load',
+			))
+			->getMock();
+		$collection->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->identicalTo('*'))
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('addFieldToFilter')
+			->with(
+				$this->identicalTo('state'),
+				$this->identicalTo(array('eq' => 'new'))
+			)
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$this->replaceByMock('resource_model', 'sales/order_collection', $collection);
+
+		$testModel = $this->getModelMockBuilder('eb2corder/create')
+			->disableOriginalConstructor()
+			->setMethods(array('none'))
+			->getMock();
+		$this->_reflectMethod($testModel, '_getNewOrders')->invoke($testModel);
+	}
 }
