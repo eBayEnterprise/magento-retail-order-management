@@ -69,7 +69,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		$helper = Mage::helper('eb2cproduct');
 		$config = $helper->getConfigModel();
-		$this->_defaultLanguageCode = $helper->getDefaultLanguageCode();
+		$this->_defaultLanguageCode = strtolower($helper->getDefaultLanguageCode());
 		$this->_initLanguageCodeMap();
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
@@ -85,7 +85,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		foreach (Mage::app()->getStores() as $storeId) {
 			$storeCodeParsed = explode('_', Mage::app()->getStore($storeId)->getCode(), 3);
 			if (count($storeCodeParsed) > 2) {
-				$this->_storeLanguageCodeMap[$storeCodeParsed[2]] = Mage::app()->getStore($storeId)->getId();
+				$langCode = strtolower(Mage::helper('eb2ccore')->mageToXmlLangFrmt($storeCodeParsed[2]));
+				$this->_storeLanguageCodeMap[$langCode] = Mage::app()->getStore($storeId)->getId();
 			} else {
 				Mage::log(
 					sprintf('Incompatible Store View Name ignored: "%s"', Mage::app()->getStore($storeId)->getName()),
@@ -331,7 +332,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$localizationSet = $dataObject->getData($fieldName);
 		if (!empty($localizationSet)) {
 			foreach( $localizationSet as $localization ) {
-				$data[$localization['lang']] = $localization[$fieldName];
+				$data[strtolower($localization['lang'])] = $localization[$fieldName];
 			}
 		}
 		return $data;
@@ -366,7 +367,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				continue; // ConfigurableAttributes are specially handled, nothing more to do.
 			}
 
-			$lang = isset($customAttribute['lang']) ? $customAttribute['lang'] : $this->_defaultLanguageCode;
+			$lang = isset($customAttribute['lang']) ? strtolower($customAttribute['lang']) : $this->_defaultLanguageCode;
 			if (!isset($this->_storeLanguageCodeMap[$lang])) {
 				$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE]++;
 				continue;
@@ -778,7 +779,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				// It's possible $title['title'] doesn't exist, eg we receive <Title xml:lang='en-US' />
 				// As per spec, it's required
 				if (array_key_exists('title', $title) && array_key_exists('lang', $title)) {
-					$titleData[$title['lang']] = $title['title'];
+					$titleData[strtolower($title['lang'])] = $title['title'];
 				}
 			}
 		}
@@ -1159,7 +1160,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$size = null;
 			if (!empty($sizeAttributes)){
 				foreach ($sizeAttributes as $sizeData) {
-					if (strtoupper(trim($sizeData['lang'])) === strtoupper($this->_defaultLanguageCode)) {
+					if (strtolower(trim($sizeData['lang'])) === strtolower($this->_defaultLanguageCode)) {
 						$data['size'] = $sizeData['description'];
 						break;
 					}
