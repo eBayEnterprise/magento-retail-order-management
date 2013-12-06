@@ -22,7 +22,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 				'setStore',
 			))
 			->getMock();
-
 		$configRegistryModelMock->expects($this->any())
 			->method('setStore')
 			->will($this->returnSelf());
@@ -50,41 +49,32 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$configRegistryModelMock->expects($this->any())
 			->method('__set')
 			->will($this->returnValue(null));
-
 		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistryModelMock);
-
 		$productConfigModelMock = $this->getModelMockBuilder('eb2cproduct/config')
 			->disableOriginalConstructor()
 			->setMethods(array('hasKey', 'getPathForKey'))
 			->getMock();
-
 		$productConfigModelMock->expects($this->any())
 			->method('hasKey')
 			->will($this->returnValue(null));
 		$productConfigModelMock->expects($this->any())
 			->method('getPathForKey')
 			->will($this->returnValue(null));
-
 		$this->replaceByMock('model', 'eb2cproduct/config', $productConfigModelMock);
-
 		$coreConfigModelMock = $this->getModelMockBuilder('eb2ccore/config')
 			->disableOriginalConstructor()
 			->setMethods(array('hasKey', 'getPathForKey'))
 			->getMock();
-
 		$coreConfigModelMock->expects($this->any())
 			->method('hasKey')
 			->will($this->returnValue(null));
 		$coreConfigModelMock->expects($this->any())
 			->method('getPathForKey')
 			->will($this->returnValue(null));
-
 		$this->replaceByMock('model', 'eb2ccore/config', $coreConfigModelMock);
-
 		$productHelper = Mage::helper('eb2cproduct');
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Config_Registry', $productHelper->getConfigModel());
 	}
-
 	public function providerHasEavAttr()
 	{
 		return array(
@@ -92,7 +82,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			array('alien-attr'),
 		);
 	}
-
 	/**
 	 * Test that a product attribute is known if it has an id > 0.
 	 * @param string $name The attribute name
@@ -107,18 +96,15 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getId')
 			->will($this->returnValue($atId));
 		$this->replaceByMock('model', 'eav/attribute', $att);
-
 		$eav = $this->getModelMock('eav/config', array('getAttribute'));
 		$eav->expects($this->once())
 			->method('getAttribute')
 			->with($this->equalTo(Mage_Catalog_Model_Product::ENTITY), $this->equalTo($name))
 			->will($this->returnValue($att));
 		$this->replaceByMock('model', 'eav/config', $eav);
-
 		// If $atId > 0, the result should be true
 		$this->assertSame($atId > 0, Mage::helper('eb2cproduct')->hasEavAttr($name));
 	}
-
 	/**
 	 * Test that a known product type is validated and an unknown is rejected.
 	 */
@@ -131,13 +117,11 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		// type in every environment.
 		$this->assertSame(true, Mage::helper('eb2cproduct')->hasProdType('simple'));
 	}
-
 	/**
 	 * Should throw an exception when creating a dummy product template
 	 * if the configuration specifies an invalid Magento product type
 	 * This test will use hasProdType() so has a real, if marginal, environmental
 	 * dependence.
-	 *
 	 * @expectedException TrueAction_Eb2cProduct_Model_Config_Exception
 	 */
 	public function testInvalidDummyTypeFails()
@@ -150,27 +134,10 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$hlpr->expects($this->once())
 			->method('getConfigModel')
 			->will($this->returnValue($fakeCfg));
-
 		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
 		$getProdTplt = $hlpRef->getMethod('_getProdTplt');
 		$getProdTplt->setAccessible(true);
 		$getProdTplt->invoke($hlpr);
-	}
-
-	/**
-	 * Test looking up a product by sku
-	 * @param  string $sku SKU of product
-	 * @test
-	 * @loadFixture
-	 * @dataProvider dataProvider
-	 */
-	public function testGetProductBySku($sku)
-	{
-		$helper = Mage::helper('eb2cproduct');
-		$product = $helper->loadProductBySku($sku);
-		$expected = $this->expected($sku);
-		$this->assertInstanceOf('Mage_Catalog_Model_Product', $product, 'Method should always return a product instance.');
-		$this->assertSame($expected->getId(), $product->getId());
 	}
 	/**
 	 * Test the various dummy defaults.
@@ -193,7 +160,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$this->assertInternalType('integer', $getDefStoreId->invoke($hlpr));
 		$this->assertInternalType('integer', $getDefStoreRootCatId->invoke($hlpr));
 	}
-
 	public function testBuildDummyBoilerplate()
 	{
 		$fakeCfg = new StdClass();
@@ -229,30 +195,29 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getConfigModel')
 			->will($this->returnValue($fakeCfg));
 		$expected = array(
-			'attribute_set_id'  => 132,
-			'category_ids'      => array(771),
-			'description'       => 'hello world',
-			'price'             => 45.67,
+			'attribute_set_id' => 132,
+			'category_ids' => array(771),
+			'description' => 'hello world',
+			'price' => 45.67,
 			'short_description' => 'hello',
-			'status'            => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-			'stock_data'        => array(
-				'is_in_stock'  => true,
+			'status' => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+			'stock_data' => array(
+				'is_in_stock' => true,
 				'manage_stock' => true,
-				'qty'          => 123,
+				'qty' => 123,
 			),
-			'store_ids'         => array(531),
-			'tax_class_id'      => 890,
-			'type_id'           => 'simple',
-			'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			'website_ids'       => array(980),
-			'weight'            => 79,
+			'store_ids' => array(531),
+			'tax_class_id' => 890,
+			'type_id' => 'simple',
+			'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+			'website_ids' => array(980),
+			'weight' => 79,
 		);
 		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
 		$getProdTplt = $hlpRef->getMethod('_getProdTplt');
 		$getProdTplt->setAccessible(true);
 		$this->assertSame($expected, $getProdTplt->invoke($hlpr));
 	}
-
 	/**
 	 * @test
 	 * @dataProvider dataProvider
@@ -266,13 +231,11 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$hlpRef = new ReflectionObject(Mage::helper('eb2cproduct'));
 		$applyDummyDataMethod = $hlpRef->getMethod('_applyDummyData');
 		$applyDummyDataMethod->setAccessible(true);
-
 		$prod = $applyDummyDataMethod->invoke($hlpr, Mage::getModel('catalog/product'), $sku, $name);
 		$this->assertSame($sku, $prod->getSku());
 		$this->assertSame($name ?: "Invalid Product: $sku", $prod->getName());
 		$this->assertSame($sku, $prod->getUrlKey());
 	}
-
 	/**
 	 * Given a mapped array containing language, parse should return
 	 * a flattened array, keyed by language
@@ -282,23 +245,20 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	{
 		$sampleInput = array (
 			array (
-				'lang'        => 'en-US',
+				'lang' => 'en-US',
 				'description' => 'An en-US translation',
 			),
 			array (
-				'lang'        => 'ja-JP',
+				'lang' => 'ja-JP',
 				'description' => 'ja-JP に変換',
 			),
 		);
-
 		$expectedOutput = array (
 			'en-US' => 'An en-US translation',
 			'ja-JP' => 'ja-JP に変換',
 		);
-
 		$this->assertSame($expectedOutput, Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
 	}
-
 	/**
 	 * Test getDefaultLanguageCode the feed
 	 * @test
@@ -314,7 +274,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->with($this->equalTo('en_US'))
 			->will($this->returnValue('en-US'));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
-
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
 			->setMethods(array('_getLocaleCode'))
@@ -323,10 +282,8 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('_getLocaleCode')
 			->will($this->returnValue('en_US'));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
 		$this->assertSame('en-US', Mage::helper('eb2cproduct')->getDefaultLanguageCode());
 	}
-
 	/**
 	 * Test getDefaultProductAttributeSetId the feed
 	 * @test
@@ -345,10 +302,8 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getDefaultAttributeSetId')
 			->will($this->returnValue(4));
 		$this->replaceByMock('model', 'eav/entity_type', $entityTypeModelMock);
-
 		$this->assertSame(4, Mage::helper('eb2cproduct')->getDefaultProductAttributeSetId());
 	}
-
 	/**
 	 * Test parseBool the feed
 	 * @test
@@ -375,7 +330,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			$this->assertSame($data['expect'], Mage::helper('eb2cproduct')->parseBool($data['s']));
 		}
 	}
-
 	/**
 	 * Test getProductAttributeId the feed
 	 * @test
@@ -394,10 +348,8 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getId')
 			->will($this->returnValue(92));
 		$this->replaceByMock('model', 'eav/entity_attribute', $entityAttributeModelMock);
-
 		$this->assertSame(92, Mage::helper('eb2cproduct')->getProductAttributeId('color'));
 	}
-
 	/**
 	 * Test extractNodeVal method
 	 * @test
@@ -409,7 +361,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame('desc1', Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('Description', $doc->documentElement)));
 	}
-
 	/**
 	 * Test extractNodeAttributeVal method
 	 * @test
@@ -421,7 +372,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame('en_US', Mage::helper('eb2cproduct')->extractNodeAttributeVal($xpath->query('Description', $doc->documentElement), 'xml:lang'));
 	}
-
 	/**
 	 * Test prepareProductModel the feed
 	 * @test
@@ -435,7 +385,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$productModelMock->expects($this->once())
 			->method('getId')
 			->will($this->returnValue(0));
-
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
 			->setMethods(array('loadProductBySku', '_applyDummyData'))
@@ -453,13 +402,11 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			)
 			->will($this->returnValue($productModelMock));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
 		$this->assertInstanceOf(
 			'Mage_Catalog_Model_Product',
 			Mage::helper('eb2cproduct')->prepareProductModel('TST-1234', 'Test Product Title')
 		);
 	}
-
 	/**
 	 * Test getCustomAttributeCodeSet the feed
 	 * @test
@@ -480,22 +427,17 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 				array('code' => 'drop_ship_supplier_name')
 			)));
 		$this->replaceByMock('model', 'catalog/product_attribute_api', $apiModelMock);
-
 		$helper = Mage::helper('eb2cproduct');
-
 		// setting _customAttributeCodeSets property back to an empty array
 		$this->_reflectProperty($helper, '_customAttributeCodeSets')->setValue($helper, array());
-
 		$this->assertSame(
 			array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name'),
 			Mage::helper('eb2cproduct')->getCustomAttributeCodeSet(172)
 		);
-
 		$this->assertSame(
 			array(172 => array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name')),
 			$this->_reflectProperty($helper, '_customAttributeCodeSets')->getValue($helper)
 		);
-
 		// reseting _customAttributeCodeSets property back to an empty array
 		$this->_reflectProperty($helper, '_customAttributeCodeSets')->setValue($helper, array());
 	}
@@ -523,12 +465,12 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 * (has an id, type id), is a configurable or is supposed to be a configurable and already has
 	 * configurable attributes data, it should return null. Otherwise, it should return
 	 * whatever configurable attributes data is contained in the source data.
-	 * @param  int     $existingId          Id of existing product, null if expected to be a new product
-	 * @param  string  $existingType        Product type of the existing product
-	 * @param  string  $newType             Product type the product is expected to be post import
-	 * @param  array   $existingAttributes  Array of configurable attribute data the product already has had applied
-	 * @param  array   $sourceAttributes,   Data from the feed that should be applied to the product, may contain configurable_attributes_data to add
-	 * @param  array   $expectedAttributes  Attributes that are expected to be returned from the method
+	 * @param int $existingId Id of existing product, null if expected to be a new product
+	 * @param string $existingType Product type of the existing product
+	 * @param string $newType Product type the product is expected to be post import
+	 * @param array $existingAttributes Array of configurable attribute data the product already has had applied
+	 * @param array $sourceAttributes Data from the feed that should be applied to the product, may contain configurable_attributes_data to add
+	 * @param array $expectedAttributes Attributes that are expected to be returned from the method
 	 * @mock Mage_Catalog_Model_Product::getId return expected product id
 	 * @mock Mage_Catalog_Model_Product::getTypeId return expected product type id
 	 * @mock Mage_Catalog_Model_Product::getTypeInstance return the stub product type model
@@ -541,7 +483,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$prod = $this->getModelMock('catalog/product', array('getId', 'getTypeId', 'getTypeInstance'));
 		$prodType = $this->getModelMock('catalog/product/type/abstract', array('getConfigurableAttributesAsArray'));
 		$source = new Varien_Object(array('configurable_attributes_data' => $sourceAttributes));
-
 		$prod
 			->expects($this->any())
 			->method('getId')
@@ -560,10 +501,38 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getConfigurableAttributesAsArray')
 			->with($this->identicalTo($prod))
 			->will($this->returnValue($existingAttributes));
-
 		$this->assertSame(
 			$expectedAttributes,
 			Mage::helper('eb2cproduct')->getConfigurableAttributesData($newType, $source, $prod)
+		);
+	}
+	/**
+	 * verify the helper is used correctly
+	 */
+	public function testLoadProductBySku()
+	{
+		$sku = 'thesku';
+		$product = new Varien_Object();
+		$store = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->getMock();
+		$helper = $this->getHelperMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getProduct'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('getProduct')
+			->with(
+				$this->identicalTo($sku),
+				$this->identicalTo($store),
+				$this->identicalTo('sku')
+			)
+			->will($this->returnValue($product));
+		$this->replaceByMock('helper', 'catalog/product', $helper);
+		$testModel = Mage::helper('eb2cproduct');
+		$this->assertSame(
+			$product,
+			$testModel->loadProductBySku($sku, $store)
 		);
 	}
 }
