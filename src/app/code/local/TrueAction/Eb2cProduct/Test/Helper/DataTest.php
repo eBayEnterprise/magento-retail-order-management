@@ -299,4 +299,42 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 		$this->assertSame($expectedOutput,
 			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
 	}
+
+	/**
+	 * verify the collection filters are prepared as expected
+	 */
+	public function testLoadProductBySku()
+	{
+		$sku = 'thesku';
+		$product = new Varien_Object();
+		$collection = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'addAttributeToSelect',
+				'addFieldToFilter',
+				'getFirstItem',
+			))
+			->getMock();
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $collection);
+		$collection->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->identicalTo('*'))
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('addFieldToFilter')
+			->with(
+				$this->identicalTo('sku'),
+				$this->identicalTo(array('eq' => $sku))
+			)
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('getFirstItem')
+			->will($this->returnValue($product));
+
+		$testModel = Mage::helper('eb2product');
+		$this->assertSame(
+			$product,
+			$testModel->loadProductBySku($sku)
+		);
+	}
 }
