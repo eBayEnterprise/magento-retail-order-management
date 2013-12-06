@@ -297,23 +297,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor extends Mage_Core_Model_Abstra
 	}
 
 	/**
-	 * extract extended attribute data such as (gift_wrap
-	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
-	 * @return array, composite array containing description data, gift wrap, color... etc
-	 */
-	protected function _getGiftWrap(Varien_Object $dataObject)
-	{
-		$data = array();
-		$extendedAttributes = $dataObject->getExtendedAttributes()->getData();
-		if (!empty($extendedAttributes)) {
-			if (isset($extendedAttributes['gift_wrap'])) {
-				$data['gift_wrap'] = Mage::helper('eb2cproduct')->parseBool($extendedAttributes['gift_wrap']);
-			}
-		}
-		return $data;
-	}
-
-	/**
 	 * Gets the localizations for a field
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
 	 * @param fieldName field to extract localizations from

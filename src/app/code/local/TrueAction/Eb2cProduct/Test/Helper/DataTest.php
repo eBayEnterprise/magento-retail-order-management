@@ -301,120 +301,71 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$this->assertSame($expectedOutput,
 			Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
 	}
-
-
 	/**
-	 * Return a product stub to test getConfigurableAttributesData()
-	 * @return a Mage_Catalog_Model_Product stub
+	 * Data provider for testGetConfigAttributesData
+	 * @return array Arrays for use as args to the testGetConfigAttributesData test
 	 */
-	private function _getConfigurableProductStub()
+	public function providerTestGetConfigAttributesData()
 	{
-		$stub = $this->getModelMockBuilder('catalog/product')
-			->disableOriginalConstructor()
-			->setMethods(array(
-				'getId',
-				'getSku',
-				'getTypeId',
-				'getTypeInstance',
-				'getConfigurableAttributesAsArray',
-			))
-			->getMock();
+		return array(
+			// should return source data as this would be a brand new product - no id
+			array(null, null, 'do-not-care', array(), array('source_data'), array('source_data')),
+			// should return source data as this is a simple product and could not have existing config attr data
+			array(42, Mage_Catalog_Model_Product_Type::TYPE_SIMPLE, 'do-not-care', array(), array('source_data'), array('source_data')),
+			// should retrn source data as this won't end up being a config product...seems a bit odd but I guess it just means any existing data doesn't matter
+			array(42, Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, Mage_Catalog_Model_Product_Type::TYPE_SIMPLE, array(), array('source_data'), array('source_data')),
+			// should return source data as config product doesn't alreay have config attr data set
+			array(42, Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, array(), array('source_data'), array('source_data')),
+			// should return null as existing config product has already had config attr data set and it cannot/shoudl not be overridden once set
+			array(42, Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, array('existing_data'), array('source_data'), null),
+		);
+	}
+	/**
+	 * Test getting the configurable attributes to add to a product. When the product is an existing product
+	 * (has an id, type id), is a configurable or is supposed to be a configurable and already has
+	 * configurable attributes data, it should return null. Otherwise, it should return
+	 * whatever configurable attributes data is contained in the source data.
+	 * @param  int     $existingId          Id of existing product, null if expected to be a new product
+	 * @param  string  $existingType        Product type of the existing product
+	 * @param  string  $newType             Product type the product is expected to be post import
+	 * @param  array   $existingAttributes  Array of configurable attribute data the product already has had applied
+	 * @param  array   $sourceAttributes,   Data from the feed that should be applied to the product, may contain configurable_attributes_data to add
+	 * @param  array   $expectedAttributes  Attributes that are expected to be returned from the method
+	 * @mock Mage_Catalog_Model_Product::getId return expected product id
+	 * @mock Mage_Catalog_Model_Product::getTypeId return expected product type id
+	 * @mock Mage_Catalog_Model_Product::getTypeInstance return the stub product type model
+	 * @mock Mage_Catalog_Model_Product_Type_Abstract::getConfigurableAttributesAsArray return expected existing attributes
+	 * @test
+	 * @dataProvider providerTestGetConfigAttributesData
+	 */
+	public function testGetConfigAttributesData($existingId, $existingType, $newType, $existingAttributes, $sourceAttributes, $expectedAttributes)
+	{
+		$prod = $this->getModelMock('catalog/product', array('getId', 'getTypeId', 'getTypeInstance'));
+		$prodType = $this->getModelMock('catalog/product/type/abstract', array('getConfigurableAttributesAsArray'));
+		$source = new Varien_Object(array('configurable_attributes_data' => $sourceAttributes));
 
-		$stub->expects($this->once())
+		$prod
+			->expects($this->any())
 			->method('getId')
-			->will($this->returnValue(1));
-		$stub->expects($this->once())
+			->will($this->returnValue($existingId));
+		$prod
+			->expects($this->any())
 			->method('getTypeId')
-			->will($this->returnValue(Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE));
-
-		return $stub;
-	}
-
-	/**
-	 * If a product has configurable attributes already, we should get null back
-	 */
-	public function testGetConfigurableAttributesDataExisting()
-	{
-		$p = $this->_getConfigurableProductStub();
-
-		// We should expect getSku to be called once, as we should be logging this 'problem'
-		$p->expects($this->once())
-			->method('getSku')
-			->will($this->returnValue('fakeSku'));
-
-		// getTypeInstance and getConfigurableAttributesAsArray should only be called once:
-		$p->expects($this->once())
+			->will($this->returnValue($existingType));
+		$prod
+			->expects($this->any())
 			->method('getTypeInstance')
-			->with($this->equalTo(true))
-			->will($this->returnSelf());
-		$p->expects($this->once())
+			->with($this->isTrue())
+			->will($this->returnValue($prodType));
+		$prodType
+			->expects($this->any())
 			->method('getConfigurableAttributesAsArray')
-			->with($this->isInstanceOf(Mage_Catalog_Model_Product))
-			->will($this->returnValue(array('existing_attribute1', 'existing_attribute2'))); // Existing configurable data
+			->with($this->identicalTo($prod))
+			->will($this->returnValue($existingAttributes));
 
-		$this->assertSame(null,
-			Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData(Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, new Varien_Object(), $p)
-		);
-	}
-
-	/**
-	 * If a product doesn't have configurable attributes already, we should get back the source data
-	 */
-	public function testGetConfigurableAttributesDataNew()
-	{
-		$p = $this->_getConfigurableProductStub();
-
-		// We should not expect getSku to be called, as we are doing no logging, this is the 'ok' condition
-		$p->expects($this->never())->method('getSku');
-
-		// getTypeInstance and getConfigurableAttributesAsArray should only be called once:
-		$p->expects($this->once())
-			->method('getTypeInstance')
-			->with($this->equalTo(true))
-			->will($this->returnSelf());
-		$p->expects($this->once())
-			->method('getConfigurableAttributesAsArray')
-			->with($this->isInstanceOf(Mage_Catalog_Model_Product))
-			->will($this->returnValue(array())); // Empty array means we had no existing configurable attributes
-
-		// Set up a fake data source with configurable_attributes_data that has any thing you like in it:
-		$fakeData = new Varien_Object(
-			array(
-				'configurable_attributes_data' => 'anything_you_like'
-			)
-		);
-
-		$this->assertSame('anything_you_like',
-			Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData(Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE, $fakeData, $p)
-		);
-	}
-
-	/**
-	 * If a product is simple, we always get back the source data 
-	 */
-	public function testGetConfigurableAttributesDataSimple()
-	{
-		$p = $this->_getConfigurableProductStub();
-
-		// getSku should not be called, this is an 'ok' condition
-		$p->expects($this->never())->method('getSku');
-
-		// getTypeInstance and getConfigurableAttributesAsArray should not be called. Test for 'simple' type will bypass these.
-		$p->expects($this->never())->method('getTypeInstance');
-		$p->expects($this->never())->method('getConfigurableAttributesAsArray');
-
-		// Set up a fake data source with configurable_attributes_data that has any old value in it
-		$fakeData = new Varien_Object(
-			array(
-				'configurable_attributes_data' => 'any_old_value'
-			)
-		);
-
-		$this->assertSame('any_old_value',
-			Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData(Mage_Catalog_Model_Product_Type::TYPE_SIMPLE, $fakeData, $p)
+		$this->assertSame(
+			$expectedAttributes,
+			Mage::helper('eb2cproduct')->getConfigurableAttributesData($newType, $source, $prod)
 		);
 	}
 }
