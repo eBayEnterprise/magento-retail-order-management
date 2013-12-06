@@ -10,25 +10,9 @@ class TrueAction_Eb2cProduct_Test_Model_Image_ExportTest extends TrueAction_Eb2c
 	const TESTBASE_DIRNAME = 'exportTest';
 
 	/**
-	 * Test our model matches our class
-	 *
-	 * @test
-	 */
-	public function testInstantiate()
-	{
-		$this->assertInstanceOf(
-			self::CLASS_NAME,
-			Mage::getModel(self::MODEL_NAME)
-		);
-	}
-
-	/**
 	 * Test build
 	 * @large
-	 * @todo output to vfs(?)
-	 *
 	 * @todo fix this from an expectedException. It's being thrown because we can't pass xsd validate - we can't pass
-	 * the validate because we don't have 'Message-Header-1.0.xsd'
 	 * XXXXexpectedException Mage_Core_Exception
 	 * @test
 	 */
