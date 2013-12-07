@@ -9,16 +9,16 @@
 		<models>
 			<eb2cpayment>
 				<class>TrueAction_Eb2cPayment_Model</class>
-				<resourceModel>eb2cpayment_mysql4</resourceModel>
+				<resourceModel>eb2cpayment_resource</resourceModel>
 			</eb2cpayment>
-			<eb2cpayment_mysql4>
-				<class>TrueAction_Eb2cPayment_Model_Mysql4</class>
+			<eb2cpayment_resource>
+				<class>TrueAction_Eb2cPayment_Model_Resource</class>
 				<entities>
 					<paypal>
 						<table>eb2c_payments_paypal</table>
 					</paypal>
 				</entities>
-			</eb2cpayment_mysql4>
+			</eb2cpayment_resource>
 			<eb2cpaymentoverrides>
 				<class>TrueAction_Eb2cPayment_Overrides_Model</class>
 			</eb2cpaymentoverrides>
