@@ -80,10 +80,13 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 			->method('getDocument')
 			->will($this->returnValue($requestDocument));
 
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'setUri'));
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
 		$apiModelMock->expects($this->once())
-			->method('setUri')
-			->with($this->identicalTo('https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => 'https://api.example.com/vM.m/stores/store_id/taxes/quote.xml',
+				'xsd' => 'TaxDutyFee-QuoteRequest-1.0.xsd'
+			)))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')

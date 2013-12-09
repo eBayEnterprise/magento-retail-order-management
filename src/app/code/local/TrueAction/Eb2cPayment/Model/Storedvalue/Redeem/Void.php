@@ -26,10 +26,11 @@ class TrueAction_Eb2cPayment_Model_Storedvalue_Redeem_Void
 		try {
 			// make request to eb2c for Gift Card redeem void
 			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri($uri)
-				->setXsd($hlpr->getConfigModel()->xsdFileStoredValueVoidRedeem)
+				->addData(array(
+					'uri' => $uri,
+					'xsd' => $hlpr->getConfigModel()->xsdFileStoredValueVoidRedeem
+				))
 				->request($requestDoc);
-
 		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(
 				sprintf(

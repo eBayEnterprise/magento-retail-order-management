@@ -27,9 +27,9 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	 */
 	protected function _mockApiModel($emptyResponse=false)
 	{
-		$mock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$mock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
 		$mock->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$mock->expects($this->any())
 			->method('request')
@@ -659,10 +659,10 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	{
 		$mock = $this->getModelMock(
 			'eb2ccore/api',
-			array('setUri', 'request')
+			array('addData', 'request')
 		);
 		$mock->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$mock->expects($this->any())
 			->method('request')
@@ -1191,9 +1191,9 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 	public function testSetSameAsBillingFlagWhenAddressIsInvalid($isValid, $sameAsBilling)
 	{
 		// mock out necessary parts of the system
-		$api = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$api = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
 		$api->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$api->expects($this->any())
 			->method('request')

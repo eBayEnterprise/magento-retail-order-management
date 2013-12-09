@@ -200,16 +200,15 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'setXsd', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
 		$api->expects($this->once())
-			->method('setUri')
-			->with($this->identicalTo($uri))
-			->will($this->returnSelf());
-		$api->expects($this->once())
-			->method('setXsd')
-			->with($this->identicalTo($xsd))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => $uri,
+				'xsd' => $xsd
+			)))
 			->will($this->returnSelf());
 
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -247,9 +246,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 */
 	public function testAllocateQuoteItemsWithApiCallException()
 	{
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
 		$apiModelMock->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
@@ -529,10 +528,10 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$api->expects($this->once())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		// Validate the request message matches the expected message
 		$api->expects($this->once())
@@ -573,9 +572,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 	 */
 	public function testRollbackAllocationWithApiCallException($quote)
 	{
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
 		$apiModelMock->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')

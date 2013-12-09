@@ -54,15 +54,14 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'setXsd', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$apiModelMock->expects($this->once())
-			->method('setUri')
-			->with($this->equalTo('http://example.com/customers/orders/get.xml'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->once())
-			->method('setXsd')
-			->with($this->equalTo('Order-Service-Search-1.0.xsd'))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => 'http://example.com/customers/orders/get.xml',
+				'xsd' => 'Order-Service-Search-1.0.xsd'
+			)))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
@@ -114,15 +113,14 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'setXsd', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$apiModelMock->expects($this->once())
-			->method('setUri')
-			->with($this->equalTo('http://example.com/customers/orders/get.xml'))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->once())
-			->method('setXsd')
-			->with($this->equalTo('Order-Service-Search-1.0.xsd'))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => 'http://example.com/customers/orders/get.xml',
+				'xsd' => 'Order-Service-Search-1.0.xsd'
+			)))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
