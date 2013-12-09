@@ -747,18 +747,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
 	{
-		if( $productObject->getTypeId() !== Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE ) {
-			Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject)
-				->addData(
-					array(
-						'use_config_backorders' => false,
-						'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
-						'product_id' => $productObject->getId(),
-						'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
-					)
-				)
-				->save();
+		$stockItem = Mage::getModel('cataloginventory/stock_item')->loadByProduct($productObject);
+		$stockData = array(
+			'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+			'product_id' => $productObject->getId(),
+		);
+		if ($productObject->getTypeId() !== Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE ) {
+			$stockData = $stockData + array(
+				'use_config_backorders' => false,
+				'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
+			);
+		} else {
+			// Always consider config products in stock: when the config product is out of stock, it will
+			// never show up. When it is in stock, it will show up when its used products are in stock but not
+			// when they are all out of stock, which I believe is the expected behavior.
+			$stockData = $stockData + array('is_in_stock' => 1);
 		}
+		$stockItem->addData($stockData)->save();
 		return $this;
 	}
 
