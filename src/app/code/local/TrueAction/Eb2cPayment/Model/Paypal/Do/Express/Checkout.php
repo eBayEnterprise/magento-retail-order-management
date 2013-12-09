@@ -8,7 +8,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 	 *
 	 * @return string the eb2c response to the request.
 	 */
-	public function doExpressCheckout($quote)
+	public function doExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
 		$responseMessage = '';
 		// build request
@@ -47,7 +47,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildPayPalDoExpressCheckoutRequest($quote)
+	public function buildPayPalDoExpressCheckoutRequest(Mage_Sales_Model_Quote $quote)
 	{
 		$totals = $quote->getTotals();
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
@@ -145,9 +145,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 
 	/**
 	 * Parse PayPal DoExpress reply xml.
-	 *
 	 * @param string $payPalDoExpressCheckoutReply the xml response from eb2c
-	 *
 	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalDoExpressCheckoutReply)
@@ -164,16 +162,14 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 			$nodePaymentStatus = $checkoutXpath->query('//a:PaymentInfo/a:PaymentStatus');
 			$nodePendingReason = $checkoutXpath->query('//a:PaymentInfo/a:PendingReason');
 			$nodeReasonCode = $checkoutXpath->query('//a:PaymentInfo/a:ReasonCode');
-			$checkoutObject = new Varien_Object(
-				array(
-					'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
-					'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
-					'transaction_id' => ($nodeTransactionID->length)? (string) $nodeTransactionID->item(0)->nodeValue : null,
-					'payment_status' => ($nodePaymentStatus->length)? (string) $nodePaymentStatus->item(0)->nodeValue : null,
-					'pending_reason' => ($nodePendingReason->length)? (string) $nodePendingReason->item(0)->nodeValue : null,
-					'reason_code' => ($nodeReasonCode->length)? (string) $nodeReasonCode->item(0)->nodeValue : null,
-				)
-			);
+			$checkoutObject = new Varien_Object(array(
+				'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
+				'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+				'transaction_id' => ($nodeTransactionID->length)? (string) $nodeTransactionID->item(0)->nodeValue : null,
+				'payment_status' => ($nodePaymentStatus->length)? (string) $nodePaymentStatus->item(0)->nodeValue : null,
+				'pending_reason' => ($nodePendingReason->length)? (string) $nodePendingReason->item(0)->nodeValue : null,
+				'reason_code' => ($nodeReasonCode->length)? (string) $nodeReasonCode->item(0)->nodeValue : null,
+			));
 		}
 
 		return $checkoutObject;
@@ -181,13 +177,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 
 	/**
 	 * save payment data to quote_payment.
-	 *
-	 * @param array $checkoutObject, an associative array of response data
-	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
-	 *
-	 * @return void
+	 * @param Varien_Object $checkoutObject, response data
+	 * @param Mage_Sales_Model_Quote $quote, sales quote instantiated object
+	 * @return self
 	 */
-	protected function _savePaymentData($checkoutObject, $quote)
+	protected function _savePaymentData(Varien_Object $checkoutObject, Mage_Sales_Model_Quote $quote)
 	{
 		if (trim($checkoutObject->getTransactionId()) !== '') {
 			$paypalObj = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
@@ -195,6 +189,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 				->setEb2cPaypalTransactionId($checkoutObject->getTransactionId())
 				->save();
 		}
-		return ;
+		return $this;
 	}
 }

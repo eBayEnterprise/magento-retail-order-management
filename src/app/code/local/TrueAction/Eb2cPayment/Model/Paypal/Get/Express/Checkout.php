@@ -2,13 +2,11 @@
 class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 {
 	/**
-	 * getting paypal express checkout from eb2c.
-	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to Get express paypal checkout for in eb2c
-	 *
+	 * Get paypal express checkout from eb2c.
+	 * @param Mage_Sales_Model_Quote $quote the quote to Get express paypal checkout for in eb2c
 	 * @return string the eb2c response to the request.
 	 */
-	public function getExpressCheckout($quote)
+	public function getExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
 		$responseMessage = '';
 		// build request
@@ -41,13 +39,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 	}
 
 	/**
-	 * Build  PaypalGetExpressCheckout request.
-	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
-	 * @return DOMDocument The XML document, to be sent as request to eb2c.
+	 * Build PaypalGetExpressCheckout request.
+	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
+	 * @return DOMDocument The XML document to be sent as request to eb2c.
 	 */
-	public function buildPayPalGetExpressCheckoutRequest($quote)
+	public function buildPayPalGetExpressCheckoutRequest(Mage_Sales_Model_Quote $quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalGetExpressCheckoutRequest = $domDocument->addElement('PayPalGetExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
@@ -72,10 +68,8 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 
 	/**
 	 * Parse PayPal GetExpress reply xml.
-	 *
 	 * @param string $payPalGetExpressCheckoutReply the xml response from eb2c
-	 *
-	 * @return Varien_Object, an object of response data
+	 * @return Varien_Object an object of response data
 	 */
 	public function parseResponse($payPalGetExpressCheckoutReply)
 	{
@@ -153,14 +147,12 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 	}
 
 	/**
-	 * save payment data to quote_payment.
-	 *
-	 * @param array $checkoutObject, an associative array of response data
-	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
-	 *
-	 * @return void
+	 * Save payment data to quote_payment.
+	 * @param array $checkoutObject an associative array of response data
+	 * @param Mage_Sales_Model_Quote $quote sales quote instantiated object
+	 * @return self
 	 */
-	protected function _savePaymentData($checkoutObject, $quote)
+	protected function _savePaymentData(Varien_Object $checkoutObject, Mage_Sales_Model_Quote $quote)
 	{
 		if (trim($checkoutObject->getPayerId()) !== '') {
 			$paypalObj = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
@@ -168,6 +160,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 				->setEb2cPaypalPayerId($checkoutObject->getPayerId())
 				->save();
 		}
-		return ;
+		return $this;
 	}
 }

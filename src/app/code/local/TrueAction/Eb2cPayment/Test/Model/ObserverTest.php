@@ -2,7 +2,30 @@
 class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
 {
 	protected $_observer;
-	protected $_mockObject;
+	/**
+	 * replacing by mock of the Mage_Checkout_Model_Session class
+	 * @return void
+	 */
+	public function replaceByMockCheckoutSessionModel()
+	{
+		$sessionMock = $this->getModelMockBuilder('checkout/session')
+			->disableOriginalConstructor()
+			->setMethods(array('addSuccess', 'addError', 'addException', 'getQuoteId'))
+			->getMock();
+		$sessionMock->expects($this->any())
+			->method('addSuccess')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('addError')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('addException')
+			->will($this->returnSelf());
+		$sessionMock->expects($this->any())
+			->method('getQuoteId')
+			->will($this->returnValue(1));
+		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
+	}
 
 	/**
 	 * setUp method
@@ -11,8 +34,7 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 	{
 		parent::setUp();
 		$this->_observer = Mage::getModel('eb2cpayment/observer');
-		$this->_mockObject = new TrueAction_Eb2cPayment_Test_Mock_Model_Observer();
-		$this->_mockObject->replaceByMockCheckoutSessionModel();
+		$this->replaceByMockCheckoutSessionModel();
 	}
 
 	public function providerRedeemGiftCard()
