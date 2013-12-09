@@ -199,10 +199,10 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 		$response = '<What>Ever</What>';
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$api->expects($this->once())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$api->expects($this->once())
 			->method('request')
@@ -238,10 +238,10 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('setUri', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 		$api->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$api->expects($this->any())
 			->method('request')

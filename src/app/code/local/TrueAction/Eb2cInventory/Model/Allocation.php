@@ -38,8 +38,10 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 			try {
 				// make request to eb2c for quote items allocation
 				$responseMessage = Mage::getModel('eb2ccore/api')
-					->setUri(Mage::helper('eb2cinventory')->getOperationUri('allocate_inventory'))
-					->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileAllocation)
+					->addData(array(
+						'uri' => Mage::helper('eb2cinventory')->getOperationUri('allocate_inventory'),
+						'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileAllocation,
+					))
 					->request($requestDoc);
 
 			} catch(Zend_Http_Client_Exception $e) {
@@ -267,8 +269,10 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		try {
 			// make request to eb2c for inventory rollback allocation
 			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri(Mage::helper('eb2cinventory')->getOperationUri('rollback_allocation'))
-				->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileRollback)
+				->addData(array(
+					'uri' => Mage::helper('eb2cinventory')->getOperationUri('rollback_allocation'),
+					'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileRollback,
+				))
 				->request($requestDoc);
 		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(
