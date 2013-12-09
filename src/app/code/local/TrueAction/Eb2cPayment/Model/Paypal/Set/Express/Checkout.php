@@ -3,12 +3,10 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 {
 	/**
 	 * setting paypal express checking in eb2c.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to set paypal express checkout in eb2c
-	 *
 	 * @return string the eb2c response to the request.
 	 */
-	public function setExpressCheckout($quote)
+	public function setExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
 		$responseMessage = '';
 		// build request
@@ -39,43 +37,26 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 
 	/**
 	 * Build  PaypalSetExpressCheckout request.
-	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildPayPalSetExpressCheckoutRequest($quote)
+	public function buildPayPalSetExpressCheckoutRequest(Mage_Sales_Model_Quote $quote)
 	{
 		$totals = $quote->getTotals();
 		Mage::log(array_keys($totals['grand_total']->getData()));
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalSetExpressCheckoutRequest = $domDocument->addElement('PayPalSetExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
-		$payPalSetExpressCheckoutRequest->createChild(
-			'OrderId',
-			(string) $quote->getEntityId()
-		);
-		$payPalSetExpressCheckoutRequest->createChild(
-			'ReturnUrl',
-			(string) Mage::getUrl('*/*/return')
-		);
-		$payPalSetExpressCheckoutRequest->createChild(
-			'CancelUrl',
-			(string) Mage::getUrl('*/*/cancel')
-		);
-		$payPalSetExpressCheckoutRequest->createChild(
-			'LocaleCode',
-			(string) Mage::app()->getLocale()->getDefaultLocale()
-		);
+		$payPalSetExpressCheckoutRequest->createChild('OrderId', (string) $quote->getEntityId());
+		$payPalSetExpressCheckoutRequest->createChild('ReturnUrl', (string) Mage::getUrl('*/*/return'));
+		$payPalSetExpressCheckoutRequest->createChild('CancelUrl', (string) Mage::getUrl('*/*/cancel'));
+		$payPalSetExpressCheckoutRequest->createChild('LocaleCode', (string) Mage::app()->getLocale()->getDefaultLocale());
 		$payPalSetExpressCheckoutRequest->createChild(
 			'Amount',
 			sprintf('%.02f', (isset($totals['grand_total']) ? $totals['grand_total']->getValue() : 0)),
 			array('currencyCode' => $quote->getQuoteCurrencyCode())
 		);
 		// creating lineItems element
-		$lineItems = $payPalSetExpressCheckoutRequest->createChild(
-			'LineItems',
-			null
-		);
+		$lineItems = $payPalSetExpressCheckoutRequest->createChild('LineItems', null);
 
 		// add LineItemsTotal
 		$lineItems->createChild(
@@ -102,29 +83,16 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 				if ($addresses){
 					foreach ($addresses->getAllItems() as $item) {
 						// creating lineItem element
-						$lineItem = $lineItems->createChild(
-							'LineItem',
-							null
-						);
+						$lineItem = $lineItems->createChild('LineItem', null);
 
 						// add Name
-						$lineItem->createChild(
-							'Name',
-							(string) $item->getName()
-						);
+						$lineItem->createChild('Name', (string) $item->getName());
 
 						// add Quantity
-						$lineItem->createChild(
-							'Quantity',
-							(string) $item->getQty()
-						);
+						$lineItem->createChild('Quantity', (string) $item->getQty());
 
 						// add UnitAmount
-						$lineItem->createChild(
-							'UnitAmount',
-							sprintf('%.02f', $item->getPrice()),
-							array('currencyCode' => $quote->getQuoteCurrencyCode())
-						);
+						$lineItem->createChild('UnitAmount', sprintf('%.02f', $item->getPrice()), array('currencyCode' => $quote->getQuoteCurrencyCode()));
 					}
 				}
 			}
@@ -134,9 +102,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 
 	/**
 	 * Parse PayPal SetExpress reply xml.
-	 *
 	 * @param string $payPalSetExpressCheckoutReply the xml response from eb2c
-	 *
 	 * @return Varien_Object, an object of response data
 	 */
 	public function parseResponse($payPalSetExpressCheckoutReply)
@@ -150,13 +116,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 			$nodeOrderId = $checkoutXpath->query('//a:OrderId');
 			$nodeResponseCode = $checkoutXpath->query('//a:ResponseCode');
 			$nodeToken = $checkoutXpath->query('//a:Token');
-			$checkoutObject = new Varien_Object(
-				array(
-					'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
-					'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
-					'token' => ($nodeToken->length)? (string) $nodeToken->item(0)->nodeValue : null,
-				)
-			);
+			$checkoutObject = new Varien_Object(array(
+				'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
+				'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+				'token' => ($nodeToken->length)? (string) $nodeToken->item(0)->nodeValue : null,
+			));
 		}
 
 		return $checkoutObject;
@@ -164,13 +128,11 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 
 	/**
 	 * save payment data to quote_payment.
-	 *
-	 * @param array $checkoutObject, an associative array of response data
-	 * @param Mage_Sales_Quote $quote, sales quote instantiated object
-	 *
+	 * @param Varien_Object $checkoutObject
+	 * @param Mage_Sales_Model_Quote $quote, sales quote instantiated object
 	 * @return void
 	 */
-	protected function _savePaymentData($checkoutObject, $quote)
+	protected function _savePaymentData(Varien_Object $checkoutObject, Mage_Sales_Model_Quote $quote)
 	{
 		if (trim($checkoutObject->getToken()) !== '') {
 			$paypalObj = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
@@ -178,6 +140,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core
 				->setEb2cPaypalToken($checkoutObject->getToken())
 				->save();
 		}
-		return ;
+		return $this;
 	}
 }

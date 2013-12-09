@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_checkout;
 
@@ -208,6 +209,55 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends 
 		$this->assertInstanceOf(
 			'Varien_Object',
 			$this->_checkout->parseResponse($payPalSetExpressCheckoutReply)
+		);
+	}
+
+	/**
+	 * Test _savePaymentData method
+	 * @test
+	 */
+	public function testSavePaymentData()
+	{
+		$checkoutObject = new Varien_Object(array(
+			'order_id' => '0005400000182',
+			'response_code' => 'Success',
+			'token' => '12373474885888'
+		));
+
+		$quoteMock = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array('getEntityId'))
+			->getMock();
+		$quoteMock->expects($this->exactly(2))
+			->method('getEntityId')
+			->will($this->returnValue(51));
+
+		$paypalModelMock = $this->getModelMockBuilder('eb2cpayment/paypal')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByQuoteId', 'setQuoteId', 'setEb2cPaypalToken', 'save'))
+			->getMock();
+		$paypalModelMock->expects($this->once())
+			->method('loadByQuoteId')
+			->with($this->equalTo(51))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('setQuoteId')
+			->with($this->equalTo(51))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('setEb2cPaypalToken')
+			->with($this->equalTo('12373474885888'))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalModelMock);
+
+		$checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout',
+			$this->_reflectMethod($checkout, '_savePaymentData')->invoke($checkout, $checkoutObject, $quoteMock)
 		);
 	}
 }

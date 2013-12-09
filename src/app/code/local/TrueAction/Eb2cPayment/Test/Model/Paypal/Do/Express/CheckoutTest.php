@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_checkout;
 
@@ -235,6 +236,58 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest extends E
 		$this->assertInstanceOf(
 			'Varien_Object',
 			$this->_checkout->parseResponse($payPalDoExpressCheckoutReply)
+		);
+	}
+
+	/**
+	 * Test _savePaymentData method
+	 * @test
+	 */
+	public function testSavePaymentData()
+	{
+		$checkoutObject = new Varien_Object(array(
+			'order_id' => '0005400000182',
+			'response_code' => 'Success',
+			'transaction_id' => '12354666233',
+			'payment_status' => 'Pending',
+			'pending_reason' => null,
+			'reason_code' => null
+		));
+
+		$quoteMock = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array('getEntityId'))
+			->getMock();
+		$quoteMock->expects($this->exactly(2))
+			->method('getEntityId')
+			->will($this->returnValue(51));
+
+		$paypalModelMock = $this->getModelMockBuilder('eb2cpayment/paypal')
+			->disableOriginalConstructor()
+			->setMethods(array('loadByQuoteId', 'setQuoteId', 'setEb2cPaypalTransactionId', 'save'))
+			->getMock();
+		$paypalModelMock->expects($this->once())
+			->method('loadByQuoteId')
+			->with($this->equalTo(51))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('setQuoteId')
+			->with($this->equalTo(51))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('setEb2cPaypalTransactionId')
+			->with($this->equalTo('12354666233'))
+			->will($this->returnSelf());
+		$paypalModelMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalModelMock);
+
+		$checkout = Mage::getModel('eb2cpayment/paypal_do_express_checkout');
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout',
+			$this->_reflectMethod($checkout, '_savePaymentData')->invoke($checkout, $checkoutObject, $quoteMock)
 		);
 	}
 }
