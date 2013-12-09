@@ -80,6 +80,16 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 		return $this;
 	}
 	/**
+	 * Update the stock item "is_in_stock" status
+	 * @param Mage_CatalogInventory_Model_Stock_Item $stockItem Stock item for the product being updated
+	 * @param int                                    $qty       Inventory quantity stock item is being set to
+	 */
+	protected function _updateItemIsInStock(Mage_CatalogInventory_Model_Stock_Item $stockItem, $qty)
+	{
+		$stockItem->setIsInStock($qty > $stockItem->getMinQty() ? 1 : 0);
+		return $this;
+	}
+	/**
 	 * Set the available quantity for a given item.
 	 * @param int $id the product id to update
 	 * @param int $qty the amount to set
@@ -87,10 +97,11 @@ class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
 	 */
 	protected function _setProdQty($id, $qty)
 	{
-		Mage::getModel('cataloginventory/stock_item')
+		$stockItem = Mage::getModel('cataloginventory/stock_item')
 			->loadByProduct($id)
-			->setQty($qty)
-			->save();
+			->setQty($qty);
+		$this->_updateItemIsInStock($stockItem, $qty, $id);
+		$stockItem->save();
 		return $this;
 	}
 	/**

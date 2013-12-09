@@ -291,27 +291,84 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	 */
 	public function testSetProdQty()
 	{
-		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'setQty', 'save'));
+		$id = 23;
+		$qty = 42;
+		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'setQty', 'setIsInStock', 'save'));
 		$stockItem
 			->expects($this->once())
 			->method('loadByProduct')
-			->with($this->isType('integer'))
+			->with($this->identicalTo($id))
 			->will($this->returnSelf());
 		$stockItem
 			->expects($this->once())
 			->method('setQty')
-			->with($this->isType('integer'))
+			->with($this->identicalTo($qty))
 			->will($this->returnSelf());
 		$stockItem
 			->expects($this->once())
 			->method('save')
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'cataloginventory/stock_item', $stockItem);
-		$fii = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_updateItemIsInStock'));
+		$fii
+			->expects($this->once())
+			->method('_updateItemIsInStock')
+			->with($this->identicalTo($stockItem), $this->identicalTo($qty))
+			->will($this->returnSelf());
 		$ref = new ReflectionObject($fii);
 		$setProdQty = $ref->getMethod('_setProdQty');
 		$setProdQty->setAccessible(true);
-		$setProdQty->invoke($fii, 1, 1); // Just verify the right inner methods are called.
+		$setProdQty->invoke($fii, $id, $qty); // Just verify the right inner methods are called.
+	}
+	/**
+	 * Data provider for testUpdateItemIsInStock, gives quantities where update is greater than,
+	 * less than and equal to the min qty to be instock. Also provides whether such quantities
+	 * shoudl result in a product that is in or out of stock
+	 * @return array Arrays of arguments to be passed to testUpdateItemIsInStock
+	 */
+	public function providerTestUpdateItemIsInStock()
+	{
+		return array(
+			array(5, 10, 1),
+			array(0, 0, 0),
+			array(10, 5, 0)
+		);
+	}
+	/**
+	 * When the update quantity is greater than the min quantity to be considered in stock,
+	 * the stock items should be considered to be in stock
+	 * @param  int $minQty    Min qty to be in stock
+	 * @param  int $updateQty Qty item is being updated to
+	 * @param  int $isInStock Should be considered in stock
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::getMinQty return the expected min qty to be in stock
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::setIsInStock ensure stock item properly set as in or out of stock
+	 * @mock TrueAction_Eb2cInventory_Model_Feed_Item_Inventories mocked to disable constructor, preventing unwanted side-effects & coverage
+	 * @test
+	 * @dataProvider providerTestUpdateItemIsInStock
+	 */
+	public function testUpdateItemIsInStock($minQty, $updateQty, $isInStock)
+	{
+		$stockItem = $this->getModelMock(
+			'cataloginventory/stock_item',
+			array('getMinQty', 'setIsInStock')
+		);
+		$stockItem
+			->expects($this->any())
+			->method('getMinQty')
+			->will($this->returnValue($minQty));
+		$stockItem
+			->expects($this->once())
+			->method('setIsInStock')
+			->with($this->identicalTo($isInStock))
+			->will($this->returnSelf());
+
+		$fii = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$updateMethod = $this->_reflectMethod($fii, '_updateItemIsInStock');
+		$this->assertSame($fii, $updateMethod->invoke($fii, $stockItem, $updateQty));
 	}
 	/**
 	 * @test

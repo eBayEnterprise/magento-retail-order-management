@@ -158,4 +158,94 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
 		$fn->invoke($testModel, '', '', '');
 	}
+	/**
+	 * Data provider to the testAddStockItemData test, provides the product type,
+	 * product id, feed "dataObject" and expected data to be set on the stock item
+	 * @return array Arg arrays to be sent to test method
+	 */
+	public function providerTestAddStockItemData()
+	{
+		$productId = 46;
+		$dataObject = new Varien_Object(array(
+			'extended_attributes' => new Varien_Object(array('back_orderable' => false)),
+		));
+		return array(
+			array(
+				Mage_Catalog_Model_Product_Type::TYPE_SIMPLE,
+				$productId,
+				$dataObject,
+				array(
+					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					'product_id' => $productId,
+					'use_config_backorders' => false,
+					'backorders' => false,
+				),
+			),
+			array(
+				Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
+				$productId,
+				$dataObject,
+				array(
+					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					'product_id' => $productId,
+					'is_in_stock' => 1,
+				),
+			),
+		);
+	}
+	/**
+	 * Test adding stock data to a product - should create the stock item and populate
+	 * it with appropriate data based on the product type. All should get a product_id
+	 * and stock_id. Non-config products should also get settings for use_config_backorders and
+	 * backorders. Config products should always have is_in_stock set to true (1)
+	 * @param  sting         $productType       Product type
+	 * @param  int           $productId         Product id
+	 * @param  Varien_Object $feedData          Data that would have been pulled from the feed files
+	 * @param  array         $expectedStockData array of data that should end up getting set on the stock item
+	 * @test
+	 * @dataProvider providerTestAddStockItemData
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::loadByProduct ensure loaded with given id
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::addData ensure proper data set on the model
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::save make sure the model is saved in the end
+	 * @mock Mage_Catalog_Model_Product::getTypeId return expected type id
+	 * @mock Mage_Catalog_Model_Product::getId return expected product id
+	 * @mock TrueAction_Eb2cProduct_Model_Feed_Processor disable constructor to prevent side-effects/unwanted coverage
+	 */
+	public function testAddStockItemData($productType, $productId, $feedData, $expectedStockData)
+	{
+		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'addData', 'save'));
+		$this->replaceByMock('model', 'cataloginventory/stock_item', $stockItem);
+		$product = $this->getModelMock('catalog/product', array('getTypeId', 'getId'));
+		$processor = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$stockItem
+			->expects($this->once())
+			->method('loadByProduct')
+			->with($this->identicalTo($product))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('addData')
+			->with($this->identicalTo($expectedStockData))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$product
+			->expects($this->any())
+			->method('getTypeId')
+			->will($this->returnValue($productType));
+		$product
+			->expects($this->any())
+			->method('getId')
+			->will($this->returnValue($productId));
+
+		$method = $this->_reflectMethod($processor, '_addStockItemDataToProduct');
+		$this->assertSame($processor, $method->invoke($processor, $feedData, $product));
+	}
 }
