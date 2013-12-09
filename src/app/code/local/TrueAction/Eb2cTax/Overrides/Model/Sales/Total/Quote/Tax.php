@@ -287,6 +287,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$process = count($previouslyAppliedTaxes);
 
 		foreach ($applied as $row) {
+			/**
+			 * Fix for EBC-247, undefined index (base_amount)
+			 */
+			$row['base_amount'] = (float) $baseAmount;
 			if ($row['percent'] == 0) {
 				continue;
 			}
