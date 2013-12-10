@@ -19,10 +19,11 @@ class TrueAction_Eb2cOrder_Model_Customer_Order_Search
 		try{
 			// make request to eb2c for Customer OrderSummary
 			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri(Mage::helper('eb2ccore')->getApiUri($cfg->apiSearchService, $cfg->apiSearchOperation))
-				->setXsd($cfg->xsdFileSearch)
+				->addData(array(
+					'uri' => Mage::helper('eb2ccore')->getApiUri($cfg->apiSearchService, $cfg->apiSearchOperation),
+					'xsd' => $cfg->xsdFileSearch
+				))
 				->request($requestDoc);
-
 		} catch(Zend_Http_Client_Exception $e) {
 			Mage::log(
 				sprintf(
