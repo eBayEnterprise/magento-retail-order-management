@@ -43,7 +43,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest
 	 */
 	public function testLoadByCodeWithGiftData()
 	{
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_StoredValue_Balance();
 		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
 
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
@@ -66,7 +66,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest
 	 */
 	public function testLoadByCodeWithoutGiftData()
 	{
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_StoredValue_Balance();
 		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
 
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
@@ -89,7 +89,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest
 	 */
 	public function testAddToCart()
 	{
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_StoredValue_Balance();
 		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
 
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();
@@ -113,7 +113,7 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_GiftcardaccountTest
 	 */
 	public function testAddToCartWithException()
 	{
-		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance();
+		$mockPaymentModelStoredValueBalance = new TrueAction_Eb2cPayment_Test_Mock_Model_StoredValue_Balance();
 		$mockPaymentModelStoredValueBalance->replaceByMockStoredValueBalanceModel();
 
 		$mockGiftCardAccount = new TrueAction_Eb2cPayment_Test_Mock_Model_Giftcardaccount();

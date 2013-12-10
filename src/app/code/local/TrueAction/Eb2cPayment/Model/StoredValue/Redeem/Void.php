@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem_Void
+class TrueAction_Eb2cPayment_Model_StoredValue_Redeem_Void
 {
 	/**
 	 * Get gift card redeem void from eb2c.

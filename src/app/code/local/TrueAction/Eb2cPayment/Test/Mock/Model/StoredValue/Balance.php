@@ -2,17 +2,17 @@
 /**
  * @codeCoverageIgnore
  */
-class TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Mock_Model_StoredValue_Balance extends EcomDev_PHPUnit_Test_Case
 {
 	/**
-	 * replacing by mock of the TrueAction_Eb2cPayment_Model_Stored_Value_Balance class
+	 * replacing by mock of the TrueAction_Eb2cPayment_Model_Storedvalue_Balance class
 	 *
-	 * @return Mock_TrueAction_Eb2cPayment_Model_Stored_Value_Balance
+	 * @return Mock_TrueAction_Eb2cPayment_Model_Storedvalue_Balance
 	 */
 	public function buildEb2cPaymentModelStoredValueBalance()
 	{
 		$paymentModelStoredValueBalanceMock = $this->getMock(
-			'TrueAction_Eb2cPayment_Model_Stored_Value_Balance',
+			'TrueAction_Eb2cPayment_Model_Storedvalue_Balance',
 			array('getBalance', 'parseResponse')
 		);
 
@@ -33,7 +33,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance extends EcomDe
 	 */
 	public function replaceByMockStoredValueBalanceModel()
 	{
-		$storedValueBalanceMock = $this->getModelMockBuilder('eb2cpayment/stored_value_balance')
+		$storedValueBalanceMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_balance')
 			->disableOriginalConstructor()
 			->setMethods(array('getBalance', 'parseResponse'))
 			->getMock();
@@ -43,6 +43,6 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Stored_Value_Balance extends EcomDe
 		$storedValueBalanceMock->expects($this->any())
 			->method('parseResponse')
 			->will($this->returnValue(array('pin' => '1234', 'paymentAccountUniqueId' => '4111111ak4idq1111', 'balanceAmount' => 50.00)));
-		$this->replaceByMock('model', 'eb2cpayment/stored_value_balance', $storedValueBalanceMock);
+		$this->replaceByMock('model', 'eb2cpayment/storedvalue_balance', $storedValueBalanceMock);
 	}
 }

@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Stored_Value_Redeem
+class TrueAction_Eb2cPayment_Model_StoredValue_Redeem
 {
 	/**
 	 * Get gift card Redeem from eb2c.
