@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Stored_Value_Balance
+class TrueAction_Eb2cPayment_Model_Storedvalue_Balance
 {
 	/**
 	 * Get gift card balance from eb2c.
