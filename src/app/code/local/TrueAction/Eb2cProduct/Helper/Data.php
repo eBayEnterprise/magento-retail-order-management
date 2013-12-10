@@ -255,4 +255,26 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $parsedLanguages;
 	}
+
+	/**
+	 * Sets configurable_attributes_data 
+	 * @param string $productTypeId ('configurable', 'simple' etc).
+	 * @param Varien_Object $source the source data field
+	 * @param Mage_Catalog_Model_Product the product we are setting
+	 *
+	 * @return array of configurable_attributes_data
+	 */
+	public function getConfigurableAttributesData($productTypeId, Varien_Object $source, Mage_Catalog_Model_Product $product)
+	{
+		if ($product->getId()
+				&& $product->getTypeId() === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE
+				&& $productTypeId === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE
+				&& $product->getTypeInstance(true)->getConfigurableAttributesAsArray($product))
+		{
+			Mage::log('Can\'t change existing configurable attributes; update discarded for sku ' . $product->getSku(),
+				Zend_log::WARN);
+			return null;
+		}
+		return $source->getData('configurable_attributes_data');
+	}
 }
