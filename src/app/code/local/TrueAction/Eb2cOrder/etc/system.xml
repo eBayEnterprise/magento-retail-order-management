@@ -13,7 +13,7 @@
 					<fields>
 						<transactional_emailer>
 							<label>Handler</label>
-							<comment>If the Exchange Platform is selected, transactional emails will be sent via e-Dialog</comment>
+							<comment>If the Exchange Platform is selected, transactional emails will be sent via eBay Enterprise Marketing Solutions Email</comment>
 							<sort_order>1</sort_order>
 							<frontend_type>select</frontend_type>
 							<source_model>eb2corder/system_config_source_emailer</source_model>
