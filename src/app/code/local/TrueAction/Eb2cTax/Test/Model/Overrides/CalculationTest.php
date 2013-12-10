@@ -66,7 +66,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	public function tearDown()
 	{
 		parent::tearDown();
-		Mage::getModel('tax/calculation')->unsTaxResponse();
+		Mage::unregister('_singleton/tax/calculation');
+		Mage::getSingleton('checkout/session')->unsEb2cTaxResponse();
 	}
 
 	/**
