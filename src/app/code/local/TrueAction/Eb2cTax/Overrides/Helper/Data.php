@@ -33,8 +33,10 @@ class TrueAction_Eb2cTax_Overrides_Helper_Data extends Mage_Tax_Helper_Data
 		$responseData = array();
 		try {
 			$response = Mage::getModel('eb2ccore/api')
-				->setUri($uri)
-				->setXsd($this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest)
+				->addData(array(
+					'uri' => $uri,
+					'xsd' => $this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest
+				))
 				->request($request->getDocument());
 			$responseData = array('xml' => $response, 'request' => $request);
 		} catch (Exception $e) {
