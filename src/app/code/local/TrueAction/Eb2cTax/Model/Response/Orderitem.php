@@ -2,7 +2,7 @@
 /**
  * reads the response from the TaxDutyRequest.
  */
-class TrueAction_Eb2cTax_Model_Response_Orderitem extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cTax_Model_Response_Orderitem extends Varien_Object
 {
 	/**
 	 * orderitem node this instance represents

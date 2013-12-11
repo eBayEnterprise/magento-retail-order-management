@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Model_Attributes extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cProduct_Model_Attributes
 {
 	/**
 	 * @var string path of the attributes configuration in the global config.
