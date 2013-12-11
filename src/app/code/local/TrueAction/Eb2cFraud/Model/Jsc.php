@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cFraud_Model_Jsc extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cFraud_Model_Jsc extends Varien_Object
 {
 	const EB2C_FRAUD_COLLECTOR_PATH = 'default/eb2cfraud/collectors';
 	const JSC_HTML_TMPL = <<<'JS'

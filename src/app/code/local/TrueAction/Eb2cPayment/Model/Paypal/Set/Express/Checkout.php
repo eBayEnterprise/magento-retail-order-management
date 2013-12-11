@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout
 {
 	/**
 	 * setting paypal express checking in eb2c.

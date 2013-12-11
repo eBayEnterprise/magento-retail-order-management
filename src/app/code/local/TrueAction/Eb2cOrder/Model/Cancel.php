@@ -9,7 +9,7 @@
  *
  *  order_cancel_after
  */
-class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cOrder_Model_Cancel
 {
 	const ORDER_CANCEL_FAILURE_MESSAGE = 'TrueAction_Eb2cOrder_Cancel_Fail_Message';
 	/**
@@ -37,7 +37,7 @@ class TrueAction_Eb2cOrder_Model_Cancel extends Mage_Core_Model_Abstract
 	 */
 	private $_orderId;
 
-	public function _construct()
+	public function __construct()
 	{
 		$this->_helper = Mage::helper('eb2corder');
 		$this->_config = $this->_helper->getConfig();

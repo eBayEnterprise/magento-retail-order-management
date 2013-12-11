@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Paypal_Do_Void extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cPayment_Model_Paypal_Do_Void
 {
 	/**
 	 * Do paypal Void from eb2c.

@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cCore_Model_Api extends Varien_Object
 {
 	/**
 	 * If _timeout is not set via $this->setApiTimeout() for request(), and the configuration does not contain one,
