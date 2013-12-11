@@ -81,9 +81,9 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		// Check eb2c stored value first
 		if (trim($pan) !== '' && trim($pin) !== '') {
 			// only fetch eb2c stored value balance when both pan and pin is valid
-			$storeValueBalanceReply = Mage::getModel('eb2cpayment/storedvalue_balance')->getBalance($pan, $pin);
+			$storeValueBalanceReply = Mage::getModel('eb2cpayment/stored_value_balance')->getBalance($pan, $pin);
 			if ($storeValueBalanceReply) {
-				$balanceData = Mage::getModel('eb2cpayment/storedvalue_balance')->parseResponse($storeValueBalanceReply);
+				$balanceData = Mage::getModel('eb2cpayment/stored_value_balance')->parseResponse($storeValueBalanceReply);
 				if ($balanceData) {
 					$balanceData['pin'] = $pin;
 					$balanceData['paymentAccountUniqueId'] = $pan; // the return pan might be tokenized.
