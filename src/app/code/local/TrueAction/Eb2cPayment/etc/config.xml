@@ -57,11 +57,6 @@
 					<account_navigation>TrueAction_Eb2cPayment_Overrides_Block_Account_Navigation</account_navigation>
 				</rewrite>
 			</customer>
-			<paypal>
-				<rewrite>
-					<express_shortcut>TrueAction_Eb2cPayment_Overrides_Block_Paypal_Express_Shortcut</express_shortcut>
-				</rewrite>
-			</paypal>
 			<adminhtml>
 				<rewrite>
 					<system_config_form>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form</system_config_form>
