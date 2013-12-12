@@ -287,9 +287,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$process = count($previouslyAppliedTaxes);
 
 		foreach ($applied as $row) {
-			/**
-			 * Fix for EBC-247, undefined index (base_amount)
-			 */
+			// key 'base_amount' is needed to calculate baseRealAmount in tax/observer class
+			// also to be referenced as a key in tax/observer class salesEventOrderAfterSave method
 			$row['base_amount'] = (float) $baseAmount;
 			if ($row['percent'] == 0) {
 				continue;
