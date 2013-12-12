@@ -102,7 +102,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTax($slug, 'shipping');
+		$value = $calc->getTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.20, $value);
 	}
 
@@ -111,7 +111,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTax($slug, 'duty');
+		$value = $calc->getTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
 		$this->assertSame(8.72, $value);
 	}
 
@@ -120,13 +120,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'merchandise', true);
-		$this->assertSame(0.06, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'merchandise', true);
-		$this->assertSame(0.07, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'merchandise', false);
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 		$this->assertSame(0.0625, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'merchandise', false);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 		$this->assertSame(0.06875, $value);
 	}
 
@@ -135,13 +131,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'shipping', false);
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.0133, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'shipping', false);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.01463, $value);
 	}
 
@@ -150,13 +142,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'duty', true);
-		$this->assertSame(8.24, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'duty', true);
-		$this->assertSame(8.24, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'duty', false);
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
 		$this->assertSame(8.2362, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'duty', false);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
 		$this->assertSame(8.23882, $value);
 	}
 
@@ -167,7 +155,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
 		$this->assertSame(
 			$calc->getTax($slug),
-			$calc->getTaxForAmount(99.99, $slug)
+			$calc->round($calc->getTaxForAmount(99.99, $slug))
 		);
 	}
 
@@ -185,7 +173,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTax($slug, 'shipping');
+		$value = $calc->getDiscountTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.07, $value);
 	}
 
@@ -194,13 +182,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', true);
-		$this->assertSame(0.06, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', true);
-		$this->assertSame(0.07, $value);
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', false);
+		$value = $calc->getDiscountTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 		$this->assertSame(0.0625, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', false);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 		$this->assertSame(0.06875, $value);
 	}
 
@@ -209,13 +193,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$calc = Mage::getSingleton('tax/calculation');
 		$calc->setTaxResponse($this->_mockResponseWithAll());
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', false);
+		$value = $calc->getDiscountTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.0133, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', false);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 		$this->assertSame(0.01463, $value);
 	}
 
@@ -226,7 +206,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
 		$this->assertSame(
 			$calc->getDiscountTax($slug),
-			$calc->getDiscountTaxForAmount(12.24, $slug)
+			$calc->round($calc->getDiscountTaxForAmount(12.24, $slug))
 		);
 	}
 
@@ -324,7 +304,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 		$scenario = $isAfterDiscounts ? 'afterdiscount' : 'beforediscount';
 
-		foreach (array('merchandise', 'shipping', 'duty', 'dutyamount') as $type) {
+		foreach (array(
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE,
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE,
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 3) as $type) {
 			$expectationKey = "{$scenario}-{$type}";
 			$e = $this->expected($expectationKey);
 			$this->assertArrayHasKey(
@@ -388,7 +371,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 		$scenario = 'duplicate-after';
 
-		foreach (array('merchandise', 'dutyamount') as $type) {
+		foreach (array(TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 3) as $type) {
 			$expectationKey = "{$scenario}-{$type}";
 			$e = $this->expected($expectationKey);
 			$this->assertArrayHasKey(

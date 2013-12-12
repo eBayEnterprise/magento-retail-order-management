@@ -152,10 +152,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 			$baseDiscountAmount = $item->getBaseDiscountAmount();
 
 			// calculate the full tax amount
-			$baseRowTax = $this->_calculator->getTax($itemSelector, 'merchandise');
+			$baseRowTax = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 
 			// amount to adjust tax due to discount.
-			$baseRowTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'merchandise');
+			$baseRowTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 
 			// record the tax adjustment amounts
 			$this->_processItemHiddenTax($baseRowTaxDiscount, $item);
@@ -166,7 +166,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 			// adjust the subtotal due to the discount amounts
 			$baseSubtotal = $baseSubtotal - $baseDiscountAmount;
 		} else { // tax the full itemprice
-			$baseRowTax = $this->_calculator->getTax($itemSelector, 'merchandise');
+			$baseRowTax = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
 		}
 
 		$item->setBaseTaxAmount(max(0, $baseRowTax));
@@ -196,8 +196,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$baseTaxable = $baseShipping = $baseTaxShipping = $address->getBaseShippingAmount();
 		$rate = 0;
 
-		$duty = $this->_calculator->getTax($itemSelector, 'duty');
-		$baseTax = $this->_calculator->getTax($itemSelector, 'shipping') + $duty;
+		$duty = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
+		$baseTax = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE) + $duty;
 
 		$this->_shippingTaxSubTotals[$addressId] += $baseTax;
 		$baseRuninngShippingTax = $this->_shippingTaxSubTotals[$addressId];
@@ -215,7 +215,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 
 		// process final shipping tax data
 		if ($this->_helper->getApplyTaxAfterDiscount()) {
-			$baseTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, 'shipping');
+			$baseTaxDiscount = $this->_calculator->getDiscountTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
 			$this->_processShippingHiddenTax($baseTaxDiscount, $address);
 			$baseTax  -= $baseTaxDiscount;
 			$tax      = $this->_convertAmount($baseTax);
