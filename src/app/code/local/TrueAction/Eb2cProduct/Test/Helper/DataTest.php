@@ -427,20 +427,13 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 */
 	public function testPrepareProductModel()
 	{
-		$productModelMockA = $this->getModelMockBuilder('catalog/product')
+		$productModelMock = $this->getModelMockBuilder('catalog/product')
 			->disableOriginalConstructor()
 			->setMethods(array('getId'))
 			->getMock();
-		$productModelMockA->expects($this->once())
+		$productModelMock->expects($this->once())
 			->method('getId')
 			->will($this->returnValue(0));
-		$productModelMockB = $this->getModelMockBuilder('catalog/product')
-			->disableOriginalConstructor()
-			->setMethods(array('getId'))
-			->getMock();
-		$productModelMockB->expects($this->never())
-			->method('getId')
-			->will($this->returnValue(1));
 
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
@@ -449,7 +442,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$productHelperMock->expects($this->once())
 			->method('loadProductBySku')
 			->with($this->equalTo('TST-1234'))
-			->will($this->returnValue($productModelMockA));
+			->will($this->returnValue($productModelMock));
 		$productHelperMock->expects($this->once())
 			->method('_applyDummyData')
 			->with(
@@ -457,7 +450,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 				$this->equalTo('TST-1234'),
 				$this->equalTo('Test Product Title')
 			)
-			->will($this->returnValue($productModelMockB));
+			->will($this->returnValue($productModelMock));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
 		$this->assertInstanceOf(
@@ -488,7 +481,9 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$this->replaceByMock('model', 'catalog/product_attribute_api', $apiModelMock);
 
 		$helper = Mage::helper('eb2cproduct');
-		$this->assertSame(array(), $this->_reflectProperty($helper, '_customAttributeCodeSets')->getValue($helper));
+
+		// setting _customAttributeCodeSets property back to an empty array
+		$this->_reflectProperty($helper, '_customAttributeCodeSets')->setValue($helper, array());
 
 		$this->assertSame(
 			array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name'),
@@ -499,15 +494,8 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			array(172 => array('brand_name', 'brand_description', 'is_drop_shipped', 'drop_ship_supplier_name')),
 			$this->_reflectProperty($helper, '_customAttributeCodeSets')->getValue($helper)
 		);
-	}
 
-	/**
-	 * Test _getLocaleCode the feed
-	 * @test
-	 */
-	public function testGetLocaleCode()
-	{
-		$helper = Mage::helper('eb2cproduct');
-		$this->assertSame('en_US', $this->_reflectMethod($helper, '_getLocaleCode')->invoke($helper));
+		// reseting _customAttributeCodeSets property back to an empty array
+		$this->_reflectProperty($helper, '_customAttributeCodeSets')->setValue($helper, array());
 	}
 }

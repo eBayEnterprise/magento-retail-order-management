@@ -72,8 +72,9 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * abstracting geting locale code
+	 * abstracting getting locale code
 	 * @return string, the locale code
+	 * @codeCoverageIgnore
 	 */
 	protected function _getLocaleCode()
 	{
@@ -113,9 +114,9 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			case 'true':
 			case 'y':
 			case 'yes':
-			return true;
+				return true;
 			default:
-			return false;
+				return false;
 		}
 	}
 
