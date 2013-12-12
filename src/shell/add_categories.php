@@ -4,11 +4,13 @@ require_once 'abstract.php';
 /**
  * Eb2c Category Shell
  */
-class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
+class TrueAction_Eb2c_Shell_Add_Categories extends Mage_Shell_Abstract
 {
 	private $_categoryObject;
 	private $_attributeSetId;
 	private $_defaultParentCategoryId;
+	private $_storeRootCategoryId;
+	private $_defaultStoreId;
 
 	/**
 	 * Instantiate the catalog/category
@@ -19,6 +21,21 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 		$this->_categoryObject = Mage::getModel('catalog/category');
 		$this->_attributeSetId = $this->_getCategoryAttributeSetId();
 		$this->_defaultParentCategoryId = $this->_getDefaultParentCategoryId();
+		$this->_storeRootCategoryId = $this->_getStoreRootCategoryId();
+		$this->_defaultStoreId = $this->_getDefaultStoreId();
+	}
+
+	/**
+	 * getting default store id
+	 * @return int, the default store id
+	 */
+	private function _getDefaultStoreId()
+	{
+		$allStores = Mage::app()->getStores();
+		foreach ($allStores as $storeId => $val) {
+			return Mage::app()->getStore($storeId)->getId();
+		}
+		return Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
 	}
 
 	/**
@@ -63,6 +80,15 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 	}
 
 	/**
+	 * get store root category id
+	 * @return int, store root category id
+	 */
+	protected function _getStoreRootCategoryId()
+	{
+		return Mage::app()->getWebsite(true)->getDefaultStore()->getRootCategoryId();
+	}
+
+	/**
 	 * add category to magento, check if already exist and return the category id
 	 * @param string $categoryName, the category to either add or get category id from magento
 	 * @param string $path, delimited string of the category depth path
@@ -78,20 +104,20 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 			if (!$categoryId) {
 				// category doesn't currently exists let's add it.
 				try {
-					$this->_categoryObject->setAttributeSetId($this->_attributeSetId)
-						->setStoreId(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)
-						->addData(array(
-							'name' => $categoryName,
-							'path' => $path, // parent relationship..
-							'description' => $categoryName,
-							'is_active' => 1,
-							'is_anchor' => 0, //for layered navigation
-							'page_layout' => 'default',
-							'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
-							'image' => null,
-							'thumbnail' => null,
-						))
-						->save();
+					$this->_categoryObject->addData(array(
+						'attribute_set_id' => $this->_attributeSetId,
+						'store_id' => $this->_defaultStoreId,
+						'name' => $categoryName,
+						'path' => $path, // parent relationship..
+						'description' => $categoryName,
+						'is_active' => 1,
+						'is_anchor' => 0, //for layered navigation
+						'page_layout' => 'default',
+						'url_key' => Mage::helper('catalog/product_url')->format($categoryName), // URL to access this category
+						'image' => null,
+						'thumbnail' => null,
+					))
+					->save();
 
 					$categoryId = $this->_categoryObject->getId();
 				} catch (Mage_Core_Exception $e) {
@@ -99,7 +125,7 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 				} catch (Mage_Eav_Model_Entity_Attribute_Exception $e) {
 					Mage::log(
 						sprintf(
-							'[ %s ] The following error has occurred while adding categories (%d)',
+							'[ %s ] The following error has occurred while adding categories (%s)',
 							__CLASS__, $e->getMessage()
 						),
 						Zend_Log::DEBUG
@@ -125,28 +151,17 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 		$errors = 0;
 		if (isset($this->_args['categories'])) {
 			$categories = explode('-', $this->_args['categories']);
-			$path = $this->_defaultParentCategoryId;
+			$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
 			foreach ($categories as $category) {
 				if (!is_numeric($category)) {
 					$path .= '/' . $this->_addCategory(ucwords($category), $path);
-					$this->_log(sprintf('Adding Category: %s', ucwords($category)));
+					//echo sprintf('Adding Category: %s', ucwords($category));
 				}
 			}
 		}
 
-		$this->_log('Script Ended');
+		echo "\nScript Ended\n";
 		return $errors;
-	}
-
-	/**
-	 * Log a message
-	 *
-	 * @param string $message to log
-	 * @param log level
-	 */
-	private function _log($message)
-	{
-		echo '[' . __CLASS__ . '] ' . basename(__FILE__) . ': ' . $message . "\n";
 	}
 
 	/**
@@ -160,16 +175,15 @@ class TrueAction_Eb2c_Shell_Category extends Mage_Shell_Abstract
 		$msg = <<<USAGE
 
 Usage: php -f $scriptName -- [options]
-  -categories     list_of_categories (Watch out for shell escapes)
-  -validate  config (Ensures all categories configured are valid)
+  -categories     list_of_categories
   help       This help
 
-Configured and Enabled categories:
+Adding categories to Magento stores:
 
 USAGE;
 		return $msg . " Done!!!\n";
 	}
 }
 
-$categoryProcessor = new TrueAction_Eb2c_Shell_category();
+$categoryProcessor = new TrueAction_Eb2c_Shell_Add_Categories();
 exit($categoryProcessor->run());

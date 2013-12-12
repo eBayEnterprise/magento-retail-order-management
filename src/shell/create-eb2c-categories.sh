@@ -4,28 +4,28 @@ echo '__________________________________________________________________________
 echo '';
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "Toys-Category-Preschool-Toy Figures & Playsets"
+php add_category.php -- -categories "Toys-Category-Preschool-Toy Figures & Playsets"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "Toys-Customer Favorites"
+php add_category.php -- -categories "Toys-Customer Favorites"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men"
+php add_category.php -- -categories "men"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men-collections"
+php add_category.php -- -categories "men-collections"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men-collections-heritage"
+php add_category.php -- -categories "men-collections-heritage"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men-footwear"
+php add_category.php -- -categories "men-footwear"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men-footwear-shoes"
+php add_category.php -- -categories "men-footwear-shoes"
 echo -n '.';
 sleep 0.05;
-php category.php -- -categories "men-footwear-shoes-boat"
+php add_category.php -- -categories "men-footwear-shoes-boat"
 echo -n '.';
 sleep 0.05;
 echo '';
