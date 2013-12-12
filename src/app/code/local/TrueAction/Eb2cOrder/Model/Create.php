@@ -381,6 +381,7 @@ class TrueAction_Eb2cOrder_Model_Create
 				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
 			);
 			$taxes = $taxData->createChild('Taxes');
+			$calc = Mage::getModel('tax/calculation');
 			foreach ($taxQuotes as $taxQuote) {
 				$taxNode = $taxes->createChild('Tax');
 				// need to actually get these value from somewhere
@@ -392,9 +393,9 @@ class TrueAction_Eb2cOrder_Model_Create
 				$jurisdiction->setAttribute('jurisdictionId', $taxQuote->getJurisdictionId());
 				$imposition = $taxNode->createChild('Imposition', $taxQuote->getImposition());
 				$imposition->setAttribute('impositionType', $taxQuote->getImpositionType());
-				$taxNode->createChild('EffectiveRate', $taxQuote->getEffectiveRate());
-				$taxNode->createChild('TaxableAmount', $taxQuote->getTaxableAmount());
-				$taxNode->createChild('CalculatedTax', $taxQuote->getCalculatedTax());
+				$taxNode->createChild('EffectiveRate', $calc->round($taxQuote->getEffectiveRate()));
+				$taxNode->createChild('TaxableAmount', $calc->round($taxQuote->getTaxableAmount()));
+				$taxNode->createChild('CalculatedTax', $calc->round($taxQuote->getCalculatedTax()));
 			}
 		}
 		return $taxFragment;
