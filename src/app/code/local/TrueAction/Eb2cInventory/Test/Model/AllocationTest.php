@@ -221,9 +221,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$quote->expects($this->once())
 			->method('getShippingAddress')
 			->will($this->returnValue(New Varien_Object()));
-		$testModel = $this->getModelMock('eb2cinventory/allocation', array('buildAllocationRequestMessage'));
+		$testModel = $this->getModelMock('eb2cinventory/allocation', array('_buildAllocationRequestMessage'));
 		$testModel->expects($this->once())
-			->method('buildAllocationRequestMessage')
+			->method('_buildAllocationRequestMessage')
 			->with($this->identicalTo($quote))
 			->will($this->returnValue($doc));
 
@@ -260,9 +260,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// Avoid overly broad coverage as the only assertion in this test is that
 		// API model exceptions are caught and an empty string is given as the response.
 		// This will help ensure coverage relfects that.
-		$allocation = $this->getModelMock('eb2cinventory/allocation', array('buildAllocationRequestMessage'));
+		$allocation = $this->getModelMock('eb2cinventory/allocation', array('_buildAllocationRequestMessage'));
 		$allocation->expects($this->any())
-			->method('buildAllocationRequestMessage')
+			->method('_buildAllocationRequestMessage')
 			->will($this->returnValue(new DOMDocument()));
 
 		// just need a quote item to pass, won't be used for anything
@@ -911,6 +911,87 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$testModel->expects($this->once())
 			->method('getInventoriedItems')
 			->will($this->returnValue(array($item)));
-		$testModel->buildAllocationRequestMessage($quote);
+		$this->_reflectMethod($testModel, '_buildAllocationRequestMessage')->invoke($testModel, $quote);
+	}
+
+	/**
+	 * Testing _buildAllocationRequestMessage method
+	 * @test
+	 */
+	public function testBuildAllocationRequestMessage()
+	{
+		$item = $this->getModelMockBuilder('sales/quote_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getId', 'getSku', 'getQty', ))
+			->getMock();
+		$item->expects($this->once())
+			->method('getId')
+			->will($this->returnValue(1));
+		$item->expects($this->once())
+			->method('getSku')
+			->will($this->returnValue('1234'));
+		$item->expects($this->once())
+			->method('getQty')
+			->will($this->returnValue(1));
+
+		$address = $this->getModelMockBuilder('sales/quote_address')
+			->disableOriginalConstructor()
+			->setMethods(array('getShippingMethod', 'getAllItems', 'getStreet', 'getCity', 'getRegionCode', 'getCountryId', 'getPostcode'))
+			->getMock();
+		$address->expects($this->once())
+			->method('getShippingMethod')
+			->will($this->returnValue('mage_ship_method'));
+		$address->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array()));
+		$address->expects($this->once())
+			->method('getStreet')
+			->with($this->equalTo(1))
+			->will($this->returnValue('1075 First Avenue'));
+		$address->expects($this->once())
+			->method('getCity')
+			->will($this->returnValue('King of Prussia'));
+		$address->expects($this->once())
+			->method('getRegionCode')
+			->will($this->returnValue('PA'));
+		$address->expects($this->once())
+			->method('getCountryId')
+			->will($this->returnValue('US'));
+		$address->expects($this->once())
+			->method('getPostcode')
+			->will($this->returnValue('19406'));
+
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllAddresses', 'getShippingAddress'))
+			->getMock();
+		$quote->expects($this->once())
+			->method('getAllAddresses')
+			->will($this->returnValue(array($address)));
+		$quote->expects($this->once())
+			->method('getShippingAddress')
+			->will($this->returnValue($address));
+
+		$helper = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('lookupShipMethod'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('lookupShipMethod')
+			->with($this->identicalTo('mage_ship_method'))
+			->will($this->returnValue('ANY_STD'));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+
+		$testModel = $this->getModelMockBuilder('eb2cinventory/allocation')
+			->disableOriginalConstructor()
+			->setMethods(array('getInventoriedItems'))
+			->getMock();
+		$testModel->expects($this->once())
+			->method('getInventoriedItems')
+			->will($this->returnValue(array($item)));
+		$this->assertInstanceOf(
+			'DOMDocument',
+			$this->_reflectMethod($testModel, '_buildAllocationRequestMessage')->invoke($testModel, $quote)
+		);
 	}
 }
