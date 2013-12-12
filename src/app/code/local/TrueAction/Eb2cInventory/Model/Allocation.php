@@ -32,7 +32,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		// can't make the allocation request.
 		if ($quote && $quote->getShippingAddress()) {
 			// build request
-			$requestDoc = $this->buildAllocationRequestMessage($quote);
+			$requestDoc = $this->_buildAllocationRequestMessage($quote);
 
 			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
 			try {
@@ -64,7 +64,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
-	public function buildAllocationRequestMessage(Mage_Sales_Model_Quote $quote)
+	protected function _buildAllocationRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
 		$coreHelper = Mage::helper('eb2ccore');
 		$domDocument = $coreHelper->getNewDomDocument();
