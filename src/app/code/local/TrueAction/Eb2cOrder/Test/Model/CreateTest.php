@@ -125,6 +125,15 @@ INVALID_XML;
 	 */
 	public function testBuildingTaxNodes()
 	{
+		$calculationModelMock = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('round'))
+			->getMock();
+		$calculationModelMock->expects($this->exactly(6))
+			->method('round')
+			->will($this->returnCallback(function($n) { return round($n, 2); }));
+		$this->replaceByMock('model', 'tax/calculation', $calculationModelMock);
+
 		$taxQuotes = array();
 		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
 			'id' => '1',
