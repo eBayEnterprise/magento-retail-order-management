@@ -3,7 +3,7 @@
  * generate the xml for an EB2C tax and duty quote request.
  * @author Michael Phang <mphang@ebay.com>
  */
-class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 {
 	const EMAIL_MAX_LENGTH         = 70;
 	const NUM_STREET_LINES         = 4;
@@ -13,7 +13,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	protected $_namespaceUri       = '';
 	protected $_billingInfoRef     = '';
 	protected $_billingEmailRef    = '';
-	protected $_hasChanges         = false;
 	protected $_storeId            = null;
 	protected $_isMultiShipping    = false;
 	protected $_emailAddresses     = array();
@@ -33,10 +32,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	/**
 	 * generate the request DOMDocument on construction.
+	 * Expected values in constructor args array
+	 * * quote_id - ID of the quote this request is for
 	 */
 	protected function _construct()
 	{
-		$quote         = $this->getQuote();
+		$quote = $this->getQuote();
 		$this->setIsMultiShipping(0);
 		if ($this->_isQuoteUsable($quote)) {
 			$this->_storeId = $quote->getStore()->getId();
@@ -86,68 +87,12 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * compare the addresses to be sent in the request with the addresses
-	 * in the specified quote.
-	 * @param  Mage_Sales_Model_Quote $quote
-	 */
-	public function checkAddresses(Mage_Sales_Model_Quote $quote=null)
-	{
-		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
-		if (!$this->_hasChanges) {
-			// check if the billing address has been switched to another address instance
-			$this->_hasChanges = $this->_hasChanges || $this->_isMultiShipping !== (bool) $quote->getIsMultiShipping();
-			$quoteBillingAddress = $quote->getBillingAddress();
-			$quoteBillingDestId  = $this->_getDestinationId($quoteBillingAddress);
-			$this->_hasChanges = $this->_hasChanges || $this->_billingInfoRef !== $quoteBillingDestId;
-			// check all the addresses.
-			foreach ($quote->getAllAddresses() as $address) {
-				$this->_hasChanges = $this->_hasChanges || $this->_isAddressDifferent($address);
-				$this->_hasChanges = $this->_hasChanges || $this->_isAddressItemsDifferent($address);
-			}
-		}
-	}
-
-	/**
-	 * check the discounts for the item and invalidate the quote if there
-	 * is a change.
-	 * @param Mage_Sales_Model_Quote $quote
-	 */
-	public function checkDiscounts(Mage_Sales_Model_Quote $quote=null)
-	{
-		$this->_hasChanges = $this->_hasChanges || !$this->_isQuoteUsable($quote);
-		if (!$this->_hasChanges) {
-			foreach ($quote->getAllAddresses() as $address) {
-				foreach ($this->_getItemsForAddress($address) as $item) {
-					$destinationId = $this->_getDestinationId($address, $item->getProduct()->isVirtual());
-					$orderItemId = $destinationId . '_' . $item->getSku();
-					$orderItem = isset($this->_orderItems[$orderItemId]) ?
-						$this->_orderItems[$orderItemId] : null;
-					$this->_hasChanges = is_null($orderItem) ? true : $this->_hasChanges;
-					$this->_hasChanges = $this->_hasChanges ||
-						(isset($orderItem['merchandise_discount_amount'])? $orderItem['merchandise_discount_amount']: null) !== $item->getDiscountAmount();
-					$this->_hasChanges = $this->_hasChanges ||
-						(isset($orderItem['merchandise_coupon_code'])? $orderItem['merchandise_coupon_code']: null) !== $item->getDiscountAmount();
-					$this->_hasChanges = $this->_hasChanges ||
-						(isset($orderItem['shipping_discount_amount'])? $orderItem['shipping_discount_amount']: null) !== $item->getDiscountAmount();
-					$this->_hasChanges = $this->_hasChanges ||
-						(isset($orderItem['shipping_coupon_code'])? $orderItem['shipping_coupon_code']: null) !== $item->getDiscountAmount();
-					if ($this->_hasChanges) {
-						// stop as soon as something is found to be different.
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	 * Determine if the request object has enough data to work with.
 	 * @return boolean
 	 */
 	public function isValid()
 	{
-		return !$this->_hasChanges &&
-			$this->_isQuoteUsable($this->getQuote()) &&
+		return $this->_isQuoteUsable($this->getQuote()) &&
 			(int) $this->getQuote()->getItemsCount() === count($this->_itemQuantities);
 	}
 
@@ -158,7 +103,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	public function getDocument()
 	{
 		if (!$this->_doc || !$this->_doc->documentElement) {
-			$doc        = new TrueAction_Dom_Document('1.0', 'UTF-8');
+			$doc        = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_doc = $doc;
 			$doc->preserveWhiteSpace = false;
 			if ($this->isValid()) {
@@ -168,27 +113,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 		// @codeCoverageIgnoreStart
 		return $this->_doc;
 		// @codeCoverageIgnoreEnd
-	}
-
-	/**
-	 * Make this request invalid, which will force a new request to
-	 * be generated and sent.
-	 */
-	public function invalidate()
-	{
-		$this->_hasChanges = true;
-	}
-
-	public function checkItemQty($quoteItem)
-	{
-		$sku = $quoteItem->getSku();
-
-		$quantity = isset($this->_itemQuantities[$sku]) ?
-			$this->_itemQuantities[$sku] :
-			null;
-		$this->_hasChanges = is_null($quantity) ||
-			$this->_hasChanges ||
-			(float) $quantity !== (float) $quoteItem->getTotalQty();
 	}
 
 	protected function _processQuote()
@@ -247,52 +171,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 				$e->getMessage()
 			);
 			Mage::log($message, Zend_Log::WARN);
-			$this->invalidate();
 		}
-	}
-
-	protected function _isAddressDifferent(Mage_Sales_Model_Quote_Address $address)
-	{
-		$id = $address->getId();
-		$result = isset($this->_addresses[$id]) ?
-			$this->_addresses[$id] : false;
-		if (is_string($result)) {
-			$oldData = $result;
-			$newData = $this->_extractDestData($address);
-			$result  = $oldData !== serialize($newData);
-		}
-		return $result;
-	}
-
-	protected function _isAddressItemsDifferent(Mage_Sales_Model_Quote_Address $address)
-	{
-		$skuList = array();
-		$destinationId = $this->_getDestinationId($address, false);
-		$result = isset($this->_shipGroups[$destinationId]) ?
-			$this->_shipGroups[$destinationId] : false;
-		if ($result !== false) {
-			$skuList = $result;
-		}
-		if ($address->getAddressType() === 'billing') {
-			$destinationId = $this->_getDestinationId($address, true);
-			$result = isset($this->_shipGroups[$destinationId]) ?
-				$this->_shipGroups[$destinationId] : false;
-			if ($result !== false) {
-				$skuList = array_unique(array_merge($skuList, $result));
-			}
-		}
-		$newSkus = array();
-		foreach ($this->_getItemsForAddress($address) as $item) {
-			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-				foreach ($item->getChildren() as $child) {
-					$newSkus[] = $child->getSku();
-				}
-			} else {
-				$newSkus[] = $item->getSku();
-			}
-		}
-		$result = (bool) array_diff($newSkus, $skuList) || (bool) array_diff($skuList, $newSkus);
-		return $result;
 	}
 
 	/**
@@ -321,13 +200,23 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	}
 
 	/**
-	 * get a list of all items for $address
+	 * Get a list of all items for $address
+	 * As there's not way to combine the address objects non-nominal and visible
+	 * item filtering, one of the two needs to be replicated here,
+	 * which is currently the visibile items filter.
+	 *
 	 * @param  Mage_Sales_Model_Quote_Address $address
 	 * @return array(Mage_Sales_Model_Quote_Item_Abstract)
 	 */
 	protected function _getItemsForAddress(Mage_Sales_Model_Quote_Address $address)
 	{
-		return $address->getAllNonNominalItems();
+		$items = array();
+		foreach ($address->getAllNonNominalItems() as $item) {
+			if (!$item->getParentItemId()) {
+				$items[] = $item;
+			}
+		}
+		return $items;
 	}
 
 	/**
@@ -426,7 +315,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$data['email_address'] = $this->_checkLength($address->getEmail(), 1, null, false);
 		} else {
 			$data['city'] = $this->_checkLength($address->getCity(), 1, 35);
-			$data['main_division'] = $address->getRegionModel()->getCode();
+			$data['main_division'] = $address->getRegionCode();
 			$data['country_code'] = $this->_checkLength($address->getCountryId(), 2, 2, false);
 			$data['postal_code'] = $address->getPostcode();
 			$data['line1'] = $this->_checkLength($address->getStreet1(), 1, 70);
@@ -442,6 +331,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 * validate the data extracted from an address.
 	 * @param  array   $destData   extracted data from an address
 	 * @param  boolean $isVirtual  true if the destination is virtual; false otherwise
+	 * @throws Mage_Core_Exception If destination is missing any required data.
 	 * @return self
 	 */
 	protected function _validateDestData($destData, $isVirtual)
@@ -476,7 +366,9 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			'item_desc' => $item->getName(),
 			'hts_code' => $item->getHtsCode(),
 			'quantity' => $item->getQty(),
+			// @todo this needs to be the right value when the item is a child
 			'merchandise_amount' => Mage::app()->getStore()->roundPrice($item->getRowTotal()),
+			// @todo this needs to be the right value when the item is a child
 			'merchandise_unit_price' => Mage::app()->getStore()->roundPrice($this->_getItemOriginalPrice($item)),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
 			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getShippingAmount()),
@@ -532,7 +424,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	{
 		$newSku = $this->_checkLength($item['item_id'], 1, 20);
 		if (is_null($newSku)){
-			$this->invalidate();
 			$message = sprintf(
 				'TaxDutyQuoteRequest: Mage_Sales_Model_Quote_Item_Abstract id:%s has an invalid SKU:%s',
 				$item['id'],
@@ -562,20 +453,15 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 
 	protected function _buildTaxDutyRequest()
 	{
-		$helper = Mage::helper('tax');
+		$helper = Mage::helper('eb2ctax');
 		try {
-			$this->_namespaceUri = $helper->getNamespaceUri($this->_storeId);
+			$this->_namespaceUri = $helper->getNamespaceUri();
 			$this->_doc->addElement('TaxDutyQuoteRequest', null, $this->_namespaceUri);
 			$tdRequest          = $this->_doc->documentElement;
-			$billingInformation = $tdRequest->addChild(
-				'Currency',
-				$this->getQuote()->getQuoteCurrencyCode()
-			)
+			$billingInformation = $tdRequest
+				->addChild('Currency', $this->getQuote()->getQuoteCurrencyCode())
 				->addChild('VATInclusivePricing', (int) $helper->getVatInclusivePricingFlag($this->_storeId))
-				->addChild(
-					'CustomerTaxId',
-					$this->_checkLength($this->getBillingAddress()->getTaxId(), 0, 40)
-				)
+				->addChild('CustomerTaxId', $this->_checkLength($this->getBillingAddress()->getTaxId(), 0, 40))
 				->createChild('BillingInformation');
 			$billingInformation->setAttribute('ref', $this->_billingInfoRef);
 			$shipping = $tdRequest->createChild('Shipping');
@@ -585,7 +471,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			$this->_processAddresses($destinations, $shipGroups);
 		} catch (Mage_Core_Exception $e) {
 			Mage::log('[' . __CLASS__ . '] TaxDutyQuoteRequest Error: ' . $e->getMessage(), Zend_Log::WARN);
-			$this->invalidate();
 		}
 	}
 
@@ -667,10 +552,7 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 	 * build the MailingAddress node
 	 * @return TrueAction_Dom_Element
 	 */
-	protected function _buildMailingAddressNode(
-		TrueAction_Dom_Element $parent,
-		array $address
-	)
+	protected function _buildMailingAddressNode(TrueAction_Dom_Element $parent, array $address)
 	{
 		$destinationId = $address['id'];
 		$mailingAddress = $parent->createChild('MailingAddress');
@@ -948,54 +830,6 @@ class TrueAction_Eb2cTax_Model_Request extends Mage_Core_Model_Abstract
 			->addChild('MainDivision', $shippingOrigin['MainDivision'])
 			->addChild('CountryCode', $shippingOrigin['CountryCode'])
 			->addChild('PostalCode', $shippingOrigin['PostalCode']);
-	}
-
-	/**
-	 * compare the shippingOrigin to be sent in the request with the shippingOrigin
-	 * in the specified quote.
-	 * @param  Mage_Sales_Model_Quote $quote
-	 */
-	public function checkShippingOriginAddresses(Mage_Sales_Model_Quote $quote=null)
-	{
-		if (!($this->isValid() && $quote && $quote->getId())) {
-			// just invalidate the request if the request is bad in the first place or if
-			// the quote passed in is null.
-			$this->invalidate();
-			return;
-		}
-
-		if (is_array($this->_orderItems)) {
-			foreach ($this->_orderItems as $key => $value) {
-				if($item = $quote->getItemById($value['id'])) {
-					$itemData = $this->_extractShippingData($item);
-					$shippingOrigin = $value['ShippingOrigin'];
-					$this->_hasChanges = (bool) array_diff_assoc($itemData, $shippingOrigin) ||
-						(bool) array_diff_assoc($shippingOrigin, $itemData);
-				}
-			}
-		}
-	}
-
-	/**
-	 * compare the adminOrigin to be sent in the request with the adminOrigin
-	 * in the specified quote.
-	 * @param  Mage_Sales_Model_Quote $quote
-	 */
-	public function checkAdminOriginAddresses()
-	{
-		if (!$this->isValid()) {
-			// skip it if the request is bad in the first place or if the quote
-			// passed in is null.
-			return;
-		}
-
-		if (is_array($this->_orderItems)) {
-			foreach ($this->_orderItems as $key => $value) {
-				$adminData = $this->_extractAdminData();
-				$adminOrigin = $value['AdminOrigin'];
-				$this->_hasChanges = (json_encode($adminData) === json_encode($adminOrigin));
-			}
-		}
 	}
 
 	/**

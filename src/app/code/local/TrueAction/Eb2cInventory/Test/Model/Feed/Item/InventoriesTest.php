@@ -2,7 +2,6 @@
 class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base
 {
 	const VFS_ROOT = 'testBase';
-
 	/**
 	 * Replace the FileTransfer Helper with a mock object.
 	 */
@@ -17,11 +16,10 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
 	}
-
 	/**
 	 * Stub dom documents created by the core helper
-	 * @param  array $loadResults Results of load calls, assoc array of filename => returnValue|Exception
-	 * @return TrueAction_Dom_Document  Stubbed DOM document
+	 * @param array $loadResults Results of load calls, assoc array of filename => returnValue|Exception
+	 * @return TrueAction_Dom_Document Stubbed DOM document
 	 */
 	protected function _domStub($loadResults)
 	{
@@ -40,7 +38,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			}));
 		return $dom;
 	}
-
 	/**
 	 * Mock the Varien_Io_File object,
 	 * this is our FsTool for testing purposes
@@ -53,7 +50,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
-
 		$mockFsTool = $this->getMock('Varien_Io_File', array(
 			'cd',
 			'checkAndCreateFolder',
@@ -95,16 +91,12 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->expects($this->any())
 			->method('open')
 			->will($this->returnValue(true));
-
 		// vfs setup ends
 		return $mockFsTool;
 	}
-
 	/**
-	 * testing _constructor method - this test to test fs tool is set in the constructor when no paramenter pass
-	 *
+	 * Test fs tool is set in the constructor when no parameter passed.
 	 * @test
-	 * @medium
 	 * @loadFixture sample-data.yaml
 	 */
 	public function testConstructor()
@@ -136,26 +128,21 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$fsToolMock->expects($this->any())
 			->method('open')
 			->will($this->returnValue(true));
-
 		$feed = Mage::getModel('eb2cinventory/feed_item_inventories', array('fs_tool' => $fsToolMock));
-
 		// test the setup
 		// when pulled from config, the base dir should be Mage::getBaseDir('var') followed by the configured
 		// local dir, in this case, set in the fixture
 		$this->assertSame(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Inventories/', $feed->getBaseDir());
 		$this->assertInstanceOf('TrueAction_Eb2cInventory_Model_Feed_Item_Extractor', $feed->getExtractor());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Item', $feed->getStockItem());
-		$this->assertInstanceOf('Mage_Catalog_Model_Product', $feed->getProduct());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Status', $feed->getStockStatus());
 		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed', $feed->getFeedModel());
 		// make sure the core feed model was instantiated with the proper magic data
 		$this->assertSame($feed->getBaseDir(), $feed->getFeedModel()->getBaseDir());
 		$this->assertSame($fsToolMock, $feed->getFeedModel()->getFsTool());
 	}
-
 	/**
 	 * testing processFeeds method - with invalid ftp settings
-	 *
 	 * @test
 	 * @medium
 	 * @loadFixture sample-data.yaml
@@ -164,7 +151,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 	{
 		// Begin vfs Setup:
 		$vfs = $this->getFixture()->getVfs();
-
 		$inventoryFeedModel = Mage::getModel(
 			'eb2cinventory/feed_item_inventories',
 			array(
@@ -172,9 +158,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 				'fs_tool'  => $this->_getMockFsTool($vfs)
 			)
 		);
-
 		$this->_replaceFileTransferHelper();
-
 		// test with mock product and stock item
 		$productMock = $this->getMock(
 			'Mage_Catalog_Model_Product',
@@ -185,14 +169,10 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->will($this->returnValue(true));
 		$productMock->expects($this->any())
 			->method('getId');
-
 		$inventoryFeedModel->setProduct($productMock);
-
 		$this->assertNull($inventoryFeedModel->processFeeds());
-
 		$vfs->discard();
 	}
-
 	/**
 	 * Test processing of the feeds, success and failure
 	 * @test
@@ -203,7 +183,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		$fileName = 'dummy_file_name.xml';
 		$remotePath = 'fake_remote_path';
 		$filePattern = 'Oh*My*Glob';
-
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
@@ -221,15 +200,12 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->method('removeFromRemote')
 			->with($this->identicalTo($remotePath, $fileName));
 		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-
 		$domStub = $this->_domStub(array($fileName => true,));
-
 		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
 		$coreHelper->expects($this->any())
 			->method('getNewDomDocument')
 			->will($this->returnValue($domStub));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
-
 		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
 		$mockFs->expects($this->any())
 			->method('setAllowCreateFolders')
@@ -242,7 +218,6 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			'feed_event_type'   => 'ItemInventories',
 			'feed_file_pattern' => $filePattern,
 			'feed_local_path'   => 'inbound',
-			'feed_file_pattern' => $filePattern,
 			'feed_remote_path'  => $remotePath,
 			'fs_tool'           => $mockFs,
 		));
@@ -253,8 +228,155 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 			->with($this->identicalTo($domStub), $this->identicalTo('ItemInventories'))
 			->will($this->returnValue(true));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
-
+		// ensure we trigger the reindexer.
+		$indexer = $this->getModelMock('eb2ccore/indexer', array('reindexAll'));
+		$indexer->expects($this->once())
+			->method('reindexAll');
+		$this->replaceByMock('model', 'eb2ccore/indexer', $indexer);
 		$model->processFeeds();
+		// Make sure the event got fired.
+		$this->assertEventDispatched('inventory_feed_processing_complete');
 	}
-
+	/**
+	 * @test
+	 */
+	public function testUpdateInventories()
+	{
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_extractSku', '_updateInventory'));
+		$fii
+			->expects($this->once())
+			->method('_extractSku')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue('123'));
+		$fii
+			->expects($this->once())
+			->method('_updateInventory')
+			->with($this->isType('string'), $this->isType('integer'))
+			->will($this->returnSelf());
+		$sampleFeed = array(new Varien_Object(array(
+			'catalog_id' => 'foo',
+			'client_item_id' => 'bar',
+			'measurements' => new Varien_Object(array('available_quantity' => 3)),
+		)));
+		$fii->updateInventories($sampleFeed); // Just verify the right inner methods are called.
+	}
+	/**
+	 * @test
+	 */
+	public function testSetProdQty()
+	{
+		$id = 23;
+		$qty = 42;
+		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'setQty', 'setIsInStock', 'save'));
+		$stockItem
+			->expects($this->once())
+			->method('loadByProduct')
+			->with($this->identicalTo($id))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('setQty')
+			->with($this->identicalTo($qty))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'cataloginventory/stock_item', $stockItem);
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_updateItemIsInStock'));
+		$fii
+			->expects($this->once())
+			->method('_updateItemIsInStock')
+			->with($this->identicalTo($stockItem), $this->identicalTo($qty))
+			->will($this->returnSelf());
+		$ref = new ReflectionObject($fii);
+		$setProdQty = $ref->getMethod('_setProdQty');
+		$setProdQty->setAccessible(true);
+		$setProdQty->invoke($fii, $id, $qty); // Just verify the right inner methods are called.
+	}
+	/**
+	 * Data provider for testUpdateItemIsInStock, gives quantities where update is greater than,
+	 * less than and equal to the min qty to be instock. Also provides whether such quantities
+	 * shoudl result in a product that is in or out of stock
+	 * @return array Arrays of arguments to be passed to testUpdateItemIsInStock
+	 */
+	public function providerTestUpdateItemIsInStock()
+	{
+		return array(
+			array(5, 10, 1),
+			array(0, 0, 0),
+			array(10, 5, 0)
+		);
+	}
+	/**
+	 * When the update quantity is greater than the min quantity to be considered in stock,
+	 * the stock items should be considered to be in stock
+	 * @param  int $minQty    Min qty to be in stock
+	 * @param  int $updateQty Qty item is being updated to
+	 * @param  int $isInStock Should be considered in stock
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::getMinQty return the expected min qty to be in stock
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::setIsInStock ensure stock item properly set as in or out of stock
+	 * @mock TrueAction_Eb2cInventory_Model_Feed_Item_Inventories mocked to disable constructor, preventing unwanted side-effects & coverage
+	 * @test
+	 * @dataProvider providerTestUpdateItemIsInStock
+	 */
+	public function testUpdateItemIsInStock($minQty, $updateQty, $isInStock)
+	{
+		$stockItem = $this->getModelMock(
+			'cataloginventory/stock_item',
+			array('getMinQty', 'setIsInStock')
+		);
+		$stockItem
+			->expects($this->any())
+			->method('getMinQty')
+			->will($this->returnValue($minQty));
+		$stockItem
+			->expects($this->once())
+			->method('setIsInStock')
+			->with($this->identicalTo($isInStock))
+			->will($this->returnSelf());
+		$fii = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$updateMethod = $this->_reflectMethod($fii, '_updateItemIsInStock');
+		$this->assertSame($fii, $updateMethod->invoke($fii, $stockItem, $updateQty));
+	}
+	/**
+	 * @test
+	 */
+	public function testExtractSku()
+	{
+		$fii = Mage::getModel('eb2cinventory/feed_item_inventories');
+		$ref = new ReflectionObject($fii);
+		$extractSku = $ref->getMethod('_extractSku');
+		$extractSku->setAccessible(true);
+		$this->assertSame('foo-bar', $extractSku->invoke($fii, new Varien_Object(array(
+			'catalog_id' => 'foo',
+			'item_id' => new Varien_Object(array('client_item_id' => 'bar')),
+		))));
+	}
+	/**
+	 * @test
+	 */
+	public function testUpdateInventory()
+	{
+		$prod = $this->getModelMock('catalog/product', array('getIdBySku'));
+		$prod
+			->expects($this->once())
+			->method('getIdBySku')
+			->with($this->isType('string'))
+			->will($this->returnValue(123));
+		$this->replaceByMock('model', 'catalog/product', $prod);
+		$fii = $this->getModelMock('eb2cinventory/feed_item_inventories', array('_setProdQty'));
+		$fii
+			->expects($this->once())
+			->method('_setProdQty')
+			->with($this->equalTo(123), $this->equalTo(1))
+			->will($this->returnSelf());
+		$refFii = new ReflectionObject($fii);
+		$updateInventory = $refFii->getMethod('_updateInventory');
+		$updateInventory->setAccessible(true);
+		$updateInventory->invoke($fii, '45-987', 1); // Just verify the right inner methods are called.
+	}
 }

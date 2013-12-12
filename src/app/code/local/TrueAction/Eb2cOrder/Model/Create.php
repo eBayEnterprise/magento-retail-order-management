@@ -21,55 +21,53 @@ class TrueAction_Eb2cOrder_Model_Create
 	const	GENDER_MALE = 1;
 
 	/**
+	 * The Shipping Charge Type recognized by the Exchange Platform for flatrate/order level shipping costs
+	 */
+	const SHIPPING_CHARGE_TYPE_FLATRATE = 'FLATRATE';
+	/**
 	 * @var Mage_Sales_Model_Order, Magento Order Object
 	 */
-	private $_o;
+	protected $_o;
 
 	/**
 	 * @var string, Human readable XML
 	 */
-	private $_xmlRequest;
+	protected $_xmlRequest;
 
 	/**
 	 * @var string, Human readable XML
 	 */
-	private $_xmlResponse;
+	protected $_xmlResponse;
 
 	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
-	private $_domRequest;
+	protected $_domRequest;
 
 	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
-	private $_domResponse;
+	protected $_domResponse;
 
 	/**
 	 * @var array, Saves an array of item_id's for use in shipping node
 	 */
-	private $_orderItemRef;
-
-	/**
-	 * @var TrueAction_Eb2cOrder_Helper_Data, helper Object
-	 */
-	private $_helper;
+	protected $_orderItemRef;
 
 	/**
 	 * @var TrueAction_Eb2cCore_Model_Config_Registry, config Object
 	 */
-	private $_config;
+	protected $_config;
 
 	/**
 	 * @var array, hold magento payment map to eb2c
 	 * @see https://trueaction.atlassian.net/wiki/display/EBC/Magento+Payment+Method+Map+with+Eb2c
 	 */
-	private $_ebcPaymentMethodMap = array();
+	protected $_ebcPaymentMethodMap = array();
 
 	public function __construct()
 	{
-		$this->_helper = Mage::helper('eb2corder');
-		$this->_config = $this->_helper->getConfig();
+		$this->_config = Mage::helper('eb2corder')->getConfig();
 		$this->_ebcPaymentMethodMap = array(
 			'Pbridge_eb2cpayment_cc' => 'CreditCard',
 			'Paypal_express' => 'PayPal',
@@ -114,8 +112,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	public function sendRequest()
 	{
-		$consts = $this->_helper->getConstHelper();
-		$uri = $this->_helper->getOperationUri($consts::CREATE_OPERATION);
+		$uri = Mage::helper('eb2corder')->getOperationUri($this->_config->apiCreateOperation);
 
 		$response = '';
 		if ($this->_domRequest instanceof DOMDocument) {
@@ -157,13 +154,13 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param string $response, the response string xml from eb2c request
 	 * @return self
 	 */
-	private function _processResponse($response)
+	protected function _processResponse($response)
 	{
-		if (trim($response) !== '') {
+		if ($response) {
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			if(strtoupper(trim($status)) === 'SUCCESS') {
+			if (strtoupper(trim($status)) === 'SUCCESS') {
 				$this->_o->setState(Mage_Sales_Model_Order::STATE_PROCESSING)->save();
 				Mage::log(
 					sprintf('[ %s ]: updating order (%s) state to processing after successfully creating order from eb2c', __METHOD__, $this->_o->getIncrementId()),
@@ -190,9 +187,11 @@ class TrueAction_Eb2cOrder_Model_Create
 
 	/**
 	 * to be implented in the future, if we have gms extension that can provide the url source and type
+	 * As this is just a placeholder method for future implementation, no need to cover it
+	 * @codeCoverageIgnore
 	 * @return array, source data
 	 */
-	private function _getSourceData()
+	protected function _getSourceData()
 	{
 		// return empty array since we don't know yet
 		return array();
@@ -206,25 +205,27 @@ class TrueAction_Eb2cOrder_Model_Create
 	public function buildRequest(Mage_Sales_Model_Order $orderObject)
 	{
 		$this->_o = $orderObject;
-		$consts = $this->_helper->getConstHelper();
 
-		$this->_domRequest = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->_domRequest->formatOutput = true;
-		$orderCreateRequest = $this->_domRequest->addElement($consts::CREATE_DOM_ROOT_NODE_NAME, null, $this->_config->apiXmlNs)->firstChild;
-		$orderCreateRequest->setAttribute('orderType', $consts::ORDER_TYPE);
+		$orderCreateRequest = $this
+			->_domRequest
+			->addElement($this->_config->apiCreateDomRootNodeName, null, $this->_config->apiXmlNs)
+			->firstChild;
+		$orderCreateRequest->setAttribute('orderType', $this->_config->apiOrderType);
 		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
 
 		$order = $orderCreateRequest->createChild('Order');
-		$order->setAttribute('levelOfService', $consts::LEVEL_OF_SERVICE);
+		$order->setAttribute('levelOfService', $this->_config->apiLevelOfService);
 		$order->setAttribute('customerOrderId', $this->_o->getIncrementId());
 
-		$this->_buildCustomer( $order->createChild('Customer') );
+		$this->_buildCustomer($order->createChild('Customer'));
 
 		$order->createChild('CreateTime', str_replace(' ', 'T', $this->_o->getCreatedAt()));
 
 		$webLineId = 1;
 		$orderItems = $order->createChild('OrderItems');
-		foreach( $this->_o->getAllItems() as $item ) {
+		foreach ($this->_o->getAllItems() as $item) {
 			$this->_buildOrderItem($orderItems->createChild('OrderItem'), $item, $webLineId++);
 		}
 
@@ -246,12 +247,14 @@ class TrueAction_Eb2cOrder_Model_Create
 
 		$orderSource = $this->_getSourceData();
 		if (!empty($orderSource)) {
-			$orderSource = $order->CreateChild('OrderSource', $orderSource['source']);
-			$orderSource->setAttribute('type', $orderSource['type']);
+			$orderSourceNode = $order->createChild('OrderSource', $orderSource['source']);
+			$orderSourceNode->setAttribute('type', $orderSource['type']);
 		}
 
-		$order->createChild('OrderHistoryUrl',
-		Mage::app()->getStore( $this->_o->getStoreId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB) . $consts::ORDER_HISTORY_PATH . $this->_o->getEntityId());
+		$order->createChild(
+			'OrderHistoryUrl',
+			Mage::helper('eb2corder')->getOrderHistoryUrl($this->_o)
+		);
 
 		$order->createChild('OrderTotal', sprintf('%.02f', $this->_o->getGrandTotal()));
 
@@ -267,7 +270,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param DomElement customer	where to place customer info
 	 * @return void
 	 */
-	private function _buildCustomer(DomElement $customer)
+	protected function _buildCustomer(DomElement $customer)
 	{
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
@@ -275,12 +278,12 @@ class TrueAction_Eb2cOrder_Model_Create
 		$customer->setAttribute('customerId', sprintf('%s%s', $cfg->clientCustomerIdPrefix, $this->_o->getCustomerId()));
 
 		$name = $customer->createChild('Name');
-		$name->createChild('Honorific', $this->_o->getCustomerPrefix() );
-		$name->createChild('LastName', trim($this->_o->getCustomerLastname() . ' ' . $this->_o->getCustomerSuffix()) );
+		$name->createChild('Honorific', $this->_o->getCustomerPrefix());
+		$name->createChild('LastName', trim($this->_o->getCustomerLastname() . ' ' . $this->_o->getCustomerSuffix()));
 		$name->createChild('MiddleName', $this->_o->getCustomerMiddlename());
 		$name->createChild('FirstName', $this->_o->getCustomerFirstname());
 
-		if( $this->_o->getCustomerGender() ) {
+		if ($this->_o->getCustomerGender()) {
 			// Previously tried to pull out the gender text, but that's probably worse, since one could change
 			// 	'Male' to 'Boys' (or 'Woman', for that matter) and an invalid or flat-out wrong value would be sent to GSI.
 			//	Let's just check the gender value/ option id. If it's 1, male, otherwise, female.
@@ -288,7 +291,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$customer->createChild('Gender', $genderToSend);
 		}
 
-		if( $this->_o->getCustomerDob() ) {
+		if ($this->_o->getCustomerDob()) {
 			$customer->createChild('DateOfBirth', $this->_o->getCustomerDob());
 		}
 		$customer->createChild('EmailAddress', $this->_o->getCustomerEmail());
@@ -302,7 +305,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param integer webLineId	identifier to indicate the line item's sequence within the order
 	 * @return void
 	 */
-	private function _buildOrderItem(DomElement $orderItem, Mage_Sales_Model_Order_Item $item, $webLineId)
+	protected function _buildOrderItem(DomElement $orderItem, Mage_Sales_Model_Order_Item $item, $webLineId)
 	{
 		$order = $item->getOrder();
 		$quoteId = $order->getQuoteId();
@@ -310,13 +313,14 @@ class TrueAction_Eb2cOrder_Model_Create
 		$reservationId = (trim($item->getEb2cReservationId()) !== '')? $item->getEb2cReservationId() : Mage::helper('eb2cinventory')->getRequestId($quoteId);
 
 		$this->_orderItemRef[] = $itemId;
-		$orderItem->setAttribute('id', $itemId );
-		$orderItem->setAttribute('webLineId', $webLineId++);
+		$orderItem->setAttribute('id', $itemId);
+		$orderItem->setAttribute('webLineId', $webLineId);
 		$orderItem->createChild('ItemId', $item->getSku());
 		$orderItem->createChild('Quantity', $item->getQtyOrdered());
 		$orderItem->createChild('Description')->createChild('Description', $item->getName());
 
 		$pricing = $orderItem->createChild('Pricing');
+
 		$merchandise = $pricing->createChild('Merchandise');
 		$merchandise->createChild('Amount', sprintf('%.02f', $item->getQtyOrdered() * $item->getPrice()));
 
@@ -328,100 +332,115 @@ class TrueAction_Eb2cOrder_Model_Create
 			$discount->createChild('Amount', sprintf('%.02f', $item->getDiscountAmount())); // Magento has only 1 discount per line item
 		}
 
-		$shippingMethod = $orderItem->createChild('ShippingMethod', $order->getShippingMethod());
-		$orderItem->createChild('ReservationId', $reservationId);
-
 		// Tax on the Merchandise:
-		$merchandiseTaxData = $merchandise->createChild('TaxData');
-		$merchandiseTaxes = $merchandiseTaxData->createChild('Taxes');
-		$merchandiseTax = $merchandiseTaxes->createChild('Tax');
-		$merchandiseTax->setAttribute('taxType', 'SELLER_USE');
-		$merchandiseTax->setAttribute('taxability', 'TAXABLE');
-		$merchandiseTax->createChild('Situs', 0);
-		$merchandiseTax->createChild('EffectiveRate', $item->getTaxPercent());
-		$merchandiseTax->createChild('TaxableAmount', sprintf('%.02f', $item->getPrice() - $item->getTaxAmount()));
-		$merchandiseTax->createChild('CalculatedTax', sprintf('%.02f', $item->getTaxAmount()));
+		$merchTaxFragment = $this->_buildTaxDataNodes(
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::MERCHANDISE)
+		);
+		if ($merchTaxFragment->hasChildNodes()) {
+			$merchandise->appendChild($merchTaxFragment);
+		}
 		$merchandise->createChild('UnitPrice', sprintf('%.02f', $item->getPrice()));
 		// End Merchandise
 
-		// Shipping on the orderItem:
-		$shipping = $pricing->createChild('Shipping');
-		$shipping->createChild('Amount', (float) $order->getBaseShippingAmount());
-
-		$shippingTaxData = $shipping->createChild('TaxData');
-		$shippingTaxes = $shippingTaxData->createChild('Taxes');
-		$shippingTax = $shippingTaxes->createChild('Tax');
-		$shippingTax->setAttribute('taxType', 'SELLER_USE');
-		$shippingTax->setAttribute('taxability', 'TAXABLE');
-		$shippingTax->createChild('Situs', 0);
-		$shippingTax->createChild('EffectiveRate', 0);
-		$shippingTax->createChild('CalculatedTax', sprintf('%.02f', 0));
+		// Shipping on the orderItem: when flatrate shipping, only the first item should have shipping prices
+		// otherwise all items should have it for the shipping price for that item
+		if ($this->_getShippingChargeType($this->_o) !== self::SHIPPING_CHARGE_TYPE_FLATRATE || $webLineId === 1) {
+			$shipping = $pricing->createChild('Shipping');
+			$shipping->createChild('Amount', $this->_getItemShippingAmount($item));
+		}
+		$shippingTaxFragment = $this->_buildTaxDataNodes(
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING)
+		);
+		if ($shippingTaxFragment->hasChildNodes()) {
+			$shipping->appendChild($shippingTaxFragment);
+		}
 		// End Shipping
 
 		// Duty on the orderItem:
-		$this->_buildDuty($pricing, $order, $item, $quoteId);
+		$dutyFragment = $this->_buildDuty($item);
+		if ($dutyFragment->hasChildNodes()) {
+			$pricing->appendChild($dutyFragment);
+		}
 		// End Duty
+
+		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
+		$orderItem->createChild('ReservationId', $reservationId);
 	}
 
 	/**
-	 * getting the quote item id by sku
-	 * @param int $quoteId, the quote  id
-	 * @param int $sku, the item sku
-	 * @return int, the quote item id
+	 * Build TaxData nodes for the item
+	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for tax types.
+	 * @param  TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes Collection of tax quotes to build tax nodes for
+	 * @return DOMDocumentFragment                  A DOM fragment of the nodes
 	 */
-	private function _getQuoteItemId($quoteId, $sku)
+	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes)
 	{
-		$quote = Mage::getModel('sales/quote')->load($quoteId);
-
-		$sku = trim(strtoupper($sku));
-		foreach ($quote->getAllItems() as $item) {
-			if (trim(strtoupper($item->getSku())) === $sku) {
-				return $item->getId();
+		$taxFragment = $this->_domRequest->createDocumentFragment();
+		if ($taxQuotes->count()) {
+			$taxData = $taxFragment->appendChild(
+				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
+			);
+			$taxes = $taxData->createChild('Taxes');
+			foreach ($taxQuotes as $taxQuote) {
+				$taxNode = $taxes->createChild('Tax');
+				// need to actually get these value from somewhere
+				$taxNode->setAttribute('taxType', $taxQuote->getTaxType());
+				$taxNode->setAttribute('taxability', $taxQuote->getTaxability());
+				$taxNode->createChild('Situs', $taxQuote->getSitus());
+				$jurisdiction = $taxNode->createChild('Jurisdiction', $taxQuote->getJurisdiction());
+				$jurisdiction->setAttribute('jurisdictionLevel', $taxQuote->getJurisdictionLevel());
+				$jurisdiction->setAttribute('jurisdictionId', $taxQuote->getJurisdictionId());
+				$imposition = $taxNode->createChild('Imposition', $taxQuote->getImposition());
+				$imposition->setAttribute('impositionType', $taxQuote->getImpositionType());
+				$taxNode->createChild('EffectiveRate', $taxQuote->getEffectiveRate());
+				$taxNode->createChild('TaxableAmount', $taxQuote->getTaxableAmount());
+				$taxNode->createChild('CalculatedTax', $taxQuote->getCalculatedTax());
 			}
 		}
-		return 0;
+		return $taxFragment;
 	}
 
 	/**
-	 * get the tax reponse quote record filtering by the quote item id
-	 * @param int $quoteId, the quote  id
-	 * @param int $sku, the item sku
-	 * @return TrueAction_Eb2cTax_Model_Response_Quote, the tax duty amount
+	 * Get tax quotes for an item.
+	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for available tax types.
+	 * @param  Mage_Sales_Model_Order_Item $orderItem The order item to get tax quotes for
+	 * @param  int                         $taxType   The type of tax quotes to load
+	 * @return TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection
 	 */
-	private function _getItemDuty($quoteId, $sku)
+	public function getItemTaxQuotes(Mage_Sales_Model_Order_Item $orderItem, $taxType)
 	{
-		$responseQuote = Mage::getResourceModel('eb2ctax/response_quote_collection');
-		$responseQuote->getSelect()
-			->where(sprintf("main_table.quote_item_id = '%d'", $this->_getQuoteItemId($quoteId, $sku)));
-		$responseQuote->load();
-		return $responseQuote->getFirstItem();
+		$taxQuotes = Mage::getModel('eb2ctax/response_quote')->getCollection();
+		$taxQuotes->addFieldToFilter('quote_item_id', $orderItem->getQuoteItemId())
+			->addFieldToFilter('type', $taxType);
+		return $taxQuotes;
 	}
 
 	/**
 	 * Builds the Duty Node for order
-	 * @param DomElement $pricing, the pricing node to attach duty node to
-	 * @param Mage_Sales_Model_Order $order, the order object
 	 * @param Mage_Sales_Model_Order_Item $item, the order item object
-	 * @param int $quoteId, the quote id associated to the order
-	 * @return void
+	 * @return DOMFragment
 	 */
-	private function _buildDuty(DomElement $pricing, Mage_Sales_Model_Order $order, Mage_Sales_Model_Order_Item $item, $quoteId)
+	protected function _buildDuty(Mage_Sales_Model_Order_Item $item)
 	{
-		$dutyObj = $this->_getItemDuty($quoteId, $item->getSku());
-		if ($dutyObj instanceof TrueAction_Eb2cTax_Model_Response_Quote && (float) $dutyObj->getCalculatedTax() > 0) {
-			$duty = $pricing->createChild('Duty');
-			$duty->createChild('Amount', $dutyObj->getCalculatedTax());
-			$dutyTaxData = $duty->createChild('TaxData');
-			$dutyTaxData->createChild('TaxClass', 'DUTY'); // Is this a hardcoded value?
-			$dutyTaxes = $dutyTaxData->createChild('Taxes');
-			$dutyTax = $dutyTaxes->createChild('Tax');
-			$dutyTax->setAttribute('taxType', 'SELLER_USE');
-			$dutyTax->setAttribute('taxability', 'TAXABLE');
-			$dutyTax->createChild('Situs', 0);
-			$dutyTax->createChild('EffectiveRate', $item->getTaxPercent());
-			$dutyTax->createChild('TaxableAmount', sprintf('%.02f', (float) $dutyObj->getTaxableAmount()));
-			$dutyTax->createChild('CalculatedTax', sprintf('%.02f', (float) $dutyObj->getCalculatedTax()));
+		$dutyFragment = $this->_domRequest->createDocumentFragment();
+		$dutyQuotes = $this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::DUTY);
+		if ($dutyQuotes->count()) {
+			$duty = $dutyFragment->appendChild(
+				$this->_domRequest->createElement('Duty', null, $tihs->_config->apiXmlNs)
+			);
+			$dutyTotal = 0;
+			foreach ($dutyQuotes as $dutyQuote) {
+				$dutyTotal += $dutyQuote->getCalculatedTax();
+			}
+			if ($dutyTotal > 0) {
+				$duty->createChild('Amount', $dutyTotal);
+				$dutyTax = $this->_buildTaxDataNodes($dutyQuotes);
+				if ($dutyTax->hasChildNodes()) {
+					$duty->addChild($dutyTax);
+				}
+			}
 		}
+		return $dutyFragment;
 	}
 
 	/**
@@ -430,14 +449,13 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @return void
 	 *
 	 */
-	private function _buildShipGroup(DomElement $shipGroup)
+	protected function _buildShipGroup(DomElement $shipGroup)
 	{
-		$consts = $this->_helper->getConstHelper();
 		$shipGroup->setAttribute('id', 'shipGroup_1');
-		$shipGroup->setAttribute('chargeType', '');
-		$shipGroup->createChild('DestinationTarget')->setAttribute('ref', $consts::SHIPGROUP_DESTINATION_ID);
+		$shipGroup->setAttribute('chargeType', $this->_getShippingChargeType($this->_o));
+		$shipGroup->createChild('DestinationTarget')->setAttribute('ref', $this->_config->apiShipGroupDestinationId);
 		$orderItems = $shipGroup->createChild('OrderItems');
-		foreach( $this->_orderItemRef as $orderItemRef ) {
+		foreach ($this->_orderItemRef as $orderItemRef) {
 			$shipItem = $orderItems->createChild('Item');
 			$shipItem->setAttribute('ref', $orderItemRef);
 		}
@@ -448,14 +466,13 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param DomElement shipping Node to contain shipping and billing info
 	 * @return void
 	 */
-	private function _buildShipping(DomElement $shipping)
+	protected function _buildShipping(DomElement $shipping)
 	{
-		$consts = $this->_helper->getConstHelper();
 		$destinations = $shipping->createChild('Destinations');
 		// Ship-To
 		$sa = $this->_o->getShippingAddress();
 		$dest = $destinations->createChild('MailingAddress');
-		$dest->setAttribute('id', $consts::SHIPGROUP_DESTINATION_ID);
+		$dest->setAttribute('id', $this->_config->apiShipGroupDestinationId);
 		$this->_buildPersonName($dest->createChild('PersonName'), $sa);
 		$this->_buildAddress($dest->createChild('Address'), $sa);
 		$dest->createChild('Phone', $sa->getTelephone());
@@ -463,7 +480,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		// Bill-To
 		$ba = $this->_o->getBillingAddress();
 		$billing = $destinations->createChild('MailingAddress');
-		$billing->setAttribute('id', $consts::SHIPGROUP_BILLING_ID);
+		$billing->setAttribute('id', $this->_config->apiShipGroupBillingId);
 		$this->_buildPersonName($billing->createChild('PersonName'), $ba);
 		$this->_buildAddress($billing->createChild('Address'), $ba);
 		$billing->createChild('Phone', $ba->getTelephone());
@@ -476,7 +493,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param Mage_Sales_Model_Order_Address address
 	 * @return void
  	 */
-	private function _buildPersonName(DomElement $person, Mage_Sales_Model_Order_Address $address)
+	protected function _buildPersonName(DomElement $person, Mage_Sales_Model_Order_Address $address)
 	{
 		$person->createChild('Honorific', $address->getPrefix());
 		$person->createChild('LastName', trim($address->getLastname() . ' ' . $address->getSuffix()));
@@ -491,7 +508,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param Mage_Sales_Order_Address address
 	 * @return void
 	 */
-	private function _buildAddress(DomElement $addressElement, Mage_Sales_Model_Order_Address $address)
+	protected function _buildAddress(DomElement $addressElement, Mage_Sales_Model_Order_Address $address)
 	{
 		$line = 1;
 		foreach ($address->getStreet() as $streetLine) {
@@ -510,10 +527,9 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param DomElement payment
 	 * @return void
 	 */
-	private function _buildPayment($payment)
+	protected function _buildPayment($payment)
 	{
-		$consts = $this->_helper->getConstHelper();
-		$payment->createChild('BillingAddress')->setAttribute('ref', $consts::SHIPGROUP_BILLING_ID);
+		$payment->createChild('BillingAddress')->setAttribute('ref', $this->_config->apiShipGroupBillingId);
 		$this->_buildPayments($payment->createChild('Payments'));
 	}
 
@@ -523,11 +539,11 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param DomElement payments node into which payment info is placed
 	 * @return void
 	 */
-	private function _buildPayments(DomElement $payments)
+	protected function _buildPayments(DomElement $payments)
 	{
 
 		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
-			foreach($this->_o->getAllPayments() as $payment) {
+			foreach ($this->_o->getAllPayments() as $payment) {
 				$payMethodNode = $this->_ebcPaymentMethodMap[ucfirst($payment->getMethod())];
 
 				if ($payMethodNode === 'CreditCard') {
@@ -542,10 +558,10 @@ class TrueAction_Eb2cOrder_Model_Create
 
 					$auth = $thisPayment->createChild('Authorization');
 
-					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
+					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
 					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
-					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
+					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
 
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 
@@ -566,11 +582,12 @@ class TrueAction_Eb2cOrder_Model_Create
 				} elseif ($payMethodNode === 'StoredValueCard') {
 					// the payment method is free and there is gift card for the order
 					if ($this->_o->getGiftCardsAmount() > 0) {
+						$pan = $this->_getOrderGiftCardPan($this->_o);
 						$thisPayment = $payments->createChild($payMethodNode);
 						$paymentContext = $thisPayment->createChild('PaymentContext');
 						$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-						$paymentContext->createChild('TenderType', $payment->getMethod());
-						$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
+						$paymentContext->createChild('TenderType', Mage::helper('eb2cpayment')->getTenderType($pan));
+						$paymentContext->createChild('PaymentAccountUniqueId', $pan)->setAttribute('isToken', 'false');
 
 						$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 						$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGiftCardsAmount()));
@@ -588,12 +605,30 @@ class TrueAction_Eb2cOrder_Model_Create
 	}
 
 	/**
+	 * get order stored value pan
+	 * @param Mage_Sales_Model_Order $order, the order object
+	 * @return string, the pan
+	 */
+	protected function _getOrderGiftCardPan(Mage_Sales_Model_Order $order)
+	{
+		$giftCardData = unserialize($order->getGiftCards());
+		if (!empty($giftCardData)) {
+			foreach ($giftCardData as $gcData) {
+				if (isset($gcData['pan']) && trim($gcData['pan']) !== '') {
+					return $gcData['pan'];
+				}
+			}
+		}
+		return '';
+	}
+
+	/**
 	 * Populates the Context element
 	 *
 	 * @param DomElement context
 	 * @return void
 	 */
-	private function _buildContext(DomElement $context)
+	protected function _buildContext(DomElement $context)
 	{
 		$this->_buildBrowserData($context->createChild('BrowserData'));
 	}
@@ -604,7 +639,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param DomElement context
 	 * @return void
 	 */
-	private function _buildBrowserData(DomElement $browserData)
+	protected function _buildBrowserData(DomElement $browserData)
 	{
 		$browserData->addChild('HostName', Mage::helper('core/http')->getHttpHost(true))
 			->addChild('IPAddress', Mage::helper('core/http')->getServerAddr())
@@ -624,11 +659,34 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * Get globally unique request identifier
 	 * @return string
 	 */
-	private function _getRequestId()
+	protected function _getRequestId()
 	{
 		return uniqid('OCR-');
 	}
 
+	/**
+	 * Get the Exchange shipping charge type for the given shipping method.
+	 * Currently, all shipping charges being sent as 'FLATRATE' for order level shipping charges.
+	 * Full implementation supporting order level and item level shippin gamounts
+	 * will likely need to look up the shipping method for the order and
+	 * make a better determination as to the charge type for the shipping.
+	 *
+	 * @param  Mage_Sales_Model_Order $order Order the shipping charge applies to
+	 * @return string Shipping charge type used by Exchange Platform
+	 */
+	protected function _getShippingChargeType(Mage_Sales_Model_Order $order)
+	{
+		return self::SHIPPING_CHARGE_TYPE_FLATRATE;
+	}
+
+	protected function _getItemShippingAmount(Mage_Sales_Model_Order_Item $item)
+	{
+		if ($this->_getShippingChargeType($item->getOrder()) === self::SHIPPING_CHARGE_TYPE_FLATRATE) {
+			return (float) $item->getOrder()->getBaseShippingAmount();
+		} else {
+			throw new Exception('Non-flatrate shipping calculations are not yet supported.');
+		}
+	}
 	/**
 	 * This method will be trigger via cron, in which it will fetch all magento order
 	 * with a state status of 'new' and then loop through them and then run code create eb2c orders
@@ -661,7 +719,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * fetch all order with state new
 	 * @return Mage_Sales_Model_Order_Resource_Collection
 	 */
-	private function _getNewOrders()
+	protected function _getNewOrders()
 	{
 		$orders = Mage::getResourceModel('sales/order_collection');
 		$orders->addAttributeToSelect('*')

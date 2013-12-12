@@ -1,0 +1,45 @@
+-
+  -
+    item_id: 13
+    eb2c_reservation_id: 11223344556677
+    sku: '45-sku123'
+    qty_ordered: 3
+    name: 'Test Item'
+    price: 5.00
+    discount_amount: 1.00
+  -
+    quote_id: 23
+    base_shipping_amount: 15
+    shipping_method: 'ANY_STD'
+  - true
+  - true
+  - true
+-
+  -
+    item_id: 13
+    eb2c_reservation_id: 11223344556677
+    sku: '45-sku123'
+    qty_ordered: 3
+    name: 'Test Item'
+    price: 5.00
+  -
+    quote_id: 23
+    base_shipping_amount: 15
+    shipping_method: 'ANY_STD'
+  - true
+  - true
+  - true
+-
+  -
+    item_id: 13
+    sku: '45-sku123'
+    qty_ordered: 3
+    name: 'Test Item'
+    price: 5.00
+  -
+    quote_id: 23
+    base_shipping_amount: 15
+    shipping_method: 'ANY_STD'
+  - true
+  - true
+  - true

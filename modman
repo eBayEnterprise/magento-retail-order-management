@@ -5,24 +5,30 @@
 @import extensions/pbridge
 @import extensions/aoe_scheduler
 
-# TrueAction_Eb2cCore
-src/shell/* shell/
-src/app/etc/modules/*.xml app/etc/modules/
+# Core
+connect/ebay_enterprise_connect.xml var/connect/ebay_enterprise_connect.xml
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
+src/app/etc/eb2c.xml.sample app/etc/eb2c.xml.sample
+src/app/etc/modules/*.xml app/etc/modules/
 src/app/locale/en_US/* app/locale/en_US/
+src/shell/* shell/
 
-# TrueAction_Eb2cFraud
+# Fraud
 src/js/trueaction_eb2cfraud		js/trueaction_eb2cfraud
 
-# TrueAction_Eb2c_Address
-src/app/design/frontend/base/default/template/eb2caddress_frontend app/design/frontend/base/default/template/eb2caddress_frontend
+# Address
 src/app/design/frontend/base/default/layout/eb2caddress_frontend.xml app/design/frontend/base/default/layout/eb2caddress_frontend.xml
+src/app/design/frontend/base/default/template/eb2caddress_frontend app/design/frontend/base/default/template/eb2caddress_frontend
 src/app/design/frontend/enterprise/default/template/eb2caddress_frontend app/design/frontend/enterprise/default/template/eb2caddress_frontend
 src/skin/frontend/base/default/css/* skin/frontend/base/default/css/
 src/skin/frontend/base/default/js/* skin/frontend/base/default/js/
 
-# TrueAction_Eb2c_Payment
-src/app/design/frontend/enterprise/default/template/eb2cpayment app/design/frontend/enterprise/default/template/eb2cpayment
-src/app/design/frontend/enterprise/default/layout/eb2cpayment.xml app/design/frontend/enterprise/default/layout/eb2cpayment.xml
-src/app/design/adminhtml/default/default/template/eb2cpayment app/design/adminhtml/default/default/template/eb2cpayment
+# Order
+src/app/design/frontend/base/default/layout/eb2corder_frontend.xml app/design/frontend/base/default/layout/eb2corder_frontend.xml
+src/app/design/frontend/base/default/template/eb2corder_frontend app/design/frontend/base/default/template/eb2corder_frontend
+
+# Payment
 src/app/design/adminhtml/default/default/layout/eb2cpayment.xml app/design/adminhtml/default/default/layout/eb2cpayment.xml
+src/app/design/adminhtml/default/default/template/eb2cpayment app/design/adminhtml/default/default/template/eb2cpayment
+src/app/design/frontend/enterprise/default/layout/eb2cpayment.xml app/design/frontend/enterprise/default/layout/eb2cpayment.xml
+src/app/design/frontend/enterprise/default/template/eb2cpayment app/design/frontend/enterprise/default/template/eb2cpayment

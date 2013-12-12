@@ -1,8 +1,9 @@
-TrueAction_Eb2cPayment_GiftCard_Account_Exists,This gift card account is already in the quote.
-TrueAction_Eb2cPayment_GiftCard_Invalid_Pan,Invalid gift card payment account numbers.
-TrueAction_Eb2cPayment_GiftCard_Invalid_Pin,Invalid gift card personal identification numbers.
-TrueAction_Eb2cPayment_GiftCard_Removed,Gift Card "%s" was removed.
-TrueAction_Eb2cPayment_GiftCard_Wrong_Account,Wrong gift card account.
-TrueAction_Eb2cPayment_GiftCard_Not_Redeemable,Gift card account is not redeemable.
-TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Eb2c_Title, Payment Bridge and eBay Enterprise Credit Card.
-TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_None_Eb2c_Title, This store currently have no payment methods. (Note: free payment method need to be on to checkout out with gift cards)
+"TrueAction_Eb2cPayment_GiftCard_Account_Exists", "This gift card account is already in the quote."
+"TrueAction_Eb2cPayment_GiftCard_Invalid_Pan", "Invalid gift card payment account numbers."
+"TrueAction_Eb2cPayment_GiftCard_Invalid_Pin", "Invalid gift card personal identification numbers."
+"TrueAction_Eb2cPayment_GiftCard_Removed", "Gift Card ""%s"" was removed."
+"TrueAction_Eb2cPayment_GiftCard_Wrong_Account", "Wrong gift card account."
+"TrueAction_Eb2cPayment_GiftCard_Not_Redeemable", "Gift card account is not redeemable."
+"TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_Eb2c_Title", "Payment Bridge and eBay Enterprise Credit Card."
+"TrueAction_Eb2cPayment_Admin_Dasboard_Payment_Config_None_Eb2c_Title", "This store currently have no payment methods. (Note: free payment method need to be on to checkout out with gift cards)"
+"TrueAction_Eb2cPayment_Admin_System_Config_PBridge_Comments", "click here to <a href=""%s"">Configure Payment Bridge</a>"

@@ -1,3 +1,5 @@
+#tables:
+#  catalog_product/url_key:
 eav:
   catalog_category:
      -

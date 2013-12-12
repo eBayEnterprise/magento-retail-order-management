@@ -2,12 +2,11 @@
 class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_Abstract
 {
 	protected $_configPaths = array(
-		'api_environment'             => 'eb2ccore/api/environment',
+		'api_hostname'                => 'eb2ccore/api/hostname',
 		'api_key'                     => 'eb2ccore/api/key',
 		'api_major_version'           => 'eb2ccore/api/major_version',
 		'api_minor_version'           => 'eb2ccore/api/minor_version',
 		'api_namespace'               => 'eb2ccore/api/xml_namespace',
-		'api_region'                  => 'eb2ccore/api/region',
 		'api_timeout'                 => 'eb2ccore/api/timeout',
 		'api_xsd_path'                => 'eb2ccore/api/xsd_path',
 		'catalog_id'                  => 'eb2ccore/general/catalog_id',

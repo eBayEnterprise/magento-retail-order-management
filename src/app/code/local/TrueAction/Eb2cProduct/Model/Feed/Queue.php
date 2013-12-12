@@ -40,11 +40,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Queue
 				$this->_deletionList->append($data);
 				break;
 			default:
-				Mage::throwException(sprintf('invalid operation type [%s]', $operationType));
-				// @codeCoverageIgnoreStart
+				throw new TrueAction_Eb2cProduct_Model_Feed_Exception(sprintf('invalid operation type [%s]', $operationType));
 				break;
 		}
-		//@codeCoverageIgnoreEnd
 		if ($this->_isAtEntryLimit()) {
 			$this->process();
 		}

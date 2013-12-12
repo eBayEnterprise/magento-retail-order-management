@@ -1,0 +1,9 @@
+permissions_array:
+  allow: []
+  deny:
+   - admin/customer
+   - admin/customer/manage
+   - admin/customer/manage/reward_balance
+   - admin/customer/rates
+   - admin/sales
+   - admin/sales/order

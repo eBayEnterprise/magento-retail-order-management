@@ -1,9 +1,57 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
+	/**
+	 * Test processUpdates method
+	 * @test
+	 */
+	public function testProcessUpdates()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_transformData', '_synchProduct', '_logFeedErrorStatistics'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_transformData')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(new Varien_Object()));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_synchProduct')
+			->with($this->isInstanceOf('Varien_Object'))
+			->will($this->returnValue(null));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_logFeedErrorStatistics')
+			->will($this->returnValue(null));
+		$dataArrayObject = new ArrayObject(array(new Varien_Object()));
+		$feedProcessorModelMock->processUpdates($dataArrayObject->getIterator());
+	}
+	/**
+	 * Test _logFeedErrorStatistics method
+	 * @test
+	 */
+	public function testLogFeedErrorStatistics()
+	{
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')
+			->setValue($feedProcessorModelMock, array(
+				'invalid_language' => 5,
+				'invalid_operation_type' => 3,
+				'missing_operation_type' => 2,
+				'missing_attribute' => 1,
+			));
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($feedProcessorModelMock, '_logFeedErrorStatistics')->invoke($feedProcessorModelMock)
+		);
+		$this->assertSame(
+			array(),
+			$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')->getValue($feedProcessorModelMock)
+		);
+	}
 	const VFS_ROOT = 'var/eb2c';
-
 	/**
 	 * @loadFixture
 	 * @loadExpectation
@@ -75,68 +123,116 @@ class TrueAction_Eb2cProduct_Test_Model_ProcessorTest
 		$testModel->expects($this->atLeastOnce())
 			->method('_synchProduct')
 			->will($this->returnCallback($checkData));
-		$dataObj = new Varien_Object($this->getLocalFixture($scenario));
-		$testModel->processUpdates(array($dataObj));
+		$dataArrayObject = new ArrayObject(array(new Varien_Object($this->getLocalFixture($scenario))));
+		$testModel->processUpdates($dataArrayObject->getIterator());
 	}
-
 	/**
-	 * @loadFixture
-	 * @large
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
-	public function testProductLinks()
+	public function testExceptionInGetAttributeOptionId()
 	{
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('contentmaster1'));
-		$testModel->processUpdates(array($dataObj));
-
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$col = $product->getRelatedLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getUpSellLinkCollection();
-		$this->assertSame(0, count($col));
-		$col = $product->getCrossSellLinkCollection();
-		$this->assertSame(1, count($col));
+		$fn = $this->_reflectMethod($testModel, '_getAttributeOptionId');
+		$fn->invoke($testModel, '', '');
 	}
-
 	/**
-	 * @loadFixture
+	 * Testing that we throw proper exception if we can't find an attribute
+	 *
+	 * @expectedException TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
-	public function testStockItemData()
+	public function testExceptionInAddOptionToAttribute()
 	{
 		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$dataObj = new Varien_Object($this->getLocalFixture('itemmaster-exists'));
-		// confirm preconditions
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('0', $stock->getData('backorders'));
-		$this->assertSame('1', $stock->getData('use_config_backorders'));
-		// run test
-		$testModel->processUpdates(array($dataObj));
-		// verify results
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('book');
-		$stock = Mage::getModel('cataloginventory/stock_item')->loadByProduct($product);
-		$this->assertSame('1', $stock->getData('backorders'));
-		$this->assertSame('0', $stock->getData('use_config_backorders'));
+		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
+		$fn->invoke($testModel, '', '', '');
 	}
-
 	/**
-	 * @loadFixture
-	 * @dataProvider dataProvider
+	 * Data provider to the testAddStockItemData test, provides the product type,
+	 * product id, feed "dataObject" and expected data to be set on the stock item
+	 * @return array Arg arrays to be sent to test method
 	 */
-	public function testConfigurableData($scenario)
+	public function providerTestAddStockItemData()
 	{
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
-		$extractedUnits = $this->getLocalFixture($scenario);
-		$processList = array();
-		foreach ($extractedUnits as $extractedUnit) {
-			$processList[] = new Varien_Object($extractedUnit);
-		}
-		$dataObj = new Varien_Object();
-		// confirm preconditions
-		// assert theparent exists
-		// assert theotherparent doesnt exist
-		// assert 45-000906014545 doesnt exist
-		$product = Mage::helper('eb2cproduct')->loadProductBySku('45-000906014545');
-		$testModel->processUpdates($processList);
+		$productId = 46;
+		$dataObject = new Varien_Object(array(
+			'extended_attributes' => new Varien_Object(array('back_orderable' => false)),
+		));
+		return array(
+			array(
+				Mage_Catalog_Model_Product_Type::TYPE_SIMPLE,
+				$productId,
+				$dataObject,
+				array(
+					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					'product_id' => $productId,
+					'use_config_backorders' => false,
+					'backorders' => false,
+				),
+			),
+			array(
+				Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
+				$productId,
+				$dataObject,
+				array(
+					'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
+					'product_id' => $productId,
+					'is_in_stock' => 1,
+				),
+			),
+		);
+	}
+	/**
+	 * Test adding stock data to a product - should create the stock item and populate
+	 * it with appropriate data based on the product type. All should get a product_id
+	 * and stock_id. Non-config products should also get settings for use_config_backorders and
+	 * backorders. Config products should always have is_in_stock set to true (1)
+	 * @param  sting         $productType       Product type
+	 * @param  int           $productId         Product id
+	 * @param  Varien_Object $feedData          Data that would have been pulled from the feed files
+	 * @param  array         $expectedStockData array of data that should end up getting set on the stock item
+	 * @test
+	 * @dataProvider providerTestAddStockItemData
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::loadByProduct ensure loaded with given id
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::addData ensure proper data set on the model
+	 * @mock Mage_CatalogInventory_Model_Stock_Item::save make sure the model is saved in the end
+	 * @mock Mage_Catalog_Model_Product::getTypeId return expected type id
+	 * @mock Mage_Catalog_Model_Product::getId return expected product id
+	 * @mock TrueAction_Eb2cProduct_Model_Feed_Processor disable constructor to prevent side-effects/unwanted coverage
+	 */
+	public function testAddStockItemData($productType, $productId, $feedData, $expectedStockData)
+	{
+		$stockItem = $this->getModelMock('cataloginventory/stock_item', array('loadByProduct', 'addData', 'save'));
+		$this->replaceByMock('model', 'cataloginventory/stock_item', $stockItem);
+		$product = $this->getModelMock('catalog/product', array('getTypeId', 'getId'));
+		$processor = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$stockItem
+			->expects($this->once())
+			->method('loadByProduct')
+			->with($this->identicalTo($product))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('addData')
+			->with($this->identicalTo($expectedStockData))
+			->will($this->returnSelf());
+		$stockItem
+			->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$product
+			->expects($this->any())
+			->method('getTypeId')
+			->will($this->returnValue($productType));
+		$product
+			->expects($this->any())
+			->method('getId')
+			->will($this->returnValue($productId));
+		$method = $this->_reflectMethod($processor, '_addStockItemDataToProduct');
+		$this->assertSame($processor, $method->invoke($processor, $feedData, $product));
 	}
 }

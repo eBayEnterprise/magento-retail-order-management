@@ -2,7 +2,7 @@
 <config>
 	<modules>
 		<TrueAction_Eb2cPayment>
-			<version>1.0.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cPayment>
 	</modules>
 	<global>
@@ -65,6 +65,7 @@
 			<adminhtml>
 				<rewrite>
 					<system_config_form>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Form</system_config_form>
+					<system_config_tabs>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Tabs</system_config_tabs>
 				</rewrite>
 			</adminhtml>
 		</blocks>
@@ -187,15 +188,6 @@
 			</xsd>
 		</eb2cpayment>
 		<eb2ccore>
-			<payment>
-				<!-- EBC-238: Configure tender type bins as ranges of values low-high -->
-				<svc_bin_range>
-					<GS>0-0</GS>
-					<SP>0-0</SP>
-					<SV>0-0</SV>
-					<VL>0-0</VL>
-				</svc_bin_range>
-			</payment>
 			<eb2cpayment>
 				<enabled>0</enabled>
 			</eb2cpayment>

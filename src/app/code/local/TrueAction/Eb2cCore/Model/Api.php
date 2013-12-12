@@ -23,6 +23,10 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	private $_schemaValidationErrors;
 
 	/**
+	 * the status code from the previous request.
+	 */
+
+	/**
 	 * Call the API.
 	 *
 	 * @param DOMDocument $doc The document to send in the request body
@@ -31,11 +35,11 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 	public function request(DOMDocument $doc)
 	{
 		if (!$this->hasXsd()) {
-			Mage::throwException('[ ' . __CLASS__ . ' ] XSD for schema validation has not been set.');
+			throw new TrueAction_Eb2cCore_Exception('XSD for schema validation has not been set.');
 		}
 
 		if (!$this->_schemaValidate($doc)) {
-			Mage::throwException('[ ' . __CLASS__ . ' ] Schema validation failed.');
+			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.');
 		}
 
 		// setting default factory adapter to use socket just in case curl extension isn't install in the server
@@ -63,6 +67,7 @@ class TrueAction_Eb2cCore_Model_Api extends Mage_Core_Model_Abstract
 		if ($response->isSuccessful()) {
 			return $response->getBody();
 		} else {
+			$this->setStatus($response->getStatus());
 			Mage::log(
 				sprintf('[ %s ] Received response from %s with status %s', __CLASS__, $client->getUri(), $response->getStatus()),
 				Zend_Log::WARN

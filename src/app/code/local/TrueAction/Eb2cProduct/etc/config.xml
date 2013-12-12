@@ -2,7 +2,7 @@
 <config>
 	<modules>
 		<TrueAction_Eb2cProduct>
-			<version>1.0.0</version>
+			<version>0.9.0</version>
 		</TrueAction_Eb2cProduct>
 	</modules>
 	<global>
@@ -169,44 +169,55 @@
 		<events>
 			<product_feed_processing_complete>
 				<observers>
-					<cataloginventory_reindex_all>
-						<class>cataloginventory/indexer_stock</class>
+					<eb2c_reindex_all>
+						<class>eb2ccore/indexer</class>
 						<method>reindexAll</method>
-					</cataloginventory_reindex_all>
+					</eb2c_reindex_all>
 				</observers>
 			</product_feed_processing_complete>
 		</events>
 	</global>
 	<default>
 		<eb2cproduct>
+			<dummy>
+				<!-- Default values for product attributes where Vanilla Magento doesn't already have defaults. -->
+				<description>This product is invalid. If you are seeing this product, please do not attempt to purchase and contact customer service.</description>
+				<in_stock>1</in_stock>
+				<manage_stock>1</manage_stock>
+				<short_description>invalid product. Please do not attempt to purchase.</short_description>
+				<stock_quantity>0</stock_quantity>
+				<tax_class_id>0</tax_class_id>
+				<type_id>simple</type_id>
+				<weight>0</weight>
+			</dummy>
 			<api_service>product</api_service>
 			<api_return_format>xml</api_return_format>
 			<item_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ItemMaster/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>ItemMaster*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>ItemMaster_*.xml</file_pattern>
 				<event_type>ItemMaster</event_type>
 				<header_version>2.3.0</header_version>
 			</item_master_feed>
 			<content_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>Content*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>Content_*.xml</file_pattern>
 				<event_type>Content</event_type>
 				<!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
 			</content_master_feed>
 			<i_ship_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
-				<remote_path>/Inbox/</remote_path>
-				<file_pattern>IShip*.xml</file_pattern>
+				<remote_path>/Inbox/Product</remote_path>
+				<file_pattern>iShip_*.xml</file_pattern>
 				<event_type>iShip</event_type>
 				<header_version>2.3.0</header_version>
 			</i_ship_feed>
 			<item_pricing_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
-				<remote_path>/Inbox/Pricing/{storeid}/</remote_path>
-				<file_pattern>Price*.xml</file_pattern>
+				<remote_path>/Inbox/Channel/{storeid}/Pricing</remote_path>
+				<file_pattern>Price_*.xml</file_pattern>
 				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 			</item_pricing_feed>

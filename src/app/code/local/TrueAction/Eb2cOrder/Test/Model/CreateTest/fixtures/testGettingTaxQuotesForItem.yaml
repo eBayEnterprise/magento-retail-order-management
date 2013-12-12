@@ -1,0 +1,58 @@
+tables:
+  eb2ctax/response_quote:
+    - id: 1
+      quote_item_id: 15
+      type: 0
+      tax_type: SALES
+      taxability: TAXABLE
+      jurisdiction: PENNSYLVANIA
+      jurisdiction_id: 31152
+      jurisdiction_level: STATE
+      imposition: Sales and Use Tax
+      imposition_type: General Sales and Use Tax
+      situs: ADMINISTRATIVE_ORIGIN
+      effective_rate: 0.06
+      taxable_amount: 43.96
+      calculated_tax: 2.64
+    - id: 2
+      quote_item_id: 15
+      type: 0
+      tax_type: SALES
+      taxability: TAXABLE
+      jurisdiction: PENNSYLVANIA
+      jurisdiction_id: 31152
+      jurisdiction_level: STATE
+      imposition: Sales and Use Tax
+      imposition_type: General Sales and Use Tax
+      situs: ADMINISTRATIVE_ORIGIN
+      effective_rate: 0.02
+      taxable_amount: 43.96
+      calculated_tax: 0.88
+    - id: 3
+      quote_item_id: 15
+      type: 1
+      tax_type: SHIPPING
+      taxability: TAXABLE
+      jurisdiction: PENNSYLVANIA
+      jurisdiction_id: 31152
+      jurisdiction_level: STATE
+      imposition: Sales and Use Tax
+      imposition_type: General Sales and Use Tax
+      situs: ADMINISTRATIVE_ORIGIN
+      effective_rate: 0.05
+      taxable_amount: 5.00
+      calculated_tax: 0.25
+    - id: 4
+      quote_item_id: 15
+      type: 2
+      tax_type: DUTY
+      taxability: TAXABLE
+      jurisdiction: PENNSYLVANIA
+      jurisdiction_id: 31152
+      jurisdiction_level: STATE
+      imposition: Sales and Use Tax
+      imposition_type: General Sales and Use Tax
+      situs: ADMINISTRATIVE_ORIGIN
+      effective_rate: 0.10
+      taxable_amount: 43.96
+      calculated_tax: 4.40

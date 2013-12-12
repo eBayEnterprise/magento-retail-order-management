@@ -177,7 +177,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 */
 	public function getAppliedRates($itemSelector)
 	{
-		$helper       = Mage::helper('tax');
+		$helper       = Mage::helper('eb2ctax');
 		$item         = $itemSelector->getItem();
 		$address      = $itemSelector->getAddress();
 		$store        = $address->getQuote()->getStore();
