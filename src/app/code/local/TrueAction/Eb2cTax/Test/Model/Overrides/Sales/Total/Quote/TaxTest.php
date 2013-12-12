@@ -912,6 +912,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 					'percent' => 8.0,
 					'id' => 1,
 					'amount' => 8.00,
+					'base_amount' => 13.37,
 					'process' => 1,
 				)
 			)))
