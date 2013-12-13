@@ -191,7 +191,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest
 		$apiModelMock->expects($this->once())
 			->method('request')
 			->with($this->isInstanceOf('TrueAction_Dom_Document'))
-			->will($this->throwException(new Zend_Http_Client_Exception('Unittest, simulating when storedvalue blance request throw exception')));
+			->will($this->throwException(new Zend_Http_Client_Exception('Unittest, simulating when storedvalue redeem request throw exception')));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
 		$redeemModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem')

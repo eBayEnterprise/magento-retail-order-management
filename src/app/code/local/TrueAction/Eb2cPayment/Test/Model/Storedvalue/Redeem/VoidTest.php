@@ -1,41 +1,218 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Storedvalue_Redeem_VoidTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Storedvalue_Redeem_VoidTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * Test that getRedeemVoid sets the right URL, returns the response xml or empty string if there's a Zend_Http_Client_Exception
+	 * Test getRedeemVoid method
 	 * @test
-	 * @dataProvider dataProvider
-	 * @loadFixture loadConfig.yaml
 	 */
-	public function testGetVoid($pan, $pin, $tenderType)
+	public function testGetRedeemVoid()
 	{
-		$this->markTestSkipped('skip failing test - needs to have connections to the helper replace by a mock');
-		$reqXmlFrmt = '<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1"><PaymentContext><OrderId>1</OrderId><PaymentAccountUniqueId isToken="false">%s</PaymentAccountUniqueId></PaymentContext><Pin>%s</Pin><Amount currencyCode="USD">1.00</Amount></StoredValueRedeemVoidRequest>';
-		$resXml = '<StoredValueRedeemReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><PaymentContext><OrderId>1</OrderId><PaymentAccountUniqueId isToken="false">1</PaymentAccountUniqueId></PaymentContext><ResponseCode>Success</ResponseCode><AmountRedeemed currencyCode="USD">1.00</AmountRedeemed><BalanceAmount currencyCode="USD">1.00</BalanceAmount></StoredValueRedeemReply>';
-		$reqXml = sprintf($reqXmlFrmt, $pan, $pin);
-		$apiUrl = sprintf('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/%s.xml', $tenderType);
-		$api = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
-		$api->expects($this->any())
-			->method('setUri')
-			->with($this->identicalTo($apiUrl))
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML(
+			'<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1">
+				<PaymentContext>
+					<OrderId>1</OrderId>
+					<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
+				</PaymentContext>
+				<Pin>1234</Pin>
+				<Amount currencyCode="USD">1.00</Amount>
+			</StoredValueRedeemVoidRequest>'
+		);
+
+		$paymentHelperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri', 'getConfigModel'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getSvcUri')
+			->with($this->equalTo('get_gift_card_redeem_void'), $this->equalTo('80000000000000'))
+			->will($this->returnValue('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml'));
+		$paymentHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'xsdFileStoredValueVoidRedeem' => 'Payment-Service-StoredValueRedeemVoid-1.0.xsd'
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
+
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('addData', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('addData')
+			->with($this->equalTo(array(
+				'uri' => 'https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml',
+				'xsd' => 'Payment-Service-StoredValueRedeemVoid-1.0.xsd'
+			)))
 			->will($this->returnSelf());
-		$api->expects($this->any())
+		$apiModelMock->expects($this->once())
 			->method('request')
-			->will($this->returnValue($resXml));
-		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$balXml = Mage::getModel('eb2cpayment/storedvalue_redeem_void')->getRedeemVoid($pan, $pin, 1, 1.00);
-		$this->assertSame($resXml, $balXml);
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(
+				'<StoredValueRedeemVoidReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<PaymentContext>
+						<OrderId>1</OrderId>
+						<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
+					</PaymentContext>
+					<ResponseCode>Success</ResponseCode>
+				</StoredValueRedeemVoidReply>'
+			));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		// Expect an empty string when the $pan is out of range.
-		$this->assertSame('', Mage::getModel('eb2cpayment/storedvalue_redeem_void')->getRedeemVoid('65', 1, 1, 1.00));
+		$redeemVoidModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem_void')
+			->setMethods(array('buildStoredValueRedeemVoidRequest'))
+			->getMock();
+		$redeemVoidModelMock->expects($this->once())
+			->method('buildStoredValueRedeemVoidRequest')
+			->with($this->equalTo('80000000000000'), $this->equalTo('1234'), $this->equalTo(1), $this->equalTo(1.0))
+			->will($this->returnValue($doc));
 
-		// Expect an empty string when the request throws a Zend_Http_Client_Exception
-		$api->expects($this->once())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
-		$balXml = Mage::getModel('eb2cpayment/storedvalue_redeem_void')->getRedeemVoid($pan, $pin, 1, 1.00);
-		$this->assertSame('', $balXml);
+		$testData = array(
+			array(
+				'expect' => '<StoredValueRedeemVoidReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<PaymentContext>
+						<OrderId>1</OrderId>
+						<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
+					</PaymentContext>
+					<ResponseCode>Success</ResponseCode>
+				</StoredValueRedeemVoidReply>',
+				'pan' => '80000000000000',
+				'pin' => '1234',
+				'entityId' => 1,
+				'amount' => 1.0
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $redeemVoidModelMock->getRedeemVoid($data['pan'], $data['pin'], $data['entityId'], $data['amount']));
+		}
 	}
+
+	/**
+	 * Test getRedeemVoid method, where getSvcUri return an empty url
+	 * @test
+	 */
+	public function testGetRedeemVoidWithEmptyUrl()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML(
+			'<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1">
+				<PaymentContext>
+					<OrderId>1</OrderId>
+					<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
+				</PaymentContext>
+				<Pin>1234</Pin>
+				<Amount currencyCode="USD">1.00</Amount>
+			</StoredValueRedeemVoidRequest>'
+		);
+
+		$paymentHelperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getSvcUri')
+			->with($this->equalTo('get_gift_card_redeem_void'), $this->equalTo('00000000000000'))
+			->will($this->returnValue(''));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
+
+		$redeemVoidModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem_void')
+			->setMethods(array('buildStoredValueRedeemVoidRequest'))
+			->getMock();
+		$redeemVoidModelMock->expects($this->once())
+			->method('buildStoredValueRedeemVoidRequest')
+			->with($this->equalTo('00000000000000'), $this->equalTo('1234'), $this->equalTo(1), $this->equalTo(1.0))
+			->will($this->returnValue($doc));
+
+		$testData = array(
+			array(
+				'expect' => '',
+				'pan' => '00000000000000',
+				'pin' => '1234',
+				'entityId' => 1,
+				'amount' => 1.0
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $redeemVoidModelMock->getRedeemVoid($data['pan'], $data['pin'], $data['entityId'], $data['amount']));
+		}
+	}
+
+	/**
+	 * Test getRedeemVoid method, with Zend_Http_Client_Exception exception thrown
+	 * @test
+	 */
+	public function testGetRedeemVoidWithExceptionThrow()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML(
+			'<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1">
+				<PaymentContext>
+					<OrderId>1</OrderId>
+					<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
+				</PaymentContext>
+				<Pin>1234</Pin>
+				<Amount currencyCode="USD">1.00</Amount>
+			</StoredValueRedeemVoidRequest>'
+		);
+
+		$paymentHelperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri', 'getConfigModel'))
+			->getMock();
+		$paymentHelperMock->expects($this->once())
+			->method('getSvcUri')
+			->with($this->equalTo('get_gift_card_redeem_void'), $this->equalTo('80000000000000'))
+			->will($this->returnValue('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml'));
+		$paymentHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'xsdFileStoredValueVoidRedeem' => 'Payment-Service-StoredValueRedeemVoid-1.0.xsd'
+			)));
+		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
+
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('addData', 'request'))
+			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('addData')
+			->with($this->equalTo(array(
+				'uri' => 'https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeemvoid/GS.xml',
+				'xsd' => 'Payment-Service-StoredValueRedeemVoid-1.0.xsd'
+			)))
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->once())
+			->method('request')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->throwException(new Zend_Http_Client_Exception('Unittest, simulating when storedvalue redeem void request throw exception')));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
+		$redeemVoidModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem_void')
+			->setMethods(array('buildStoredValueRedeemVoidRequest'))
+			->getMock();
+		$redeemVoidModelMock->expects($this->once())
+			->method('buildStoredValueRedeemVoidRequest')
+			->with($this->equalTo('80000000000000'), $this->equalTo('1234'), $this->equalTo(1), $this->equalTo(1.0))
+			->will($this->returnValue($doc));
+
+		$testData = array(
+			array(
+				'expect' => '',
+				'pan' => '80000000000000',
+				'pin' => '1234',
+				'entityId' => 1,
+				'amount' => 1.0
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $redeemVoidModelMock->getRedeemVoid($data['pan'], $data['pin'], $data['entityId'], $data['amount']));
+		}
+	}
+
 	/**
 	 * testing parseResponse method
 	 *
@@ -55,6 +232,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_Redeem_VoidTest extends Ecom
 			Mage::getModel('eb2cpayment/storedvalue_redeem_void')->parseResponse($storeValueRedeemVoidReply)
 		);
 	}
+
 	/**
 	 * @test
 	 * @dataProvider dataProvider
@@ -62,6 +240,18 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_Redeem_VoidTest extends Ecom
 	 */
 	public function testBuildStoredValueVoidRequest($pan, $pin, $entityId, $amount)
 	{
-		$this->assertSame('<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="clientId-storeId-1"><PaymentContext><OrderId>1</OrderId><PaymentAccountUniqueId isToken="false">4111111ak4idq1111</PaymentAccountUniqueId></PaymentContext><Pin>1234</Pin><Amount currencyCode="USD">50.00</Amount></StoredValueRedeemVoidRequest>', Mage::getModel('eb2cpayment/storedvalue_redeem_void')->buildStoredValueRedeemVoidRequest($pan, $pin, $entityId, $amount)->C14N());
+		$this->assertSame(
+			preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
+				'<StoredValueRedeemVoidRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="clientId-storeId-1">
+					<PaymentContext>
+						<OrderId>1</OrderId>
+						<PaymentAccountUniqueId isToken="false">4111111ak4idq1111</PaymentAccountUniqueId>
+					</PaymentContext>
+					<Pin>1234</Pin>
+					<Amount currencyCode="USD">50.00</Amount>
+				</StoredValueRedeemVoidRequest>'
+			)),
+			trim(Mage::getModel('eb2cpayment/storedvalue_redeem_void')->buildStoredValueRedeemVoidRequest($pan, $pin, $entityId, $amount)->C14N())
+		);
 	}
 }
