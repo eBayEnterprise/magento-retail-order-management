@@ -10,9 +10,42 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>0.9.5</version>
+	<version>0.9.8</version>
 	<stability>devel</stability>
-	<notes>Initial release</notes>
+	<notes>MOD-48 MOD-72 Updates to File Transfer
+EBC-150 Use addData instead of chained setData
+EBC-292: removed the paypal shortcut model override.
+EBC-374 Improve eb2cproduct helper coverage
+MOD-73 Update Filetransfer
+EBC-379 Products not being set as in stock
+EBC-340 Move tax helper to not-an-override
+EBC-243: renaming eb2cpayment model stored/value to storedvalue - renaming all model classes with stored_value
+Revert "EBC-243 renaming eb2cpayment model Stored/Value to StoredValue"
+EBC-243 renaming eb2cpayment model Stored/Value to StoredValue
+EBC-295 replace 'e-Dialog' with 'eBay Enterprise Marketing Solutions Email' in admin config handler comment
+Mark failing tests skipped.
+EBC-335: Do not update already-existing configurable_attributes_data for configurable products
+EBC-249 Remove gift card configuration options
+EBC-373 Fix translation of store-view-code into appropriate format.
+EBC-373 Fix translation of store-view-code.
+Version 0.9.6
+EBC-379 Products net being set as in stock
+EBC-296: remove xsd files from unittest fixture folder - delete .xsd files and run all unittest under tax, non
+EBC-372 catch exception thrown by the _determineEventType method in the eb2cproduct/feed model
+EBC-364 remove $_helper property from processor
+EBC-365: made the processor not extend any other class.
+EBC_362 fixed sort order issues.
+EBC-345 Map Mage to Eb2c Ship Methods in Inventory
+EBC-351: remove stored value from admin config
+Version 0.9.5
+Fix csv quotes
+Version 0.9.5
+Fix csv quotes
+EBC-354 Update paths for feeds
+EBC-354 Update paths for feeds
+EBC-353 Refactor Extractor Color Class
+EBC-290 MOD-54 EBC-369 Update filetransfer
+EBC-351 Admin config to toggle payment methods</notes>
 	<authors>
 		<name>
 			<name>Michael A. Smith</name>
