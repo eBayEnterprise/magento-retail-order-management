@@ -304,10 +304,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 		$scenario = $isAfterDiscounts ? 'afterdiscount' : 'beforediscount';
 
-		foreach (array(
+		$testData = array(
 			TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE,
 			TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE,
-			TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 3) as $type) {
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 3
+		);
+		foreach ($testData as $type) {
 			$expectationKey = "{$scenario}-{$type}";
 			$e = $this->expected($expectationKey);
 			$this->assertArrayHasKey(
@@ -327,7 +329,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			$this->assertArrayHasKey('rates', $group, "$expectationKey: applied group missing rates");
 			$this->assertNotEmpty($group['rates'], "$expectationKey: applied group rates is empty");
 			$r = $e->getRates();
-			$this->assertSame(count($r), count($group['rates']), "$expectationKey: applied group does not include the correct number of rates");
+			$this->assertSame(
+				count($r), count($group['rates']),
+				"$expectationKey: applied group does not include the correct number of rates"
+			);
 			foreach ($group['rates'] as $idx => $rate) {
 				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
 				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
@@ -435,7 +440,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$itemResponse->setLineNumber($lineNumber);
 	}
 
-	// tax %6.25, price 99.99 discount 12.24, shipping 14.95 discount 5, duty 8.21,
+	/**
+	 * tax percent 6.25, price 99.99 discount 12.24,
+	 * shipping 14.95 discount 5, duty 8.21,
+	 * @return array
+	 */
 	protected function _mockResponseWithAll()
 	{
 		$taxQuote = $this->_buildModelMock('eb2ctax/response_quote', array(

@@ -40,24 +40,24 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * calculate tax by mode
 	 * @param float $amount The amount to calculate tax on
 	 * @param Varien_Object $itemSelector
-	 * @param string $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
+	 * @param int $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
 	 * @param string $mode, [regular | discount | discount-for-amount, regular, regular-for-amount]
 	 * @return float the total tax amount for any discounts
 	 */
-	protected function _calcTaxByMode($amount=0, Varien_Object $itemSelector, $type=0, $mode='regular')
+	protected function _calcTaxByMode($amount=0, Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE, $mode=self::TAX_REGULAR)
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
 		$taxQuotes = $this->_extractTax($itemResponse, $mode);
-		foreach ($taxQuotes as $taxQuote) {
+		$taxMethod = $this->_isForAmountMode($mode)? 'getEffectiveRate' : 'getCalculatedTax';
+
+		$tax = array_reduce($taxQuotes, function ($result, $taxQuote) use ($taxMethod, $type, $amount) {
 			if ($type === $taxQuote->getType()) {
-				if ($this->_isForAmountMode($mode)) {
-					$tax += ($amount * $taxQuote->getEffectiveRate());
-				} else {
-					$tax += $taxQuote->getCalculatedTax();
-				}
+				$result += ($taxMethod === 'getEffectiveRate')? $amount * $taxQuote->getEffectiveRate() : $taxQuote->getCalculatedTax();
 			}
-		}
+			return $result;
+		});
+
 		if ($type === self::DUTY_TYPE) {
 			$tax += $itemResponse->getDutyAmount();
 		}
@@ -80,7 +80,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * @param  string        $type
 	 * @return float
 	 */
-	public function getTax(Varien_Object $itemSelector, $type=0)
+	public function getTax(Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE)
 	{
 		return $this->_calcTaxByMode(0, $itemSelector, $type, self::TAX_REGULAR);
 	}
@@ -89,20 +89,20 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * calculate the tax for $amount using the effective rates in the response.
 	 * @param  float        $amount
 	 * @param  Varien_Object $itemSelector
-	 * @param  string        $type
+	 * @param  int           $type
 	 * @return float
 	 */
-	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type=0)
+	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE)
 	{
 		return $this->_calcTaxByMode($amount, $itemSelector, $type, self::TAX_REGULAR_FOR_AMOUNT);
 	}
 
 	/**
 	 * @param Varien_Object $itemSelector
-	 * @param string $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
+	 * @param int $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
 	 * @return float the total tax amount for any discounts
 	 */
-	public function getDiscountTax(Varien_Object $itemSelector, $type=0)
+	public function getDiscountTax(Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE)
 	{
 		return $this->_calcTaxByMode(0, $itemSelector, $type, self::TAX_DISCOUNT);
 	}
@@ -110,10 +110,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	/**
 	 * @param float $amount The amount to calculate tax on
 	 * @param Varien_Object $itemSelector
-	 * @param string $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
+	 * @param int $type One of the values of these constants [MERCHANDISE_TYPE, SHIPPING_TYPE, DUTY_TYPE]
 	 * @return float the total tax amount for any discounts
 	 */
-	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector, $type=0)
+	public function getDiscountTaxForAmount($amount, Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE)
 	{
 		return $this->_calcTaxByMode($amount, $itemSelector, $type, self::TAX_DISCOUNT_FOR_AMOUNT);
 	}
