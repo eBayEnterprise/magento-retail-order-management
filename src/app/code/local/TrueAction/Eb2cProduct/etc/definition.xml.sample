@@ -1,0 +1,42 @@
+<!-- definition.xml -->
+<definition>
+	<item_master>
+		<base_xpath>Path/To/Unit</base_xpath>
+		<config>
+			<local_path> contentFeedLocalPath</local_path>
+			<!--
+			...
+			-->
+		</config>
+		<extractors>
+			<operation_type_example>
+				<model>eb2cproduct/feed_extractor_specialized_operationtype</model>
+				<init>
+					<xpath_parameter_example>x/path/to/operation</xpath_parameter_example>
+				</init>
+			</operation_type_example>
+			<xpath_extractor_example>
+				<model>eb2cproduct/feed_extractor_xpath</model>
+				<init>
+					<mapping_parameter_example>
+						<output_field_name>x/path/to/node</output_field_name>
+						<!--
+						...
+						-->
+					</mapping_parameter_example>
+				</init>
+			<mappinglist_extractor_example>
+			</mappinglist_extractor_example>
+				<model>eb2cproduct/feed_extractor_mappinglist</model>
+				<init>
+					<mapping_parent>
+						<size>ExtendedAttributes/SizeAttributes/Size</size>
+					</mapping_parent>
+					<mapping>
+						<description>Description/text()</description>
+						<lang>./@xml:lang</lang>
+					</mapping>
+				</init>
+		</extractors>
+	<item_master>
+</definition>
