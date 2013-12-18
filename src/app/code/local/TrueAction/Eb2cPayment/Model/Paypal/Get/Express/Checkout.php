@@ -2,8 +2,8 @@
 class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core_Model_Abstract
 {
 	/**
-	 * getting paypal express checkout from eb2c.
-	 * @param Mage_Sales_Model_Quote $quote, the quote to Get express paypal checkout for in eb2c
+	 * Get paypal express checkout from eb2c.
+	 * @param Mage_Sales_Model_Quote $quote the quote to Get express paypal checkout for in eb2c
 	 * @return string the eb2c response to the request.
 	 */
 	public function getExpressCheckout(Mage_Sales_Model_Quote $quote)
@@ -37,9 +37,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	}
 
 	/**
-	 * Build  PaypalGetExpressCheckout request.
-	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 * @return DOMDocument The XML document, to be sent as request to eb2c.
+	 * Build PaypalGetExpressCheckout request.
+	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
+	 * @return DOMDocument The XML document to be sent as request to eb2c.
 	 */
 	public function buildPayPalGetExpressCheckoutRequest(Mage_Sales_Model_Quote $quote)
 	{
@@ -67,7 +67,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	/**
 	 * Parse PayPal GetExpress reply xml.
 	 * @param string $payPalGetExpressCheckoutReply the xml response from eb2c
-	 * @return Varien_Object, an object of response data
+	 * @return Varien_Object an object of response data
 	 */
 	public function parseResponse($payPalGetExpressCheckoutReply)
 	{
@@ -145,9 +145,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends Mage_Core
 	}
 
 	/**
-	 * save payment data to quote_payment
-	 * @param array $checkoutObject, an associative array of response data
-	 * @param Mage_Sales_Model_Quote $quote, sales quote instantiated object
+	 * Save payment data to quote_payment.
+	 * @param array $checkoutObject an associative array of response data
+	 * @param Mage_Sales_Model_Quote $quote sales quote instantiated object
 	 * @return self
 	 */
 	protected function _savePaymentData(Varien_Object $checkoutObject, Mage_Sales_Model_Quote $quote)
