@@ -208,13 +208,14 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	/**
 	 * load product by sku
 	 * @param string $sku product sku
+	 * @param null|string|bool|int|Mage_Core_Model_Store $store magento store
 	 * @return Mage_Catalog_Model_Product
 	 */
 	public function loadProductBySku($sku, $store=null)
 	{
 		return Mage::helper('catalog/product')->getProduct(
 			$sku,
-			$store ? $store : Mage::app()->getStore(),
+			$store,
 			'sku'
 		);
 	}
