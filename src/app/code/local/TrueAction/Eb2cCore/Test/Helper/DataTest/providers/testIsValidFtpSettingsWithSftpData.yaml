@@ -4,12 +4,10 @@
   - ''
   - ''
   - ''
-  - ''
 -
   - 'test'
   - 'test'
   - 'password'
-  - ''
   - ''
   - ''
 -
@@ -18,6 +16,11 @@
   - 'password'
   - 'test'
   - ''
+-
+  - 'test'
+  - 'test'
+  - ''
+  - ''
   - ''
 -
   - 'test'
@@ -25,19 +28,10 @@
   - 'pub_key'
   - ''
   - ''
-  - ''
 -
   - 'test'
   - 'test'
   - 'pub_key'
-  - ''
-  - 'pub-key'
-  - ''
--
-  - 'test'
-  - 'test'
-  - 'pub_key'
-  - ''
   - ''
   - 'priv-key'
 -
@@ -45,5 +39,4 @@
   - 'test'
   - 'pub_key'
   - ''
-  - 'pub-key'
   - 'priv-key'
