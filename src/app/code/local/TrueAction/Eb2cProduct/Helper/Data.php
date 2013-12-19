@@ -20,24 +20,24 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 				throw new TrueAction_Eb2cProduct_Model_Config_Exception('Config Error: dummy type id is invalid.');
 			}
 			$defStockData = array(
-				'is_in_stock'  => $cfg->dummyInStockFlag,
+				'is_in_stock' => $cfg->dummyInStockFlag,
 				'manage_stock' => $cfg->dummyManageStockFlag,
-				'qty'          => (int) $cfg->dummyStockQuantity,
+				'qty' => (int) $cfg->dummyStockQuantity,
 			);
 			$this->_prodTplt = array(
-				'attribute_set_id'  => (int) $this->_getDefProdAttSetId(),
-				'category_ids'      => array($this->_getDefStoreRootCatId()),
-				'description'       => $cfg->dummyDescription,
-				'price'             => (float) $cfg->dummyPrice,
+				'attribute_set_id' => (int) $this->_getDefProdAttSetId(),
+				'category_ids' => array($this->_getDefStoreRootCatId()),
+				'description' => $cfg->dummyDescription,
+				'price' => (float) $cfg->dummyPrice,
 				'short_description' => $cfg->dummyShortDescription,
-				'status'            => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-				'stock_data'        => $defStockData,
-				'store_ids'         => array($this->_getDefStoreId()),
-				'tax_class_id'      => (int) $cfg->dummyTaxClassId,
-				'type_id'           => $cfg->dummyTypeId,
-				'visibility'        => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-				'website_ids'       => $this->_getAllWebsiteIds(),
-				'weight'            => (int) $cfg->dummyWeight,
+				'status' => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
+				'stock_data' => $defStockData,
+				'store_ids' => array($this->_getDefStoreId()),
+				'tax_class_id' => (int) $cfg->dummyTaxClassId,
+				'type_id' => $cfg->dummyTypeId,
+				'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
+				'website_ids' => $this->_getAllWebsiteIds(),
+				'weight' => (int) $cfg->dummyWeight,
 			);
 		}
 		return $this->_prodTplt;
@@ -70,7 +70,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return (int) Mage::getModel('eav/entity_type')->loadByCode('catalog_product')->getDefaultAttributeSetId();
 	}
-
 	/**
 	 * abstracting getting locale code
 	 * @return string, the locale code
@@ -80,7 +79,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return Mage::app()->getLocale()->getLocaleCode();
 	}
-
 	/**
 	 * @return string the default locale language code
 	 */
@@ -88,7 +86,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return Mage::helper('eb2ccore')->mageToXmlLangFrmt($this->_getLocaleCode());
 	}
-
 	/**
 	 * @return int default attribute set id; possibly un-necessary function @_@
 	 */
@@ -96,7 +93,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return $this->_getDefProdAttSetId();
 	}
-
 	/**
 	 * Parse a string into a boolean.
 	 * @param string $s the string to parse
@@ -119,10 +115,8 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 				return false;
 		}
 	}
-
 	/**
 	 * Get Product config instantiated object.
-	 *
 	 * @return TrueAction_Eb2cCore_Model_Config_Registry
 	 */
 	public function getConfigModel($store=null)
@@ -132,7 +126,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->addConfigModel(Mage::getModel('eb2cproduct/config'))
 			->addConfigModel(Mage::getModel('eb2ccore/config'));
 	}
-
 	/**
 	 * @return bool true if the eav config has at least one instance of the given attribute.
 	 * @param string $attr
@@ -143,12 +136,11 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->getAttribute(Mage_Catalog_Model_Product::ENTITY, $at)
 			->getId();
 	}
-
 	/**
 	 * Get a catalog product eav attribute id for the attribute identified by
 	 * the given code.
-	 * @param  string $attributeCode Attribute code for the product attribute
-	 * @return int                   ID of the attribute
+	 * @param string $attributeCode Attribute code for the product attribute
+	 * @return int id of the attribute
 	 */
 	public function getProductAttributeId($attributeCode)
 	{
@@ -156,7 +148,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->loadByCode('catalog_product', $attributeCode)
 			->getId();
 	}
-
 	/**
 	 * @return bool true if Magento knows about the product type.
 	 * @param string $type
@@ -166,10 +157,8 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		$types = Mage_Catalog_Model_Product_Type::getTypes();
 		return isset($types[$type]);
 	}
-
 	/**
 	 * extract node value
-	 *
 	 * @return string, the extracted content
 	 * @param DOMNodeList $nodeList
 	 */
@@ -177,10 +166,8 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return ($nodeList->length) ? $nodeList->item(0)->nodeValue : null;
 	}
-
 	/**
 	 * extract node attribute value
-	 *
 	 * @return string, the extracted content
 	 * @param DOMNodeList $nodeList
 	 * @param string $attributeName
@@ -189,11 +176,10 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return ($nodeList->length) ? $nodeList->item(0)->getAttribute($attributeName) : null;
 	}
-
 	/**
 	 * get a model loaded with the data for $sku if it exists;
 	 * otherwise, get a new _UNSAVED_ model populated with dummy data.
-	 * @param  string $sku
+	 * @param string $sku
 	 * @return Mage_Catalog_Model_Product
 	 */
 	public function prepareProductModel($sku, $name='')
@@ -204,7 +190,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $product;
 	}
-
 	/**
 	 * Fill a product model with dummy data so that it can be saved and edited later.
 	 * @see http://www.magentocommerce.com/boards/viewthread/289906/
@@ -222,18 +207,18 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 	/**
 	 * load product by sku
-	 * @param string $sku, the product sku to filter the product table
+	 * @param string $sku product sku
+	 * @param null|string|bool|int|Mage_Core_Model_Store $store magento store
 	 * @return Mage_Catalog_Model_Product
 	 */
-	public function loadProductBySku($sku)
+	public function loadProductBySku($sku, $store=null)
 	{
-		$products = Mage::getResourceModel('catalog/product_collection');
-		$products->addAttributeToSelect('*');
-		$products->getSelect()
-			->where('e.sku = ?', $sku);
-		return $products->getFirstItem();
+		return Mage::helper('catalog/product')->getProduct(
+			$sku,
+			$store,
+			'sku'
+		);
 	}
-
 	/**
 	 * Return an array of attribute_codes
 	 * @param int $attributeSetId
@@ -251,7 +236,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $this->_customAttributeCodeSets[$attributeSetId];
 	}
-
 	/**
 	 * Flattens translations into arrays keyed by language
 	 * @param array $languageSet
@@ -267,13 +251,11 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $parsedLanguages;
 	}
-
 	/**
-	 * Sets configurable_attributes_data 
+	 * Sets configurable_attributes_data
 	 * @param string $productTypeId ('configurable', 'simple' etc).
 	 * @param Varien_Object $source the source data field
 	 * @param Mage_Catalog_Model_Product the product we are setting
-	 *
 	 * @return array of configurable_attributes_data
 	 */
 	public function getConfigurableAttributesData($productTypeId, Varien_Object $source, Mage_Catalog_Model_Product $product)

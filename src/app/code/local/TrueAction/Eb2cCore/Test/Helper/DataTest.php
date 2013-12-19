@@ -111,24 +111,22 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	 * @param  string $host     SFTP host/location config setting
 	 * @param  string $authType SFTP auth type - password or pub_key config setting
 	 * @param  string $password SFTP password config setting
-	 * @param  string $pubKey   SFTP public key config setting
 	 * @param  string $privKey  SFTP private key config setting
 	 *
 	 * @test
 	 * @dataProvider dataProvider
 	 */
-	public function testIsValidFtpSettingsWithSftpData($username, $host, $authType, $password, $pubKey, $privKey)
+	public function testIsValidFtpSettingsWithSftpData($username, $host, $authType, $password, $privKey)
 	{
 		$this->_mockConfig(array(
 			array('sftpUsername', $username),
 			array('sftpLocation', $host),
 			array('sftpAuthType', $authType),
 			array('sftpPassword', $password),
-			array('sftpPublicKey', $pubKey),
 			array('sftpPrivateKey', $privKey),
 		));
 		$this->assertSame(
-			$this->expected('set-%s-%s-%s-%s-%s-%s', $username, $host, $authType, $password, $pubKey, $privKey)->getIsValid(),
+			$this->expected('set-%s-%s-%s-%s-%s', $username, $host, $authType, $password, $privKey)->getIsValid(),
 			Mage::helper('eb2ccore')->isValidFtpSettings()
 		);
 	}
