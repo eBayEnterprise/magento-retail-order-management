@@ -1,19 +1,19 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * Test that getRedeem sets the right URL, returns the response xml or empty string if there's a Zend_Http_Client_Exception
+	 * verify the response string is returned when
 	 * @test
 	 * @dataProvider dataProvider
-	 * @loadFixture loadConfig.yaml
 	 */
-	public function testGetRedeem($pan, $pin, $tenderType)
+	public function testGetRedeem($pan, $resXml)
 	{
-		$this->markTestSkipped('skip failing test - needs to have connections to the helper replace by a mock');
-		$reqXmlFrmt = '<StoredValueRedeemRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1"><PaymentContext><OrderId>1</OrderId><PaymentAccountUniqueId isToken="false">%s</PaymentAccountUniqueId></PaymentContext><Pin>%s</Pin><Amount currencyCode="USD">50</Amount></StoredValueRedeemRequest>';
-		$resXml = '<StoredValueRedeemReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><PaymentContext><OrderId>1</OrderId><PaymentAccountUniqueId isToken="false">1</PaymentAccountUniqueId></PaymentContext><ResponseCode>Success</ResponseCode><AmountRedeemed currencyCode="USD">1.00</AmountRedeemed><BalanceAmount currencyCode="USD">1.00</BalanceAmount></StoredValueRedeemReply>';
-		$reqXml = sprintf($reqXmlFrmt, $pan, $pin);
-		$apiUrl = sprintf('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/redeem/%s.xml', $tenderType);
+		$pin = '1234';
+		$entityId = 1;
+		$amount = 1.00;
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$apiUrl = 'https://the.service.u/r/i.xml';
+
 		$api = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
 		$api->expects($this->any())
 			->method('setUri')
@@ -21,19 +21,121 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest extends EcomDev_P
 			->will($this->returnSelf());
 		$api->expects($this->any())
 			->method('request')
+			->with($doc)
 			->will($this->returnValue($resXml));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$balXml = Mage::getModel('eb2cpayment/storedvalue_redeem')->getRedeem($pan, $pin, 1, 1.00);
+
+		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('getSvcUri')
+			->with(
+				$this->identicalTo('get_gift_card_redeem'),
+				$this->identicalTo($pan)
+			)
+			->will($this->returnValue($apiUrl));
+		$this->replaceByMock('helper', 'eb2cpayment', $helper);
+
+		$testModel = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem')
+			->disableOriginalConstructor()
+			->setMethods(array('buildStoredValueRedeemRequest'))
+			->getMock();
+		$testModel->expects($this->once())
+			->method('buildStoredValueRedeemRequest')
+			->with(
+				$this->identicalTo($pan),
+				$this->identicalTo($pin),
+				$this->identicalTo($entityId),
+				$this->identicalTo($amount)
+			)
+			->will($this->returnValue($doc));
+
+		$balXml = $testModel->getRedeem($pan, $pin, $entityId, $amount);
 		$this->assertSame($resXml, $balXml);
+	}
 
-		// Expect an empty string when the $pan is out of range.
-		$this->assertSame('', Mage::getModel('eb2cpayment/storedvalue_redeem')->getRedeem('65', 1, 1, 1.00));
+	/**
+	 * verify the empty string is returned if there's a Zend_Http_Client_Exception
+	 * @test
+	 */
+	public function testGetRedeemWithNoUri()
+	{
+		$pan = '15';
+		$pin = '1234';
+		$entityId = 1;
+		$amount = 1.00;
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$apiUrl = 'https://the.service.u/r/i.xml';
 
-		// Expect an empty string when the request throws a Zend_Http_Client_Exception
+		$api = $this->getModelMock('eb2ccore/api', array('request'));
+		$api->expects($this->never())
+			->method('request');
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+
+		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('getSvcUri')
+			->will($this->returnValue(''));
+		$this->replaceByMock('helper', 'eb2cpayment', $helper);
+
+		$testModel = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem')
+			->disableOriginalConstructor()
+			->setMethods(array('buildStoredValueRedeemRequest'))
+			->getMock();
+		$testModel->expects($this->any())
+			->method('buildStoredValueRedeemRequest')
+			->will($this->returnValue($doc));
+
+		$balXml = $testModel->getRedeem($pan, $pin, $entityId, $amount);
+		$this->assertSame('', $balXml);
+	}
+
+	/**
+	 * verify the empty string is returned when getSvcUri yields an empty string.
+	 * @test
+	 */
+	public function testGetRedeemWithException()
+	{
+		$reqXml = '<StoredValueRedeemRequest />';
+		$resXml = '<this_is_an_unexpected_response />';
+		$apiUrl = 'https://api.u.r/i.xml';
+		$pan = "15";
+		$pin = '1234';
+		$entityId = 1;
+		$amount = 1.00;
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+
+		$api = $this->getModelMock('eb2ccore/api', array('setUri', 'request'));
+		$api->expects($this->any())
+			->method('setUri')
+			->will($this->returnSelf());
 		$api->expects($this->once())
 			->method('request')
 			->will($this->throwException(new Zend_Http_Client_Exception));
-		$balXml = Mage::getModel('eb2cpayment/storedvalue_redeem')->getRedeem($pan, $pin, 1, 1.00);
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+
+		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getSvcUri'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('getSvcUri')
+			->will($this->returnValue('https://the.service.u/r/i'));
+		$this->replaceByMock('helper', 'eb2cpayment', $helper);
+
+		$testModel = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem')
+			->disableOriginalConstructor()
+			->setMethods(array('buildStoredValueRedeemRequest'))
+			->getMock();
+		$testModel->expects($this->once())
+			->method('buildStoredValueRedeemRequest')
+			->will($this->returnValue($doc));
+		$balXml = $testModel->getRedeem($pan, $pin, $entityId, $amount);
 		$this->assertSame('', $balXml);
 	}
 
