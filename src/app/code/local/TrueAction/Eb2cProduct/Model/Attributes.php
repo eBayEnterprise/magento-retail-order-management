@@ -237,7 +237,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	{
 		$attributeCode = $fieldCfg->getName();
 		if (!isset($this->_prototypeCache[$attributeCode])) {
-			$baseData = $this->_getInitialData();
+			$baseData = $this->getInitialData();
 			foreach ($fieldCfg->children() as $cfgField => $data) {
 				$fieldName = '';
 				if ($cfgField === 'default') {
@@ -283,7 +283,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 * get an array containing the defaults for an attribute.
 	 * @return array
 	 */
-	protected function _getInitialData()
+	public static function getInitialData()
 	{
 		$data = array(
 			'is_global'                     => '0',

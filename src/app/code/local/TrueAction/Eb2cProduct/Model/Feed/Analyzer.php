@@ -26,8 +26,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Analyzer extends TrueAction_Eb2cProduct_
 			if ($isValid) {
 				$data = $this->_extractData($unit);
 				if (is_callable($this->_callback)) {
-					$sku = $data->getClientItemId() ? $data->getClientItemId() : $data->getUniqueId();
-					call_user_func($this->_callback, $sku, $data);
+					call_user_func($this->_callback, $data);
 				}
 			}
 		}

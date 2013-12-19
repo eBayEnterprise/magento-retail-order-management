@@ -31,15 +31,27 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 			echo $this->usageHelp();
 			return 0;
 		}
+
+		$mode = $this->getArg('mode');
+
 		foreach( $files as $fileName ) {
 			if (file_exists($fileName)) {
 				// If you'd like to add output types, just add an arg, and change the callback. You'll get called
 				// with an array of Varien Objects pulled from the CustomAttribute Node. You don't need a callback
 				// if you don't want one - in that case, the DOM Extraction engine just runs against the file. 
-				$this->plainTextHeader($fileName);
-				$this->_analyzer
-					->setCallback(__CLASS__ . '::plainText')
-					->processFile($fileName);
+				if ($mode === 'verbose') {
+					$this->_verboseHeader($fileName);
+					$this->_analyzer
+						->setCallback(__CLASS__ . '::verboseParse')
+						->processFile($fileName);
+				} else  {
+					// The Default:
+					$this->_defaultHeader($fileName);
+					$this->_analyzer
+						->setCallback(__CLASS__ . '::defaultParse')
+						->processFile($fileName);
+					$this->defaultParse(null);
+				}
 			} else {
 				echo "File $fileName not found.\n";
 			}
@@ -47,9 +59,19 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 	}
 
 	/**
-	 * Header for the plainText method-style of output
+	 * Get the SKU from the Data Unit - SKUs are at ClientItemId in Master and Pricing; in UniqueId in Content
+	 *
 	 */
-	public static function plainTextHeader($fileName)
+	private static function _getSku(Varien_Object $dataUnit)
+	{
+		return ($dataUnit->getClientItemId() ? $dataUnit->getClientItemId() : $dataUnit->getUniqueId());
+	}
+
+
+	/**
+	 * Header for the verbose method-style of output
+	 */
+	protected function _verboseHeader($fileName)
 	{
 		echo "File: $fileName\n";
 		echo 'sku' . self::SEP . 'attribute' . self::SEP . 'suggestion' . self::SEP . 'operation' . self::SEP . 'lang' . self::SEP . 'value'. self::NL;
@@ -58,12 +80,55 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 	/**
 	 * Dump an array of Varien_Objects populated by feed_analyzer
 	 */
-	public static function plainText($sku, Varien_Object $dataUnit)
+	public static function verboseParse(Varien_Object $dataUnit)
 	{
+		$sku = self::_getSku($dataUnit);
 		$attributes = $dataUnit->getCustomAttributes();
+
 		foreach ($attributes as $attribute) {
 			$obj = self::_toVarienObject($attribute);
 			echo $sku . self::SEP . $obj->getName() . self::SEP . $obj->getSuggestion() . self::SEP . $obj->getOperationType() . self::SEP . $obj->getLang() . self::SEP . str_replace(self::SEP,' ',$obj->getValue()) . self::NL;
+		}
+	}
+
+	/**
+	 * Header for the default style of output
+	 */
+	protected function _defaultHeader($fileName)
+	{
+		echo "File: $fileName\n";
+	}
+
+	/**
+	 * Default style of output is to condense all the attributes down. 
+	 */
+	public static function defaultParse(Varien_Object $dataUnit)
+	{
+		static $condensedAttributes;
+		if ($dataUnit) {
+			$attributes = $dataUnit->getCustomAttributes();
+			foreach ($attributes as $attribute) {
+				$obj = self::_toVarienObject($attribute);
+				$condensedAttributes[$obj->getName()]['attribute_code'] = $obj->getAttributeCode();
+				$condensedAttributes[$obj->getName()]['name_too_long'] = $obj->getNameTooLong();
+				$condensedAttributes[$obj->getName()]['occurs']++;
+			}
+		} else {
+			// Let's either return or call a separate function here please.
+			$attributeSettings  = TrueAction_Eb2cProduct_Model_Attributes::getInitialData();
+			$settingsHeaderCols = '';
+			$settingsValueCols  = '';
+
+			foreach ($attributeSettings as $setting=>$value) {
+				$settingsHeaderCols .= $setting . self::SEP;
+				$settingsValueCols  .= $value . self::SEP;
+			}
+			echo 'raw_name' . self::SEP . 'attribute_code' . self::SEP .  'occurs' . self::SEP . $settingsHeaderCols . self::NL;
+			ksort($condensedAttributes);
+			foreach ($condensedAttributes as $rawName => $info) {
+				$tooLong = strlen($rawName > Mage_Eav_Model_Entity_Attribute::ATTRIBUTE_CODE_MAX_LENGTH);
+				echo $rawName . self::SEP . ($tooLong ? '?' :  $info['suggested_name']) . self::SEP . $info['occurs'] . self::SEP . $settingsValueCols. self::NL;
+			}
 		}
 	}
 
@@ -90,9 +155,7 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 
 		// '$suggestion' is a mildy educated guess at how to make this attribute name suitable for Magento
 		// If the cooked name is longer than the Max Attribute Code Length, you need to rethink the whole thing
-		if (strlen(self::_suggestedAttributeName($attributeNameCooked)) > Mage_Eav_Model_Entity_Attribute::ATTRIBUTE_CODE_MAX_LENGTH) {
-			$suggestion = 'too long';
-		} else if( strcasecmp($attribute['name'], $attributeNameCooked) ) {
+		if( strcasecmp($attribute['name'], $attributeNameCooked) ) {
 			// The raw name is unusable, but we have a decent suggestion.
 			$suggestion = sprintf('Bad attribute name. Try "%s" instead.', self::_suggestedAttributeName($attributeNameCooked));
 		} else {
@@ -106,6 +169,7 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 				'lang'           => (isset($attribute['lang']) ? strtolower($attribute['lang']) : ''),
 				'name'           => $attribute['name'],
 				'value'          => $attribute['value'],
+				'attribute_code' => self::_suggestedAttributeName($attributeNameCooked),
 				'suggestion'     => $suggestion,
 			)
 		);
@@ -131,7 +195,9 @@ class TrueAction_Eb2cShell_Attribute_Analyzer extends Mage_Shell_Abstract
 		return <<<USAGE
 
 Usage: php -f $scriptName -- [options]
-  -files     list_of_files (please pass shell escaped - quoted, or csv with no spaces)
+  --files file1,file2    list of files (please pass shell escaped - quoted, or csv with no spaces)
+  --mode  verbose        (every instance of every attribute along with its sku and value)
+          default        (Received Attribute Name, Suggested Name, Number of occurences, Magento Settings)
   help       This help
 
 USAGE;
