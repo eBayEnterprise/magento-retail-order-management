@@ -60,7 +60,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 
 		return trim($cfg->sftpUsername) && trim($cfg->sftpLocation) && (
 			($cfg->sftpAuthType === 'password' && trim($cfg->sftpPassword)) ||
-			($cfg->sftpAuthType === 'pub_key' && trim($cfg->sftpPublicKey) && trim($cfg->sftpPrivateKey))
+			($cfg->sftpAuthType === 'pub_key' && trim($cfg->sftpPrivateKey))
 		);
 	}
 
