@@ -260,6 +260,16 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$this->assertSame($expectedOutput, Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
 	}
 	/**
+	 * Given a null an empty array is returned.
+	 * @test
+	 */
+	public function testParseTranslationsWithNull()
+	{
+		$sampleInput = null;
+		$expectedOutput = array();
+		$this->assertSame($expectedOutput, Mage::helper('eb2cproduct')->parseTranslations($sampleInput));
+	}
+	/**
 	 * Test getDefaultLanguageCode the feed
 	 * @test
 	 */

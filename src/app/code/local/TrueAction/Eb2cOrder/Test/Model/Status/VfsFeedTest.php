@@ -19,7 +19,7 @@ class TrueAction_Eb2cOrder_Test_Model_Status_VfsFeedTest extends TrueAction_Eb2c
 
 		// Set up a Varien_Io_File style array for dummy file listing.
 		$vfsDump = $vfs->dump();
-		$dummyFiles = array ();
+		$dummyFiles = array();
 		foreach( $vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
 			$dummyFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}

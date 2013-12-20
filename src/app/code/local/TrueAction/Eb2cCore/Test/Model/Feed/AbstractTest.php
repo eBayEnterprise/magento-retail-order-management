@@ -61,7 +61,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$vfs = $this->getFixture()->getVfs();
 		$vfsDump = $vfs->dump();
-		$dummyFiles = array ();
+		$dummyFiles = array();
 		foreach( $vfsDump[self::VFS_ROOT]['inbound'] as $filename => $contents ) {
 			$dummyFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}

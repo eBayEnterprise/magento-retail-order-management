@@ -1,0 +1,20 @@
+0-single:
+  translations:
+    attr_code:
+      en-US: this is english
+  expected_translations:
+    attr_code:
+      en-US: this is english
+1-single:
+  translations:
+    attr_code:
+      en-US: this is english
+  expected_translations: []
+1-multi:
+  translations:
+    attr_code:
+      en-US: this is english
+      jp-JA: this is japanese (sorta but not)
+  expected_translations:
+    attr_code:
+      jp-JA: this is japanese (sorta but not)

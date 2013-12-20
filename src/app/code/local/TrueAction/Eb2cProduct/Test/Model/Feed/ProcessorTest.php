@@ -2,6 +2,71 @@
 class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
+	 * verify true is returned when the default translation exists; false otherwise.
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testHasDefaultTranslation($code, $langCode, $expect)
+	{
+		$translations = array(
+			'attr_code' => array(
+				'en-US' => 'this is in english'
+			)
+		);
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->setMethods(array('none'))
+			->disableOriginalConstructor()
+			->getMock();
+		$this->_reflectProperty($testModel, '_defaultLanguageCode')->setValue($testModel, $langCode);
+		$result = $this->_reflectMethod($testModel, '_hasDefaultTranslation')->invoke($testModel, $code, $translations);
+		$this->assertSame($expect, $result);
+	}
+
+	/**
+	 * verify the default translation will be removed from $translations if it exists.
+	 * verify the value for the default language will be set in the product data if it exists.
+	 * verify $translations will be returned unaltered when the default translation is not found.
+	 * verify a code with no translations remaining will be removed from $translations.
+	 * @test
+	 * @dataProvider dataProvider
+	 * @loadExpectation
+	 */
+	public function testApplyDefaultTranslations($hasDefaultTranslation, $translationAmount)
+	{
+		$e = $this->expected("%s-%s", (int) $hasDefaultTranslation, $translationAmount);
+		$translations = $e->getTranslations();
+		$productData = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('setData'))
+			->getMock();
+		if ($hasDefaultTranslation) {
+			$productData->expects($this->once())
+				->method('setData')
+				->with(
+					$this->identicalTo('attr_code'),
+					$this->identicalTo('this is english')
+				)
+				->will($this->returnSelf());
+		} else {
+			$productData->expects($this->never())
+				->method('setData');
+		}
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->setMethods(array('_hasDefaultTranslation'))
+			->disableOriginalConstructor()
+			->getMock();
+		$testModel->expects($this->once())
+			->method('_hasDefaultTranslation')
+			->with($this->identicalTo('attr_code'), $this->identicalTo($translations))
+			->will($this->returnValue($hasDefaultTranslation));
+		$this->_reflectProperty($testModel, '_defaultLanguageCode')
+			->setValue($testModel, 'en-US');
+		$result = $this->_reflectMethod($testModel, '_applyDefaultTranslations')
+			->invoke($testModel, $productData, $translations);
+		$this->assertSame($e->getExpectedTranslations(), $result);
+	}
+
+	/**
 	 * Test processUpdates method
 	 * @test
 	 */
