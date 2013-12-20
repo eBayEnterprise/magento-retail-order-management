@@ -994,4 +994,45 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			$this->_reflectMethod($testModel, '_buildAllocationRequestMessage')->invoke($testModel, $quote)
 		);
 	}
+
+	/**
+	 * The blocking/ nonblock status types are tested
+	 * @todo: Probably wants a data provider(?). I'll need to test several statuses and ensure that that all throw a certain exception.
+	 * 			It feels like I really do want a try-catch and test the correct exception comes back, but I'm sleepy it's late Friday night.
+	 * 
+	 * @expectedException TrueAction_Eb2cInventory_Exception_Configuration
+	 */
+	public function testApiStatusExceptions()
+	{
+		$api = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('addData','getStatus','request'))
+			->getMock();
+
+		$api->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+
+		$api->expects($this->any())
+			->method('request')
+			->will($this->returnValue(''));
+
+		$api->expects($this->any())
+			->method('getStatus')
+			->will($this->returnValue('400'));
+
+		// The allocator has but to call buildAllocationRequestMessage 
+		$allocator = $this->getModelMock('eb2cinventory/allocation', array('_buildAllocationRequestMessage'));
+		$allocator->expects($this->any())
+			->method('_buildAllocationRequestMessage')
+			->will($this->returnValue(''));
+
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array('getShippingAddress'))
+			->getMock();
+		$quote->expects($this->any())
+			->method('getShippingAddres')
+			->will($this->returnValue(true));
+	}
 }
