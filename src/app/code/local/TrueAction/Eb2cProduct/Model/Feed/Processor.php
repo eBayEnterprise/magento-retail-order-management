@@ -593,6 +593,17 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		return $translations;
 	}
+
+	/**
+	 * @param  string  $code         attribute code
+	 * @param  array   $translations mapping of attribute codes to their translations
+	 * @return boolean true iff the default translation for $code exists.
+	 */
+	protected function _hasDefaultTranslation($code, array $translations)
+	{
+		return isset($translations[$code][$this->_defaultLanguageCode]);
+	}
+
 	/**
 	 * Applies default translations, returns an array of what still needs processing
 	 * @return array of attribute_codes => array(languages)
