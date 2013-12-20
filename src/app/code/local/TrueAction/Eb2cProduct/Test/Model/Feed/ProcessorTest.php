@@ -2,6 +2,27 @@
 class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
+	 * verify true is returned when the default translation exists; false otherwise.
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testHasDefaultTranslation($code, $langCode, $expect)
+	{
+		$translations = array(
+			'attr_code' => array(
+				'en-US' => 'this is in english'
+			)
+		);
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->setMethods(array('none'))
+			->disableOriginalConstructor()
+			->getMock();
+		$this->_reflectProperty($testModel, '_defaultLanguageCode')->setValue($testModel, $langCode);
+		$result = $this->_reflectMethod($testModel, '_hasDefaultTranslation')->invoke($testModel, $code, $translations);
+		$this->assertSame($expect, $result);
+	}
+
+	/**
 	 * Test processUpdates method
 	 * @test
 	 */
