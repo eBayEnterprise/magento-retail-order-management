@@ -613,8 +613,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// For our translation-enabled fields, let's assign the default. Once assigned, remove it from
 		// the translations array - so if we have no other languages but the default, we'll be done.
 		foreach (array_keys($translations) as $code) {
-			$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
-			unset($translations[$code][$this->_defaultLanguageCode]);
+			if ($this->_hasDefaultTranslation($code, $translations)) {
+				$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
+				unset($translations[$code][$this->_defaultLanguageCode]);
+			}
 			if (empty($translations[$code])) {
 				unset($translations[$code]);
 			}
