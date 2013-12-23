@@ -1,0 +1,8 @@
+ -
+   - 'frontend'
+   - 'checkout_type_onepage_save_order'
+   - 'processEb2cAllocation'
+ -
+   - 'frontend'
+   - 'eb2c_allocation_onepage_save_order_action_before'
+   - 'processEb2cAllocation'
