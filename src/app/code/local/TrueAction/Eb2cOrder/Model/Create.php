@@ -15,6 +15,8 @@
 class TrueAction_Eb2cOrder_Model_Create
 {
 	const	GENDER_MALE = 1;
+	const ESTIMATED_DELIVERY_DATE_MODE = 'LEGACY';
+	const ESTIMATED_DELIVERY_DATE_MESSAGETYPE = 'NONE';
 	/**
 	 * The Shipping Charge Type recognized by the Exchange Platform for flatrate/order level shipping costs
 	 */
@@ -315,7 +317,27 @@ class TrueAction_Eb2cOrder_Model_Create
 		}
 		// End Duty
 		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
+		$this->_buildEstimatedDeliveryDate($orderItem, $item);
 		$orderItem->createChild('ReservationId', $reservationId);
+	}
+	/**
+	 * build an EstimatedDeliveryDate node.
+	 * @param  TrueAction_Dom_Element      $orderItem
+	 * @param  Mage_Sales_Model_Order_Item $item
+	 * @return self
+	 */
+	protected function _buildEstimatedDeliveryDate(TrueAction_Dom_Element $orderItem, Mage_Sales_Model_Order_Item $item)
+	{
+		$edd = $orderItem->createChild('EstimatedDeliveryDate');
+		$edd->createChild('DeliveryWindow')
+			->addChild('From', $item->getEb2cDeliveryWindowFrom())
+			->addChild('To', $item->getEb2cDeliveryWindowTo());
+		$edd->createChild('ShippingWindow')
+			->addChild('From', $item->getEb2cShippingWindowFrom())
+			->addChild('To', $item->getEb2cShippingWindowTo());
+		$edd->addChild('Mode', self::ESTIMATED_DELIVERY_DATE_MODE)
+			->addChild('MessageType', self::ESTIMATED_DELIVERY_DATE_MESSAGETYPE);
+		return $this;
 	}
 	/**
 	 * Build TaxData nodes for the item
