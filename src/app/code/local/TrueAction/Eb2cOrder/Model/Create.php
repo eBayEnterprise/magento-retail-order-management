@@ -310,8 +310,24 @@ class TrueAction_Eb2cOrder_Model_Create
 		}
 		// End Duty
 		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
+		$this->_buildEstimatedDeliveryDate($orderItem, $item);
 		$orderItem->createChild('ReservationId', $reservationId);
 	}
+
+	/**
+	 * build an EstimatedDeliveryDate node.
+	 * @param  TrueAction_Dom_Element      $orderItem
+	 * @param  Mage_Sales_Model_Order_Item $item
+	 * @return self
+	 */
+	protected function _buildEstimatedDeliveryDate(TrueAction_Dom_Element $orderItem, Mage_Sales_Model_Order_Item $item)
+	{
+		$path = 'EstimatedDeliveryDate/DeliveryWindow';
+		$orderItem->setNode($path . '/From', $item->getShippingWindow()->getFrom())
+			->setNode($path . '/From', $item->getShippingWindow()->getFrom());
+		return $this;
+	}
+
 	/**
 	 * Build TaxData nodes for the item
 	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for tax types.
