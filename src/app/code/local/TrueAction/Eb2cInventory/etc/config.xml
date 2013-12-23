@@ -165,6 +165,15 @@
 					</TrueAction_Eb2cInventory_observer>
 				</observers>
 			</eb2c_allocation_onepage_save_order_action_before>
+			<checkout_type_onepage_save_order>
+				<observers>
+					<TrueAction_Eb2cInventory_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cInventory_Model_Observer</class>
+						<method>processEb2cAllocation</method>
+					</TrueAction_Eb2cInventory_observer>
+				</observers>
+			</checkout_type_onepage_save_order>
 		</events>
 	</frontend>
 	<default>
