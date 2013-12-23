@@ -535,4 +535,54 @@ INVALID_XML;
 			$this->_reflectMethod($testModel, '_getNewOrders')->invoke($testModel)
 		);
 	}
+
+	/**
+	 * verify the delivery window dates are extracted from $item
+	 * verify the dom nodes returned have the correct structure.
+	 * @test
+	 */
+	public function testBuildEstimatedDeliveryDate()
+	{
+		$item = $this->getModelMockBuilder('sales/order_item')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'getEb2cDeliveryWindowFrom',
+				'getEb2cDeliveryWindowTo',
+				'getEb2cShippingWindowFrom',
+				'getEb2cShippingWindowTo',
+			))
+			->getMock();
+		$item->expects($this->once())
+			->method('getEb2cDeliveryWindowFrom')
+			->will($this->returnValue('eb2c_delivery_window_from'));
+		$item->expects($this->once())
+			->method('getEb2cDeliveryWindowTo')
+			->will($this->returnValue('eb2c_delivery_window_to'));
+		$item->expects($this->once())
+			->method('getEb2cShippingWindowFrom')
+			->will($this->returnValue('eb2c_shipping_window_from'));
+		$item->expects($this->once())
+			->method('getEb2cShippingWindowTo')
+			->will($this->returnValue('eb2c_shipping_window_to'));
+
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$orderItem = $doc->addElement('OrderItem')
+			->documentElement;
+
+		$testModel = $this->getModelMockBuilder('eb2corder/create')
+			->disableOriginalConstructor()
+			->setMethods(array('none'));
+			->getMock();
+		$this->_reflectMethod($testModel, '_buildEstimatedDeliveryDate')
+			->invoke($testModel, $orderItem, $item);
+
+		$x = new DomXPath($doc);
+		$this->assertNotEmpty(
+			$x->query(
+				'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
+				$orderItem
+			),
+			'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"] does not exist'
+		);
+	}
 }
