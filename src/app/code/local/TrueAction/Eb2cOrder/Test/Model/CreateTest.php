@@ -571,18 +571,23 @@ INVALID_XML;
 
 		$testModel = $this->getModelMockBuilder('eb2corder/create')
 			->disableOriginalConstructor()
-			->setMethods(array('none'));
+			->setMethods(array('none'))
 			->getMock();
 		$this->_reflectMethod($testModel, '_buildEstimatedDeliveryDate')
 			->invoke($testModel, $orderItem, $item);
 
 		$x = new DomXPath($doc);
-		$this->assertNotEmpty(
-			$x->query(
-				'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
-				$orderItem
-			),
-			'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"] does not exist'
+		$paths = array(
+			'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
+			'EstimatedDeliverDate/DeliveryWindow/To[.="eb2c_delivery_window_to"]',
+			'EstimatedDeliverDate/ShippingWindow/From[.="eb2c_shipping_window_from"]',
+			'EstimatedDeliverDate/ShippingWindow/To[.="eb2c_shipping_window_to"]',
 		);
+		foreach ($paths as $path) {
+			$this->assertNotEmpty(
+				$x->query($path, $orderItem),
+				$path . ' does not exist'
+			);
+		}
 	}
 }
