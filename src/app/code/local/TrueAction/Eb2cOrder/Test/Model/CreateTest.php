@@ -582,14 +582,16 @@ INVALID_XML;
 
 		$x = new DomXPath($doc);
 		$paths = array(
-			'EstimatedDeliverDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
-			'EstimatedDeliverDate/DeliveryWindow/To[.="eb2c_delivery_window_to"]',
-			'EstimatedDeliverDate/ShippingWindow/From[.="eb2c_shipping_window_from"]',
-			'EstimatedDeliverDate/ShippingWindow/To[.="eb2c_shipping_window_to"]',
+			'EstimatedDeliveryDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
+			'EstimatedDeliveryDate/DeliveryWindow/To[.="eb2c_delivery_window_to"]',
+			'EstimatedDeliveryDate/ShippingWindow/From[.="eb2c_shipping_window_from"]',
+			'EstimatedDeliveryDate/ShippingWindow/To[.="eb2c_shipping_window_to"]',
+			'EstimatedDeliveryDate/Mode[.="LEGACY"]',
+			'EstimatedDeliveryDate/MessageType[.="NONE"]',
 		);
 		foreach ($paths as $path) {
-			$this->assertNotEmpty(
-				$x->query($path, $orderItem),
+			$this->assertNotNull(
+				$x->query($path, $orderItem)->item(0),
 				$path . ' does not exist'
 			);
 		}
