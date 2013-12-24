@@ -58,7 +58,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	}
 
 	/**
-	 * an invalid response should return null
+	 * an invalid response should return an empty response_orderitem model.
 	 */
 	public function testGetItemResponseInvalidResponse()
 	{
@@ -73,7 +73,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$address = $this->getModelMock('sales/quote_address');
 		$fn      = $this->_reflectMethod($calc, '_getItemResponse');
 		$val     = $fn->invoke($calc, $item, $address);
-		$this->assertNull($val);
+		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Response_Orderitem', $val);
+		$this->assertEmpty($val->getTaxQuotes());
+		$this->assertEmpty($val->getTaxQuoteDiscounts());
 	}
 
 	public function testGetTax()
