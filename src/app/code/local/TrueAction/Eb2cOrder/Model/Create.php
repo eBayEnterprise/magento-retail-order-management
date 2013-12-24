@@ -324,11 +324,15 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected function _buildEstimatedDeliveryDate(TrueAction_Dom_Element $orderItem, Mage_Sales_Model_Order_Item $item)
 	{
-		$path = 'EstimatedDeliveryDate/DeliveryWindow';
-		$orderItem->setNode($path . '/From', $item->getEb2cDeliveryWindowFrom())
-			->setNode($path . '/To', $item->getEb2cDeliveryWindowTo())
-			->setNode($path . '/From', $item->getEb2cShippingWindowFrom())
-			->setNode($path . '/To', $item->getEb2cShippingWindowTo());
+		$edd = $orderItem->createChild('EstimatedDeliveryDate');
+		$edd->createChild('DeliveryWindow')
+			->addChild('From', $item->getEb2cDeliveryWindowFrom())
+			->addChild('To', $item->getEb2cDeliveryWindowTo());
+		$edd->createChild('ShippingWindow')
+			->addChild('From', $item->getEb2cShippingWindowFrom())
+			->addChild('To', $item->getEb2cShippingWindowTo());
+		$edd->addChild('Mode', self::ESTIMATED_DELIVERY_DATE_MODE)
+			->addChild('MessageType', self::ESTIMATED_DELIVERY_DATE_MESSAGETYPE);
 		return $this;
 	}
 
