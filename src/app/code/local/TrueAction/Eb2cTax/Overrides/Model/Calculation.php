@@ -161,7 +161,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 * return the response data for the specified item.
 	 * @param  Mage_Sales_Model_Quote_Item $item
 	 * @param  Mage_Salse_Model_Quote_Address $address
-	 * @return TrueAction_Eb2cTax_Model_Response_OrderItem | null
+	 * @return TrueAction_Eb2cTax_Model_Response_Orderitem
 	 */
 	protected function _getItemResponse(
 		Mage_Sales_Model_Quote_Item $item=null,
@@ -171,7 +171,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		$response = $this->getTaxResponse();
 		$itemResponse = $response && $response->isValid() ?
 			$response->getResponseForItem($item, $address) :
-			null;
+			Mage::getModel('eb2ctax/response_orderitem');
 		return $itemResponse;
 	}
 
