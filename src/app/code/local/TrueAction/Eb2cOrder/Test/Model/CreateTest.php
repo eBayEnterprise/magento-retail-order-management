@@ -455,7 +455,7 @@ INVALID_XML;
 		$dutyFragment->appendChild($doc->createElement('MockedDutyNodes'));
 		$create = $this->getModelMock(
 			'eb2corder/create',
-			array('_buildTaxDataNodes', 'getItemTaxQuotes', '_buildDuty', '_getItemShippingAmount', '_getShippingChargeType')
+			array('_buildTaxDataNodes', 'getItemTaxQuotes', '_buildDuty', '_getItemShippingAmount', '_getShippingChargeType', '_buildEstimatedDeliveryDate')
 		);
 		$create->expects($this->exactly(2))
 			->method('_buildTaxDataNodes')
@@ -484,6 +484,10 @@ INVALID_XML;
 		$create->expects($this->any())
 			->method('_getItemShippingAmount')
 			->will($this->returnValue(5.00));
+		$create->expects($this->once())
+			->method('_buildEstimatedDeliveryDate')
+			->with($itemElement, $item)
+			->will($this->returnValue(null));
 		$orderProp = $this->_reflectProperty($create, '_o');
 		$orderProp->setValue($create, $order);
 		$buildOrderItemMethod = $this->_reflectMethod($create, '_buildOrderItem');
