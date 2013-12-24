@@ -323,8 +323,10 @@ class TrueAction_Eb2cOrder_Model_Create
 	protected function _buildEstimatedDeliveryDate(TrueAction_Dom_Element $orderItem, Mage_Sales_Model_Order_Item $item)
 	{
 		$path = 'EstimatedDeliveryDate/DeliveryWindow';
-		$orderItem->setNode($path . '/From', $item->getShippingWindow()->getFrom())
-			->setNode($path . '/From', $item->getShippingWindow()->getFrom());
+		$orderItem->setNode($path . '/From', $item->getEb2cDeliveryWindowFrom())
+			->setNode($path . '/To', $item->getEb2cDeliveryWindowTo())
+			->setNode($path . '/From', $item->getEb2cShippingWindowFrom())
+			->setNode($path . '/To', $item->getEb2cShippingWindowTo());
 		return $this;
 	}
 
