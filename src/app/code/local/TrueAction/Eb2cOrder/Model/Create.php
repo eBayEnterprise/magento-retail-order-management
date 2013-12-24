@@ -15,6 +15,8 @@
 class TrueAction_Eb2cOrder_Model_Create
 {
 	const	GENDER_MALE = 1;
+	const ESTIMATED_DELIVERY_DATE_MODE = 'LEGACY';
+	const ESTIMATED_DELIVERY_DATE_MESSAGETYPE = 'NONE';
 	/**
 	 * The Shipping Charge Type recognized by the Exchange Platform for flatrate/order level shipping costs
 	 */
