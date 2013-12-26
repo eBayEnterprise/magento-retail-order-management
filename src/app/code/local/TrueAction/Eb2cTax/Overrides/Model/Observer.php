@@ -70,7 +70,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 
 			$response = Mage::helper('eb2ctax')->sendRequest($request);
 			if ($response->isValid()) {
-				$calc->setTaxResponse($response);
+				$calc->setTaxResponse($response)
+					->setCalculationTrigger(true);
 			} else {
 				Mage::log('[' . __CLASS__ . '] Unsuccessful TaxDutyQuote request: valid request received an invalid response', Zend_Log::WARN);
 			}
