@@ -2,7 +2,7 @@
 /**
  * A Feed Abstraction for implementing feed processors.
  */
-abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Mage_Core_Model_Abstract
+abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 {
 	protected $_coreFeed; // Handles file fetching, moving, listing, etc.
 

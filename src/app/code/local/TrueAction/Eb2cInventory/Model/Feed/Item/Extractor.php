@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Feed_Item_Extractor extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Feed_Item_Extractor
 {
 	/**
 	 * extract item id data into a varien object

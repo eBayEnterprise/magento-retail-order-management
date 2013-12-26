@@ -1,6 +1,6 @@
 <?php
 class TrueAction_Eb2cInventory_Model_Feed_Item_Inventories
-	extends Mage_Core_Model_Abstract
+	extends Varien_Object
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	protected function _construct()
