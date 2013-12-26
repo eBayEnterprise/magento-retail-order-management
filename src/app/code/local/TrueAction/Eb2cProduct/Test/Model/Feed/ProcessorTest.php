@@ -25,6 +25,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$dataArrayObject = new ArrayObject(array(new Varien_Object()));
 		$feedProcessorModelMock->processUpdates($dataArrayObject->getIterator());
 	}
+
 	/**
 	 * Test _logFeedErrorStatistics method
 	 * @test
@@ -51,6 +52,72 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			$this->_reflectProperty($feedProcessorModelMock, '_customAttributeErrors')->getValue($feedProcessorModelMock)
 		);
 	}
+
+	/**
+	 * Test _prepareCustomAttributes method, where custom product type of any case will be recognizeed
+	 * @test
+	 */
+	public function testPrepareCustomAttributes()
+	{
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getDefaultProductAttributeSetId'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('getDefaultProductAttributeSetId')
+			->will($this->returnValue(72));
+
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$outData = $this->getMock('Varien_Object', array('setData'));
+		$outData->expects($this->exactly(4))
+			->method('setData')
+			->with($this->equalTo('product_type')
+			->will($this->returnValue());
+
+		$testData = array(
+			array(
+				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
+				'customAttributes' => array(array(
+					'name' = 'PROdUcTypE',
+					'value' => 'simple'
+				)
+			),
+			array(
+				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
+				'customAttributes' => array(array(
+					'name' = 'pRodUCTTYPE',
+					'value' => 'simple'
+				)
+			),
+			array(
+				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
+				'customAttributes' => array(array(
+					'name' = 'PRODUCTTYPE',
+					'value' => 'simple'
+				)
+			),
+			array(
+				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
+				'customAttributes' => array(array(
+					'name' = 'producttype',
+					'value' => 'simple'
+				)
+			)
+		);
+		foreach ($testData as $data) {
+			$this->assertInstanceOf(
+				$data['expect'],
+				$this->_reflectMethod($feedProcessorModelMock, '_prepareCustomAttributes')->invoke($feedProcessorModelMock, $data['expect'], $outData)
+			);
+		}
+	}
+
 	const VFS_ROOT = 'var/eb2c';
 	/**
 	 * @loadFixture

@@ -297,7 +297,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @param customAttributes the array of custom attributes
 	 * @param outData where to place the prepared attributes
 	 */
-	protected function _prepareCustomAttributes($customAttributes, Varien_Object $outData)
+	protected function _prepareCustomAttributes(array $customAttributes, Varien_Object $outData)
 	{
 		$helper = Mage::helper('eb2cproduct');
 		$attributeSetId = $helper->getDefaultProductAttributeSetId();
@@ -310,7 +310,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$customAttributeSet = $helper->getCustomAttributeCodeSet($attributeSetId);
 		$cookedAttributes = array();
 		foreach ($customAttributes as $customAttribute) {
-			if( $customAttribute['name'] === 'ProductType' ) {
+			if( strtolower($customAttribute['name']) === 'producttype' ) {
 				$outData->setData('product_type', strtolower($customAttribute['value']));
 				continue; // ProductType is specially handled, nothing more to do.
 			}
