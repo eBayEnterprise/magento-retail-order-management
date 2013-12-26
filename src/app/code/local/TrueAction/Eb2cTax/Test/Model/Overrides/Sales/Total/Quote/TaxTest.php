@@ -25,7 +25,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	{
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
 		// @hack
-		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -138,16 +137,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	public function testCalcShippingTaxesSingleItem($scenario)
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
-		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/eb2ctax');
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', $isTaxAppliedAfter))));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue($isTaxAppliedAfter));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$itemSelector = new Varien_Object();
 
@@ -189,15 +186,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$address->expects($this->any())
 			->method('getBaseShippingDiscountAmount')
 			->will($this->returnValue(5));
-
-		// set up the SUT
-		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
-		$calcShippingTaxesMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
-		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
-		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
-		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
-		$this->_reflectProperty($taxModel, '_shippingTaxTotals')->setValue($taxModel, array(15 => 0.0));
-		$this->_reflectProperty($taxModel, '_shippingTaxSubTotals')->setValue($taxModel, array(15 => 0.0));
 
 		$e = $this->expected("{$scenario}-address");
 		// check flags
@@ -246,6 +234,39 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 		$item = $this->_mockSingleItemForCalcTaxForItem($isTaxAppliedAfter);
 		$itemSelector->setData(array('item' => $item, 'address' => $address));
+
+		// set up the SUT
+		$taxModel = $this->getModelMockBuilder('tax/sales_total_quote_tax')
+			->disableOriginalConstructor()
+			->setMethods(array('_processShippingHiddenTax', '_convertAmount'))
+			->getMock();
+		if ($isTaxAppliedAfter) {
+			$taxModel->expects($this->once())
+				->method('_processShippingHiddenTax')
+				->with(
+					$this->identicalTo(0.07),
+					$this->identicalTo($address)
+				)
+				->will($this->returnSelf());
+		}
+		else {
+			$taxModel->expects($this->never())
+				->method('_processShippingHiddenTax');
+		}
+		$taxModel->expects($this->exactly($isTaxAppliedAfter ? 3 : 2))
+			->method('_convertAmount')
+			->with($this->isType('float'))
+			->will($this->returnCallback(function($amt)
+			{
+				return $amt;
+			}));
+		$calcShippingTaxesMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
+		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
+		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
+		$this->_reflectProperty($taxModel, '_store')->setValue($taxModel, Mage::app()->getStore());
+		$this->_reflectProperty($taxModel, '_shippingTaxTotals')->setValue($taxModel, array(15 => 0.0));
+		$this->_reflectProperty($taxModel, '_shippingTaxSubTotals')->setValue($taxModel, array(15 => 0.0));
+
 		$calcShippingTaxesMethod->invoke($taxModel, $itemSelector);
 	}
 
@@ -256,16 +277,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	public function testCalcShippingTaxesMultiItem($scenario)
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
-		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/eb2ctax');
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', $isTaxAppliedAfter))));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->atLeastOnce())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue($isTaxAppliedAfter));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$itemSelectorA = new Varien_Object();
 		$itemSelectorB = new Varien_Object();
@@ -323,7 +342,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$itemSelectors = array($itemSelectorA, $itemSelectorB);
 
 		// set up the SUT
-		$taxModel = Mage::getModel('tax/sales_total_quote_tax');
+		$taxModel = $this->getModelMock('tax/sales_total_quote_tax', array('_convertAmount'));
+		$taxModel->expects($this->any())
+			->method('_convertAmount')
+			->with($this->isType('float'))
+			->will($this->returnCallback(function($amt)
+			{
+				return $amt;
+			}));
 		$calcTaxForItemMethod = $this->_reflectMethod($taxModel, '_calcShippingTaxes');
 		$this->_reflectProperty($taxModel, '_address')->setValue($taxModel, $address);
 		$this->_reflectProperty($taxModel, '_calculator')->setValue($taxModel, $calcMock);
@@ -526,16 +552,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	public function testCalcTaxForItem($scenario)
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
-		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/eb2ctax');
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(array('taxApplyAfterDiscount', $isTaxAppliedAfter))));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->atLeastOnce())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue($isTaxAppliedAfter));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$address = $this->getModelMock('sales/quote_address', array('getId'));
 		$address->expects($this->any())
@@ -772,88 +796,80 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			$this->_mockItem(),
 		);
 
-		$addressMock = $this->_buildModelMock(
-			'sales/quote_address',
-			array(
-				'getId'                 => $this->returnValue(1),
-				'getAllNonNominalItems' => $this->returnValue($items),
-				'getQuote'              => null
-			)
-		);
-
 		$quoteMock = $this->getModelMock('sales/quote', array('getStore'));
 		$quoteMock->expects($this->any())
 			->method('getStore')
 			->will($this->returnValue(Mage::app()->getStore()));
-
-		$addressMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock));
-
-		$this->_mockCalculator();
-		// create the tax model after mocking the calculator so that it gets initialized with the
-		// mock
-		$tax = Mage::getModel('tax/sales_total_quote_tax');
-		$tax->collect($addressMock);
-		// assert the item->getTaxAmount is as expected.
-	}
-
-	public function testCollectChildItem()
-	{
-		Mage::unregister('_helper/eb2ctax');
-		$items = array(
-			$this->_mockChildItem(),
-			$this->_mockItem(),
-			$this->_mockParentItem()
-		);
 
 		$addressMock = $this->_buildModelMock(
 			'sales/quote_address',
 			array(
 				'getId'                 => $this->returnValue(1),
 				'getAllNonNominalItems' => $this->returnValue($items),
-				'getQuote'              => null
+				'getQuote'              => $this->returnValue($quoteMock),
+				'getExtraTaxAmount'     => $this->returnValue(5),
+				'getBaseExtraTaxAmount' => $this->returnValue(6),
 			)
 		);
-
-		$quoteMock = $this->getModelMock('sales/quote', array('getStore'));
-		$quoteMock->expects($this->any())
-			->method('getStore')
-			->will($this->returnValue(Mage::app()->getStore()));
-
-		$addressMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock));
 
 		$this->_mockCalculator();
 		// create the tax model after mocking the calculator so that it gets initialized with the
 		// mock
-		$tax = Mage::getModel('tax/sales_total_quote_tax');
+		$tax = $this->getModelMock('tax/sales_total_quote_tax', array('_calcTaxForAddress', '_roundTotals', '_addAmount', '_addBaseAmount', '_getAddressItems'));
+		$tax->expects($this->once())
+			->method('_getAddressItems')
+			->with($this->identicalTo($addressMock))
+			->will($this->returnValue($items));
+		$tax->expects($this->once())
+			->method('_calcTaxForAddress')
+			->with($this->identicalTo($addressMock))
+			->will($this->returnSelf());
+		$tax->expects($this->once())
+			->method('_roundTotals')
+			->with($this->identicalTo($addressMock))
+			->will($this->returnSelf());
+		$tax->expects($this->once())
+			->method('_addAmount')
+			->with($this->identicalTo(5))
+			->will($this->returnSelf());
+		$tax->expects($this->once())
+			->method('_addBaseAmount')
+			->with($this->identicalTo(6))
+			->will($this->returnSelf());
 		$tax->collect($addressMock);
 		// assert the item->getTaxAmount is as expected.
 	}
 
+	/**
+	 * verify tax calculations are not attempted when there are no items
+	 * @test
+	 */
 	public function testCollectNoItems()
 	{
-		$addressMock = $this->_buildModelMock(
-			'sales/quote_address',
-			array(
-				'getQuote'              => null,
-				'getAllNonNominalItems' => $this->returnValue(array()),
-				'getId'                 => $this->returnValue(1)
-			)
-		);
-
 		$quoteMock = $this->getModelMock('sales/quote', array('getStore', 'getId', 'getItemsCount', 'getBillingAddress', 'getAllVisibleItems'));
 		$quoteMock->expects($this->any())
 			->method('getStore')
 			->will($this->returnValue(Mage::app()->getStore()));
 
-		$addressMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock));
+		$addressMock = $this->_buildModelMock(
+			'sales/quote_address',
+			array(
+				'getQuote'              => $this->returnValue($quoteMock),
+				'getAllNonNominalItems' => $this->returnValue(array()),
+				'getId'                 => $this->returnValue(1)
+			)
+		);
 
-		$tax = Mage::getModel('tax/sales_total_quote_tax');
+		$this->_mockCalculator();
+
+		$tax = $this->getModelMock('tax/sales_total_quote_tax', array('_getAddressItems', '_calcTaxForAddress'));
+		$tax->expects($this->once())
+			->method('_getAddressItems')
+			->with($addressMock)
+			->will($this->returnValue(array()));
+		$tax->expects($this->never())
+			->method('_calcTaxForAddress');
+
 		$tax->collect($addressMock);
 	}
 
@@ -933,11 +949,63 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		$this->assertSame(array('after' => array('discount')), $config);
 	}
 
+	/**
+	 * verify the collect function will terminate without doing anything when the trigger is unset.
+	 * @test
+	 */
+	public function testCollectWithoutTrigger()
+	{
+		// create the tax model after mocking the calculator so that it gets initialized with the
+		// mock
+		$tax = $this->getModelMockBuilder('tax/sales_total_quote_tax')
+			->disableOriginalConstructor()
+			->setMethods(array('_initBeforeCollect', '_getAddressItems'))
+			->getMock();
+		$tax->expects($this->never())
+			->method('_initBeforeCollect');
+		$tax->expects($this->never())
+			->method('_getAddressItems')
+			->will($this->returnValue(array()));
+
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('hasCalculationTrigger'))
+			->getMock();
+		$calc->expects($this->once())
+			->method('hasCalculationTrigger')
+			->will($this->returnValue(false));
+
+		$this->_reflectProperty($tax, '_calculator')
+			->setValue($tax, $calc);
+
+		$quoteMock = $this->getModelMock('sales/quote', array('getStore'));
+		$quoteMock->expects($this->any())
+			->method('getStore')
+			->will($this->returnValue(Mage::app()->getStore()));
+
+		$addressMock = $this->_buildModelMock(
+			'sales/quote_address',
+			array(
+				'setShippingTaxAmount' => $this->returnSelf(),
+				'setAppliedTaxes' => $this->returnSelf(),
+				'getAppliedTaxesReset' => $this->returnValue(true),
+			)
+		);
+		$addressMock->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quoteMock));
+
+
+		$tax->collect($addressMock);
+		// assert the item->getTaxAmount is as expected.
+	}
+
 	protected function _mockCalculator2()
 	{
 		$calcMock = $this->_buildModelMock(
 			'tax/calculation',
 			array(
+				'hasCalculationTrigger' => $this->returnValue(true),
 				'getTax'          => $this->returnValue(8.0),
 				'getTaxForAmount' => $this->returnValue(8.0),
 				'getAppliedRates' => $this->returnValue($this->classicJeansAppliedRatesBefore)
@@ -948,7 +1016,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	protected function _mockCalculator()
 	{
-		$calcMock = $this->getModelMock('tax/calculation', array('getAppliedRates', 'getTax', 'getTaxForAmount'));
+		$calcMock = $this->getModelMock('tax/calculation', array('getAppliedRates', 'getTax', 'getTaxForAmount', 'hasCalculationTrigger'));
+		$calcMock->expects($this->once())
+			->method('hasCalculationTrigger')
+			->will($this->returnValue(true));
 		$calcMock->expects($this->any())
 			->method('getTax')->will($this->returnValue(8.25));
 		$calcMock->expects($this->any())
@@ -973,6 +1044,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			)));
 		$this->replaceByMock('singleton', 'tax/calculation', $calcMock);
 		$this->replaceByMock('model', 'tax/calculation', $calcMock);
+		return $calcMock;
 	}
 
 	protected function _mockParentItem()

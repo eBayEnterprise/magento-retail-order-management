@@ -47,14 +47,14 @@
 			</eb2ctax_setup>
 		</resources>
 		<events>
-			<eb2cinventory_details_process_after>
+			<eb2ctax_subtotal_collect_before>
 				<observers>
 					<tax>
 						<class>tax/observer</class>
-						<method>taxEventSendRequest</method>
+						<method>taxEventSubtotalCollectBefore</method>
 					</tax>
 				</observers>
-			</eb2cinventory_details_process_after>
+			</eb2ctax_subtotal_collect_before>
 			<!-- Disable observers used by the tax module that no longer apply -->
 			<catalog_prepare_price_select>
 				<observers>
@@ -70,15 +70,32 @@
 					</tax>
 				</observers>
 			</catalog_product_collection_load_after>
+			<sales_quote_collect_totals_after>
+				<observers>
+					<eb2ctax_reset_tax_flags>
+						<class>tax/observer</class>
+						<method>cleanupTaxRequestFlags</method>
+					</eb2ctax_reset_tax_flags>
+				</observers>
+			</sales_quote_collect_totals_after>
 		</events>
 		<sales>
 			<quote>
 				<totals>
 					<tax_subtotal>
-						<class>tax/sales_total_quote_subtotal</class>
-						<after>freeshipping,discount</after>
+ 						<class>tax/sales_total_quote_subtotal</class>
+						<after>discount</after>
+						<before>tax_shipping</before>
+ 					</tax_subtotal>
+					<tax_shipping>
+						<class>tax/sales_total_quote_shipping</class>
+						<after>tax_subtotal</after>
 						<before>tax</before>
-					</tax_subtotal>
+					</tax_shipping>
+					<tax>
+						<after>tax_shipping</after>
+						<before>grand_total</before>
+					</tax>
 				</totals>
 			</quote>
 		</sales>

@@ -155,6 +155,19 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest
 	 */
 	public function testDoExpressCheckout($quote)
 	{
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->setMethods(array('addData', 'request'))
+			->getMock();
+
+		$apiModelMock->expects($this->any())
+			->method('addData')
+			->will($this->returnSelf());
+		$apiModelMock->expects($this->any())
+			->method('request')
+			->will($this->throwException(new Zend_Http_Client_Exception));
+
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+
 		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
 			->setMethods(array('getEb2cPaypalToken', 'getEb2cPaypalPayerId'))
 			->getMock();
@@ -184,11 +197,11 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_Express_CheckoutTest
 	public function testDoExpressCheckoutWithException($quote)
 	{
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->setMethods(array('setUri', 'request'))
+			->setMethods(array('addData', 'request'))
 			->getMock();
 
 		$apiModelMock->expects($this->any())
-			->method('setUri')
+			->method('addData')
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')

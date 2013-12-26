@@ -86,27 +86,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
-	 * make sure the exceptions don't kill the function.
-	 */
-	public function testProcessQuoteAddressException()
-	{
-		for ($i = 1; $i < 3; ++$i) {
-			$quote = $this->_stubMultiShipNotSameAsBill();
-			$request = $this->getModelMock('eb2ctax/request', array(
-				'getQuote',
-				'_extractDestData',
-			));
-			$request->expects($this->any())
-				->method('getQuote')
-				->will($this->returnValue($quote));
-			$request->expects($this->at($i))
-				->method('_extractDestData')
-				->will($this->throwException(new Mage_Core_Exception('address fail')));
-			$this->_reflectMethod($request, '_processQuote')->invoke($request);
-		}
-	}
-
-	/**
 	 * verify extracted data causes an exception when required fields have incorrect length
 	 * @dataProvider dataProvider
 	 */
@@ -1461,57 +1440,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		return $quote;
 	}
 
-	public function providerTestConstructor()
-	{
-		return array(
-			array(true),
-			array(false),
-		);
-	}
-
-	/**
-	 * Test the _construct method. When the model has a valid quote, it should process
-	 * it. When it doesn't, it shouldn't do much of anything but default to non-multishipping.
-	 * @param  [type] $usableQuote Is the request's quote usable
-	 * @test
-	 * @dataProvider providerTestConstructor
-	 */
-	public function testConstructor($usableQuote)
-	{
-		$quote = $this->getModelMock('sales/quote', array('getStore'));
-		$quote->expects($this->any())
-			->method('getStore')
-			->will($this->returnValue($this->_stubStore('test-store', 23)));
-		$request = $this->getModelMockBuilder('eb2ctax/request')
-			->disableOriginalConstructor()
-			->setMethods(array('getQuote', 'setIsMultiShipping', '_isQuoteUsable', '_processQuote'))
-			->getMock();
-		$request->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quote));
-		$request->expects($this->once())
-			->method('setIsMultishipping')
-			->with($this->identicalTo(0))
-			->will($this->returnSelf());
-		$request->expects($this->once())
-			->method('_isQuoteUsable')
-			->with($this->identicalTo($quote))
-			->will($this->returnValue($usableQuote));
-
-		// if the quote is usable, _processQuote should be called exactly once, otherwise, never
-		$processTimes = $usableQuote ? $this->once() : $this->never();
-		$request->expects($processTimes)->method('_processQuote');
-
-		$constructor = $this->_reflectMethod($request, '_construct');
-		$constructor->invoke($request);
-
-		// when the model is constructed with a usable quote, it should also store the
-		// store id of the quote in the object's _storeId property
-		$quoteStoreId = $usableQuote ? 23 : null;
-		$storeIdProp = $this->_reflectProperty($request, '_storeId');
-		$this->assertSame($quoteStoreId, $storeIdProp->getValue($request));
-	}
-
 	/**
 	 * @dataProvider getItemTaxClassProvider
 	 * @loadExpectation
@@ -1526,240 +1454,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$val = $this->_reflectMethod($request, '_getItemTaxClass')->invoke($request, $item);
 		$e = $this->expected($expectation);
 		$this->assertSame($e->getTaxCode(), $val);
-	}
-
-	/**
-	 * verify the request generates xml that passes xsd validation.
-	 * @test
-	 * @large
-	 * @loadFixture loadAdminOriginConfig.yaml
-	 */
-	public function testValidateWithXsd()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubSingleShipSameAsBill();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$this->assertTrue($request->isValid());
-		$doc = $request->getDocument();
-		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testValidateWithXsdVirtual()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubSingleShipVirtual();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$this->assertTrue($request->isValid());
-		$doc = $request->getDocument();
-		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testValidateWithXsdMultiShip()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubMultiShipNotSameAsBill();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$itemQuantities = $this->_reflectProperty($request, '_itemQuantities')->getValue($request);
-		$this->assertSame(count($itemQuantities), $quote->getItemsCount());
-
-		$this->assertTrue($request->isValid());
-		$doc = $request->getDocument();
-		$this->assertTrue($doc->schemaValidate(self::$xsdFile));
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testMultishipping()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubMultiShipNotSameAsBill();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$doc = $request->getDocument();
-		$x = new DOMXPath($doc);
-
-		$this->assertNotNull($doc->documentElement);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$this->assertNotNull($doc->documentElement->namespaceURI);
-		// there should be 3 mailing address nodes;
-		// 1 for the billing address; 2 for the shipping addresses
-		$doc->formatOutput = true;
-		$this->assertSame(1, $x->query('//a:Destinations/a:MailingAddress[@id = "_11"]')->length);
-		$this->assertSame(3, $x->query('//a:Destinations/*')->length);
-		// ensure the billing information references a destination
-		$billingRef = $x->evaluate('string(//a:BillingInformation/@ref)');
-		$el = $doc->getElementById($billingRef);
-		$this->assertSame(
-			$el,
-			$x->query("//a:Destinations/a:MailingAddress[@id='$billingRef']")->item(0)
-		);
-		// there should be only 2 shipgroups 1 for each
-		// shipping address.
-		$ls = $x->query('//a:ShipGroup');
-		$this->assertSame(2, $ls->length);
-		// make sure each shipgroup references a mailingaddress node.
-		foreach ($ls as $sg) {
-			$destRef = $x->evaluate('string(/a:DestinationTarget/@ref)');
-			$el = $doc->getElementById($destRef);
-			$this->assertSame(
-				$el,
-				$x->query("//a:Destinations/a:MailingAddress[@id='$destRef']")->item(0)
-			);
-		}
-		$ls = $x->query('//a:OrderItem');
-		$this->assertSame(2, $ls->length);
-		$expected = array('5' => '2', '6' => '1');
-		$id = $x->evaluate('string(./@lineNumber)', $ls->item(0));
-		$this->assertSame($expected[$id], $x->evaluate('string(./a:Quantity)', $ls->item(0)));
-		$id = $x->evaluate('string(./@lineNumber)', $ls->item(1));
-		$this->assertSame($expected[$id], $x->evaluate('string(./a:Quantity)', $ls->item(1)));
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testVirtualPhysicalMix()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubSingleShipSameAsBillVirtualMix();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$doc = $request->getDocument();
-		// billing address
-		$nodeA = $doc->getElementById('_1');
-		$this->assertNotNull($nodeA);
-		$this->assertSame('MailingAddress', $nodeA->tagName);
-		// email address for the virtual item
-		$node = $doc->getElementById('_2_virtual');
-		$this->assertNotNull($node);
-		$this->assertSame('Email', $node->tagName);
-		// shipping address which should be same as billing address.
-		$nodeB = $doc->getElementById('_2');
-		$this->assertNotNull($nodeB);
-		$this->assertSame('MailingAddress', $nodeB->tagName);
-
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$this->assertSame(
-			$x->evaluate('string(./a:PersonName/a:LastName)', $nodeA),
-			$x->evaluate('string(./a:PersonName/a:LastName)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:PersonName/a:FirstName)', $nodeA),
-			$x->evaluate('string(./a:PersonName/a:FirstName)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:Address/a:Line1)', $nodeA),
-			$x->evaluate('string(./a:Address/a:Line1)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:Address/a:City)', $nodeA),
-			$x->evaluate('string(./a:Address/a:City)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:Address/a:MainDivision)', $nodeA),
-			$x->evaluate('string(./a:Address/a:MainDivision)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:Address/a:CountryCode)', $nodeA),
-			$x->evaluate('string(./a:Address/a:CountryCode)', $nodeB)
-		);
-		$this->assertSame(
-			$x->evaluate('string(./a:Address/a:PostalCode)', $nodeA),
-			$x->evaluate('string(./a:Address/a:PostalCode)', $nodeB)
-		);
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testWithNoSku()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubQuoteWithSku(null);
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$doc = $request->getDocument();
-		$this->assertFalse($request->isValid());
-
-		$quote = $this->_stubQuoteWithSku('');
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$doc = $request->getDocument();
-		$this->assertFalse($request->isValid());
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testCheckSkuWithLongSku()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote   = $this->_stubQuoteWithSku('123456789012345678901');
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$doc = $request->getDocument();
-		$this->assertNotNull($doc->documentElement);
-		$x = new DOMXPath($doc);
-		$x->registerNamespace('a', $doc->documentElement->namespaceURI);
-		// the sku should be truncated at 20 characters so the original sku
-		// should not be found.
-		$ls = $x->query('//a:OrderItem/a:ItemId[.="123456789012345678901"]');
-		$this->assertSame(0, $ls->length);
-
-		$ls = $x->query('//a:OrderItem/a:ItemId[.="12345678901234567890"]');
-		// the sku should be truncated at 20 characters
-		$this->assertSame(1, $ls->length);
 	}
 
 	/**
@@ -1822,16 +1516,16 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$fn = $this->_reflectMethod($request, '_extractItemDiscountData');
 		$mockQuote = $this->getModelMock('sales/quote', array('getAppliedRuleIds'));
 		$request->setQuote($mockQuote);
-		$mockQuoteAddress = $this->getModelMock('sales/quote_address', array('getShippingDiscountAmount', 'getCouponCode'));
+		$mockQuoteAddress = $this->getModelMock('sales/quote_address', array('getBaseShippingDiscountAmount', 'getCouponCode'));
 		$mockQuoteAddress->expects($this->any())
 			->method('getCouponCode')
 			->will($this->returnValue('somecouponcode'));
 		$mockQuoteAddress->expects($this->any())
-			->method('getShippingDiscountAmount')
+			->method('getBaseShippingDiscountAmount')
 			->will($this->returnValue(3));
-		$mockItem = $this->getModelMock('sales/quote_item', array('getDiscountAmount'));
+		$mockItem = $this->getModelMock('sales/quote_item', array('getBaseDiscountAmount'));
 		$mockItem->expects($this->any())
-			->method('getDiscountAmount')
+			->method('getBaseDiscountAmount')
 			->will($this->returnValue(5));
 		$mockItem->expects($this->any())
 			->method('getAppliedRuleIds')
@@ -1855,73 +1549,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->assertSame('_somecouponcode', $outData['shipping_discount_code']);
 		$this->assertSame(3, $outData['shipping_discount_amount']);
 		$this->assertSame(false, $outData['shipping_discount_calc_duty']);
-	}
-
-	/**
-	 * @test
-	 * @large
-	 */
-	public function testGetRateRequest()
-	{
-		$this->markTestSkipped('Integration test');
-		$quote = $this->_stubSingleShipSameAsBillVirtualMix();
-		$request = Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
-		$helper = $this->getHelperMock('tax/data', array('getNamespaceUri'));
-		$helper->expects($this->atLeastOnce())
-			->method('getNamespaceUri')
-			->will($this->returnValue(self::$namespaceUri));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$doc = $request->getDocument();
-		$xpath = new DOMXPath($doc);
-		$xpath->registerNamespace('a', $doc->documentElement->namespaceURI);
-		$val = $xpath->evaluate('string(/a:TaxDutyQuoteRequest/a:Currency)');
-		$this->assertSame('USD', $val);
-		$val = $xpath->evaluate('string(/a:TaxDutyQuoteRequest/a:VATInclusivePricing)');
-		$this->assertSame('0', $val);
-		$val = $xpath->evaluate('string(/a:TaxDutyQuoteRequest/a:CustomerTaxId)');
-		$this->assertSame('', $val);
-		$val = $xpath->evaluate('string(/a:TaxDutyQuoteRequest/a:BillingInformation/@ref)');
-		$this->assertSame('_1', $val);
-		$parent = $xpath->query('/a:TaxDutyQuoteRequest/a:Shipping/a:Destinations/a:MailingAddress')->item(0);
-		$this->assertSame('_1', $parent->getAttribute('id'));
-
-		// check the PersonName
-		$val = $xpath->evaluate('string(a:PersonName/a:LastName)', $parent);
-		$this->assertSame('guy', $val);
-		$val = $xpath->evaluate('string(a:PersonName/a:FirstName)', $parent);
-		$this->assertSame('test', $val);
-		$node = $xpath->evaluate('a:PersonName/a:Honorific', $parent)->item(0);
-		$this->assertNull($node);
-		$node = $xpath->evaluate('a:PersonName/a:MiddleName', $parent)->item(0);
-		$this->assertNull($node);
-
-		// verify the AddressNode
-		$val = $xpath->evaluate('string(a:Address/a:Line1)', $parent);
-		$this->assertSame('1 Rosedale St', $val);
-		// the other street lines should not exist since there was no data
-		$node = $xpath->evaluate('a:Address/a:Line2', $parent)->item(0);
-		$this->assertNull($node);
-		$node = $xpath->evaluate('a:Address/a:Line3', $parent)->item(0);
-		$this->assertNull($node);
-		$node = $xpath->evaluate('a:Address/a:Line4', $parent)->item(0);
-		$this->assertNull($node);
-
-		$val = $xpath->evaluate('string(a:Address/a:City)', $parent);
-		$this->assertSame('Baltimore', $val);
-		$val = $xpath->evaluate('string(a:Address/a:MainDivision)', $parent);
-		$this->assertSame('MD', $val);
-		$val = $xpath->evaluate('string(a:Address/a:CountryCode)', $parent);
-		$this->assertSame('US', $val);
-		$val = $xpath->evaluate('string(a:Address/a:PostalCode)', $parent);
-		$this->assertSame('21229', $val);
-
-		// verify the email address
-		$parent = $xpath->evaluate('/a:TaxDutyQuoteRequest/a:Shipping/a:Destinations')->item(0);
-		$val = $xpath->evaluate('string(a:Email/@id)', $parent);
-		$this->assertSame('_2_virtual', $val);
-		$val = $xpath->evaluate('string(a:Email/a:EmailAddress)', $parent);
-		$this->assertSame('foo@example.com', $val);
 	}
 
 	/**
@@ -2162,4 +1789,260 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$this->assertSame($items[1], $itemsForAddress[0]);
 	}
 
+	/**
+	 * verify item data is extracted properly
+	 * @param  bool $isVirtual   true if the item is virtual; false otherwise
+	 * @param  bool $hasShipFrom true if the item has the ship from address; false otherwise
+	 * @test
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testExtractItemData($isVirtual, $hasShipFrom)
+	{
+		$product = $this->buildModelStub('catalog/product', array(
+			'isVirtual' => $isVirtual
+		));
+
+		$item = $this->buildModelStub('sales/quote_item', array(
+			'getId' => 1,
+			'getSku' => 'the_sku',
+			'getName' => 'the item',
+			'getHtsCode' => 'hts code',
+			'getQty' => 1,
+			'getBaseRowTotal' => 50.0,
+			'getProduct' => $product,
+		));
+
+		$address = $this->buildModelStub('sales/quote_address', array(
+			'getBaseShippingAmount' => 5.0,
+		));
+
+		$request = $this->buildModelMock('eb2ctax/request', array(
+			'_getItemOriginalPrice',
+			'_getItemTaxClass',
+			'_getShippingTaxClass',
+			'_extractAdminData',
+			'_extractShippingData',
+			'_extractItemDiscountData',
+		));
+
+		$request->expects($this->once())
+			->method('_getItemOriginalPrice')
+			->with($this->identicalTo($item))
+			->will($this->returnValue(51.0));
+		$request->expects($this->once())
+			->method('_getItemTaxClass')
+			->with($this->identicalTo($item))
+			->will($this->returnValue('tax class'));
+		$request->expects($this->once())
+			->method('_getShippingTaxClass')
+			->will($this->returnValue('shipping tax class'));
+		$request->expects($this->once())
+			->method('_extractAdminData')
+			->will($this->returnValue('the admin data'));
+		$request->expects($this->once())
+			->method('_extractItemDiscountData')
+			->with(
+				$this->identicalTo($item),
+				$this->identicalTo($address),
+				$this->isType('array')
+			)
+			->will($this->returnArgument(2));
+		if ($hasShipFrom && !$isVirtual) {
+			$request->expects($this->once())
+				->method('_extractShippingData')
+				->will($this->returnValue('ship from data'));
+		}
+		elseif (!$hasShipFrom && !$isVirtual) {
+			$request->expects($this->once())
+				->method('_extractShippingData')
+				->with($this->identicalTo($item))
+				->will($this->throwException(new Mage_Core_Exception('shipfrom data missing')));
+		}
+		else {
+			$request->expects($this->never())
+				->method('_extractShippingData');
+		}
+		$result = $this->_reflectMethod($request, '_extractItemData')
+			->invoke($request, $item, $address);
+		$e = $this->expected('test-%s-%s', $isVirtual, $hasShipFrom);
+		$this->assertEquals($e->getResult(), $result);
+	}
+
+	/**
+	 * verify the processaddress function makes calls with the correct argument types.
+	 * @test
+	 */
+	public function testProcessAddress()
+	{
+		$store = $this->buildModelStub('core/store', array('getId' => 99), null);
+		$billingAddress = $this->buildModelStub('sales/quote_address', array());
+		$quote = $this->buildModelStub(
+			'sales/quote',
+			array(
+				'getStore' => $store,
+				'getBillingAddress' => $billingAddress,
+				'getQuoteCurrencyCode' => 'USD',
+				'getItemsCount' => 1,
+			),
+			null
+		);
+		$item = $this->_stubQuoteItem();
+		$address = $this->buildModelStub('sales/quote_address', array('getQuote' => $quote));
+
+		$request = $this->buildModelMock('eb2ctax/request', array(
+			'_isQuoteUsable',
+			'_extractDestData',
+			'_getItemsForAddress',
+			'_addBillingDestination',
+			'setQuoteCurrencyCode',
+			'_processItem',
+		));
+		$request->expects($this->once())
+			->method('_addBillingDestination')
+			->with($this->identicalTo($billingAddress));
+		$request->expects($this->once())
+			->method('setQuoteCurrencyCode')
+			->with($this->identicalTo('USD'))
+			->will($this->returnSelf());
+		$request->expects($this->once())
+			->method('_getItemsForAddress')
+			->with($this->identicalTo($address))
+			->will($this->returnValue(array($item)));
+		$request->expects($this->once())
+			->method('_isQuoteUsable')
+			->with($this->identicalTo($quote))
+			->will($this->returnValue(true));
+		$request->expects($this->atLeastOnce())
+			->method('_processItem')
+			->with(
+				$this->isInstanceOf('Mage_Sales_Model_Quote_Item_Abstract'),
+				$this->isInstanceOf('Mage_Sales_Model_Quote_Address')
+			);
+		$request->processAddress($address);
+		$this->assertSame(99, $this->_reflectProperty($request, '_storeId')->getValue($request));
+		$this->assertTrue($request->isValid());
+	}
+
+	public function testProcessAddressInvalid()
+	{
+		$quote = $this->_stubMultiShipNotSameAsBill();
+		$addressGetter = 'getShippingAddress';
+		$scenario = 'shipping-address';
+		$address = $quote->$addressGetter();
+
+		$request = $this->buildModelMock('eb2ctax/request', array(
+			'_isQuoteUsable',
+		));
+		$request->expects($this->once())
+			->method('_isQuoteUsable')
+			->will($this->returnValue(false));
+		$request->processAddress($address);
+		$this->assertFalse($request->isValid());
+	}
+	/**
+	 * Test processing an item - e.g. adding the item to a destination based on the
+	 * address the item belongs to. When ginen an item with calculated child items,
+	 * the method should iterate through the child items and process each one. When
+	 * given an item without children, the method should add that item to a destination group.
+	 * @test
+	 */
+	public function testProcessItem()
+	{
+		$parentItem = $this->getModelMock(
+			'sales/quote_item',
+			array('getHasChildren', 'isChildrenCalculated', 'getChildren')
+		);
+		$child = $this->getModelMock('sales/quote_item', array('getHasChildren', 'getProduct'));
+		$address = $this->getModelMock('sales/quote_address');
+		$product = $this->getModelMock('catalog/product', array('isVirtual'));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(array('_addToDestination'))
+			->getMock();
+
+		$parentItem
+			->expects($this->once())
+			->method('getHasChildren')
+			->will($this->returnValue(true));
+		$parentItem
+			->expects($this->once())
+			->method('isChildrenCalculated')
+			->will($this->returnValue(true));
+		$parentItem
+			->expects($this->once())
+			->method('getChildren')
+			->will($this->returnValue(array($child)));
+		$child
+			->expects($this->once())
+			->method('getHasChildren')
+			->will($this->returnValue(false));
+		$child
+			->expects($this->once())
+			->method('getProduct')
+			->will($this->returnValue($product));
+		$product
+			->expects($this->once())
+			->method('isVirtual')
+			->will($this->returnValue(false));
+		$request
+			->expects($this->once())
+			->method('_addToDestination')
+			->with($this->identicalTo($child), $this->identicalTo($address), $this->identicalTo(false));
+
+		$method = $this->_reflectMethod($request, '_processItem');
+		$this->assertSame($request, $method->invoke($request, $parentItem, $address));
+	}
+	/**
+	 * verify the billing destination gets properly extracted
+	 * @test
+	 */
+	public function testAddBillingDestination()
+	{
+		$address = $this->buildModelStub('sales/quote_address', array(
+			'getTaxId' => 'taxid',
+		));
+		$request = $this->buildModelMock('eb2ctax/request', array(
+			'setBillingAddressTaxId',
+			'_getDestinationId',
+			'_extractDestData'
+		));
+		$request->expects($this->once())
+			->method('setBillingAddressTaxId')
+			->with($this->identicalTo('taxid'))
+			->will($this->returnSelf());
+		$request->expects($this->once())
+			->method('_getDestinationId')
+			->with($this->identicalTo($address))
+			->will($this->returnValue('destinationid'));
+		$request->expects($this->once())
+			->method('_extractDestData')
+			->with($this->identicalTo($address))
+			->will($this->returnValue(array('destination data')));
+
+		$this->_reflectMethod($request, '_addBillingDestination')->invoke($request, $address);
+		$this->assertSame('destinationid', $this->_reflectProperty($request, '_billingInfoRef')->getValue($request));
+		$destinations = $this->_reflectProperty($request, '_destinations')->getValue($request);
+		$this->assertSame(array('destinationid' => array('destination data')), $destinations);
+	}
+
+	public function testAddBillingDestinationException()
+	{
+		$address = $this->buildModelStub('sales/quote_address', array(
+			'getTaxId' => 'taxid',
+		));
+		$request = $this->buildModelMock('eb2ctax/request', array(
+			'setBillingAddressTaxId',
+			'_getDestinationId',
+			'_extractDestData'
+		));
+		$request->expects($this->any())
+			->method('_getDestinationId')
+			->will($this->returnValue('destinationid'));
+		$request->expects($this->once())
+			->method('_extractDestData')
+			->will($this->throwException(new Mage_Core_Exception('test exception')));
+		$this->setExpectedException('Mage_Core_Exception', 'Unable to extract the billing address: ');
+		$this->_reflectMethod($request, '_addBillingDestination')->invoke($request, $address);
+	}
 }

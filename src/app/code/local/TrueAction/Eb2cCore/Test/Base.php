@@ -117,17 +117,15 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		return $p;
 	}
 
+	/**
+	 * @deprecated use buildModelStub instead
+	 * @param  string $alias           model alias
+	 * @param  array  $methodActions   mapping of method name to a value or PHPUnit_Framework_MockObject_Stub
+	 * @return object                  mock object with specified methods mocked under the 'any' invokation constraint.
+	 */
 	protected function _buildModelMock($alias, array $methods)
 	{
-		$mock = $this->getModelMock($alias, array_keys($methods));
-		foreach ($methods as $name => $will) {
-			if (!is_null($will)) {
-				$mock->expects($this->any())
-					->method($name)
-					->will($will);
-			}
-		}
-		return $mock;
+		return $this->buildModelStub($alias, $methods);
 	}
 
 	/**

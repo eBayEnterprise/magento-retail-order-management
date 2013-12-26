@@ -1,30 +1,7 @@
 <?php
-class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_ObserverTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
-	protected $_observer;
-
-	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-
-		$this->_observer = Mage::getModel('eb2cinventory/observer');
-
-		$cartMock = $this->getModelMockBuilder('checkout/cart', array('getCheckoutSession', 'addNotice'))
-			->disableOriginalConstructor()
-			->getMock();
-		$cartMock->expects($this->any())
-			->method('getCheckoutSession')
-			->will($this->returnSelf());
-		$cartMock->expects($this->any())
-			->method('addNotice')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'checkout/cart', $cartMock);
-	}
-
 	/**
 	 * verify the observer is configured to listen for necessary events.
 	 * @test
@@ -39,406 +16,261 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 			$method
 		);
 	}
-
-	public function providerCheckEb2cInventoryQuantity()
+	/**
+	 * Mock a Varien_Event_Observer with a Varien_Event with a 'getQuote' method
+	 * that will return the given quote
+	 * @param  Mage_Sales_Model_Quote $quote Quote the Varien_Event contains
+	 * @return Mock_Varien_Event_Observer Mocked Varien_Event_Observer wrapping a mocked Varien_Event wrapping the quote object
+	 */
+	protected function _mockObserverWithQuote(Mage_Sales_Model_Quote $quote)
 	{
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('collectTotals', 'save', 'deleteItem')
-		);
-		$quoteMock->expects($this->any())
-			->method('collectTotals')
-			->will($this->returnValue(1)
-			);
-		$quoteMock->expects($this->any())
-			->method('save')
-			->will($this->returnValue(1)
-			);
-		$quoteMock->expects($this->any())
-			->method('deleteItem')
-			->will($this->returnValue(1)
-			);
-
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getId', 'getQty', 'setQty', 'getProductId', 'getSku', 'getQuote')
-		);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('setQty')
-			->will($this->returnSelf()
-			);
-		$itemMock->expects($this->any())
-			->method('getQty')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getProductId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('SKU-1234')
-			);
-		$itemMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock)
-			);
-		$itemMock->expects($this->any())
-			->method('setQty')
-			->will($this->returnSelf()
-			);
-
-		$eventMock = $this->getMock(
-			'Varien_Event',
-			array('getItem')
-		);
-		$eventMock->expects($this->any())
-			->method('getItem')
-			->will($this->returnValue($itemMock));
-
-		$observerMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent')
-		);
-		$observerMock->expects($this->any())
+		$event = $this->getMock('Varien_Event', array('getQuote'));
+		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
+		$observer
+			->expects($this->any())
 			->method('getEvent')
-			->will($this->returnValue($eventMock));
-		return array(
-			array($observerMock)
-		);
-	}
-
-	/**
-	 * testing when eb2c quantity check is out of stock
-	 *
-	 * @test
-	 * @expectedException Mage_Core_Exception
-	 * @dataProvider providerCheckEb2cInventoryQuantity
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCheckEb2cInventoryQuantityOutOfStock($observer)
-	{
-		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
-			->disableOriginalConstructor()
-			->setMethods(array('requestQuantity'))
-			->getMock();
-		$quantityMock->expects($this->any())
-			->method('requestQuantity')
-			->will($this->returnValue(0));
-
-		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-
-		$this->_observer->checkEb2cInventoryQuantity($observer);
-	}
-
-	/**
-	 * verify Mage_Core_Exception is thrown when requestQantity raises the cart_interrupt exception.
-	 * @test
-	 * @dataProvider providerCheckEb2cInventoryQuantity
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCheckEb2cInventoryExceptionInterruptsCart($observer)
-	{
-		$this->setExpectedException('Mage_Core_Exception', 'TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message');
-		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
-			->disableOriginalConstructor()
-			->setMethods(array('requestQuantity'))
-			->getMock();
-		$quantityMock->expects($this->any())
-			->method('requestQuantity')
-			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart_Interrupt()));
-
-		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-
-		$this->_observer->checkEb2cInventoryQuantity($observer);
-	}
-
-	/**
-	 * verify the cart operation is unimpeded when the cart exception is thrown.
-	 * @test
-	 * @dataProvider providerCheckEb2cInventoryQuantity
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCheckEb2cInventoryExceptionNotInterruptCart($observer)
-	{
-		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
-			->disableOriginalConstructor()
-			->setMethods(array('requestQuantity'))
-			->getMock();
-		$quantityMock->expects($this->any())
-			->method('requestQuantity')
-			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart()));
-
-		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-		$itemMock = $observer->getEvent()->getItem();
-		$itemMock->expects($this->any())
-			->method('setQty')
-			->will($this->throwException(new Mage_Core_Exception('this is a failure')));
-
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-
-		$this->_observer->checkEb2cInventoryQuantity($observer);
-	}
-
-	/**
-	 * testing when eb2c quantity check is less than what shopper requested
-	 *
-	 * @test
-	 * @medium
-	 * @dataProvider providerCheckEb2cInventoryQuantity
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCheckEb2cInventoryQuantityLessThanRequested($observer)
-	{
-		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
-			->disableOriginalConstructor()
-			->setMethods(array('requestQuantity'))
-			->getMock();
-		$quantityMock->expects($this->any())
-			->method('requestQuantity')
-			->will($this->returnValue(0.5));
-
-		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-		$itemMock = $observer->getEvent()->getItem();
-		$itemMock->expects($this->any())
-			->method('setQty')
-			->with($this->identicalTo(0.5))
-			->will($this->returnSelf());
-
-		$this->_observer->checkEb2cInventoryQuantity($observer);
-	}
-
-	/**
-	 * testing when eb2c quantity check is less than what shopper requested
-	 *
-	 * @test
-	 * @medium
-	 * @dataProvider providerCheckEb2cInventoryQuantity
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCheckEb2cInventoryQuantityRollbackExistingAllocation($observer)
-	{
-		// testing when available stock is less, than what shopper requested.
-		$quantityMock = $this->getModelMockBuilder('eb2cinventory/quantity')
-			->disableOriginalConstructor()
-			->setMethods(array('requestQuantity'))
-			->getMock();
-		$quantityMock->expects($this->any())
-			->method('requestQuantity')
-			->will($this->returnValue(1));
-
-		$this->replaceByMock('model', 'eb2cinventory/quantity', $quantityMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-
-		$this->assertNull(
-			$this->_observer->checkEb2cInventoryQuantity($observer)
-		);
-	}
-
-	public function providerProcessInventoryDetails()
-	{
-		$addressMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
-		);
-		$addressMock->expects($this->any())
-			->method('getShippingMethod')
-			->will($this->returnValue('USPS: 3 Day Select')
-			);
-		$addressMock->expects($this->any())
-			->method('getStreet')
-			->will($this->returnValue(array('1938 Some Street'))
-			);
-		$addressMock->expects($this->any())
-			->method('getCity')
-			->will($this->returnValue('King of Prussia')
-			);
-		$addressMock->expects($this->any())
-			->method('getRegion')
-			->will($this->returnValue('Pennsylvania')
-			);
-		$addressMock->expects($this->any())
-			->method('getCountryId')
-			->will($this->returnValue('US')
-			);
-		$addressMock->expects($this->any())
-			->method('getPostcode')
-			->will($this->returnValue('19726')
-			);
-
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku')
-		);
-
-		$addressMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-
-		$itemMock->expects($this->any())
-			->method('getQty')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('SKU-1234')
-			);
-
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems', 'getShippingAddress', 'getItemById')
-		);
-		$quoteMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAddress')
-			->will($this->returnValue($addressMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('getItemById')
-			->will($this->returnValue($itemMock)
-			);
-		$eventMock = $this->getMock(
-			'Varien_Event',
-			array('getQuote')
-		);
-		$eventMock->expects($this->any())
+			->will($this->returnValue($event));
+		$event
+			->expects($this->any())
 			->method('getQuote')
-			->will($this->returnValue($quoteMock));
-
-		$observerMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent')
-		);
-		$observerMock->expects($this->any())
-			->method('getEvent')
-			->will($this->returnValue($eventMock));
-		return array(
-			array($observerMock)
-		);
+			->will($this->returnValue($quote));
+		return $observer;
 	}
-
-	/**
-	 * testing inventory detail observer
-	 *
-	 * @test
-	 * @dataProvider providerProcessInventoryDetails
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testProcessInventoryDetails($observer)
+	public function providerCheckInventoryQuantity()
 	{
-		$detailsMock = $this->getModelMockBuilder('eb2cinventory/details')
-			->disableOriginalConstructor()
-			->setMethods(array('getInventoryDetails', 'parseResponse', 'processInventoryDetails'))
-			->getMock();
-		$detailsMock->expects($this->any())
-			->method('getInventoryDetails')
-			->will($this->returnValue('<foo></foo>'));
-		$detailsMock->expects($this->any())
-			->method('parseResponse')
-			->will($this->returnValue(array()));
-		$detailsMock->expects($this->any())
-			->method('processInventoryDetails')
-			->will($this->returnSelf());
-
-		$this->replaceByMock('model', 'eb2cinventory/details', $detailsMock);
-
-		$this->assertNull(
-			$this->_observer->processInventoryDetails($observer)
+		return array(
+			//    updateQty updateDetails
+			array(true,     true,),
+			array(false,    true,),
+			array(false,    false,),
 		);
 	}
+	/**
+	 * When a quote's items quantities have changed, inventory quantities and details should
+	 * be updated. Test provider should run through all necessary scenarios, providing the expected
+	 * changes to the quote, a PHPUnit_Framework_MockObject_Matcher_InvokedCount for how many times
+	 * the update quanaity method should be called, a PHPUnit_Framework_MockObject_Matcher_InvokedCount
+	 * for the number of times details should be updated, and whether or not the check should result
+	 * in the add to/update cart process should be blocked.
+	 * @param boolean $isQtyUpdated     Should inventory quantity be checked
+	 * @param boolean $isDetailsUpdated Should inventory details be updated
+	 * @test
+	 * @dataProvider providerCheckInventoryQuantity
+	 */
+	public function testCheckInventory($isQtyUpdated, $isDetailsUpdated)
+	{
+		$quote = $this->getModelMock('sales/quote');
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('isQuantityUpdateRequired', 'isDetailsUpdateRequired'))
+			->getMock();
+		$helper = $this->getHelperMock(
+			'eb2cinventory/quote',
+			array('rollbackAllocation')
+		);
+		$observer = $this->getModelMock(
+			'eb2cinventory/observer',
+			array('_initInventoryCheck', '_updateQuantity', '_updateDetails')
+		);
 
+		$this->replaceByMock('helper', 'eb2cinventory/quote', $helper);
+		$this->replaceByMock('model', 'eb2ccore/session', $session);
+
+		$session
+			->expects($this->any())
+			->method('isQuantityUpdateRequired')
+			->will($this->returnValue($isQtyUpdated));
+		$session
+			->expects($this->any())
+			->method('isDetailsUpdateRequired')
+			->will($this->returnValue($isDetailsUpdated));
+
+		// if quantity or details are being checked/updated, rollback any existing allocations
+		// as something has changed so the allocation would no longer be any good
+		if ($isQtyUpdated || $isDetailsUpdated) {
+			$helper
+				->expects($this->once())
+				->method('rollbackAllocation')
+				->with($this->identicalTo($quote))
+				->will($this->returnSelf());
+		} else {
+			$helper
+				->expects($this->never())
+				->method('rollbackAllocation');
+		}
+
+		if ($isQtyUpdated) {
+			$observer
+				->expects($this->once())
+				->method('_updateQuantity')
+				->with($this->identicalTo($quote))
+				->will($this->returnSelf());
+		} else {
+			$observer
+				->expects($this->never())
+				->method('_updateQuantity');
+		}
+		if ($isDetailsUpdated) {
+			$observer
+				->expects($this->once())
+				->method('_updateDetails')
+				->with($this->identicalTo($quote))
+				->will($this->returnSelf());
+		} else {
+			$observer
+				->expects($this->never())
+				->method('_updateDetails');
+		}
+
+		$this->assertSame($observer, $observer->checkInventory($this->_mockObserverWithQuote($quote)));
+	}
+	/**
+	 * Data provider for the testUpdateQuantity test. Providers the expected response
+	 * from the inventory service - simulate a non-empty and an empty respnose.
+	 * @return array Args array containing a string to simulate a non-empty or empty response.
+	 */
+	public function providerUpdateResponse()
+	{
+		return array(array('<MockResponse/>'), array(''));
+	}
+	/**
+	 * Test updating a quote with a quantity request. Method should make the request and update the
+	 * quote via the observer's _makeRequestAndUpdate method, passing along the request object,
+	 * quote and changes in the quote. If the service call returned a usable response, the session
+	 * data for quote quantities should be updated.
+	 * @param  string $response Response from the inventory quantity service.
+	 * @test
+	 * @dataProvider providerUpdateResponse
+	 */
+	public function testUpdateQuantity($response)
+	{
+		$quote = $this->getModelMock('sales/quote');
+		$qtyRequest = $this->getModelMock('eb2cinventory/quantity');
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('updateQuoteInventory', 'resetQuantityUpdateRequired'))
+			->getMock();
+		$observer = $this->getModelMock('eb2cinventory/observer', array('_makeRequestAndUpdate'));
+
+		$this->replaceByMock('model', 'eb2cinventory/quantity', $qtyRequest);
+		$this->replaceByMock('model', 'eb2ccore/session', $session);
+
+		$observer
+			->expects($this->once())
+			->method('_makeRequestAndUpdate')
+			->with($this->identicalTo($qtyRequest), $this->identicalTo($quote))
+			->will($this->returnValue($response));
+
+		// when the service response is not empty, update session data
+		if ($response) {
+			$session
+				->expects($this->once())
+				->method('updateQuoteInventory')
+				->with($this->identicalTo($quote))
+				->will($this->returnSelf());
+			$session
+				->expects($this->once())
+				->method('resetQuantityUpdateRequired')
+				->will($this->returnSelf());
+		} else {
+			$session->expects($this->never())->method('updateQuoteInventory');
+			$session->expects($this->never())->method('resetQuantityUpdateRequired');
+		}
+
+		$method = $this->_reflectMethod($observer, '_updateQuantity');
+		$this->assertSame($observer, $method->invoke($observer, $quote));
+	}
+	/**
+	 * Test updating a quote with a inventory details request. Method should make the request and update
+	 * the quote via the observer's _makeRequestAndUpdate method, passing along the request object,
+	 * quote and changes to the quote. If the service returns a usable response, the session data
+	 * for quantities and details should be updated.
+	 * @param  string $response Response from inventory service
+	 * @test
+	 * @dataProvider providerUpdateResponse
+	 */
+	public function testUpdateDetails($response)
+	{
+		$quote = $this->getModelMock('sales/quote');
+		$dtsRequest = $this->getModelMock('eb2cinventory/details');
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('updateQuoteInventory', 'resetDetailsUpdateRequired'))
+			->getMock();
+		$observer = $this->getModelMock('eb2cinventory/observer', array('_makeRequestAndUpdate'));
+
+		$this->replaceByMock('model', 'eb2cinventory/details', $dtsRequest);
+		$this->replaceByMock('model', 'eb2ccore/session', $session);
+
+		$observer
+			->expects($this->once())
+			->method('_makeRequestAndUpdate')
+			->with($this->identicalTo($dtsRequest), $this->identicalTo($quote))
+			->will($this->returnValue($response));
+
+		// when the service response is not empty, update session data
+		if ($response) {
+			$session
+				->expects($this->once())
+				->method('updateQuoteInventory')
+				->with($this->identicalTo($quote))
+				->will($this->returnSelf());
+			$session
+				->expects($this->once())
+				->method('resetDetailsUpdateRequired')
+				->will($this->returnSelf());
+		} else {
+			$session->expects($this->never())->method('updateQuoteInventory');
+			$session->expects($this->never())->method('resetDetailsUpdateRequired');
+		}
+
+		$method = $this->_reflectMethod($observer, '_updateDetails');
+		$this->assertSame($observer, $method->invoke($observer, $quote));
+	}
+	public function providerMakeRequestAndUpdate()
+	{
+		return array(
+			array(new TrueAction_Eb2cInventory_Exception_Cart, null),
+			array(new TrueAction_Eb2cInventory_Exception_Cart_Interrupt, null),
+			array(null, '<MockResponse/>'),
+		);
+	}
+	/**
+	 * Test the abstract method for making an inventory service request and updating
+	 * the quote with the results. Method should handle catching inventory exceptions
+	 * thrown while making the request, this may result in flagging the observer to
+	 * interrupt the cart add/update.
+	 * @param  TrueAction_Eb2cInventory_Exception_Cart|TrueAction_Eb2cInventory_Exception_Cart_Interrupt|null $exception Exception to throw from makeRequestForQuote or null of no exception
+	 * @param  string|null $response Response expected from the inventory service
+	 * @test
+	 * @dataProvider providerMakeRequestAndUpdate
+	 */
+	public function testMakeRequestAndUpdate($exception, $response)
+	{
+		$observer = Mage::getModel('eb2cinventory/observer');
+		$quote = $this->getModelMock('sales/quote');
+		$quoteDiff = array('skus' => array('45-123' => 4), 'shipping' => array(array('method' => 'flatrate')));
+		$request = $this->getModelMock(
+			'eb2cinventory/request_interface',
+			array('makeRequestForQuote', 'updateQuoteWithResponse')
+		);
+		$request
+			->expects($this->once())
+			->method('makeRequestForQuote')
+			->with($this->identicalTo($quote))
+			->will(is_null($exception) ? $this->returnValue($response) : $this->throwException($exception));
+		$request
+			->expects($this->once())
+			->method('updateQuoteWithResponse')
+			->with($this->identicalTo($quote), $this->identicalTo($response));
+
+		$method = $this->_reflectMethod($observer, '_makeRequestAndUpdate');
+		$this->assertSame($response , $method->invoke($observer, $request, $quote, $quoteDiff));
+	}
+	/**
+	 * Data provider for testing allocation methods.
+	 * @return array Args array containing Varien_Event_Observer passed to the allocation observer method
+	 */
 	public function providerProcessEb2cAllocation()
 	{
 		$addressMock = $this->getModelMock(
@@ -572,7 +404,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
-			$this->_observer->processEb2cAllocation($observer)
+			Mage::getModel('eb2cinventory/observer')->processEb2cAllocation($observer)
 		);
 	}
 
@@ -615,7 +447,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
 
 		$this->assertNull(
-			$this->_observer->processEb2cAllocation($observer)
+			Mage::getModel('eb2cinventory/observer')->processEb2cAllocation($observer)
 		);
 	}
 
@@ -641,150 +473,4 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		Mage::getModel('eb2cinventory/observer')->processEb2cAllocation($observer);
 	}
 
-	public function providerRollbackOnRemoveItemInReservedCart()
-	{
-		$addressMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Address',
-			array('getShippingMethod', 'getStreet', 'getCity', 'getRegion', 'getCountryId', 'getPostcode', 'getAllItems')
-		);
-		$addressMock->expects($this->any())
-			->method('getShippingMethod')
-			->will($this->returnValue('USPS: 3 Day Select')
-			);
-		$addressMock->expects($this->any())
-			->method('getStreet')
-			->will($this->returnValue(array('1938 Some Street'))
-			);
-		$addressMock->expects($this->any())
-			->method('getCity')
-			->will($this->returnValue('King of Prussia')
-			);
-		$addressMock->expects($this->any())
-			->method('getRegion')
-			->will($this->returnValue('Pennsylvania')
-			);
-		$addressMock->expects($this->any())
-			->method('getCountryId')
-			->will($this->returnValue('US')
-			);
-		$addressMock->expects($this->any())
-			->method('getPostcode')
-			->will($this->returnValue('19726')
-			);
-
-		$itemMock = $this->getMock(
-			'Mage_Sales_Model_Quote_Item',
-			array('getQty', 'getId', 'getSku', 'save', 'getQuote')
-		);
-
-		$addressMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-
-		$itemMock->expects($this->any())
-			->method('getQty')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$itemMock->expects($this->any())
-			->method('getSku')
-			->will($this->returnValue('SKU-1234')
-			);
-		$itemMock->expects($this->any())
-			->method('save')
-			->will($this->returnValue(1)
-			);
-
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getAllItems', 'getShippingAddress', 'getItemById', 'getAllAddresses')
-		);
-
-		$itemMock->expects($this->any())
-			->method('getQuote')
-			->will($this->returnValue($quoteMock)
-			);
-
-		$quoteMock->expects($this->any())
-			->method('getAllItems')
-			->will($this->returnValue(array($itemMock))
-			);
-		$quoteMock->expects($this->any())
-			->method('getShippingAddress')
-			->will($this->returnValue($addressMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('getItemById')
-			->will($this->returnValue($itemMock)
-			);
-		$quoteMock->expects($this->any())
-			->method('getAllAddresses')
-			->will($this->returnValue(array($quoteMock))
-			);
-		$eventMock = $this->getMock(
-			'Varien_Event',
-			array('getQuoteItem')
-		);
-		$eventMock->expects($this->any())
-			->method('getQuoteItem')
-			->will($this->returnValue($itemMock));
-
-		$observerMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent')
-		);
-		$observerMock->expects($this->any())
-			->method('getEvent')
-			->will($this->returnValue($eventMock));
-		return array(
-			array($observerMock)
-		);
-	}
-
-	/**
-	 * testing processing rolling back allocation on delete observer
-	 *
-	 * @test
-	 * @dataProvider providerRollbackOnRemoveItemInReservedCart
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testRollbackOnRemoveItemInReservedCart($observer)
-	{
-		$apiModelMock = $this->getMock(
-			'TrueAction_Eb2cCore_Model_Api',
-			array('setUri', 'request')
-		);
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will(
-				$this->returnValue('')
-			);
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$allocationMock = $this->getModelMockBuilder('eb2cinventory/allocation', array('hasAllocation', 'rollbackAllocation', 'filterInventoriedItems'))
-			->disableOriginalConstructor()
-			->getMock();
-		$allocationMock->expects($this->any())
-			->method('hasAllocation')
-			->will($this->returnValue(true));
-		$allocationMock->expects($this->any())
-			->method('rollbackAllocation')
-			->will($this->returnValue(null));
-		$allocationMock->expects($this->any())
-			->method('filterInventoriedItems')
-			->will($this->returnValue(true));
-
-		$this->replaceByMock('model', 'eb2cinventory/allocation', $allocationMock);
-
-		$this->assertNull(
-			$this->_observer->rollbackOnRemoveItemInReservedCart($observer)
-		);
-	}
 }

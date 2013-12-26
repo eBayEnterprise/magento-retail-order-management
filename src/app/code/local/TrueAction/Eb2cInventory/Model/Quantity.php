@@ -1,94 +1,36 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Quantity
+	extends TrueAction_Eb2cInventory_Model_Request_Abstract
+	implements TrueAction_Eb2cInventory_Model_Request_Interface
 {
 	/**
-	 * Get the stock value for a product added to the cart from eb2c.
-	 * @param int $qty the customer requested quantity
-	 * @param int $itemId quote itemId in the shopping cart
-	 * @param string $sku product sku for the added item
-	 * @return int the eb2c available stock for the item; null if the item should be added unimpeded.
+	 * @see TrueAction_Eb2cInventory_Model_Request_Abstract
+	 * @var string Key used by the eb2cinventory/data helper to identify the URI for this request
 	 */
-	public function requestQuantity($qty, $itemId, $sku)
-	{
-		$availableQty = null; // this is to simulate out of stock response from eb2c
-		if ($qty > 0) {
-			$responseMessage = '';
-			// build request
-			$requestDoc = $this->buildQuantityRequestMessage(array(array('id' => $itemId, 'sku' => $sku)));
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-			try {
-				$api = Mage::getModel('eb2ccore/api');
-				// make request to eb2c for quantity
-				$responseMessage = $api
-					->addData(array(
-						'uri' => Mage::helper('eb2cinventory')->getOperationUri('check_quantity'),
-						'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileQuantity,
-					))
-					->request($requestDoc);
-				if ($responseMessage === '') {
-					// if we got an empty response back something went wrong
-					// so check the http status to see if we should block or not
-					if (is_null($api->getStatus())) {
-						throw new TrueAction_Eb2cInventory_Exception_Cart(
-							'inventory quantity request received an empty response with no status code.'
-						);
-					} elseif ($this->_isBlockingStatus($api->getStatus())) {
-						throw new TrueAction_Eb2cInventory_Exception_Cart_Interrupt(
-							'disruptive status [' . $api->getStatus() . '] returned from inventory quantity request.'
-						);
-					} else {
-						throw new TrueAction_Eb2cInventory_Exception_Cart(
-							'status [' . $api->getStatus() . '] returned from inventory quantity request.'
-						);
-					}
-				} else {
-					// get available stock from response XML
-					$availableStock = $this->getAvailableStockFromResponse($responseMessage);
-					$availableQty = isset($availableStock[$sku]) ? $availableStock[$sku] : 0;
-				}
-			} catch(Zend_Http_Client_Adapter_Exception $e) {
-				throw new TrueAction_Eb2cInventory_Exception_Cart(
-					'inventory quantity request client error: ' . $e->getMessage()
-				);
-			} catch(Zend_Http_Client_Exception $e) {
-				throw new TrueAction_Eb2cInventory_Exception_Cart_Interrupt(
-					'inventory quantity request client error: ' . $e->getMessage()
-				);
-			}
-		}
-		return $availableQty;
-	}
+	const OPERATION_KEY = 'check_quantity';
+	/**
+	 * @see TrueAction_Eb2cInventory_Model_Request_Abstract
+	 * @var string Config key used to identify the xsd file used to validate the request message
+	 */
+	const XSD_FILE_CONFIG = 'xsd_file_quantity';
 
 	/**
-	 * determine if the status should prevent adding an item to the cart.
-	 * @param  int  $status    http status code from the api response.
-	 * @return boolean         true if the item should not be added to the cart; false otherwise.
-	 */
-	protected function _isBlockingStatus($status)
-	{
-		$status = (int) $status;
-		return $status && ($status >= 400 && $status < 408) ||
-			($status >= 409 && $status < 500) ||
-			$status === 505;
-	}
-
-	/**
-	 * Build quantity request.
-	 * @param array $items The array containing quote item id and product sku
+	 * Build quantity request message DOM Document
+	 * @param Mage_Sales_Model_Quote $quote Quote the request is for
 	 * @return DOMDocument The XML document, to be sent as request to eb2c
 	 */
-	public function buildQuantityRequestMessage(array $items)
+	protected function _buildRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$quantityRequestMessage = $domDocument->addElement('QuantityRequestMessage', null, Mage::helper('eb2cinventory')->getXmlNs())->firstChild;
-		foreach ($items as $item) {
-			if (isset($item['id']) && isset($item['sku'])) {
-				$quantityRequestMessage->createChild('QuantityRequest', null, array('lineId' => 'item' . $item['id'], 'itemId' => $item['sku']));
+		foreach (Mage::helper('eb2cinventory')->getInventoriedItems($quote->getAllVisibleItems()) as $idx => $item) {
+			// just make sure the item has a sku, don't use getId as that field may not exist yet (new quote/item)
+			if ($item->getSku()) {
+				$quantityRequestMessage->createChild('QuantityRequest', null, array('lineId' => 'item' . $idx, 'itemId' => $item->getSku()));
 			}
 		}
 		return $domDocument;
 	}
-
 	/**
 	 * Parse through XML response to get eb2c available stock for an item.
 	 * @param string $quantityResponseMessage the XML response from eb2c
@@ -99,16 +41,36 @@ class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_M
 		$availableStock = array();
 		if (trim($quantityResponseMessage) !== '') {
 			$coreHlpr = Mage::helper('eb2ccore');
-			$doc = $coreHlpr ->getNewDomDocument();
-			// load response string xml from eb2c
-			$doc->loadXML($quantityResponseMessage);
-			$xpath = new DOMXPath($doc);
-			$xpath->registerNamespace('a', Mage::helper('eb2cinventory')->getXmlNs());
+			$xpath = Mage::helper('eb2cinventory/quote')->getXpathForMessage($quantityResponseMessage);
 			$quantities = $xpath->query('//a:QuantityResponse');
 			foreach ($quantities as $quantity) {
 				$availableStock[$quantity->getAttribute('itemId')] = (int) $coreHlpr->extractNodeVal($xpath->query('a:Quantity', $quantity));
 			}
 		}
 		return $availableStock;
+	}
+	/**
+	 * Update the quote with a response from the service
+	 * @param  Mage_Sales_Model_Quote $quote           The quote object to update.
+	 * @param  string                 $responseMessage Response from the Quantity service.
+	 * @return TrueAction_Eb2cInventory_Model_Quantity $this object
+	 */
+	public function updateQuoteWithResponse(Mage_Sales_Model_Quote $quote, $responseMessage)
+	{
+		if ($responseMessage) {
+			$availableStock = $this->getAvailableStockFromResponse($responseMessage);
+			// loop through all items in the quote, not filtered to inventoried as it won't
+			// be necessary as non-inventoried items won't be in the response and will not get updated
+			foreach ($quote->getAllItems() as $item) {
+				if (isset($availableStock[$item->getSku()])) {
+					if ($availableStock[$item->getSku()] === 0) {
+						Mage::helper('eb2cinventory/quote')->removeItemFromQuote($quote, $item);
+					} elseif ($availableStock[$item->getSku()] < $item->getQty()) {
+						Mage::helper('eb2cinventory/quote')->updateQuoteItemQuantity($quote, $item, $availableStock[$item->getSku()]);
+					}
+				}
+			}
+		}
+		return $this;
 	}
 }

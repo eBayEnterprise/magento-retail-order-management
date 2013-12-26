@@ -22,8 +22,8 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected $_appliedDiscountIds = array();
 	protected $_shipGroupIds       = array();
 	protected $_addresses          = array();
-	protected $_itemQuantities     = array();
 
+	protected $_isValid            = false;
 	/**
 	 * map skus to a quote item
 	 * @var array('string' => Mage_Sales_Model_Quote_Item_Abstract)
@@ -31,60 +31,12 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected $_skuItemMap = array();
 
 	/**
-	 * generate the request DOMDocument on construction.
-	 * Expected values in constructor args array
-	 * * quote_id - ID of the quote this request is for
-	 */
-	protected function _construct()
-	{
-		$quote = $this->getQuote();
-		$this->setIsMultiShipping(0);
-		if ($this->_isQuoteUsable($quote)) {
-			$this->_storeId = $quote->getStore()->getId();
-			$this->_processQuote();
-		}
-	}
-
-	/**
-	 * @return  Mage_Sales_Model_Quote Quote object the tax request is for.
-	 */
-	public function getQuote()
-	{
-		return $this->getQuoteId() !== null ? Mage::getModel('sales/quote')->load($this->getQuoteId()): null;
-	}
-
-	/**
-	 * @return  Mage_Sales_Model_Quote_Address Billing addres for the quote
-	 */
-	public function getBillingAddress()
-	{
-		$quote = $this->getQuote();
-		if ($quote) {
-			return $quote->getBillingAddress();
-		}
-		return null;
-	}
-
-	/**
-	 * @return  Mage_Sales_Model_Quote_Address Shipping addres for the quote
-	 */
-	public function getShippingAddress()
-	{
-		$quote = $this->getQuote();
-		if ($quote) {
-			return $quote->getShippingAddress();
-		}
-		return null;
-	}
-
-	/**
 	 * Determine if the request object has enough data to work with.
 	 * @return boolean
 	 */
 	public function isValid()
 	{
-		return $this->_isQuoteUsable($this->getQuote()) &&
-			(int) $this->getQuote()->getItemsCount() === count($this->_itemQuantities);
+		return $this->_isValid;
 	}
 
 	/**
@@ -101,59 +53,69 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 				$this->_buildTaxDutyRequest();
 			}
 		}
-		// @codeCoverageIgnoreStart
 		return $this->_doc;
-		// @codeCoverageIgnoreEnd
 	}
 
-	protected function _processQuote()
+	protected function _addBillingDestination($address)
+	{
+		$this->setBillingAddressTaxId($address->getTaxId());
+		$this->_billingInfoRef = $this->_getDestinationId($address);
+		try {
+			$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
+				$address
+			);
+		} catch (Mage_Core_Exception $e) {
+			$message = 'Unable to extract the billing address: ' . $e->getMessage();
+			throw new Mage_Core_Exception($message);
+		}
+	}
+	/**
+	 * Process an item or, if the item has children that are calculated,
+	 * the item's children. Processing an item really only consists of
+	 * adding the item to a destination grouping based on the address the item
+	 * ships to.
+	 * @param  Mage_Sales_Model_Quote_Item $item The item to process
+	 * @param  Mage_Sales_Model_Quote_Addres $address The address the item ships to
+	 * @return TrueAction_Eb2cTax_Model_Request $this object
+	 */
+	public function _processItem($item, $address)
+	{
+		if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+			foreach ($item->getChildren() as $child) {
+				$this->_processItem($child, $address);
+			}
+		} else {
+			$this->_addToDestination($item, $address, $item->getProduct()->isVirtual());
+		}
+		return $this;
+	}
+
+	public function processAddress(Mage_Sales_Model_Quote_Address $address=null)
 	{
 		try {
-			$quote = $this->getQuote();
+			$quote = $address ? $address->getQuote() : null;
+			$isQuoteUsable = $this->_isQuoteUsable($quote);
+			if (!$isQuoteUsable) {
+				$this->_isValid = false;
+				return $this;
+			}
+
+			$this->_storeId = $quote->getStore()->getId();
+			$this->setQuoteCurrencyCode($quote->getQuoteCurrencyCode());
+
 			// track if this is a multishipping quote or not.
 			$this->_isMultiShipping = (bool) $quote->getIsMultiShipping();
 			// create the billing address destination node(s)
 			$billAddress = $quote->getBillingAddress();
-			$this->_billingInfoRef = $this->_getDestinationId($billAddress);
-			try {
-				$this->_destinations[$this->_billingInfoRef] = $this->_extractDestData(
-					$billAddress
-				);
-			} catch (Mage_Core_Exception $e) {
-				$message = 'Unable to extract billing address: ' . $e->getMessage();
-				throw new Mage_Core_Exception($message);
+			$this->_addBillingDestination($billAddress);
+
+			$items = $this->_getItemsForAddress($address);
+			foreach ($items as $item) {
+				$this->_processItem($item, $address);
 			}
-			foreach ($quote->getAllAddresses() as $address) {
-				try {
-					// keep a serialized copy of each address for use when looking for changes.
-					$this->_addresses[$address->getId()] = serialize($this->_extractDestData($address));
-				} catch (Mage_Core_Exception $e) {
-					$message = 'Unable to extract shipping address: ' . $e->getMessage();
-					throw new Mage_Core_Exception($message);
-				}
-				$items = $this->_getItemsForAddress($address);
-				foreach ($items as $item) {
-					if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-						foreach ($item->getChildren() as $child) {
-							$isVirtual = $child->getProduct()->isVirtual();
-							$this->_addToDestination($child, $address, $isVirtual);
-							$sku = $child->getSku();
-							if (!isset($this->_itemQuantities[$sku])) {
-								$this->_itemQuantities[$sku] = 0;
-							}
-							$this->_itemQuantities[$sku] += $child->getTotalQty();
-						}
-					} else {
-						$isVirtual = $item->getProduct()->isVirtual();
-						$this->_addToDestination($item, $address, $isVirtual);
-						$sku = $item->getSku();
-						if (!isset($this->_itemQuantities[$sku])) {
-							$this->_itemQuantities[$sku] = 0;
-						}
-						$this->_itemQuantities[$sku] += $item->getTotalQty();
-					}
-				}
-			}
+			// Consider the request as being valid if nothign has thrown an exception
+			// as any previous validation errors would have thrown an exception.
+			$this->_isValid = true;
 		}
 		catch (Exception $e) {
 			$message = sprintf(
@@ -162,7 +124,9 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 				$e->getMessage()
 			);
 			Mage::log($message, Zend_Log::WARN);
+			$this->_isValid = false;
 		}
+		return $this;
 	}
 
 	/**
@@ -283,15 +247,15 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected function _extractDestData($address, $isVirtual=false)
 	{
 		$id = $this->_getDestinationId($address, $isVirtual);
-		if ($address->getSameAsBilling() && !$this->_isMultiShipping) {
-			$address = $this->getBillingAddress();
-		}
 		$data = array(
 			'id' => $id,
 			'is_virtual' => $isVirtual,
 			'last_name'  => $this->_checkLength($address->getLastname(), 1, 64),
 			'first_name' => $this->_checkLength($address->getFirstname(), 1, 64),
 		);
+		if ($address->getSameAsBilling() && !$this->_isMultiShipping) {
+			$data = array_merge($this->_destinations[$this->_billingInfoRef], $data);
+		}
 		$honorific = $address->getPrefix();
 		if ($honorific) {
 			$data['honorific'] = $honorific;
@@ -348,26 +312,43 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 		return $this;
 	}
 
-	protected function _extractItemData($item, $address)
+	/**
+	 * extract data necessary to build an orderitem node
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
+	 * @param  Mage_Sales_Model_Quote_Address       $address
+	 * @return array extracted item data
+	 */
+	protected function _extractItemData(Mage_Sales_Model_Quote_Item_Abstract $item, Mage_Sales_Model_Quote_Address $address)
 	{
 		$data = array(
 			'id' => $item->getId(),
-			'line_number' => $this->_getLineNumber($item),
+			'line_number' => count($this->_orderItems),
 			'item_id' => $item->getSku(),
 			'item_desc' => $item->getName(),
 			'hts_code' => $item->getHtsCode(),
 			'quantity' => $item->getQty(),
 			// @todo this needs to be the right value when the item is a child
-			'merchandise_amount' => Mage::app()->getStore()->roundPrice($item->getRowTotal()),
+			'merchandise_amount' => Mage::app()->getStore()->roundPrice($item->getBaseRowTotal()),
 			// @todo this needs to be the right value when the item is a child
 			'merchandise_unit_price' => Mage::app()->getStore()->roundPrice($this->_getItemOriginalPrice($item)),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
-			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getShippingAmount()),
+			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getBaseShippingAmount()),
 			'shipping_tax_class' => $this->_getShippingTaxClass(),
 			'AdminOrigin' => $this->_extractAdminData(),
-			'ShippingOrigin' => $this->_extractShippingData($item),
 		);
 		$data = $this->_extractItemDiscountData($item, $address, $data);
+
+		if (!$item->getProduct()->isVirtual()) {
+			try {
+				$data['ShippingOrigin'] = $this->_extractShippingData($item);
+			}
+			catch (Mage_Core_Exception $e) {
+				$data['ShippingOrigin'] = $data['AdminOrigin'];
+			}
+		}
+		else {
+			$data['ShippingOrigin'] = $data['AdminOrigin'];
+		}
 		return $data;
 	}
 
@@ -450,9 +431,9 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			$this->_doc->addElement('TaxDutyQuoteRequest', null, $this->_namespaceUri);
 			$tdRequest          = $this->_doc->documentElement;
 			$billingInformation = $tdRequest
-				->addChild('Currency', $this->getQuote()->getQuoteCurrencyCode())
+				->addChild('Currency', $this->getQuoteCurrencyCode())
 				->addChild('VATInclusivePricing', (int) $helper->getVatInclusivePricingFlag($this->_storeId))
-				->addChild('CustomerTaxId', $this->_checkLength($this->getBillingAddress()->getTaxId(), 0, 40))
+				->addChild('CustomerTaxId', $this->_checkLength($this->getBillingAddressTaxId(), 0, 40))
 				->createChild('BillingInformation');
 			$billingInformation->setAttribute('ref', $this->_billingInfoRef);
 			$shipping = $tdRequest->createChild('Shipping');
@@ -494,7 +475,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			foreach($itemList as $orderItemSku) {
 				$orderItemId = $destinationId . '_' . $orderItemSku;
 				$orderItem = $this->_orderItems[$orderItemId];
-				$this->_addOrderItem($orderItem, $orderItems);
+				$this->_buildOrderItem($orderItem, $orderItems);
 			}
 			$shipGroup->appendChild($orderItemsFragment);
 
@@ -628,7 +609,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	 * @param TrueAction_Dom_Element         $parent
 	 * @param Mage_Sales_Model_Quote_Address $address
 	 */
-	protected function _addOrderItem(array $item, TrueAction_Dom_Element $parent)
+	protected function _buildOrderItem(array $item, TrueAction_Dom_Element $parent)
 	{
 		$sku = $this->_checkSku($item);
 		$orderItem = $parent->createChild('OrderItem')
@@ -646,7 +627,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 
 		$unitPriceNode = $orderItem->createChild('Pricing')
 			->createChild('Merchandise')
-			->addChild('Amount', Mage::app()->getStore()->roundPrice($item['merchandise_amount']))
+			->addChild('Amount', Mage::app()->getStore()->roundPrice($item['merchandise_amount'] - $item['merchandise_discount_amount']))
 			->createChild('UnitPrice', Mage::app()->getStore()->roundPrice($item['merchandise_unit_price']));
 
 		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
@@ -654,16 +635,6 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			$taxClassNode = $parent->ownerDocument->createElementNs($parent->namespaceURI, 'TaxClass', $taxClass);
 			$unitPriceNode->parentNode->insertBefore($taxClassNode, $unitPriceNode);
 		}
-	}
-
-	/**
-	 * get an item's position in the order
-	 * @param array $item
-	 * @return int
-	 */
-	protected function _getLineNumber($item)
-	{
-		return $item->getId();
 	}
 
 	/**
@@ -681,18 +652,14 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	{
 		$discountCode = $this->_getDiscountCode($address);
 		$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
-		if ($item->getDiscountAmount()) {
-			$outData['merchandise_discount_code']      = $discountCode;
-			$outData['merchandise_discount_amount']    = $item->getDiscountAmount();
-			$outData['merchandise_discount_calc_duty'] = $isDutyCalcNeeded;
-		}
+		$outData['merchandise_discount_code']      = $discountCode;
+		$outData['merchandise_discount_amount']    = $item->getBaseDiscountAmount();
+		$outData['merchandise_discount_calc_duty'] = $isDutyCalcNeeded;
 
-		if ($address->getShippingDiscountAmount()){
-			$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
-			$outData['shipping_discount_code']      = $discountCode;
-			$outData['shipping_discount_amount']    = $address->getShippingDiscountAmount();
-			$outData['shipping_discount_calc_duty'] = $isDutyCalcNeeded;
-		}
+		$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
+		$outData['shipping_discount_code']      = $discountCode;
+		$outData['shipping_discount_amount']    = $address->getBaseShippingDiscountAmount();
+		$outData['shipping_discount_calc_duty'] = $isDutyCalcNeeded;
 		return $outData;
 	}
 
@@ -816,7 +783,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected function _buildShippingOriginNode(TrueAction_Dom_Element $parent, array $shippingOrigin)
 	{
 		return $parent->createChild('ShippingOrigin')
-			->addChild('Line1', $shippingOrigin['Line1'])
+			->addChild('Line1', isset($shippingOrigin['Line1']) ? $shippingOrigin['Line1'] : $shippingOrigin['Lines'][0])
 			->addChild('City', $shippingOrigin['City'])
 			->addChild('MainDivision', $shippingOrigin['MainDivision'])
 			->addChild('CountryCode', $shippingOrigin['CountryCode'])

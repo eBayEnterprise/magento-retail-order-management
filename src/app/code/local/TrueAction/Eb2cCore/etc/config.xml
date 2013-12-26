@@ -16,6 +16,17 @@
 				<class>TrueAction_Eb2cCore_Helper</class>
 			</eb2ccore>
 		</helpers>
+		<events>
+			<sales_quote_collect_totals_before>
+				<observers>
+					<eb2ccore_update_quote_session>
+						<class>TrueAction_Eb2cCore_Model_Observer</class>
+						<method>checkQuoteForChanges</method>
+						<type>singleton</type>
+					</eb2ccore_update_quote_session>
+				</observers>
+			</sales_quote_collect_totals_before>
+		</events>
 	</global>
 	<crontab>
 		<jobs>
@@ -79,6 +90,9 @@
 				<payment>
 					<timeout>17</timeout>
 				</payment>
+				<inventory>
+					<expiration>15</expiration>
+				</inventory>
 			</service>
 		</eb2ccore>
 	</default>

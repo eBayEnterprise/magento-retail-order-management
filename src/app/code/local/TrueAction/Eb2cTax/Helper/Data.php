@@ -44,6 +44,41 @@ class TrueAction_Eb2cTax_Helper_Data extends Mage_Core_Helper_Abstract
 		));
 		return $response;
 	}
+	/**
+	 * Record the tax request failure - flip the flag in the eb2ccore/session to true.
+	 * @return TrueAction_Eb2cTax_Helper_Data $this object
+	 */
+	public function failTaxRequest()
+	{
+		Mage::log(sprintf('[%s] Failing tax request', __CLASS__));
+		Mage::getSingleton('eb2ccore/session')->setHaveTaxRequestsFailed(true);
+	}
+	/**
+	 * Determine if a tax request is needed for the given address object. Request is only needed
+	 * if the eb2ccore/session tax flag is true, no previous errors have been encountered by
+	 * tax requests (flag also stored in eb2ccore/session but managed solely by tax module)
+	 * and the given address has items
+	 * @param  Mage_Sales_Model_Quote_Address $address Address request would be for
+	 * @return boolean True if request should be made, false otherwise
+	 */
+	public function isRequestForAddressRequired(Mage_Sales_Model_Quote_Address $address)
+	{
+		$session = Mage::getSingleton('eb2ccore/session');
+		return $session->isTaxUpdateRequired() && !$session->getHaveTaxRequestsFailed() && $address->getAllItems();
+	}
+	/**
+	 * unset the trigger so the tax request will not be sent until triggerRequest is called.
+	 * @return self
+	 */
+	public function cleanupSessionFlags()
+	{
+		$session = Mage::getSingleton('eb2ccore/session');
+		if (!$session->getHaveTaxRequestsFailed()) {
+			Mage::getSingleton('eb2ccore/session')->resetTaxUpdateRequired();
+		}
+		$session->unsHaveTaxRequestsFailed();
+		return $this;
+	}
 
 	/**
 	 * get the default namespace

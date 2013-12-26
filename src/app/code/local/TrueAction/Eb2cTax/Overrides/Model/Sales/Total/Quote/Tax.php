@@ -29,28 +29,33 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
-		$this->_initBeforeCollect($address);
-		$this->_roundingDeltas = array();
-		$this->_baseRoundingDeltas = array();
-		$this->_hiddenTaxes = array();
-		$address->setShippingTaxAmount(0);
-		$address->setBaseShippingTaxAmount(0);
-		// zero amounts for the address.
-		$this->_store = $address->getQuote()->getStore();
-		$customer = $address->getQuote()->getCustomer();
-		if (!$address->getAppliedTaxesReset()) {
-			$address->setAppliedTaxes(array());
+		Mage::log(__METHOD__, Zend_Log::DEBUG);
+		if ($this->_calculator->hasCalculationTrigger()) {
+			Mage::log('calculating', Zend_Log::DEBUG);
+			$this->_initBeforeCollect($address);
+			$this->_calculator->unsCalculationTrigger();
+			$this->_roundingDeltas = array();
+			$this->_baseRoundingDeltas = array();
+			$this->_hiddenTaxes = array();
+			$address->setShippingTaxAmount(0);
+			$address->setBaseShippingTaxAmount(0);
+			// zero amounts for the address.
+			$this->_store = $address->getQuote()->getStore();
+			$customer = $address->getQuote()->getCustomer();
+			if (!$address->getAppliedTaxesReset()) {
+				$address->setAppliedTaxes(array());
+			}
+			$items = $this->_getAddressItems($address);
+			if (!count($items)) {
+				return $this;
+			}
+			$this->_calcTaxForAddress($address);
+			// adds extra tax amounts to the address
+			$this->_addAmount($address->getExtraTaxAmount());
+			$this->_addBaseAmount($address->getBaseExtraTaxAmount());
+			//round total amounts in address
+			$this->_roundTotals($address);
 		}
-		$items = $this->_getAddressItems($address);
-		if (!count($items)) {
-			return $this;
-		}
-		$this->_calcTaxForAddress($address);
-		// adds extra tax amounts to the address
-		$this->_addAmount($address->getExtraTaxAmount());
-		$this->_addBaseAmount($address->getBaseExtraTaxAmount());
-		//round total amounts in address
-		$this->_roundTotals($address);
 		return $this;
 	}
 	/**

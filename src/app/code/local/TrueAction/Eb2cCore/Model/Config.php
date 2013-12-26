@@ -19,6 +19,7 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'feed_enabled_reindex'        => 'eb2ccore/feed/enabled_reindex',
 		'feed_fetch_connect_attempts' => 'eb2ccore/feed/filetransfer_remote_connect_attempts',
 		'feed_fetch_retry_timer'      => 'eb2ccore/feed/filetransfer_remote_retry_timer',
+		'inventory_expiration_time'   => 'eb2ccore/service/inventory/expiration',
 		'service_order_timeout'       => 'eb2ccore/service/order/timeout',
 		'service_payment_timeout'     => 'eb2ccore/service/payment/timeout',
 		'sftp_auth_type'              => 'eb2ccore/feed/filetransfer_sftp_auth_type',

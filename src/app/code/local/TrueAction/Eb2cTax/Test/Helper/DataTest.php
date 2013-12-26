@@ -100,21 +100,20 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 		$request->expects($this->any())
 			->method('getDocument')
 			->will($this->returnValue($requestDocument));
-		$apiModelMock = $this->getMock('TrueAction_Eb2cCore_Model_Api', array('setUri', 'request'));
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
 		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->with($this->identicalTo('https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => 'https://api.example.com/vM.m/stores/store_id/taxes/quote.xml',
+				'xsd' => 'TaxDutyFee-QuoteRequest-1.0.xsd'
+			)))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->any())
 			->method('request')
-			->with($requestDocument)
-			->will($this->throwException(new Exception));
+			->will($this->throwException(new Exception('this is an exception thrown by the api')));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-		$this->markTestIncomplete('Tries to actually make an http connection.');
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cTax_Model_Response',
-			Mage::helper('eb2ctax')->sendRequest($request)
-		);
+		$this->setExpectedException('Exception', 'this is an exception thrown by the api');
+		Mage::helper('eb2ctax')->sendRequest($request);
 	}
 	/**
 	 * @test
@@ -149,5 +148,87 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 		));
 		$val = Mage::helper('eb2ctax')->taxDutyAmountRateCode();
 		$this->assertSame($code, $val);
+	}
+	public function providerIsRequestForAddressRequired()
+	{
+		$addressWithItems = $this->getModelMock('sales/quote_address', array('getAllItems'));
+		$addressNoItems = $this->getModelMock('sales/quote_address', array('getAllItems'));
+
+		$addressWithItems
+			->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array(Mage::getModel('sales/quote_item'))));
+		$addressNoItems
+			->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue(array()));
+
+		return array(
+			array(true, false, $addressWithItems, true),
+			array(true, false, $addressNoItems, false),
+			array(true, true, $addressWithItems, false),
+			array(false, false, $addressWithItems, false),
+		);
+	}
+	/**
+	 * Test checking if a tax request is necessary for a given quote. Should only
+	 * be required when the session flag indicates it is, no previous errors have been
+	 * encountered when making tax requests and the address has items.
+	 * @param  boolean                        $sessionFlag     State of the session tax flag
+	 * @param  boolean                        $requestFailFlag State of previous failures flag
+	 * @param  Mage_Sales_Model_Quote_Address $address         Address object the request would be for
+	 * @param  boolean                        $isRequired      Is it required
+	 * @test
+	 * @dataProvider providerIsRequestForAddressRequired
+	 */
+	public function testIsRequestForAddressRequired($sessionFlag, $requestFailFlag, $address, $isRequired)
+	{
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('isTaxUpdateRequired', 'getHaveTaxRequestsFailed'))
+			->getMock();
+		$this->replaceByMock('model', 'eb2ccore/session', $session);
+
+		$session->expects($this->any())->method('isTaxUpdateRequired')->will($this->returnValue($sessionFlag));
+		$session->expects($this->any())->method('getHaveTaxRequestsFailed')->will($this->returnValue($requestFailFlag));
+
+		$this->assertSame($isRequired, Mage::helper('eb2ctax')->isRequestForAddressRequired($address));
+
+	}
+	/**
+	 * Data provider for the cleanupSessionFlags test. Provides whether or not
+	 * tax collections have encountered any errors. If so, the flag should not be
+	 * reset, forcing tax requests to be attempted at the next possible chance.
+	 * @return array Args array
+	 */
+	public function providerCleanupSessionFlags()
+	{
+		return array(array(true), array(false));
+	}
+	/**
+	 * verify the tax request flag is unset from the session.
+	 * @test
+	 * @dataProvider providerCleanupSessionFlags
+	 */
+	public function testCleanupSessionFlags($hasFailed)
+	{
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('getHaveTaxRequestsFailed', 'resetTaxUpdateRequired', 'unsHaveTaxRequestsFailed'))
+			->getMock();
+		$this->replaceByMock('singleton', 'eb2ccore/session', $session);
+
+		$session->expects($this->once())
+			->method('getHaveTaxRequestsFailed')
+			->will($this->returnValue($hasFailed));
+		$session->expects($this->once())->method('unsHaveTaxRequestsFailed')->will($this->returnSelf());
+		if ($hasFailed) {
+			$session->expects($this->never())->method('resetTaxUpdateRequired');
+		} else {
+			$session->expects($this->once())->method('resetTaxUpdateRequired')->will($this->returnSelf());
+		}
+
+		$helper = Mage::helper('eb2ctax');
+		$this->assertSame($helper, $helper->cleanupSessionFlags());
 	}
 }

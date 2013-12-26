@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_DetailsTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_details;
 
@@ -10,6 +11,19 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	{
 		parent::setUp();
 		$this->_details = Mage::getModel('eb2cinventory/details');
+	}
+
+	/**
+	 * Invoke a protected method and return the results.
+	 * @param mixed $obj the object that has the method
+	 * @param string $meth the method name to invoke
+	 * @param array $args the arguments to pass
+	 * @return mixed
+	 */
+	protected function _invokeProt($obj, $meth, $args)
+	{
+		$protMethod = $this->_reflectMethod($obj, $meth);
+		return $protMethod->invokeArgs($obj, $args);
 	}
 
 	/**
@@ -28,265 +42,70 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 		return Mage::getModel('sales/quote_address', $addressData);
 	}
 
+	/*****************************************************************************
+	 * Request methods                                                           *
+	 ****************************************************************************/
+
 	/**
-	 * Provide inventory data, a quote and quote item
-	 * @return array
+	 * Data provider for the canMakeRequestWithQuote tests. Provide the items a quote contains,
+	 * the quote shipping address and whether is should be possible to send a request for a quote
+	 * containing the provided data.
+	 * @return array Arg arrays containing an array or Mage_Sales_Model_Quote_Items, a Mage_Sales_Model_Quote_Address and a boolean
 	 */
-	public function providerProcessInventoryDetails()
+	public function providerCanMakeRequestWithQuote()
 	{
-		// create some inventory details
-		$inventoryData = array();
-		for ($i = 0; $i < 2; $i++) {
-			$inventoryData[] = array(
-				'lineId' => $i, 'creationTime' => '2010-11-02T17:47:00', 'display' => true,
-				'deliveryWindow_from' => '2011-11-02T05:01:50Z', 'deliveryWindow_to' => '2011-11-02T05:01:50Z',
-				'shippingWindow_from' => '2011-11-02T05:01:50Z', 'shippingWindow_to' => '2011-11-02T05:01:50Z',
-				'shipFromAddress_line1' => 'Ten Bagshot Row', 'shipFromAddress_city' => 'Bag End',
-				'shipFromAddress_mainDivision' => 'PA', 'shipFromAddress_countryCode' => 'US', 'shipFromAddress_postalCode' => '19123'
-			);
-		}
+		$item = $this->getModelMock('sales/quote_item');
+		$addressNoMethod = $this->getModelMock('sales/quote_address', array('hasShippingMethod'));
+		$addressWithMethod = $this->getModelMock('sales/quote_address', array('hasShippingMethod'));
 
-		$item = Mage::getModel('sales/quote_item');
+		$addressNoMethod
+			->expects($this->any())
+			->method('hasShippingMethod')
+			->will($this->returnValue(false));
 
-		$quote = $this->getModelMockBuilder('sales/quote')
-			->disableOriginalConstructor()
-			->setMethods(array('getItemById', 'save'))
-			->getMock();
-		// need to trust that this works as expected as mocking out everything for
-		// this method to work seems like an exercise in futility
-		$quote->expects($this->exactly(2))
-			->method('getItemById')
-			->will($this->returnValueMap(
-				array(array(1, $item))
-			));
-
+		$addressWithMethod
+			->expects($this->any())
+			->method('hasShippingMethod')
+			->will($this->returnValue(true));
 		return array(
-			array($quote, $item, $inventoryData),
+			array(array(), null, false),
+			array(array($item), null, false),
+			array(array($item), $addressNoMethod, false),
+			array(array($item), $addressWithMethod, true),
 		);
 	}
-
 	/**
-	 * Test the processing of inventory data for a quote. Each quote item found in the
-	 * inventory data should have the inventory data added to the item via magic setters.
-	 *
-	 * @param  Mage_Sales_Model_Quote $quoteMock, The quote the inventory data applies to
-	 * @param  Mage_Sales_Model_Quote_Item $item, The quote item included in the quote
-	 * @param  array $inventoryData, Assoc array of inventory data
-	 *
-	 * @dataProvider providerProcessInventoryDetails
+	 * Test checking if a request could be made with a quote. Quote is expected to have
+	 * one or more items and a shipping address with a shipping method.
+	 * @param Mage_Sales_Model_Quote_Item[]  $items          Quote items in the quote
+	 * @param Mage_Sales_Model_Quote_Address $address        Shipping address for the quote
+	 * @param boolean                        $canMakeRequest Can a request be made for a quote with the provided items and address
 	 * @test
+	 * @dataProvider providerCanMakeRequestWithQuote
 	 */
-	public function testProcessInventoryDetails($quoteMock, $item, $inventoryData)
+	public function testCanMakeRequestWithQuote($items, $address, $canMakeRequest)
 	{
-		// this method must be called
-		$quoteMock->expects($this->once())
-			->method('save')
-			->will($this->returnSelf());
+		$quote = $this->getModelMock('sales/quote', array('getAllItems', 'getShippingAddress'));
+		$helper = $this->getHelperMock('eb2cinventory/data', array('getInventoriedItems'));
 
-		// mock out observers that would trigger during this test
-		$taxMock = $this->getModelMock('tax/observer', array());
-		$this->replaceByMock('model', 'tax/observer', $taxMock);
+		$this->replaceByMock('helper', 'eb2cinventory', $helper);
 
-		$this->assertSame(
-			$this->_details,
-			$this->_details->processInventoryDetails($quoteMock, $inventoryData)
-		);
-		$itemData = $inventoryData[0];
-		$this->assertSame($itemData['creationTime'], $item->getEb2cCreationTime());
-		$this->assertSame($itemData['display'], $item->getEb2cDisplay());
-		$this->assertSame($itemData['deliveryWindow_from'], $item->getEb2cDeliveryWindowFrom());
-		$this->assertSame($itemData['deliveryWindow_to'], $item->getEb2cDeliveryWindowTo());
-		$this->assertSame($itemData['shippingWindow_from'], $item->getEb2cShippingWindowFrom());
-		$this->assertSame($itemData['shippingWindow_to'], $item->getEb2cShippingWindowTo());
-		$this->assertSame($itemData['shipFromAddress_line1'], $item->getEb2cShipFromAddressLine1());
-		$this->assertSame($itemData['shipFromAddress_city'], $item->getEb2cShipFromAddressCity());
-		$this->assertSame($itemData['shipFromAddress_mainDivision'], $item->getEb2cShipFromAddressMainDivision());
-		$this->assertSame($itemData['shipFromAddress_countryCode'], $item->getEb2cShipFromAddressCountryCode());
-		$this->assertSame($itemData['shipFromAddress_postalCode'], $item->getEb2cShipFromAddressPostalCode());
-		$this->assertEventDispatched('eb2cinventory_details_process_after');
-	}
+		$quote
+			->expects($this->any())
+			->method('getAllItems')
+			->will($this->returnValue($items));
+		$quote
+			->expects($this->any())
+			->method('getShippingAddress')
+			->will($this->returnValue($address));
 
-	public function providerParseResponse()
-	{
-		return array(
-			array(file_get_contents(__DIR__ . '/DetailsTest/fixtures/InventoryDetailsResponseMessage.xml', FILE_USE_INCLUDE_PATH))
-		);
-	}
+		$helper
+			->expects($this->any())
+			->method('getInventoriedItems')
+			->will($this->returnArgument(0));
 
-	/**
-	 * testing parseResponse
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerParseResponse
-	 */
-	public function testParseResponse($inventoryDetailsResponseMessage)
-	{
-		$this->assertSame(
-			array(array('lineId' => '106',
-				'itemId' => '8525 PDA',
-				'creationTime' => '2010-11-02T17:47:00',
-				'display' => 'true',
-				'deliveryWindow_from' => '2011-11-02T05:01:50Z',
-				'deliveryWindow_to' => '2011-11-02T05:01:50Z',
-				'shippingWindow_from' => '2011-11-02T05:01:50Z',
-				'shippingWindow_to' => '2011-11-02T05:01:50Z',
-				'shipFromAddress_line1' => 'Ten Bagshot Row',
-				'shipFromAddress_city' => 'Bag End',
-				'shipFromAddress_mainDivision' => 'PA',
-				'shipFromAddress_countryCode' => 'US',
-				'shipFromAddress_postalCode' => '19123'
-			)),
-			$this->_details->parseResponse($inventoryDetailsResponseMessage)
-		);
-	}
-
-	/**
-	 * Create a quote and items that will create a given request message
-	 * @return array Args to the testGetInventoryDetailsQuote method, a quote and DOMDocument request should match.
-	 */
-	public function providerInventoryDetailsQuote()
-	{
-		$address = $this->_createAddressObject();
-
-		$products = array();
-		for ($i = 0; $i < 4; $i++) {
-			$products[] = Mage::getModel('catalog/product', array(
-				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
-					// first three items should all be managed stock
-					'manage_stock' => $i !== 3,
-				)),
-			));
-		}
-
-		$items = array();
-		foreach ($products as $idx => $product) {
-			$items[] = Mage::getModel('sales/quote_item', array(
-				'product' => $product,
-				// first, second and fourth should be non-virtual, third should be
-				'is_virtual' => $idx === 2,
-				'sku' => sprintf('item%s', $idx),
-				'qty' => $idx + 1,
-			));
-		}
-
-		$quote = Mage::getModel('sales/quote');
-		$quote->setShippingAddress($address);
-		// Add each item to the quote.
-		foreach ($items as $idx => $item) {
-			$quote->addItem($item);
-			// Give the item in id, this normally happens when saving the quote, which
-			// would have happened by now, but as this is being avoided here it needs to be
-			// manually assigned.
-			$item->setId($idx);
-		}
-		return array(
-			array($quote),
-		);
-	}
-
-	/**
-	 * Test getting inventory details
-	 * @param Mage_Sales_Model_Quote $quote
-	 * @dataProvider providerInventoryDetailsQuote
-	 * @loadFixture
-	 * @test
-	 */
-	public function testGetInventoryDetails($quote)
-	{
-		$request = new DOMDocument();
-		$request->loadXML('<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItem itemId="item0" lineId="0"><Quantity>1</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem><OrderItem itemId="item1" lineId="1"><Quantity>2</Quantity><ShipmentDetails><ShippingMethod>USPSStandard</ShippingMethod><ShipToAddress><Line1>One Bagshot Row</Line1><City>Bag End</City><MainDivision>PA</MainDivision><CountryCode>US</CountryCode><PostalCode>19123</PostalCode></ShipToAddress></ShipmentDetails></OrderItem></InventoryDetailsRequestMessage>');
-		$response = '<What>Ever</What>';
-		$api = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
-			->getMock();
-		$api->expects($this->once())
-			->method('addData')
-			->will($this->returnSelf());
-		$api->expects($this->once())
-			->method('request')
-			->with($this->callback(function ($arg) use ($request) {
-					// compare the canonicalized XML of the TrueAction_Dom_Document
-					// passed to the request method to the expected XML for this quote
-					if ($request->C14N() === $arg->C14N()) {
-						return true;
-					}
-					echo $request->C14N() . "\n";
-					echo $arg->C14N() . "\n";
-					return false;
-				}))
-			->will($this->returnValue($response));
-		$this->replaceByMock('model', 'eb2ccore/api', $api);
-
-		$this->assertSame($response, $this->_details->getInventoryDetails($quote));
-	}
-
-	/**
-	 * When the API model throws an exception, it should be caught and an empty string returned.
-	 * @test
-	 */
-	public function testGetInventoryDetailsApiException()
-	{
-		$sessionMock = $this->getModelMockBuilder('checkout/session', array('addError'))
-			->disableOriginalConstructor()
-			->getMock();
-		$sessionMock->expects($this->any())
-			->method('addError')
-			->will($this->returnSelf());
-		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
-
-		$api = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
-			->getMock();
-		$api->expects($this->any())
-			->method('addData')
-			->will($this->returnSelf());
-		$api->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception()));
-		$this->replaceByMock('model', 'eb2ccore/api', $api);
-
-		$address = $this->_createAddressObject();
-
-		$products = array();
-		for ($i = 0; $i < 4; $i++) {
-			$products[] = Mage::getModel('catalog/product', array(
-				'stock_item' => Mage::getModel('cataloginventory/stock_item', array(
-					// first three items should all be managed stock
-					'manage_stock' => $i !== 3,
-				)),
-			));
-		}
-
-		$items = array();
-		foreach ($products as $idx => $product) {
-			$items[] = Mage::getModel('sales/quote_item', array(
-				'product' => $product,
-				// first, second and fourth should be non-virtual, third should be
-				'is_virtual' => $idx === 2,
-				'sku' => sprintf('item%s', $idx),
-				'qty' => $idx + 1,
-			));
-		}
-
-		$quote = Mage::getModel('sales/quote');
-		$quote->setShippingAddress($address);
-		// Add each item to the quote.
-		foreach ($items as $idx => $item) {
-			$quote->addItem($item);
-			// Give the item in id, this normally happens when saving the quote, which
-			// would have happened by now, but as this is being avoided here it needs to be
-			// manually assigned.
-			$item->setId($idx);
-		}
-
-		$detailsMock = $this->getModelMock('eb2cinventory/details', array('_buildInventoryDetailsRequestMessage'));
-		$detailsMock->expects($this->any())
-			->method('buildInventoryDetailsRequestMessage')
-			->will($this->returnValue(''));
-		$this->assertSame('', $this->_details->getInventoryDetails($quote));
+		$details = Mage::getModel('eb2cinventory/details');
+		$this->assertSame($canMakeRequest, $this->_invokeProt($details, '_canMakeRequestWithQuote', array($quote)));
 	}
 	/**
 	 * Test that buildInventoryDetailsRequestMessage takes a quote,
@@ -296,27 +115,31 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	 */
 	public function testBuildInventoryDetailsRequestMessage()
 	{
-		$quote = $this->getModelMock('sales/quote', array('getAllItems', 'getShippingAddress'));
+		$quote = $this->getModelMock('sales/quote', array('getAllVisibleItems', 'getShippingAddress'));
 		$quote
 			->expects($this->once())
-			->method('getAllItems')
+			->method('getAllVisibleItems')
 			->will($this->returnValue(array()));
 		$quote
 			->expects($this->once())
 			->method('getShippingAddress')
 			->will($this->returnValue(Mage::getModel('sales/quote_address')));
-		$deets = $this->getModelMock('eb2cinventory/details', array('_buildOrderItemsXml', 'getInventoriedItems'));
+
+		$helper = $this->getHelperMock('eb2cinventory/data', array('getInventoriedItems'));
+		$helper
+			->expects($this->once())
+			->method('getInventoriedItems')
+			->with($this->isType('array'))
+			->will($this->returnValue(array()));
+		$this->replaceByMock('helper', 'eb2cinventory', $helper);
+		$deets = $this->getModelMock('eb2cinventory/details', array('_buildOrderItemsXml'));
 		$deets
 			->expects($this->once())
 			->method('_buildOrderItemsXml')
 			->with($this->isType('array'), $this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
 			->will($this->returnValue('<OrderItemStub></OrderItemStub>'));
-		$deets
-			->expects($this->once())
-			->method('getInventoriedItems')
-			->with($this->isType('array'))
-			->will($this->returnValue(array()));
-		$invDeetReqMsg = $this->_invokeProt($deets, '_buildInventoryDetailsRequestMessage', array($quote));
+
+		$invDeetReqMsg = $this->_invokeProt($deets, '_buildRequestMessage', array($quote));
 		$this->assertInstanceOf('DOMDocument', $invDeetReqMsg);
 		$this->assertSame(
 			'<InventoryDetailsRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><OrderItemStub></OrderItemStub></InventoryDetailsRequestMessage>',
@@ -331,19 +154,27 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	 */
 	public function testBuildOrderItemsXml()
 	{
+		$itemOne = Mage::getModel('sales/quote_item');
+		$itemTwo = Mage::getModel('sales/quote_item');
+		$xmlOne = '<OrderItemStub itemId="0"/>';
+		$xmlTwo = '<OrderItemStub itemId="1"/>';
+		$itemXmlMap = array(
+			array($itemOne, '<ShipStub/>', 0, $xmlOne),
+			array($itemTwo, '<ShipStub/>', 1, $xmlTwo),
+		);
 		$deets = $this->getModelMock('eb2cinventory/details', array('_buildOrderItemXml', '_buildShipmentDetailsXml'));
 		$deets
-			->expects($this->once())
+			->expects($this->exactly(2))
 			->method('_buildShipmentDetailsXml')
 			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
 			->will($this->returnValue('<ShipStub/>'));
 		$deets
-			->expects($this->atLeastOnce())
+			->expects($this->exactly(2))
 			->method('_buildOrderItemXml')
-			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Item'), $this->equalTo('<ShipStub/>'))
-			->will($this->returnValue('<OrderItemStub/>'));
-		$this->assertSame('<OrderItemStub/>', $this->_invokeProt($deets, '_buildOrderItemsXml', array(
-			array(Mage::getModel('sales/quote_item')),
+			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Item'), $this->equalTo('<ShipStub/>'), $this->greaterThanOrEqual(0))
+			->will($this->returnValueMap($itemXmlMap));
+		$this->assertSame($xmlOne . $xmlTwo, $this->_invokeProt($deets, '_buildOrderItemsXml', array(
+			array($itemOne, $itemTwo),
 			Mage::getModel('sales/quote_address')
 		)));
 	}
@@ -354,11 +185,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 	 */
 	public function testBuildOrderItemXml()
 	{
-		$item = $this->getModelMock('sales/quote_item', array('getId', 'getSku', 'getQty'));
-		$item
-			->expects($this->once())
-			->method('getId')
-			->will($this->returnValue('id'));
+		$item = $this->getModelMock('sales/quote_item', array('getSku', 'getQty'));
 		$item
 			->expects($this->once())
 			->method('getSku')
@@ -369,8 +196,8 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 			->will($this->returnValue(1));
 		$deets = Mage::getModel('eb2cinventory/details');
 		$this->assertSame(
-			'<OrderItem lineId="id" itemId="sku"><Quantity>1</Quantity><ShipmentDetails/></OrderItem>',
-			$this->_invokeProt($deets, '_buildOrderItemXml', array($item, '<ShipmentDetails/>'))
+			'<OrderItem lineId="item0" itemId="sku"><Quantity>1</Quantity><ShipmentDetails/></OrderItem>',
+			$this->_invokeProt($deets, '_buildOrderItemXml', array($item, '<ShipmentDetails/>', 0))
 		);
 	}
 	/**
@@ -421,19 +248,306 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest extends EcomDev_PHPUnit_Te
 			$this->_invokeProt($deets, '_buildShipmentDetailsXml', array($address))
 		);
 	}
+
+	/*****************************************************************************
+	 * Response methods                                                          *
+	 ****************************************************************************/
+
 	/**
-	 * Invoke a protected method and return the results.
-	 * @param mixed $obj the object that has the method
-	 * @param string $meth the method name to invoke
-	 * @param array $args the arguments to pass
-	 * @return mixed
+	 * Test extracting details data from the details response message, this mainly consists
+	 * of extracting values from DOMNodeLists looked up using XPath expressions.
+	 * @test
 	 */
-	protected function _invokeProt($obj, $meth, $args)
+	public function testExtractItemDetails()
 	{
-		$ref = new ReflectionObject($obj);
-		$prot = $ref->getMethod($meth);
-		$prot->setAccessible(true);
-		return $prot->invokeArgs($obj, $args);
+		$helper = $this->getHelperMock('eb2ccore/data', array('extractNodeVal'));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$xpath = $this->getMockBuilder('DOMXPath')
+			->disableOriginalConstructor()
+			->setMethods(array('query'))
+			->getMock();
+		// a single InventoryDetail node extracted from the response
+		$detailNode = $this->getMockBuilder('DOMNode')
+			->disableOriginalConstructor()
+			->setMethods(array('getAttribute'))
+			->getMock();
+		// use an array as the mock DOMNodeList - just loop over the items, so the array will do here
+		// not optimal but I can't figure out how to mock a DOMNodeList to work here
+		$inventoryDetails = array($detailNode);
+
+		// returnValueMap to the getAttribute calls on the InventoryDetail node
+		$detailNodeAttributes = array(
+			array('itemId', 'item-sku'),
+			array('lineId', 'line-id'),
+		);
+		// these are all of the expected values that should be pulled out of the InventoryDetail node
+		$nodeValues = array(
+			'lineId' => 'line-id',
+			'itemId' => 'item-sku',
+			'creationTime' => 'value-creationTime',
+			'display' => 'value-display',
+			'deliveryWindow_from' => 'value-deliveryWindow_from',
+			'deliveryWindow_to' => 'value-deliveryWindow_to',
+			'shippingWindow_from' => 'value-shippingWindow_from',
+			'shippingWindow_to' => 'value-shippingWindow_to',
+			'shipFromAddress_line1' => 'value-shipFromAddress_line1',
+			'shipFromAddress_city' => 'value-shipFromAddress_city',
+			'shipFromAddress_mainDivision' => 'value-shipFromAddress_mainDivision',
+			'shipFromAddress_countryCode' => 'value-shipFromAddress_countryCode',
+			'shipFromAddress_postalCode' => 'value-shipFromAddress_postalCode',
+		);
+		// collection of node lists that should be extracted from the InventoryDetail node
+		$nodeLists = array(
+			'creationTime' => $this->getMock('DOMNodeList'),
+			'display' => $this->getMock('DOMNodeList'),
+			'deliveryWindow_from' => $this->getMock('DOMNodeList'),
+			'deliveryWindow_to' => $this->getMock('DOMNodeList'),
+			'shippingWindow_from' => $this->getMock('DOMNodeList'),
+			'shippingWindow_to' => $this->getMock('DOMNodeList'),
+			'shipFromAddress_line1' => $this->getMock('DOMNodeList'),
+			'shipFromAddress_city' => $this->getMock('DOMNodeList'),
+			'shipFromAddress_mainDivision' => $this->getMock('DOMNodeList'),
+			'shipFromAddress_countryCode' => $this->getMock('DOMNodeList'),
+			'shipFromAddress_postalCode' => $this->getMock('DOMNodeList'),
+		);
+		// returnValueMap for the xpath queries
+		$xpathValueMap = array(
+			// this query is from the root to return all of the InventoryDetail nodes
+			array('//a:InventoryDetail', null, null, $inventoryDetails),
+			// rest of the queries should all be relative to a InventoryDetail node, passed as context in second arg
+			array('a:DeliveryEstimate/a:CreationTime', $detailNode, null, $nodeLists['creationTime']),
+			array('a:DeliveryEstimate/a:Display', $detailNode, null, $nodeLists['display']),
+			array('a:DeliveryEstimate/a:DeliveryWindow/a:From', $detailNode, null, $nodeLists['deliveryWindow_from']),
+			array('a:DeliveryEstimate/a:DeliveryWindow/a:To', $detailNode, null, $nodeLists['deliveryWindow_to']),
+			array('a:DeliveryEstimate/a:ShippingWindow/a:From', $detailNode, null, $nodeLists['shippingWindow_from']),
+			array('a:DeliveryEstimate/a:ShippingWindow/a:To', $detailNode, null, $nodeLists['shippingWindow_to']),
+			array('a:ShipFromAddress/a:Line1', $detailNode, null, $nodeLists['shipFromAddress_line1']),
+			array('a:ShipFromAddress/a:City', $detailNode, null, $nodeLists['shipFromAddress_city']),
+			array('a:ShipFromAddress/a:MainDivision', $detailNode, null, $nodeLists['shipFromAddress_mainDivision']),
+			array('a:ShipFromAddress/a:CountryCode', $detailNode, null, $nodeLists['shipFromAddress_countryCode']),
+			array('a:ShipFromAddress/a:PostalCode', $detailNode, null, $nodeLists['shipFromAddress_postalCode']),
+		);
+		// returnValueMap for the helper extractNodeVal, when passed the given nodeList, should return the given value
+		$nodeValMap = array(
+			array($nodeLists['creationTime'], $nodeValues['creationTime']),
+			array($nodeLists['display'], $nodeValues['display']),
+			array($nodeLists['deliveryWindow_from'], $nodeValues['deliveryWindow_from']),
+			array($nodeLists['deliveryWindow_to'], $nodeValues['deliveryWindow_to']),
+			array($nodeLists['shippingWindow_from'], $nodeValues['shippingWindow_from']),
+			array($nodeLists['shippingWindow_to'], $nodeValues['shippingWindow_to']),
+			array($nodeLists['shipFromAddress_line1'], $nodeValues['shipFromAddress_line1']),
+			array($nodeLists['shipFromAddress_city'], $nodeValues['shipFromAddress_city']),
+			array($nodeLists['shipFromAddress_mainDivision'], $nodeValues['shipFromAddress_mainDivision']),
+			array($nodeLists['shipFromAddress_countryCode'], $nodeValues['shipFromAddress_countryCode']),
+			array($nodeLists['shipFromAddress_postalCode'], $nodeValues['shipFromAddress_postalCode']),
+		);
+		$detailNode
+			->expects($this->any())
+			->method('getAttribute')
+			->will($this->returnValueMap($detailNodeAttributes));
+		$xpath
+			->expects($this->any())
+			->method('query')
+			->will($this->returnValueMap($xpathValueMap));
+		$helper
+			->expects($this->any())
+			->method('extractNodeVal')
+			->will($this->returnValueMap($nodeValMap));
+
+		// expect an array of sku => details
+		$this->assertSame(
+			array('item-sku' => $nodeValues),
+			Mage::getModel('eb2cinventory/details')->extractItemDetails($xpath)
+		);
+	}
+	/**
+	 * Test extracting unavailable items from the inventory details response. Should
+	 * get all UnavailableItem nodes via XPath and iterate over the DOMNodeList pulling
+	 * the itemId and lineId attributes from each node. Should result in an array
+	 * of sku => item info (sku and line id)
+	 * @test
+	 */
+	public function testExtractUnavailableItems()
+	{
+		$xpath = $this->getMockBuilder('DOMXPath')
+			->disableOriginalConstructor()
+			->setMethods(array('query'))
+			->getMock();
+		// a single InventoryDetail node extracted from the response
+		$unavailNode = $this->getMockBuilder('DOMNode')
+			->disableOriginalConstructor()
+			->setMethods(array('getAttribute'))
+			->getMock();
+		// use an array as the mock DOMNodeList - just loop over the items, so the array will do here
+		// not optimal but I can't figure out how to mock a DOMNodeList to work here
+		$unavailNodeList = array($unavailNode);
+
+		$xpathValueMap = array(
+			array('//a:UnavailableItem', null, null, $unavailNodeList),
+		);
+		$attributeValueMap = array(
+			array('itemId', 'item-sku'),
+			array('lineId', 'line-id'),
+		);
+
+		$xpath
+			->expects($this->any())
+			->method('query')
+			->will($this->returnValueMap($xpathValueMap));
+		$unavailNode
+			->expects($this->any())
+			->method('getAttribute')
+			->will($this->returnValueMap($attributeValueMap));
+
+		$this->assertSame(
+			array('item-sku' => array('itemId' => 'item-sku', 'lineId' => 'line-id')),
+			Mage::getModel('eb2cinventory/details')->extractUnavailableItems($xpath)
+		);
+	}
+	protected function _mockQuoteItemWithSku($sku)
+	{
+		$item = $this->getModelMock('sales/quote_item', array('getSku'));
+		$item->expects($this->any())->method('getSku')->will($this->returnValue($sku));
+		return $item;
+	}
+	/**
+	 * Test updating a quote with an inventory details response. Method should extract
+	 * details and unavailable items (via other methods) and then iterate over all items
+	 * in the quote. Any items in the delete list should be removed from the quote, any
+	 * items in the details list and not in the delete list should be updated to include
+	 * the additional data form the inventory details response. If the quote is successfully
+	 * updated, an event should be dispatched with the updated quote.
+	 * @test
+	 */
+	public function testUpdateQuoteWithResponse()
+	{
+		// mock out observers that would trigger during this test
+		$this->replaceByMock('model', 'tax/observer', $this->getModelMock('tax/observer', array()));
+
+		$responseMessage = '<MockResponseMessage/>';
+		// skus of items in the test
+		$updateSku = 'sku-update';
+		$deleteSku = 'sku-delete';
+		$ignoreSku = 'sku-ignore';
+
+		// data for each item extracted from the response message
+		$updateDetails = array('itemId' => $updateSku);
+		$deleteDetails = array('itemId' => $deleteSku);
+		// data extracted from the response message
+		$itemDetails = array(
+			$updateSku => $updateDetails,
+			$deleteSku => $deleteDetails,
+		);
+		// items listed as unavailable in the response message
+		$unavailItems = array(
+			$deleteSku => array('itemId' => $deleteSku, 'lineId' => 'line-id'),
+		);
+
+		$details = $this->getModelMock(
+			'eb2cinventory/details',
+			array('extractItemDetails', 'extractUnavailableItems', '_updateQuoteItemWithDetails')
+		);
+		$quoteHelper = $this->getHelperMock('eb2cinventory/quote', array('getXPathForMessage', 'removeItemFromQuote'));
+		$xpath = $this->getMockBuilder('DOMXPath')->disableOriginalConstructor()->getMock();
+		$quote = $this->getModelMock('sales/quote', array('getAllItems'));
+		// this item should be updated with inventory details data
+		$itemToUpdate = $this->_mockQuoteItemWithSku($updateSku);
+		// this item should be removed from the quote - unavailable item
+		$itemToDelete = $this->_mockQuoteItemWithSku($deleteSku);
+		// nothing should happen to this item - not included in response
+		$itemToIgnore = $this->_mockQuoteItemWithSku($ignoreSku);
+		$items = array($itemToUpdate, $itemToDelete, $itemToIgnore);
+
+		$this->replaceByMock('helper', 'eb2cinventory/quote', $quoteHelper);
+		$quoteHelper
+			->expects($this->once())
+			->method('getXpathForMessage')
+			->with($this->identicalTo($responseMessage))
+			->will($this->returnValue($xpath));
+		$quoteHelper
+			->expects($this->once())
+			->method('removeItemFromQuote')
+			->with($this->identicalTo($quote), $this->identicalTo($itemToDelete))
+			->will($this->returnSelf());
+		$quote
+			->expects($this->once())
+			->method('getAllItems')
+			->will($this->returnValue($items));
+		$details
+			->expects($this->once())
+			->method('extractItemDetails')
+			->with($this->identicalTo($xpath))
+			->will($this->returnValue($itemDetails));
+		$details
+			->expects($this->once())
+			->method('extractUnavailableItems')
+			->with($this->identicalTo($xpath))
+			->will($this->returnValue($unavailItems));
+		$details
+			->expects($this->once())
+			->method('_updateQuoteItemWithDetails')
+			->with($this->identicalTo($itemToUpdate), $this->identicalTo($updateDetails))
+			->will($this->returnSelf());
+		$this->assertSame($details, $details->updateQuoteWithResponse($quote, $responseMessage));
+		$this->assertEventDispatched('eb2cinventory_details_process_after');
+	}
+	/**
+	 * When updateQuoteWithResponse is given a falsey value - empty string, null, false, 0 -
+	 * it shouldn't attempt to update the quote, extract any data, dispatch the
+	 * eb2cinventory_details_process_after event.
+	 * @return [type] [description]
+	 */
+	public function testUpdateQuoteWithResponseEmptyResponse()
+	{
+		$quote = $this->getModelMock('sales/quote');
+		$details = $this->getModelMock(
+			'eb2cinventory/details',
+			array('extractUnavailableItems', 'extractItemDetails', '_xpathForMessage')
+		);
+		$details->expects($this->never())->method('extractUnavailableItems');
+		$details->expects($this->never())->method('extractItemDetails');
+		$details->expects($this->never())->method('_xpathForMessage');
+		$details->updateQuoteWithResponse($quote, null);
+		$this->assertEventNotDispatched('eb2cinventory_details_process_after');
+	}
+	public function testUpdateQuoteItemWithDetails()
+	{
+		$inventoryData = array(
+			'creationTime' => 'creationTime-data',
+			'display' => 'display-data',
+			'deliveryWindow_from' => 'deliveryWindow_from-data',
+			'deliveryWindow_to' => 'deliveryWindow_to-data',
+			'shippingWindow_from' => 'shippingWindow_from-data',
+			'shippingWindow_to' => 'shippingWindow_to-data',
+			'shipFromAddress_line1' => 'shipFromAddress_line1-data',
+			'shipFromAddress_city' => 'shipFromAddress_city-data',
+			'shipFromAddress_mainDivision' => 'shipFromAddress_mainDivision-data',
+			'shipFromAddress_countryCode' => 'shipFromAddress_countryCode-data',
+			'shipFromAddress_postalCode' => 'shipFromAddress_postalCode-data',
+		);
+		$itemData = array(
+			'eb2c_creation_time' => $inventoryData['creationTime'],
+			'eb2c_display' => $inventoryData['display'],
+			'eb2c_delivery_window_from' => $inventoryData['deliveryWindow_from'],
+			'eb2c_delivery_window_to' => $inventoryData['deliveryWindow_to'],
+			'eb2c_shipping_window_from' => $inventoryData['shippingWindow_from'],
+			'eb2c_shipping_window_to' => $inventoryData['shippingWindow_to'],
+			'eb2c_ship_from_address_line1' => $inventoryData['shipFromAddress_line1'],
+			'eb2c_ship_from_address_city' => $inventoryData['shipFromAddress_city'],
+			'eb2c_ship_from_address_main_division' => $inventoryData['shipFromAddress_mainDivision'],
+			'eb2c_ship_from_address_country_code' => $inventoryData['shipFromAddress_countryCode'],
+			'eb2c_ship_from_address_postal_code' => $inventoryData['shipFromAddress_postalCode']
+		);
+		$item = $this->getModelMock('sales/quote_item', array('addData'));
+
+		$item
+			->expects($this->once())
+			->method('addData')
+			->with($this->identicalTo($itemData))
+			->will($this->returnSelf());
+		$details = Mage::getModel('eb2cinventory/details');
+		$method = $this->_reflectMethod($details, '_updateQuoteItemWithDetails');
+		$this->assertSame($details, $method->invoke($details, $item, $inventoryData));
 	}
 }
 

@@ -200,84 +200,63 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		);
 	}
 
-	/**
-	 * @test
-	 */
-	public function testSessionStore()
+	public function providerGetTaxRequestNoAddress()
 	{
-		$taxQuotes = array(
-			$this->_mockTaxQuote(0.5, 0.38, 'PENNSYLVANIA-Seller And Use Tax', 10),
-			$this->_mockTaxQuote(0.01, 10.60, 'PENNSYLVANIA-Random Tax', 5),
-		);
-
-		$quoteDiscountMock = $this->_buildModelMock('eb2ctax/response_quote_discount', array(
-			'getRateKey' => $this->returnValue('14_vc_virtual1'),
-			'getEffectiveRate' => $this->returnValue(.2),
-			'getCalculatedTax' => $this->returnValue(0.38),
-			'getTaxableAmount' => $this->returnValue(10),
-		));
-
-		$methods = array('getTaxQuotes', 'getMerchandiseAmount');
-		$this->orderItem = $this->getModelMock('eb2ctax/response_orderitem', $methods);
-		$this->orderItem->expects($this->any())
-			->method('getTaxQuotes')
-			->will($this->returnValue($taxQuotes));
-		$orderItems = array($this->orderItem);
-
-		$response = $this->getModelMock('eb2ctax/response', array('getResponseForItem'));
-		$response->expects($this->any())
-			->method('getResponseForItem')
-			->will($this->returnValue($this->orderItem));
-
-		$this->_reflectProperty($response, '_isValid')->setValue($response, true);
-		$calcA = Mage::getModel('tax/calculation');
-		$calcA->setTaxResponse($response);
-		$calcB = Mage::getModel('tax/calculation');
-		$this->assertNotNull($calcB->getTaxResponse());
-		$this->assertSame(
-			$calcA->getTaxResponse(),
-			$calcB->getTaxResponse()
-		);
-	}
-
-	/**
-	 * verify a request object is always returned.
-	 * verify a request object is returned when quote is not null
-	 * verify existing request/response is discarded when quote is not null
-	 * verify same request is returned when quote is null and previous request exists.
-	 */
-	public function testGetTaxRequest()
-	{
-		$quote = $this->getModelMockBuilder('sales/quote')
+		$response = $this->getModelMockBuilder('eb2ctax/response')
 			->disableOriginalConstructor()
+			->setMethods(array('getRequest'))
 			->getMock();
-		$calc = Mage::getModel('tax/calculation');
-		$emptyRequest = $calc->getTaxRequest();
-		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $emptyRequest);
-		$this->assertFalse($emptyRequest->isValid());
+		$storedRequest = $this->getModelMockBuilder('eb2ctax/request')->disableOriginalConstructor()->getMock();
 
-		$quoteRequest = $calc->getTaxRequest($quote);
-		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $quoteRequest);
+		// $storedRequest will only come out of the $response mock. $newRequest will only come
+		// from the Mage factory
+		$response->expects($this->once())->method('getRequest')->will($this->returnValue($storedRequest));
 
-		// a new object is created
-		$otherQuoteRequest = $calc->getTaxRequest($quote);
-		$this->assertNotSame($quoteRequest, $otherQuoteRequest);
-
-		$response = $this->getModelMock('eb2ctax/response', array('getRequest'));
-		$response->expects($this->any())
-			->method('getRequest')
-			->will($this->returnValue($quoteRequest));
-		$calc->setData('tax_response', $response);
-		$storedRequest = $calc->getTaxRequest();
-		$this->assertSame($quoteRequest, $storedRequest);
-
-		$quoteRequest = $calc->getTaxRequest($quote);
-		$this->assertNotSame($storedRequest, $quoteRequest);
-		// the stored request should have been removed.
-		$quoteRequest = $calc->getTaxRequest();
-		$this->assertInstanceOf('TrueAction_Eb2cTax_Model_Request', $quoteRequest);
+		return array(
+			array($response, $storedRequest),
+			array(null, null),
+		);
 	}
+	/**
+	 * Get getting the tax request from a calculation model. When given no address
+	 * to build a request from, as is the case in these tests, the method should
+	 * either return the response stored on a stored request or a new, empty request
+	 * object.
+	 * @param  TrueAction_Eb2cTax_Model_Response|null $response The response object stored on the calc
+	 * @param  TrueAction_Eb2cTax_Model_Request $request  The request object that should be returned
+	 * @test
+	 * @dataProvider providerGetTaxRequestNoAddress
+	 */
+	public function testGetTaxRequestNoAddress($response, $request)
+	{
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('getTaxResponse'))
+			->getMock();
+		$newRequest = $this->getModelMockBuilder('eb2ctax/request')->disableOriginalConstructor()->getMock();
+		$this->replaceByMock('model', 'eb2ctax/request', $newRequest);
 
+		$calc->expects($this->once())->method('getTaxResponse')->will($this->returnValue($response));
+
+		$this->assertSame($request ?: $newRequest, $calc->getTaxRequest());
+	}
+	public function testGetTaxRequestWithAddress()
+	{
+		$address = Mage::getModel('sales/quote_address');
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('unsTaxResponse'))
+			->getMock();
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(array('processAddress'))
+			->getMock();
+		$this->replaceByMock('model', 'eb2ctax/request', $request);
+
+		$calc->expects($this->once())->method('unsTaxResponse')->will($this->returnSelf());
+		$request->expects($this->once())->method('processAddress')->with($this->identicalTo($address))->will($this->returnSelf());
+		$this->assertSame($request, $calc->getTaxRequest($address));
+	}
 	protected function _mockConfigRegistry($configValues)
 	{
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
@@ -697,4 +676,63 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 				  </Merchandise>
 				</Pricing>
 			  </OrderItem>';
+
+	/**
+	 * verify a request object is returned when address is not null
+	 * @test
+	 */
+	public function testGetTaxRequest()
+	{
+		$calc = $this->buildModelMock('tax/calculation', array('getTaxResponse', 'unsTaxResponse'));
+		$calc->expects($this->once())
+			->method('unsTaxResponse')
+			->will($this->returnSelf());
+		$calc->expects($this->never())
+			->method('getTaxResponse');
+
+		$request = $this->buildModelMock('eb2ctax/request', array('processAddress'));
+		$request->expects($this->any())
+			->method('processAddress')
+			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2ctax/request', $request);
+
+		$address = $this->buildModelMock('sales/quote_address');
+		$result = $calc->getTaxRequest($address);
+		$this->assertSame($request, $result);
+	}
+
+	/**
+	 * verify a request object is always returned.
+	 * verify existing request/response is discarded when quote is not null
+	 * verify same request is returned when quote is null and previous request exists.
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testGetTaxRequestNullAddress($hasResponse)
+	{
+		$request = $this->buildModelMock('eb2ctax/request', array('processAddress'));
+		$request->expects($this->never())
+			->method('processAddress');
+		$this->replaceByMock('model', 'eb2ctax/request', $request);
+
+		if ($hasResponse) {
+			$oldRequest = $this->buildModelStub('eb2ctax/request');
+			$response = $this->buildModelStub('eb2ctax/response', array(
+				'getRequest' => $oldRequest,
+				'isValid' => true
+			));
+		}
+
+		$calc = $this->buildModelMock('tax/calculation', array('getTaxResponse', 'unsTaxResponse'));
+		$calc->expects($this->once())
+			->method('getTaxResponse')
+			->will($this->returnValue($hasResponse ? $response : null));
+		$calc->expects($this->never())
+			->method('unsTaxResponse');
+
+		$address = $this->buildModelMock('sales/quote_address');
+		$result = $calc->getTaxRequest();
+		$this->assertSame($hasResponse ? $oldRequest : $request, $result);
+	}
 }

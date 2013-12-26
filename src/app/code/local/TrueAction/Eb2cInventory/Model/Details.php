@@ -1,40 +1,28 @@
 <?php
-class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Model_Abstract
+class TrueAction_Eb2cInventory_Model_Details
+	extends TrueAction_Eb2cInventory_Model_Request_Abstract
+	implements TrueAction_Eb2cInventory_Model_Request_Interface
 {
+
+	// Key used by the eb2cinventory/data helper to identify the URI for this request
+	const OPERATION_KEY = 'get_inventory_details';
+	// Config key used to identify the xsd file used to validate the request message
+	const XSD_FILE_CONFIG = 'xsd_file_details';
+
+	/*****************************************************************************
+	 * Request methods                                                           *
+	 ****************************************************************************/
+
 	/**
-	 * Get the inventory details for all items in this quote from eb2c.
-	 * @param Mage_Sales_Model_Quote $quote the quote to get eb2c inventory details on
-	 * @return string the eb2c response to the request.
+	 * Determine if a valid request could be sent for the given quote. In this case, must
+	 * have items (parent check), a shipping address, and shipping method.
+	 * @param  Mage_Sales_Model_Quote $quote The quote the request would be for
+	 * @return boolean True if possible to create valid request from the quote, false otherwise
 	 */
-	public function getInventoryDetails(Mage_Sales_Model_Quote $quote)
+	protected function _canMakeRequestWithQuote(Mage_Sales_Model_Quote $quote)
 	{
-		$responseMessage = '';
-		// only make api request if we have valid manage stock quote item in the cart and there is valid shipping add info for this quote
-		// Shipping address required for the details request, if there's no address,
-		// can't make the details request.
-		if ($quote && $quote->getShippingAddress() && $this->getInventoriedItems($quote->getAllItems())) {
-			// build request
-			$requestDoc = $this->_buildInventoryDetailsRequestMessage($quote);
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-			try {
-				// make request to eb2c for inventory details
-				$responseMessage = Mage::getModel('eb2ccore/api')
-					->addData(array(
-						'uri' => Mage::helper('eb2cinventory')->getOperationUri('get_inventory_details'),
-						'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileDetails,
-					))
-					->request($requestDoc);
-			} catch(Zend_Http_Client_Exception $e) {
-				Mage::log(
-					sprintf(
-						'[ %s ] The following error has occurred while sending InventoryDetails request to eb2c: (%s).',
-						__CLASS__, $e->getMessage()
-					),
-					Zend_Log::ERR
-				);
-			}
-		}
-		return $responseMessage;
+		return parent::_canMakeRequestWithQuote($quote) &&
+			$quote->getShippingAddress() && $quote->getShippingAddress()->hasShippingMethod();
 	}
 	/**
 	 * Take a quote address and interpolate it into a ShipmentDetails xml node string.
@@ -66,13 +54,14 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	 * Extract the data from the quote item and return an xml string.
 	 * @param Mage_Sales_Model_Quote_Item $item the item to get data from
 	 * @param string $shipDet the shipment details xml node string.
+	 * @param int $idx Index of item in collection. Used in the place of item id as not all items will have one
 	 * @return string
 	 */
-	protected function _buildOrderItemXml(Mage_Sales_Model_Quote_Item $item, $shipDet)
+	protected function _buildOrderItemXml(Mage_Sales_Model_Quote_Item $item, $shipDet, $idx)
 	{
 		return sprintf(
-			'<OrderItem lineId="%s" itemId="%s"><Quantity>%d</Quantity>%s</OrderItem>',
-			$item->getId(),
+			'<OrderItem lineId="item%s" itemId="%s"><Quantity>%d</Quantity>%s</OrderItem>',
+			$idx,
 			$item->getSku(),
 			$item->getQty(),
 			$shipDet
@@ -83,99 +72,112 @@ class TrueAction_Eb2cInventory_Model_Details extends TrueAction_Eb2cInventory_Mo
 	 * Concatenate the results of applying buildOrderItemXml to each.
 	 * @param array $items array of Mage_Sales_Model_Quote_Item
 	 * @param Mage_Sales_Model_Quote_Address $address
+	 * @param int $idx Index/counter for items added Used instead of id as items added to a new item collection will not have one
 	 * @return string
 	 */
-	protected function _buildOrderItemsXml(array $items, $address)
+	protected function _buildOrderItemsXml(array $items, $address, $idx=0)
 	{
 		if (empty($items)) {
 			return '';
 		}
-		return $this->_buildOrderItemXml(array_shift($items), $this->_buildShipmentDetailsXml($address)) . $this->_buildOrderItemsXml($items, $address);
+		return $this->_buildOrderItemXml(array_shift($items), $this->_buildShipmentDetailsXml($address), $idx) . $this->_buildOrderItemsXml($items, $address, ++$idx);
 	}
 	/**
 	 * Build Inventory Details request.
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
 	 * @return DOMDocument The xml document, to be sent as request to eb2c.
 	 */
-	protected function _buildInventoryDetailsRequestMessage(Mage_Sales_Model_Quote $quote)
+	protected function _buildRequestMessage(Mage_Sales_Model_Quote $quote)
 	{
+		$helper = Mage::helper('eb2cinventory');
 		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(sprintf(
 			'<InventoryDetailsRequestMessage xmlns="%s">%s</InventoryDetailsRequestMessage>',
-			Mage::helper('eb2cinventory')->getXmlNs(),
-			$this->_buildOrderItemsXml($this->getInventoriedItems($quote->getAllItems()), $quote->getShippingAddress())
+			$helper->getXmlNs(),
+			$this->_buildOrderItemsXml($helper->getInventoriedItems($quote->getAllVisibleItems()), $quote->getShippingAddress())
 		));
 		return $doc;
 	}
+
+	/*****************************************************************************
+	 * Response methods                                                          *
+	 ****************************************************************************/
+
 	/**
 	 * Parse inventory details response xml.
-	 * @param string $responseMessage the xml response from eb2c
+	 * @param DOMXPath $responseMessage DOMXPath that can be used to search the response message
 	 * @return array, an associative array of response data
 	 */
-	public function parseResponse($responseMessage)
+	public function extractItemDetails(DOMXpath $responseXPath)
 	{
 		$inventoryData = array();
-		if (trim($responseMessage) !== '') {
-			$coreHlpr = Mage::helper('eb2ccore');
-			$doc = $coreHlpr ->getNewDomDocument();
-			// load response string xml from eb2c
-			$doc->loadXML($responseMessage);
-			$xpath = new DOMXPath($doc);
-			$xpath->registerNamespace('a', Mage::helper('eb2cinventory')->getXmlNs());
-			$inventoryDetails = $xpath->query('//a:InventoryDetail');
-			foreach ($inventoryDetails as $detail) {
-				$inventoryData[] = array(
-					'lineId' => $detail->getAttribute('lineId'),
-					'itemId' => $detail->getAttribute('itemId'),
-					'creationTime' => $coreHlpr ->extractNodeVal($xpath->query('a:DeliveryEstimate/a:CreationTime', $detail)),
-					'display' => $coreHlpr ->extractNodeVal($xpath->query('a:DeliveryEstimate/a:Display', $detail)),
-					'deliveryWindow_from' => $coreHlpr->extractNodeVal($xpath->query('a:DeliveryEstimate/a:DeliveryWindow/a:From', $detail)),
-					'deliveryWindow_to' => $coreHlpr->extractNodeVal($xpath->query('a:DeliveryEstimate/a:DeliveryWindow/a:To', $detail)),
-					'shippingWindow_from' => $coreHlpr->extractNodeVal($xpath->query('a:DeliveryEstimate/a:ShippingWindow/a:From', $detail)),
-					'shippingWindow_to' => $coreHlpr->extractNodeVal($xpath->query('a:DeliveryEstimate/a:ShippingWindow/a:To', $detail)),
-					'shipFromAddress_line1' => $coreHlpr->extractNodeVal($xpath->query('a:ShipFromAddress/a:Line1', $detail)),
-					'shipFromAddress_city' => $coreHlpr->extractNodeVal($xpath->query('a:ShipFromAddress/a:City', $detail)),
-					'shipFromAddress_mainDivision' => $coreHlpr->extractNodeVal($xpath->query('a:ShipFromAddress/a:MainDivision', $detail)),
-					'shipFromAddress_countryCode' => $coreHlpr->extractNodeVal($xpath->query('a:ShipFromAddress/a:CountryCode', $detail)),
-					'shipFromAddress_postalCode' => $coreHlpr->extractNodeVal($xpath->query('a:ShipFromAddress/a:PostalCode', $detail)),
-				);
-			}
+		$coreHelper = Mage::helper('eb2ccore');
+		foreach ($responseXPath->query('//a:InventoryDetail') as $detail) {
+			$inventoryData[$detail->getAttribute('itemId')] = array(
+				'lineId' => $detail->getAttribute('lineId'),
+				'itemId' => $detail->getAttribute('itemId'),
+				'creationTime' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:CreationTime', $detail)),
+				'display' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:Display', $detail)),
+				'deliveryWindow_from' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:DeliveryWindow/a:From', $detail)),
+				'deliveryWindow_to' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:DeliveryWindow/a:To', $detail)),
+				'shippingWindow_from' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:ShippingWindow/a:From', $detail)),
+				'shippingWindow_to' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:ShippingWindow/a:To', $detail)),
+				'shipFromAddress_line1' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:Line1', $detail)),
+				'shipFromAddress_city' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:City', $detail)),
+				'shipFromAddress_mainDivision' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:MainDivision', $detail)),
+				'shipFromAddress_countryCode' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:CountryCode', $detail)),
+				'shipFromAddress_postalCode' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:PostalCode', $detail)),
+			);
 		}
-
 		return $inventoryData;
 	}
-
+	/**
+	 * Extract unavailable items from an inventory details response message.
+	 * @param DOMXPath $responseMessage DOMXPath that can be used to search the response message
+	 * @return array Map of sku => item details, item id and line id
+	 */
+	public function extractUnavailableItems(DOMXPath $responseXPath)
+	{
+		$items = array();
+		foreach ($responseXPath->query('//a:UnavailableItem') as $item) {
+			$items[$item->getAttribute('itemId')] = array(
+				'itemId' => $item->getAttribute('itemId'),
+				'lineId' => $item->getAttribute('lineId'),
+			);
+		}
+		return $items;
+	}
 	/**
 	 * Update quote with inventory details response data.
 	 * @param Mage_Sales_Model_Quote $quote the quote we use to get inventory details from eb2c
 	 * @param array $inventoryData, a parse associative array of eb2c response
 	 * @return void
 	 */
-	public function processInventoryDetails(Mage_Sales_Model_Quote $quote, array $inventoryData)
+	public function updateQuoteWithResponse(Mage_Sales_Model_Quote $quote, $responseMessage)
 	{
-		foreach ($inventoryData as $data) {
-			if ($item = $quote->getItemById($data['lineId'])) {
-				$this->_updateQuoteWithEb2cInventoryDetails($item, $data);
-			} else {
-				Mage::log(
-					sprintf('[ %s ]: No item matching lineId %s.', __CLASS__, $data['lineId']),
-					Zend_Log::DEBUG
-				);
+		if ($responseMessage) {
+			$helper = Mage::helper('eb2cinventory/quote');
+			$responseXPath = $helper->getXPathForMessage($responseMessage);
+			$itemDetails = $this->extractItemDetails($responseXPath);
+			$itemsToDelete = $this->extractUnavailableItems($responseXPath);
+			foreach ($quote->getAllItems() as $item) {
+				if (isset($itemsToDelete[$item->getSku()])) {
+					$helper->removeItemFromQuote($quote, $item);
+				} elseif (isset($itemDetails[$item->getSku()])) {
+					$this->_updateQuoteItemWithDetails($item, $itemDetails[$item->getSku()]);
+				}
 			}
+			Mage::dispatchEvent('eb2cinventory_details_process_after', array('quote' => $quote));
 		}
-		// Save the quote
-		$quote->save();
-		Mage::dispatchEvent('eb2cinventory_details_process_after', array('quote' => $quote));
 		return $this;
 	}
-
 	/**
 	 * Update quote with inventory details response data.
 	 * @param Mage_Sales_Model_Quote_Item $quoteItem the item to be updated with eb2c data
 	 * @param array $inventoryData the data from eb2c for the quote-item
 	 * @return void
 	 */
-	protected function _updateQuoteWithEb2cInventoryDetails(Mage_Sales_Model_Quote_Item $quoteItem, array $inventoryData)
+	protected function _updateQuoteItemWithDetails(Mage_Sales_Model_Quote_Item $quoteItem, array $inventoryData)
 	{
 		// Add inventory details info to quote item
 		$quoteItem->addData(array(

@@ -1,4 +1,0 @@
-config:
-  default/eb2ccore/general/store_id: "ABCD"
-  default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2cinventory/allocation_expired: 60

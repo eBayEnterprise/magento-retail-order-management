@@ -1,144 +1,90 @@
 <?php
 class TrueAction_Eb2cInventory_Model_Observer
 {
-	const QUANTITY_REQUEST_GREATER_MESSAGE = 'TrueAction_Eb2cInventory_Quantity_Request_Greater_Message';
-	const QUANTITY_OUT_OF_STOCK_MESSAGE = 'TrueAction_Eb2cInventory_Quantity_Out_Of_Stock_Message';
 	const CANNOT_ADD_TO_CART_MESSAGE = 'TrueAction_Eb2cInventory_Cannot_Add_To_Cart_Message';
 	const ALLOCATION_ERROR_MESSAGE = 'TrueAction_Eb2cInventory_Allocation_Error_Message';
-
 	/**
-	 * Retrieve shopping cart model object
+	 * Validate the quote against inventory service calls. When items or item quantities in the quote
+	 * have changed, this method will trigger a new inventory quantity service call and have the quote
+	 * updated with the results. When shipping or item/item quantity changes are detected, a new
+	 * inventory details request should be made.
 	 *
-	 * @return Mage_Checkout_Model_Cart
-	 */
-	protected function _getCart()
-	{
-		return Mage::getSingleton('checkout/cart');
-	}
-
-	/**
-	 * Check e2bc quantity, triggering sales_quote_item_qty_set_after event will run this method.
-	 *
+	 * Failures in related methods, those actually making the inventory service calls
+	 * and updating the quote, can signal for the process to be interrupted which will
+	 * cause this method to throw a Mage_Core_Exception.
 	 * @param Varien_Event_Observer $observer
-	 *
-	 * @return void
+	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
+	 * @throws Mage_Core_Exception If any of the service calls fail with a blocking status
 	 */
-	public function checkEb2cInventoryQuantity($observer)
+	public function checkInventory($observer)
 	{
-		$quoteItem = $observer->getEvent()->getItem();
-		$itemId = (int) $quoteItem->getId();
-
-		$requestedQty = $quoteItem->getQty();
-		$productId = $quoteItem->getProductId();
-		$productSku = $quoteItem->getSku();
-
-		// get quote from quote item
-		$quote = $quoteItem->getQuote();
-
-		$allocation = Mage::getModel('eb2cinventory/allocation');
-		// check allocation and rollback on the cart quote item adding/editing event
-		if ($allocation->hasAllocation($quote)) {
-			// this cart quote has allocation data, therefore, rollback eb2c inventory allocation
-			$allocation->rollbackAllocation($quote);
-		}
-		if ($productId) {
-			// we only do quantity check for product with manage stock only
-			if ($allocation->filterInventoriedItems($quoteItem)) {
-				// We have a valid product, let's check Eb2c Quantity
-				try {
-					$availableStock = Mage::getModel('eb2cinventory/quantity')->requestQuantity($requestedQty, $itemId, $productSku);
-					// if there is no answer then let the customer go ahead since the check will be done again
-					// later
-					if ($availableStock < $requestedQty && $availableStock > 0) {
-						// Inventory Quantity is less in eb2c than what user requested from magento front-end
-						// then, remove item from cart, and then alert customers of the available stock number of this inventory
-						// set cart item to eb2c available qty
-						$quoteItem->setQty($availableStock);
-
-						// re-calculate totals
-						$quote->collectTotals();
-
-						// save the quote
-						$quote->save();
-
-						$this->_getCart()->getCheckoutSession()->addNotice(sprintf(
-							Mage::helper('eb2cinventory')->__(self::QUANTITY_REQUEST_GREATER_MESSAGE),
-							$requestedQty, $availableStock
-						));
-					} elseif ($availableStock <= 0) {
-						// Inventory Quantity is out of stock in eb2c
-						// then, remove item from cart, and then alert customer the inventory is out of stock.
-						$quoteItem->getQuote()->deleteItem($quoteItem);
-						$this->_getCart()->getCheckoutSession()->addNotice(
-							Mage::helper('eb2cinventory')->__(self::QUANTITY_OUT_OF_STOCK_MESSAGE)
-						);
-						$this->_interruptAddToCart();
-						// @codeCoverageIgnoreStart
-					}
-					// @codeCoverageIgnoreEnd
-				} catch (TrueAction_Eb2cInventory_Exception_Cart_Interrupt $e) {
-					Mage::log('[ ' . __CLASS__ . ' ] Unable to update cart: ' . $e->getMessage(), Zend_Log::ERR);
-					$this->_interruptAddToCart();
-					// @codeCoverageIgnoreStart
-				} catch (TrueAction_Eb2cInventory_Exception_Cart $e) {
-					// @codeCoverageIgnoreEnd
-					Mage::log('[ ' . __CLASS__ . ' ] Updated cart, but with error: ' . $e->getMessage(), Zend_Log::WARN);
-				}
-			}
-		}
-	}
-
-	protected function _interruptAddToCart()
-	{
-		// throwing an error to prevent the successful add to cart message
-		Mage::throwException(Mage::helper('eb2cinventory')->__(self::CANNOT_ADD_TO_CART_MESSAGE));
-		// @codeCoverageIgnoreStart
-	}
-	// @codeCoverageIgnoreEnd
-
-	/**
-	 * Rollback allocation if cart has reservation data, triggering sales_quote_remove_item event will run this method.
-	 *
-	 * @param Varien_Event_Observer $observer
-	 *
-	 * @return void
-	 */
-	public function rollbackOnRemoveItemInReservedCart($observer)
-	{
-		$quoteItem = $observer->getEvent()->getQuoteItem();
-
-		// get quote from quote item
-		$quote = $quoteItem->getQuote();
-		$allocation = Mage::getModel('eb2cinventory/allocation');
-		if ($allocation->hasAllocation($quote)) {
-			// this cart quote has allocation data, therefore, rollback eb2c inventory allocation
-			$allocation->rollbackAllocation($quote);
-		}
-	}
-
-	/**
-	 * Check eb2c inventoryDetails, triggering checkout_controller_onepage_save_shipping_method event will run this method.
-	 *
-	 * @param Varien_Event_Observer $observer
-	 *
-	 * @return void
-	 */
-	public function processInventoryDetails($observer)
-	{
-		// get the quote from the event observer
+		$coreSession = Mage::getSingleton('eb2ccore/session');
 		$quote = $observer->getEvent()->getQuote();
+		$qtyRequired = $coreSession->isQuantityUpdateRequired();
+		$dtsRequired = $coreSession->isDetailsUpdateRequired();
+		$checkoutSession = Mage::getSingleton('checkout/session');
 
-		// generate request and send request to eb2c inventory details
-		$inventoryDetailsResponseMessage = Mage::getModel('eb2cinventory/details')->getInventoryDetails($quote);
-		if ($inventoryDetailsResponseMessage) {
-			// parse inventory detail response
-			$inventoryData = Mage::getModel('eb2cinventory/details')->parseResponse($inventoryDetailsResponseMessage);
-
-			// got a valid response from eb2c, then go ahead and update the quote with the eb2c information
-			Mage::getModel('eb2cinventory/details')->processInventoryDetails($quote, $inventoryData);
+		if ($qtyRequired || $dtsRequired) {
+			Mage::helper('eb2cinventory/quote')->rollbackAllocation($quote);
 		}
+		if ($qtyRequired) {
+			$this->_updateQuantity($quote);
+		}
+		if ($dtsRequired) {
+			$this->_updateDetails($quote);
+		}
+		return $this;
 	}
-
+	/**
+	 * Make an inventory quantity request and update the quote as needed.
+	 * @param  Mage_Sales_Model_Quote $quote     Quote object to make the request for and updated
+	 * @return [type]                            [description]
+	 */
+	protected function _updateQuantity(Mage_Sales_Model_Quote $quote)
+	{
+		if ($this->_makeRequestAndUpdate(Mage::getModel('eb2cinventory/quantity'), $quote)) {
+			Mage::getSingleton('eb2ccore/session')->updateQuoteInventory($quote)->resetQuantityUpdateRequired();
+		}
+		return $this;
+	}
+	/**
+	 * Make an inventory details request and update the quote as needed.
+	 * If the detils request was successful (no unavailable items), also flag the
+	 * inventory as being updated. If any items came back as unavailable, mark the session data as
+	 * invalid as quantity will need to be run again at the next available opportunity.
+	 * @param  Mage_Sales_Model_Quote $quote     Quote object the request is for
+	 * @param  array                  $quoteDiff Array of changes in the quote from the last time it was checked.
+	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
+	 */
+	protected function _updateDetails(Mage_Sales_Model_Quote $quote)
+	{
+		if ($this->_makeRequestAndUpdate(Mage::getModel('eb2cinventory/details'), $quote)) {
+			Mage::getSingleton('eb2ccore/session')->updateQuoteInventory($quote)->resetDetailsUpdateRequired();
+		}
+		return $this;
+	}
+	/**
+	 * Use the given request model to make a request and update the quote accordingly.
+	 * @param  TrueAction_Eb2cInventory_Model_Request_Interface $requestModel Request object used to make the request
+	 * @param  Mage_Sales_Model_Quote                           $quote        Quote object the request is for
+	 * @param  array                                            $quoteDiff    Array of changes found in the quote
+	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
+	 */
+	protected function _makeRequestAndUpdate(
+		TrueAction_Eb2cInventory_Model_Request_Interface $requestModel,
+		Mage_Sales_Model_Quote $quote
+	) {
+		$response = null;
+		try {
+			$response = $requestModel->makeRequestForQuote($quote);
+		} catch (TrueAction_Eb2cInventory_Exception_Cart_Interrupt $e) {
+			Mage::log(sprintf('[%s] Unable to update cart: %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
+		} catch (TrueAction_Eb2cInventory_Exception_Cart $e) {
+			Mage::log(sprintf('[%s] Updated cart but with some errors: %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
+		}
+		$requestModel->updateQuoteWithResponse($quote, $response);
+		return $response;
+	}
 	/**
 	 * Processing e2bc allocation, triggering eb2c_allocation_onepage_save_order_action_before event will run this method.
 	 *

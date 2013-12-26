@@ -100,6 +100,22 @@
 					</eb2c_reindex_all>
 				</observers>
 			</inventory_feed_processing_complete>
+			<sales_quote_collect_totals_before>
+				<observers>
+					<TrueAction_Eb2cInventory_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cInventory_Model_Observer</class>
+						<method>checkInventory</method>
+					</TrueAction_Eb2cInventory_observer>
+				</observers>
+			</sales_quote_collect_totals_before>
+			<sales_quote_item_qty_set_after>
+				<observers>
+					<inventory>
+						<type>disabled</type>
+					</inventory>
+				</observers>
+			</sales_quote_item_qty_set_after>
 		</events>
 	</global>
 	<frontend>
@@ -129,33 +145,6 @@
 			</checkout>
 		</routers>
 		<events>
-			<sales_quote_item_qty_set_after>
-				<observers>
-					<TrueAction_Eb2cInventory_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cInventory_Model_Observer</class>
-						<method>checkEb2cInventoryQuantity</method>
-					</TrueAction_Eb2cInventory_observer>
-				</observers>
-			</sales_quote_item_qty_set_after>
-			<sales_quote_remove_item>
-				<observers>
-					<TrueAction_Eb2cInventory_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cInventory_Model_Observer</class>
-						<method>rollbackOnRemoveItemInReservedCart</method>
-					</TrueAction_Eb2cInventory_observer>
-				</observers>
-			</sales_quote_remove_item>
-			<checkout_controller_onepage_save_shipping_method>
-				<observers>
-					<TrueAction_Eb2cInventory_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cInventory_Model_Observer</class>
-						<method>processInventoryDetails</method>
-					</TrueAction_Eb2cInventory_observer>
-				</observers>
-			</checkout_controller_onepage_save_shipping_method>
 			<eb2c_allocation_onepage_save_order_action_before>
 				<observers>
 					<TrueAction_Eb2cInventory_observer>

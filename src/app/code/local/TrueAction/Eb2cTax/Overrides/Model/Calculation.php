@@ -8,16 +8,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	const MERCHANDISE_TYPE = 0;
 	const SHIPPING_TYPE = 1;
 	const DUTY_TYPE = 2;
-	public function _construct()
-	{
-		parent::_construct();
-		if (!$this->hasTaxResponse()) {
-			$checkout = Mage::getSingleton('checkout/session');
-			if ($checkout->hasEb2cTaxResponse()) {
-				$this->setTaxResponse($checkout->getEb2cTaxResponse());
-			}
-		}
-	}
 	/**
 	 * Extract tax data regular or discount
 	 * @param TrueAction_Eb2cTax_Model_Response_Orderitem $itemResponse
@@ -104,18 +94,19 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		return $this->_calcTaxByMode($amount, $itemSelector, $type, self::TAX_DISCOUNT_FOR_AMOUNT);
 	}
 	/**
-	 * if $quote is null and a current request exists, return the existing request.
-	 * if $quote is not null return a new request using the quote's data.
+	 * if $address is null and a current request exists, return the existing request.
+	 * if $address is not null return a new request using the quote's data.
 	 * otherwise return a new invalid request.
-	 * @param Mage_Sales_Model_Quote $quote
+	 * @param Mage_Sales_Model_Quote_Address $address
 	 * @return TrueAction_Eb2cTax_Model_Request a tax request object
 	 */
-	public function getTaxRequest(Mage_Sales_Model_Quote $quote=null)
+	public function getTaxRequest(Mage_Sales_Model_Quote_Address $address=null)
 	{
-		if ($quote) {
+		if ($address) {
 			// delete old response/request
 			$this->unsTaxResponse();
-			return Mage::getModel('eb2ctax/request', array('quote_id' => $quote->getId()));
+			return Mage::getModel('eb2ctax/request')
+				->processAddress($address);
 		}
 		$response = $this->getTaxResponse();
 		return $response ? $response->getRequest() : Mage::getModel('eb2ctax/request');
@@ -127,7 +118,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 */
 	public function setTaxResponse(TrueAction_Eb2cTax_Model_Response $response=null)
 	{
-		Mage::getSingleton('checkout/session')->setEb2cTaxResponse($response);
 		return $this->setData('tax_response', $response);
 	}
 	/**
@@ -136,7 +126,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 */
 	public function unsTaxResponse()
 	{
-		Mage::getSingleton('checkout/session')->unsEb2cTaxResponse();
 		return $this->unsetData('tax_response');
 	}
 	/**
@@ -237,8 +226,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 */
 	public function getRateRequest($shippingAddress=null, $billingAddress=null, $customerTaxClass='', $store=null)
 	{
-		$quote = $billingAddress ? $billingAddress->getQuote() : null;
-		return $this->getTaxRequest($quote);
+		return $this->getTaxRequest();
 	}
 	/**
 	 * @codeCoverageIgnore

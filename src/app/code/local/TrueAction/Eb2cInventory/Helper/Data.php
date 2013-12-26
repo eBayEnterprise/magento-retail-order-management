@@ -74,4 +74,36 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 		$cfg = $this->getConfigModel(null);
 		return implode('-', array($cfg->clientId, $cfg->storeId, $entityId));
 	}
+	/**
+	 * Determine if the item's stock is managed via the inventory service. Return true
+	 * if it is, false if not. Items whose product is marked as managed stock and is not
+	 * virtual should be considered to have stock managed via the inventory service.
+	 * @param  Mage_Sales_Model_Quote_Item $item The item to check
+	 * @return boolean True if inventory is managed, false if not
+	 */
+	public function isItemInventoried(Mage_Sales_Model_Quote_Item $item)
+	{
+		return (bool) ($item->getProduct()->getStockItem()->getManageStock() && !$item->getIsVirtual());
+	}
+	/**
+	 * Filter the array of items down to only those that have stock levels managed by the inventory service
+	 * @param  array $quoteItems Array of items to filter
+	 * @return array Array of items that are managed stock
+	 */
+	public function getInventoriedItems(array $quoteItems)
+	{
+		return array_filter($quoteItems, array(Mage::helper('eb2cinventory'), 'isItemInventoried'));
+	}
+	/**
+	 * determine if the status should prevent adding an item to the cart.
+	 * @param  int  $status    http status code from the api response.
+	 * @return boolean         true if the item should not be added to the cart; false otherwise.
+	 */
+	public function isBlockingStatus($status)
+	{
+		$status = (int) $status;
+		return $status && ($status >= 400 && $status < 408) ||
+			($status >= 409 && $status < 500) ||
+			$status === 505;
+	}
 }
