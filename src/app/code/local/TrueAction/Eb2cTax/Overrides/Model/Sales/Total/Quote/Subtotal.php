@@ -39,39 +39,42 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
-		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
-		$this->_store   = $address->getQuote()->getStore();
-		$this->_address = $address;
-		$this->_subtotalInclTax     = 0;
-		$this->_baseSubtotalInclTax = 0;
-		$this->_subtotal            = 0;
-		$this->_baseSubtotal        = 0;
-		$this->_roundingDeltas      = array();
+		if ($this->_calculator->hasCalculationTrigger()) {
+			Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+			Mage::log('calculating tax subtotal', Zend_Log::DEBUG);
+			$this->_store   = $address->getQuote()->getStore();
+			$this->_address = $address;
+			$this->_subtotalInclTax     = 0;
+			$this->_baseSubtotalInclTax = 0;
+			$this->_subtotal            = 0;
+			$this->_baseSubtotal        = 0;
+			$this->_roundingDeltas      = array();
 
-		$address->setSubtotalInclTax(0);
-		$address->setBaseSubtotalInclTax(0);
-		$address->setTotalAmount('subtotal', 0);
-		$address->setBaseTotalAmount('subtotal', 0);
+			$address->setSubtotalInclTax(0);
+			$address->setBaseSubtotalInclTax(0);
+			$address->setTotalAmount('subtotal', 0);
+			$address->setBaseTotalAmount('subtotal', 0);
 
-		$items = $this->_getAddressItems($address);
-		if (!$items) {
-			return $this;
-		}
-		foreach ($items as $item) {
-			if ($item->getParentItem()) {
-				continue;
+			$items = $this->_getAddressItems($address);
+			if (!$items) {
+				return $this;
 			}
-			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-				foreach ($item->getChildren() as $child) {
-					$this->_applyTaxes($child, $address);
+			foreach ($items as $item) {
+				if ($item->getParentItem()) {
+					continue;
 				}
-				$this->_recalculateParent($item);
-			} else {
-				$this->_applyTaxes($item, $address);
+				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+					foreach ($item->getChildren() as $child) {
+						$this->_applyTaxes($child, $address);
+					}
+					$this->_recalculateParent($item);
+				} else {
+					$this->_applyTaxes($item, $address);
+				}
+				$this->_addSubtotalAmount($address, $item);
 			}
-			$this->_addSubtotalAmount($address, $item);
+			$address->setRoundingDeltas($this->_roundingDeltas);
 		}
-		$address->setRoundingDeltas($this->_roundingDeltas);
 		return $this;
 	}
 
