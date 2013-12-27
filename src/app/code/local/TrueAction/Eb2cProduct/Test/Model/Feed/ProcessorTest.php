@@ -57,13 +57,13 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 * Test _prepareCustomAttributes method, where custom product type of any case will be recognizeed
 	 * @test
 	 */
-	public function testPrepareCustomAttributes()
+	public function testProductTypeCaseInsensitive()
 	{
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
 			->setMethods(array('getDefaultProductAttributeSetId'))
 			->getMock();
-		$productHelperMock->expects($this->once())
+		$productHelperMock->expects($this->exactly(4))
 			->method('getDefaultProductAttributeSetId')
 			->will($this->returnValue(72));
 
@@ -77,43 +77,44 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$outData = $this->getMock('Varien_Object', array('setData'));
 		$outData->expects($this->exactly(4))
 			->method('setData')
-			->with($this->equalTo('product_type')
-			->will($this->returnValue());
+			->with($this->equalTo('product_type'), $this->equalTo('simple'))
+			->will($this->returnSelf());
 
 		$testData = array(
 			array(
 				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
 				'customAttributes' => array(array(
-					'name' = 'PROdUcTypE',
+					'name' => 'PROdUctTypE',
 					'value' => 'simple'
-				)
+				))
 			),
 			array(
 				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
 				'customAttributes' => array(array(
-					'name' = 'pRodUCTTYPE',
+					'name' => 'pRodUCTTYPE',
 					'value' => 'simple'
-				)
+				))
 			),
 			array(
 				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
 				'customAttributes' => array(array(
-					'name' = 'PRODUCTTYPE',
+					'name' => 'PRODUCTTYPE',
 					'value' => 'simple'
-				)
+				))
 			),
 			array(
 				'expect' => 'TrueAction_Eb2cProduct_Model_Feed_Processor',
 				'customAttributes' => array(array(
-					'name' = 'producttype',
+					'name' => 'producttype',
 					'value' => 'simple'
-				)
+				))
 			)
 		);
 		foreach ($testData as $data) {
 			$this->assertInstanceOf(
 				$data['expect'],
-				$this->_reflectMethod($feedProcessorModelMock, '_prepareCustomAttributes')->invoke($feedProcessorModelMock, $data['expect'], $outData)
+				$this->_reflectMethod($feedProcessorModelMock, '_prepareCustomAttributes')
+				->invoke($feedProcessorModelMock, $data['customAttributes'], $outData)
 			);
 		}
 	}
