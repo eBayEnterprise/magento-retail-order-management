@@ -223,7 +223,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	public function testLinkProducts()
 	{
 		$product = $this->getModelMockBuilder('catalog/product')
-			->setMethods(array('getRelatedProducts'))
+			->setMethods(array('getRelatedProducts', 'getIdBySku'))
 			->getMock();
 		$product->expects($this->once())
 			->method('getRelatedProducts')
@@ -232,6 +232,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 					'sku' => '1234-Related'
 				)),
 			)));
+		$product->expects($this->once())
+			->method('getIdBySku')
+			->with($this->equalTo('clean_0'))
+			->will($this->returnValue(0));
+		$this->replaceByMock('model', 'catalog/product', $product);
 
 		$linkUpdates = array(array(
 			'link_type' => 'related',
@@ -253,17 +258,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 			))));
 		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelProductMock);
 
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->setMethods(array('loadProductBySku'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('loadProductBySku')
-			->will($this->returnValue(Mage::getModel('catalog/product')->addData(array(
-				'sku' => '1234-Related',
-				'entity_id' => 0,
-			))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
 		$this->assertSame(
 			array(array(array(
 				'link_type' => 'related',
@@ -282,7 +276,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	public function testLinkProductsToBeLink()
 	{
 		$product = $this->getModelMockBuilder('catalog/product')
-			->setMethods(array('getRelatedProducts'))
+			->setMethods(array('getRelatedProducts', 'getIdBySku'))
 			->getMock();
 		$product->expects($this->once())
 			->method('getRelatedProducts')
@@ -291,6 +285,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 					'sku' => '1234-Related'
 				)),
 			)));
+		$product->expects($this->once())
+			->method('getIdBySku')
+			->with($this->equalTo('clean_0'))
+			->will($this->returnValue(10));
+		$this->replaceByMock('model', 'catalog/product', $product);
 
 		$linkUpdates = array(array(
 			'link_type' => 'related',
@@ -311,17 +310,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 				'link_to_unique_id' => 'clean_0',
 			))));
 		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelProductMock);
-
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->setMethods(array('loadProductBySku'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('loadProductBySku')
-			->will($this->returnValue(Mage::getModel('catalog/product')->addData(array(
-				'sku' => '1234-Related',
-				'entity_id' => 10,
-			))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
 		$this->assertSame(
 			array(),

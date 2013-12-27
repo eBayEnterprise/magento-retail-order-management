@@ -134,9 +134,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		// cannot be resolved yet.
 		$missingLinks = array();
 		$idsToAdd = array();
-		$helper = Mage::helper('eb2cproduct');
 		foreach ($addSkus as $sku) {
-			$id = $helper->loadProductBySku($sku)->getId();
+			$id = Mage::getModel('catalog/product')->getIdBySku($sku);
 			if ($id) {
 				$idsToAdd[] = $id;
 			} else {
@@ -266,5 +265,4 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		}
 		return $this;
 	}
-
 }
