@@ -46,15 +46,6 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	}
 
 	/**
-	 * @return Mage_Core_Model_Store the underlying quote's store model.
-	 * @codeCoverageIgnore
-	 */
-	public function getStore()
-	{
-		return Mage::app()->getStore($this->_storeId);
-	}
-
-	/**
 	 * @return  Mage_Sales_Model_Quote Quote object the tax request is for.
 	 */
 	public function getQuote()
