@@ -183,6 +183,80 @@ class TrueAction_Eb2cOrder_Model_Create
 		return array();
 	}
 	/**
+	 * Build DOM OrderCreateRequest node
+	 * @return TrueAction_Dom_Element
+	 */
+	protected function _buildOrderCreateRequest()
+	{
+		$orderCreateRequest = $this->_domRequest
+			->addElement($this->_config->apiCreateDomRootNodeName, null, $this->_config->apiXmlNs)
+			->firstChild;
+		$orderCreateRequest->setAttribute('orderType', $this->_config->apiOrderType);
+		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
+		return $orderCreateRequest;
+	}
+	/**
+	 * Build DOM Order node
+	 * @param TrueAction_Dom_Element $orderCreateRequest
+	 * @return TrueAction_Dom_Element
+	 */
+	protected function _buildOrder(TrueAction_Dom_Element $orderCreateRequest)
+	{
+		$order = $orderCreateRequest->createChild('Order');
+		$order->setAttribute('levelOfService', $this->_config->apiLevelOfService);
+		$order->setAttribute('customerOrderId', $this->_o->getIncrementId());
+		$this->_buildCustomer($order->createChild('Customer'));
+		$order->createChild('CreateTime', str_replace(' ', 'T', $this->_o->getCreatedAt()));
+		return $order;
+	}
+	/**
+	 * Build DOM Order Item node
+	 * @param TrueAction_Dom_Element $order
+	 * @return self
+	 */
+	protected function _buildItems(TrueAction_Dom_Element $order)
+	{
+		$webLineId = 1;
+		$orderItems = $order->createChild('OrderItems');
+		foreach ($this->_o->getAllItems() as $item) {
+			$this->_buildOrderItem($orderItems->createChild('OrderItem'), $item, $webLineId++);
+		}
+		return $this;
+	}
+	/**
+	 * Build DOM Order ship node
+	 * @param TrueAction_Dom_Element $order
+	 * @return self
+	 */
+	protected function _buildShip(TrueAction_Dom_Element $order)
+	{
+		// Magento only ever has 1 ship-to per order, so we're building directly into a singular ShipGroup
+		$shipping = $order->createChild('Shipping');
+		// building shipGroup node
+		$this->_buildShipGroup($shipping->createChild('ShipGroups')->createChild('ShipGroup'));
+		$this->_buildShipping($shipping);
+		return $this;
+	}
+	/**
+	 * Build DOM additonal node
+	 * @param TrueAction_Dom_Element $order
+	 * @return self
+	 */
+	protected function _buildAdditionalOrderNodes(TrueAction_Dom_Element $order)
+	{
+		$order->createChild('Currency', $this->_o->getOrderCurrencyCode());
+		$order->createChild('TaxHeader')->createChild('Error', 'false');
+		$order->createChild('Locale', 'en_US');
+		$orderSource = $this->_getSourceData();
+		if (!empty($orderSource)) {
+			$orderSourceNode = $order->createChild('OrderSource', $orderSource['source']);
+			$orderSourceNode->setAttribute('type', $orderSource['type']);
+		}
+		$order->createChild('OrderHistoryUrl', Mage::helper('eb2corder')->getOrderHistoryUrl($this->_o));
+		$order->createChild('OrderTotal', sprintf('%.02f', $this->_o->getGrandTotal()));
+		return $this;
+	}
+	/**
 	 * Build DOM for a complete order
 	 * @param $orderObject a Mage_Sales_Model_Order
 	 * @return self
@@ -192,42 +266,13 @@ class TrueAction_Eb2cOrder_Model_Create
 		$this->_o = $orderObject;
 		$this->_domRequest = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->_domRequest->formatOutput = true;
-		$orderCreateRequest = $this
-			->_domRequest
-			->addElement($this->_config->apiCreateDomRootNodeName, null, $this->_config->apiXmlNs)
-			->firstChild;
-		$orderCreateRequest->setAttribute('orderType', $this->_config->apiOrderType);
-		$orderCreateRequest->setAttribute('requestId', $this->_getRequestId());
-		$order = $orderCreateRequest->createChild('Order');
-		$order->setAttribute('levelOfService', $this->_config->apiLevelOfService);
-		$order->setAttribute('customerOrderId', $this->_o->getIncrementId());
-		$this->_buildCustomer($order->createChild('Customer'));
-		$order->createChild('CreateTime', str_replace(' ', 'T', $this->_o->getCreatedAt()));
-		$webLineId = 1;
-		$orderItems = $order->createChild('OrderItems');
-		foreach ($this->_o->getAllItems() as $item) {
-			$this->_buildOrderItem($orderItems->createChild('OrderItem'), $item, $webLineId++);
-		}
-		// Magento only ever has 1 ship-to per order, so we're building directly into a singular ShipGroup
-		$shipping = $order->createChild('Shipping');
-		// building shipGroup node
-		$this->_buildShipGroup($shipping->createChild('ShipGroups')->createChild('ShipGroup'));
-		$this->_buildShipping($shipping);
-		$this->_buildPayment($order->createChild('Payment'));
-		$order->createChild('Currency', $this->_o->getOrderCurrencyCode());
-		$taxHeader = $order->createChild('TaxHeader')->createChild('Error', 'false');
-		$order->createChild('Locale', 'en_US');
-		$orderSource = $this->_getSourceData();
-		if (!empty($orderSource)) {
-			$orderSourceNode = $order->createChild('OrderSource', $orderSource['source']);
-			$orderSourceNode->setAttribute('type', $orderSource['type']);
-		}
-		$order->createChild(
-			'OrderHistoryUrl',
-			Mage::helper('eb2corder')->getOrderHistoryUrl($this->_o)
-		);
-		$order->createChild('OrderTotal', sprintf('%.02f', $this->_o->getGrandTotal()));
-		$this->_buildContext($orderCreateRequest->createChild('Context'));
+		$orderCreateRequest = $this->_buildOrderCreateRequest();
+		$order = $this->_buildOrder($orderCreateRequest);
+		$this->_buildItems($order)
+			->_buildShip($order)
+			->_buildPayment($order->createChild('Payment'))
+			->_buildAdditionalOrderNodes($order)
+			->_buildContext($orderCreateRequest->createChild('Context'));
 		$this->_xmlRequest = $this->_domRequest->saveXML();
 		return $this;
 	}
@@ -486,12 +531,13 @@ class TrueAction_Eb2cOrder_Model_Create
 	/**
 	 * Populate the Payment Element of the request
 	 * @param DomElement payment
-	 * @return void
+	 * @return self
 	 */
 	protected function _buildPayment($payment)
 	{
 		$payment->createChild('BillingAddress')->setAttribute('ref', $this->_config->apiShipGroupBillingId);
 		$this->_buildPayments($payment->createChild('Payments'));
+		return $this;
 	}
 	/**
 	 * Creates the Tender entries within the Payments Element
@@ -573,11 +619,12 @@ class TrueAction_Eb2cOrder_Model_Create
 	/**
 	 * Populates the Context element
 	 * @param DomElement context
-	 * @return void
+	 * @return self
 	 */
 	protected function _buildContext(DomElement $context)
 	{
 		$this->_buildBrowserData($context->createChild('BrowserData'));
+		return $this;
 	}
 	/**
 	 * Populates the Context/BrowserData element
