@@ -31,9 +31,7 @@ INVALID_XML;
 			->getMock();
 		$helperMock->expects($this->once())
 			->method('getConfigModel')
-			->will($this->returnValue( (Object) array(
-				'isPaymentEnabled' => true,
-			)));
+			->will($this->returnValue((Object) array('isPaymentEnabled' => true)));
 		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
 		$_SERVER['HTTP_ACCEPT'] = '/';
 		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
@@ -534,5 +532,84 @@ INVALID_XML;
 			$collection,
 			$this->_reflectMethod($testModel, '_getNewOrders')->invoke($testModel)
 		);
+	}
+	/**
+	 * Test _processResponse method
+	 * @test
+	 */
+	public function testProcessResponse()
+	{
+		$orderModelMock = $this->getModelMockBuilder('sales/order')
+			->disableOriginalConstructor()
+			->setMethods(array('getState', 'setState', 'save', 'getIncrementId'))
+			->getMock();
+		$orderModelMock->expects($this->exactly(2))
+			->method('getState')
+			->will($this->returnValue(Mage_Sales_Model_Order::STATE_NEW));
+		$orderModelMock->expects($this->at(1))
+			->method('setState')
+			->with($this->equalTo(Mage_Sales_Model_Order::STATE_PROCESSING))
+			->will($this->returnSelf());
+		$orderModelMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+		$orderModelMock->expects($this->exactly(2))
+			->method('getIncrementId')
+			->will($this->returnValue('0005400000000001'));
+		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
+			->disableOriginalConstructor()
+			->setMethods(array('_extractResponseState'))
+			->getMock();
+		$createModelMock->expects($this->at(0))
+			->method('_extractResponseState')
+			->with($this->equalTo('<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'))
+			->will($this->returnValue(Mage_Sales_Model_Order::STATE_PROCESSING));
+		$createModelMock->expects($this->at(1))
+			->method('_extractResponseState')
+			->with($this->equalTo('<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Failure</ResponseStatus></OrderCreateResponse>'))
+			->will($this->returnValue(Mage_Sales_Model_Order::STATE_NEW));
+		$this->_reflectProperty($createModelMock, '_o')->setValue($createModelMock, $orderModelMock);
+		$testData = array(
+			array(
+				'expect' => 'TrueAction_Eb2cOrder_Model_Create',
+				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'
+			),
+			array(
+				'expect' => 'TrueAction_Eb2cOrder_Model_Create',
+				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Failure</ResponseStatus></OrderCreateResponse>'
+			)
+		);
+		foreach ($testData as $data) {
+			$this->assertInstanceOf($data['expect'], $this->_reflectMethod($createModelMock, '_processResponse')->invoke($createModelMock, $data['response']));
+		}
+	}
+	/**
+	 * Test _extractResponseState method
+	 * @test
+	 */
+	public function testExtractResponseState()
+	{
+		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->_reflectProperty($createModelMock, '_domResponse')->setValue($createModelMock, new TrueAction_Dom_Document('1.0', 'UTF-8'));
+		$testData = array(
+			array(
+				'expect' => Mage_Sales_Model_Order::STATE_PROCESSING,
+				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'
+			),
+			array(
+				'expect' => Mage_Sales_Model_Order::STATE_NEW,
+				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>failure</ResponseStatus></OrderCreateResponse>'
+			),
+			array(
+				'expect' => Mage_Sales_Model_Order::STATE_NEW,
+				'response' => ''
+			)
+		);
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $this->_reflectMethod($createModelMock, '_extractResponseState')->invoke($createModelMock, $data['response']));
+		}
 	}
 }

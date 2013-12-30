@@ -131,35 +131,40 @@ class TrueAction_Eb2cOrder_Model_Create
 		return $this->_processResponse($response);
 	}
 	/**
+	 * extract the response status from the reponse xml string
+	 * @param string $response, the response string xml from eb2c request
+	 * @return string, Mage_Sales_Model_Order::STATE_PROCESSING | Mage_Sales_Model_Order::STATE_NEW
+	 */
+	protected function _extractResponseState($response)
+	{
+		if (trim($response) !== '') {
+			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
+			$this->_domResponse->loadXML($response);
+			return (strtoupper(trim($this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue)) === 'SUCCESS')?
+				Mage_Sales_Model_Order::STATE_PROCESSING : Mage_Sales_Model_Order::STATE_NEW;
+		}
+		return Mage_Sales_Model_Order::STATE_NEW;
+	}
+	/**
 	 * processing the request response from eb2c
 	 * @param string $response, the response string xml from eb2c request
 	 * @return self
 	 */
 	protected function _processResponse($response)
 	{
-		if ($response) {
-			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
-			$this->_domResponse->loadXML($response);
-			$status = $this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue;
-			if (strtoupper(trim($status)) === 'SUCCESS') {
-				$this->_o->setState(Mage_Sales_Model_Order::STATE_PROCESSING)->save();
-				Mage::log(
-					sprintf('[ %s ]: updating order (%s) state to processing after successfully creating order from eb2c', __METHOD__, $this->_o->getIncrementId()),
-					Zend_Log::DEBUG
-				);
-				Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
-			} else {
-				$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
-				Mage::log(
-					sprintf('[ %s ]: updating order (%s) state to new after receiving fail response from eb2c', __METHOD__, $this->_o->getIncrementId()),
-					Zend_Log::DEBUG
-				);
-			}
-		} else {
-			$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
+		$state = $this->_extractResponseState($response);
+		if ($state !== $this->_o->getState()) {
+			$this->_o->setState($state)->save();
 			Mage::log(
-				sprintf('[ %s ]: updating order (%s) state to new after order creation request failure', __METHOD__, $this->_o->getIncrementId()),
+				sprintf('[ %s ]: updating order (%s) state to processing after successfully creating order from eb2c', __METHOD__, $this->_o->getIncrementId()),
 				Zend_Log::DEBUG
+			);
+			Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
+		} else {
+			// If the response status is not success, but the order is already new, we should log it
+			Mage::log(
+				sprintf('[ %s ]: the following order (%s) received fail response from eb2c but the order state was already new.', __METHOD__, $this->_o->getIncrementId()),
+				Zend_Log::WARN
 			);
 		}
 		return $this;
