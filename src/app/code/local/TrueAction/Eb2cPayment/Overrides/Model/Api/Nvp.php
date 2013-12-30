@@ -165,7 +165,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 
 			$response = array();
 
-			if ($quote) {
+			if ($quote->getId()) {
 				// We have a valid quote, let's Do PayPal Express checkout it through eb2c.
 				$payPalDoExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_do_express_checkout')->doExpressCheckout($quote);
 				if ($payPalDoExpressCheckoutReply) {
