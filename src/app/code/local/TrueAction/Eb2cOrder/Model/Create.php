@@ -148,14 +148,14 @@ class TrueAction_Eb2cOrder_Model_Create
 					Zend_Log::DEBUG
 				);
 				Mage::dispatchEvent('eb2c_order_create_succeeded', array('order' => $this->_o));
-			} else {
+			} elseif($this->_o->getState() !== Mage_Sales_Model_Order::STATE_NEW) {
 				$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
 				Mage::log(
 					sprintf('[ %s ]: updating order (%s) state to new after receiving fail response from eb2c', __METHOD__, $this->_o->getIncrementId()),
 					Zend_Log::DEBUG
 				);
 			}
-		} else {
+		} elseif($this->_o->getState() !== Mage_Sales_Model_Order::STATE_NEW) {
 			$this->_o->setState(Mage_Sales_Model_Order::STATE_NEW)->save();
 			Mage::log(
 				sprintf('[ %s ]: updating order (%s) state to new after order creation request failure', __METHOD__, $this->_o->getIncrementId()),
