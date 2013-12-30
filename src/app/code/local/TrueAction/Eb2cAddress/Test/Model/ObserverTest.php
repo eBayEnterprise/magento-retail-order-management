@@ -27,68 +27,6 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 		return $config;
 	}
 
-	public function testTaxEventSendRequest($isResponseValid=true)
-	{
-		$request = $this->getModelMockBuilder()
-			->disableOriginalConstructor();
-
-		$response = $this->getModelMockBuilder()
-			->disableOriginalConstructor()
-			->setMethods(array('isValid'))
-			->getMock();
-		$response->expects($this->once())
-			->method('isValid')
-			->will($this->returnValue($isResponseValid));
-
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor();
-			->setMethods(array(
-				'setTaxResponse',
-				'setCalculationTrigger',
-				'getTaxRequest',
-			));
-		$calc->expects($this->once())
-			->method('setTaxResponse')
-			->with($response)
-			->will($this->returnSelf());
-		$calc->expects($this->once())
-			->method('setCalculationTrigger')
-			->with(true)
-			->will($this->returnSelf());
-		$calc->expects($this->once())
-			->method('getTaxRequest')
-			->will($this->returnValue($request));
-
-		$helper = $this->getHelperMock('tax/data', array(
-			'getCalculator',
-			'sendRequest',
-		));
-		$helper->expects($this->once())
-			->method('getCalculator')
-			->will($this->returnValue($calc));
-		$helper->expects($this->once())
-			->method('sendRequest')
-			->with($request);
-			->will($this->returnValue($response));
-		$this->replaceByMock('helper', 'tax', $helper);
-
-		$quote = $this->getModelMockBuilder('sales/quote')
-			->disableOriginalConstructor()
-			->setMethods('getId')
-			->getMock();
-		$quote->expects($this->once())
-			->method('getId')
-			->will($this->returnValue(1));
-
-		$event = new Varien_Event(array(
-			'quote' => $quote
-		));
-		$observer = new Varien_Event_Observer(array(
-			'event' => $event,
-		));
-		$testModel->testTaxEventSendRequest($observer);
-	}
-
 	/**
 	 * When disabled, observer method should do nothing.
 	 * @test
