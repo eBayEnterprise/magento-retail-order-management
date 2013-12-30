@@ -142,7 +142,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		$testModel->taxEventSendRequest($observer);
 	}
 
-
 	/**
 	 * Test adding of address tax data to the order.
 	 * @dataProvider dataProvider
