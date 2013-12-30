@@ -4,8 +4,14 @@ $installer = new Enterprise_GiftCardAccount_Model_Mysql4_Setup('core_setup');
 $installer->startSetup();
 try{
 	// enterprise_giftcardaccount
-	$installer->getConnection()->addColumn($this->getTable('enterprise_giftcardaccount'), 'eb2c_pan', 'varchar(255) DEFAULT NULL');
-	$installer->getConnection()->addColumn($this->getTable('enterprise_giftcardaccount'), 'eb2c_pin', 'varchar(255) DEFAULT NULL');
+	$tableName = $this->getTable('enterprise_giftcardaccount');
+	$conn = $installer->getConnection();
+
+	$conn->addColumn($tableName, 'eb2c_pan', 'varchar(255) DEFAULT NULL');
+	$conn->addColumn($tableName, 'eb2c_pin', 'varchar(255) DEFAULT NULL');
+
+	$conn->addKey($tableName, 'IDX_eb2c_pan', 'eb2c_pan');
+	$conn->addKey($tableName, 'IDX_eb2c_pin', 'eb2c_pin');
 
 } catch (Exception $e) {
 	Mage::logException($e);
