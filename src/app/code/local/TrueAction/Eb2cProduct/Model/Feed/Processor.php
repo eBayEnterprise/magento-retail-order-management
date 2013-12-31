@@ -14,6 +14,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * We keep a tally of CustomAttribute errors for help analyzing feeds
 	 */
 	protected $_customAttributeErrors = array();
+
+	/**
+	 * @var int, default parent category id
+	 */
+	protected $_defaultParentCategoryId = 0;
+	/**
+	 * @var int, store root category id
+	 */
+	protected $_storeRootCategoryId = 0;
+
 	const CA_ERROR_INVALID_LANGUAGE   = 'invalid_language';
 	const CA_ERROR_INVALID_OP_TYPE    = 'invalid_operation_type';
 	const CA_ERROR_MISSING_OP_TYPE    = 'missing_operation_type';
@@ -67,6 +77,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
+
+		$this->_defaultParentCategoryId = $this->_getDefaultParentCategoryId();
+		$this->_storeRootCategoryId = $this->_getStoreRootCategoryId();
 	}
 	/**
 	 * Creates a map of language codes (as dervied from the store view code) to store ids
@@ -1094,7 +1107,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 					}
 				} else {
 					// adding or changing category import mode
-					$path = sprintf('%s/%s', $this->_getDefaultParentCategoryId(), $this->_getStoreRootCategoryId());
+					$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
 					foreach($categories as $category) {
 						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
 						if ($categoryId) {
