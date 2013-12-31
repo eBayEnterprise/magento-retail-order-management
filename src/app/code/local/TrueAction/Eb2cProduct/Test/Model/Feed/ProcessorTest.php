@@ -150,7 +150,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	}
 	/**
 	 * Data provider to the testAddStockItemData test, provides the product type,
-	 * product id, feed "dataObject" and expected data to be set on the stock item
+	 * product id, feed "dataObject" and expected data to be set on the stock itemprocessDeletions
 	 * @return array Arg arrays to be sent to test method
 	 */
 	public function providerTestAddStockItemData()
@@ -183,7 +183,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			),
 		);
 	}
-	/**
+	/**processDeletions
 	 * Test adding stock data to a product - should create the stock item and populate
 	 * it with appropriate data based on the product type. All should get a product_id
 	 * and stock_id. Non-config products should also get settings for use_config_backorders and
@@ -234,5 +234,96 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			->will($this->returnValue($productId));
 		$method = $this->_reflectMethod($processor, '_addStockItemDataToProduct');
 		$this->assertSame($processor, $method->invoke($processor, $feedData, $product));
+	}
+
+	/**
+	 * Test _extractDeletedItemSkus method
+	 * @test
+	 */
+	public function testExtractDeletedItemSkus()
+	{
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertSame(
+			array('SKU-1234', 'SKU-4321', 'SKU-3412', 'SKU-2143'),
+			$this->_reflectMethod($processorModelMock, '_extractDeletedItemSkus')->invoke($processorModelMock, array(
+				new Varien_Object(array('client_item_id' => 'SKU-1234')),
+				new Varien_Object(array('client_item_id' => 'SKU-4321')),
+				new Varien_Object(array('client_item_id' => 'SKU-3412')),
+				new Varien_Object(array('client_item_id' => 'SKU-2143'))
+			))
+		);
+	}
+
+	/**
+	 * Test _deleteItems method
+	 * @test
+	 */
+	public function testDeleteItems()
+	{
+		$catalogResourceModelProductMock = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'load', 'delete'))
+			->getMock();
+
+		$catalogResourceModelProductMock->expects($this->once())
+			->method('addFieldToFilter')
+			->with($this->equalTo('sku'), $this->isType('array'))
+			->will($this->returnSelf());
+		$catalogResourceModelProductMock->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->isType('array'))
+			->will($this->returnSelf());
+		$catalogResourceModelProductMock->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$catalogResourceModelProductMock->expects($this->once())
+			->method('delete')
+			->will($this->returnSelf());
+
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $catalogResourceModelProductMock);
+
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($processorModelMock, '_deleteItems')->invoke($processorModelMock, array('SKU-1234', 'SKU-4321', 'SKU-3412', 'SKU-2143'))
+		);
+	}
+
+	/**
+	 * Test processDeletions method
+	 * @test
+	 */
+	public function testProcessDeletions()
+	{
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_extractDeletedItemSkus', '_deleteItems'))
+			->getMock();
+		$processorModelMock->expects($this->once())
+			->method('_extractDeletedItemSkus')
+			->with($this->isType('array'))
+			->will($this->returnValue(array('SKU-1234', 'SKU-4321', 'SKU-3412', 'SKU-2143')));
+		$processorModelMock->expects($this->once())
+			->method('_deleteItems')
+			->with($this->isType('array'))
+			->will($this->returnSelf());
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$processorModelMock->processDeletions(array(
+				new Varien_Object(array('client_item_id' => 'SKU-1234')),
+				new Varien_Object(array('client_item_id' => 'SKU-4321')),
+				new Varien_Object(array('client_item_id' => 'SKU-3412')),
+				new Varien_Object(array('client_item_id' => 'SKU-2143'))
+			))
+		);
 	}
 }

@@ -117,14 +117,50 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		array_splice($this->_customAttributeErrors, 0); // truncate array
 		return $this;
 	}
-	public function processDeletions($dataObjectList)
+
+	/**
+	 * extract list of item sku to be deleted
+	 * @param array $dataObjectList list of items to delete
+	 * @return array
+	 */
+	protected function _extractDeletedItemSkus(array $dataObjectList)
 	{
-		Mage::log(sprintf('[ %s ] Processing %d deletes.', __CLASS__, count($dataObjectList)));
+		$skus = array();
 		foreach ($dataObjectList as $dataObject) {
-			$this->_deleteItem($dataObject);
+			$skus[] = $dataObject->getClientItemId();
+		}
+		return $skus;
+	}
+
+	/**
+	 * given a list of skus to be deleted.
+	 * @param array $skus list of skus to be deleted
+	 * @return self
+	 */
+	protected function _deleteItems(array $skus)
+	{
+		if (!empty($skus)) {
+			Mage::getResourceModel('catalog/product_collection')->addFieldToFilter('sku', $skus)
+				->addAttributeToSelect(array('entity_id')) // add attributes to select
+				->load()
+				->delete();
 		}
 		return $this;
 	}
+
+	/**
+	 * processing delete operation from the feed
+	 * @param array $dataObjectList list of items to delete
+	 * @return self
+	 */
+	public function processDeletions(array $dataObjectList)
+	{
+		Mage::log(sprintf('[ %s ] Processing %d deletes.', __CLASS__, count($dataObjectList)));
+		$this->_deleteItems($this->_extractDeletedItemSkus($dataObjectList));
+
+		return $this;
+	}
+
 	/**
 	 * Transform the data extracted from the feed into a generic set of feed data
 	 * including item_id, base_attributes, extended_attributes and custome_attributes
@@ -244,37 +280,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		return $outData;
 	}
-	/**
-	 * delete product.
-	 * @param Varien_Object $dataObject, the object with data needed to delete the product
-	 * @return self
-	 */
-	protected function _deleteItem(Varien_Object $dataObject)
-	{
-		$sku = $dataObject->getClientItemId();
-		if ($sku) {
-			// we have a valid item, let's check if this product already exists in Magento
-			$product = Mage::helper('eb2cproduct')->loadProductBySku($sku);
-			if ($product->getId()) {
-				try {
-					// deleting the product from magento
-					$product->delete();
-				} catch (Mage_Core_Exception $e) {
-					Mage::logException($e);
-				}
-			} else {
-				// this item doesn't exists in magento let simply log it
-				Mage::log(
-					sprintf(
-						'[ %s ] Item Master Feed Delete Operation for SKU (%d), does not exists in Magento',
-						__CLASS__, $dataObject->getItemId()->getClientItemId()
-					),
-					Zend_Log::WARN
-				);
-			}
-		}
-		return $this;
-	}
+
 	/**
 	 * Gets the localizations for a field
 	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
@@ -541,7 +547,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
 		}
 		$configurableAttributesData = Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
+			->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
 		if ($configurableAttributesData) {
 			$productData->setData('configurable_attributes_data', $configurableAttributesData);
 		}
