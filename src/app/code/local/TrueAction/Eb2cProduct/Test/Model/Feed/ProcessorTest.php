@@ -119,7 +119,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 				}
 			}
 		};
-		$testModel = $this->getModelMock('eb2cproduct/feed_processor', array('_synchProduct', '_isAtLimit'));
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_synchProduct', '_isAtLimit'))
+			->getMock();
 		$testModel->expects($this->atLeastOnce())
 			->method('_synchProduct')
 			->will($this->returnCallback($checkData));
@@ -133,7 +136,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 */
 	public function testExceptionInGetAttributeOptionId()
 	{
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
 		$fn = $this->_reflectMethod($testModel, '_getAttributeOptionId');
 		$fn->invoke($testModel, '', '');
 	}
@@ -144,7 +150,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 */
 	public function testExceptionInAddOptionToAttribute()
 	{
-		$testModel = Mage::getModel('eb2cproduct/feed_processor');
+		$testModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
 		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
 		$fn->invoke($testModel, '', '', '');
 	}

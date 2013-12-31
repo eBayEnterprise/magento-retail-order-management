@@ -196,6 +196,12 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
 
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
+
 		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
 			->disableOriginalConstructor()
 			->setMethods(array())
@@ -249,6 +255,12 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
+
 		Mage::getModel('eb2cproduct/feed')->processFile('/ItemMaster/sample-feed.xml');
 	}
 
@@ -284,6 +296,12 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->will($this->returnValue(false));
 
 		$this->replaceByMock('helper', 'eb2ccore/feed', $coreFeedHelperMock);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
 
 		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
 			->disableOriginalConstructor()
@@ -343,6 +361,12 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->disableOriginalConstructor()
 			->setMethods(array())
 			->getMock();
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
 
 		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
 			->setMethods(array('_getEventTypeModel', '_determineEventType', '_beforeProcessDom'))

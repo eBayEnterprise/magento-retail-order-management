@@ -19,6 +19,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 	public function testAddFail()
 	{
 		$this->setExpectedException('Mage_Core_Exception', 'invalid operation type ');
+		$processorModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $processorModel);
+
 		$testModel = Mage::getModel('eb2cproduct/feed_queue');
 		$testModel->add(new Varien_Object(), 'foo');
 	}
@@ -29,7 +35,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 	 */
 	public function testAdd($operation)
 	{
-		$processor = $this->getModelMock('eb2cproduct/feed_processor', array('processDeletions', 'processUpserts'));
+
+		$processor = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('processDeletions', 'processUpserts'))
+			->getMock();
 		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $processor);
 
 		$testModel = $this->getModelMock('eb2cproduct/feed_queue', array('_isAtEntryLimit', 'process'));
@@ -54,7 +64,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 	public function testAddLimits($numAdds, $numDeletes)
 	{
 		$e = $this->expected('%s-%s', $numAdds, $numDeletes);
-		$processor = $this->getModelMock('eb2cproduct/feed_processor', array('processDeletions', 'processUpdates'));
+		$processor = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('processDeletions', 'processUpdates'))
+			->getMock();
 		$processor->expects($e->getValue() ? $this->atLeastOnce() : $this->never())
 			->method('processDeletions');
 		$processor->expects($e->getValue() ? $this->atLeastOnce() : $this->never())
