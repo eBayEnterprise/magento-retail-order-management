@@ -124,7 +124,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _logFeedErrorStatistics()
 	{
-		foreach ($this->_customAttributeErrors as $err) {
+		foreach($this->_customAttributeErrors as $err) {
 			Mage::log(sprintf('[ %s ] Feed Error Statistics %s', __CLASS__, print_r($err, true)), Zend_Log::DEBUG);
 		}
 		array_splice($this->_customAttributeErrors, 0); // truncate array
@@ -245,7 +245,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$extData->addData($giftWrapData);
 		///////
 		$customAttributes = $dataObject->getCustomAttributes();
-		if ($customAttributes) {
+		if( $customAttributes ) {
 			$this->_prepareCustomAttributes($customAttributes, $outData);
 		}
 		if ($dataObject->hasData('product_links')) {
@@ -299,7 +299,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$data = array();
 		$localizationSet = $dataObject->getData($fieldName);
 		if (!empty($localizationSet)) {
-			foreach ($localizationSet as $localization) {
+			foreach( $localizationSet as $localization ) {
 				$data[strtolower($localization['lang'])] = $localization[$fieldName];
 			}
 		}
@@ -315,7 +315,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		$helper = Mage::helper('eb2cproduct');
 		$attributeSetId = $helper->getDefaultProductAttributeSetId();
-		foreach ($customAttributes as $attribute) {
+		foreach($customAttributes as $attribute) {
 			if ($attribute['name'] === 'AttributeSet') {
 				$attributeSetId = $attribute['value'];
 				break;
@@ -328,7 +328,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				$outData->setData('product_type', strtolower($customAttribute['value']));
 				continue; // ProductType is specially handled, nothing more to do.
 			}
-			if ($customAttribute['name'] === 'ConfigurableAttributes') {
+			if( $customAttribute['name'] === 'ConfigurableAttributes' ) {
 				$this->_processConfigurableAttributes($customAttribute, $outData);
 				continue; // ConfigurableAttributes are specially handled, nothing more to do.
 			}
@@ -340,9 +340,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			if (in_array($customAttribute['name'], $customAttributeSet)) {
 				if (isset($customAttribute['operation_type'])) {
 					$op = $customAttribute['operation_type'];
-					if ($op === 'Add') {
+					if( $op === 'Add') {
 						$cookedAttributes[$customAttribute['name']][$lang] = $customAttribute['value'];
-					} elseif ($op === 'Delete') {
+					} elseif( $op === 'Delete') {
 						$cookedAttributes[$customAttribute['name']][$lang] = null;
 					}
 					else {
@@ -445,7 +445,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		foreach ($attributeOptions as $attrOption) {
 			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
 			$optionValue = $attrOption->getValue();
-			if (strtolower($optionValue) === strtolower($option)) {
+			if(strtolower($optionValue) === strtolower($option)) {
 				return $optionId;
 			}
 		}
@@ -484,8 +484,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$newAttributeOption['attribute_id'] = $attributeId;
 		// Default Store (i.e., 'Admin') takes the value of 'code'.
 		$values[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $newOption['code'];
-		foreach ($this->_storeLanguageCodeMap as $lang => $storeId) {
-			if (!empty($newOption['localization'][$lang])) {
+		foreach($this->_storeLanguageCodeMap as $lang => $storeId) {
+			if (!empty($newOption['localization'][$lang]) ) {
 				// Each store view now gets its own localization, if one has been provided.
 				$values[$storeId] = $newOption['localization'][$lang];
 			}
@@ -528,7 +528,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass')) {
 			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 		}
-		if ($item->getBaseAttributes()->getCatalogClass()) {
+		if( $item->getBaseAttributes()->getCatalogClass()) {
 			$productData->setData('visibility', $this->_getVisibilityData($item));
 		}
 		if ($item->getBaseAttributes()->getItemStatus()) {
@@ -547,7 +547,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('unresolved_product_links', serialize($item->getProductLinks()));
 		}
 		// setting category data
-		if ($item->getCategoryLinks()) {
+		if( $item->getCategoryLinks() ) {
 			$productData->setData('category_ids', $this->_preparedCategoryLinkData($item));
 		}
 		// setting the product's color to a Magento Attribute Id
@@ -577,7 +577,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 		// Alternate languages /must/ happen after default product has been saved:
-		if ($translations) {
+		if( $translations ) {
 			$this->_applyAlternateTranslations($product->getId(), $translations);
 		}
 		return $this;
@@ -590,7 +590,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _mergeTranslations($item)
 	{
 		$translations = array();
-		foreach (array('short_description', 'brand_description') as $field) {
+		foreach( array('short_description', 'brand_description') as $field ) {
 			if ($item->hasData($field)) {
 				$translations = array_merge($translations, array($field => $item->getData($field)));
 			}
@@ -627,8 +627,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// the translations array - so if we have no other languages but the default, we'll be done.
 		foreach (array_keys($translations) as $code) {
 			if ($this->_hasDefaultTranslation($code, $translations)) {
-				$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
-				unset($translations[$code][$this->_defaultLanguageCode]);
+			$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
+			unset($translations[$code][$this->_defaultLanguageCode]);
 			}
 			if (empty($translations[$code])) {
 				unset($translations[$code]);
@@ -643,7 +643,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _applyAlternateTranslations($productId, array $translations)
 	{
-		foreach ($this->_storeLanguageCodeMap as $lang => $storeId) {
+		foreach($this->_storeLanguageCodeMap as $lang => $storeId) {
 			if ($lang === $this->_defaultLanguageCode) {
 				continue; // Skip default language - it's already been done
 			}
@@ -697,7 +697,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			'stock_id' => Mage_CatalogInventory_Model_Stock::DEFAULT_STOCK_ID,
 			'product_id' => $productObject->getId(),
 		);
-		if ($productObject->getTypeId() !== Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE) {
+		if ($productObject->getTypeId() !== Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE ) {
 			$stockData = $stockData + array(
 				'use_config_backorders' => false,
 				'backorders' => $dataObject->getExtendedAttributes()->getBackOrderable(),
@@ -721,7 +721,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		$titleData = array();
 		$titles = $dataObject->getBaseAttributes()->getTitle();
-		if (isset($titles) && !empty($titles)) {
+		if(isset($titles) && !empty($titles)) {
 			foreach ($titles as $title) {
 				// It's possible $title['title'] doesn't exist, eg we receive <Title xml:lang='en-US' />
 				// As per spec, it's required
@@ -758,7 +758,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _getItemStatusData($originalStatus)
 	{
 		$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
-		if (strtolower($originalStatus) === 'active') {
+		if(strtolower($originalStatus) === 'active') {
 			$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_ENABLED;
 		}
 		return $mageStatus;
@@ -1109,7 +1109,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			foreach ($categoryLinks as $link) {
 				$categories = explode('-', $link['name']);
 				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
-					foreach ($categories as $category) {
+					foreach($categories as $category) {
 						$categoryObject = Mage::getModel('catalog/category')->load(
 							$this->_loadCategoryByName(ucwords($category))->getId()
 						);
@@ -1121,7 +1121,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				} else {
 					// adding or changing category import mode
 					$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
-					foreach ($categories as $category) {
+					foreach($categories as $category) {
 						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
 						if ($categoryId) {
 							$path .= sprintf('/%s', $categoryId);
