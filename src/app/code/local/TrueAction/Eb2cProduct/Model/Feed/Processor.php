@@ -14,16 +14,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * We keep a tally of CustomAttribute errors for help analyzing feeds
 	 */
 	protected $_customAttributeErrors = array();
-
 	/**
-	 * @var int, default parent category id
+	 * @var int default parent category id
 	 */
 	protected $_defaultParentCategoryId = 0;
 	/**
-	 * @var int, store root category id
+	 * @var int store root category id
 	 */
 	protected $_storeRootCategoryId = 0;
-
 	const CA_ERROR_INVALID_LANGUAGE   = 'invalid_language';
 	const CA_ERROR_INVALID_OP_TYPE    = 'invalid_operation_type';
 	const CA_ERROR_MISSING_OP_TYPE    = 'missing_operation_type';
@@ -68,6 +66,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected $_updateBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_deleteBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
+	/**
+	 * @var array hold label/value array of attribute codes
+	 */
+	protected $_attributeOptions = array();
 	public function __construct()
 	{
 		$helper = Mage::helper('eb2cproduct');
@@ -77,13 +79,34 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
-
-		$this->_defaultParentCategoryId = $this->_getDefaultParentCategoryId();
-		$this->_storeRootCategoryId = $this->_getStoreRootCategoryId();
+		$entityTypeId = Mage::getModel('catalog/product')->getResource()->getTypeId();
+		foreach (explode(',', $config->attributesCodeList) as $attributeCode) {
+			$this->_attributeOptions[$attributeCode] = $this->_getAttributeOptionCollection($attributeCode, $entityTypeId)->toOptionArray();
+		}
+	}
+	/**
+	 * get attribute option collection by code
+	 * @param string $attributeCode the attribute code
+	 * @param int $entityTypeId the product entity type id
+	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Option_Collection
+	 */
+	protected function _getAttributeOptionCollection($attributeCode, $entityTypeId)
+	{
+		return Mage::getResourceModel('eav/entity_attribute_option_collection')
+			->join(
+				array('attributes' => 'eav/attribute'),
+				'main_table.attribute_id = attributes.attribute_id',
+				array('attribute_code')
+			)
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false)
+			->addFieldToFilter('attributes.attribute_code', $attributeCode)
+			->addFieldToFilter('attributes.entity_type_id', $entityTypeId)
+			->addExpressionFieldToSelect('lcase_value', 'LCASE({{value}})', 'value');
 	}
 	/**
 	 * Creates a map of language codes (as dervied from the store view code) to store ids
 	 * @todo The parse-language-from-store-view code might need to be closer to Eb2cCore.
+	 * @return self
 	 */
 	protected function _initLanguageCodeMap()
 	{
@@ -104,7 +127,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * transform each product item data to be imported and processing
 	 * adding or updating item to Magento catalog
-	 * @param ArrayIterator $dataObjectList, list of product data to be imported
+	 * @param ArrayIterator $dataObjectList list of product data to be imported
 	 * @return self
 	 */
 	public function processUpdates(ArrayIterator $dataObjectList)
@@ -140,7 +163,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Transform the data extracted from the feed into a generic set of feed data
-	 * including item_id, base_attributes, extended_attributes and custome_attributes
+	 * including item_id, base_attributes extended_attributes and custome_attributes
 	 * @param  Varien_Object $dataObject Data extraced from the feed
 	 * @return Varien_Object             Data that can be imported to a product
 	 */
@@ -243,7 +266,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$giftWrapData['gift_wrap'] = Mage::helper('eb2cproduct')->parseBool($extendedAttributes['gift_wrap']);
 		}
 		$extData->addData($giftWrapData);
-		///////
 		$customAttributes = $dataObject->getCustomAttributes();
 		if( $customAttributes ) {
 			$this->_prepareCustomAttributes($customAttributes, $outData);
@@ -290,8 +312,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Gets the localizations for a field
-	 * @param Varien_Object $dataObject, the object with data needed to retrieve the extended attribute product data
-	 * @param fieldName field to extract localizations from
+	 * @param Varien_Object $dataObject the object with data needed to retrieve the extended attribute product data
+	 * @param string $fieldName field to extract localizations from
 	 * @return array of langCode=>Translations for the given fieldName
 	 */
 	protected function _getLocalizations(Varien_Object $dataObject, $fieldName)
@@ -363,11 +385,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * Special data processor for the product configurable_attributes custom attribute.
 	 * Assigns the CONFIGURABLEATTRIBUTES custom attribute to the product data as configurable_attributes.
-	 *
 	 * @param  array         $attrData   Map of custom attribute data: name, operation type, lang and value
 	 * @param  Varien_Object $outData    Varien_Object containing all transformed product feed data
+	 * @return void
 	 */
-	protected function _processConfigurableAttributes($attrData, Varien_Object $outData)
+	protected function _processConfigurableAttributes(array $attrData, Varien_Object $outData)
 	{
 		$configurableAttributeData = array();
 		$configurableAttributes = explode(',', $attrData['value']);
@@ -388,6 +410,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Manages the pricing for events
+	 * @param Varien_Object $dataObject
+	 * @param Varien_Object $outData
+	 * @return self
 	 */
 	protected function _preparePricingEventData(Varien_Object $dataObject, Varien_Object $outData)
 	{
@@ -414,8 +439,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * getting category attribute set id.
-	 *
-	 * @return int, the category attribute set id
+	 * @return int the category attribute set id
 	 */
 	protected function _getCategoryAttributeSetId()
 	{
@@ -426,36 +450,27 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Gets the option id for the option within the given attribute
-	 *
-	 * @param string $attributeCode, The attribute code
-	 * @param string $option, The option within the attribute
+	 * @param string $code The attribute code
+	 * @param string $option The option within the attribute
 	 * @return int
 	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception if attributeCode is not found.
 	 */
-	protected function _getAttributeOptionId($attributeCode, $option)
+	protected function _getAttributeOptionId($code, $option)
 	{
-		$attributeEntity = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attributeCode);
-		if (!$attributeEntity->getId()) {
-			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$attributeCode'.");
+		if (!isset($this->_attributeOptions[$code])) {
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$code'.");
 		}
-		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
-			->setAttributeFilter($attributeEntity->getId())
-			// @todo false = 'don't use default', but I really don't know what that means.
-			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false);
-		foreach ($attributeOptions as $attrOption) {
-			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
-			$optionValue = $attrOption->getValue();
-			if(strtolower($optionValue) === strtolower($option)) {
-				return $optionId;
+		foreach ($this->_attributeOptions[$code] as $item) {
+			if (strtolower($item['label']) === strtolower($option)) {
+				return (int) $item['value'];
 			}
 		}
 		return 0;
 	}
 	/**
 	 * Add new attribute aption and return the newly inserted option id
-	 *
-	 * @param string $attribute, the attribute to which the new option is added
-	 * @param array $newOption, the new option itself
+	 * @param string $attribute the attribute to which the new option is added
+	 * @param array $newOption the new option itself
 	 * 	The format of the 'newOption' is an array:
 	 * 		'code'          => 'admin_value',
 	 *		'localizations' => array(
@@ -507,7 +522,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * add/update magento product with eb2c data
-	 * @param Varien_Object $item, the object with data needed to add/update a magento product
+	 * @param Varien_Object $item the object with data needed to add/update a magento product
 	 * @return self
 	 */
 	protected function _synchProduct(Varien_Object $item)
@@ -555,7 +570,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
 		}
 		$configurableAttributesData = Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
+			->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
 		if ($configurableAttributesData) {
 			$productData->setData('configurable_attributes_data', $configurableAttributesData);
 		}
@@ -585,9 +600,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * Merges translation-enabled fields into one array.
 	 * @todo Also does some mapping too, which really should be abstracted down to a lower level I think.
+	 * @param Varien_Object $item
 	 * @return array of attribute_codes => array(languages)
 	 */
-	protected function _mergeTranslations($item)
+	protected function _mergeTranslations(Varien_Object $item)
 	{
 		$translations = array();
 		foreach( array('short_description', 'brand_description') as $field ) {
@@ -616,19 +632,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		return isset($translations[$code][$this->_defaultLanguageCode]);
 	}
-
 	/**
 	 * Applies default translations, returns an array of what still needs processing
+	 * @param Varien_Object $productData
+	 * @param array $translations
 	 * @return array of attribute_codes => array(languages)
 	 */
-	protected function _applyDefaultTranslations($productData, $translations)
+	protected function _applyDefaultTranslations(Varien_Object $productData, array $translations)
 	{
 		// For our translation-enabled fields, let's assign the default. Once assigned, remove it from
 		// the translations array - so if we have no other languages but the default, we'll be done.
 		foreach (array_keys($translations) as $code) {
 			if ($this->_hasDefaultTranslation($code, $translations)) {
-			$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
-			unset($translations[$code][$this->_defaultLanguageCode]);
+				$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
+				unset($translations[$code][$this->_defaultLanguageCode]);
 			}
 			if (empty($translations[$code])) {
 				unset($translations[$code]);
@@ -640,6 +657,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * Apply all other translations to our product.
 	 * @param int $productId
 	 * @param array $translations
+	 * @return self
 	 */
 	protected function _applyAlternateTranslations($productId, array $translations)
 	{
@@ -670,10 +688,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * Get the id of the Color-Attribute Option for this specific color. Create it if it doesn't exist.
 	 * @todo This is probably more specific than we really need it to be.
 	 *       All attributes should be processed in a similar manner - special handling of 'color' should be revisited.0
-	 * @param Varien_Object $dataObject, the object with data needed to create dummy product
+	 * @param array $colorData the object with data needed to create dummy product
 	 * @return int, the option id
 	 */
-	protected function _getProductColorOptionId($colorData)
+	protected function _getProductColorOptionId(array $colorData)
 	{
 		$colorOptionId = 0;
 		if (!empty($colorData)) {
@@ -686,8 +704,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Add stock item data to a product.
-	 * @param Varien_Object $dataObject, the object with data needed to add the stock data to the product
-	 * @param Mage_Catalog_Model_Product $parentProductObject, the product object to set stock item data to
+	 * @param Varien_Object $dataObject the object with data needed to add the stock data to the product
+	 * @param Mage_Catalog_Model_Product $parentProductObject the product object to set stock item data to
 	 * @return self
 	 */
 	protected function _addStockItemDataToProduct(Varien_Object $dataObject, Mage_Catalog_Model_Product $productObject)
@@ -713,8 +731,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Return array of titles, keyed by lang code
-	 *
-	 * @param Varien_Object $dataObject, the object with data needed to retrieve the default product title
+	 * @param Varien_Object $dataObject the object with data needed to retrieve the default product title
 	 * @return array
 	 */
 	protected function _getProductTitleSet(Varien_Object $dataObject)
@@ -734,8 +751,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * mapped the correct visibility data from eb2c feed with magento's visibility expected values
-	 * @param Varien_Object $dataObject, the object with data needed to retrieve the CatalogClass to determine the proper Magento visibility value
-	 * @return string, the correct visibility value
+	 * @param Varien_Object $dataObject the object with data needed to retrieve the CatalogClass to determine the proper Magento visibility value
+	 * @return string the correct visibility value
 	 */
 	protected function _getVisibilityData(Varien_Object $dataObject)
 	{
@@ -751,22 +768,19 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * Translate the feed's idea of status to Magento's
-	 *
-	 * @param type $originalStatus as from XML feed E.g., "Active"
-	 * @return Magento-ized version of status
+	 * @param string $originalStatus as from XML feed E.g., "Active"
+	 * @return int Magento-ized version of status
 	 */
 	protected function _getItemStatusData($originalStatus)
 	{
-		$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
-		if(strtolower($originalStatus) === 'active') {
-			$mageStatus = Mage_Catalog_Model_Product_Status::STATUS_ENABLED;
-		}
-		return $mageStatus;
+		return (strtolower($originalStatus) === 'active')?
+			Mage_Catalog_Model_Product_Status::STATUS_ENABLED :
+			Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
 	}
 	/**
 	 * add color description per locale to a child product of using parent configurable store color attribute data.
-	 * @param Mage_Catalog_Model_Product $childProductObject, the child product object
-	 * @param array $parentColorDescriptionData, collection of configurable color description data
+	 * @param Mage_Catalog_Model_Product $childProductObject the child product object
+	 * @param array $parentColorDescriptionData collection of configurable color description data
 	 * @return self
 	 */
 	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
@@ -798,8 +812,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * extract eb2c specific attribute data to be set to a product, if those attribute exists in magento
-	 * @param Varien_Object $dataObject, the object with data needed to retrieve eb2c specific attribute product data
-	 * @return array, composite array containing eb2c specific attribute to be set to a product
+	 * @param Varien_Object $dataObject the object with data needed to retrieve eb2c specific attribute product data
+	 * @return array composite array containing eb2c specific attribute to be set to a product
 	 */
 	protected function _getEb2cSpecificAttributeData(Varien_Object $dataObject)
 	{
@@ -1062,7 +1076,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * load category by name
-	 * @param string $categoryName, the category name to filter the category table
+	 * @param string $categoryName the category name to filter the category table
 	 * @return Mage_Catalog_Model_Category
 	 */
 	protected function _loadCategoryByName($categoryName)
@@ -1076,7 +1090,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * get parent default category id
-	 * @return int, default parent category id
+	 * @return int default parent category id
 	 */
 	protected function _getDefaultParentCategoryId()
 	{
@@ -1089,7 +1103,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * get store root category id
-	 * @return int, store root category id
+	 * @return int store root category id
 	 */
 	protected function _getStoreRootCategoryId()
 	{
@@ -1098,7 +1112,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * prepared category data.
 	 * @param Varien_Object $item the object with data needed to update the product
-	 * @return array, category data
+	 * @return array category data
 	 */
 	protected function _preparedCategoryLinkData(Varien_Object $item)
 	{
@@ -1106,28 +1120,25 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$categoryLinks = (array) $item->getCategoryLinks();
 		$fullPath = 0;
 		$deletedList = array();
-
-		foreach ($categoryLinks as $link) {
-			$categories = explode('-', $link['name']);
-			if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
+			foreach ($categoryLinks as $link) {
+				$categories = explode('-', $link['name']);
+				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
 				$deletedList = array_merge($deletedList, array_map('ucwords', $categories));
-			} else {
-				// adding or changing category import mode
-				$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
-				foreach($categories as $category) {
-					$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
-					if ($categoryId) {
-						$path .= sprintf('/%s', $categoryId);
+				} else {
+					// adding or changing category import mode
+					$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
+					foreach($categories as $category) {
+						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
+						if ($categoryId) {
+							$path .= sprintf('/%s', $categoryId);
+						}
 					}
+					$fullPath .= sprintf('/%s', $path);
 				}
-				$fullPath .= sprintf('/%s', $path);
 			}
-		}
-
 		$this->_deleteCategories($deletedList);
 		return explode('/', $fullPath);
 	}
-
 	/**
 	 * given a list of category name to be deleted.
 	 * @param array $names list of category name to be deleted
@@ -1140,7 +1151,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				->addAttributeToSelect(array('entity_id'))
 				->load()
 				->delete();
-		}
+}
 		return $this;
 	}
 }

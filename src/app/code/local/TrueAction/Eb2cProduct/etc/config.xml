@@ -244,6 +244,7 @@
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>
 			<processor_update_batch_size>100</processor_update_batch_size>
+			<attributes_code_list>color,size</attributes_code_list>
 		</eb2cproduct>
 	</default>
 	<phpunit>
