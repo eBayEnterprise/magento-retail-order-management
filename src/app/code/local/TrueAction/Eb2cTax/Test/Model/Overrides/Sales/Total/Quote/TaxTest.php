@@ -45,24 +45,24 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// setup the calculator
 		$calcMock = $this->getModelMock('tax/calculation', array('getTax', 'getTaxForAmount', 'getAppliedRates'));
 		$calcMock->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
-			array($this->anything(), 'merchandise', 6.25),
-			array($this->anything(), 'shipping', 0.20),
-			array($this->anything(), 'duty', 8.72),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 6.25),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.20),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 8.72),
 		)));
 		$calcMock->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
-			array($this->anything(), 'merchandise', 0.77),
-			array($this->anything(), 'shipping', 0.07),
-			array($this->anything(), 'duty', 0),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.77),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.07),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0),
 		)));
 		$calcMock->expects($this->any())->method('getTaxForAmount')->will($this->returnValueMap(array(
-			array($this->anything(), 'merchandise', 6.25),
-			array($this->anything(), 'shipping', 0.20),
-			array($this->anything(), 'duty', 8.72),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 6.25),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.20),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 8.72),
 		)));
 		$calcMock->expects($this->any())->method('getDiscountTaxForAmount')->will($this->returnValueMap(array(
-			array($this->anything(), 'merchandise', 0.77),
-			array($this->anything(), 'shipping', 0.07),
-			array($this->anything(), 'duty', 0),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.77),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.07),
+			array($this->anything(), TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
 			$scenario === 'afterdiscount' ? self::$classicJeansAppliedRatesAfterB : self::$classicJeansAppliedRatesBeforeB
@@ -154,14 +154,14 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// setup the calculator
 		$calcMock = $this->getModelMock('tax/calculation', array('getTax', 'getDiscountTax', 'getAppliedRates'));
 		$calcMock->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
-			array($itemSelector, 'merchandise', 6.25),
-			array($itemSelector, 'shipping', 0.20),
-			array($itemSelector, 'duty', 8.72),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 6.25),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.20),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 8.72),
 		)));
 		$calcMock->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
-			array($itemSelector, 'merchandise', 0.77),
-			array($itemSelector, 'shipping', 0.07),
-			array($itemSelector, 'duty', 0),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.77),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.07),
+			array($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
 			$isTaxAppliedAfter ? self::$classicJeansAppliedRatesAfterB : self::$classicJeansAppliedRatesBeforeB
@@ -273,20 +273,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// setup the calculator
 		$calcMock = $this->getModelMock('tax/calculation', array('getTax', 'getDiscountTax', 'getAppliedRates'));
 		$calcMock->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
-			array($itemSelectorA, 'merchandise', 6.25),
-			array($itemSelectorA, 'shipping', 0.20),
-			array($itemSelectorA, 'duty', 8.72),
-			array($itemSelectorB, 'merchandise', 6.25),
-			array($itemSelectorB, 'shipping', 0.10),
-			array($itemSelectorB, 'duty', 4),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 6.25),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.20),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 8.72),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 6.25),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.10),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 4),
 		)));
 		$calcMock->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
-			array($itemSelectorA, 'merchandise', 0.77),
-			array($itemSelectorA, 'shipping', 0.07),
-			array($itemSelectorA, 'duty', 0),
-			array($itemSelectorB, 'merchandise', 0.77),
-			array($itemSelectorB, 'shipping', 0.02),
-			array($itemSelectorB, 'duty', 0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.77),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.07),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.77),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.02),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0),
 		)));
 		$calcMock->expects($this->any())->method('getAppliedRates')->will($this->returnValue(
 			$isTaxAppliedAfter ? self::$classicJeansAppliedRatesAfterB : self::$classicJeansAppliedRatesBeforeB
@@ -550,20 +550,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 		// setup the calculator
 		$calc = $this->getModelMock('tax/calculation', array('getTax', 'getDiscountTax', 'getAppliedRates'));
 		$calc->expects($this->any())->method('getTax')->will($this->returnValueMap(array(
-			array($itemSelectorA, 'merchandise', 0.0),
-			array($itemSelectorA, 'shipping', 0.0),
-			array($itemSelectorA, 'duty', 0.0),
-			array($itemSelectorB, 'merchandise', 8.0),
-			array($itemSelectorB, 'shipping', 0.0),
-			array($itemSelectorB, 'duty', 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0.0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 8.0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0.0),
 		)));
 		$calc->expects($this->any())->method('getDiscountTax')->will($this->returnValueMap(array(
-			array($itemSelectorA, 'merchandise', 0.0),
-			array($itemSelectorA, 'shipping', 0.0),
-			array($itemSelectorA, 'duty', 0.0),
-			array($itemSelectorB, 'merchandise', 1.4),
-			array($itemSelectorB, 'shipping', 0.0),
-			array($itemSelectorB, 'duty', 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.0),
+			array($itemSelectorA, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0.0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 1.4),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE, 0.0),
+			array($itemSelectorB, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 0.0),
 		)));
 
 		// set up the SUT
@@ -912,6 +912,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 					'percent' => 8.0,
 					'id' => 1,
 					'amount' => 8.00,
+					'base_amount' => 13.37,
 					'process' => 1,
 				)
 			)))

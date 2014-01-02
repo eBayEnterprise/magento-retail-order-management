@@ -25,7 +25,6 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'sftp_location'               => 'eb2ccore/feed/filetransfer_sftp_host',
 		'sftp_password'               => 'eb2ccore/feed/filetransfer_sftp_password',
 		'sftp_private_key'            => 'eb2ccore/feed/filetransfer_sftp_ssh_prv_key',
-		'sftp_public_key'             => 'eb2ccore/feed/filetransfer_sftp_ssh_pub_key',
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',
 		'store_id'                    => 'eb2ccore/general/store_id',
 	);

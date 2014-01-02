@@ -62,14 +62,13 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 	public function taxEventSendRequest(Varien_Event_Observer $observer)
 	{
 		$quote = $observer->getEvent()->getQuote();
-		$helper = Mage::helper('tax');
-		$calc = $helper->getCalculator();
+		$calc = Mage::helper('tax')->getCalculator();
 		$request = $calc->getTaxRequest($quote);
 
 		if ($request && $request->isValid()) {
 			Mage::log('[' . __CLASS__ . '] sending taxduty request for quote ' . $quote->getId(), Zend_Log::DEBUG);
 
-			$response = $helper->sendRequest($request);
+			$response = Mage::helper('eb2ctax')->sendRequest($request);
 			if ($response->isValid()) {
 				$calc->setTaxResponse($response);
 			} else {

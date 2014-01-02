@@ -89,8 +89,10 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 
 		$api = Mage::getModel('eb2ccore/api')
 			->setHttpClient($httpClient)
-			->setXsd($xsdName)
-			->setUri($apiUri);
+			->addData(array(
+				'xsd' => $xsdName,
+				'uri' => $apiUri
+			));
 		$this->assertNotEmpty($api->request($request));
 	}
 
@@ -162,8 +164,10 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 
 		$api = Mage::getModel('eb2ccore/api')
 			->setHttpClient($httpClient)
-			->setXsd($xsdName)
-			->setUri($apiUri);
+			->addData(array(
+				'xsd' => $xsdName,
+				'uri' => $apiUri
+			));
 		$this->assertEmpty($api->request($request));
 		$this->assertSame(401, $api->getStatus());
 	}

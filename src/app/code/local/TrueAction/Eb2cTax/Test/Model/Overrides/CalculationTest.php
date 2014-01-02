@@ -7,9 +7,13 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	public function setUp()
 	{
 		parent::setUp();
-		$this->_setupBaseUrl();
 
-		$storeMock = $this->getModelMock('core/store', array('convertPrice'));
+		$this->mockCheckoutSession();
+
+		$storeMock = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(array('convertPrice'))
+			->getMock();
 		// store covertPrice method will double the amount, ensures that all of the base amounts are converted
 		// to the disable amounts properly
 		$callBack = function ($val) {
@@ -23,6 +27,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$this->quoteMock->expects($this->any())
 			->method('getStore')
 			->will($this->returnValue($storeMock));
+
 		$this->addressMock = $this->getModelMock('sales/quote_address', array('getId', 'getQuote'));
 		$this->addressMock->expects($this->any())
 			->method('getId')
@@ -31,6 +36,173 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->method('getQuote')
 			->will($this->returnValue($this->quoteMock));
 
+		$item = $this->_buildModelMock('sales/quote_item', array(
+			'getSku' => $this->returnValue('somesku'),
+			'getBaseTaxAmount' => $this->returnValue(23.00),
+		));
+		$this->item = $item;
+	}
+
+	public function buildCalcMock($methods=null)
+	{
+		return $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods($methods)
+			->getMock();
+	}
+
+	public function tearDown()
+	{
+		parent::tearDown();
+		Mage::unregister('_singleton/tax/calculation');
+	}
+
+	/**
+	 * an invalid response should return null
+	 */
+	public function testGetItemResponseInvalidResponse()
+	{
+		$response = $this->_buildModelMock('eb2ctax/response', array(
+			'isValid'            => $this->returnValue(false),
+			'getResponseForItem' => $this->returnValue(new Varien_Object())
+		));
+
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($response);
+		$item    = $this->getModelMock('sales/quote_item');
+		$address = $this->getModelMock('sales/quote_address');
+		$fn      = $this->_reflectMethod($calc, '_getItemResponse');
+		$val     = $fn->invoke($calc, $item, $address);
+		$this->assertNull($val);
+	}
+
+	public function testGetTax()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTax($slug);
+		$this->assertSame(6.25, $value);
+	}
+
+	public function testGetTaxShipping()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.20, $value);
+	}
+
+	public function testGetTaxDuty()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
+		$this->assertSame(8.72, $value);
+	}
+
+	public function testGetTaxForAmount()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
+		$this->assertSame(0.0625, $value);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
+		$this->assertSame(0.06875, $value);
+	}
+
+	public function testGetTaxForAmountShipping()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.0133, $value);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.01463, $value);
+	}
+
+	public function testGetTaxForAmountDuty()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
+		$this->assertSame(8.2362, $value);
+		$value = $calc->getTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
+		$this->assertSame(8.23882, $value);
+	}
+
+	public function testGetTaxForAmountGetTax()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$this->assertSame(
+			$calc->getTax($slug),
+			$calc->round($calc->getTaxForAmount(99.99, $slug))
+		);
+	}
+
+	public function testGetDiscountTax()
+	{
+		$calc = $this->buildCalcMock();
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTax($slug);
+		$this->assertSame(0.77, $value);
+	}
+
+	public function testGetDiscountTaxShipping()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTax($slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.07, $value);
+	}
+
+	public function testGetDiscountTaxForAmount()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
+		$this->assertSame(0.0625, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE);
+		$this->assertSame(0.06875, $value);
+	}
+
+	public function testGetDiscountTaxForAmountShipping()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$value = $calc->getDiscountTaxForAmount(1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.0133, $value);
+		$value = $calc->getDiscountTaxForAmount(1.1, $slug, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE);
+		$this->assertSame(0.01463, $value);
+	}
+
+	public function testGetDiscountTaxGetDiscountTaxForAmount()
+	{
+		$calc = Mage::getSingleton('tax/calculation');
+		$calc->setTaxResponse($this->_mockResponseWithAll());
+		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
+		$this->assertSame(
+			$calc->getDiscountTax($slug),
+			$calc->round($calc->getDiscountTaxForAmount(12.24, $slug))
+		);
+	}
+
+	/**
+	 * @test
+	 */
+	public function testSessionStore()
+	{
 		$taxQuotes = array(
 			$this->_mockTaxQuote(0.5, 0.38, 'PENNSYLVANIA-Seller And Use Tax', 10),
 			$this->_mockTaxQuote(0.01, 10.60, 'PENNSYLVANIA-Random Tax', 5),
@@ -54,190 +226,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$response->expects($this->any())
 			->method('getResponseForItem')
 			->will($this->returnValue($this->orderItem));
-		$this->response = $response;
 
-		$item = $this->_buildModelMock('sales/quote_item', array(
-			'getSku' => $this->returnValue('somesku'),
-			'getBaseTaxAmount' => $this->returnValue(23.00),
-		));
-		$this->item = $item;
-	}
-
-	public function tearDown()
-	{
-		parent::tearDown();
-		Mage::getModel('tax/calculation')->unsTaxResponse();
-	}
-
-	/**
-	 * an invalid response should return null
-	 */
-	public function testGetItemResponseInvalidResponse()
-	{
-		$response = $this->_buildModelMock('eb2ctax/response', array(
-			'isValid'            => $this->returnValue(false),
-			'getResponseForItem' => $this->returnValue(new Varien_Object())
-		));
-
-		$calc = Mage::getModel('tax/calculation');
-		$calc->setTaxResponse($response);
-		$item    = $this->getModelMock('sales/quote_item');
-		$address = $this->getModelMock('sales/quote_address');
-		$fn      = $this->_reflectMethod($calc, '_getItemResponse');
-		$val     = $fn->invoke($calc, $item, $address);
-		$this->assertNull($val);
-	}
-
-	public function testGetTax()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTax($slug);
-		$this->assertSame(6.25, $value);
-	}
-
-	public function testGetTaxShipping()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTax($slug, 'shipping');
-		$this->assertSame(0.20, $value);
-	}
-
-	public function testGetTaxDuty()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTax($slug, 'duty');
-		$this->assertSame(8.72, $value);
-	}
-
-	public function testGetTaxForAmount()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'merchandise', true);
-		$this->assertSame(0.06, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'merchandise', true);
-		$this->assertSame(0.07, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'merchandise', false);
-		$this->assertSame(0.0625, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'merchandise', false);
-		$this->assertSame(0.06875, $value);
-	}
-
-	public function testGetTaxForAmountShipping()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'shipping', false);
-		$this->assertSame(0.0133, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'shipping', false);
-		$this->assertSame(0.01463, $value);
-	}
-
-	public function testGetTaxForAmountDuty()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getTaxForAmount(1, $slug, 'duty', true);
-		$this->assertSame(8.24, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'duty', true);
-		$this->assertSame(8.24, $value);
-		$value = $calc->getTaxForAmount(1, $slug, 'duty', false);
-		$this->assertSame(8.2362, $value);
-		$value = $calc->getTaxForAmount(1.1, $slug, 'duty', false);
-		$this->assertSame(8.23882, $value);
-	}
-
-	public function testGetTaxForAmountGetTax()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$this->assertSame(
-			$calc->getTax($slug),
-			$calc->getTaxForAmount(99.99, $slug)
-		);
-	}
-
-	public function testGetDiscountTax()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTax($slug);
-		$this->assertSame(0.77, $value);
-	}
-
-	public function testGetDiscountTaxShipping()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTax($slug, 'shipping');
-		$this->assertSame(0.07, $value);
-	}
-
-	public function testGetDiscountTaxForAmount()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', true);
-		$this->assertSame(0.06, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', true);
-		$this->assertSame(0.07, $value);
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'merchandise', false);
-		$this->assertSame(0.0625, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'merchandise', false);
-		$this->assertSame(0.06875, $value);
-	}
-
-	public function testGetDiscountTaxForAmountShipping()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', true);
-		$this->assertSame(0.01, $value);
-		$value = $calc->getDiscountTaxForAmount(1, $slug, 'shipping', false);
-		$this->assertSame(0.0133, $value);
-		$value = $calc->getDiscountTaxForAmount(1.1, $slug, 'shipping', false);
-		$this->assertSame(0.01463, $value);
-	}
-
-	public function testGetDiscountTaxGetDiscountTaxForAmount()
-	{
-		$calc = Mage::getSingleton('tax/calculation');
-		$calc->setTaxResponse($this->_mockResponseWithAll());
-		$slug = new Varien_Object(array('item' => $this->item, 'address' => $this->addressMock));
-		$this->assertSame(
-			$calc->getDiscountTax($slug),
-			$calc->getDiscountTaxForAmount(12.24, $slug)
-		);
-	}
-
-	/**
-	 * @test
-	 */
-	public function testSessionStore()
-	{
-		$this->_reflectProperty($this->response, '_isValid')->setValue($this->response, true);
+		$this->_reflectProperty($response, '_isValid')->setValue($response, true);
 		$calcA = Mage::getModel('tax/calculation');
-		$calcA->setTaxResponse($this->response);
+		$calcA->setTaxResponse($response);
 		$calcB = Mage::getModel('tax/calculation');
 		$this->assertNotNull($calcB->getTaxResponse());
 		$this->assertSame(
@@ -306,11 +298,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	{
 		$response = $this->_mockResponseWithAll();
 
-		Mage::unregister('_helper/tax');
-		$this->_mockConfigRegistry(array(
-			array('taxApplyAfterDiscount', $isAfterDiscounts),
-			array('taxDutyRateCode', 'eb2c-duty-amount'),
-		));
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('__', 'taxDutyAmountRateCode', 'getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->any())
+			->method('__')
+			->will($this->returnArgument(0));
+		$helper->expects($this->any())
+			->method('taxDutyAmountRateCode')
+			->will($this->returnValue('eb2c-duty-amount'));
+		$helper->expects($this->any())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue($isAfterDiscounts));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($response);
@@ -324,7 +325,12 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 		$scenario = $isAfterDiscounts ? 'afterdiscount' : 'beforediscount';
 
-		foreach (array('merchandise', 'shipping', 'duty', 'dutyamount') as $type) {
+		$testData = array(
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE,
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE,
+			TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE, 3
+		);
+		foreach ($testData as $type) {
 			$expectationKey = "{$scenario}-{$type}";
 			$e = $this->expected($expectationKey);
 			$this->assertArrayHasKey(
@@ -344,7 +350,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			$this->assertArrayHasKey('rates', $group, "$expectationKey: applied group missing rates");
 			$this->assertNotEmpty($group['rates'], "$expectationKey: applied group rates is empty");
 			$r = $e->getRates();
-			$this->assertSame(count($r), count($group['rates']), "$expectationKey: applied group does not include the correct number of rates");
+			$this->assertSame(
+				count($r), count($group['rates']),
+				"$expectationKey: applied group does not include the correct number of rates"
+			);
 			foreach ($group['rates'] as $idx => $rate) {
 				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
 				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
@@ -362,19 +371,20 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	{
 		$response = $this->_mockResponseWithDuplicates();
 
-		Mage::unregister('_helper/tax');
-
-		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
-		$configRegistry->expects($this->any())
-			->method('__get')
-			->will($this->returnValueMap(array(
-				array('taxApplyAfterDiscount', true),
-				array('taxDutyRateCode', 'eb2c-duty-amount'),
-			)));
-		$configRegistry->expects($this->any())
-			->method('setStore')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $configRegistry);
+		$helper = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('__', 'taxDutyAmountRateCode', 'getApplyTaxAfterDiscount'))
+			->getMock();
+		$helper->expects($this->any())
+			->method('__')
+			->will($this->returnArgument(0));
+		$helper->expects($this->any())
+			->method('taxDutyAmountRateCode')
+			->will($this->returnValue('eb2c-duty-amount'));
+		$helper->expects($this->any())
+			->method('getApplyTaxAfterDiscount')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ctax', $helper);
 
 		$calc = Mage::getModel('tax/calculation');
 		$calc->setTaxResponse($response);
@@ -388,7 +398,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 		$scenario = 'duplicate-after';
 
-		foreach (array('merchandise', 'dutyamount') as $type) {
+		foreach (array(TrueAction_Eb2cTax_Overrides_Model_Calculation::MERCHANDISE_TYPE, 3) as $type) {
 			$expectationKey = "{$scenario}-{$type}";
 			$e = $this->expected($expectationKey);
 			$this->assertArrayHasKey(
@@ -452,7 +462,11 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$itemResponse->setLineNumber($lineNumber);
 	}
 
-	// tax %6.25, price 99.99 discount 12.24, shipping 14.95 discount 5, duty 8.21,
+	/**
+	 * tax percent 6.25, price 99.99 discount 12.24,
+	 * shipping 14.95 discount 5, duty 8.21,
+	 * @return array
+	 */
 	protected function _mockResponseWithAll()
 	{
 		$taxQuote = $this->_buildModelMock('eb2ctax/response_quote', array(

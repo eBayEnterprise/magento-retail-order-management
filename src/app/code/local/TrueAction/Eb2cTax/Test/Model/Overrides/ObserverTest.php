@@ -70,20 +70,27 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 			->method('getTaxRequest')
 			->will($this->returnValue($requestMock));
 
-		$helperMock = $this->getHelperMock('tax/data', array('getCalculator', 'sendRequest'));
+		$helperMock = $this->getHelperMock('tax/data', array('getCalculator'));
+		$this->replaceByMock('helper', 'tax', $helperMock);
+
 		$helperMock->expects($this->any())
 			->method('getCalculator')
 			->will($this->returnValue($calculatorMock));
-		$this->replaceByMock('helper', 'tax', $helperMock);
+
+		$eb2cTaxHelperMock = $this->getHelperMockBuilder('eb2ctax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('sendRequest'))
+			->getMock();
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelperMock);
 
 		// an invalid request should not be sent
 		if ($requestValid) {
-			$helperMock->expects($this->once())
+			$eb2cTaxHelperMock->expects($this->once())
 				->method('sendRequest')
 				->with($this->identicalTo($requestMock))
 				->will($this->returnValue($responseMock));
 		} else {
-			$helperMock->expects($this->never())
+			$eb2cTaxHelperMock->expects($this->never())
 				->method('sendRequest');
 		}
 

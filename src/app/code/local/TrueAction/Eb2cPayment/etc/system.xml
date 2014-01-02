@@ -35,18 +35,6 @@
 							</comment>
 							<depends><enabled>1</enabled></depends>
 						</enable_pbridge_creditcard>
-						<enable_stored_value translate="label comment">
-							<label>Enable Stored Value Card</label>
-							<config_path>giftcard/general/is_redeemable</config_path>
-							<frontend_type>select</frontend_type>
-							<source_model>adminhtml/system_config_source_yesno</source_model>
-							<sort_order>3</sort_order>
-							<show_in_default>1</show_in_default>
-							<show_in_website>1</show_in_website>
-							<show_in_store>1</show_in_store>
-							<comment>Select Yes/No selector to enable/disable stored value.</comment>
-							<depends><enabled>1</enabled></depends>
-						</enable_stored_value>
 						<enable_paypal_express translate="label comment">
 							<label>Enable Paypal Express</label>
 							<config_path>payment/paypal_express/active</config_path>
@@ -59,31 +47,31 @@
 							<comment>Select Yes/No selector to enable/disable paypal express payment method.</comment>
 							<depends><enabled>1</enabled></depends>
 						</enable_paypal_express>
-                        <visible_on_cart translate="label comment">
-                            <label>PayPal Shortcut on Shopping Cart</label>
-                            <config_path>payment/paypal_express/visible_on_cart</config_path>
-                            <comment>Also affects mini-shopping cart.</comment>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>35</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <shared>1</shared>
+						<visible_on_cart translate="label comment">
+							<label>PayPal Shortcut on Shopping Cart</label>
+							<config_path>payment/paypal_express/visible_on_cart</config_path>
+							<comment>Also affects mini-shopping cart.</comment>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>35</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<shared>1</shared>
 							<depends><enabled>1</enabled></depends>
-                        </visible_on_cart>
-                        <visible_on_product translate="label">
-                            <label>PayPal Shortcut on Product View</label>
-                            <config_path>payment/paypal_express/visible_on_product</config_path>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <shared>1</shared>
+						</visible_on_cart>
+						<visible_on_product translate="label">
+							<label>PayPal Shortcut on Product View</label>
+							<config_path>payment/paypal_express/visible_on_product</config_path>
+							<frontend_type>select</frontend_type>
+							<source_model>adminhtml/system_config_source_yesno</source_model>
+							<sort_order>40</sort_order>
+							<show_in_default>1</show_in_default>
+							<show_in_website>1</show_in_website>
+							<show_in_store>1</show_in_store>
+							<shared>1</shared>
 							<depends><enabled>1</enabled></depends>
-                        </visible_on_product>
+						</visible_on_product>
 						<sandbox_flag translate="label">
 							<label>PayPal Sandbox Mode</label>
 							<config_path>paypal/wpp/sandbox_flag</config_path>

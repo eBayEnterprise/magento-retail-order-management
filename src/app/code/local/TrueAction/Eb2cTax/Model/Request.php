@@ -453,9 +453,9 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 
 	protected function _buildTaxDutyRequest()
 	{
-		$helper = Mage::helper('tax');
+		$helper = Mage::helper('eb2ctax');
 		try {
-			$this->_namespaceUri = $helper->getNamespaceUri($this->_storeId);
+			$this->_namespaceUri = $helper->getNamespaceUri();
 			$this->_doc->addElement('TaxDutyQuoteRequest', null, $this->_namespaceUri);
 			$tdRequest          = $this->_doc->documentElement;
 			$billingInformation = $tdRequest

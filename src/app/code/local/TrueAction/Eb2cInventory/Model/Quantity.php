@@ -20,8 +20,10 @@ class TrueAction_Eb2cInventory_Model_Quantity extends TrueAction_Eb2cInventory_M
 				$api = Mage::getModel('eb2ccore/api');
 				// make request to eb2c for quantity
 				$responseMessage = $api
-					->setUri(Mage::helper('eb2cinventory')->getOperationUri('check_quantity'))
-					->setXsd(Mage::helper('eb2cinventory')->getConfigModel()->xsdFileQuantity)
+					->addData(array(
+						'uri' => Mage::helper('eb2cinventory')->getOperationUri('check_quantity'),
+						'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileQuantity,
+					))
 					->request($requestDoc);
 				if ($responseMessage === '') {
 					// if we got an empty response back something went wrong

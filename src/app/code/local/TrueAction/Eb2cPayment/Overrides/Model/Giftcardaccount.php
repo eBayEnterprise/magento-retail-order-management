@@ -2,60 +2,42 @@
 class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_GiftCardAccount_Model_Giftcardaccount
 {
 	const TRUEACTION_EB2CPAYMENT_GIFTCARD_ACCOUNT_EXISTS = 'TrueAction_Eb2cPayment_GiftCard_Account_Exists';
-
 	/**
 	 * Giftcard pan that was requested for load
-	 *
 	 * @var bool|string
 	 */
 	protected $_requestedPan = false;
-
 	/**
 	 * Giftcard pin that was requested for load
-	 *
 	 * @var bool|string
 	 */
 	protected $_requestedPin = false;
-
 	/**
 	 * filter gift card by by pan and pin
-	 *
 	 * @return TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount
 	 */
 	protected function _filterGiftCardByPanPin()
 	{
-		$giftcardaccount = Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection');
-		$giftcardaccount->getSelect()->where('main_table.eb2c_pan = ?', $this->_requestedPan) // add filter by pan.
-			->where('main_table.eb2c_pin = ?', $this->_requestedPin); // add filter by pin
-
-		return $giftcardaccount->load();
+		return Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection')
+			->addFieldToFilter('eb2c_pan', array('eq' => $this->_requestedPan)) // add filter by pan.
+			->addFieldToFilter('eb2c_pin', array('eq' => $this->_requestedPin)) // add filter by pan.
+			->load();
 	}
-
 	/**
 	 * get pin by pan from giftcardaccount
-	 *
 	 * @param string $pan, the payment account number from eb2c that's stored in magento
-	 *
 	 * @return string $pin
 	 */
 	public function giftCardPinByPan($pan)
 	{
-		$pin = '';
-		$giftcardaccount = Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection');
-		$giftcardaccount->getSelect()->where('main_table.eb2c_pan = ?', $pan); // add filter by pan.
-		$giftcardaccount->load();
-		if (count($giftcardaccount)) {
-			$card = $giftcardaccount->getFirstItem();
-			$pin = $card->getEb2cPin();
-		}
-
-		return $pin;
+		return (string) Mage::getResourceModel('enterprise_giftcardaccount/giftcardaccount_collection')
+			->addFieldToFilter('eb2c_pan', array('eq' => $pan)) // add filter by pan.
+			->getFirstItem()
+			->getEb2cPin();
 	}
-
 	/**
 	 * overriding the loadByCode method to update magento gift card with actual eb2c records
 	 * Load gift card account model using specified code
-	 *
 	 * @param string $code
 	 * @return Enterprise_GiftCardAccount_Model_Giftcardaccount
 	 */
@@ -63,13 +45,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 	{
 		return $this->loadByPanPin($code, $this->giftCardPinByPan($code));
 	}
-
 	/**
 	 * custom Load gift card account model using specified eb2c stored value data
-	 *
 	 * @param string $pan, payment account number
 	 * @param string $pin, personal identification number
-	 *
 	 * @return Enterprise_GiftCardAccount_Model_Giftcardaccount
 	 */
 	public function loadByPanPin($pan, $pin)
@@ -77,13 +56,12 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 		$this->_requestedCode = $pan;
 		$this->_requestedPan = $pan;
 		$this->_requestedPin = $pin;
-
 		// Check eb2c stored value first
 		if (trim($pan) !== '' && trim($pin) !== '') {
 			// only fetch eb2c stored value balance when both pan and pin is valid
-			$storeValueBalanceReply = Mage::getModel('eb2cpayment/stored_value_balance')->getBalance($pan, $pin);
+			$storeValueBalanceReply = Mage::getModel('eb2cpayment/storedvalue_balance')->getBalance($pan, $pin);
 			if ($storeValueBalanceReply) {
-				$balanceData = Mage::getModel('eb2cpayment/stored_value_balance')->parseResponse($storeValueBalanceReply);
+				$balanceData = Mage::getModel('eb2cpayment/storedvalue_balance')->parseResponse($storeValueBalanceReply);
 				if ($balanceData) {
 					$balanceData['pin'] = $pin;
 					$balanceData['paymentAccountUniqueId'] = $pan; // the return pan might be tokenized.
@@ -97,16 +75,12 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				}
 			}
 		}
-
 		return $this->load($this->_requestedCode, 'code');
 	}
-
 	/**
 	 * Update enterprise giftcard account with data from eb2c
-	 *
 	 * @param TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount $giftCard, the gift card object
 	 * @param array $balanceData, the eb2c stored value balance data
-	 *
 	 * @return void
 	 */
 	protected function _updateGiftCardWithEb2cData(Enterprise_GiftCardAccount_Model_Giftcardaccount $giftCard, array $balanceData)
@@ -124,12 +98,9 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				->save();
 		}
 	}
-
 	/**
 	 * add eb2c storedvalue gift card data to magento enterprise giftcard account
-	 *
 	 * @param array $balanceData, the eb2c stored value balance data
-	 *
 	 * @return void
 	 */
 	protected function _addGiftCardWithEb2cData(array $balanceData)
@@ -148,11 +119,9 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 			->setDateCreated(Mage::getModel('core/date')->date('Y-m-d'))
 			->save();
 	}
-
 	/**
 	 * overrriding addToCart method in order to save the eb2c pan and pin field in the quote
 	 * Add gift card to quote gift card storage
-	 *
 	 * @param bool $saveQuote
 	 * @return Enterprise_GiftCardAccount_Model_Giftcardaccount
 	 */
@@ -186,12 +155,10 @@ class TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount extends Enterprise_
 				'pin' => $this->getEb2cPin(),
 			);
 			Mage::helper('enterprise_giftcardaccount')->setCards($quote, $cards);
-
 			if ($saveQuote) {
 				$quote->save();
 			}
 		}
-
 		return $this;
 	}
 }

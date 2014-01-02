@@ -41,14 +41,6 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 	}
 
 	/**
-	 * @test
-	 */
-	public function testRewrite()
-	{
-		$this->assertInstanceOf('TrueAction_Eb2cTax_Overrides_Helper_Data', Mage::helper('tax'));
-	}
-
-	/**
 	 * Test the retrieval of the tax caluculation sequence config value. Expecting true
 	 * @dataProvider dataProvider
 	 * @test
@@ -58,7 +50,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$this->_mockConfig(array(
 			array('taxApplyAfterDiscount', $configValue),
 		));
-		$val = Mage::helper('tax')->getApplyTaxAfterDiscount();
+		$val = Mage::helper('eb2ctax')->getApplyTaxAfterDiscount();
 		$this->assertSame($configValue, $val);
 	}
 
@@ -72,7 +64,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		));
 		$this->assertSame(
 			'http://api.gsicommerce.com/schema/checkout/1.0',
-			Mage::helper('tax')->getNamespaceUri()
+			Mage::helper('eb2ctax')->getNamespaceUri()
 		);
 	}
 
@@ -88,10 +80,13 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 			->method('getDocument')
 			->will($this->returnValue($requestDocument));
 
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'setUri'));
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
 		$apiModelMock->expects($this->once())
-			->method('setUri')
-			->with($this->identicalTo('https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'))
+			->method('addData')
+			->with($this->identicalTo(array(
+				'uri' => 'https://api.example.com/vM.m/stores/store_id/taxes/quote.xml',
+				'xsd' => 'TaxDutyFee-QuoteRequest-1.0.xsd'
+			)))
 			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
@@ -99,11 +94,9 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 			->will($this->returnValue('<foo>something</foo>'));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 
-		$taxHelper = Mage::helper('tax');
-
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cTax_Model_Response',
-			$taxHelper->sendRequest($request)
+			Mage::helper('eb2ctax')->sendRequest($request)
 		);
 
 	}
@@ -131,11 +124,9 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 			->with($requestDocument)
 			->will($this->throwException(new Exception));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$taxHelper = Mage::helper('tax');
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cTax_Model_Response',
-			$taxHelper->sendRequest($request)
+			Mage::helper('eb2ctax')->sendRequest($request)
 		);
 	}
 
@@ -147,7 +138,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$this->_mockConfig(array(
 			array('taxVatInclusivePricing', false),
 		));
-		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
+		$val = Mage::helper('eb2ctax')->getVatInclusivePricingFlag();
 		$this->assertFalse($val);
 	}
 
@@ -159,7 +150,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$this->_mockConfig(array(
 			array('taxVatInclusivePricing', true),
 		));
-		$val = Mage::helper('tax')->getVatInclusivePricingFlag();
+		$val = Mage::helper('eb2ctax')->getVatInclusivePricingFlag();
 		$this->assertTrue($val);
 	}
 
@@ -172,7 +163,7 @@ class TrueAction_Eb2cTax_Test_Helper_Overrides_DataTest
 		$this->_mockConfig(array(
 			array('taxDutyRateCode', $code),
 		));
-		$val = Mage::helper('tax')->taxDutyAmountRateCode();
+		$val = Mage::helper('eb2ctax')->taxDutyAmountRateCode();
 		$this->assertSame($code, $val);
 	}
 }

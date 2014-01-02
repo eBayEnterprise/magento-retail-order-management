@@ -10,9 +10,25 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>0.9.3</version>
+	<version>0.9.9</version>
 	<stability>devel</stability>
-	<notes>Initial release</notes>
+	<notes>## New Features:
+MOD-71 Update Filetransfer (private key as file)
+EBC-395 Remove Public Key Requirement from Config
+
+## Fixed Bugs:
+EBC-316 Use Collection methods instead of SQL
+EBC-65 Refactor tax/overrides_model_calculation
+EBC-247 Fix `Undefined index: base_amount message`
+EBC-384 Round tax values to 2 digits in xml
+EBC-92 More appropriate model inheritance
+EBC-391 protect buildAllocationRequestMessage
+
+## Known Bugs:
+EBC-216 EBC-261 EBC-339 Service calls (particularly inventory/tax calls) are made too often.
+EBC-396 There is no user-facing message when an inventory service call receives an error response from ECP during order create.
+EBC-363 The feed processor throws an exception if a translation isn't provided for the default language.
+EBC-398 The admin cannot create orders.</notes>
 	<authors>
 		<name>
 			<name>Michael A. Smith</name>
@@ -100,6 +116,7 @@
 			<target>mageetc</target>
 			<target>mageetc</target>
 			<target>mageetc</target>
+			<target>magelocale</target>
 		</target>
 		<path>
 			<path/>
@@ -132,6 +149,7 @@
 			<path>modules/TrueAction_ActiveConfig.xml</path>
 			<path>modules/TrueAction_FileTransfer.xml</path>
 			<path>eb2c.xml.sample</path>
+			<path>en_US</path>
 		</path>
 		<type>
 			<type>file</type>
@@ -164,6 +182,7 @@
 			<type>file</type>
 			<type>file</type>
 			<type>file</type>
+			<type>dir</type>
 		</type>
 		<include>
 			<include/>
@@ -196,8 +215,10 @@
 			<include/>
 			<include/>
 			<include/>
+			<include>#TrueAction_Eb2c.*#</include>
 		</include>
 		<ignore>
+			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>
 			<ignore>#[Tt]est#</ignore>

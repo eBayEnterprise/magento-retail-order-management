@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cCore_Model_Sequence extends Mage_Core_Model_Abstract
+class TrueAction_Eb2cCore_Model_Sequence
 {
 	/**
 	 * Extract the sequence number from xml feed file.

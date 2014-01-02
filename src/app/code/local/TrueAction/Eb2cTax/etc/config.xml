@@ -35,11 +35,6 @@
 			</enterprise_giftwrapping>
 		</models>
 		<helpers>
-			<tax>
-				<rewrite>
-					<data>TrueAction_Eb2cTax_Overrides_Helper_Data</data>
-				</rewrite>
-			</tax>
 			<eb2ctax>
 				<class>TrueAction_Eb2cTax_Helper</class>
 			</eb2ctax>

@@ -121,6 +121,21 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		return $mock;
 	}
 
+	/**
+	 * Replace the checkout session object with a mock.
+	 * @param  array $methods Enables original methods usage if null
+	 * @return PHPUnit_Framework_MockObject_MockObject - the mock session model
+	 */
+	protected function mockCheckoutSession($methods=null)
+	{
+		$sessionMock = $this->getModelMockBuilder('checkout/session')
+			->disableOriginalConstructor() // This one removes session_start and other methods usage
+			->setMethods($methods)
+			->getMock();
+		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
+		return $sessionMock;
+	}
+
 	protected function _setupBaseUrl()
 	{
 		parent::setUp();
