@@ -129,6 +129,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 
 		$addSkus = array_map($skuMap, array_filter($linkUpdates, $opFilter('add')));
 
+		$collection = Mage::getResourceModel('catalog/product_collection')
+			->addFieldToFilter('sku', $addSkus)
+			->addAttributeToSelect(array('entity_id', 'sku'));
+
 		// Go through the skus to add and look up the product id for each one.
 		// If any are missing, add the product link for that sku to a list of links that
 		// cannot be resolved yet.
@@ -136,9 +140,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		$idsToAdd = array();
 		$helper = Mage::helper('eb2cproduct');
 		foreach ($addSkus as $sku) {
-			$id = $helper->loadProductBySku($sku)->getId();
-			if ($id) {
-				$idsToAdd[] = $id;
+			$prod = $collection->getItemByColumnValue('sku', $sku);
+			if($prod && $prod->getId()) {
+				$idsToAdd[] = $prod->getId();
 			} else {
 				$missingLinks[] = $this->_buildProductLinkForSku($sku, $linkType, 'Add');
 			}

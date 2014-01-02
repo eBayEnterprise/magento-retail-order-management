@@ -233,6 +233,33 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 				)),
 			)));
 
+		$collection = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'getItemByColumnValue'))
+			->getMock();
+		$collection->expects($this->once())
+			->method('addFieldToFilter')
+			->with(
+				$this->identicalTo('sku'),
+				$this->identicalTo(array('clean_0'))
+			)
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->identicalTo(array('entity_id', 'sku')))
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('getItemByColumnValue')
+			->with(
+				$this->identicalTo('sku'),
+				$this->identicalTo('clean_0')
+			)
+			->will($this->returnValue(Mage::getModel('catalog/product')->addData(array(
+				'sku' => '1234-Related',
+				'entity_id' => 0,
+			))));
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $collection);
+
 		$linkUpdates = array(array(
 			'link_type' => 'related',
 			'operation_type' => 'Add',
@@ -252,17 +279,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 				'link_to_unique_id' => 'clean_0',
 			))));
 		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelProductMock);
-
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->setMethods(array('loadProductBySku'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('loadProductBySku')
-			->will($this->returnValue(Mage::getModel('catalog/product')->addData(array(
-				'sku' => '1234-Related',
-				'entity_id' => 0,
-			))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
 		$this->assertSame(
 			array(array(array(
@@ -312,16 +328,23 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 			))));
 		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $feedCleanerModelProductMock);
 
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->setMethods(array('loadProductBySku'))
+		$collection = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'getItemByColumnValue'))
 			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('loadProductBySku')
+		$collection->expects($this->once())
+			->method('addFieldToFilter')
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('addAttributeToSelect')
+			->will($this->returnSelf());
+		$collection->expects($this->once())
+			->method('getItemByColumnValue')
 			->will($this->returnValue(Mage::getModel('catalog/product')->addData(array(
 				'sku' => '1234-Related',
 				'entity_id' => 10,
 			))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $collection);
 
 		$this->assertSame(
 			array(),
