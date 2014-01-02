@@ -148,6 +148,38 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$fn = $this->_reflectMethod($testModel, '_addOptionToAttribute');
 		$fn->invoke($testModel, '', '', '');
 	}
+
+	/**
+	 * Test _addOptionToAttribute method
+	 * @test
+	 */
+	public function testAddOptionToAttribute()
+	{
+		$entityAttributeCollectionModelMock = $this->getResourceModelMockBuilder('eav/entity_attribute_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getItemByColumnValue'))
+			->getMock();
+		$entityAttributeCollectionModelMock->expects($this->once())
+			->method('getItemByColumnValue')
+			->with($this->equalTo('attribute_code'), $this->equalTo('color'))
+			->will($this->returnValue(Mage::getModel('eav/entity_attribute')->addData(array(
+				'id' => 92
+			))));
+
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($processorModelMock, '_attributes')->setValue($processorModelMock, $entityAttributeCollectionModelMock);
+		$this->_reflectProperty($processorModelMock, '_storeLanguageCodeMap')->setValue($processorModelMock, array('en' => 1));
+
+		$this->assertInstanceOf(
+			'Mage_Eav_Model_Resource_Entity_Attribute_Collection',
+			$this->_reflectMethod($processorModelMock, '_addOptionToAttribute')->invoke($processorModelMock, 'color', 700)
+		);
+	}
+
 	/**
 	 * Data provider to the testAddStockItemData test, provides the product type,
 	 * product id, feed "dataObject" and expected data to be set on the stock item
@@ -350,6 +382,35 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 		$this->assertInstanceOf(
 			'Mage_Eav_Model_Resource_Entity_Attribute_Option_Collection',
 			$this->_reflectMethod($processorModelMock, '_getAttributeOptionCollection')->invoke($processorModelMock, 'color')
+		);
+	}
+
+	/**
+	 * Test _getAttributeCollection method
+	 * @test
+	 */
+	public function testGetAttributeCollection()
+	{
+		$entityAttributeCollectionModelMock = $this->getResourceModelMockBuilder('eav/entity_attribute_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter'))
+			->getMock();
+		$entityAttributeCollectionModelMock->expects($this->once())
+			->method('addFieldToFilter')
+			->with($this->equalTo('entity_type_id'), $this->equalTo(4))
+			->will($this->returnSelf());
+		$this->replaceByMock('resource_model', 'eav/entity_attribute_collection', $entityAttributeCollectionModelMock);
+
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->_reflectProperty($processorModelMock, '_entityTypeId')->setValue($processorModelMock, 4);
+
+		$this->assertInstanceOf(
+			'Mage_Eav_Model_Resource_Entity_Attribute_Collection',
+			$this->_reflectMethod($processorModelMock, '_getAttributeCollection')->invoke($processorModelMock)
 		);
 	}
 }

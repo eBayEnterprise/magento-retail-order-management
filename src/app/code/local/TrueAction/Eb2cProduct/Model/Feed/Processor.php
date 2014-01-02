@@ -60,6 +60,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
 
 	/**
+	 * @var Mage_Eav_Model_Resource_Entity_Attribute_Collection
+	 */
+	protected $_attributes = null;
+
+	/**
 	 * @var array, hold collection array of attribute codes
 	 */
 	protected $_attributeOptions = array();
@@ -87,6 +92,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		foreach (explode(',', $config->attributesCodeList) as $attributeCode) {
 			$this->_attributeOptions[$attributeCode] = $this->_getAttributeOptionCollection($attributeCode);
 		}
+
+		$this->_attributes = $this->_getAttributeCollection();
 	}
 
 	/**
@@ -106,6 +113,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			->addFieldToFilter('attributes.attribute_code', $attributeCode)
 			->addFieldToFilter('attributes.entity_type_id', $this->_entityTypeId)
 			->addExpressionFieldToSelect('lcase_value', 'LCASE({{value}})', 'value');
+	}
+
+	/**
+	 * get attribute collection by entity type id
+	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Collection
+	 */
+	protected function _getAttributeCollection()
+	{
+		return Mage::getResourceModel('eav/entity_attribute_collection')
+			->addFieldToFilter('entity_type_id', $this->_entityTypeId);
 	}
 
 	/**
@@ -398,7 +415,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$configurableAttributeData = array();
 		$configurableAttributes = explode(',', $attrData['value']);
 		foreach ($configurableAttributes as $attrCode) {
-			$superAttribute  = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attrCode);
+			$superAttribute = $this->_attributes->getItemByColumnValue('attribute_code', $attrCode);
 			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')->setProductAttribute($superAttribute);
 			$configurableAttributeData[] = array(
 				'id'             => $configurableAtt->getId(),
@@ -494,9 +511,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			'order'  => array(),
 			'delete' => array(),
 		);
-		$attributeId = Mage::getModel('catalog/resource_eav_attribute')
-			->loadByCode('catalog_product', $attribute)
-			->getAttributeId();
+
+		$attrObj = $this->_attributes->getItemByColumnValue('attribute_code', $attribute);
+		$attributeId = ($attrObj)? $attrObj->getId() : 0;
 		if (!$attributeId) {
 			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot add option to undefined attribute code '$attribute'.");
 		}
