@@ -58,6 +58,20 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected $_updateBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_deleteBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
+
+	/**
+	 * @var array, hold collection array of attribute codes
+	 */
+	protected $_attributeOptions = array();
+
+	/**
+	 * @var int, hold product entity type id
+	 */
+	protected $_entityTypeId = 0;
+
+	/**
+	 * initialize
+	 */
 	public function __construct()
 	{
 		$helper = Mage::helper('eb2cproduct');
@@ -67,7 +81,33 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
 		$this->_deleteBatchSize = $config->processorDeleteBatchSize;
 		$this->_maxTotalEntries = $config->processorMaxTotalEntries;
+
+		$this->_entityTypeId = Mage::getModel('catalog/product')->getResource()->getTypeId();
+
+		foreach (explode(',', $config->attributesCodeList) as $attributeCode) {
+			$this->_attributeOptions[$attributeCode] = $this->_getAttributeOptionCollection($attributeCode);
+		}
 	}
+
+	/**
+	 * get attribute option collection by code
+	 * @param string $attributeCode, the attribute code
+	 * @return Mage_Eav_Model_Resource_Entity_Attribute_Option_Collection
+	 */
+	protected function _getAttributeOptionCollection($attributeCode)
+	{
+		return Mage::getResourceModel('eav/entity_attribute_option_collection')
+			->join(
+				array('attributes' => 'eav/attribute'),
+				'main_table.attribute_id = attributes.attribute_id',
+				array('attribute_code')
+			)
+			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false)
+			->addFieldToFilter('attributes.attribute_code', $attributeCode)
+			->addFieldToFilter('attributes.entity_type_id', $this->_entityTypeId)
+			->addExpressionFieldToSelect('lcase_value', 'LCASE({{value}})', 'value');
+	}
+
 	/**
 	 * Creates a map of language codes (as dervied from the store view code) to store ids
 	 * @todo The parse-language-from-store-view code might need to be closer to Eb2cCore.
@@ -413,27 +453,21 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * Gets the option id for the option within the given attribute
 	 *
-	 * @param string $attributeCode, The attribute code
+	 * @param string $code, The attribute code
 	 * @param string $option, The option within the attribute
 	 * @return int
 	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception if attributeCode is not found.
 	 */
-	protected function _getAttributeOptionId($attributeCode, $option)
+	protected function _getAttributeOptionId($code, $option)
 	{
-		$attributeEntity = Mage::getModel('eav/entity_attribute')->loadByCode(Mage_Catalog_Model_Product::ENTITY, $attributeCode);
-		if (!$attributeEntity->getId()) {
-			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$attributeCode'.");
+		if (!isset($this->_attributeOptions[$code])) {
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$code'.");
 		}
-		$attributeOptions = Mage::getResourceModel('eav/entity_attribute_option_collection')
-			->setAttributeFilter($attributeEntity->getId())
-			// @todo false = 'don't use default', but I really don't know what that means.
-			->setStoreFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID, false);
-		foreach ($attributeOptions as $attrOption) {
-			$optionId    = $attrOption->getOptionId(); // getAttributeId is also available
-			$optionValue = $attrOption->getValue();
-			if(strtolower($optionValue) === strtolower($option)) {
-				return $optionId;
-			}
+
+		$collection = $this->_attributeOptions[$code];
+		$targetOption = $collection->getItemByColumnValue('value', strtolower($option));
+		if ($targetOption) {
+			return (int) $targetOption->getId();
 		}
 		return 0;
 	}
@@ -541,7 +575,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
 		}
 		$configurableAttributesData = Mage::helper('eb2cproduct')
-				->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
+			->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
 		if ($configurableAttributesData) {
 			$productData->setData('configurable_attributes_data', $configurableAttributesData);
 		}
