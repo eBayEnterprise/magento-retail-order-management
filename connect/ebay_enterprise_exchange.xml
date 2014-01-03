@@ -10,19 +10,12 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>0.9.9</version>
-	<stability>devel</stability>
-	<notes>## New Features:
-MOD-71 Update Filetransfer (private key as file)
-EBC-395 Remove Public Key Requirement from Config
-
-## Fixed Bugs:
-EBC-316 Use Collection methods instead of SQL
-EBC-65 Refactor tax/overrides_model_calculation
-EBC-247 Fix `Undefined index: base_amount message`
-EBC-384 Round tax values to 2 digits in xml
-EBC-92 More appropriate model inheritance
-EBC-391 protect buildAllocationRequestMessage
+	<version>0.9.10</version>
+	<stability>beta</stability>
+	<notes>## Fixed Bugs:
+EBC-447 Expression is always True
+EBC-397 Issue AllocationRequest on PayPal Checkout
+MOD-75 MOD-51 Update filetransfer
 
 ## Known Bugs:
 EBC-216 EBC-261 EBC-339 Service calls (particularly inventory/tax calls) are made too often.
