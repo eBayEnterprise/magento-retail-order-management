@@ -45,7 +45,7 @@ class TrueAction_Eb2cPayment_Test_Mock_Model_Overrides_Paypal_Api_Nvp extends Ec
 
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
-			array('getEntityId', 'getAllItems', 'getPayment')
+			array('getEntityId', 'getAllItems', 'getPayment', 'getId')
 		);
 		$quoteMock->expects($this->any())
 			->method('getEntityId')

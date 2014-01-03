@@ -25,6 +25,21 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
 		$this->replaceByMock('model', 'checkout/cart', $cartMock);
 	}
 
+	/**
+	 * verify the observer is configured to listen for necessary events.
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testObserverConfiguration($area, $eventName, $method)
+	{
+		EcomDev_PHPUnit_Test_Case_Config::assertEventObserverDefined(
+			$area,
+			$eventName,
+			'TrueAction_Eb2cInventory_Model_Observer',
+			$method
+		);
+	}
+
 	public function providerCheckEb2cInventoryQuantity()
 	{
 		$quoteMock = $this->getMock(
