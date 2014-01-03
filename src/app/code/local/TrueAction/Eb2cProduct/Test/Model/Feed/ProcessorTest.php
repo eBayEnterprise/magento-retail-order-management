@@ -2,6 +2,53 @@
 class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
+	 * Test __construct method
+	 * @test
+	 */
+	public function testConstruct()
+	{
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel', 'getDefaultLanguageCode'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue((object) array(
+				'processorUpdateBatchSize' => 100,
+				'processorDeleteBatchSize' => 200,
+				'processorMaxTotalEntries' => 200,
+
+			)));
+		$productHelperMock->expects($this->once())
+			->method('getDefaultLanguageCode')
+			->will($this->returnValue('en-US'));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_getDefaultParentCategoryId', '_getStoreRootCategoryId', '_initLanguageCodeMap'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getDefaultParentCategoryId')
+			->will($this->returnValue(1));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_getStoreRootCategoryId')
+			->will($this->returnValue(2));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_initLanguageCodeMap')
+			->will($this->returnSelf());
+
+		$this->_reflectMethod($feedProcessorModelMock, '__construct')->invoke($feedProcessorModelMock);
+
+		$this->assertSame('en-us', $this->_reflectProperty($feedProcessorModelMock, '_defaultLanguageCode')->getValue($feedProcessorModelMock));
+		$this->assertSame(100, $this->_reflectProperty($feedProcessorModelMock, '_updateBatchSize')->getValue($feedProcessorModelMock));
+		$this->assertSame(200, $this->_reflectProperty($feedProcessorModelMock, '_deleteBatchSize')->getValue($feedProcessorModelMock));
+		$this->assertSame(200, $this->_reflectProperty($feedProcessorModelMock, '_maxTotalEntries')->getValue($feedProcessorModelMock));
+		$this->assertSame(1, $this->_reflectProperty($feedProcessorModelMock, '_defaultParentCategoryId')->getValue($feedProcessorModelMock));
+		$this->assertSame(2, $this->_reflectProperty($feedProcessorModelMock, '_storeRootCategoryId')->getValue($feedProcessorModelMock));
+	}
+
+	/**
 	 * verify true is returned when the default translation exists; false otherwise.
 	 * @test
 	 * @dataProvider dataProvider
@@ -367,5 +414,96 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			->will($this->returnValue($productId));
 		$method = $this->_reflectMethod($processor, '_addStockItemDataToProduct');
 		$this->assertSame($processor, $method->invoke($processor, $feedData, $product));
+	}
+
+	/**
+	 * Test _preparedCategoryLinkData method
+	 * @test
+	 */
+	public function testPreparedCategoryLinkData()
+	{
+		$categoryModelMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getId'))
+			->getMock();
+		$categoryModelMock->expects($this->at(0))
+			->method('getId')
+			->will($this->returnValue(15));
+		$categoryModelMock->expects($this->at(1))
+			->method('getId')
+			->will($this->returnValue(17));
+		$categoryModelMock->expects($this->at(2))
+			->method('getId')
+			->will($this->returnValue(21));
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array('_loadCategoryByName', '_deleteCategories'))
+			->getMock();
+		$feedProcessorModelMock->expects($this->at(0))
+			->method('_loadCategoryByName')
+			->with($this->equalTo('Kids'))
+			->will($this->returnValue($categoryModelMock));
+		$feedProcessorModelMock->expects($this->at(1))
+			->method('_loadCategoryByName')
+			->with($this->equalTo('Toys'))
+			->will($this->returnValue($categoryModelMock));
+		$feedProcessorModelMock->expects($this->at(2))
+			->method('_loadCategoryByName')
+			->with($this->equalTo('Teddy Bears'))
+			->will($this->returnValue($categoryModelMock));
+		$feedProcessorModelMock->expects($this->once())
+			->method('_deleteCategories')
+			->with($this->isType('array'))
+			->will($this->returnSelf());
+
+		$this->_reflectProperty($feedProcessorModelMock, '_defaultParentCategoryId')->setValue($feedProcessorModelMock, 1);
+		$this->_reflectProperty($feedProcessorModelMock, '_storeRootCategoryId')->setValue($feedProcessorModelMock, 2);
+		$this->assertSame(
+			array('0', '1', '2', '15', '17', '21'),
+			$this->_reflectMethod($feedProcessorModelMock, '_preparedCategoryLinkData')->invoke($feedProcessorModelMock, new Varien_Object(array(
+				'category_links' => array(
+					array('name' => 'Kids-Toys-Teddy Bears', 'import_mode' => 'add'),
+					array('name' => 'Animals-Giraffe', 'import_mode' => 'delete')
+				)
+			)))
+		);
+	}
+
+	/**
+	 * Test _deleteCategories method
+	 * @test
+	 */
+	public function testDeleteCategories()
+	{
+		$catalogResourceModelCategoryMock = $this->getResourceModelMockBuilder('catalog/category_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'load', 'delete'))
+			->getMock();
+		$catalogResourceModelCategoryMock->expects($this->once())
+			->method('addFieldToFilter')
+			->with($this->equalTo('name'), $this->isType('array'))
+			->will($this->returnSelf());
+		$catalogResourceModelCategoryMock->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->isType('array'))
+			->will($this->returnSelf());
+		$catalogResourceModelCategoryMock->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$catalogResourceModelCategoryMock->expects($this->once())
+			->method('delete')
+			->will($this->returnSelf());
+		$this->replaceByMock('resource_model', 'catalog/category_collection', $catalogResourceModelCategoryMock);
+
+		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed_Processor',
+			$this->_reflectMethod($processorModelMock, '_deleteCategories')->invoke($processorModelMock, array('Animals', 'Giraffe'))
+		);
 	}
 }

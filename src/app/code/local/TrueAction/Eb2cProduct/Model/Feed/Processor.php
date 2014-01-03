@@ -259,7 +259,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * delete product.
-	 * @param Varien_Object $dataObject, the object with data needed to delete the product
+	 * @param Varien_Object $dataObject the object with data needed to delete the product
 	 * @return self
 	 */
 	protected function _deleteItem(Varien_Object $dataObject)
@@ -1097,40 +1097,50 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	}
 	/**
 	 * prepared category data.
-	 * @param Varien_Object $item, the object with data needed to update the product
+	 * @param Varien_Object $item the object with data needed to update the product
 	 * @return array, category data
 	 */
 	protected function _preparedCategoryLinkData(Varien_Object $item)
 	{
 		// Product Category Link
-		$categoryLinks = $item->getCategoryLinks();
+		$categoryLinks = (array) $item->getCategoryLinks();
 		$fullPath = 0;
-		if (!empty($categoryLinks)) {
-			foreach ($categoryLinks as $link) {
-				$categories = explode('-', $link['name']);
-				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
-					foreach($categories as $category) {
-						$categoryObject = Mage::getModel('catalog/category')->load(
-							$this->_loadCategoryByName(ucwords($category))->getId()
-						);
-						if ($categoryObject->getId()) {
-							// we have a valid category in the system let's delete it
-							$categoryObject->delete();
-						}
+		$deletedList = array();
+
+		foreach ($categoryLinks as $link) {
+			$categories = explode('-', $link['name']);
+			if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
+				$deletedList = array_merge($deletedList, array_map('ucwords', $categories));
+			} else {
+				// adding or changing category import mode
+				$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
+				foreach($categories as $category) {
+					$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
+					if ($categoryId) {
+						$path .= sprintf('/%s', $categoryId);
 					}
-				} else {
-					// adding or changing category import mode
-					$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
-					foreach($categories as $category) {
-						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
-						if ($categoryId) {
-							$path .= sprintf('/%s', $categoryId);
-						}
-					}
-					$fullPath .= sprintf('/%s', $path);
 				}
+				$fullPath .= sprintf('/%s', $path);
 			}
 		}
+
+		$this->_deleteCategories($deletedList);
 		return explode('/', $fullPath);
+	}
+
+	/**
+	 * given a list of category name to be deleted.
+	 * @param array $names list of category name to be deleted
+	 * @return self
+	 */
+	protected function _deleteCategories(array $names)
+	{
+		if (!empty($names)) {
+			Mage::getResourceModel('catalog/category_collection')->addFieldToFilter('name', $names)
+				->addAttributeToSelect(array('entity_id'))
+				->load()
+				->delete();
+		}
+		return $this;
 	}
 }
