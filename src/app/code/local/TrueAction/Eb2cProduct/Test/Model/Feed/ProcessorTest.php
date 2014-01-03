@@ -183,7 +183,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			),
 		);
 	}
-	/**processDeletions
+	/**
 	 * Test adding stock data to a product - should create the stock item and populate
 	 * it with appropriate data based on the product type. All should get a product_id
 	 * and stock_id. Non-config products should also get settings for use_config_backorders and
@@ -247,14 +247,18 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			->setMethods(array())
 			->getMock();
 
+		$dataObjectList = new ArrayObject(array(
+			new Varien_Object(array('client_item_id' => 'SKU-1234')),
+			new Varien_Object(array('client_item_id' => 'SKU-4321')),
+			new Varien_Object(array('client_item_id' => 'SKU-3412')),
+			new Varien_Object(array('client_item_id' => 'SKU-2143'))
+		));
 		$this->assertSame(
 			array('SKU-1234', 'SKU-4321', 'SKU-3412', 'SKU-2143'),
-			$this->_reflectMethod($processorModelMock, '_extractDeletedItemSkus')->invoke($processorModelMock, array(
-				new Varien_Object(array('client_item_id' => 'SKU-1234')),
-				new Varien_Object(array('client_item_id' => 'SKU-4321')),
-				new Varien_Object(array('client_item_id' => 'SKU-3412')),
-				new Varien_Object(array('client_item_id' => 'SKU-2143'))
-			))
+			$this->_reflectMethod($processorModelMock, '_extractDeletedItemSkus')->invoke(
+				$processorModelMock,
+				$dataObjectList->getIterator()
+			)
 		);
 	}
 
@@ -309,21 +313,23 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			->getMock();
 		$processorModelMock->expects($this->once())
 			->method('_extractDeletedItemSkus')
-			->with($this->isType('array'))
+			->with($this->isInstanceOf('ArrayIterator'))
 			->will($this->returnValue(array('SKU-1234', 'SKU-4321', 'SKU-3412', 'SKU-2143')));
 		$processorModelMock->expects($this->once())
 			->method('_deleteItems')
 			->with($this->isType('array'))
 			->will($this->returnSelf());
 
+		$dataObjectList = new ArrayObject(array(
+			new Varien_Object(array('client_item_id' => 'SKU-1234')),
+			new Varien_Object(array('client_item_id' => 'SKU-4321')),
+			new Varien_Object(array('client_item_id' => 'SKU-3412')),
+			new Varien_Object(array('client_item_id' => 'SKU-2143'))
+		));
+
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed_Processor',
-			$processorModelMock->processDeletions(array(
-				new Varien_Object(array('client_item_id' => 'SKU-1234')),
-				new Varien_Object(array('client_item_id' => 'SKU-4321')),
-				new Varien_Object(array('client_item_id' => 'SKU-3412')),
-				new Varien_Object(array('client_item_id' => 'SKU-2143'))
-			))
+			$processorModelMock->processDeletions($dataObjectList->getIterator())
 		);
 	}
 }

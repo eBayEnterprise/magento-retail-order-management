@@ -123,7 +123,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @param array $dataObjectList list of items to delete
 	 * @return array
 	 */
-	protected function _extractDeletedItemSkus(array $dataObjectList)
+	protected function _extractDeletedItemSkus(ArrayIterator $dataObjectList)
 	{
 		$skus = array();
 		foreach ($dataObjectList as $dataObject) {
@@ -150,10 +150,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 
 	/**
 	 * processing delete operation from the feed
-	 * @param array $dataObjectList list of items to delete
+	 * @param ArrayIterator $dataObjectList list of items to delete
 	 * @return self
 	 */
-	public function processDeletions(array $dataObjectList)
+	public function processDeletions(ArrayIterator $dataObjectList)
 	{
 		Mage::log(sprintf('[ %s ] Processing %d deletes.', __CLASS__, count($dataObjectList)));
 		$this->_deleteItems($this->_extractDeletedItemSkus($dataObjectList));
