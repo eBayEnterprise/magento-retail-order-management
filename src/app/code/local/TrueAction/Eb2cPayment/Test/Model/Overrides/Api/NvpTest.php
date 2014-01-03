@@ -198,7 +198,11 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
 
-		$cartObject = new Mage_Paypal_Model_Cart(array($this->_mockObject->buildQuoteMock()));
+		$quote = $this->_mockObject->buildQuoteMock();
+		$quote->expects($this->atLeastOnce())
+			->method('getId')
+			->will($this->returnValue(1));
+		$cartObject = new Mage_Paypal_Model_Cart(array($quote));
 
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
