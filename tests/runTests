@@ -18,15 +18,12 @@ dropAllTables() {
 }
 dropAllTables
 
-# Fetch the Magento ee and sample data.
-scp mage.tandev.net:/home/shared/ee/enterprise-1.13.1.0.tar-2013-11-19-03-06-28.gz mage.tandev.net:/home/shared/sample_data/magento_enterprise_sample_data_for_1.12.0.0-2012-04-23-11-43-17.zip .
-rm -rf magento
-tar -xzpf enterprise-1.13.1.0.tar-2013-11-19-03-06-28.gz
-cd magento
-unzip -oq ../magento_enterprise_sample_data_for_1.12.0.0-2012-04-23-11-43-17.zip
-mysql jenkins_mage_eb2c < magento_enterprise_sample_data_for_1.12.0.0.sql
-rm magento_enterprise_sample_data_for_1.12.0.0.sql
+# Fetch Magento ee and untar it.
+mv magento magento.deleteme && rm magento.deleteme &
+	wget -O- https://ebay.box.com/shared/static/q2peu39zawc8px9vdun8.gz |
+	tar -xzpf-
 
+cd magento
 # Run the Magento installer.
 php -f install.php -- \
 	--admin_frontname 'admin' \
@@ -35,7 +32,7 @@ php -f install.php -- \
 	--admin_lastname 'Last' \
 	--admin_password 'testing123' \
 	--admin_username 'admin' \
-	--db_host 'd0fec10c7d06268d105f4c76a25300903dce828d.rackspaceclouddb.com' \
+	--db_host 'localhost' \
 	--db_name 'jenkins_mage_eb2c' \
 	--db_pass "$(sed -n 's/password=//p' "$HOME/.my.cnf")" \
 	--db_user 'jenkins' \

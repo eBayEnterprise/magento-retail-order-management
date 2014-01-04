@@ -1,15 +1,15 @@
 [submodule "extensions/dom"]
 	path = extensions/dom
-	url = git@bitbucket.org:trueaction/dom.git
+	url = https://github.scm.corp.ebay.com/Cheetah/dom
 [submodule "extensions/filetransfer"]
 	path = extensions/filetransfer
-	url = git@bitbucket.org:trueaction/filetransfer
+	url = https://github.scm.corp.ebay.com/Cheetah/filetransfer
 [submodule "extensions/mage_log"]
 	path = extensions/mage_log
-	url = git@bitbucket.org:trueaction/mage_log
+	url = https://github.scm.corp.ebay.com/Cheetah/mage_log
 [submodule "extensions/pbridge"]
 	path = extensions/pbridge
-	url = git@bitbucket.org:trueaction/trueaction_pbridge
+	url = https://github.scm.corp.ebay.com/Cheetah/trueaction_pbridge
 [submodule "extensions/aoe_scheduler"]
 	path = extensions/aoe_scheduler
-	url = git@bitbucket.org:trueaction/aoe_scheduler.git
+	url = https://github.scm.corp.ebay.com/Cheetah/aoe_scheduler
