@@ -30,7 +30,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Mappinglist
 		try {
 			$nodes = $xpath->query($this->_baseXpath, $node);
 		} catch (Exception $e) {
-			Mage::throwException(
+			throw new Mage_Core_Exception(
 				'[ ' . get_called_class() . ' ] the xpath "' . $this->_baseXpath . '" could not be queried: ' . $e->getMessage()
 			);
 		}
@@ -54,7 +54,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Mappinglist
 	public function __construct(array $args)
 	{
 		if (!isset($args[0]) || !is_array($args[0]) || !$args[0]) {
-			Mage::throwException(
+			throw new Mage_Core_Exception(
 				'[ ' . __CLASS__ . ' ] The 1st argument in the initializer array must be an array mapping the top-level key to an xpath string'
 			);
 		}
@@ -62,7 +62,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Mappinglist
 		$this->_baseKey = key($args[0]);
 
 		if (!isset($args[1]) || !is_array($args[1])) {
-			Mage::throwException(
+			throw new Mage_Core_Exception(
 				'[ ' . __CLASS__ . ' ] The 2nd argument in the initializer array must be a mapping array'
 			);
 		}

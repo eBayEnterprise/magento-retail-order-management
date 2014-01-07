@@ -59,6 +59,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _baseXpath
+	 * @codeCoverageIgnore
 	 */
 	public function getBaseXpath()
 	{
@@ -67,6 +68,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _feedLocalPath
+	 * @codeCoverageIgnore
 	 */
 	public function getFeedLocalPath()
 	{
@@ -75,6 +77,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _feedRemotePath
+	 * @codeCoverageIgnore
 	 */
 	public function getFeedRemotePath()
 	{
@@ -83,6 +86,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _feedFilePattern
+	 * @codeCoverageIgnore
 	 */
 	public function getFeedFilePattern()
 	{
@@ -91,6 +95,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _feedEventType
+	 * @codeCoverageIgnore
 	 */
 	public function getFeedEventType()
 	{
@@ -99,6 +104,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 
 	/**
 	 * @return @see _extractors
+	 * @codeCoverageIgnore
 	 */
 	public function getExtractors()
 	{
@@ -108,6 +114,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	/**
 	 * get an extractor that checks if the unit is valid or not
 	 * @return
+	 * @codeCoverageIgnore
 	 */
 	public function getUnitValidationExtractor()
 	{
@@ -117,6 +124,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	/**
 	 * get the extractor model used to get the operation type from the unit.
 	 * @return TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Interface
+	 * @codeCoverageIgnore
 	 */
 	public function getOperationExtractor()
 	{
@@ -126,6 +134,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Abstract
 	/**
 	 * @param  TrueAction_Dom_Document $doc dom document
 	 * @return DOMXPath                     xpath object configured to query data from $doc
+	 * @codeCoverageIgnore
 	 */
 	public function getNewXpath(TrueAction_Dom_Document $doc)
 	{

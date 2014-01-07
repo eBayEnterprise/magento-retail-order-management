@@ -47,6 +47,11 @@ class TrueAction_Eb2cProduct_Model_Feed
 	protected $_eventTypeModel = null;
 
 	/**
+	 * @var string
+	 */
+	protected $_defaultLangCode = null;
+
+	/**
 	 * suppress the core feed's initialization
 	 * create necessary internal models.
 	 * @return [type] [description]
@@ -58,6 +63,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			array(array('event_type' => self::EVENT_TYPE_XPATH))
 		);
 		$this->_queue = Mage::getSingleton('eb2cproduct/feed_queue');
+		$this->_defaultLangCode = Mage::helper('eb2cproduct')->getDefaultLanguageCode();
 	}
 
 	/**
@@ -80,26 +86,39 @@ class TrueAction_Eb2cProduct_Model_Feed
 				$this->_eventTypeModel->getFeedFilePattern()
 			);
 			$remote = $this->_eventTypeModel->getFeedRemotePath();
+			$fileList = $this->_coreFeed->lsInboundDir();
 
-			// need to track the local file as well as the remote path so it can be removed after processing
-			$this->_feedFiles = array_merge($this->_feedFiles, array_map(
-				function ($local) use ($remote, $eventType, $coreFeedHelper) {
-					$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
-					return array(
-						'local' => $local,
-						'remote' => $remote,
-						'timestamp' => $timeStamp,
-						'type' => $eventType
-					); },
-				$this->_coreFeed->lsInboundDir()
-			));
+			// only merge files when there are actual files
+			if ($fileList) {
+				// generate error confirmation file by event type
+				$errorFile = Mage::helper('eb2cproduct')->buildFileName($eventType);
+
+				// load the file and add the initial data such as xml directive, open node and message header
+				Mage::getModel('eb2cproduct/error_confirmations')->loadFile($errorFile)
+					->initFeed($eventType);
+
+				// need to track the local file as well as the remote path so it can be removed after processing
+				$this->_feedFiles = array_merge($this->_feedFiles, array_map(
+					function ($local) use ($remote, $eventType, $coreFeedHelper, $errorFile) {
+						$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
+						return array(
+							'local' => $local,
+							'remote' => $remote,
+							'timestamp' => $timeStamp,
+							'type' => $eventType,
+							'error_file' => $errorFile
+						); },
+					$fileList
+				));
+			}
 		}
+
 		// sort the feed files
 		// hidding error from built-in usort php function because of the known bug
 		// Warning: usort(): Array was modified by the user comparison function
 		@usort($this->_feedFiles, array($this, '_compareFeedFiles'));
 		foreach ($this->_feedFiles as $fileDetails) {
-			$this->processFile($fileDetails['local']);
+			$this->processFile($fileDetails);
 			$this->archiveFeed($fileDetails['local'], $fileDetails['remote']);
 			$filesProcessed++;
 		}
@@ -107,23 +126,30 @@ class TrueAction_Eb2cProduct_Model_Feed
 		Varien_Profiler::stop(__METHOD__);
 		Mage::getModel('eb2cproduct/feed_cleaner')->cleanAllProducts();
 		Mage::dispatchEvent('product_feed_processing_complete', array());
+		Mage::dispatchEvent('product_feed_complete_error_confirmation', array('feed_details' => $this->_feedFiles));
 		return $filesProcessed;
 	}
 
 	/**
 	 * Processes a single xml file.
-	 * @param string $xmlFile, the xml file to be loaded into domdocument
-	 * @return void
+	 * @param array $fileDetail
+	 * @return self
 	 */
-	public function processFile($xmlFile)
+	public function processFile(array $fileDetail)
 	{
 		Varien_Profiler::start(__METHOD__);
+		$errorConfirmations = Mage::getModel('eb2cproduct/error_confirmations')->loadFile($fileDetail['error_file']);
+		$fileName = basename($fileDetail['local']);
+
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		try {
-			$dom->load($xmlFile);
-		}
-		catch(Exception $e) {
+			$dom->load($fileDetail['local']);
+		} catch(Exception $e) {
 			Mage::logException($e);
+			$errorConfirmations->addMessage($errorConfirmations::DOM_LOAD_ERR, $e->getMessage())
+				->addError($fileDetail['type'], $fileName)
+				->addErrorConfirmation($fileDetail['type'])
+				->flush();
 			return;
 		}
 
@@ -131,39 +157,55 @@ class TrueAction_Eb2cProduct_Model_Feed
 			$eventType = $this->_determineEventType($dom);
 		} catch (TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
 			Mage::log(sprintf('The following Event Type error occurred: %s', $e->getMessage()), Zend_Log::ERR);
+			$errorConfirmations->addMessage($errorConfirmations::EVENT_TYPE_ERR, $e->getMessage())
+				->addError($fileDetail['type'], $fileName)
+				->addErrorConfirmation($fileDetail['type'])
+				->flush();
 			return;
 		}
 
 		$this->_eventTypeModel = $this->_getEventTypeModel($eventType);
 
 		// Validate Eb2c Header Information
-		if ( !Mage::helper('eb2ccore/feed')
-			->validateHeader($dom, $eventType )
-		) {
-			Mage::log(sprintf('File %s: Invalid header', $xmlFile), Zend_Log::ERR);
+		if ( !Mage::helper('eb2ccore/feed')->validateHeader($dom, $eventType )) {
+			Mage::log(sprintf('File %s: Invalid header', $fileDetail['local']), Zend_Log::ERR);
+			$errorConfirmations->addMessage($errorConfirmations::INVALID_HEADER_ERR, $fileName)
+				->addError($fileDetail['type'], $fileName)
+				->addErrorConfirmation($fileDetail['type'])
+				->flush();
 			return;
 		}
 
 		try {
 			$this->_beforeProcessDom($dom);
 		} catch (Mage_Core_Exception $e) {
-			Mage::log(sprintf('File %s: error while preparing to process DOM', $xmlFile), Zend_Log::ERR);
+			Mage::log(sprintf('File %s: error while preparing to process DOM', $fileDetail['local']), Zend_Log::ERR);
 			Mage::logException($e);
+			$errorConfirmations->addMessage($errorConfirmations::BEFORE_PROCESS_DOM_ERR, $e->getMessage())
+				->addError($fileDetail['type'], $fileName)
+				->addErrorConfirmation($fileDetail['type'])
+				->flush();
 			return;
 		}
 
-		$this->processDom($dom);
+		$this->processDom($dom, $fileDetail);
 		Varien_Profiler::stop(__METHOD__);
+
+		return $this;
 	}
 
 	/**
 	 * process a dom document
 	 * @param  TrueAction_Dom_Document $doc
+	 * @param array $fileDetail
 	 * @return self
 	 */
-	public function processDom(TrueAction_Dom_Document $doc)
+	public function processDom(TrueAction_Dom_Document $doc, array $fileDetail)
 	{
 		Varien_Profiler::start(__METHOD__);
+		$errorConfirmations = Mage::getModel('eb2cproduct/error_confirmations')->loadFile($fileDetail['error_file']);
+		$fileName = basename($fileDetail['local']);
+
 		$units = $this->_getIterableFor($doc);
 		foreach ($units as $unit) {
 			$isValid = $this->_eventTypeModel->getUnitValidationExtractor()
@@ -172,11 +214,21 @@ class TrueAction_Eb2cProduct_Model_Feed
 				$data = $this->_extractData($unit);
 				$operationType = $this->_eventTypeModel->getOperationExtractor()
 					->getValue($this->_xpath, $unit);
+				$data->addData(array('file_detail' => $fileDetail));
 				try {
 					$this->_queue->add($data, $operationType);
-				} catch(TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
+				} catch (TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
 					Mage::log(sprintf('[ %s ] Error occurred while adding unit to queue: %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
+					$errorConfirmations->addMessage($errorConfirmations::INVALID_OPERATION_ERR, $e->getMessage())
+						->addError($fileDetail['type'], $fileName)
+						->addErrorConfirmation($fileDetail['type'])
+						->flush();
 				}
+			} else {
+				$errorConfirmations->addMessage($errorConfirmations::INVALID_DATA_ERR, $fileName)
+					->addError($fileDetail['type'], $fileName)
+					->addErrorConfirmation($fileDetail['type'])
+					->flush();
 			}
 		}
 		Varien_Profiler::stop(__METHOD__);
@@ -220,7 +272,15 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return (int) (array_search($a['type'], $types) - array_search($b['type'], $types));
 	}
 
-	protected function _determineEventType($doc)
+	/**
+	 * determine the event type in the loaded xml feed
+	 * if the event type in the feed doesn't match the one of the expected value
+	 * then throw an error otherwise return the eventtype found
+	 * @param TrueAction_Dom_Document $doc
+	 * @return string
+	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception
+	 */
+	protected function _determineEventType(TrueAction_Dom_Document $doc)
 	{
 		$this->_xpath = new DomXPath($doc);
 		$nodeList = $this->_xpath->query(self::EVENT_TYPE_XPATH, $doc->documentElement);
@@ -235,7 +295,12 @@ class TrueAction_Eb2cProduct_Model_Feed
 		return $eventType;
 	}
 
-	protected function _extractData($unit)
+	/**
+	 * extracting dom data into varien object
+	 * @param DOMElement $unit
+	 * @return self
+	 */
+	protected function _extractData(DOMElement $unit)
 	{
 		$extractors = $this->_eventTypeModel->getExtractors();
 		$result = new Varien_Object();

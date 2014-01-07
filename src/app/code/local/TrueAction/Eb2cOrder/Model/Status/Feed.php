@@ -44,9 +44,10 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 	/**
 	 * This is the only abstracted method - process the acutal DOM
 	 * @param TrueAction_Dom_Document the feed as already in a DOM
+	 * @param array $fileDetail not implemented
 	 * @return self;
 	 */
-	public function processDom(TrueAction_Dom_Document $dom)
+	public function processDom(TrueAction_Dom_Document $dom, array $fileDetail=null)
 	{
 		$extractor = Mage::getModel('eb2corder/status_feed_extractor');
 
@@ -101,7 +102,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		return $this;
 	}
 
-	/** 
+	/**
 	 * Set the eb2cOrdereStatusFields
 	 */
 	protected function _setEb2cOrderStatus($mageOrder, $status, $statusTimeStamp)
@@ -257,7 +258,7 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				}
 			}
 		}
-	
+
 		// Invoice what's just been shipped
 		$mageInvoice = Mage::getModel('sales/service_order', $mageOrder)->prepareInvoice($invoiceItems);
 		try {

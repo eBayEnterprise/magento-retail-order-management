@@ -1,0 +1,51 @@
+ -
+    - meta:
+     iteration:
+       name: it_0
+       mock_method:
+       mock_return:
+ -
+    - meta:
+        type: helper
+        class: eb2ccore/feed
+        method: getStoreId
+     iteration:
+       name: it_1
+       mock_type: helper
+       mock_class: eb2ccore/feed
+       mock_method: getStoreId
+       mock_return: ABCD
+ -
+    - meta:
+        type: model
+        class: eb2ccore/feed
+        method: setUpDirs
+     iteration:
+       name: it_2
+       mock_type: model
+       mock_class: eb2ccore/feed
+       mock_method: setUpDirs
+       mock_return: null
+ -
+    - meta:
+        type: singleton
+        class: eb2ccore/feed
+        method: setUpDirs
+     iteration:
+       name: it_3
+       mock_type: model
+       mock_class: eb2ccore/feed
+       mock_method: setUpDirs
+       mock_return: null
+ -
+    - meta:
+        type: unkown
+        class: eb2ccore/feed
+        method: setUpDirs
+     iteration:
+       name: it_4
+       mock_type:
+       mock_class:
+       mock_method:
+       mock_return:
+

@@ -186,6 +186,11 @@
 				<file_pattern>*_inventatp*_*.xml</file_pattern>
 				<event_type>ItemInventories</event_type>
 				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>ItemInventories</event_type>
+					</message_header>
+				</outbound>
 			</feed>
 		</eb2cinventory>
 	</default>

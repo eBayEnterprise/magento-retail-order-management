@@ -7,6 +7,39 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	const DEST_ID_XPATH = '//MessageHeader/DestinationData/DestinationId[normalize-space()="%s"]';
 	const EVENT_TYPE_XPATH = '//MessageHeader/EventType[normalize-space()="%s"]';
 
+	const DEFAULT_HEADER_CONF = 'eb2ccore/feed/outbound/message_header';
+	const FILE_NAME_CONF = 'eb2ccore/feed/outbound/file_name';
+
+	/**
+	 * @var array map of feed type and message header configuration path
+	 */
+	protected $_feedTypeHeaderConf = array(
+		'ItemMaster' => 'eb2cproduct/item_master_feed/outbound/message_header',
+		'Content' => 'eb2cproduct/content_master_feed/outbound/message_header',
+		'iShip' => 'eb2cproduct/i_ship_feed/outbound/message_header',
+		'Price' => 'eb2cproduct/item_pricing_feed/outbound/message_header',
+		'ImageMaster' => 'eb2cproduct/image_master_feed/outbound/message_header',
+		'ItemInventories' => 'eb2cinventory/feed/outbound/message_header',
+	);
+
+	/**
+	 * @var TrueAction_Eb2cCore_Model_Config_Registry
+	 */
+	protected $_config = null;
+	/**
+	 * set the an instantiated object of the registry class loaded with eb2ccore config model
+	 * to the class property _config if it's not already been set
+	 * @return TrueAction_Eb2cCore_Model_Config_Registry
+	 */
+	public function getConfig()
+	{
+		if (!$this->_config) {
+			$this->_config = Mage::getModel('eb2ccore/config_registry')
+				->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		}
+		return $this->_config;
+	}
+
 	/**
 	 * If there exists at least one DestinationId of "MWS" (Magento Web Store) this feed is valid.
 	 * If not, we log at the DEBUG level and quietly consider the feed invalid.
@@ -102,5 +135,149 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	public function validateHeader($doc, $eventType)
 	{
 		return $this->_validateDestId($doc) && $this->_validateEventType($doc, trim($eventType));
+	}
+
+	/**
+	 * abstracting getting config child nodes in an array
+	 * @param string $path the parent path to set of node to get as array
+	 * @return array
+	 * @codeCoverageIgnore
+	 */
+	protected function _getPathConfigChildData($path)
+	{
+		return Mage::app()->getStore(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)->getConfig($path);
+	}
+
+	/**
+	 * call a class static method base on the meta data in the given array
+	 * @param array $meta a composite array with class name and method to be executed
+	 * @return string|null
+	 */
+	protected function _extractFromMetaData(array $meta)
+	{
+		if (empty($meta)) {
+			return null;
+		}
+		$parameters = isset($meta['parameters'])? $meta['parameters'] : array();
+		switch ($meta['type']) {
+			case 'model':
+				return call_user_func_array(array(Mage::getModel($meta['class']), $meta['method']), $parameters);
+			case 'helper':
+				return call_user_func_array(array(Mage::helper($meta['class']), $meta['method']), $parameters);
+			case 'singleton':
+				return call_user_func_array(array(Mage::getSingleton($meta['class']), $meta['method']), $parameters);
+			default:
+				return null;
+		}
+	}
+
+	/**
+	 * getting eb2ccore default message header config in a composite array
+	 * merge with the given feed type message header config data
+	 * return an empty array if the given feed type is not in the class property _feedTypeHeaderConf
+	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @return array
+	 */
+	public function getHeaderConfig($feedType)
+	{
+		if (!isset($this->_feedTypeHeaderConf[$feedType])) {
+			return array();
+		}
+
+		return $this->_doConfigTranslation(array_merge(
+			$this->_getPathConfigChildData(self::DEFAULT_HEADER_CONF),
+			$this->_getPathConfigChildData($this->_feedTypeHeaderConf[$feedType])
+		));
+	}
+
+	/**
+	 * getting file name config data key and value
+	 * @param string $feedType
+	 * @return array
+	 */
+	public function getFileNameConfig($feedType)
+	{
+		return $this->_doConfigTranslation(array_merge(
+			array('feed_type' => $feedType),
+			$this->_getPathConfigChildData(self::FILE_NAME_CONF)
+		));
+	}
+
+	/**
+	 * do configuration translation and mapping call
+	 * @param array $mhc, key value mapped of configuration data
+	 * @return array
+	 */
+	protected function _doConfigTranslation(array $mhc)
+	{
+		$data = array();
+		foreach ($mhc as $key => $value) {
+			$data[$key] = (is_array($value))? $this->_extractFromMetaData($value) : $value;
+		}
+		return $data;
+	}
+
+	/**
+	 * retrieve the store id from the config
+	 * @return string
+	 */
+	public function getStoreId()
+	{
+		return $this->getConfig()->storeId;
+	}
+
+	/**
+	 * retrieve the client id from the config
+	 * @return string
+	 */
+	public function getClientId()
+	{
+		return $this->getConfig()->clientId;
+	}
+
+	/**
+	 * generate the message id
+	 * @return string
+	 */
+	public function getMessageId()
+	{
+		return uniqid(sprintf('%s_%s_', $this->getStoreId(), $this->getClientId()));
+	}
+
+	/**
+	 * get current date and time
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function getCreatedDateTime()
+	{
+		return date('c');
+	}
+
+	/**
+	 * get timestamp
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function getTimeStamp()
+	{
+		return Mage::getModel('core/date')->gmtDate('YmdHis', time());
+	}
+
+	/**
+	 * Send the file
+	 * @param string $fileName
+	 * @param string $remotePath
+	 * @return self
+	 */
+	public function sendFile($fileName, $remotePath)
+	{
+		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
+		try {
+			$sftp->sendFile($fileName, $remotePath);
+		} catch(Exception $e) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure(sprintf('Error sending file: %s', $e->getMessage()));
+		}
+		return $this;
 	}
 }

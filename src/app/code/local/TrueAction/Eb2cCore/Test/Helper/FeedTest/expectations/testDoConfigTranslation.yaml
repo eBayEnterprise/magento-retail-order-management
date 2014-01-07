@@ -1,0 +1,120 @@
+map:
+  -
+     -
+       type: helper
+       class: eb2ccore/feed
+       method: getStoreId
+     - ABCD
+  -
+     -
+       type: helper
+       class: eb2ccore/feed
+       method: getClientId
+     - "1234"
+  -
+     -
+       type: helper
+       class: eb2ccore/feed
+       method: getMessageId
+     - ABCD_1234_52ceae46381f0
+  -
+     -
+       type: helper
+       class: eb2ccore/feed
+       method: getCreatedDateTime
+     - 2014-01-09T13:47:32-00:00
+  -
+     -
+       type: helper
+       class: eb2cproduct
+       method: getVersion
+       parameters:
+          parameter: ItemMaster
+     - 2.3.0
+  -
+     -
+       type: helper
+       class: eb2cproduct
+       method: getDestinationId
+       parameters:
+          parameter: ItemMaster
+     - MWS
+  -
+     -
+       type: helper
+       class: eb2cproduct
+       method: getDestinationType
+       parameters:
+          parameter: ItemMaster
+     - WS
+  -
+     -
+       type: helper
+       class: eb2cproduct
+       method: getCorrelationId
+       parameters:
+          parameter: ItemMaster
+     - WS
+return:
+  result:
+     standard: GSI
+     source_id: ABCD
+     source_type: "1234"
+     message_id: ABCD_1234_52ceae46381f0
+     create_date_and_time: 2014-01-09T13:47:32-00:00
+     header_version: 2.3.0
+     version_release_number: 2.3.0
+     destination_id: MWS
+     destination_type: WS
+     event_type: ItemMaster
+     correlation_id: WS
+arguments:
+  dct:
+     standard: GSI
+     source_id:
+        type: helper
+        class: eb2ccore/feed
+        method: getStoreId
+     source_type:
+        type: helper
+        class: eb2ccore/feed
+        method: getClientId
+     message_id:
+        type: helper
+        class: eb2ccore/feed
+        method: getMessageId
+     create_date_and_time:
+        type: helper
+        class: eb2ccore/feed
+        method: getCreatedDateTime
+     header_version:
+        type: helper
+        class: eb2cproduct
+        method: getVersion
+        parameters:
+           parameter: ItemMaster
+     version_release_number:
+        type: helper
+        class: eb2cproduct
+        method: getVersion
+        parameters:
+           parameter: ItemMaster
+     destination_id:
+        type: helper
+        class: eb2cproduct
+        method: getDestinationId
+        parameters:
+           parameter: ItemMaster
+     destination_type:
+        type: helper
+        class: eb2cproduct
+        method: getDestinationType
+        parameters:
+           parameter: ItemMaster
+     event_type: ItemMaster
+     correlation_id:
+        type: helper
+        class: eb2cproduct
+        method: getCorrelationId
+        parameters:
+           parameter: ItemMaster

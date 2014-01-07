@@ -3,6 +3,25 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Extractor_MappinglistTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
+	 * Test __construct method
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testMappinglistConstructorWithException()
+	{
+		$unitvalidator = Mage::getModel(
+			'eb2cproduct/feed_extractor_mappinglist',
+			array(
+				array(
+					'catalog_id' => './@catalog_id',
+					'gsi_client_id' => './@gsi_client_id',
+				),
+				null
+			)
+		);
+	}
+
+	/**
 	 */
 	public function testExtract()
 	{
@@ -35,6 +54,25 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Extractor_MappinglistTest
 			),
 			$result
 		);
+	}
+
+	/**
+	 * Test extract method, when query throw exception
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testExtractWithException()
+	{
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<root></root>');
+		$xpath = new DOMXPath($doc);
+		$mappinglist = Mage::getModel('eb2cproduct/feed_extractor_mappinglist', array(array('thefoo' => 'foo'), array(
+			'value' => 'Value/text()',
+			'description' => 'Description/text()',
+			'lang' => 'Description/@xml:lang'
+		)));
+		$this->_reflectProperty($mappinglist, '_baseXpath')->setValue($mappinglist, '');
+		$mappinglist->extract($xpath, $doc->documentElement);
 	}
 
 	public function testExtractNoValue()

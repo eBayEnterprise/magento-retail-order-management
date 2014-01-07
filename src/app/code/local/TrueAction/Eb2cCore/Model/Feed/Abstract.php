@@ -14,7 +14,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 	 * @see processFeeds
 	 * @see processFile
 	 */
-	abstract public function processDom(TrueAction_Dom_Document $xmlDom);
+	abstract public function processDom(TrueAction_Dom_Document $xmlDom, array $fileDetail);
 
 	/**
 	 * Returns a message string for an exception message
@@ -87,7 +87,7 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 		$this->_coreFeed->fetchFeedsFromRemote($this->getFeedRemotePath(), $this->getFeedFilePattern());
 		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
 			try {
-				$this->processFile($xmlFeedFile);
+				$this->processFile(array($xmlFeedFile));
 				$filesProcessed++;
 			// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
 			// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
@@ -125,11 +125,13 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 	 * Processes a single xml file.
 	 *
 	 */
-	public function processFile($xmlFile)
+	public function processFile(array $xmlFile)
 	{
 		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
+
+		$fileDetail = array('local' => $xmlFile[0], 'type' => $this->getFeedEventType(), 'error_file' => '');
 		try {
-			$dom->load($xmlFile);
+			$dom->load($xmlFile[0]);
 		} catch (Exception $e) {
 			Mage::logException($e);
 			return;
@@ -139,9 +141,9 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 		if ( !Mage::helper('eb2ccore/feed')
 			->validateHeader($dom, $this->getFeedEventType() )
 		) {
-			Mage::log(sprintf('[%s] File %s: Invalid header', __CLASS__, $xmlFile), Zend_Log::ERR);
+			Mage::log(sprintf('[%s] File %s: Invalid header', __CLASS__, $xmlFile[0]), Zend_Log::ERR);
 			return;
 		}
-		$this->processDom($dom);
+		$this->processDom($dom, $fileDetail);
 	}
 }

@@ -134,7 +134,7 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 		try {
 			$sftp->sendFile($filename, $this->remotePath);
 		} catch(Exception $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Failure('Error sending file: ' . $e->getMessage());
+			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure('Error sending file: ' . $e->getMessage());
 		}
 		return $this;
 	}

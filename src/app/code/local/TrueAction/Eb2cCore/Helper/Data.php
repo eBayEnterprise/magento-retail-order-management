@@ -14,6 +14,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * - format - extension of the requested response format. Currently only xml is supported
 	 */
 	const URI_FORMAT = 'https://%s/v%s.%s/stores/%s/%s/%s%s.%s';
+	const PERMISSION = 027;
 	/**
 	 * Get the API URI for the given service/request.
 	 * @param string $service
@@ -148,6 +149,27 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
 	}
 
+	/**
+	 * loading a file into a new SplFileInfo instantiated object
+	 * @param string $fileName
+	 * @return SplFileInfo
+	 * @codeCoverageIgnore
+	 */
+	public function loadFile($fileName)
+	{
+		return new SplFileInfo($fileName);
+	}
+
+	/**
+	 * abstracting calling file exists
+	 * @param string $fileName
+	 * @return bool true|false
+	 * @codeCoverageIgnore
+	 */
+	public function isFileExist($fileName)
+	{
+		return $this->loadFile($fileName)->isReadable();
+	}
 
 	/**
 	 * Send a file
@@ -157,11 +179,34 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function sendFile($fileName, $remotePath)
 	{
-		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
-		try {
-			$sftp->sendFile($fileName, $remotePath);
-		} catch(Exception $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Failure("Error sending {$fileName} to {$remotePath}" . $e->getMessage());
+		return $this->loadFile($dir)->isDir();
+	}
+
+	/**
+	 * abstracting creating dir
+	 * @param string $dir
+	 * @return void
+	 * @codeCoverageIgnore
+	 */
+	public function createDir($dir)
+	{
+		umask(0);
+		@mkdir($dir, self::PERMISSION, true);
+	}
+
+	/**
+	 * abstracting moving a file
+	 * @param string $source
+	 * @param string $destination
+	 * @return void
+	 * @codeCoverageIgnore
+	 */
+	public function moveFile($source, $destination)
+	{
+		@rename($source, $destination);
+
+		if (!$this->isFileExist($destination)) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move ${source} to ${destination}");
 		}
 	}
 }

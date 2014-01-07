@@ -175,6 +175,14 @@
 					</eb2c_reindex_all>
 				</observers>
 			</product_feed_processing_complete>
+			<product_feed_complete_error_confirmation>
+				<observers>
+					<eb2c_error_confirmations>
+						<class>eb2cproduct/error_confirmations</class>
+						<method>process</method>
+					</eb2c_error_confirmations>
+				</observers>
+			</product_feed_complete_error_confirmation>
 		</events>
 	</global>
 	<default>
@@ -198,6 +206,11 @@
 				<file_pattern>ItemMaster_*.xml</file_pattern>
 				<event_type>ItemMaster</event_type>
 				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>ItemMaster</event_type>
+					</message_header>
+				</outbound>
 			</item_master_feed>
 			<content_master_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
@@ -206,6 +219,11 @@
 				<event_type>Content</event_type>
 				<!-- because consistency only matters "sometimes" -->
 				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>Content</event_type>
+					</message_header>
+				</outbound>
 			</content_master_feed>
 			<i_ship_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
@@ -213,6 +231,11 @@
 				<file_pattern>iShip_*.xml</file_pattern>
 				<event_type>iShip</event_type>
 				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>iShip</event_type>
+					</message_header>
+				</outbound>
 			</i_ship_feed>
 			<item_pricing_feed>
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
@@ -220,30 +243,34 @@
 				<file_pattern>Price_*.xml</file_pattern>
 				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>Price</event_type>
+					</message_header>
+				</outbound>
 			</item_pricing_feed>
-			<image_export>
-				<api>
-					<xml_namespace />
-				</api>
-				<local_path>TrueAction/Eb2c/Feed/ImageExport/</local_path>
-				<xsd>Image_Feed.xsd</xsd>
-				<filename_format>\I\m\a\g\e\E\x\p\o\r\t_YmdHis</filename_format>
-				<message_header>
-					<standard></standard>
-					<version>2.3.0</version>
-					<source_data_id>source_data_id</source_data_id>
-					<source_data_type>source_data_type</source_data_type>
-					<destination_data_id>destination_data_id</destination_data_id>
-					<destination_data_type>destinattion_data_type</destination_data_type>
-					<event_type>Images</event_type>
-					<message_data_id>message_data_id</message_data_id>
-					<message_data_correlation_id>message_data_correlation_id</message_data_correlation_id>
-				</message_header>
-			</image_export>
+			<image_master_feed>
+				<local_path>TrueAction/Eb2c/Feed/Product/ImageMaster/</local_path>
+				<remote_path>/</remote_path>
+				<file_pattern>ImageMetaData*.xml</file_pattern>
+				<event_type>ImageMaster</event_type>
+				<header_version>2.3.0</header_version>
+				<outbound>
+					<message_header>
+						<event_type>ImageMaster</event_type>
+					</message_header>
+				</outbound>
+			</image_master_feed>
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>
 			<processor_update_batch_size>100</processor_update_batch_size>
 			<attributes_code_list>color,size</attributes_code_list>
+			<feed>
+				<map>
+					<ext_keys>brand_name,buyer_id,color,companion_flag,country_of_origin,gift_card_tender_code,hazardous_material_code,long_description,lot_tracking_indicator,ltl_freight_cost,may_ship_expedite,may_ship_international,may_ship_usps,msrp,price,safety_stock,sales_class,serial_number_type,ship_group,ship_window_max_hour,ship_window_min_hour,short_description,street_date,style_description,style_id,supplier_name,supplier_supplier_id</ext_keys>
+					<ext_keys_bool>allow_gift_message,back_orderable,gift_wrap,gift_wrapping_available,is_hidden_product,service_indicator</ext_keys_bool>
+				</map>
+			</feed>
 		</eb2cproduct>
 	</default>
 	<phpunit>

@@ -1,4 +1,10 @@
 pricing1:
+  file_detail:
+    local: TrueAction/Eb2c/Feed/Product/Pricing/inbound/Price_TestSubset.xml
+    remote: /Inbox/Product
+    timestamp: 1364823587
+    type: Price
+    error_file: /Product/Pricing/outbound/Price_20140113230330_1234_ABCD.xml
   client_item_id: sku1
   gsi_store_id: MAGT1
   gsi_client_id: MAGTNA
@@ -11,6 +17,12 @@ pricing1:
   price_vat_inclusive: 'false'
 
 itemmaster1:
+  file_detail:
+    local: TrueAction/Eb2c/Feed/Product/ItemMaster/inbound/ItemMaster_TestSubset.xml
+    remote: /Inbox/Product
+    timestamp: 1364823587
+    type: ItemMaster
+    error_file: /Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml
   allow_gift_message: "1"
   back_orderable: "0"
   brand_name: New Brand

@@ -37,6 +37,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Specialized_Unitvalidator
 		return (boolean) $result;
 	}
 
+	/**
+	 * @param  array $args
+	 * @return void
+	 */
 	public function __construct($args)
 	{
 		$mapping = array_shift($args);

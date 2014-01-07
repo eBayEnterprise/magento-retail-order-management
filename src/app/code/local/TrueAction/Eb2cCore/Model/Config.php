@@ -32,5 +32,8 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'sftp_private_key'            => 'eb2ccore/feed/filetransfer_sftp_ssh_prv_key',
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',
 		'store_id'                    => 'eb2ccore/general/store_id',
+		'feed_header_template'        => 'eb2ccore/feed/header_template',
+		'error_feed_file_pattern'     => 'eb2ccore/feed/error_confirmation_feed/file_pattern',
+		'error_feed_remote_mailbox'   => 'eb2ccore/feed/error_confirmation_feed/remote_mailbox',
 	);
 }

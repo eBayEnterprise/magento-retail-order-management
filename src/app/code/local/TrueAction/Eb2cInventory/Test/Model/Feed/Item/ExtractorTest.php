@@ -1,37 +1,27 @@
 <?php
-class TrueAction_Eb2cInventory_Test_Model_Feed_Item_ExtractorTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cInventory_Test_Model_Feed_Item_ExtractorTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-		$this->_extractor = Mage::getModel('eb2cinventory/feed_item_extractor');
-	}
-
-	/**
-	 * extract item master feed provider method
-	 */
-	public function providerExtractInventoryFeed()
-	{
-		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$document->load(__DIR__ . '/ExtractorTest/fixtures/sample-feed.xml');
-		return array(
-			array($document)
-		);
-	}
-
-	/**
 	 * testing extractInventoryFeed method
-	 *
 	 * @test
-	 * @medium
-	 * @loadFixture loadConfig.yaml
-	 * @dataProvider providerExtractInventoryFeed
 	 */
-	public function testExtractInventoryFeed($doc)
+	public function testExtractInventoryFeed()
 	{
-		$this->assertCount(3, $this->_extractor->extractInventoryFeed($doc));
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<ItemInventories><Inventory operation_type="Change" gsi_client_id="66-000906034352" catalog_id="66" measurement="Level">
+		<ItemId>
+			<ClientItemId>000906034352</ClientItemId>
+		</ItemId>
+		<Measurements>
+			<AvailableQuantity>99</AvailableQuantity>
+			<BackorderQuantity>0</BackorderQuantity>
+			<PendingQuantity>0</PendingQuantity>
+			<DemandQuantity>1</DemandQuantity>
+			<OnHandQuantity>100</OnHandQuantity>
+		</Measurements>
+	</Inventory></ItemInventories>');
+
+		$this->assertCount(1, Mage::getModel('eb2cinventory/feed_item_extractor')->extractInventoryFeed($doc));
 	}
 }

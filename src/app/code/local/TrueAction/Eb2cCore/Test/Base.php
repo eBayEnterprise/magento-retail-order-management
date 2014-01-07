@@ -41,12 +41,7 @@ abstract class TrueAction_Eb2cCore_Test_Base
 		return $this;
 	}
 
-	/**
-	 * Replaces the Magento eb2ccore/config_registry model.
-	 *
-	 * @param array name/ value map
-	 */
-	public function replaceCoreConfigRegistry($userConfigValuePairs=array())
+	public function buildCoreConfigRegistry($userConfigValuePairs=array())
 	{
 		$configValuePairs = array (
 			// Core Values:
@@ -70,7 +65,17 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			->method('__get')
 			->will($this->returnValueMap($valueMap));
 
-		$this->replaceByMock('model', self::EB2CCORE_CONFIG_REGISTRY_MODEL, $mockConfig);
+		return $mockConfig;
+	}
+
+	/**
+	 * Replaces the Magento eb2ccore/config_registry model.
+	 *
+	 * @param array name/ value map
+	 */
+	public function replaceCoreConfigRegistry($userConfigValuePairs=array())
+	{
+		$this->replaceByMock('model', self::EB2CCORE_CONFIG_REGISTRY_MODEL, $this->buildCoreConfigRegistry($userConfigValuePairs));
 	}
 
 	/**

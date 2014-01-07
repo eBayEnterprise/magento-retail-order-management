@@ -26,43 +26,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	const CA_ERROR_INVALID_OP_TYPE    = 'invalid_operation_type';
 	const CA_ERROR_MISSING_OP_TYPE    = 'missing_operation_type';
 	const CA_ERROR_MISSING_ATTRIBUTE  = 'missing_attribute';
-	protected $_extKeys = array(
-		'brand_name',
-		'buyer_id',
-		'color',
-		'companion_flag',
-		'country_of_origin',
-		'gift_card_tender_code',
-		'hazardous_material_code',
-		'long_description',
-		'lot_tracking_indicator',
-		'ltl_freight_cost',
-		'may_ship_expedite',
-		'may_ship_international',
-		'may_ship_usps',
-		'msrp',
-		'price',
-		'safety_stock',
-		'sales_class',
-		'serial_number_type',
-		'ship_group',
-		'ship_window_max_hour',
-		'ship_window_min_hour',
-		'short_description',
-		'street_date',
-		'style_description',
-		'style_id',
-		'supplier_name',
-		'supplier_supplier_id',
-	);
-	protected $_extKeysBool = array(
-		'allow_gift_message',
-		'back_orderable',
-		'gift_wrap',
-		'gift_wrapping_available',
-		'is_hidden_product',
-		'service_indicator',
-	);
+	protected $_extKeys = array();
+	protected $_extKeysBool = array();
 	protected $_updateBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_deleteBatchSize = self::DEFAULT_BATCH_SIZE;
 	protected $_maxTotalEntries = self::DEFAULT_BATCH_SIZE;
@@ -79,6 +44,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		$helper = Mage::helper('eb2cproduct');
 		$config = $helper->getConfigModel();
+
+		$this->_extKeys = explode(',', $config->extKeys);
+		$this->_extKeysBool = explode(',', $config->extKeysBool);
+
 		$this->_defaultLanguageCode = strtolower($helper->getDefaultLanguageCode());
 		$this->_initLanguageCodeMap();
 		$this->_updateBatchSize = $config->processorUpdateBatchSize;
@@ -90,6 +59,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 
 		$this->_attributes = $this->_getAttributeCollection($entityTypeId);
+
+		$this->_storeRootCategoryId = $helper->getStoreRootCategoryId();
+		$this->_defaultParentCategoryId = $helper->getDefaultParentCategoryId();
 	}
 
 	/**
@@ -130,14 +102,15 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 */
 	protected function _initLanguageCodeMap()
 	{
-		foreach (Mage::app()->getStores() as $storeId) {
-			$storeCodeParsed = explode('_', Mage::app()->getStore($storeId)->getCode(), 3);
-			if (count($storeCodeParsed) > 2) {
-				$langCode = strtolower(Mage::helper('eb2ccore')->mageToXmlLangFrmt($storeCodeParsed[2]));
-				$this->_storeLanguageCodeMap[$langCode] = Mage::app()->getStore($storeId)->getId();
+		$helper = Mage::helper('eb2cproduct');
+		$stores = $helper->getStores();
+		foreach ($stores as $id => $store) {
+			$langCode = $helper->getStoreViewLanguage($store);
+			if (!is_null($langCode)) {
+				$this->_storeLanguageCodeMap[$langCode] = $id;
 			} else {
 				Mage::log(
-					sprintf('Incompatible Store View Name ignored: "%s"', Mage::app()->getStore($storeId)->getName()),
+					sprintf('Incompatible Store View Name ignored: "%s"', $store->getName()),
 					Zend_log::INFO
 				);
 			}
@@ -154,8 +127,16 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	{
 		Mage::log(sprintf('[ %s ] Processing %d updates.', __CLASS__, count($list)), Zend_Log::INFO);
 		foreach ($list as $dataObject) {
-			$dataObject = $this->_transformData($dataObject);
-			$this->_synchProduct($dataObject);
+			$fileDetail = $dataObject->getData('file_detail');
+			$errorConfirmations = Mage::getModel('eb2cproduct/error_confirmations')->loadFile($fileDetail['error_file']);
+
+			$dataObject = $this->_transformData($dataObject, $errorConfirmations, $fileDetail);
+			$this->_synchProduct($dataObject, $errorConfirmations, $fileDetail);
+
+			if ($errorConfirmations->hasError()) {
+				$errorConfirmations->addErrorConfirmation($dataObject->getItemId()->getClientItemId())
+					->flush();
+			}
 		}
 		$this->_logFeedErrorStatistics();
 		return $this;
@@ -168,6 +149,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _logFeedErrorStatistics()
 	{
 		foreach($this->_customAttributeErrors as $err) {
+
 			Mage::log(sprintf('[ %s ] Feed Error Statistics %s', __CLASS__, print_r($err, true)), Zend_Log::DEBUG);
 		}
 		array_splice($this->_customAttributeErrors, 0); // truncate array
@@ -216,9 +198,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * Transform the data extracted from the feed into a generic set of feed data
 	 * including item_id, base_attributes extended_attributes and custome_attributes
 	 * @param  Varien_Object $dataObject Data extraced from the feed
+	 * @param TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations
+	 * @param array $fileDetail
 	 * @return Varien_Object             Data that can be imported to a product
 	 */
-	protected function _transformData(Varien_Object $dataObject)
+	protected function _transformData(Varien_Object $dataObject, TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations, array $fileDetail)
 	{
 		$helper = Mage::helper('eb2cproduct');
 		$outData = new Varien_Object(array(
@@ -314,12 +298,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$extendedAttributes = $outData->getExtendedAttributes()->getData();
 		$giftWrapData = array();
 		if (!empty($extendedAttributes) && isset($extendedAttributes['gift_wrap'])) {
-			$giftWrapData['gift_wrap'] = Mage::helper('eb2cproduct')->parseBool($extendedAttributes['gift_wrap']);
+			$giftWrapData['gift_wrap'] = $helper->parseBool($extendedAttributes['gift_wrap']);
 		}
 		$extData->addData($giftWrapData);
 		$customAttributes = $dataObject->getCustomAttributes();
 		if( $customAttributes ) {
-			$this->_prepareCustomAttributes($customAttributes, $outData);
+			$this->_prepareCustomAttributes($customAttributes, $outData, $errorConfirmations, $fileDetail);
 		}
 		if ($dataObject->hasData('product_links')) {
 			$outData->setData('product_links', $dataObject->getData('product_links'));
@@ -347,41 +331,76 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		return $data;
 	}
+
+	/**
+	 * getting the value of a specific key of an array of attributes.
+	 * @param array $attributes the array of custom attributes
+	 * @param string $field the key to get the value from
+	 * @return string
+	 */
+	protected function _getAttributeValueByKey(array $attributes, $field)
+	{
+		foreach($attributes as $attribute) {
+			if ($attribute['name'] === $field) {
+				return $attributeSetId = $attribute['value'];
+			}
+		}
+
+		return Mage::helper('eb2cproduct')->getDefaultProductAttributeSetId();
+	}
+
 	/**
 	 * Transform valid CustomAttribute data into a readily saveable form.
 	 * @param array $customAttributes the array of custom attributes
 	 * @param Varien_Object $outData where to place the prepared attributes
+	 * @param TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations
+	 * @param array $fileDetail
 	 * @return self
 	 */
-	protected function _prepareCustomAttributes(array $customAttributes, Varien_Object $outData)
+	protected function _prepareCustomAttributes(
+		array $customAttributes,
+		Varien_Object $outData,
+		TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations,
+		array $fileDetail
+	)
 	{
+		$fileName = basename($fileDetail['local']);
+
 		$helper = Mage::helper('eb2cproduct');
-		$attributeSetId = $helper->getDefaultProductAttributeSetId();
-		foreach($customAttributes as $attribute) {
-			if ($attribute['name'] === 'AttributeSet') {
-				$attributeSetId = $attribute['value'];
-				break;
-			}
-		}
+		$attributeSetId = $this->_getAttributeValueByKey($customAttributes, 'AttributeSet');
 		$customAttributeSet = $helper->getCustomAttributeCodeSet($attributeSetId);
 		$cookedAttributes = array();
 		foreach ($customAttributes as $customAttribute) {
+			if (strtolower($customAttribute['name']) === 'attributeset') {
+				continue;
+			}
 			if (strtolower($customAttribute['name']) === 'producttype') {
 				$outData->setData('product_type', strtolower($customAttribute['value']));
 				continue; // ProductType is specially handled, nothing more to do.
 			}
 			if( $customAttribute['name'] === 'ConfigurableAttributes' ) {
-				$this->_processConfigurableAttributes($customAttribute, $outData);
+				try {
+					$this->_processConfigurableAttributes($customAttribute, $outData);
+				} catch (TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
+					Mage::log(
+						sprintf(
+							'[ %s ] Error occurred while processing configurable attributes: %s',
+							__CLASS__, $e->getMessage()
+						),
+						Zend_Log::ERR
+					);
+
+					$errorConfirmations->addMessage($errorConfirmations::CONFIGURABLE_ATTRIBUTE_ERR, $e->getMessage())
+						->addError($fileDetail['type'], $fileName);
+				}
 				continue; // ConfigurableAttributes are specially handled, nothing more to do.
 			}
 			$lang = isset($customAttribute['lang']) ? strtolower($customAttribute['lang']) : $this->_defaultLanguageCode;
 			if (!isset($this->_storeLanguageCodeMap[$lang])) {
-				if (isset($this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE])) {
-					$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE]++;
-				}
-				else {
-					$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE] = 1;
-				}
+				$errorConfirmations->addMessage($errorConfirmations::INVALID_LANG_CODE_ERR, sprintf("'${lang}' for attribute (%s)", $customAttribute['name']))
+					->addError($fileDetail['type'], $fileName);
+
+				$this->_incrementOperationTypeError(self::CA_ERROR_INVALID_LANGUAGE);
 				continue;
 			}
 			if (in_array($customAttribute['name'], $customAttributeSet)) {
@@ -391,35 +410,47 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 						$cookedAttributes[$customAttribute['name']][$lang] = $customAttribute['value'];
 					} elseif( $op === 'Delete') {
 						$cookedAttributes[$customAttribute['name']][$lang] = null;
-					}
-					else {
-						if (isset($this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE])) {
-							$this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE]++;
-						}
-						else {
-							$this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE] = 1;
-						}
+					} else {
+						$errorConfirmations->addMessage(
+							$errorConfirmations::INVALID_ATTRIBUTE_OPERATION_ERR,
+							sprintf("'${op}' for attribute (%s)", $customAttribute['name'])
+						)->addError($fileDetail['type'], $fileName);
+						$this->_incrementOperationTypeError(self::CA_ERROR_INVALID_OP_TYPE);
 					}
 				} else {
-					if (isset($this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE])) {
-						$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE]++;
-					}
-					else {
-						$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE] = 1;
-					}
+					$errorConfirmations->addMessage($errorConfirmations::MISSING_ATTRIBUTE_OPERATION_ERR, $customAttribute['name'])
+						->addError($fileDetail['type'], $fileName);
+
+					$this->_incrementOperationTypeError(self::CA_ERROR_MISSING_OP_TYPE);
+					$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE] = 1;
 				}
 			} else {
-				if (isset($this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE])) {
-					$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE]++;
-				}
-				else {
-					$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE] = 1;
-				}
+				$errorConfirmations->addMessage($errorConfirmations::MISSING_IN_ATTRIBUTE_SET_ERR, $customAttribute['name'])
+					->addError($fileDetail['type'], $fileName);
+
+				$this->_incrementOperationTypeError(self::CA_ERROR_MISSING_ATTRIBUTE);
+				$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE] = 1;
 			}
 		}
 		if (!empty($cookedAttributes)) {
 			$outData->setData('custom_attributes', $cookedAttributes);
 		}
+		return $this;
+	}
+
+	/**
+	 * increment error operation type
+	 * @param string $operationType
+	 * @return self
+	 */
+	protected function _incrementOperationTypeError($operationType)
+	{
+		if (isset($this->_customAttributeErrors[$operationType])) {
+			$this->_customAttributeErrors[$operationType]++;
+		} else {
+			$this->_customAttributeErrors[$operationType] = 1;
+		}
+
 		return $this;
 	}
 	/**
@@ -428,20 +459,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @param  array         $attrData   Map of custom attribute data: name, operation type, lang and value
 	 * @param  Varien_Object $outData    Varien_Object containing all transformed product feed data
 	 * @return void
+	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
 	protected function _processConfigurableAttributes(array $attrData, Varien_Object $outData)
 	{
 		$configurableAttributeData = array();
 		$configurableAttributes = explode(',', $attrData['value']);
 		foreach ($configurableAttributes as $attrCode) {
-			$superAttribute = $this->_attributes->getItemByColumnValue('lcase_attr_code', strtolower($attrCode));
+			$superAttribute = $this->_attributes->getItemByColumnValue('attribute_code', $attrCode);
 			if (is_null($superAttribute)) {
-				throw new TrueAction_Eb2cProduct_Model_Feed_Exception(
-					"Configurable attribute code return null for '$attrCode'."
-				);
+				throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get super attribute object for 'attribute_code: ${attrCode}'.");
 			}
-			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')
-				->setProductAttribute($superAttribute);
+			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')->setProductAttribute($superAttribute);
 			$configurableAttributeData[] = array(
 				'id'             => $configurableAtt->getId(),
 				'label'          => $configurableAtt->getLabel(),
@@ -508,12 +537,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				"Cannot get attribute option id for undefined attribute code '$code'."
 			);
 		}
-		$targetOptions = $this->_attributeOptions[$code];
-		foreach ($targetOptions as $opt) {
-			if (strtolower($opt['label']) === strtolower($option)) {
-				return (int) $opt['value'];
+
+		foreach ($this->_attributeOptions[$code] as $item) {
+			if (strtolower($item['label']) === strtolower($option)) {
+				return (int) $item['value'];
 			}
 		}
+
 		return 0;
 	}
 
@@ -539,6 +569,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * 				'ja-JP' => '日本人',
 	 *			)
 	 * @return int, the newly inserted option id
+	 * @throws TrueAction_Eb2cProduct_Model_Feed_Exception
 	 */
 	protected function _addOptionToAttribute($attribute, $newOption)
 	{
@@ -582,12 +613,18 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	/**
 	 * add/update magento product with eb2c data
 	 * @param Varien_Object $item the object with data needed to add/update a magento product
+	 * @param TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations
+	 * @param array $fileDetail
 	 * @return self
 	 */
-	protected function _synchProduct(Varien_Object $item)
+	protected function _synchProduct(Varien_Object $item, TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations, array $fileDetail)
 	{
+		$fileName = basename($fileDetail['local']);
+
 		$sku = $item->getItemId()->getClientItemId();
 		if ($sku === '' || is_null($sku)) {
+			$errorConfirmations->addMessage($errorConfirmations::INVALID_SKU_ERR, $fileName)
+				->addError($fileDetail['type'], $fileName);
 			Mage::log(sprintf('[ %s ] Cowardly refusing to import item with no client_item_id.', __CLASS__), Zend_Log::WARN);
 			return;
 		}
@@ -599,7 +636,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasWeight()) {
 			$productData->setData('weight', $item->getExtendedAttributes()->getItemDimensionShipping()->getWeight());
 		}
-		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass')) {
+		if ($item->getExtendedAttributes()->getItemDimensionShipping()->hasData('mass_unit_of_measure')) {
 			$productData->setData('mass', $item->getExtendedAttributes()->getItemDimensionShipping()->getMassUnitOfMeasure());
 		}
 		if( $item->getBaseAttributes()->getCatalogClass()) {
@@ -626,7 +663,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		}
 		// setting the product's color to a Magento Attribute Id
 		if ($item->getExtendedAttributes()->hasData('color')) {
-			$productData->setData('color', $this->_getProductColorOptionId($item->getExtendedAttributes()->getData('color')));
+			$productData->setData('color', $this->_getProductColorOptionId(
+				$item->getExtendedAttributes()->getData('color'),
+				$errorConfirmations,
+				$fileDetail
+			));
 		}
 		$configurableAttributesData = Mage::helper('eb2cproduct')
 			->getConfigurableAttributesData($productData->getTypeId(), $item, $product);
@@ -648,6 +689,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			$product->save(); // saving the product
 		} catch(PDOException $e) {
 			Mage::logException($e);
+			$errorConfirmations->addMessage($errorConfirmations::SAVE_PRODUCT_EXCEPTION_ERR, $e->getMessage())
+				->addError($fileDetail['type'], $fileName);
 		}
 		$this->_addStockItemDataToProduct($item, $product); // @todo: only do if !configurable product type
 		// Alternate languages /must/ happen after default product has been saved:
@@ -703,8 +746,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		// the translations array - so if we have no other languages but the default, we'll be done.
 		foreach (array_keys($translations) as $code) {
 			if ($this->_hasDefaultTranslation($code, $translations)) {
-			$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
-			unset($translations[$code][$this->_defaultLanguageCode]);
+				$productData->setData($code, $translations[$code][$this->_defaultLanguageCode]);
+				unset($translations[$code][$this->_defaultLanguageCode]);
 			}
 			if (empty($translations[$code])) {
 				unset($translations[$code]);
@@ -748,15 +791,32 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	 * @todo This is probably more specific than we really need it to be.
 	 *       All attributes should be processed in a similar manner - special handling of 'color' should be revisited.0
 	 * @param array $colorData the object with data needed to create dummy product
+	 * @param TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations
+	 * @param array $fileDetail
 	 * @return int, the option id
 	 */
-	protected function _getProductColorOptionId(array $colorData)
+	protected function _getProductColorOptionId(array $colorData, TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations, array $fileDetail)
 	{
+		$fileName = basename($fileDetail['local']);
 		$colorOptionId = 0;
 		if (!empty($colorData)) {
 			$colorOptionId = $this->_getAttributeOptionId('color', $colorData['code']);
 			if (!$colorOptionId) {
-				$colorOptionId = $this->_addOptionToAttribute('color', $colorData);
+				try {
+					$colorOptionId = $this->_addOptionToAttribute('color', $colorData);
+				} catch (TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
+					Mage::log(
+						sprintf(
+							'[ %s ] Error occurred while add new option color option (%s): %s',
+							__CLASS__, $colorData['code'], $e->getMessage()
+						),
+						Zend_Log::ERR
+					);
+
+					$errorConfirmations->addMessage($errorConfirmations::ADD_COLOR_OPTION_ERR, $e->getMessage())
+						->addError($fileDetail['type'], $fileName);
+				}
+
 			}
 		}
 		return $colorOptionId;
@@ -835,37 +895,50 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		return (strtolower($originalStatus) === 'active')?
 			Mage_Catalog_Model_Product_Status::STATUS_ENABLED :
 			Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
-		}
+	}
 	/**
 	 * add color description per locale to a child product of using parent configurable store color attribute data.
 	 * @param Mage_Catalog_Model_Product $childProductObject the child product object
 	 * @param array $parentColorDescriptionData collection of configurable color description data
+	 * @param TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations
+	 * @param array $fileDetail
 	 * @return self
 	 */
-	protected function _addColorDescriptionToChildProduct(Mage_Catalog_Model_Product $childProductObject, array $parentColorDescriptionData)
+	protected function _addColorDescriptionToChildProduct(
+		Mage_Catalog_Model_Product $childProductObject,
+		array $parentColorDescriptionData,
+		TrueAction_Eb2cProduct_Model_Error_Confirmations $errorConfirmations,
+		array $fileDetail
+	)
 	{
-		try {
-			// This is neccessary to dynamically set value for attributes in different store view.
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
-			$allStores = Mage::app()->getStores();
-			foreach ($parentColorDescriptionData as $cfgColorData) {
-				foreach ($cfgColorData->description as $colorDescription) {
-					foreach ($allStores as $eachStoreId => $val) {
-						// assuming the storeview follow the locale convention.
-						if (trim(strtoupper(Mage::app()->getStore($eachStoreId)->getCode())) === trim(strtoupper($colorDescription->lang))) {
-							$childProductObject->setStoreId($eachStoreId)->addData(array('color_description' => $colorDescription->description))->save();
+		$fileName = basename($fileDetail['local']);
+
+		// This is neccessary to dynamically set value for attributes in different store view.
+		Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+		$allStores = Mage::helper('eb2cproduct')->getStores();
+		foreach ($parentColorDescriptionData as $cfgColorData) {
+			foreach ($cfgColorData->description as $colorDescription) {
+				foreach ($allStores as $id => $store) {
+					// assuming the storeview follow the locale convention.
+					$langCode = Mage::helper('eb2cproduct')->getStoreViewLanguage($store);
+					if (trim(strtoupper($langCode)) === trim(strtoupper($colorDescription->lang))) {
+						try {
+							$childProductObject->setStoreId($id)->addData(array('color_description' => $colorDescription->description))->save();
+						} catch (Exception $e) {
+							Mage::log(
+								sprintf(
+									'[ %s ] The following error has occurred while adding configurable color data to child product for %s Feed (%s)',
+									__CLASS__, $fileDetail['type'], $e->getMessage()
+								),
+								Zend_Log::ERR
+							);
+
+							$errorConfirmations->addMessage($errorConfirmations::COLOR_DESCRIPTION_ERR, $e->getMessage())
+								->addError($fileDetail['type'], $fileName);
 						}
 					}
 				}
 			}
-		} catch (Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while adding configurable color data to child product for Item Master Feed (%d)',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
 		}
 		return $this;
 	}
@@ -1131,41 +1204,6 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		return $data;
 	}
 	/**
-	 * load category by name
-	 * @param string $categoryName the category name to filter the category table
-	 * @return Mage_Catalog_Model_Category
-	 */
-	protected function _loadCategoryByName($categoryName)
-	{
-		return Mage::getModel('catalog/category')
-			->getCollection()
-			->addAttributeToSelect('*')
-			->addAttributeToFilter('name', array('eq' => $categoryName))
-			->load()
-			->getFirstItem();
-	}
-	/**
-	 * get parent default category id
-	 * @return int default parent category id
-	 */
-	protected function _getDefaultParentCategoryId()
-	{
-		return Mage::getModel('catalog/category')->getCollection()
-			->addAttributeToSelect('*')
-			->addAttributeToFilter('parent_id', array('eq' => 0))
-			->load()
-			->getFirstItem()
-			->getId();
-	}
-	/**
-	 * get store root category id
-	 * @return int store root category id
-	 */
-	protected function _getStoreRootCategoryId()
-	{
-		return Mage::app()->getWebsite(true)->getDefaultStore()->getRootCategoryId();
-	}
-	/**
 	 * prepared category data.
 	 * @param Varien_Object $item the object with data needed to update the product
 	 * @return array category data
@@ -1176,22 +1214,23 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$categoryLinks = (array) $item->getCategoryLinks();
 		$fullPath = 0;
 		$deletedList = array();
-			foreach ($categoryLinks as $link) {
-				$categories = explode('-', $link['name']);
-				if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
+
+		foreach ($categoryLinks as $link) {
+			$categories = explode('-', $link['name']);
+			if (strtoupper(trim($link['import_mode'])) === 'DELETE') {
 				$deletedList = array_merge($deletedList, array_map('ucwords', $categories));
-				} else {
-					// adding or changing category import mode
-					$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
-					foreach($categories as $category) {
-						$categoryId = $this->_loadCategoryByName(ucwords($category))->getId();
-						if ($categoryId) {
-							$path .= sprintf('/%s', $categoryId);
-						}
+			} else {
+				// adding or changing category import mode
+				$path = sprintf('%s/%s', $this->_defaultParentCategoryId, $this->_storeRootCategoryId);
+				foreach($categories as $category) {
+					$categoryId = Mage::helper('eb2cproduct')->loadCategoryByName(ucwords($category))->getId();
+					if ($categoryId) {
+						$path .= sprintf('/%s', $categoryId);
 					}
-					$fullPath .= sprintf('/%s', $path);
 				}
+				$fullPath .= sprintf('/%s', $path);
 			}
+		}
 		$this->_deleteCategories($deletedList);
 		return explode('/', $fullPath);
 	}

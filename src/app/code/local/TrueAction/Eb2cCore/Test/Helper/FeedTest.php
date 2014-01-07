@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cCore_Test_Helper_FeedTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	const FEED_PATH = '/FeedTest/fixtures/';
 	private function _getDoc($feed)
@@ -74,5 +75,223 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest extends EcomDev_PHPUnit_Test_Case
 		$configData = Mage::helper('filetransfer')
 			->getInitData($hlpr::FILETRANSFER_CONFIG_PATH);
 		$this->assertSame('sftp', $configData['protocol_code']);
+	}
+
+	/**
+	 * Test getHeaderConfig method
+	 * @loadExpectation
+	 */
+	public function testGetHeaderConfig()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_getPathConfigChildData', '_doConfigTranslation'))
+			->getMock();
+		foreach (range(0, 1) as $idx) {
+			$pccd = $this->expected("pccd_${idx}");
+			$mData = $pccd->getData();
+			$feedHelperMock->expects($this->at($idx))
+				->method('_getPathConfigChildData')
+				->with($this->equalTo($mData['with']))
+				->will($this->returnValue($mData['will']));
+		}
+
+		$dct = $this->expected('dct');
+		$feedHelperMock->expects($this->at(2))
+			->method('_doConfigTranslation')
+			->with($this->isType('array'))
+			->will($this->returnValue($dct['will']));
+
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
+		$this->_reflectProperty($feedHelperMock, '_feedTypeHeaderConf')->setValue(
+			$feedHelperMock,
+			array('ItemMaster' => 'eb2cproduct/item_master_feed/outbound/message_header')
+		);
+
+		$testData = array(
+			array(
+				'expect' => array(),
+				'feedType' => 'unknown'
+			),
+			array(
+				'expect' => $dct['will'],
+				'feedType' => 'ItemMaster'
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $feedHelperMock->getHeaderConfig($data['feedType']));
+		}
+	}
+
+	/**
+	 * Test getFileNameConfig method
+	 * @loadExpectation
+	 */
+	public function testGetFileNameConfig()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_getPathConfigChildData', '_doConfigTranslation'))
+			->getMock();
+		$pccd = $this->expected('pccd');
+		$feedHelperMock->expects($this->once())
+			->method('_getPathConfigChildData')
+			->with($this->equalTo($pccd['with']))
+			->will($this->returnValue($pccd['will']));
+		$dct = $this->expected('dct');
+		$feedHelperMock->expects($this->once())
+			->method('_doConfigTranslation')
+			->with($this->isType('array'))
+			->will($this->returnValue($dct['will']));
+
+		$testData = array(
+			array(
+				'expect' => $dct['will'],
+				'feedType' => 'ItemMaster'
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $feedHelperMock->getFileNameConfig($data['feedType']));
+		}
+	}
+
+	/**
+	 * Test _doConfigTranslation method
+	 * @loadExpectation
+	 */
+	public function testDoConfigTranslation()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_extractFromMetaData'))
+			->getMock();
+		$feedHelperMock->expects($this->any())
+			->method('_extractFromMetaData')
+			->with($this->isType('array'))
+			->will($this->returnValueMap(
+				$this->expected('map')->getData()
+			));
+		$return = $this->expected('return');
+		$arguments = $this->expected('arguments');
+		$this->assertSame(
+			$return['result'],
+			$this->_reflectMethod($feedHelperMock, '_doConfigTranslation')->invoke($feedHelperMock, $arguments['dct'])
+		);
+	}
+
+	/**
+	 * Test getConfig method
+	 * @test
+	 */
+	public function testGetConfig()
+	{
+		$hlpr = Mage::helper('eb2ccore/feed');
+		// set class property '_config' to a known state
+		$this->_reflectProperty($hlpr, '_config')->setValue($hlpr, null);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cCore_Model_Config_Registry',
+			$hlpr->getConfig()
+		);
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cCore_Model_Config_Registry',
+			$this->_reflectProperty($hlpr, '_config')->getValue($hlpr)
+		);
+	}
+
+	/**
+	 * Test _extractFromMetaData method
+	 * @loadExpectation
+	 * @dataProvider dataProvider
+	 */
+	public function testExtractFromMetaData($provider)
+	{
+		$iteration = $provider['iteration'];
+		$meta = $provider['meta'];
+		$expect = $this->expected('expect')->getData($iteration['name']);
+		if ($expect === '') {
+			$expect = null;
+		}
+		$mockMethod = (trim($iteration['mock_method']) === '')? array() : array($iteration['mock_method']);
+
+		if (!empty($mockMethod)) {
+			switch ($iteration['mock_type']) {
+				case 'helper':
+					$mock = $this->getHelperMockBuilder($iteration['mock_class'])
+						->disableOriginalConstructor()
+						->setMethods($mockMethod)
+						->getMock();
+					break;
+				default:
+					$mock = $this->getModelMockBuilder($iteration['mock_class'])
+						->disableOriginalConstructor()
+						->setMethods($mockMethod)
+						->getMock();
+					break;
+			}
+
+			$mock->expects($this->once())
+				->method($iteration['mock_method'])
+				->will($this->returnValue($iteration['mock_return']));
+
+			$this->replaceByMock($iteration['mock_type'], $iteration['mock_class'], $mock);
+		}
+
+		$helper = Mage::helper('eb2ccore/feed');
+		$this->assertSame($expect, $this->_reflectMethod($helper, '_extractFromMetaData')->invoke($helper, $meta));
+	}
+
+	/**
+	 * Test getStoreId method
+	 * @test
+	 */
+	public function testGetStoreId()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getConfig')
+			->will($this->returnValue((object) array('storeId' => 'ABCD')));
+		$this->assertSame('ABCD', $feedHelperMock->getStoreId());
+	}
+
+	/**
+	 * Test getClientId method
+	 * @test
+	 */
+	public function testGetClientId()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getConfig')
+			->will($this->returnValue((object) array('clientId' => '1234')));
+		$this->assertSame('1234', $feedHelperMock->getClientId());
+	}
+
+	/**
+	 * Test getMessageId method
+	 * @test
+	 */
+	public function testGetMessageId()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getStoreId', 'getClientId'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getStoreId')
+			->will($this->returnValue('ABCD'));
+		$feedHelperMock->expects($this->once())
+			->method('getClientId')
+			->will($this->returnValue('1234'));
+		$this->assertStringStartsWith('ABCD_1234_', $feedHelperMock->getMessageId());
 	}
 }

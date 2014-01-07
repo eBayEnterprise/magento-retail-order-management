@@ -545,4 +545,470 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			$testModel->loadProductBySku($sku, $store)
 		);
 	}
+
+	/**
+	 * Test getFeedTypeMap method
+	 * @test
+	 */
+	public function testGetFeedTypeMap()
+	{
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
+			->will($this->returnValue((object) array(
+				'itemFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
+				'contentFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/ContentMaster/',
+				'iShipFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/iShip/',
+				'pricingFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
+			)));
+
+		$this->_reflectProperty($dataHelperMock, '_feedTypeMap')->setValue($dataHelperMock, null);
+		$dataHelperMock->getFeedTypeMap();
+
+		$this->assertSame(
+			array(
+				'ItemMaster' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
+				),
+				'Content' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/ContentMaster/',
+				),
+				'iShip' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/iShip/',
+				),
+				'Price' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
+				),
+			),
+			$this->_reflectProperty($dataHelperMock, '_feedTypeMap')->getValue($dataHelperMock)
+		);
+	}
+
+	/**
+	 * Test mapPattern method
+	 * @test
+	 */
+	public function testMapPattern()
+	{
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('__construct'))
+			->getMock();
+		$dataHelperMock->expects($this->any())
+			->method('__construct')
+			->will($this->returnValue(null));
+
+		$testData = array(
+			array(
+				'expect' => 'ItemMaster_20140107224605_12345_ABCD.xml',
+				'keyMap' => array('feed_type' => 'ItemMaster', 'time_stamp' => '20140107224605', 'channel' => '12345', 'store_id' => 'ABCD'),
+				'pattern' => '{feed_type}_{time_stamp}_{channel}_{store_id}.xml'
+			)
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $dataHelperMock->mapPattern($data['keyMap'], $data['pattern']));
+		}
+	}
+
+	/**
+	 * Test generateFileName method
+	 * @test
+	 */
+	public function testGenerateFileName()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getFileNameConfig'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getFileNameConfig')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue(array(
+				'feed_type' => 'ItemMaster',
+				'time_stamp' => '2014-01-09T13:47:32-00:00',
+				'channel' => '1234',
+				'store_id' => 'ABCD'
+			)));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
+
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('mapPattern', 'getConfigModel'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('mapPattern')
+			->with($this->isType('array'), $this->equalTo('{feed_type}_{time_stamp}_{channel}_{store_id}.xml'))
+			->will($this->returnValue('ItemMaster_20140107224605_12345_ABCD.xml'));
+		$dataHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
+			->will($this->returnValue((object) array(
+				'errorFeedFilePattern' => '{feed_type}_{time_stamp}_{channel}_{store_id}.xml',
+				'clientId' => '12345',
+				'storeId' => 'ABCD',
+			)));
+
+		$testData = array(
+			array(
+				'expect' => 'ItemMaster_20140107224605_12345_ABCD.xml',
+				'feedType' => 'ItemMaster'
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $dataHelperMock->generateFileName($data['feedType']));
+		}
+	}
+
+	/**
+	 * Test generateFilePath method, when invalid feedType empty string
+	 * @test
+	 */
+	public function testGenerateFilePathInvalidFeedType()
+	{
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedTypeMap'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('getFeedTypeMap')
+			->will($this->returnValue(array()));
+		$this->assertSame('', $dataHelperMock->generateFilePath('unknown', Mage::helper('eb2cproduct/struct_outboundfeedpath')));
+	}
+
+	/**
+	 * Test generateFilePath method
+	 * @test
+	 */
+	public function testGenerateFilePath()
+	{
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('isDir', 'createDir'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('isDir')
+			->will($this->returnValue(true));
+		$coreHelperMock->expects($this->once())
+			->method('createDir')
+			->will($this->returnValue(null));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedTypeMap'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('getFeedTypeMap')
+			->will($this->returnValue(array(
+				'ItemMaster' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
+				),
+			)));
+
+		$testData = array(
+			array(
+				'expect' => Mage::getBaseDir('var') . '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/',
+				'feedType' => 'ItemMaster',
+				'dir' => Mage::helper('eb2cproduct/struct_outboundfeedpath')
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $dataHelperMock->generateFilePath($data['feedType'], $data['dir']));
+		}
+	}
+
+	/**
+	 * Test generateFilePath method, throw exception if the directory did not and exists and creating it fail for any reason.
+	 * @test
+	 * @expectedException TrueAction_Eb2cCore_Exception_Feed_File
+	 */
+	public function testGenerateFilePathWithException()
+	{
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('isDir', 'createDir'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('isDir')
+			->will($this->returnValue(false));
+		$coreHelperMock->expects($this->once())
+			->method('createDir')
+			->will($this->returnValue(null));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedTypeMap'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('getFeedTypeMap')
+			->will($this->returnValue(array(
+				'ItemMaster' => array(
+					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
+				),
+			)));
+
+		$dataHelperMock->generateFilePath('ItemMaster', Mage::helper('eb2cproduct/struct_outboundfeedpath'));
+	}
+
+
+	/**
+	 * Test buildFileName method
+	 * @test
+	 */
+	public function testBuildFileName()
+	{
+		$baseDir = Mage::getBaseDir('var');
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('generateFilePath', 'generateFileName', 'generateMessageHeader'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('generateFilePath')
+			->with($this->equalTo('ItemMaster'), $this->isInstanceOf('TrueAction_Eb2cProduct_Helper_Struct_Outboundfeedpath'))
+			->will($this->returnValue("${baseDir}/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/"));
+
+		$productHelperMock->expects($this->once())
+			->method('generateFileName')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue('ItemMaster_20140107224605_12345_ABCD.xml'));
+
+		$testData = array(
+			array(
+				'expect' => "${baseDir}/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml",
+				'feedType' => 'ItemMaster'
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $productHelperMock->buildFileName($data['feedType']));
+		}
+	}
+
+	/**
+	 * Test generateMessageHeader method
+	 * @test
+	 */
+	public function testGenerateMessageHeader()
+	{
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getHeaderConfig'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getHeaderConfig')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnValue(array(
+				'standard' => 'GSI',
+				'source_id' => 'ABCD',
+				'source_type' => '1234',
+				'message_id' => 'ABCD_1234_52ceae46381f0',
+				'create_date_and_time' => '2014-01-09T13:47:32-00:00',
+				'header_version' => '2.3.0',
+				'version_release_number' => '2.3.0',
+				'destination_id' => 'MWS',
+				'destination_type' => 'WS',
+				'event_type' => 'ItemMaster',
+				'correlation_id' => 'WS'
+			)));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
+
+		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel', 'mapPattern'))
+			->getMock();
+		$dataHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'feedHeaderTemplate' => '<MessageHeader>
+		<Standard>{standard}</Standard>
+		<HeaderVersion>{header_version}</HeaderVersion>
+		<VersionReleaseNumber>{version_release_number}</VersionReleaseNumber>
+		<SourceData>
+			<SourceId>{source_id}</SourceId>
+			<SourceType>{source_type}</SourceType>
+		</SourceData>
+		<DestinationData>
+			<DestinationId>{destination_id}</DestinationId>
+			<DestinationType>{destination_type}</DestinationType>
+		</DestinationData>
+		<EventType>{event_type}</EventType>
+		<MessageData>
+			<MessageId>{message_id}</MessageId>
+			<CorrelationId>{correlation_id}</CorrelationId>
+		</MessageData>
+		<CreateDateAndTime>{create_date_and_time}</CreateDateAndTime>
+	</MessageHeader>'
+			))));
+		$dataHelperMock->expects($this->once())
+			->method('mapPattern')
+			->will($this->returnValue('<MessageHeader>
+		<Standard>GSI</Standard>
+		<HeaderVersion>2.3.0</HeaderVersion>
+		<VersionReleaseNumber>2.3.0</VersionReleaseNumber>
+		<SourceData>
+			<SourceId>ABCD</SourceId>
+			<SourceType>1234</SourceType>
+		</SourceData>
+		<DestinationData>
+			<DestinationId>MWS</DestinationId>
+			<DestinationType>WS/DestinationType>
+		</DestinationData>
+		<EventType>ItemMaster</EventType>
+		<MessageData>
+			<MessageId>ABCD_1234_52ceae46381f0</MessageId>
+			<CorrelationId>WS</CorrelationId>
+		</MessageData>
+		<CreateDateAndTime>2014-01-09T13:47:32-00:00</CreateDateAndTime>
+	</MessageHeader>'
+			));
+
+		$testData = array(
+			array(
+				'expect' => '<MessageHeader>
+		<Standard>GSI</Standard>
+		<HeaderVersion>2.3.0</HeaderVersion>
+		<VersionReleaseNumber>2.3.0</VersionReleaseNumber>
+		<SourceData>
+			<SourceId>ABCD</SourceId>
+			<SourceType>1234</SourceType>
+		</SourceData>
+		<DestinationData>
+			<DestinationId>MWS</DestinationId>
+			<DestinationType>WS/DestinationType>
+		</DestinationData>
+		<EventType>ItemMaster</EventType>
+		<MessageData>
+			<MessageId>ABCD_1234_52ceae46381f0</MessageId>
+			<CorrelationId>WS</CorrelationId>
+		</MessageData>
+		<CreateDateAndTime>2014-01-09T13:47:32-00:00</CreateDateAndTime>
+	</MessageHeader>',
+				'feedType' => 'ItemMaster'
+			),
+		);
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], $dataHelperMock->generateMessageHeader($data['feedType']));
+		}
+	}
+
+	/**
+	 * Test getStoreViewLanguage method
+	 * @test
+	 */
+	public function testGetStoreViewLanguage()
+	{
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('mageToXmlLangFrmt'))
+			->getMock();
+		$coreHelperMock::staticExpects($this->once())
+			->method('mageToXmlLangFrmt')
+			->with($this->equalTo('en-US'))
+			->will($this->returnValue('en-us'));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$storeModelMock = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(array('getName'))
+			->getMock();
+		$storeModelMock->expects($this->at(0))
+			->method('getName')
+			->will($this->returnValue('magtna_magt1_en-US'));
+		$storeModelMock->expects($this->at(1))
+			->method('getName')
+			->will($this->returnValue('magtna_magt1'));
+		$testData = array(
+			array('expect' => 'en-us', 'store' => $storeModelMock),
+			array('expect' => null, 'store' => $storeModelMock),
+		);
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], Mage::helper('eb2cproduct')->getStoreViewLanguage($data['store']));
+		}
+	}
+
+	/**
+	 * Test _loadCategoryByName method
+	 * @test
+	 */
+	public function testLoadCategoryByName()
+	{
+		$category = Mage::getModel('catalog/category')->addData(array('entity_id' => 56));
+		$catogyCollectionModelMock = $this->getResourceModelMockBuilder('catalog/category_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'load', 'getFirstItem'))
+			->getMock();
+		$catogyCollectionModelMock->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->equalTo('*'))
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('addAttributeToFilter')
+			->with($this->equalTo('name'), $this->isType('array'))
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('getFirstItem')
+			->will($this->returnValue($category));
+
+		$categoryModelMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getCollection'))
+			->getMock();
+		$categoryModelMock->expects($this->any())
+			->method('getCollection')
+			->will($this->returnValue($catogyCollectionModelMock));
+		$this->replaceByMock('model', 'catalog/category', $categoryModelMock);
+
+		$this->assertSame($category, Mage::helper('eb2cproduct')->loadCategoryByName('Toys'));
+	}
+
+	/**
+	 * Test _getDefaultParentCategoryId method
+	 * @test
+	 */
+	public function testGetDefaultParentCategoryId()
+	{
+		$catogyCollectionModelMock = $this->getResourceModelMockBuilder('catalog/category_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'load', 'getFirstItem'))
+			->getMock();
+		$catogyCollectionModelMock->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->equalTo('*'))
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('addAttributeToFilter')
+			->with($this->equalTo('parent_id'), $this->equalTo(array('eq' => 0)))
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$catogyCollectionModelMock->expects($this->once())
+			->method('getFirstItem')
+			->will($this->returnValue(Mage::getModel('catalog/category')->addData(array('entity_id' => 1))));
+
+		$categoryModelMock = $this->getModelMockBuilder('catalog/category')
+			->disableOriginalConstructor()
+			->setMethods(array('getCollection'))
+			->getMock();
+		$categoryModelMock->expects($this->any())
+			->method('getCollection')
+			->will($this->returnValue($catogyCollectionModelMock));
+		$this->replaceByMock('model', 'catalog/category', $categoryModelMock);
+
+		$this->assertSame(1, Mage::helper('eb2cproduct')->getDefaultParentCategoryId());
+	}
 }

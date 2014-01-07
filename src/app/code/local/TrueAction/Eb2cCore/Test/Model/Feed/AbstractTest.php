@@ -253,7 +253,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			}
 			$model->expects($this->once())
 				->method('processDom')
-				->with($this->identicalTo($domStub))
+				->with($this->identicalTo($domStub), $this->isType('array'))
 				->will($processReturn);
 		}
 

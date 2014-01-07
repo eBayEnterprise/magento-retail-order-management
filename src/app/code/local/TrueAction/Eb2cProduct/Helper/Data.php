@@ -1,6 +1,9 @@
 <?php
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
+	const PATH_PATTERN = '%s/%s%s/';
+	const ABSOLUTE_PATH_PATTERN = '%s%s';
+
 	/**
 	 * @see self::getCustomAttributeCodeSet - method
 	 */
@@ -41,6 +44,35 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			);
 		}
 		return $this->_prodTplt;
+	}
+
+	/**
+	 * @var array hold map value between feed type and config feed local path
+	 */
+	protected $_feedTypeMap;
+	/**
+	 * @return array the feed type map config local path
+	 */
+	public function getFeedTypeMap()
+	{
+		if (!$this->_feedTypeMap) {
+			$cfg = $this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
+			$this->_feedTypeMap = array(
+				'ItemMaster' => array(
+					'local_path' => $cfg->itemFeedLocalPath,
+				),
+				'Content' => array(
+					'local_path' => $cfg->contentFeedLocalPath,
+				),
+				'iShip' => array(
+					'local_path' => $cfg->iShipFeedLocalPath,
+				),
+				'Price' => array(
+					'local_path' => $cfg->pricingFeedLocalPath,
+				)
+			);
+		}
+		return $this->_feedTypeMap;
 	}
 	/**
 	 * @return array all website ids
@@ -270,5 +302,139 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			return null;
 		}
 		return $source->getData('configurable_attributes_data');
+	}
+
+	/**
+	 * mapped pattern element with actual values
+	 * @param array $keyMap a composite array with map key value
+	 * @param string $pattern the string pattern
+	 */
+	public function mapPattern(array $keyMap, $pattern)
+	{
+		return array_reduce(array_keys($keyMap), function($result, $key) use ($keyMap, $pattern) {
+				$result = (trim($result) === '')? $pattern : $result;
+				return str_replace(sprintf('{%s}', $key), $keyMap[$key], $result);
+			});
+	}
+
+	/**
+	 * generate file name by feed type
+	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @return string the errorconfirmations file name
+	 */
+	public function generateFileName($feedType)
+	{
+		$cfg = $this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
+		return $this->mapPattern(Mage::helper('eb2ccore/feed')->getFileNameConfig($feedType), $cfg->errorFeedFilePattern);
+	}
+
+	/**
+	 * generate message header by feed type
+	 * @param string $feedType
+	 * @return string message header content xml nodes and child nodes
+	 */
+	public function generateMessageHeader($feedType)
+	{
+		$cfg = $this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
+		return $this->mapPattern(Mage::helper('eb2ccore/feed')->getHeaderConfig($feedType), $cfg->feedHeaderTemplate);
+	}
+
+	/**
+	 * generate file path by feed type, check if directory exists if not created the directory
+	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @param TrueAction_Eb2cProduct_Helper_Struct_Feedpath $dir
+	 * @return string the file path
+	 */
+	public function generateFilePath($feedType, TrueAction_Eb2cProduct_Helper_Struct_Feedpath $dir)
+	{
+		$type = $this->getFeedTypeMap();
+		if (!isset($type[$feedType])) {
+			return '';
+		}
+		$helper = Mage::helper('eb2ccore');
+		$path = sprintf(self::PATH_PATTERN, Mage::getBaseDir('var'), $type[$feedType]['local_path'], $dir->getValue());
+		$helper->createDir($path);
+		if (!$helper->isDir($path)){
+			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not create the following directory (${path})");
+		}
+		return $path;
+	}
+
+	/**
+	 * build the outbound file name by feed type
+	 * @param string $feedType
+	 * @return string
+	 */
+	public function buildFileName($feedType)
+	{
+		return sprintf(
+			self::ABSOLUTE_PATH_PATTERN,
+			$this->generateFilePath($feedType, Mage::helper('eb2cproduct/struct_outboundfeedpath')),
+			$this->generateFileName($feedType)
+		);
+	}
+
+	/**
+	 * get store root category id
+	 * @return int store root category id
+	 * @codeCoverageIgnore
+	 */
+	public function getStoreRootCategoryId()
+	{
+		return Mage::app()->getWebsite(true)->getDefaultStore()->getRootCategoryId();
+	}
+
+	/**
+	 * abstracting getting an array of stores
+	 * @return array
+	 * @codeCoverageIgnore
+	 */
+	public function getStores()
+	{
+		return Mage::app()->getStores();
+	}
+
+	/**
+	 * get the storeview language/country code (en-US, fr-FR)
+	 * @param Mage_Core_Model_Store $store
+	 * @return string|null
+	 */
+	public function getStoreViewLanguage(Mage_Core_Model_Store $store)
+	{
+		$storeCodeParsed = explode('_', $store->getName(), 3);
+		if (count($storeCodeParsed) > 2) {
+			return strtolower(Mage::helper('eb2ccore')->mageToXmlLangFrmt($storeCodeParsed[2]));
+		}
+
+		return null;
+	}
+
+	/**
+	 * load category by name
+	 * @param string $categoryName the category name to filter the category table
+	 * @return Mage_Catalog_Model_Category
+	 */
+	public function loadCategoryByName($categoryName)
+	{
+		return Mage::getModel('catalog/category')
+			->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('name', array('eq' => $categoryName))
+			->load()
+			->getFirstItem();
+	}
+
+	/**
+	 * get parent default category id
+	 * @return int default parent category id
+	 */
+	public function getDefaultParentCategoryId()
+	{
+		return Mage::getModel('catalog/category')->getCollection()
+			->addAttributeToSelect('*')
+			->addAttributeToFilter('parent_id', array('eq' => 0))
+			->load()
+			->getFirstItem()
+			->getId();
 	}
 }

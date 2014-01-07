@@ -8,6 +8,78 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFeeds()
 	{
+		$baseDir = Mage::getBaseDir('var');
+		$errFileMap = array(
+			'ItemMaster' => "${baseDir}/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml",
+			'Content'    => "${baseDir}/TrueAction/Eb2c/Feed/Product/ContentMaster/outbound/Content_20140107224605_12345_ABCD.xml",
+			'Price'      => "${baseDir}/TrueAction/Eb2c/Feed/Product/Pricing/outbound/Price_20140107224605_12345_ABCD.xml",
+			'iShip'      => "${baseDir}/TrueAction/Eb2c/Feed/Product/iShip/outbound/iShip_20140107224605_12345_ABCD.xml",
+		);
+
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'initFeed', 'close', 'transferFile', 'archive'))
+			->getMock();
+		$confirmationsModelMock->expects($this->at(0))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['ItemMaster']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(1))
+			->method('initFeed')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(2))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['Content']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(3))
+			->method('initFeed')
+			->with($this->equalTo('Content'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(4))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['Price']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(5))
+			->method('initFeed')
+			->with($this->equalTo('Price'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(6))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['iShip']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(7))
+			->method('initFeed')
+			->with($this->equalTo('iShip'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(8))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['iShip']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(12))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['Price']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(16))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['Content']))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->at(20))
+			->method('loadFile')
+			->with($this->equalTo($errFileMap['ItemMaster']))
+			->will($this->returnSelf());
+
+		$confirmationsModelMock->expects($this->exactly(4))
+			->method('close')
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->exactly(4))
+			->method('transferFile')
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->exactly(4))
+			->method('archive')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('getMessageDate'))
@@ -160,7 +232,19 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('archiveFeed')
 			->will($this->returnValue(null));
 
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('buildFileName'))
+			->getMock();
+		$productHelperMock->expects($this->exactly(4))
+			->method('buildFileName')
+			->will($this->returnCallback(function($et) use ($errFileMap) { return $errFileMap[$et];}));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
 		$this->assertSame(4, $feedModelMock->processFeeds());
+
+		$this->assertEventDispatched('product_feed_processing_complete');
+		$this->assertEventDispatched('product_feed_complete_error_confirmation');
 	}
 
 	/**
@@ -169,6 +253,16 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFile()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
 		$domMock->expects($this->once())
 			->method('load')
@@ -227,7 +321,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->with($this->isInstanceOf('TrueAction_Dom_Document'))
 			->will($this->returnSelf());
 
-		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+		$feedModelMock->processFile(array(
+			'local' => '/ItemMaster/sample-feed.xml',
+			'remote' => '/Inbox/Product',
+			'timestamp' => '1364823587',
+			'type' => 'ItemMaster',
+			'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+		));
 	}
 
 	/**
@@ -237,6 +337,34 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFileDomLoadExceptionThrown()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::DOM_LOAD_ERR),
+				$this->equalTo('UnitTest Simulate Throw Exception on Dom load')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
 		$domMock->expects($this->once())
 			->method('load')
@@ -261,7 +389,16 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->getMock();
 		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
 
-		Mage::getModel('eb2cproduct/feed')->processFile('/ItemMaster/sample-feed.xml');
+		$feed = Mage::getModel('eb2cproduct/feed');
+		$this->_reflectProperty($feed, '_defaultLangCode')->setValue($feed, 'en-US');
+
+		$feed->processFile(array(
+			'local' => '/ItemMaster/sample-feed.xml',
+			'remote' => '/Inbox/Product',
+			'timestamp' => '1364823587',
+			'type' => 'ItemMaster',
+			'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+		));
 	}
 
 	/**
@@ -270,6 +407,34 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFileWithInvalidHeader()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::INVALID_HEADER_ERR),
+				$this->equalTo('sample-feed.xml')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
 		$domMock->expects($this->once())
 			->method('load')
@@ -320,7 +485,15 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->with($this->isInstanceOf('TrueAction_Dom_Document'))
 			->will($this->returnValue('ItemMaster'));
 
-		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+		$this->_reflectProperty($feedModelMock, '_defaultLangCode')->setValue($feedModelMock, 'en-US');
+
+		$feedModelMock->processFile(array(
+			'local' => '/ItemMaster/sample-feed.xml',
+			'remote' => '/Inbox/Product',
+			'timestamp' => '1364823587',
+			'type' => 'ItemMaster',
+			'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+		));
 	}
 
 	/**
@@ -330,6 +503,34 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFileWhereBeforeProccessDomThowException()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::BEFORE_PROCESS_DOM_ERR),
+				$this->equalTo('UnitTest Simulate _beforeProcessDom method Throw Exception')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
 		$domMock->expects($this->once())
 			->method('load')
@@ -386,7 +587,90 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 				new Mage_Core_Exception('UnitTest Simulate _beforeProcessDom method Throw Exception')
 			));
 
-		$feedModelMock->processFile('/ItemMaster/sample-feed.xml');
+		$this->_reflectProperty($feedModelMock, '_defaultLangCode')->setValue($feedModelMock, 'en-US');
+
+		$feedModelMock->processFile(array(
+			'local' => '/ItemMaster/sample-feed.xml',
+			'remote' => '/Inbox/Product',
+			'timestamp' => '1364823587',
+			'type' => 'ItemMaster',
+			'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+		));
+	}
+
+	/**
+	 * Test processFile method, where the internal _beforeProcessDom method throw
+	 * an exception
+	 * @test
+	 */
+	public function testProcessFileWhereDetermineEventTypeThowException()
+	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::EVENT_TYPE_ERR),
+				$this->equalTo('UnitTest Simulate _determineEventType method Throw Exception')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array('load'));
+		$domMock->expects($this->once())
+			->method('load')
+			->with($this->equalTo('/ItemMaster/sample-feed.xml'))
+			->will($this->returnSelf());
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getNewDomDocument')
+			->will($this->returnValue($domMock));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$feedProcessorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $feedProcessorModelMock);
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_determineEventType'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_determineEventType')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->throwException(
+				new TrueAction_Eb2cProduct_Model_Feed_Exception('UnitTest Simulate _determineEventType method Throw Exception')
+			));
+		$feedModelMock->processFile(array(
+			'local' => '/ItemMaster/sample-feed.xml',
+			'remote' => '/Inbox/Product',
+			'timestamp' => '1364823587',
+			'type' => 'ItemMaster',
+			'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+		));
 	}
 
 	/**
@@ -395,6 +679,16 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessDom()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
 			->disableOriginalConstructor()
 			->setMethods(array())
@@ -459,7 +753,205 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed',
-			$feedModelMock->processDom($domMock)
+			$feedModelMock->processDom($domMock, array(
+				'local' => '/ItemMaster/sample-feed.xml',
+				'remote' => '/Inbox/Product',
+				'timestamp' => '1364823587',
+				'type' => 'ItemMaster',
+				'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+			))
+		);
+	}
+
+	/**
+	 * Test processDom method, where exception is thrown when adding data to queue
+	 * @test
+	 */
+	public function testProcessDomThrowException()
+	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::INVALID_OPERATION_ERR),
+				$this->equalTo('UnitTest Simulate processDom add to queue method Throw Exception')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array('add'))
+			->getMock();
+		$feedQueueModelMock->expects($this->once())
+			->method('add')
+			->with($this->isInstanceOf('Varien_Object'), $this->equalTo('Update'))
+			->will($this->throwException(
+				new TrueAction_Eb2cProduct_Model_Feed_Exception('UnitTest Simulate processDom add to queue method Throw Exception')
+			));
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$unitvalidatorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_unitvalidator')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$unitvalidatorModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(true));
+
+		$operationTypeModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_operationtype')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$operationTypeModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue('Update'));
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getUnitValidationExtractor', 'getOperationExtractor'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getUnitValidationExtractor')
+			->will($this->returnValue($unitvalidatorModelMock));
+		$feedItemModelMock->expects($this->once())
+			->method('getOperationExtractor')
+			->will($this->returnValue($operationTypeModelMock));
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getIterableFor', '_extractData'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getIterableFor')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(array(new DOMElement('sku', '1234'))));
+		$feedModelMock->expects($this->once())
+			->method('_extractData')
+			->with($this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(new Varien_Object(array('sku' => '1234'))));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$feedModelMock->processDom($domMock, array(
+				'local' => '/ItemMaster/sample-feed.xml',
+				'remote' => '/Inbox/Product',
+				'timestamp' => '1364823587',
+				'type' => 'ItemMaster',
+				'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+			))
+		);
+	}
+
+	/**
+	 * Test processDom method, where unit validation extractor getValue method is false
+	 */
+	public function testProcessDomInvalidExtractorValue()
+	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::INVALID_DATA_ERR),
+				$this->equalTo('sample-feed.xml')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('sample-feed.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$unitvalidatorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_unitvalidator')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$unitvalidatorModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(false));
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getUnitValidationExtractor'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getUnitValidationExtractor')
+			->will($this->returnValue($unitvalidatorModelMock));
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_getIterableFor'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getIterableFor')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(array(new DOMElement('sku', '1234'))));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$feedModelMock->processDom($domMock, array(
+				'local' => '/ItemMaster/sample-feed.xml',
+				'remote' => '/Inbox/Product',
+				'timestamp' => '1364823587',
+				'type' => 'ItemMaster',
+				'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+			))
 		);
 	}
 
@@ -469,6 +961,34 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessDomWithInvalidOperationType()
 	{
+		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', 'addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$confirmationsModelMock->expects($this->once())
+			->method('loadFile')
+			->with($this->equalTo('/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addMessage')
+			->with(
+				$this->equalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::INVALID_OPERATION_ERR),
+				$this->equalTo('Invalid op type tester')
+			)
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addError')
+			->with($this->equalTo('ItemMaster'), $this->equalTo('ItemMaster_TestSubset.xml'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->equalTo('ItemMaster'))
+			->will($this->returnSelf());
+		$confirmationsModelMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
+
 		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
 			->disableOriginalConstructor()
 			->setMethods(array())
@@ -533,7 +1053,13 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed',
-			$feedModelMock->processDom($domMock)
+			$feedModelMock->processDom($domMock, array(
+				'local' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/inbound/ItemMaster_TestSubset.xml',
+				'remote' => '/Inbox/Product',
+				'timestamp' => '1364823587',
+				'type' => 'ItemMaster',
+				'error_file' => '/Product/ItemMaster/outbound/ItemMaster_20140113230330_1234_ABCD.xml'
+			))
 		);
 	}
 

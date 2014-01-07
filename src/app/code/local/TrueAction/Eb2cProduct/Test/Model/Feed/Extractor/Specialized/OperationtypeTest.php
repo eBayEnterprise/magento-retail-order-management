@@ -22,6 +22,23 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_Extractor_Specialized_Operationtype
 	}
 
 	/**
+	 * test extract method, when there's no operation type throw exception
+	 * @test
+	 * @expectedException Mage_Core_Exception
+	 */
+	public function testExtractNoOperationTypeThrowException()
+	{
+		$operationType = Mage::getModel('eb2cproduct/feed_extractor_specialized_operationtype');
+		$this->_reflectProperty($operationType, '_mapping')->setValue($operationType, array(
+			'foo' => './text()',
+			'baz' => 'bar/text()',
+		));
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$doc->loadXML('<foo></foo>');
+		$operationType->extract(new DOMXPath($doc), $doc->documentElement);
+	}
+
+	/**
 	 */
 	public function testGetOperation()
 	{

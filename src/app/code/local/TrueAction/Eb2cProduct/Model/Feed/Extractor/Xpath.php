@@ -21,9 +21,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor_Xpath
 			try{
 				$nodeList = $xpath->query($xpathString, $node);
 			} catch (Exception $e) {
-				$message = ' [ ' . __CLASS__ . ' ] there was an error querying "' .
-					$xpathString . '": ' . $e->getMessage();
-				Mage::log($message, Zend_Log::ERR);
+				Mage::log(sprintf('[ %s ] there was an error querying "%s": %s', __CLASS__, $xpathString, $e->getMessage()), Zend_Log::ERR);
 				continue;
 			}
 
