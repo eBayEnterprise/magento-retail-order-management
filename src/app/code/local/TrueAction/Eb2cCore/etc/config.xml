@@ -65,7 +65,7 @@
 						<feed_item_inventories>1</feed_item_inventories>
 					</eb2cinventory>
 					<eb2corder>
-						<status_feed>0</status_feed>
+						<status_feed>1</status_feed>
 					</eb2corder>
 					<eb2cproduct>
 						<feed>1</feed>

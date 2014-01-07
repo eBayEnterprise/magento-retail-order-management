@@ -114,13 +114,12 @@
 				<search_file>Order-Service-Search-1.0.xsd</search_file>
 			</xsd>
 			<status_feed>
-				<local_path>TrueAction/Eb2c/Feed/Order/Status/</local_path>
+				<local_path>TrueAction/Eb2c/Feed/Order/OrderStatus/</local_path>
 				<remote_path>/Inbox/</remote_path>
-				<file_pattern>OrderStatus*.xml</file_pattern>
-				<!-- Event Type and the Version Numbers are used to sanity check that we have a feed of the type we can handle -->
+				<file_pattern>OrderStatus_*.xml</file_pattern>
+				<root_node_name>OrderStatuses</root_node_name>
 				<event_type>OrderStatus</event_type>
-				<header_version>EWS_eb2c_1.0</header_version>
-				<version_release_number>EWS_eb2c_1.0</version_release_number>
+				<xsd>Order-Status-1 0.xsd</xsd>
 			</status_feed>
 		</eb2corder>
 	</default>

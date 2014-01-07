@@ -22,6 +22,8 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'status_feed_header_version'     => 'eb2corder/status_feed/header_version',
 		'status_feed_local_path'         => 'eb2corder/status_feed/local_path',
 		'status_feed_remote_path'        => 'eb2corder/status_feed/remote_path',
+		'status_feed_root_node_name'     => 'eb2corder/status_feed/root_node_name',
+		'status_feed_xsd'                => 'eb2corder/status_feed/xsd',
 		'transactional_emailer'          => 'eb2ccore/email/transactional_emailer',
 		'xsd_file_cancel'                => 'eb2corder/xsd/cancel_file',
 		'xsd_file_create'                => 'eb2corder/xsd/create_file',
