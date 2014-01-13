@@ -227,7 +227,6 @@
 				</api>
 				<local_path>TrueAction/Eb2c/Feed/ImageExport/</local_path>
 				<xsd>Image_Feed.xsd</xsd>
-				<include_empty_galleries>true</include_empty_galleries>
 				<filename_format>\I\m\a\g\e\E\x\p\o\r\t_YmdHis</filename_format>
 				<message_header>
 					<standard></standard>

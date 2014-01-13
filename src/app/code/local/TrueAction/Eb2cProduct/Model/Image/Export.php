@@ -4,13 +4,46 @@
  */
 class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 {
-	protected $_coreFeed;
-
-	public function _construct()
-	{
-		$this->_cfg = Mage::getModel('eb2ccore/config_registry')
+	/**
+	 * Return configuration registry
+	 * @return eb2ccore/config_registry
+	 */
+	protected function _getConfig() {
+		return Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2cproduct/image_export_config'))
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+	}
+
+	/**
+	 * Returns an array of store Ids
+	 * @return array
+	 */
+	protected function _getAllStoreIds()
+	{
+		$stores = array();
+		foreach (Mage::app()->getStores(true) as $store) {
+			$stores[] = $store->getStoreId();
+		}
+		return $stores;
+	}
+
+	/**
+	 * Get a single store
+	 * @return store
+	 */
+	protected function _getStoreUrl($storeId)
+	{
+		return Mage::app()->getStore($storeId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB);
+	}
+
+	/**
+	 * Set the current store context
+	 * @return self
+	 */
+	protected function _setCurrentStore($storeId)
+	{
+		Mage::app()->setCurrentStore($storeId);
+		return self;
 	}
 
 	/**
@@ -25,22 +58,20 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 		$numberOfStoresProcessed = 0;
 
 		if ($sourceStoreId !== null ) {
-			$stores[] = $sourceStoreId;
+			$stores[0] = $sourceStoreId;
 		} else {
-			foreach (Mage::app()->getStores(true) as $store) {
-				$stores[] = $store->getStoreId();
-			}
+			$stores = $this->_getAllStoreIds();
 		}
 
 		foreach ($stores as $storeId) {
-			Mage::app()->setCurrentStore($storeId);
+			$this->_setCurrentStore($storeId);
 			$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 			$dom->formatOutput = true;
 
-			$domainParts = parse_url(Mage::app()->getStore($storeId)->getBaseUrl(Mage_Core_Model_Store::URL_TYPE_WEB));
-			$itemImages = $dom->addElement('ItemImages', null, $this->_cfg->apiXmlNs)->firstChild;
+			$domainParts = parse_url($this->_getStoreUrl($storeId));
+			$itemImages = $dom->addElement('ItemImages', null, $this->_getConfig()->apiXmlNs)->firstChild;
 			$itemImages->setAttribute('imageDomain', $domainParts['host']);
-			$itemImages->setAttribute('clientId', $this->_cfg->clientId);
+			$itemImages->setAttribute('clientId', $this->_getConfig()->clientId);
 			$itemImages->setAttribute('timestamp', date('H:i:s'));
 
 			$this->_buildMessageHeader($itemImages->createChild('MessageHeader'));
@@ -50,10 +81,9 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 			}
 
 			$dom = null;
-			Mage::app()->setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
+			$this->_setCurrentStore(Mage_Core_Model_App::ADMIN_STORE_ID);
 			$numberOfStoresProcessed++;
 		}
-
 		return $numberOfStoresProcessed;
 	}
 
@@ -65,7 +95,7 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	 */
 	protected function _validateDom(TrueAction_Dom_Document $dom)
 	{
-		$api = Mage::getModel('eb2ccore/api', array('xsd' => $this->_cfg->xsdFileImageExport));
+		$api = Mage::getModel('eb2ccore/api', array('xsd' => $this->_getConfig()->xsdFileImageExport));
 		if (!$api->schemaValidate($dom)) {
 			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.'); // Inbound validation throws this, so I'm doing the same outbound.
 		}
@@ -83,10 +113,10 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	{
 		$coreFeed = Mage::getModel('eb2ccore/feed',
 			array(
-				'base_dir' => Mage::getBaseDir('var') . $this->_cfg->localPath
+				'base_dir' => Mage::getBaseDir('var') . $this->_getConfig()->localPath
 			)
 		);
-		$filename = $coreFeed->getOutboundPath() . DS . date($this->_cfg->filenameFormat) . "_$storeId.xml";
+		$filename = $coreFeed->getOutboundPath() . DS . date($this->_getConfig()->filenameFormat) . "_$storeId.xml";
 		$dom->save($filename);
 		return $filename;
 	}
@@ -114,30 +144,31 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	 * @param DOMelement node into which itemImages are placed
 	 * @return int number of images for all products in this store
 	 */
-	protected function _buildItemImages(DOMElement $itemImages)
+	protected function _buildItemImages(TrueAction_Dom_Element $itemImages)
 	{
 		$numberOfImages = 0;
 		foreach (Mage::getModel('catalog/product')->getCollection() as $mageProduct) {
-			$mageProduct->load($mageProduct->getId());
-			if ($mageProduct->getMediaGalleryImages()->count() || $this->_cfg->includeEmptyGalleries) {
-				$mageImageViewMap = $this->_getMageImageViewMap($mageProduct);
-				$item = $itemImages->createChild('Item');
-				$item->setAttribute('id', $mageProduct->getSku());
+			if ($mageProduct->load($mageProduct->getId())) {
+				if ($mageProduct->getMediaGalleryImages()->count()) {
+					$mageImageViewMap = $this->_getMageImageViewMap($mageProduct);
+					$item = $itemImages->createChild('Item');
+					$item->setAttribute('id', $mageProduct->getSku());
 
-				$images = $item->createChild('Images');
+					$images = $item->createChild('Images');
 
-				foreach( $mageProduct->getMediaGalleryImages() as $mageImage ) {
-					$hasNamedView = false;
-					// A single image can be used for more than 1 'named view'
-					foreach( array_keys($mageImageViewMap, $mageImage->getFile()) as $imageViewName ) {
-						$hasNamedView = true;
-						$this->_populateImageNode($images->createChild('Image'), $mageImage, $imageViewName);
+					foreach( $mageProduct->getMediaGalleryImages() as $mageImage ) {
+						$hasNamedView = false;
+						// A single image can be used for more than 1 'named view'
+						foreach( array_keys($mageImageViewMap, $mageImage->getFile()) as $imageViewName ) {
+							$hasNamedView = true;
+							$this->_populateImageNode($images->createChild('Image'), $mageImage, $imageViewName);
+						}
+						// You can have images that do not have a 'named view' - they're just part of the Media Gallery.
+						if (!$hasNamedView) {
+							$this->_populateImageNode($images->createChild('Image'), $mageImage, '');
+						}
+						$numberOfImages++;
 					}
-					// You can have images that do not have a 'named view' - they're just part of the Media Gallery.
-					if (!$hasNamedView) {
-						$this->_populateImageNode($images->createChild('Image'), $mageImage, '');
-					}
-					$numberOfImages++;
 				}
 			}
 		}
@@ -170,22 +201,22 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	 */
 	protected function _buildMessageHeader(DOMElement $header)
 	{
-		$header->createChild('Standard', $this->_cfg->standard);
-		$header->createChild('HeaderVersion', $this->_cfg->headerVersion);
+		$header->createChild('Standard', $this->_getConfig()->standard);
+		$header->createChild('HeaderVersion', $this->_getConfig()->headerVersion);
 
 		$sourceData = $header->createChild('SourceData');
-		$sourceData->createChild('SourceId', $this->_cfg->sourceId);
-		$sourceData->createChild('SourceType', $this->_cfg->sourceType);
+		$sourceData->createChild('SourceId', $this->_getConfig()->sourceId);
+		$sourceData->createChild('SourceType', $this->_getConfig()->sourceType);
 
 		$destinationData = $header->createChild('DestinationData');
-		$destinationData->createChild('DestinationId', $this->_cfg->destinationId);
-		$destinationData->createChild('DestinationType', $this->_cfg->destinationType);
+		$destinationData->createChild('DestinationId', $this->_getConfig()->destinationId);
+		$destinationData->createChild('DestinationType', $this->_getConfig()->destinationType);
 
-		$header->createChild('EventType', $this->_cfg->eventType);
+		$header->createChild('EventType', $this->_getConfig()->eventType);
 
 		$messageData = $header->createChild('MessageData');
-		$messageData->createChild('MessageId', $this->_cfg->messageId);
-		$messageData->createChild('CorrelationId', $this->_cfg->correlationId);
+		$messageData->createChild('MessageId', $this->_getConfig()->messageId);
+		$messageData->createChild('CorrelationId', $this->_getConfig()->correlationId);
 
 		$header->createChild('CreateDateAndTime', date('m/d/y H:i:s'));
 

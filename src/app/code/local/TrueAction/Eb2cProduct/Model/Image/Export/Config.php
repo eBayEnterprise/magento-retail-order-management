@@ -8,7 +8,6 @@ class TrueAction_Eb2cProduct_Model_Image_Export_Config
 {
 	protected $_configPaths = array(
 		'is_enabled'              => 'eb2cproduct/image_export/enabled',
-		'include_empty_galleries' => 'eb2cproduct/image_export/include_empty_galleries',
 		'remote_path'             => 'eb2cproduct/image_export/remote_path',
 		'filename_format'         => 'eb2cproduct/image_export/filename_format',
 		'api_xml_ns'              => 'eb2cproduct/image_export/api/xml_namespace',
