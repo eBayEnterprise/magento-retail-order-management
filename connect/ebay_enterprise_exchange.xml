@@ -10,18 +10,30 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>0.9.10</version>
+	<version>1.0.0.11</version>
 	<stability>beta</stability>
-	<notes>## Fixed Bugs:
-EBC-447 Expression is always True
-EBC-397 Issue AllocationRequest on PayPal Checkout
-MOD-75 MOD-51 Update filetransfer
+	<notes>## Features
+	EBC-329 Add EstimatedDeliveryDate to Order
+	EBC-170 Image Export Feed
+	EBC-392 Make ProductType Case-Insensitive
 
-## Known Bugs:
-EBC-216 EBC-261 EBC-339 Service calls (particularly inventory/tax calls) are made too often.
-EBC-396 There is no user-facing message when an inventory service call receives an error response from ECP during order create.
-EBC-363 The feed processor throws an exception if a translation isn't provided for the default language.
-EBC-398 The admin cannot create orders.</notes>
+	## Performance Improvements
+	EBC-380 Refactor buildRequest
+	EBC-470 Don't Load Models in a Loop
+	EBC-467 Avoid Unnecessary Object Loading
+	EBC-431 Don't Save Order Unnecessarily
+	EBC-465 Don't Load Model in a Loop
+	EBC-471 Delete Items via Collection
+	EBC-464 Don't Load Data in a Loop
+	EBC-341 Remove Unused Method
+	EBC-383 Get Product Id Without Loading Product
+	EBC-464 Don't Make Database Calls in a Loop
+	EBC-455 Index eb2c_pan and eb2c_pin
+
+	## Fixed Defects
+	EBC-410 Don't Pass Null Response to _extractTax
+	EBC-363 Check Default Translation Before Adding
+	EBC-385 Fix API Urls in Failing Payments Tests</notes>
 	<authors>
 		<name>
 			<name>Michael A. Smith</name>
