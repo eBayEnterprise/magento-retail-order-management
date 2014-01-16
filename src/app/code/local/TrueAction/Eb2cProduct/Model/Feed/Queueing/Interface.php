@@ -6,8 +6,8 @@ interface TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface {
 	 * product data.
 	 */
 	const OPERATION_TYPE_ADD = 'ADD';
-	const OPERATION_TYPE_UPDATE = 'UPDATE';
-	const OPERATION_TYPE_REMOVE = 'REMOVE';
+	const OPERATION_TYPE_UPDATE = 'CHANGE';
+	const OPERATION_TYPE_REMOVE = 'DELETE';
 
 	/**
 	 * add data to the processing queue

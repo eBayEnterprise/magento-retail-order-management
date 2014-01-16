@@ -172,7 +172,11 @@ class TrueAction_Eb2cProduct_Model_Feed
 				$data = $this->_extractData($unit);
 				$operationType = $this->_eventTypeModel->getOperationExtractor()
 					->getValue($this->_xpath, $unit);
-				$this->_queue->add($data, $operationType);
+				try {
+					$this->_queue->add($data, $operationType);
+				} catch(TrueAction_Eb2cProduct_Model_Feed_Exception $e) {
+					Mage::log(sprintf('[ %s ] Error occurred while adding unit to queue: %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
+				}
 			}
 		}
 		Varien_Profiler::stop(__METHOD__);

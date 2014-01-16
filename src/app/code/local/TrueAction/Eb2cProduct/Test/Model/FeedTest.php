@@ -464,6 +464,80 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	}
 
 	/**
+	 * Test processDom method continues with exception on operation type on individual unit
+	 * @test
+	 */
+	public function testProcessDomWithInvalidOperationType()
+	{
+		$feedExtractorXpathModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_xpath')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_extractor_xpath', $feedExtractorXpathModelMock);
+
+		$feedQueueModelMock = $this->getModelMockBuilder('eb2cproduct/feed_queue')
+			->disableOriginalConstructor()
+			->setMethods(array('add'))
+			->getMock();
+		$feedQueueModelMock->expects($this->once())
+			->method('add')
+			->with($this->isInstanceOf('Varien_Object'), $this->equalTo('SomeWackyOperationType'))
+			->will($this->throwException(new TrueAction_Eb2cProduct_Model_Feed_Exception('Invalid op type tester')));
+		$this->replaceByMock('model', 'eb2cproduct/feed_queue', $feedQueueModelMock);
+
+		$unitvalidatorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_unitvalidator')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$unitvalidatorModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(true));
+
+		$operationTypeModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor_specialized_operationtype')
+			->disableOriginalConstructor()
+			->setMethods(array('getValue'))
+			->getMock();
+		$operationTypeModelMock->expects($this->once())
+			->method('getValue')
+			->with($this->isInstanceOf('DOMXPath'), $this->isInstanceOf('DOMElement'))
+			->will($this->returnValue('SomeWackyOperationType'));
+
+		$feedItemModelMock = $this->getModelMockBuilder('eb2cproduct/feed_item')
+			->disableOriginalConstructor()
+			->setMethods(array('getUnitValidationExtractor', 'getOperationExtractor'))
+			->getMock();
+		$feedItemModelMock->expects($this->once())
+			->method('getUnitValidationExtractor')
+			->will($this->returnValue($unitvalidatorModelMock));
+		$feedItemModelMock->expects($this->once())
+			->method('getOperationExtractor')
+			->will($this->returnValue($operationTypeModelMock));
+
+		$domMock = $this->getMock('TrueAction_Dom_Document', array());
+
+		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
+			->setMethods(array('_getIterableFor', '_extractData'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_getIterableFor')
+			->with($this->isInstanceOf('TrueAction_Dom_Document'))
+			->will($this->returnValue(array(new DOMElement('sku', '1234'))));
+		$feedModelMock->expects($this->once())
+			->method('_extractData')
+			->with($this->isInstanceOf('DOMElement'))
+			->will($this->returnValue(new Varien_Object(array('sku' => '1234'))));
+
+		$this->_reflectProperty($feedModelMock, '_eventTypeModel')->setValue($feedModelMock, $feedItemModelMock);
+		$this->_reflectProperty($feedModelMock, '_xpath')->setValue($feedModelMock, new DOMXPath(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cProduct_Model_Feed',
+			$feedModelMock->processDom($domMock)
+		);
+	}
+
+	/**
 	 * Test beforeProcessDom method
 	 * @test
 	 */

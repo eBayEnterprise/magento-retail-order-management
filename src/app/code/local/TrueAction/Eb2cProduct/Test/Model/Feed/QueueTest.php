@@ -3,15 +3,43 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
-	 * operation types.
-	 * denote wether the unit will be used for adding, deleting or updating
-	 * product data.
+	 * Data Provider to yield the supported operation types as given in our specification
+	 * Filtering for constants in the queueing interface that begin with 'OPERATION_TYPE_'
 	 */
-	public static $mapping = array(
-		'add' => TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_ADD,
-		'update' => TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_UPDATE,
-		'delete' => TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_REMOVE,
-	);
+	public function supportedOperationTypes()
+	{
+		$supportedOperationTypes = array();
+		$reflector = new ReflectionClass('TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface');
+		foreach ($reflector->getConstants() as $name => $value) {
+			if (preg_match('/^OPERATION_TYPE_/', $name)) {
+				$supportedOperationTypes[] = array($value);
+			}
+		}
+		return $supportedOperationTypes;
+	}
+
+	/**
+	 * Verify our mapping matches the spec. The provider is a verbatim list of supported operation types. 
+	 * Just don't thrown an expection, there's no assertion. See also testAddFail().
+	 * @dataProvider supportedOperationTypes
+	 */
+	public function testSupportedOperationTypes($operation)
+	{
+		$processorModel = $this->getModelMockBuilder('eb2cproduct/feed_processor')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2cproduct/feed_processor', $processorModel);
+
+		$testModel = Mage::getModel('eb2cproduct/feed_queue');
+		$dummyData = new Varien_Object();
+		$testModel->add($dummyData, $operation);
+
+		$list = $operation === TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_REMOVE ?
+				'_deletionList' : '_upsertList';
+		$list = $this->_reflectProperty($testModel, $list)->getValue($testModel);
+		$this->assertContains($dummyData, $list);
+	}
 
 	/**
 	 * verify add requires a valid operation type
@@ -31,11 +59,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 
 	/**
 	 * verify items are added to the proper list.
-	 * @dataProvider dataProvider
+	 * @dataProvider supportedOperationTypes
 	 */
 	public function testAdd($operation)
 	{
-
 		$processor = $this->getModelMockBuilder('eb2cproduct/feed_processor')
 			->disableOriginalConstructor()
 			->setMethods(array('processDeletions', 'processUpserts'))
@@ -50,8 +77,9 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 			->method('process');
 
 		$data = new Varien_Object();
-		$testModel->add($data, self::$mapping[$operation]);
-		$list = $operation === 'delete' ? '_deletionList' : '_upsertList';
+		$testModel->add($data, $operation);
+		$list = $operation === TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_REMOVE ?
+				'_deletionList' : '_upsertList';
 		$list = $this->_reflectProperty($testModel, $list)->getValue($testModel);
 		$this->assertContains($data, $list);
 	}
@@ -79,10 +107,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_QueueTest
 		$this->_reflectProperty($testModel, '_maxTotalEntries')->setValue($testModel, 15);
 
 		for ($i = 0; $i < $numAdds; $i++) {
-			$testModel->add(new Varien_Object(), self::$mapping['add']);
+			$testModel->add(new Varien_Object(),
+				TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_ADD);
 		}
 		for ($i = 0; $i < $numDeletes; $i++) {
-			$testModel->add(new Varien_Object(), self::$mapping['delete']);
+			$testModel->add(new Varien_Object(),
+				TrueAction_Eb2cProduct_Model_Feed_Queueing_Interface::OPERATION_TYPE_REMOVE);
 		}
 	}
 }
