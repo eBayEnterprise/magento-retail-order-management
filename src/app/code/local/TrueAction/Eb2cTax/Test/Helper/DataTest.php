@@ -5,7 +5,7 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	{
 		parent::setUp();
 		// make sure there's a fresh instance of the tax helper for each test
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 	}
 	/**
 	 * Mock out the core config registry used to retrieve config values in the helper.

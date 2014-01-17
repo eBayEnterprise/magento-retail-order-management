@@ -25,7 +25,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	{
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
 		// @hack
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -139,7 +139,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -257,7 +257,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -527,7 +527,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	{
 		$isTaxAppliedAfter = $scenario === 'afterdiscount';
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -713,7 +713,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 	public function testCalcTaxForAddress()
 	{
 		// set up the config registry to supply the necessary taxApplyAfterDiscount configuration
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$configRegistry = $this->getModelMock('eb2ccore/config_registry', array('__get', 'setStore'));
 		$configRegistry->expects($this->any())
 			->method('__get')
@@ -767,7 +767,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	public function testCollect()
 	{
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$items = array(
 			$this->_mockItem(),
 		);
@@ -800,7 +800,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 
 	public function testCollectChildItem()
 	{
-		Mage::unregister('_helper/tax');
+		Mage::unregister('_helper/eb2ctax');
 		$items = array(
 			$this->_mockChildItem(),
 			$this->_mockItem(),
