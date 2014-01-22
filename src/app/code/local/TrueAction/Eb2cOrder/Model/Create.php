@@ -564,6 +564,10 @@ class TrueAction_Eb2cOrder_Model_Create
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
 					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
+					$pBridgeAdditionalData = $this->_getPbridgeData($this->getAdditionalData('pbridge_data'));
+					if (!empty($pBridgeAdditionalData)) {
+						$thisPayment->createChild('ExpirationDate', $pBridgeAdditionalData['cc_expiration_date']);
+					}
 				} elseif ($payMethodNode === 'PayPal') {
 					$thisPayment = $payments->createChild($payMethodNode);
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
@@ -709,5 +713,16 @@ class TrueAction_Eb2cOrder_Model_Create
 			->addAttributeToSelect('*')
 			->addFieldToFilter('state', array('eq' => 'new'))
 			->load();
+	}
+
+	/**
+	 * Parse the credit card expiration date from a pbridge payment
+	 * @param string of php-serialized pbridge_data 
+	 * @return array of pbridge_data
+	 */
+	protected function _getPbridgeData($pBridgeData)
+	{
+		$pBridgeArray = unserialize($pBridgeData);
+		return $pBridgeArray['pbridge_data'];
 	}
 }
