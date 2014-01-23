@@ -18,6 +18,15 @@ abstract class TrueAction_Eb2cCore_Test_Base
 	}
 
 	/**
+	 * invoke a restricted method using EcomDev's Reflection utility class.
+	 * @see lib/EcomDev/Utils/Reflection.php
+	 */
+	public function invokeRestrictedMethod($object, $methodName, $args=array())
+	{
+		return EcomDev_Utils_Reflection::invokeRestrictedMethod($object, $methodName, $args);
+	}
+
+	/**
 	 * @todo Is this the best way to do this?
 	 * Mocks an Observer, use this as an configuration option as shown. Needed a 'null' stubObserver to bypass
 	 *  dispatch functionality in a specific test.

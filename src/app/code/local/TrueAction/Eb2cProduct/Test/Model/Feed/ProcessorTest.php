@@ -799,11 +799,19 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	{
 		$entityAttributeCollectionModelMock = $this->getResourceModelMockBuilder('eav/entity_attribute_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('addFieldToFilter'))
+			->setMethods(array('addFieldToFilter', 'addExpressionFieldToSelect'))
 			->getMock();
 		$entityAttributeCollectionModelMock->expects($this->once())
 			->method('addFieldToFilter')
 			->with($this->equalTo('entity_type_id'), $this->equalTo(4))
+			->will($this->returnSelf());
+		$entityAttributeCollectionModelMock->expects($this->once())
+			->method('addExpressionFieldToSelect')
+			->with(
+				$this->identicalTo('lcase_attr_code'),
+				$this->identicalTo('LCASE({{attrcode}})'),
+				$this->identicalTo(array('attrcode' => 'attribute_code'))
+			)
 			->will($this->returnSelf());
 		$this->replaceByMock('resource_model', 'eav/entity_attribute_collection', $entityAttributeCollectionModelMock);
 
@@ -814,7 +822,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 
 		$this->assertInstanceOf(
 			'Mage_Eav_Model_Resource_Entity_Attribute_Collection',
-			$this->_reflectMethod($processorModelMock, '_getAttributeCollection')->invoke($processorModelMock, 4)
+			$this->invokeRestrictedMethod($processorModelMock, '_getAttributeCollection', array(4))
 		);
 	}
 
@@ -822,7 +830,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 * Test _processConfigurableAttributes method
 	 * @test
 	 */
-	public function testGrocessConfigurableAttributes()
+	public function testProcessConfigurableAttributes()
 	{
 		$entityAttributeBackendDefault = $this->getModelMockBuilder('eav/entity_attribute_backend_default')
 			->disableOriginalConstructor()
@@ -895,11 +903,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 			->getMock();
 		$entityAttributeCollectionModelMock->expects($this->at(0))
 			->method('getItemByColumnValue')
-			->with($this->equalTo('attribute_code'), $this->equalTo('color'))
+			->with($this->equalTo('lcase_attr_code'), $this->equalTo('color'))
 			->will($this->returnValue($entityAttributeModelMock));
 		$entityAttributeCollectionModelMock->expects($this->at(1))
 			->method('getItemByColumnValue')
-			->with($this->equalTo('attribute_code'), $this->equalTo('size'))
+			->with($this->equalTo('lcase_attr_code'), $this->equalTo('size'))
 			->will($this->returnValue($entityAttributeModelMock));
 
 		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')

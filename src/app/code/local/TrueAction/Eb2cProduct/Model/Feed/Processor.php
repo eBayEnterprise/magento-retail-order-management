@@ -119,7 +119,8 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _getAttributeCollection($entityTypeId)
 	{
 		return Mage::getResourceModel('eav/entity_attribute_collection')
-			->addFieldToFilter('entity_type_id', $entityTypeId);
+			->addFieldToFilter('entity_type_id', $entityTypeId)
+			->addExpressionFieldToSelect('lcase_attr_code', 'LCASE({{attrcode}})', array('attrcode' => 'attribute_code'));
 	}
 
 	/**
@@ -375,7 +376,12 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			}
 			$lang = isset($customAttribute['lang']) ? strtolower($customAttribute['lang']) : $this->_defaultLanguageCode;
 			if (!isset($this->_storeLanguageCodeMap[$lang])) {
-				$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE]++;
+				if (isset($this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE])) {
+					$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE]++;
+				}
+				else {
+					$this->_customAttributeErrors[self::CA_ERROR_INVALID_LANGUAGE] = 1;
+				}
 				continue;
 			}
 			if (in_array($customAttribute['name'], $customAttributeSet)) {
@@ -387,13 +393,28 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 						$cookedAttributes[$customAttribute['name']][$lang] = null;
 					}
 					else {
-						$this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE]++;
+						if (isset($this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE])) {
+							$this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE]++;
+						}
+						else {
+							$this->_customAttributeErrors[self::CA_ERROR_INVALID_OP_TYPE] = 1;
+						}
 					}
 				} else {
-					$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE]++;
+					if (isset($this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE])) {
+						$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE]++;
+					}
+					else {
+						$this->_customAttributeErrors[self::CA_ERROR_MISSING_OP_TYPE] = 1;
+					}
 				}
 			} else {
-				$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE]++;
+				if (isset($this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE])) {
+					$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE]++;
+				}
+				else {
+					$this->_customAttributeErrors[self::CA_ERROR_MISSING_ATTRIBUTE] = 1;
+				}
 			}
 		}
 		if (!empty($cookedAttributes)) {
@@ -413,8 +434,14 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 		$configurableAttributeData = array();
 		$configurableAttributes = explode(',', $attrData['value']);
 		foreach ($configurableAttributes as $attrCode) {
-			$superAttribute = $this->_attributes->getItemByColumnValue('attribute_code', $attrCode);
-			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')->setProductAttribute($superAttribute);
+			$superAttribute = $this->_attributes->getItemByColumnValue('lcase_attr_code', strtolower($attrCode));
+			if (is_null($superAttribute)) {
+				throw new TrueAction_Eb2cProduct_Model_Feed_Exception(
+					"Configurable attribute code return null for '$attrCode'."
+				);
+			}
+			$configurableAtt = Mage::getModel('catalog/product_type_configurable_attribute')
+				->setProductAttribute($superAttribute);
 			$configurableAttributeData[] = array(
 				'id'             => $configurableAtt->getId(),
 				'label'          => $configurableAtt->getLabel(),
@@ -477,12 +504,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 	protected function _getAttributeOptionId($code, $option)
 	{
 		if (!isset($this->_attributeOptions[$code])) {
-			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$code'.");
+			throw new TrueAction_Eb2cProduct_Model_Feed_Exception(
+				"Cannot get attribute option id for undefined attribute code '$code'."
+			);
 		}
-
 		$targetOptions = $this->_attributeOptions[$code];
 		foreach ($targetOptions as $opt) {
-			if (trim(strtolower($opt['label'])) === trim(strtolower($option))) {
+			if (strtolower($opt['label']) === strtolower($option)) {
 				return (int) $opt['value'];
 			}
 		}
@@ -1182,7 +1210,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 				->addAttributeToSelect(array('entity_id'))
 				->load()
 				->delete();
-}
+		}
 		return $this;
 	}
 }
