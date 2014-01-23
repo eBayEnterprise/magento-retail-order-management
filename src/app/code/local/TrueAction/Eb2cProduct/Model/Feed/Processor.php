@@ -480,10 +480,11 @@ class TrueAction_Eb2cProduct_Model_Feed_Processor
 			throw new TrueAction_Eb2cProduct_Model_Feed_Exception("Cannot get attribute option id for undefined attribute code '$code'.");
 		}
 
-		$collection = $this->_attributeOptions[$code];
-		$targetOption = $collection->getItemByColumnValue('value', strtolower($option));
-		if ($targetOption) {
-			return (int) $targetOption->getId();
+		$targetOptions = $this->_attributeOptions[$code];
+		foreach ($targetOptions as $opt) {
+			if (trim(strtolower($opt['label'])) === trim(strtolower($option))) {
+				return (int) $opt['value'];
+			}
 		}
 		return 0;
 	}

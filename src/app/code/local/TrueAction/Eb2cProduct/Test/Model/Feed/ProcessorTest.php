@@ -511,23 +511,22 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ProcessorTest extends TrueAction_Eb
 	 */
 	public function testGetAttributeOptionId()
 	{
-		$newCollection = new Varien_Data_Collection();
-		$newCollection->addItem(Mage::getModel('eav/entity_attribute_option')->addData(array(
-			'option_id' => '12',
-			'value' => '700',
-		)));
-		$newCollection->addItem(Mage::getModel('eav/entity_attribute_option')->addData(array(
-			'option_id' => '13',
-			'value' => '800',
-		)));
-
 		$processorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_processor')
 			->disableOriginalConstructor()
 			->setMethods(array())
 			->getMock();
 
 		$this->_reflectProperty($processorModelMock, '_attributeOptions')->setValue($processorModelMock, array(
-			'color' => $newCollection,
+			'color' => array(
+				array(
+					'value' => '12',
+					'label' => '700',
+				),
+				array(
+					'value' => '13',
+					'label' => '800',
+				)
+			),
 		));
 
 		$this->assertSame(12, $this->_reflectMethod($processorModelMock, '_getAttributeOptionId')->invoke($processorModelMock, 'color', '700'));
