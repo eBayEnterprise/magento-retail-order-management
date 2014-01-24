@@ -6,7 +6,7 @@
 @import extensions/aoe_scheduler
 
 # Core
-connect/ebay_enterprise_connect.xml var/connect/ebay_enterprise_connect.xml
+connect/ebay_enterprise_exchange.xml var/connect/ebay_enterprise_exchange.xml
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
 src/app/etc/eb2c.xml.sample app/etc/eb2c.xml.sample
 src/app/etc/modules/*.xml app/etc/modules/
