@@ -10,10 +10,11 @@
 	<description>eBay Enterprise Exchange Platform</description>
 	<license>proprietary</license>
 	<license_uri/>
-	<version>1.0.0.13</version>
+	<version>1.0.0.14</version>
 	<stability>beta</stability>
-	<notes>## Fixed Defects
-Proxy cc_expiration_date from PBridge to EBC</notes>
+	<notes>DE547 Modman File Points to Wrong Package.xml File
+DE546 Fix Method getPosition on Non-Object
+DE544 Fix Broken _getAttributeOptionId Loop</notes>
 	<authors>
 		<name>
 			<name>Michael A. Smith</name>
