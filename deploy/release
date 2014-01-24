@@ -1,0 +1,28 @@
+#!/bin/bash
+
+##
+# Deploy a new release.
+#
+# Get the current tag: oldBuildNumber=$(git describe)
+# Increment the build number: newBuildNumber="${oldBuildNumber%.*}.$(( ${oldBuildNumber##*.} + 1 ))"
+# Execute Magento build script
+# Upload new build to github - coming soon
+#
+
+# SCRIPTNAME should always be the filename of the script.
+declare -r SCRIPTNAME=release
+
+##
+# Deploy
+main() {
+	# Assume the most recent annotated tag is the last version.
+	local oldBuildNumber=$(git describe --abbrev=0)
+	# Increment the fourth part of that tag to make the current version.
+	local newBuildNumber="${oldBuildNumber%.*}.$(( ${oldBuildNumber##*.} + 1 ))"
+	# Create a new Magento connect package using MagentoTarToConnect based on the current state
+	magento-tar-to-connect deploy/extension-config.php
+	# Create build on https://github.scm.corp.ebay.com/api/v3/Cheetah/eb2c/releases/
+	deploy/releaseToGithub "$newBuildNumber" "build/ebay_enterprise_exchange.tar.gz" "$BUILD_REPO" "$GITHUB_KEY"
+}
+
+main "$@"

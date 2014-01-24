@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import json
+from os.path import basename
+import requests
+import sys
+
+api_endpoint = 'https://github.scm.corp.ebay.com/api/v3'
+
+def create_header_with_auth(auth_token):
+	return {
+		'Accept': 'application/vnd.github.v3+json',
+		'Authorization': 'token {key}'.format(key=auth_token),
+	}
+
+def create_release(repo, version, auth_headers):
+	"""
+	Create a new release and return the id of the new release.
+	"""
+	release_data = {
+		'tag_name': version,
+		'target_commitish': 'master',
+		'name': version,
+		'body': version,
+		'draft': False,
+		'prerelease': False,
+	}
+	headers = dict(auth_headers.items() + {'Content-Type': 'application/json',}.items())
+	r = requests.post(
+		'{endpoint}/repos/{repo}/releases'.format(endpoint=api_endpoint,repo=repo),
+		data=json.dumps(release_data),
+		headers=headers
+	)
+	r.raise_for_status()
+	return r.json()['id']
+
+def upload_github(repo, release_id, archive, auth_headers):
+	"""
+	Upload the release archive as an asset to a relase.
+	eBay Github can't currently do this so will not work.
+	"""
+	headers = dict(auth_headers.items() + {'Content-Type': 'application/x-gzip',}.items())
+	files = {'file': open(archive, 'rb')}
+	url = '{endpoint}/repos/{repo}/releases/{release}/assets'.format(endpoint=api_endpoint, repo=repo, release=release_id)
+	r = requests.post(
+		url,
+		params={'name': basename(archive)},
+		headers=headers,
+		files=files
+	)
+	r.raise_for_status()
+	return r.status_code
+
+def main(version, module_archive, build_repo, github_key, *argv):
+	"""
+	Create a new release of the project on Github and...that all for now.
+	"""
+	auth_headers = create_header_with_auth(github_key)
+	try:
+		create_release(build_repo, version, auth_headers)
+	except Exception, e:
+		print "Unable to create new release"
+		print e
+		return 1
+	print "Created new release for version {v}".format(v=version)
+	return 0
+
+
+if __name__ == '__main__':
+	sys.exit(main(*sys.argv[1:]))
