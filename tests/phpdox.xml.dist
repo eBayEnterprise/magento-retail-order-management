@@ -6,7 +6,7 @@
   <!-- syntax: <require file="/path/to/file.php" /> -->
   <bootstrap/>
   <!-- A phpDox project to process, you can have multiple projects in one config file -->
-  <project name="Magento EB2C Extension" source="${basedir}/build/magento" workdir="${basedir}/build/phpdox/xml">
+  <project name="eBay Enterprise Exchange Extension" source="${basedir}/src" workdir="${basedir}/build/phpdox/xml">
     <!--  @name    - The name of the project -->
     <!--  @source  - The source directory of the application to process -->
     <!--  @workdir - The directory to store the xml data files in -->
@@ -44,18 +44,18 @@
       </inheritance>
     </collector>
     <!--  Configuration of generation process -->
-    <generator output="${basedir}/docs">
+    <generator output="${basedir}/build/api">
       <!-- @output - (Base-)Directory to store output data in -->
       <!-- A generation process consists of one or more build tasks and of (optional) enrich sources -->
-      <enrich path="${basedir}/build/logs">
+      <!--enrich path="${basedir}/build/logs"-->
         <!-- @path - (Base-)Directory of datafiles used for enrich process -->
         <!-- enrichment source -->
-        <source type="checkstyle">
+        <!--source type="checkstyle"-->
           <!-- @type - the handler for the enrichment -->
           <!--         known types by default are: checkstyle, pmd, clover, phpunit -->
           <!-- every enrichment source can have additional configuration nodes, most probably need a logfile -->
           <!-- <file name="checkstyle.xml" /> -->
-        </source>
+        <!--/source-->
         <!--
                 <source type="pmd">
                     <file name="pmd.xml" />
@@ -69,7 +69,7 @@
                     <file name="junit.xml" />
                 </source>
                 -->
-      </enrich>
+      <!--/enrich-->
       <!-- <build engine="..." enabled="true" output="..." /> -->
       <!--   @engine  - The name of the engine this build task uses, use ./phpDox - -engines to get a list of available engines -->
       <!--   @enabled - Flag to enable/disable this engine, default: enabled=true -->
@@ -78,15 +78,15 @@
       <!--  default engine "html" -->
       <build engine="html" enabled="true" output="html">
         <template dir="${phpDox.home}/templates/html"/>
-        <file extension="xhtml"/>
+        <file extension="html"/>
       </build>
-      <build engine="todo" enabled="true" output="todo">
+      <!--build engine="todo" enabled="true" output="todo">
         <file name="todolist.txt" encoding="utf-8"/>
       </build>
       <build engine="graph" enabled="true" output="graph">
         <dot executable="/usr/bin/dot" options=""/>
         <file name="graph.png" options="" format="png"/>
-      </build>
+      </build-->
     </generator>
   </project>
 </phpdox>
