@@ -548,14 +548,16 @@ class TrueAction_Eb2cOrder_Model_Create
 	{
 		if (Mage::helper('eb2cpayment')->getConfigModel()->isPaymentEnabled) {
 			foreach ($this->_o->getAllPayments() as $payment) {
-				$payMethodNode = $this->_ebcPaymentMethodMap[ucfirst($payment->getMethod())];
+				$payMethod = $payment->getMethod();
+				$payMethodNode = $this->_ebcPaymentMethodMap[ucfirst($payMethod)];
 				if ($payMethodNode === 'CreditCard') {
+					$payId = $payment->getId();
 					$thisPayment = $payments->createChild($payMethodNode);
 					$paymentContext = $thisPayment->createChild('PaymentContext');
-					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-					$paymentContext->createChild('TenderType', $payment->getMethod());
-					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
-					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payment->getId()));
+					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payId));
+					$paymentContext->createChild('TenderType', $payMethod);
+					$paymentContext->createChild('PaymentAccountUniqueId', $payId)->setAttribute('isToken', 'true');
+					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payId));
 					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 					$auth = $thisPayment->createChild('Authorization');
@@ -564,17 +566,14 @@ class TrueAction_Eb2cOrder_Model_Create
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
 					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
-					$pBridgeAdditionalData = $this->_getPbridgeData($this->getAdditionalData('pbridge_data'));
-					if (!empty($pBridgeAdditionalData)) {
-						$thisPayment->createChild('ExpirationDate', $pBridgeAdditionalData['cc_expiration_date']);
-					}
+					$thisPayment->createChild('ExpirationDate', $payment->getAdditionalInformation('cc_expiration_date'));
 				} elseif ($payMethodNode === 'PayPal') {
 					$thisPayment = $payments->createChild($payMethodNode);
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 					$thisPayment->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 					$paymentContext = $thisPayment->createChild('PaymentContext');
 					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-					$paymentContext->createChild('TenderType', $payment->getMethod());
+					$paymentContext->createChild('TenderType', $payMethod);
 					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
 					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payment->getId()));
@@ -717,7 +716,7 @@ class TrueAction_Eb2cOrder_Model_Create
 
 	/**
 	 * Parse the credit card expiration date from a pbridge payment
-	 * @param string of php-serialized pbridge_data 
+	 * @param string of php-serialized pbridge_data
 	 * @return array of pbridge_data
 	 */
 	protected function _getPbridgeData($pBridgeData)

@@ -22,7 +22,7 @@ INVALID_XML;
 	const SAMPLE_PBRIDGE_ADDITIONAL_DATA = 'a:1:{s:12:"pbridge_data";a:5:{s:23:"original_payment_method";s:22:"pbridge_eb2cpayment_cc";s:5:"token";s:32:"aee4b59993ceffaa5de7b154f9e494a3";s:8:"cc_last4";s:4:"0101";s:7:"cc_type";s:2:"VI";s:8:"x_params";s:4:"null";}}';
 
 	/**
-	 * Test getPbridgeData returns format we can consume 
+	 * Test getPbridgeData returns format we can consume
 	 */
 	public function testParsePbridgeAdditionalData()
 	{
@@ -907,5 +907,86 @@ INVALID_XML;
 			'TrueAction_Eb2cOrder_Model_Create',
 			$createModelMock->buildRequest($orderModelMock)
 		);
+	}
+	/**
+	 * Test that _buildPayments tries to create the expected xml nodes if payments are enabled.
+	 *
+	 * @test
+	 */
+	function testBuildPayments()
+	{
+		$cfg = $this->getModelMock('eb2cpayment/config');
+		$cfg->isPaymentEnabled = 1;
+		$pmtHlpr = $this->getHelperMockBuilder('eb2cpayment/data')
+			->setMethods(array('getConfigModel'))
+			->disableOriginalConstructor()
+			->getMock();
+		$pmtHlpr
+			->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($cfg));
+		$this->replaceByMock('helper', 'eb2cpayment', $pmtHlpr);
+		// $pmts = $this->getModelMock('sales/order_payment_collection');
+		// $pmts should be a sales/order_payment_collection, but in the interest of time
+		// I'm making it an array to avoid certain complexities.
+		$pmt = $this->getModelMock('sales/order_payment', array('getMethod', 'getId', 'getCreatedAt', 'getAdditionalInformation', 'getAmountAuthorized'));
+		$pmt
+			->expects($this->once())
+			->method('getMethod')
+			->will($this->returnValue('Pbridge_eb2cpayment_cc'));
+		$pmt
+			->expects($this->once())
+			->method('getId')
+			->will($this->returnValue('anid'));
+		$pmt
+			->expects($this->once())
+			->method('getCreatedAt')
+			->will($this->returnValue('adate'));
+		$pmt
+			->expects($this->exactly(5))
+			->method('getAdditionalInformation')
+			->will($this->returnValueMap(array(
+				array('response_code', 'aresponsecode'),
+				array('bank_authorization_code', 'abankauthcode'),
+				array('cvv2_response_code', 'cvv'),
+				array('avs_response_code', 'anavscode'),
+				array('cc_expiration_date', 'ccexp'),
+			)));
+		$pmt
+			->expects($this->once())
+			->method('getAmountAuthorized')
+			->will($this->returnValue(12.95));
+		$order = $this->getModelMock('sales/order', array('getAllPayments', 'getGrandTotal'));
+		$order
+			->expects($this->once())
+			->method('getAllPayments')
+			->will($this->returnValue(array($pmt)));
+		$order
+			->expects($this->once())
+			->method('getGrandTotal')
+			->will($this->returnValue(12.34));
+		// This is necessary in order to be able to inspect the created XML, such as it is.
+		$tmpDom = new TrueAction_Dom_Document();
+		$pmtNd = $tmpDom->createElement('_');
+		$tmpDom->appendChild($pmtNd);
+		// Now we have to jump through some really heinous hoops
+		// in order to inject the order object because
+		// we didn't implement any kind of dependency injection.
+		// So we call buildRequest because it's the only thing
+		// that can set the order object, and it eventually
+		// calls _getPayment, which eventually calls _getPayments.
+		// ... yep.
+		// So first we stub as much as we can of buildRequest.
+		$create = $this->getModelMock('eb2corder/create', array('_buildOrderCreateRequest', '_buildOrder', '_buildItems', '_buildShip', '_buildAdditionalOrderNodes', '_buildContext'));
+		$create->expects($this->any())->method('_buildOrderCreateRequest')->will($this->returnValue($pmtNd));
+		$create->expects($this->any())->method('_buildOrder')->will($this->returnValue($pmtNd));
+		$create->expects($this->any())->method('_buildItems')->will($this->returnSelf());
+		$create->expects($this->any())->method('_buildShip')->will($this->returnSelf());
+		$create->expects($this->any())->method('_buildAdditionalOrderNodes')->will($this->returnSelf());
+		$create->expects($this->any())->method('_buildContext')->will($this->returnSelf());
+		// Okay, here goes everything.
+		$create->buildRequest($order);
+		$expectedXml = '<_><Payment><BillingAddress ref="billing_1"></BillingAddress><Payments><CreditCard><PaymentContext><PaymentSessionId>paymentanid</PaymentSessionId><TenderType>Pbridge_eb2cpayment_cc</TenderType><PaymentAccountUniqueId isToken="true">anid</PaymentAccountUniqueId></PaymentContext><PaymentRequestId>paymentanid</PaymentRequestId><CreateTimeStamp>adate</CreateTimeStamp><Amount>12.34</Amount><Authorization><ResponseCode>aresponsecode</ResponseCode><BankAuthorizationCode>abankauthcode</BankAuthorizationCode><CVV2ResponseCode>cvv</CVV2ResponseCode><AVSResponseCode>anavscode</AVSResponseCode><AmountAuthorized>12.95</AmountAuthorized></Authorization><ExpirationDate>ccexp</ExpirationDate></CreditCard></Payments></Payment><Context></Context></_>';
+		$this->assertXmlStringEqualsXmlString($expectedXml, $pmtNd->C14N());
 	}
 }
