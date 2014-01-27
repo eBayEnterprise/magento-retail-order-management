@@ -1,0 +1,18 @@
+tables:
+  sales/order_status:
+    - status: accepted
+      label: Accepted
+    - status: accessory_backorder
+      label: Accessory BackOrder
+    - status: awaiting_chained_order_creation
+      label: Some Test Value Called Horse
+  sales/order_status_state:
+    - status: accepted
+      state: new
+      is_default: 0
+    - status: accessory_backorder
+      state: processing
+      is_default: 0
+    - status: awaiting_chained_order_creation
+      state: reined_in
+      is_default: 0

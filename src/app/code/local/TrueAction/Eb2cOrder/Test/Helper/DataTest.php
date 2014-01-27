@@ -57,6 +57,26 @@ class TrueAction_Eb2cOrder_Test_Helper_DataTest extends TrueAction_Eb2cOrder_Tes
 	}
 
 	/**
+	 * Test method to map Eb2c Status to Mage State
+	 * @test
+	 * @loadFixture testMapEb2cStatus.yaml
+	 */
+	public function testMapEb2cStatus()
+	{
+		$aKnownEb2cStatus = 'Some Test Value Called Horse';
+		$this->assertSame(
+			'reined_in',
+			Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($aKnownEb2cStatus)
+		);
+
+		$anUnknownEb2cStatus = '8edfa9d(*&^(*&^(*Q&#^$*(&Q^#$&*^Q#$fa9d3b2';
+		$this->assertSame(
+			'new',
+			Mage::helper('eb2corder')->mapEb2cOrderStatusToMage($anUnknownEb2cStatus)
+		);
+	}
+
+	/**
 	 * Test getting an order history URL for a given store
 	 * @test
 	 */
