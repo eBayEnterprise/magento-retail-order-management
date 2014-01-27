@@ -50,6 +50,27 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Create and return a new instance of XSLTProcessor.
+	 * @return XSLTProcessor
+	 * @codeCoverageIgnore
+	 */
+	public function getNewXsltProcessor()
+	{
+		return new XSLTProcessor();
+	}
+
+	/**
+	 * Create and return a new instance of DOMXPath.
+	 * @param DOMDocument $doc
+	 * @return DOMXPath
+	 * @codeCoverageIgnore
+	 */
+	public function getNewDomXPath(DOMDocument $doc)
+	{
+		return new DOMXPath($doc);
+	}
+
+	/**
 	 * validating ftp settings by simply checking if there's actual setting data.
 	 *
 	 * @return bool, true valid ftp settings otherwise false

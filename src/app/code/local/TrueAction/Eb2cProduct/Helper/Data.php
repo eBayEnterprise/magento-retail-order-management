@@ -36,7 +36,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 				'status' => Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
 				'stock_data' => $defStockData,
 				'store_ids' => array($this->_getDefStoreId()),
-				'tax_class_id' => (int) $cfg->dummyTaxClassId,
 				'type_id' => $cfg->dummyTypeId,
 				'visibility' => Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
 				'website_ids' => $this->_getAllWebsiteIds(),
@@ -222,6 +221,17 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		}
 		return $product;
 	}
+
+	/**
+	 * instantiate new product object and apply dummy data to it
+	 * @param string $sku
+	 * @return Mage_Catalog_Model_Product
+	 */
+	public function createNewProduct($sku, $name='')
+	{
+		return $this->_applyDummyData(Mage::getModel('catalog/product'), $sku, $name);
+	}
+
 	/**
 	 * Fill a product model with dummy data so that it can be saved and edited later.
 	 * @see http://www.magentocommerce.com/boards/viewthread/289906/
@@ -436,5 +446,29 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 			->load()
 			->getFirstItem()
 			->getId();
+	}
+
+	/**
+	 * take dom document object and string xslt file template to transform
+	 * whatever the passed in xslt file template transform the new doc to
+	 * @param TrueAction_Dom_Document $doc the document got get the nodelist
+	 * @param string $xsltFilePath the xslt stylesheet template file absolute fulle path
+	 * @param array $params parameters for the xslt
+	 * @return TrueAction_Dom_Document
+	 */
+	public function splitDomByXslt(TrueAction_Dom_Document $doc, $xsltFilePath, array $params=array())
+	{
+		$helper = Mage::helper('eb2ccore');
+		// create a new DOMDocument for the xsl
+		$xslDom = $helper->getNewDomDocument();
+		$xslDom->load($xsltFilePath);
+		// load the xsl document into a XSLProcessor
+		$xslProcessor = $helper->getNewXsltProcessor();
+		$xslProcessor->importStyleSheet($xslDom);
+		$xslProcessor->setParameter('', $params);
+		// create a new DOMDocument from the transformed XML
+		$transformed = $helper->getNewDomDocument();
+		$transformed->loadXML($xslProcessor->transformToXML($doc));
+		return $transformed;
 	}
 }

@@ -166,6 +166,7 @@
 				</unresolved_product_links>
 			</default>
 		</eb2cproduct_attributes>
+
 		<events>
 			<product_feed_processing_complete>
 				<observers>
@@ -194,7 +195,6 @@
 				<manage_stock>1</manage_stock>
 				<short_description>invalid product. Please do not attempt to purchase.</short_description>
 				<stock_quantity>0</stock_quantity>
-				<tax_class_id>0</tax_class_id>
 				<type_id>simple</type_id>
 				<weight>0</weight>
 			</dummy>
@@ -271,6 +271,120 @@
 					<ext_keys_bool>allow_gift_message,back_orderable,gift_wrap,gift_wrapping_available,is_hidden_product,service_indicator</ext_keys_bool>
 				</map>
 			</feed>
+			<feed_attribute_mappings>
+				<is_clean>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>passThrough</method>
+					<xpath>0</xpath>
+					<languageSearch>false</languageSearch>
+				</is_clean>
+				<type_id>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractProductTypeValue</method>
+					<xpath>CustomAttributes/Attribute[@name="ProductType"]/Value</xpath>
+					<languageSearch>false</languageSearch>
+				</type_id>
+				<sku>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>ItemId/ClientItemId|UniqueID|ClientItemId</xpath>
+					<languageSearch>false</languageSearch>
+				</sku>
+				<style_id>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>ExtendedAttributes/Style/StyleID</xpath>
+					<languageSearch>false</languageSearch>
+				</style_id>
+				<tax_code>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>BaseAttributes/TaxCode</xpath>
+					<languageSearch>false</languageSearch>
+				</tax_code>
+				<unresolved_product_links>
+					<class></class>
+					<type>disabled</type>
+					<method></method>
+					<xpath></xpath>
+					<languageSearch>false</languageSearch>
+				</unresolved_product_links>
+				<name>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>BaseAttributes/Title</xpath>
+					<languageSearch>false</languageSearch>
+				</name>
+				<description>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>ExtendedAttributes/LongDescription</xpath>
+					<languageSearch>false</languageSearch>
+				</description>
+				<short_description>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStringValue</method>
+					<xpath>ExtendedAttributes/ShortDescription</xpath>
+					<languageSearch>false</languageSearch>
+				</short_description>
+				<price>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractFloatValue</method>
+					<xpath>Event/Price</xpath>
+					<languageSearch>false</languageSearch>
+				</price>
+				<weight>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractFloatValue</method>
+					<xpath>ExtendedAttributes/ItemDimension/Shipping/Mass/Weight</xpath>
+					<languageSearch>false</languageSearch>
+				</weight>
+				<status>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractStatusValue</method>
+					<xpath>BaseAttributes/ItemStatus</xpath>
+					<languageSearch>false</languageSearch>
+				</status>
+				<visibility>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractVisibilityValue</method>
+					<xpath>BaseAttributes/CatalogClass</xpath>
+					<languageSearch>false</languageSearch>
+				</visibility>
+				<tax_class_id>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>passThrough</method>
+					<xpath>0</xpath>
+					<languageSearch>false</languageSearch>
+				</tax_class_id>
+				<price_view>
+					<class>eb2cproduct/map</class>
+					<type>disabled</type>
+					<method></method>
+					<xpath></xpath>
+					<languageSearch>false</languageSearch>
+				</price_view>
+				<allow_open_amount>
+					<class>eb2cproduct/map</class>
+					<type>disabled</type>
+					<method></method>
+					<xpath></xpath>
+					<languageSearch>false</languageSearch>
+				</allow_open_amount>
+			</feed_attribute_mappings>
 		</eb2cproduct>
 	</default>
 	<phpunit>

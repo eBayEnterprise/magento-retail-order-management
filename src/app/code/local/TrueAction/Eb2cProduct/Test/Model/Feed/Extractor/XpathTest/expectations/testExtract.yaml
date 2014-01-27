@@ -1,6 +1,0 @@
-0:
-  foo: cat
-  baz: dog
-1:
-  foo: ' cat '
-  baz: dog

@@ -126,7 +126,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	 * @return array
 	 * @codeCoverageIgnore
 	 */
-	protected function _getPathConfigChildData($path)
+	public function getConfigData($path)
 	{
 		return Mage::app()->getStore(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)->getConfig($path);
 	}
@@ -136,7 +136,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	 * @param array $meta a composite array with class name and method to be executed
 	 * @return string|null
 	 */
-	protected function _extractFromMetaData(array $meta)
+	public function invokeCallback(array $meta)
 	{
 		if (empty($meta)) {
 			return null;
@@ -168,8 +168,8 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		}
 
 		return $this->_doConfigTranslation(array_merge(
-			$this->_getPathConfigChildData(self::DEFAULT_HEADER_CONF),
-			$this->_getPathConfigChildData($this->_feedTypeHeaderConf[$feedType])
+			$this->getConfigData(self::DEFAULT_HEADER_CONF),
+			$this->getConfigData($this->_feedTypeHeaderConf[$feedType])
 		));
 	}
 
@@ -182,7 +182,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	{
 		return $this->_doConfigTranslation(array_merge(
 			array('feed_type' => $feedType),
-			$this->_getPathConfigChildData(self::FILE_NAME_CONF)
+			$this->getConfigData(self::FILE_NAME_CONF)
 		));
 	}
 
@@ -195,7 +195,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	{
 		$data = array();
 		foreach ($mhc as $key => $value) {
-			$data[$key] = (is_array($value))? $this->_extractFromMetaData($value) : $value;
+			$data[$key] = (is_array($value))? $this->invokeCallback($value) : $value;
 		}
 		return $data;
 	}

@@ -83,13 +83,13 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	{
 		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_getPathConfigChildData', '_doConfigTranslation'))
+			->setMethods(array('getConfigData', '_doConfigTranslation'))
 			->getMock();
 		foreach (range(0, 1) as $idx) {
 			$pccd = $this->expected("pccd_${idx}");
 			$mData = $pccd->getData();
 			$feedHelperMock->expects($this->at($idx))
-				->method('_getPathConfigChildData')
+				->method('getConfigData')
 				->with($this->equalTo($mData['with']))
 				->will($this->returnValue($mData['will']));
 		}
@@ -130,11 +130,11 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	{
 		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_getPathConfigChildData', '_doConfigTranslation'))
+			->setMethods(array('getConfigData', '_doConfigTranslation'))
 			->getMock();
 		$pccd = $this->expected('pccd');
 		$feedHelperMock->expects($this->once())
-			->method('_getPathConfigChildData')
+			->method('getConfigData')
 			->with($this->equalTo($pccd['with']))
 			->will($this->returnValue($pccd['will']));
 		$dct = $this->expected('dct');
@@ -156,26 +156,29 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	}
 
 	/**
-	 * Test _doConfigTranslation method
-	 * @loadExpectation
+	 * Test _doConfigTranslation method with following expectations
+	 * Testing when this test invoked doConfigTranslation it will call the configuration
+	 * callback methods and build the key value array
 	 */
 	public function testDoConfigTranslation()
 	{
+		$return = array('standard' => 'GSI', 'source_id' => 'ABCD');
+		// when the value is string return static value and when
+		// the value is an array it will get pass to invoke callback
+		$map = array('standard' => 'GSI', 'source_id' => array('type' => 'helper'));
+
 		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_extractFromMetaData'))
+			->setMethods(array('invokeCallback'))
 			->getMock();
-		$feedHelperMock->expects($this->any())
-			->method('_extractFromMetaData')
-			->with($this->isType('array'))
-			->will($this->returnValueMap(
-				$this->expected('map')->getData()
-			));
-		$return = $this->expected('return');
-		$arguments = $this->expected('arguments');
+		$feedHelperMock->expects($this->once())
+			->method('invokeCallback')
+			->with($this->identicalTo($map['source_id']))
+			->will($this->returnValue('ABCD'));
+
 		$this->assertSame(
-			$return['result'],
-			$this->_reflectMethod($feedHelperMock, '_doConfigTranslation')->invoke($feedHelperMock, $arguments['dct'])
+			$return,
+			$this->_reflectMethod($feedHelperMock, '_doConfigTranslation')->invoke($feedHelperMock, $map)
 		);
 	}
 
@@ -201,11 +204,11 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	}
 
 	/**
-	 * Test _extractFromMetaData method
+	 * Test invokeCallback method
 	 * @loadExpectation
 	 * @dataProvider dataProvider
 	 */
-	public function testExtractFromMetaData($provider)
+	public function testInvokeCallback($provider)
 	{
 		$iteration = $provider['iteration'];
 		$meta = $provider['meta'];
@@ -239,7 +242,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 		}
 
 		$helper = Mage::helper('eb2ccore/feed');
-		$this->assertSame($expect, $this->_reflectMethod($helper, '_extractFromMetaData')->invoke($helper, $meta));
+		$this->assertSame($expect, $this->_reflectMethod($helper, 'invokeCallback')->invoke($helper, $meta));
 	}
 
 	/**

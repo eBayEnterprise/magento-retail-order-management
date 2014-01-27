@@ -4,11 +4,16 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_PricingTest
 {
 	/**
 	 * @test
-	 * @loadFixture
 	 * @loadExpectation
 	 */
 	public function testFeedPricingConfig()
 	{
+		$this->replaceCoreConfigRegistry(array(
+			'pricingFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
+			'storeId' => 'storeId',
+			'pricingFeedRemoteReceivedPath' => '/Inbox/Pricing/storeId/',
+			'pricingFeedFilePattern' => 'Price*.xml'
+		));
 		$pricingFeed = Mage::getModel('eb2cproduct/feed_pricing');
 
 		$this->assertSame(
@@ -24,11 +29,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_PricingTest
 		$this->assertSame(
 			$this->expected('config')->getFilePattern(),
 			$this->_reflectProperty($pricingFeed, '_feedFilePattern')->getValue($pricingFeed)
-		);
-
-		$this->assertSame(
-			$this->expected('config')->getEventType(),
-			$this->_reflectProperty($pricingFeed, '_feedEventType')->getValue($pricingFeed)
 		);
 	}
 }

@@ -18,7 +18,6 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'dummy_price'                         => 'catalog/price/default_product_price',
 		'dummy_short_description'             => 'eb2cproduct/dummy/short_description',
 		'dummy_stock_quantity'                => 'eb2cproduct/dummy/stock_quantity',
-		'dummy_tax_class_id'                  => 'eb2cproduct/dummy/tax_class_id',
 		'dummy_type_id'                       => 'eb2cproduct/dummy/type_id',
 		'dummy_weight'                        => 'eb2cproduct/dummy/weight',
 
