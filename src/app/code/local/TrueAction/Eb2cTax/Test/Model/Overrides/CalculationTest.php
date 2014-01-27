@@ -200,8 +200,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		);
 	}
 
-	public function providerGetTaxRequestNoAddress()
+	public function provideGetTaxRequestNoAddress()
 	{
+		$newRequest = $this->getModelMockBuilder('eb2ctax/request')->disableOriginalConstructor()->getMock();
 		$response = $this->getModelMockBuilder('eb2ctax/response')
 			->disableOriginalConstructor()
 			->setMethods(array('getRequest'))
@@ -213,8 +214,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$response->expects($this->once())->method('getRequest')->will($this->returnValue($storedRequest));
 
 		return array(
-			array($response, $storedRequest),
-			array(null, null),
+			array($response, $newRequest, $storedRequest),
+			array(null, $newRequest, $newRequest),
 		);
 	}
 	/**
@@ -222,23 +223,25 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 * to build a request from, as is the case in these tests, the method should
 	 * either return the response stored on a stored request or a new, empty request
 	 * object.
-	 * @param  TrueAction_Eb2cTax_Model_Response|null $response The response object stored on the calc
-	 * @param  TrueAction_Eb2cTax_Model_Request $request  The request object that should be returned
+	 * @param  TrueAction_Eb2cTax_Model_Response|null $response  The response object stored on the calc
+	 * @param  TrueAction_Eb2cTax_Model_Request $newRequest      The request to be returned by the factory method
+	 * @param  TrueAction_Eb2cTax_Model_Request $expectedRequest The request object that should be returned
 	 * @test
-	 * @dataProvider providerGetTaxRequestNoAddress
+	 * @dataProvider provideGetTaxRequestNoAddress
 	 */
-	public function testGetTaxRequestNoAddress($response, $request)
+	public function testGetTaxRequestNoAddress($response, $newRequest, $expectedRequest)
 	{
+		$this->replaceByMock('model', 'eb2ctax/request', $newRequest);
+
 		$calc = $this->getModelMockBuilder('tax/calculation')
 			->disableOriginalConstructor()
 			->setMethods(array('getTaxResponse'))
 			->getMock();
-		$newRequest = $this->getModelMockBuilder('eb2ctax/request')->disableOriginalConstructor()->getMock();
-		$this->replaceByMock('model', 'eb2ctax/request', $newRequest);
+		$calc->expects($this->once())
+			->method('getTaxResponse')
+			->will($this->returnValue($response));
 
-		$calc->expects($this->once())->method('getTaxResponse')->will($this->returnValue($response));
-
-		$this->assertSame($request ?: $newRequest, $calc->getTaxRequest());
+		$this->assertSame($expectedRequest, $calc->getTaxRequest());
 	}
 	public function testGetTaxRequestWithAddress()
 	{
@@ -253,8 +256,13 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->getMock();
 		$this->replaceByMock('model', 'eb2ctax/request', $request);
 
-		$calc->expects($this->once())->method('unsTaxResponse')->will($this->returnSelf());
-		$request->expects($this->once())->method('processAddress')->with($this->identicalTo($address))->will($this->returnSelf());
+		$calc->expects($this->once())
+			->method('unsTaxResponse')
+			->will($this->returnSelf());
+		$request->expects($this->once())
+			->method('processAddress')
+			->with($this->identicalTo($address))
+			->will($this->returnSelf());
 		$this->assertSame($request, $calc->getTaxRequest($address));
 	}
 	protected function _mockConfigRegistry($configValues)
@@ -272,7 +280,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 
 	/**
 	 * @test
-	 * @dataProvider dataProvider
+	 * @dataProvider provideTrueFalse
 	 * @loadExpectation testGetAppliedRates.yaml
 	 */
 	public function testGetAppliedRates($isAfterDiscounts)
@@ -683,56 +691,92 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetTaxRequest()
 	{
-		$calc = $this->buildModelMock('tax/calculation', array('getTaxResponse', 'unsTaxResponse'));
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->setMethods(array('getTaxResponse', 'unsTaxResponse'))
+			->disableOriginalConstructor()
+			->getMock();
 		$calc->expects($this->once())
 			->method('unsTaxResponse')
 			->will($this->returnSelf());
 		$calc->expects($this->never())
 			->method('getTaxResponse');
 
-		$request = $this->buildModelMock('eb2ctax/request', array('processAddress'));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->setMethods(array('processAddress'))
+			->disableOriginalConstructor()
+			->getMock();
 		$request->expects($this->any())
 			->method('processAddress')
 			->with($this->isInstanceOf('Mage_Sales_Model_Quote_Address'))
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'eb2ctax/request', $request);
 
-		$address = $this->buildModelMock('sales/quote_address');
-		$result = $calc->getTaxRequest($address);
-		$this->assertSame($request, $result);
+		$this->assertSame(
+			$request,
+			$calc->getTaxRequest(
+				$this->getModelMockBuilder('sales/quote_address')
+					->disableOriginalConstructor()
+					->getMock()
+			)
+		);
 	}
-
 	/**
 	 * verify a request object is always returned.
 	 * verify existing request/response is discarded when quote is not null
 	 * verify same request is returned when quote is null and previous request exists.
 	 * @test
-	 * @dataProvider dataProvider
+	 * @dataProvider provideTrueFalse
 	 */
 	public function testGetTaxRequestNullAddress($hasResponse)
 	{
-		$request = $this->buildModelMock('eb2ctax/request', array('processAddress'));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->setMethods(array('processAddress'))
+			->disableOriginalConstructor()
+			->getMock();
 		$request->expects($this->never())
 			->method('processAddress');
 		$this->replaceByMock('model', 'eb2ctax/request', $request);
 
 		if ($hasResponse) {
-			$oldRequest = $this->buildModelStub('eb2ctax/request');
-			$response = $this->buildModelStub('eb2ctax/response', array(
-				'getRequest' => $oldRequest,
-				'isValid' => true
-			));
+			$oldRequest = $this->getModelMockBuilder('eb2ctax/request')
+				->disableOriginalConstructor()
+				->getMock();
+			$response = $this->getModelMockBuilder('eb2ctax/response')
+				->setMethods(array(
+					'getRequest',
+					'isValid'
+				))
+				->getMock();
+			$response->expects($this->any())
+				->method('getRequest')
+				->will($this->returnValue($oldRequest));
+			$response->expects($this->any())
+				->method('isValid')
+				->will($this->returnValue(true));
 		}
 
-		$calc = $this->buildModelMock('tax/calculation', array('getTaxResponse', 'unsTaxResponse'));
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->setMethods(array('getTaxResponse', 'unsTaxResponse'))
+			->disableOriginalConstructor()
+			->getMock();
 		$calc->expects($this->once())
 			->method('getTaxResponse')
 			->will($this->returnValue($hasResponse ? $response : null));
 		$calc->expects($this->never())
 			->method('unsTaxResponse');
 
-		$address = $this->buildModelMock('sales/quote_address');
+		$address = $this->getModelMockBuilder('sales/quote_address')
+		->disableOriginalConstructor()
+		->getMock();
 		$result = $calc->getTaxRequest();
 		$this->assertSame($hasResponse ? $oldRequest : $request, $result);
+	}
+	/**
+	 * simple data provider that gives the sequence true then false.
+	 * @return array
+	 */
+	public function provideTrueFalse()
+	{
+		return array(array(true), array(false));
 	}
 }

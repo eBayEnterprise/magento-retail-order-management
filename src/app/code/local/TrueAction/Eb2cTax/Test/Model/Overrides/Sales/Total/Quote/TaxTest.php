@@ -983,14 +983,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			->method('getStore')
 			->will($this->returnValue(Mage::app()->getStore()));
 
-		$addressMock = $this->_buildModelMock(
-			'sales/quote_address',
-			array(
-				'setShippingTaxAmount' => $this->returnSelf(),
-				'setAppliedTaxes' => $this->returnSelf(),
-				'getAppliedTaxesReset' => $this->returnValue(true),
-			)
-		);
+		$addressMock = $this->_buildModelMock('sales/quote_address', array(
+			'setShippingTaxAmount' => $this->returnSelf(),
+		));
 		$addressMock->expects($this->any())
 			->method('getQuote')
 			->will($this->returnValue($quoteMock));

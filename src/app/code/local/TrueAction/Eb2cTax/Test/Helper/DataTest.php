@@ -149,7 +149,7 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 		$val = Mage::helper('eb2ctax')->taxDutyAmountRateCode();
 		$this->assertSame($code, $val);
 	}
-	public function providerIsRequestForAddressRequired()
+	public function provideIsRequestForAddressRequired()
 	{
 		$addressWithItems = $this->getModelMock('sales/quote_address', array('getAllItems'));
 		$addressNoItems = $this->getModelMock('sales/quote_address', array('getAllItems'));
@@ -179,7 +179,7 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	 * @param  Mage_Sales_Model_Quote_Address $address         Address object the request would be for
 	 * @param  boolean                        $isRequired      Is it required
 	 * @test
-	 * @dataProvider providerIsRequestForAddressRequired
+	 * @dataProvider provideIsRequestForAddressRequired
 	 */
 	public function testIsRequestForAddressRequired($sessionFlag, $requestFailFlag, $address, $isRequired)
 	{
@@ -201,14 +201,14 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	 * reset, forcing tax requests to be attempted at the next possible chance.
 	 * @return array Args array
 	 */
-	public function providerCleanupSessionFlags()
+	public function provideCleanupSessionFlags()
 	{
 		return array(array(true), array(false));
 	}
 	/**
 	 * verify the tax request flag is unset from the session.
 	 * @test
-	 * @dataProvider providerCleanupSessionFlags
+	 * @dataProvider provideCleanupSessionFlags
 	 */
 	public function testCleanupSessionFlags($hasFailed)
 	{

@@ -6,9 +6,9 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	// Config key used to identify the xsd file used to validate the request message
 	const XSD_FILE_CONFIG = '';
 	/**
-	 * Get the inventory details for all items in this quote from eb2c.
-	 * @param Mage_Sales_Model_Quote $quote the quote to get eb2c inventory details on
-	 * @return string the eb2c response to the request.
+	 * Make a request to the inventory service with details from the given quote.
+	 * @param  Mage_Sales_Model_Quote $quote Quote to make the inventory request for.
+	 * @return string The response from the service.
 	 */
 	public function makeRequestForQuote(Mage_Sales_Model_Quote $quote)
 	{
@@ -37,6 +37,13 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 		}
 		return $responseMessage;
 	}
+	/**
+	 * Update the quote with the response from the inventory service.
+	 * @param  Mage_Sale_Model_Quote $quote           Quote to update.
+	 * @param  string                $responseMessage Response message from the inventory service.
+	 * @return self
+	 */
+	abstract public function updateQuoteWithResponse(Mage_Sales_Model_Quote $quote, $responseMessage);
 	/**
 	 * Handle cases where the API model returns an empty response. This could result in
 	 * a blocking (TrueAction_Eb2cInventory_Exception_Cart_Interrupt) or
@@ -72,8 +79,5 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	 * @param  Mage_Sales_Model_Quote $quote Quote object the request is for
 	 * @return DOMDocument The request message
 	 */
-	protected function _buildRequestMessage(Mage_Sales_Model_Quote $quote)
-	{
-		return Mage::helper('eb2ccore')->getNewDomDocument();
-	}
+	abstract protected function _buildRequestMessage(Mage_Sales_Model_Quote $quote);
 }

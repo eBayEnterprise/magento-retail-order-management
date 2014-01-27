@@ -66,26 +66,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
-	 * verify if any important part of the shipping address is missing
-	 * @dataProvider dataProvider
-	 * @loadExpectation
-	 */
-	public function testExtractShippingDataExceptions($expectation)
-	{
-		$addrData = $this->expected($expectation)->getData();
-		$this->setExpectedException(
-			'Mage_Core_Exception',
-			'unable to extract Line1, City, and CountryCode parts of the ship from address'
-		);
-		$data = new Mage_Sales_Model_Quote_Item();
-		$data->setData($addrData);
-		$request = $this->getModelMockBuilder('eb2ctax/request')
-			->disableOriginalConstructor()
-			->getMock();
-		$this->_reflectMethod($request, '_extractShippingData')->invoke($request, $data);
-	}
-
-	/**
 	 * verify extracted data causes an exception when required fields have incorrect length
 	 * @dataProvider dataProvider
 	 */
@@ -1530,7 +1510,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$mockItem->expects($this->any())
 			->method('getAppliedRuleIds')
 			->will($this->returnValue(''));
-		$outData = $fn->invoke($request, $mockItem, $mockQuoteAddress, array());
+		$outData = $fn->invoke($request, $mockItem, $mockQuoteAddress);
 		$keys = array(
 			'merchandise_discount_code',
 			'merchandise_discount_amount',
@@ -1600,68 +1580,148 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		);
 	}
 
-	public function providerExtractShippingData()
+	/**
+	 * Data provider for the extractShippingData test - providers the item data
+	 * set by eb2c, the admin origin extracted elsewhere, whether the item is virtual,
+	 * whether the item data should be considered valid and what the final shipping data
+	 * should be. Item data and admin origin data never really need to change but
+	 * as they are both potentially referenced in the final shipping data provided
+	 * by this method, they both need to be referenceable from the provider.
+	 * @return array Argument arrays
+	 */
+	public function provideExtractShippingData()
 	{
-		$mockQuoteItem = $this->getModelMock('sales/quote_item', array(
-			'getEb2cShipFromAddressLine1',
-			'getEb2cShipFromAddressCity',
-			'getEb2cShipFromAddressMainDivision',
-			'getEb2cShipFromAddressCountryCode',
-			'getEb2cShipFromAddressPostalCode'
-		));
-		$mockQuoteItem->expects($this->any())
-			->method('getEb2cShipFromAddressLine1')
-			->will($this->returnValue('1075 First Avenue'));
-		$mockQuoteItem->expects($this->any())
-			->method('getEb2cShipFromAddressCity')
-			->will($this->returnValue('King Of Prussia'));
-		$mockQuoteItem->expects($this->any())
-			->method('getEb2cShipFromAddressMainDivision')
-			->will($this->returnValue('PA'));
-		$mockQuoteItem->expects($this->any())
-			->method('getEb2cShipFromAddressCountryCode')
-			->will($this->returnValue('US'));
-		$mockQuoteItem->expects($this->any())
-			->method('getEb2cShipFromAddressPostalCode')
-			->will($this->returnValue('19406'));
-
-		// mock the address items
-		$mockAddressItem = $this->_buildModelMock('sales/quote_address_item', array(
-			'getId'          => $this->returnValue(5),
-			'getHasChildren' => $this->returnValue(false),
-			'getQuoteItem'   => $this->returnValue($mockQuoteItem),
-		));
-
+		// this data is rather irrelevant to the test - generated elsewhere
+		$adminOrigin = array('Lines' => array('123 Main St', '', '', ''));
+		// data extracted from the item, will always be something for test simplicity
+		// but test may still be scripted to consider it invalid
+		$itemData = array(
+			'Lines' => array('1075 1st Ave', 'STE 1', '', ''),
+			'City' => 'King of Prussia',
+			'MainDivision' => 'PA',
+			'CountryCode' => 'US',
+			'PostalCode' => '19406',
+		);
 		return array(
-			array($mockQuoteItem),
-			array($mockAddressItem),
+			array(
+				$itemData, $adminOrigin, false, true,
+				array('AdminOrigin' => $adminOrigin, 'ShippingOrigin' => $itemData)
+			),
+			array(
+				$itemData, $adminOrigin, true, true,
+				array('AdminOrigin' => $adminOrigin, 'ShippingOrigin' => $adminOrigin)
+			),
+			array(
+				$itemData, $adminOrigin, false, false,
+				array('AdminOrigin' => $adminOrigin, 'ShippingOrigin' => $adminOrigin)
+			),
 		);
 	}
 
 	/**
+	 * Test extracting shipping information for an item - should include AdminOrigin
+	 * and ShippingOrigin data. AdminOrigin should be collected separately via _extractAdminData.
+	 * ShippingOrigin data should be pulled from the item passed in.
 	 * @test
-	 * @dataProvider providerExtractShippingData
+	 * @dataProvider provideExtractShippingData
+	 * @param array   $itemData
+	 * @param array   $adminOrigin
+	 * @param boolean $virtual
+	 * @param boolean $valid
+	 * @param array   $shipData
 	 */
-	public function testExtractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
+	public function testExtractShippingData($itemData, $adminOrigin, $isVirtual, $isValid, $shipData)
 	{
-		$request = Mage::getModel('eb2ctax/request');
+		$mockProduct = $this->getModelMock('catalog/product', array('isVirtual'));
+
+		$mockQuoteItem = $this->getModelMock('sales/quote_item', array(
+			'getEb2cShipFromAddressLine1',
+			'getEb2cShipFromAddressLine2',
+			'getEb2cShipFromAddressCity',
+			'getEb2cShipFromAddressMainDivision',
+			'getEb2cShipFromAddressCountryCode',
+			'getEb2cShipFromAddressPostalCode',
+			'getProduct',
+		));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressLine1')
+			->will($this->returnValue($itemData['Lines'][0]));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressLine2')
+			->will($this->returnValue($itemData['Lines'][1]));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressCity')
+			->will($this->returnValue($itemData['City']));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressMainDivision')
+			->will($this->returnValue($itemData['MainDivision']));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressCountryCode')
+			->will($this->returnValue($itemData['CountryCode']));
+		$mockQuoteItem->expects($this->any())
+			->method('getEb2cShipFromAddressPostalCode')
+			->will($this->returnValue($itemData['PostalCode']));
+		$mockQuoteItem->expects($this->any())
+			->method('getProduct')
+			->will($this->returnValue($mockProduct));
+
+		$mockProduct->expects($this->any())
+			->method('isVirtual')
+			->will($this->returnValue($isVirtual));
+
+		$request = $this->getModelMock(
+			'eb2ctax/request',
+			array('_getQuoteItem', '_extractAdminData', '_validateShipFromData')
+		);
+		$request->expects($this->once())
+			->method('_getQuoteItem')
+			->with($this->identicalTo($mockQuoteItem))
+			->will($this->returnArgument(0));
+		$request->expects($this->once())
+			->method('_extractAdminData')
+			->will($this->returnValue($adminOrigin));
+		$request->expects($this->any())
+			->method('_validateShipFromData')
+			->with($this->identicalTo($itemData))
+			->will($this->returnValue($isValid));
 
 		$requestReflector = new ReflectionObject($request);
 		$extractShippingDataMethod = $requestReflector->getMethod('_extractShippingData');
 		$extractShippingDataMethod->setAccessible(true);
 
-		$this->assertSame(array(
-			'Line1'        => '1075 First Avenue',
-			'Line2'        => '',
-			'Line3'        => '',
-			'Line4'        => '',
-			'City'         => 'King Of Prussia',
-			'MainDivision' => 'PA',
-			'CountryCode'  => 'US',
-			'PostalCode'   => '19406',
-		), $extractShippingDataMethod->invoke($request, $item));
+		$this->assertSame(
+			$shipData,
+			$extractShippingDataMethod->invoke($request, $mockQuoteItem)
+		);
 	}
-
+	/**
+	 * Data provider for testing the validation of shipping data. Provides a minimal
+	 * set of shipping data and whether that set of data is valid.
+	 * @return array Arguments array
+	 */
+	public function provideShipDataToValidate()
+	{
+		return array(
+			array(array('Lines' => array('123 Main St', '', '', ''), 'City' => 'Sometown', 'CountryCode' => 'US'), true),
+			array(array('Lines' => array('', '', '', ''), 'City' => 'Sometown', 'CountryCode' => 'US'), false),
+			array(array('Lines' => array('123 Main St', '', '', ''), 'City' => '', 'CountryCode' => 'US'), false),
+			array(array('Lines' => array('123 Main St', '', '', ''), 'City' => 'Sometown', 'CountryCode' => ''), false),
+		);
+	}
+	/**
+	 * Test validating a ship from address. When the address is missing the first
+	 * street line, city or country code, the address should be considered invalid.
+	 * @test
+	 * @dataProvider provideShipDataToValidate
+	 */
+	public function testValidateShipFromData($shipData, $isValid)
+	{
+		$request = Mage::getModel('eb2ctax/request');
+		$this->assertSame(
+			$isValid,
+			$this->_reflectMethod($request, '_validateShipFromData')->invoke($request, $shipData)
+		);
+	}
 	/**
 	 * @test
 	 */
@@ -1696,10 +1756,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		$shippingOrigin = array(
-			'Line1'        => '1075 First Avenue',
-			'Line2'        => 'Line2',
-			'Line3'        => 'Line3',
-			'Line4'        => 'Line4',
+			'Lines'        => array('1075 First Avenue', 'Line2', 'Line3', 'Line4'),
 			'City'         => 'King Of Prussia',
 			'MainDivision' => 'PA',
 			'CountryCode'  => 'US',
@@ -1791,40 +1848,34 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 	/**
 	 * verify item data is extracted properly
-	 * @param  bool $isVirtual   true if the item is virtual; false otherwise
-	 * @param  bool $hasShipFrom true if the item has the ship from address; false otherwise
 	 * @test
-	 * @loadExpectation
-	 * @dataProvider dataProvider
 	 */
-	public function testExtractItemData($isVirtual, $hasShipFrom)
+	public function testExtractItemData()
 	{
-		$product = $this->buildModelStub('catalog/product', array(
-			'isVirtual' => $isVirtual
+		$item = $this->_buildModelMock('sales/quote_item', array(
+			'getId' => $this->returnValue(1),
+			'getSku' => $this->returnValue('the_sku'),
+			'getName' => $this->returnValue('the item'),
+			'getHtsCode' => $this->returnValue('hts code'),
+			'getQty' => $this->returnValue(1),
+			'getBaseRowTotal' => $this->returnValue(50.0),
 		));
 
-		$item = $this->buildModelStub('sales/quote_item', array(
-			'getId' => 1,
-			'getSku' => 'the_sku',
-			'getName' => 'the item',
-			'getHtsCode' => 'hts code',
-			'getQty' => 1,
-			'getBaseRowTotal' => 50.0,
-			'getProduct' => $product,
-		));
+		$address = $this->getModelMock('sales/quote_address', array('getBaseShippingAmount'));
+		$address->expects($this->any())
+			->method('getBaseShippingAmount')
+			->will($this->returnValue(5.0));
 
-		$address = $this->buildModelStub('sales/quote_address', array(
-			'getBaseShippingAmount' => 5.0,
-		));
-
-		$request = $this->buildModelMock('eb2ctax/request', array(
-			'_getItemOriginalPrice',
-			'_getItemTaxClass',
-			'_getShippingTaxClass',
-			'_extractAdminData',
-			'_extractShippingData',
-			'_extractItemDiscountData',
-		));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->setMethods(array(
+				'_getItemOriginalPrice',
+				'_getItemTaxClass',
+				'_getShippingTaxClass',
+				'_extractShippingData',
+				'_extractItemDiscountData',
+			))
+			->disableOriginalConstructor()
+			->getMock();
 
 		$request->expects($this->once())
 			->method('_getItemOriginalPrice')
@@ -1838,35 +1889,36 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			->method('_getShippingTaxClass')
 			->will($this->returnValue('shipping tax class'));
 		$request->expects($this->once())
-			->method('_extractAdminData')
-			->will($this->returnValue('the admin data'));
+			->method('_extractShippingData')
+			->with($this->identicalTo($item))
+			->will($this->returnValue(array('ShippingOrigin' => 'ship from data', 'AdminOrigin' => 'the admin data')));
 		$request->expects($this->once())
 			->method('_extractItemDiscountData')
 			->with(
 				$this->identicalTo($item),
-				$this->identicalTo($address),
-				$this->isType('array')
+				$this->identicalTo($address)
 			)
-			->will($this->returnArgument(2));
-		if ($hasShipFrom && !$isVirtual) {
-			$request->expects($this->once())
-				->method('_extractShippingData')
-				->will($this->returnValue('ship from data'));
-		}
-		elseif (!$hasShipFrom && !$isVirtual) {
-			$request->expects($this->once())
-				->method('_extractShippingData')
-				->with($this->identicalTo($item))
-				->will($this->throwException(new Mage_Core_Exception('shipfrom data missing')));
-		}
-		else {
-			$request->expects($this->never())
-				->method('_extractShippingData');
-		}
+			->will($this->returnValue(array('some_discount_thing' => 'this is discount data')));
 		$result = $this->_reflectMethod($request, '_extractItemData')
 			->invoke($request, $item, $address);
-		$e = $this->expected('test-%s-%s', $isVirtual, $hasShipFrom);
-		$this->assertEquals($e->getResult(), $result);
+
+		$itemData = array(
+			'id' => 1,
+			'line_number' => 0,
+			'item_id' => 'the_sku',
+			'item_desc' => 'the item',
+			'hts_code' => 'hts code',
+			'quantity' => 1,
+			'merchandise_amount' => 50.0,
+			'merchandise_unit_price' => 51.0,
+			'merchandise_tax_class' => 'tax class',
+			'shipping_amount' => 5.0,
+			'shipping_tax_class' => 'shipping tax class',
+			'AdminOrigin' => 'the admin data',
+			'ShippingOrigin' => 'ship from data',
+			'some_discount_thing' => 'this is discount data',
+		);
+		$this->assertEquals($itemData, $result);
 	}
 
 	/**
@@ -1875,29 +1927,42 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testProcessAddress()
 	{
-		$store = $this->buildModelStub('core/store', array('getId' => 99), null);
-		$billingAddress = $this->buildModelStub('sales/quote_address', array());
-		$quote = $this->buildModelStub(
-			'sales/quote',
-			array(
-				'getStore' => $store,
-				'getBillingAddress' => $billingAddress,
-				'getQuoteCurrencyCode' => 'USD',
-				'getItemsCount' => 1,
-			),
-			null
+		$store = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(array('getId'))
+			->getMock();
+		$store->expects($this->any())
+			->method('getId')
+			->will($this->returnValue(99));
+		$billingAddress = $this->getModelMock('sales/quote_address', array('none'));
+		$methods = array(
+			'getStore' => $this->returnValue($store),
+			'getBillingAddress' => $this->returnValue($billingAddress),
+			'getQuoteCurrencyCode' => $this->returnValue('USD'),
+			'getItemsCount' => $this->returnValue(1),
 		);
-		$item = $this->_stubQuoteItem();
-		$address = $this->buildModelStub('sales/quote_address', array('getQuote' => $quote));
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->setMethods(array_keys($methods))
+			->getMock();
+		$this->stubMethods($methods, $quote);
 
-		$request = $this->buildModelMock('eb2ctax/request', array(
-			'_isQuoteUsable',
-			'_extractDestData',
-			'_getItemsForAddress',
-			'_addBillingDestination',
-			'setQuoteCurrencyCode',
-			'_processItem',
-		));
+		$item = $this->_stubQuoteItem();
+		$address = $this->getModelMock('sales/quote_address', array('getQuote'));
+		$address->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->setMethods(array(
+				'_isQuoteUsable',
+				'_extractDestData',
+				'_getItemsForAddress',
+				'_addBillingDestination',
+				'setQuoteCurrencyCode',
+				'_processItem',
+			))
+			->getMock();
 		$request->expects($this->once())
 			->method('_addBillingDestination')
 			->with($this->identicalTo($billingAddress));
@@ -1931,9 +1996,10 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 		$scenario = 'shipping-address';
 		$address = $quote->$addressGetter();
 
-		$request = $this->buildModelMock('eb2ctax/request', array(
-			'_isQuoteUsable',
-		));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(array('_isQuoteUsable',))
+			->getMock();
 		$request->expects($this->once())
 			->method('_isQuoteUsable')
 			->will($this->returnValue(false));
@@ -1999,14 +2065,17 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testAddBillingDestination()
 	{
-		$address = $this->buildModelStub('sales/quote_address', array(
-			'getTaxId' => 'taxid',
+		$address = $this->_buildModelMock('sales/quote_address', array(
+			'getTaxId' => $this->returnValue('taxid'),
 		));
-		$request = $this->buildModelMock('eb2ctax/request', array(
-			'setBillingAddressTaxId',
-			'_getDestinationId',
-			'_extractDestData'
-		));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'setBillingAddressTaxId',
+				'_getDestinationId',
+				'_extractDestData'
+			))
+			->getMock();
 		$request->expects($this->once())
 			->method('setBillingAddressTaxId')
 			->with($this->identicalTo('taxid'))
@@ -2028,14 +2097,18 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 
 	public function testAddBillingDestinationException()
 	{
-		$address = $this->buildModelStub('sales/quote_address', array(
-			'getTaxId' => 'taxid',
-		));
-		$request = $this->buildModelMock('eb2ctax/request', array(
-			'setBillingAddressTaxId',
-			'_getDestinationId',
-			'_extractDestData'
-		));
+		$address = $this->getModelMock('sales/quote_address', array('getTaxId'));
+		$address->expects($this->any())
+			->method('getTaxId')
+			->will($this->returnValue('taxid'));
+		$request = $this->getModelMockBuilder('eb2ctax/request')
+			->disableOriginalConstructor()
+			->setMethods(array(
+				'setBillingAddressTaxId',
+				'_getDestinationId',
+				'_extractDestData'
+			))
+			->getMock();
 		$request->expects($this->any())
 			->method('_getDestinationId')
 			->will($this->returnValue('destinationid'));
@@ -2044,5 +2117,21 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			->will($this->throwException(new Mage_Core_Exception('test exception')));
 		$this->setExpectedException('Mage_Core_Exception', 'Unable to extract the billing address: ');
 		$this->_reflectMethod($request, '_addBillingDestination')->invoke($request, $address);
+	}
+
+	/**
+	 * stub methods on the supplied mock object
+	 * @param  array  $methods    methods to stub
+	 * @param  object $mockObject object to stub methods on
+	 */
+	public function stubMethods(array $methods, $mockObject)
+	{
+		foreach (array_filter($methods) as $name => $action) {
+			$mockObject->expects($this->any())
+				->method($name)
+				->will($action instanceOf PHPUnit_Framework_MockObject_Stub ?
+						$action : $this->returnValue($action)
+				);
+		}
 	}
 }

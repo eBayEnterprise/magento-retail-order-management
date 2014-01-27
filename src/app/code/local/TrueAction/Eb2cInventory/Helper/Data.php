@@ -92,7 +92,7 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function getInventoriedItems(array $quoteItems)
 	{
-		return array_filter($quoteItems, array(Mage::helper('eb2cinventory'), 'isItemInventoried'));
+		return array_filter($quoteItems, array($this, 'isItemInventoried'));
 	}
 	/**
 	 * determine if the status should prevent adding an item to the cart.

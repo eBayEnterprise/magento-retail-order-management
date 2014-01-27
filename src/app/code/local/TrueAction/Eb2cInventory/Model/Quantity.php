@@ -1,16 +1,13 @@
 <?php
 class TrueAction_Eb2cInventory_Model_Quantity
 	extends TrueAction_Eb2cInventory_Model_Request_Abstract
-	implements TrueAction_Eb2cInventory_Model_Request_Interface
 {
 	/**
 	 * @see TrueAction_Eb2cInventory_Model_Request_Abstract
-	 * @var string Key used by the eb2cinventory/data helper to identify the URI for this request
 	 */
 	const OPERATION_KEY = 'check_quantity';
 	/**
 	 * @see TrueAction_Eb2cInventory_Model_Request_Abstract
-	 * @var string Config key used to identify the xsd file used to validate the request message
 	 */
 	const XSD_FILE_CONFIG = 'xsd_file_quantity';
 
@@ -61,7 +58,7 @@ class TrueAction_Eb2cInventory_Model_Quantity
 			$availableStock = $this->getAvailableStockFromResponse($responseMessage);
 			// loop through all items in the quote, not filtered to inventoried as it won't
 			// be necessary as non-inventoried items won't be in the response and will not get updated
-			foreach ($quote->getAllItems() as $item) {
+			foreach ($quote->getAllVisibleItems() as $item) {
 				if (isset($availableStock[$item->getSku()])) {
 					if ($availableStock[$item->getSku()] === 0) {
 						Mage::helper('eb2cinventory/quote')->removeItemFromQuote($quote, $item);

@@ -42,9 +42,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 			// zero amounts for the address.
 			$this->_store = $address->getQuote()->getStore();
 			$customer = $address->getQuote()->getCustomer();
-			if (!$address->getAppliedTaxesReset()) {
-				$address->setAppliedTaxes(array());
-			}
+
 			$items = $this->_getAddressItems($address);
 			if (!count($items)) {
 				return $this;

@@ -3,16 +3,21 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 {
 	public $className = 'TrueAction_Eb2cTax_Overrides_Model_Observer';
 
-	public function _mockEventObserver($address=null, $quote=null)
+	public function _mockEventObserver($address)
 	{
-		$address = $address ?: Mage::getModel('sales/quote_address');
-		$quote = $quote ?: Mage::getModel('sales/quote');
+		$quote = $this->getModelMock('sales/quote', array());
 		$event = $this->getMock('Varien_Event', array('getQuote', 'getAddress'));
 
-		$event->expects($this->any())->method('getQuote')->will($this->returnValue($quote));
-		$event->expects($this->any())->method('getAddress')->will($this->returnValue($address));
+		$event->expects($this->any())
+			->method('getQuote')
+			->will($this->returnValue($quote));
+		$event->expects($this->any())
+			->method('getAddress')
+			->will($this->returnValue($address));
 		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
-		$observer->expects($this->any())->method('getEvent')->will($this->returnValue($event));
+		$observer->expects($this->any())
+			->method('getEvent')
+			->will($this->returnValue($event));
 		return $observer;
 	}
 
@@ -39,214 +44,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 			->will($this->returnValue($isValid));
 		return $response;
 	}
-
-	/**
-	 * Ensure that when a tax request shouldn't be triggered, there is no attempt
-	 * to make one. Just mock enough to know that nothing is happening and the
-	 * request is not considered failed.
-	 * @test
-	 */
-	public function testTaxEventSubtotalCollectBeforeNoRequestRequired()
-	{
-		$address = Mage::getModel('sales/quote_address');
-		$eventObserver = $this->_mockEventObserver($address);
-		$helper = $this->getHelperMock('eb2ctax/data', array('isRequestForAddressRequired', 'failTaxRequest'));
-		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator'));
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('getTaxRequest'))
-			->getMock();
-
-		$this->replaceByMock('helper', 'eb2ctax', $helper);
-		$this->replaceByMock('helper', 'tax', $taxHelper);
-
-		$helper
-			->expects($this->once())
-			->method('isRequestForAddressRequired')
-			->with($this->identicalTo($address))
-			->will($this->returnValue(false));
-		$helper->expects($this->never())->method('failTaxRequest');
-		$taxHelper->expects($this->never())->method('getCalculator');
-		$calc->expects($this->never())->method('getTaxRequest');
-
-		$observer = Mage::getModel('tax/observer');
-		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
-	}
-	public function providerTaxEventSubtotalCollectBeforeDoNotSendInvalidRequest()
-	{
-		return array(
-			array(null),
-			array($this->_mockRequest(false)),
-		);
-	}
-	/**
-	 * Test that when the tax calculation model returns no request object or an
-	 * invalid request object, the request isn't attempted and taxes are
-	 * flagged with a failed request
-	 * @param  TrueAction_Eb2cTax_Model_Request|null $request In invalid request or null
-	 * @test
-	 * @dataProvider providerTaxEventSubtotalCollectBeforeDoNotSendInvalidRequest
-	 */
-	public function testTaxEventSubtotalCollectBeforeDoNotSendInvalidRequest($request)
-	{
-		$address = Mage::getModel('sales/quote_address');
-		$eventObserver = $this->_mockEventObserver($address);
-		$helper = $this->getHelperMock('eb2ctax/data', array('isRequestForAddressRequired', 'failTaxRequest', 'sendRequest'));
-		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator'));
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('getTaxRequest'))
-			->getMock();
-
-		$this->replaceByMock('helper', 'eb2ctax', $helper);
-		$this->replaceByMock('helper', 'tax', $taxHelper);
-
-		$helper
-			->expects($this->any())
-			->method('isRequestForAddressRequired')
-			->with($this->identicalTo($address))
-			->will($this->returnValue(true));
-
-		$helper->expects($this->never())->method('sendRequest');
-		$helper->expects($this->once())->method('failTaxRequest')->will($this->returnSelf());
-
-		$taxHelper->expects($this->any())->method('getCalculator')->will($this->returnValue($calc));
-		$calc
-			->expects($this->once())
-			->method('getTaxRequest')
-			->with($this->identicalTo($address))
-			->will($this->returnValue($request));
-
-		$observer = Mage::getModel('tax/observer');
-		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
-	}
-	/**
-	 * Data provider for the taxEventSubtotalCollectBefore test with an invalid
-	 * response. The response provided will either be a eb2ctax/response object
-	 * which will indicate it is invalid, or null, indicating the sendRequest
-	 * method has thrown an error.
-	 * @return array Args array
-	 */
-	public function providerTaxEventSubtotalCollectBeforeInvalidResponseDoesNotCauseUpdates()
-	{
-		return array(
-			// invalid response
-			array($this->_mockResponse(false)),
-			// error
-			array(null),
-		);
-	}
-	/**
-	 * Test that an empty or invalid response does not update the calculator or
-	 * cause session flags to be reset. The invalid response may be the result of
-	 * eb2ctax/data helper returning the empty or invalid response or throwing a
-	 * Mage_Core_Exception.
-	 * @param TrueAction_Eb2cTax_Model_Response|null $response An empty or invalid response
-	 * @test
-	 * @dataProvider providerTaxEventSubtotalCollectBeforeInvalidResponseDoesNotCauseUpdates
-	 */
-	public function testTaxEventSubtotalCollectBeforeInvalidResponseDoesNotCauseUpdates($response)
-	{
-		$address = Mage::getModel('sales/quote_address');
-		$eventObserver = $this->_mockEventObserver($address);
-		$request = $this->_mockRequest(true);
-		$helper = $this->getHelperMock('eb2ctax/data', array('isRequestForAddressRequired', 'sendRequest', 'failTaxRequest'));
-		$taxHelper = $this->getHelperMock('tax/data', array('getCalculator'));
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('getTaxRequest', 'setTaxResponse', 'setCalculationTrigger'))
-			->getMock();
-
-		$this->replaceByMock('helper', 'eb2ctax', $helper);
-		$this->replaceByMock('helper', 'tax', $taxHelper);
-
-		$taxHelper->expects($this->any())->method('getCalculator')->will($this->returnValue($calc));
-		$calc
-			->expects($this->any())
-			->method('getTaxRequest')
-			->with($this->isInstanceOf($address))
-			->will($this->returnValue($request));
-		// invalid response means these should not be updated
-		$calc->expects($this->never())->method('setTaxResponse');
-		$calc->expects($this->never())->method('setCalculationTrigger');
-
-		$helper
-			->expects($this->any())
-			->method('isRequestForAddressRequired')
-			->with($this->identicalTo($address))
-			->will($this->returnValue(true));
-		$helper
-			->expects($this->once())
-			->method('sendRequest')
-			->with($this->identicalTo($request))
-			->will(is_null($response) ? $this->throwException(new Mage_Core_Exception) : $this->returnValue($response));
-
-		// an invalid response should not reset the session trigger as taxes were not actually collected
-		$helper->expects($this->once())->method('failTaxRequest')->will($this->returnSelf());
-
-		$observer = Mage::getModel('tax/observer');
-		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
-	}
-	/**
-	 * Test sending the tax request with valid request and response. Should update
-	 * the calculation model, which will later trigger taxes to be calculated. A
-	 * successful response must not flag the request as failed.
-	 * @test
-	 */
-	public function testTaxEventSubtotalCollectBefore()
-	{
-		$request = $this->_mockRequest(true);
-		$response = $this->_mockResponse(true);
-		$address = Mage::getModel('sales/quote_address');
-		$eventObserver = $this->_mockEventObserver($address);
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('setTaxResponse', 'setCalculationTrigger', 'getTaxRequest'))
-			->getMock();
-		$taxHelper = $this->getHelperMockBuilder('tax/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getCalculator'))
-			->getMock();
-		$eb2cTaxHelper = $this->getHelperMock(
-			'eb2ctax/data',
-			array('sendRequest', 'isRequestForAddressRequired', 'failTaxRequest')
-		);
-
-		$this->replaceByMock('helper', 'tax', $taxHelper);
-		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
-
-		$calc->expects($this->once())
-			->method('getTaxRequest')
-			->with($this->identicalTo($address))
-			->will($this->returnValue($request));
-		$calc->expects($this->once())
-			->method('setTaxResponse')
-			->with($this->identicalTo($response))
-			->will($this->returnSelf());
-		$calc->expects($this->once())
-			->method('setCalculationTrigger')
-			->with($this->identicalTo(true))
-			->will($this->returnSelf());
-
-		$taxHelper->expects($this->once())
-			->method('getCalculator')
-			->will($this->returnValue($calc));
-
-		$eb2cTaxHelper->expects($this->once())
-			->method('isRequestForAddressRequired')
-			->with($this->identicalTo($address))
-			->will($this->returnValue(true));
-		$eb2cTaxHelper->expects($this->once())
-			->method('sendRequest')
-			->with($this->identicalTo($request))
-			->will($this->returnValue($response));
-		$eb2cTaxHelper->expects($this->never())
-			->method('failTaxRequest');
-
-		$observer = Mage::getModel('tax/observer');
-		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
-	}
-
 	/**
 	 * Test adding of address tax data to the order.
 	 * @dataProvider dataProvider
@@ -584,5 +381,312 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		$helper->expects($this->once())->method('cleanupSessionFlags')->will($this->returnSelf());
 		$observer = Mage::getModel('tax/observer');
 		$this->assertSame($observer, $observer->cleanupTaxRequestFlags());
+	}
+	/**
+	 * verify calculation trigger is set and response is attached to the calculator
+	 * @test
+	 */
+	public function testHandleResponse()
+	{
+		$calcTriggerFlag = true;
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(array('isValid'))
+			->getMock();
+		$response->expects($this->once())
+			->method('isValid')
+			->will($this->returnValue(true));
+
+		$calculator = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('setCalculationTrigger', 'setTaxResponse'))
+			->getMock();
+		$calculator->expects($this->once())
+			->method('setCalculationTrigger')
+			->with($this->identicalTo($calcTriggerFlag))
+			->will($this->returnSelf());
+		$calculator->expects($this->once())
+			->method('setTaxResponse')
+			->with($this->identicalTo($response))
+			->will($this->returnSelf());
+
+		$helper = $this->getHelperMock('tax/data');
+		$helper->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculator));
+		$this->replaceByMock('helper', 'tax', $helper);
+
+		$observer = Mage::getModel('tax/observer');
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_handleResponse',
+				array($response)
+			)
+		);
+	}
+	/**
+	 * verify failTaxRequest is called with invalid response and no calculation is triggered.
+	 * @test
+	 */
+	public function testHandleResponseInvalidResponse()
+	{
+		$response = $this->_mockResponse(false);
+
+		$calculator = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('setCalculationTrigger'))
+			->getMock();
+		$calculator->expects($this->never())
+			->method('setCalculationTrigger');
+
+		$helper = $this->getHelperMock('tax/data', array('getCalculator'));
+		$helper->expects($this->any())
+			->method('getCalculator')
+			->will($this->returnValue($calculator));
+		$this->replaceByMock('helper', 'tax', $helper);
+
+		$eb2cTaxHelper = $this->getHelperMock('eb2ctax/data', array('failTaxRequest'));
+		$eb2cTaxHelper->expects($this->once())
+			->method('failTaxRequest')
+			->will($this->returnSelf());
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$observer = Mage::getModel('tax/observer');
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_handleResponse',
+				array($response)
+			)
+		);
+		// clean up the prepared data
+		unset($this->_testHandleResponses);
+	}
+	/**
+	 * verify the response is passed to _handleResponse
+	 * @test
+	 */
+	public function testDoRequest()
+	{
+		$request = $this->_mockRequest(true);
+		$response = $this->_mockResponse(true);
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('sendRequest', 'failTaxRequest')
+		);
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$eb2cTaxHelper->expects($this->once())
+			->method('sendRequest')
+			->with($this->identicalTo($request))
+			->will($this->returnValue($response));
+		$eb2cTaxHelper->expects($this->never())
+			->method('failTaxRequest');
+
+		$observer = $this->getModelMock('tax/observer', array('_handleResponse'));
+		$observer->expects($this->once())
+			->method('_handleResponse')
+			->with($this->identicalTo($response))
+			->will($this->returnSelf());
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_doRequest',
+				array($request)
+			)
+		);
+	}
+	/**
+	 * verify exception will prevent the call to _handleResponse
+	 * verify exception will trigger a call to failTaxRequest
+	 * @test
+	 */
+	public function testDoRequestException()
+	{
+		$request = $this->_mockRequest(true);
+		$response = $this->_mockResponse(true);
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('sendRequest', 'failTaxRequest')
+		);
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$eb2cTaxHelper->expects($this->once())
+			->method('sendRequest')
+			->with($this->identicalTo($request))
+			->will($this->throwException(new Mage_Core_Exception('some error')));
+		$eb2cTaxHelper->expects($this->once())
+			->method('failTaxRequest')
+			->will($this->returnSelf());
+
+		$observer = $this->getModelMock('tax/observer', array('_handleResponse'));
+		$observer->expects($this->never())
+			->method('_handleResponse');
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_doRequest',
+				array($request)
+			)
+		);
+	}
+	/**
+	 * verify valid request is processed as normal.
+	 * @test
+	 */
+	public function testFetchTaxUpdate()
+	{
+		$request = $this->_mockRequest(true);
+
+		$address = Mage::getModel('sales/quote_address');
+
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('getTaxRequest'))
+			->getMock();
+		$calc->expects($this->once())
+			->method('getTaxRequest')
+			->with($this->identicalTo($address))
+			->will($this->returnValue($request));
+
+		$taxHelper = $this->getHelperMockBuilder('tax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getCalculator'))
+			->getMock();
+		$taxHelper->expects($this->once())
+			->method('getCalculator')
+			->will($this->returnValue($calc));
+		$this->replaceByMock('helper', 'tax', $taxHelper);
+
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('failTaxRequest')
+		);
+		$eb2cTaxHelper->expects($this->never())
+			->method('failTaxRequest');
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$observer = $this->getModelMock('tax/observer', array('_doRequest'));
+		$observer->expects($this->once())
+			->method('_doRequest')
+			->with($this->identicalTo($request))
+			->will($this->returnSelf());
+
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_fetchTaxUpdate',
+				array($address)
+			)
+		);
+	}
+	/**
+	 * verify invalid request triggers a call to failTaxRequest.
+	 * @test
+	 */
+	public function testFetchTaxUpdateInvalidRequest()
+	{
+		$request = $this->_mockRequest(false);
+		$address = Mage::getModel('sales/quote_address');
+
+		$calc = $this->getModelMockBuilder('tax/calculation')
+			->disableOriginalConstructor()
+			->setMethods(array('getTaxRequest'))
+			->getMock();
+		$calc->expects($this->once())
+			->method('getTaxRequest')
+			->with($this->identicalTo($address))
+			->will($this->returnValue($request));
+
+		$taxHelper = $this->getHelperMockBuilder('tax/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getCalculator'))
+			->getMock();
+		$taxHelper->expects($this->once())
+			->method('getCalculator')
+			->will($this->returnValue($calc));
+		$this->replaceByMock('helper', 'tax', $taxHelper);
+
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('failTaxRequest')
+		);
+		$eb2cTaxHelper->expects($this->once())
+			->method('failTaxRequest')
+			->will($this->returnSelf());
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$observer = $this->getModelMock('tax/observer', array('_doRequest'));
+		$observer->expects($this->never())
+			->method('_doRequest');
+
+		$this->assertSame(
+			$observer,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$observer,
+				'_fetchTaxUpdate',
+				array($address)
+			)
+		);
+	}
+	/**
+	 * verify updated tax information will be fetched if an updated is needed
+	 * @test
+	 */
+	public function testTaxEventSubtotalCollectBefore()
+	{
+		$address = Mage::getModel('sales/quote_address');
+
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('isRequestForAddressRequired')
+		);
+		$eb2cTaxHelper->expects($this->once())
+			->method('isRequestForAddressRequired')
+			->with($this->identicalTo($address))
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$eventObserver = $this->_mockEventObserver($address);
+
+		$observer = $this->getModelMock('tax/observer', array('_fetchTaxUpdate'));
+		$observer->expects($this->once())
+			->method('_fetchTaxUpdate')
+			->will($this->returnSelf());
+		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
+	}
+	/**
+	 * verify updated tax information will not be fetched when no update is needed.
+	 * NOTE: no need to test for the case where address is null since a null address
+	 *       is handled by the underlying call to
+	 *       TrueAction_Eb2cTax_Overrides_Model_Calculation::getTaxRequest
+	 * @test
+	 */
+	public function testTaxEventSubtotalCollectBeforeNoUpdate()
+	{
+		$address = Mage::getModel('sales/quote_address');
+
+		$eb2cTaxHelper = $this->getHelperMock(
+			'eb2ctax/data',
+			array('isRequestForAddressRequired')
+		);
+		$eb2cTaxHelper->expects($this->once())
+			->method('isRequestForAddressRequired')
+			->with($this->identicalTo($address))
+			->will($this->returnValue(false));
+		$this->replaceByMock('helper', 'eb2ctax', $eb2cTaxHelper);
+
+		$eventObserver = $this->_mockEventObserver($address);
+
+		$observer = $this->getModelMock('tax/observer', array('_fetchTaxUpdate'));
+		$observer->expects($this->never())
+			->method('_fetchTaxUpdate');
+		$this->assertSame($observer, $observer->taxEventSubtotalCollectBefore($eventObserver));
 	}
 }

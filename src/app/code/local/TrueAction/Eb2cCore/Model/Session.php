@@ -94,8 +94,9 @@ class TrueAction_Eb2cCore_Model_Session
 	 * @return array Array of billing address data
 	 */
 	protected function _extractQuoteBillingData(Mage_Sales_Model_Quote $quote) {
-		return ($quote->getBillingAddress()) ?
-			$this->_extractAddressData($quote->getBillingAddress()) :
+		$address = $quote->getBillingAddress();
+		return $address ?
+			$this->_extractAddressData($address) :
 			array();
 	}
 	/**
@@ -103,8 +104,8 @@ class TrueAction_Eb2cCore_Model_Session
 	 * keys: 'coupon' containing the current coupon code in use, 'shipping' containing
 	 * all shipping addresses and methods, 'billing' containing the current billing address,
 	 * and 'skus' containing all item skus and quantites
-	 * @param  Mage_Sales_Model_Quote $quote [description]
-	 * @return [type]                        [description]
+	 * @param  Mage_Sales_Model_Quote $quote object to extract data from
+	 * @return array                         extracted quote data
 	 */
 	protected function _extractQuoteData(Mage_Sales_Model_Quote $quote) {
 		return array(
@@ -129,8 +130,8 @@ class TrueAction_Eb2cCore_Model_Session
 	/**
 	 * Diff the old coupon to the new coupon. Return array of coupon data if coupon
 	 * has changed, empty array otherwise.
-	 * @param  array $oldCoupon [description]
-	 * @param  array $newCoupon [description]
+	 * @param  array $oldCoupon previous coupon data
+	 * @param  array $newCoupon current coupon data
 	 * @return array Array of coupon data if coupon has changed, empty array otherwise
 	 */
 	protected function _diffCoupon($oldCoupon, $newCoupon) {
@@ -141,9 +142,9 @@ class TrueAction_Eb2cCore_Model_Session
 	/**
 	 * Diff the old shipping data to the new shipping data. Any change to shipping
 	 * data should invalidate the entire set of address data.
-	 * @param  array $oldShipping [description]
-	 * @param  array $newShipping [description]
-	 * @return array Array of shipping data if data has changed, empty array otherwise.
+	 * @param  array $oldShipping previous shipping data
+	 * @param  array $newShipping current shipping data
+	 * @return array Array of shipping data if data has changed, empty array otherwise
 	 */
 	protected function _diffShipping($oldShipping, $newShipping) {
 		return ($oldShipping !== $newShipping) ?
@@ -161,8 +162,8 @@ class TrueAction_Eb2cCore_Model_Session
 	protected function _diffSkus($oldItems, $newItems) {
 		$skuDiff = array();
 		foreach ($newItems as $sku => $details) {
-			// only care is item qty changes - none of the other item details,
-			// managed & virtual, should be change between requests
+			// only care if item qty changes - none of the other item details,
+			// managed & virtual, should change between requests
 			if (!isset($oldItems[$sku]) || $oldItems[$sku]['qty'] !== $details['qty']) {
 				$skuDiff[$sku] = $details;
 			}
@@ -180,7 +181,7 @@ class TrueAction_Eb2cCore_Model_Session
 	 * responsible methods for diffing those sets of data.
 	 * @param  array  $oldQuote Array of data extracted from a quote
 	 * @param  array  $newQuote Array of data extracted from a quote
-	 * @return array Array of changes made between the two sets of quote data.
+	 * @return array Array of changes made between the two sets of quote data
 	 */
 	protected function _diffQuoteData($oldQuote, $newQuote)
 	{
@@ -255,7 +256,7 @@ class TrueAction_Eb2cCore_Model_Session
 	 * - item quantities change
 	 * @param  array $quoteData Array of data extracted from the newest quote object
 	 * @param  array $quoteDiff Array of changes made to the quote
-	 * @return boolean Does tax need to be updated
+	 * @return boolean true iff a tax request should be made
 	 */
 	protected function _changeRequiresTaxUpdate($quoteData, $quoteDiff) {
 		return (isset($quoteData['skus'])) && (
@@ -271,7 +272,7 @@ class TrueAction_Eb2cCore_Model_Session
 	 * - items with managed stock change
 	 * @param  array $quoteData Array of data extracted from the newest quote object
 	 * @param  array $quoteDiff Array of changes made to the quote
-	 * @return boolean Does tax need to be updated
+	 * @return boolean true iff an inventory quantity request should be made
 	 */
 	protected function _changeRequiresQuantityUpdate($quoteData, $quoteDiff) {
 		return isset($quoteData['skus']) &&
@@ -284,13 +285,37 @@ class TrueAction_Eb2cCore_Model_Session
 	 * - items with managed stock change
 	 * @param  array $quoteData Array of data extracted from the newest quote object
 	 * @param  array $quoteDiff Array of changes made to the quote
-	 * @return boolean Does tax need to be updated
+	 * @return boolean true iff an inventory details request should be made
 	 */
 	protected function _changeRequiresDetailsUpdate($quoteData, $quoteDiff) {
 		return isset($quoteData['skus']) && (
 			(isset($quoteDiff['skus']) && $this->_itemsIncludeManagedItem($quoteDiff['skus'])) ||
 			(isset($quoteDiff['shipping']) && $this->_itemsIncludeManagedItem($quoteData['skus']))
 		);
+	}
+	/**
+	 * Update the tax flag.
+	 * NOTE: this method cannot set the flag to be false if the flag was already set to be true.
+	 * @return self
+	 */
+	public function setTaxUpdateRequired($value) {
+		return $this->setData('tax_update_required_flag', $value || $this->getTaxUpdateRequiredFlag());
+	}
+	/**
+	 * Update the inventory quantity flag.
+	 * NOTE: this method cannot set the flag to be false if the flag was already set to be true.
+	 * @return self
+	 */
+	public function setQuantityUpdateRequired($value) {
+		return $this->setData('quantity_update_required_flag', $value || $this->getQuantityUpdateRequiredFlag());
+	}
+	/**
+	 * Update the inventory details flag.
+	 * NOTE: this method cannot set the flag to be false if the flag was already set to be true.
+	 * @return self
+	 */
+	public function setDetailsUpdateRequired($value) {
+		return $this->setData('details_update_required_flag', $value || $this->getDetailsUpdateRequiredFlag());
 	}
 	/**
 	 * Get that flag indicating that changes to the quote require tax data to be updated
@@ -315,27 +340,28 @@ class TrueAction_Eb2cCore_Model_Session
 	}
 	/**
 	 * Reset the tax flag
-	 * @return TrueAction_Eb2cCore_Model_Session $this object
+	 * @return self
 	 */
 	public function resetTaxUpdateRequired() {
-		return $this->setTaxUpdateRequiredFlag(false);
+		return $this->unsTaxUpdateRequiredFlag();
 	}
 	/**
 	 * Reset the inventory quantity flag
-	 * @return TrueAction_Eb2cCore_Model_Session $this object
+	 * @return self
 	 */
 	public function resetQuantityUpdateRequired() {
-		return $this->setQuantityUpdateRequiredFlag(false);
+		return $this->unsQuantityUpdateRequiredFlag();
 	}
 	/**
 	 * Reset the inventory details flag
-	 * @return TrueAction_Eb2cCore_Model_Session $this object
+	 * @return self
 	 */
 	public function resetDetailsUpdateRequired() {
-		return $this->setDetailsUpdateRequiredFlag(false);
+		return $this->unsDetailsUpdateRequiredFlag();
 	}
 	/**
 	 * Get any quote changes that were detected the last time the quote data was updated.
+	 * NOTE: method exists for explicitness.
 	 * @return array Array of changes made to the quote
 	 */
 	public function getQuoteChanges() {
@@ -347,7 +373,7 @@ class TrueAction_Eb2cCore_Model_Session
 	 * then be used to update flags as needed. Finally, the new data should replace
 	 * existing data.
 	 * @param  Mage_Sales_Model_Quote $quote New quote object
-	 * @return TrueAction_Eb2cCore_Model_Session $this object
+	 * @return self
 	 */
 	public function updateWithQuote(Mage_Sales_Model_Quote $quote) {
 		$oldData = $this->getCurrentQuoteData();
@@ -365,15 +391,9 @@ class TrueAction_Eb2cCore_Model_Session
 			$this
 				// set the update required flags - any flags that are already true should remain true
 				// flags should only be unset explicitly by the reset methods
-				->setTaxUpdateRequiredFlag(
-					$this->getTaxUpdateRequiredFlag() || $this->_changeRequiresTaxUpdate($newData, $quoteDiff)
-				)
-				->setQuantityUpdateRequiredFlag(
-					$this->getQuantityUpdateRequiredFlag() || $this->_changeRequiresQuantityUpdate($newData, $quoteDiff)
-				)
-				->setDetailsUpdateRequiredFlag(
-					$this->getDetailsUpdateRequiredFlag() || $this->_changeRequiresDetailsUpdate($newData, $quoteDiff)
-				)
+				->setTaxUpdateRequiredFlag($this->_changeRequiresTaxUpdate($newData, $quoteDiff))
+				->setQuantityUpdateRequiredFlag($this->_changeRequiresQuantityUpdate($newData, $quoteDiff))
+				->setDetailsUpdateRequiredFlag($this->_changeRequiresDetailsUpdate($newData, $quoteDiff))
 				->setCurrentQuoteData($newData);
 		};
 		// always update the changes - could go from having changes to no changes
@@ -387,7 +407,7 @@ class TrueAction_Eb2cCore_Model_Session
 	 * to the quote while checking inventory. This method should also update the
 	 * timestamp on the current quote data.
 	 * @param Mage_Sales_Model_Quote $quote The quote to update inventory data with
-	 * @return TrueAction_Eb2cCore_Model_Session $this object
+	 * @return self
 	 */
 	public function updateQuoteInventory(Mage_Sales_Model_Quote $quote)
 	{

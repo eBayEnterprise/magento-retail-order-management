@@ -13,8 +13,10 @@ class TrueAction_Eb2cInventory_Model_Observer
 	 * and updating the quote, can signal for the process to be interrupted which will
 	 * cause this method to throw a Mage_Core_Exception.
 	 * @param Varien_Event_Observer $observer
-	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
-	 * @throws Mage_Core_Exception If any of the service calls fail with a blocking status
+	 * @return self
+	 * @throws TrueAction_Eb2cInventory_Exception_Cart_Interrupt If any of the service calls fail with a blocking
+	 *         							                         status
+	 * @throws TrueAction_Eb2cInventory_Exception_Cart If any of the service calls fail with a non-blocking status
 	 */
 	public function checkInventory($observer)
 	{
@@ -22,23 +24,22 @@ class TrueAction_Eb2cInventory_Model_Observer
 		$quote = $observer->getEvent()->getQuote();
 		$qtyRequired = $coreSession->isQuantityUpdateRequired();
 		$dtsRequired = $coreSession->isDetailsUpdateRequired();
-		$checkoutSession = Mage::getSingleton('checkout/session');
 
 		if ($qtyRequired || $dtsRequired) {
 			Mage::helper('eb2cinventory/quote')->rollbackAllocation($quote);
-		}
-		if ($qtyRequired) {
-			$this->_updateQuantity($quote);
-		}
-		if ($dtsRequired) {
-			$this->_updateDetails($quote);
+			if ($qtyRequired) {
+				$this->_updateQuantity($quote);
+			}
+			if ($dtsRequired) {
+				$this->_updateDetails($quote);
+			}
 		}
 		return $this;
 	}
 	/**
 	 * Make an inventory quantity request and update the quote as needed.
 	 * @param  Mage_Sales_Model_Quote $quote     Quote object to make the request for and updated
-	 * @return [type]                            [description]
+	 * @return self
 	 */
 	protected function _updateQuantity(Mage_Sales_Model_Quote $quote)
 	{
@@ -49,12 +50,11 @@ class TrueAction_Eb2cInventory_Model_Observer
 	}
 	/**
 	 * Make an inventory details request and update the quote as needed.
-	 * If the detils request was successful (no unavailable items), also flag the
+	 * If the details request was successful (no unavailable items), also flag the
 	 * inventory as being updated. If any items came back as unavailable, mark the session data as
 	 * invalid as quantity will need to be run again at the next available opportunity.
 	 * @param  Mage_Sales_Model_Quote $quote     Quote object the request is for
-	 * @param  array                  $quoteDiff Array of changes in the quote from the last time it was checked.
-	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
+	 * @return self
 	 */
 	protected function _updateDetails(Mage_Sales_Model_Quote $quote)
 	{
@@ -65,13 +65,13 @@ class TrueAction_Eb2cInventory_Model_Observer
 	}
 	/**
 	 * Use the given request model to make a request and update the quote accordingly.
-	 * @param  TrueAction_Eb2cInventory_Model_Request_Interface $requestModel Request object used to make the request
-	 * @param  Mage_Sales_Model_Quote                           $quote        Quote object the request is for
-	 * @param  array                                            $quoteDiff    Array of changes found in the quote
-	 * @return TrueAction_Eb2cInventory_Model_Observer $this object
+	 * @param  TrueAction_Eb2cInventory_Model_Request_Abstract $requestModel Request object used to
+	 *                                                                       make the request
+	 * @param  Mage_Sales_Model_Quote $quote Quote object the request is for
+	 * @return string the response text
 	 */
 	protected function _makeRequestAndUpdate(
-		TrueAction_Eb2cInventory_Model_Request_Interface $requestModel,
+		TrueAction_Eb2cInventory_Model_Request_Abstract $requestModel,
 		Mage_Sales_Model_Quote $quote
 	) {
 		$response = null;

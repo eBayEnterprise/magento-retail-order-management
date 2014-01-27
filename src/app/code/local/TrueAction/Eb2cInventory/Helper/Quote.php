@@ -11,7 +11,7 @@ class TrueAction_Eb2cInventory_Helper_Quote
 	/**
 	 * If the quote has been allocated, roll it back.
 	 * @param  Mage_Sales_Model_Quote $quote Quote to rollback allocation for.
-	 * @return TrueAction_Eb2cInventory_Helper_Quote $this object
+	 * @return self
 	 */
 	public function rollbackAllocation(Mage_Sales_Model_Quote $quote)
 	{
@@ -22,7 +22,7 @@ class TrueAction_Eb2cInventory_Helper_Quote
 		return $this;
 	}
 	/**
-	 * Instanticate a new DOMXPath object with the given DOM Document
+	 * Instantiate a new DOMXPath object with the given DOM Document
 	 * @param  TrueAction_Dom_Document $doc DOM Document the XPath is for
 	 * @return DOMXPath
 	 */
@@ -48,7 +48,7 @@ class TrueAction_Eb2cInventory_Helper_Quote
 	 * @param Mage_Sales_Model_Quote $quote     Quote the message applied to
 	 * @param string                 $message   Message to add as a notice to the checkout session
 	 * @param string                 $errorCode Error code for the message
-	 * @return TrueAction_Eb2cInventory_Model_Request_Abstract $this object
+	 * @return self
 	 */
 	public function addCartNotice(Mage_Sales_Model_Quote $quote, $message, $errorCode)
 	{
@@ -61,7 +61,7 @@ class TrueAction_Eb2cInventory_Helper_Quote
 	 * item is no longer available.
 	 * @param  Mage_Sales_Model_Quote      $quote Quote to update
 	 * @param  Mage_Sales_Model_Quote_Item $item  Item to remove from the quote
-	 * @return TrueAction_Eb2cInventory_Helper_Quote $this item
+	 * @return self
 	 */
 	public function removeItemFromQuote(Mage_Sales_Model_Quote $quote, Mage_Sales_Model_Quote_Item $item)
 	{
@@ -78,7 +78,7 @@ class TrueAction_Eb2cInventory_Helper_Quote
 	 * @param  Mage_Sales_Model_Quote      $quote Quote to update
 	 * @param  Mage_Sales_Model_Quote_Item $item  The item to update
 	 * @param  float                       $qty   Quantity to set the item quantity to
-	 * @return TrueAction_Eb2cInveotory_Helper_Quantity $this object
+	 * @return self
 	 */
 	public function updateQuoteItemQuantity(Mage_Sales_Model_Quote $quote, Mage_Sales_Model_Quote_Item $item, $qty)
 	{

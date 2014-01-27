@@ -7,7 +7,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 	 * Data provider for the testMakeRequestForQuote method. Providers the type of
 	 * request to make (model alias), operation key, uri config key and whether the
 	 * request should be successful or not (whether or not to throw an exception from eb2ccore/api request method)
-	 * @return [type] [description]
+	 * @return array
 	 */
 	public function providerMakeRequestForQuote()
 	{
@@ -116,7 +116,11 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 	public function testNoRequestWithBadQuote()
 	{
 		$quote = $this->getModelMock('sales/quote');
-		$request = $this->getModelMock('eb2cinventory/request_abstract', array('_canMakeRequestWithQuote', '_buildRequestMessage'));
+		$request = $this->getModelMock(
+			'eb2cinventory/request_abstract',
+			array('_canMakeRequestWithQuote', '_buildRequestMessage'),
+			true
+		);
 		$api = $this->getModelMock('eb2ccore/api', array('request'));
 
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
@@ -148,7 +152,8 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 		$quote = $this->getModelMock('sales/quote');
 		$request = $this->getModelMock(
 			'eb2cinventory/request_abstract',
-			array('_canMakeRequestWithQuote', '_buildRequestMessage', '_handleEmptyResponse')
+			array('_canMakeRequestWithQuote', '_buildRequestMessage', '_handleEmptyResponse'),
+			true
 		);
 		$api = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
@@ -204,28 +209,11 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 		$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
 		$request->makeRequestForQuote($quote);
 	}
-	public function testBuildRequestMessage()
-	{
-		// get a concrete implementation of the abstract via a mock - don't actually mock any methods
-		$model = $this->getModelMock('eb2cinventory/request_abstract', null);
-		$quote = $this->getModelMock('sales/quote');
-		$helper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
-		$this->replaceByMock('helper', 'eb2ccore', $helper);
-		$doc = new TrueAction_Dom_Document();
-
-		$helper
-			->expects($this->once())
-			->method('getNewDomDocument')
-			->will($this->returnValue($doc));
-
-		$meth = $this->_reflectMethod($model, '_buildRequestMessage');
-		$this->assertSame($doc, $meth->invoke($model, $quote));
-	}
 	/**
 	 * Data provider to the testHandlingOfEmptyResponse test. Providers
 	 * whether an API model has a status code and if it does, whether that status
 	 * code is a blocking status.
-	 * @return array Args arrays.
+	 * @return array Args arrays
 	 */
 	public function providerHandlingOfEmptyResponses()
 	{
@@ -272,7 +260,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 		} else {
 			$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
 		}
-		$request = $this->getModelMock('eb2cinventory/request_abstract', null);
+		$request = $this->getModelMock('eb2cinventory/request_abstract', array('none'), true);
 		$meth = $this->_reflectMethod($request, '_handleEmptyResponse');
 		$meth->invoke($request, $api);
 	}

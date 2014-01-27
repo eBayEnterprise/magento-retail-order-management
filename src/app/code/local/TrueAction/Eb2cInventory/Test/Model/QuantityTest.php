@@ -51,7 +51,8 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 		$this->replaceByMock('helper', 'eb2cinventory', $helper);
 
 		$qtyRequestMsg = Mage::helper('eb2ccore')->getNewDomDocument();
-		$qtyRequestMsg->loadXML(preg_replace('/[ ]{2,}|[\t]/', '', str_replace(array("\r\n", "\r", "\n"), '',
+		$qtyRequestMsg->preserveWhiteSpace = false;
+		$qtyRequestMsg->loadXML(
 			'<?xml version="1.0" encoding="UTF-8"?>
 			<QuantityRequestMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 			<QuantityRequest lineId="item0" itemId="SKU_TEST_0"/>
@@ -59,7 +60,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			<QuantityRequest lineId="item2" itemId="SKU_TEST_2"/>
 			<QuantityRequest lineId="item3" itemId="SKU_TEST_3"/>
 			</QuantityRequestMessage>'
-		)));
+		);
 		$qty = Mage::getModel('eb2cinventory/quantity');
 		$meth = $this->_reflectMethod($qty, '_buildRequestMessage');
 		$this->assertSame(
@@ -67,39 +68,41 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			$meth->invoke($qty, $quote)->C14N()
 		);
 	}
-	/**
-	 * Test parsing quantity data from a quantity response.
-	 *
-	 * @test
-	 */
-	public function testGetAvailStockFromResponse()
+	public function provideForTestGetAvailStockFromResponse()
 	{
-		$responseMessage = '<?xml version="1.0" encoding="UTF-8"?>
-<QuantityResponseMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-	<QuantityResponse itemId="1234-TA" lineId="1">
-		<Quantity>1020</Quantity>
-	</QuantityResponse>
-	<QuantityResponse itemId="4321-TA" lineId="1">
-		<Quantity>55</Quantity>
-	</QuantityResponse>
-</QuantityResponseMessage>';
-
-		$this->assertSame(
-			array('1234-TA' => 1020, '4321-TA' => 55),
-			Mage::getModel('eb2cinventory/quantity')->getAvailableStockFromResponse($responseMessage)
+		return array(
+			array('non-empty-message'),
+			array('empty-message')
 		);
 	}
 	/**
-	 * Empty quantity response should be considered 0 stock
-	 *
+	 * Test parsing quantity data from a quantity response.
+	 * Test handling of empty response message.
 	 * @test
+	 * @dataProvider provideForTestGetAvailStockFromResponse
 	 */
-	public function testGetAvailStockFromEmptyResponse()
+	public function testGetAvailStockFromResponse($scenario)
 	{
-		$responseMessage = ' ';
+		$data = array(
+			'non-empty-message' => array(
+				'<?xml version="1.0" encoding="UTF-8"?>
+				<QuantityResponseMessage xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
+					<QuantityResponse itemId="1234-TA" lineId="1">
+						<Quantity>1020</Quantity>
+					</QuantityResponse>
+					<QuantityResponse itemId="4321-TA" lineId="1">
+						<Quantity>55</Quantity>
+					</QuantityResponse>
+				</QuantityResponseMessage>',
+				array('1234-TA' => 1020, '4321-TA' => 55)
+			),
+			'empty-message' => array(' ', array())
+		);
+
+		list($message, $result) = $data[$scenario];
 		$this->assertSame(
-			array(),
-			Mage::getModel('eb2cinventory/quantity')->getAvailableStockFromResponse($responseMessage)
+			$result,
+			Mage::getModel('eb2cinventory/quantity')->getAvailableStockFromResponse($message)
 		);
 	}
 	protected function _mockQuoteItem($sku, $name, $qty)
@@ -111,7 +114,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 		return $item;
 	}
 	/**
-	 * Test updating a quote with the repsonse from the inventory service.
+	 * Test updating a quote with the response from the inventory service.
 	 * When the available quantity is greater or equal to than the requested quantity, it should not change.
 	 * When the available stock is less than the request quantity and greater than 0, it should be set to the available quantity.
 	 * When the available stock is 0, the item should be removed from the quote.
@@ -145,7 +148,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			->method('getAvailableStockFromResponse')
 			->with($this->identicalTo($response))
 			->will($this->returnValue($availableStock));
-		$quote = $this->getModelMock('sales/quote', array('getAllItems'));
+		$quote = $this->getModelMock('sales/quote', array('getAllVisibleItems'));
 
 		// available item request inventory < available stock
 		$availableItem = $this->_mockQuoteItem($availSku, $availName, $availStock - 1);
@@ -170,7 +173,7 @@ class TrueAction_Eb2cInventory_Test_Model_QuantityTest
 			->will($this->returnSelf());
 		$quote
 			->expects($this->any())
-			->method('getAllItems')
+			->method('getAllVisibleItems')
 			->will($this->returnValue($items));
 
 		$quantity->updateQuoteWithResponse($quote, $response);

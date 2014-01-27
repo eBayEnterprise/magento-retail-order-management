@@ -1,7 +1,6 @@
 <?php
 class TrueAction_Eb2cInventory_Model_Details
 	extends TrueAction_Eb2cInventory_Model_Request_Abstract
-	implements TrueAction_Eb2cInventory_Model_Request_Interface
 {
 
 	// Key used by the eb2cinventory/data helper to identify the URI for this request
@@ -113,20 +112,29 @@ class TrueAction_Eb2cInventory_Model_Details
 		$inventoryData = array();
 		$coreHelper = Mage::helper('eb2ccore');
 		foreach ($responseXPath->query('//a:InventoryDetail') as $detail) {
-			$inventoryData[$detail->getAttribute('itemId')] = array(
-				'lineId' => $detail->getAttribute('lineId'),
-				'itemId' => $detail->getAttribute('itemId'),
-				'creationTime' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:CreationTime', $detail)),
-				'display' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:Display', $detail)),
-				'deliveryWindow_from' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:DeliveryWindow/a:From', $detail)),
-				'deliveryWindow_to' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:DeliveryWindow/a:To', $detail)),
-				'shippingWindow_from' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:ShippingWindow/a:From', $detail)),
-				'shippingWindow_to' => $coreHelper->extractNodeVal($responseXPath->query('a:DeliveryEstimate/a:ShippingWindow/a:To', $detail)),
-				'shipFromAddress_line1' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:Line1', $detail)),
-				'shipFromAddress_city' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:City', $detail)),
-				'shipFromAddress_mainDivision' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:MainDivision', $detail)),
-				'shipFromAddress_countryCode' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:CountryCode', $detail)),
-				'shipFromAddress_postalCode' => $coreHelper->extractNodeVal($responseXPath->query('a:ShipFromAddress/a:PostalCode', $detail)),
+			$delEst = $responseXPath->query('a:DeliveryEstimate[1]', $detail)->item(0);
+			$shipFromAdd = $responseXPath->query('a:ShipFromAddress[1]', $detail)->item(0);
+			$inventoryData[$detail->getAttribute('itemId')] = array_merge(
+				array(
+					'lineId' => $detail->getAttribute('lineId'),
+					'itemId' => $detail->getAttribute('itemId'),
+				),
+				array_map(
+					array($coreHelper, 'extractNodeVal'),
+					array(
+						'creationTime' => $responseXPath->query('a:CreationTime', $delEst),
+						'display' => $responseXPath->query('a:Display', $delEst),
+						'deliveryWindow_from' => $responseXPath->query('a:DeliveryWindow/a:From', $delEst),
+						'deliveryWindow_to' => $responseXPath->query('a:DeliveryWindow/a:To', $delEst),
+						'shippingWindow_from' => $responseXPath->query('a:ShippingWindow/a:From', $delEst),
+						'shippingWindow_to' => $responseXPath->query('a:ShippingWindow/a:To', $delEst),
+						'shipFromAddress_line1' => $responseXPath->query('a:Line1', $shipFromAdd),
+						'shipFromAddress_city' => $responseXPath->query('a:City', $shipFromAdd),
+						'shipFromAddress_mainDivision' => $responseXPath->query('a:MainDivision', $shipFromAdd),
+						'shipFromAddress_countryCode' => $responseXPath->query('a:CountryCode', $shipFromAdd),
+						'shipFromAddress_postalCode' => $responseXPath->query('a:PostalCode', $shipFromAdd),
+					)
+				)
 			);
 		}
 		return $inventoryData;
@@ -140,8 +148,8 @@ class TrueAction_Eb2cInventory_Model_Details
 	{
 		$items = array();
 		foreach ($responseXPath->query('//a:UnavailableItem') as $item) {
-			$items[$item->getAttribute('itemId')] = array(
-				'itemId' => $item->getAttribute('itemId'),
+			$itemId = $item->getAttribute('itemId');
+			$items[$itemId] = array(
 				'lineId' => $item->getAttribute('lineId'),
 			);
 		}
@@ -149,8 +157,8 @@ class TrueAction_Eb2cInventory_Model_Details
 	}
 	/**
 	 * Update quote with inventory details response data.
-	 * @param Mage_Sales_Model_Quote $quote the quote we use to get inventory details from eb2c
-	 * @param array $inventoryData, a parse associative array of eb2c response
+	 * @param Mage_Sales_Model_Quote $quote           the quote we use to get inventory details from eb2c
+	 * @param string                 $responseMessage xml text from the response
 	 * @return void
 	 */
 	public function updateQuoteWithResponse(Mage_Sales_Model_Quote $quote, $responseMessage)

@@ -49,7 +49,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest
 	 * When a quote's items quantities have changed, inventory quantities and details should
 	 * be updated. Test provider should run through all necessary scenarios, providing the expected
 	 * changes to the quote, a PHPUnit_Framework_MockObject_Matcher_InvokedCount for how many times
-	 * the update quanaity method should be called, a PHPUnit_Framework_MockObject_Matcher_InvokedCount
+	 * the update quantity method should be called, a PHPUnit_Framework_MockObject_Matcher_InvokedCount
 	 * for the number of times details should be updated, and whether or not the check should result
 	 * in the add to/update cart process should be blocked.
 	 * @param boolean $isQtyUpdated     Should inventory quantity be checked
@@ -125,8 +125,8 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest
 		$this->assertSame($observer, $observer->checkInventory($this->_mockObserverWithQuote($quote)));
 	}
 	/**
-	 * Data provider for the testUpdateQuantity test. Providers the expected response
-	 * from the inventory service - simulate a non-empty and an empty respnose.
+	 * Data provider for the testUpdateQuantity test. Provides the expected response
+	 * from the inventory service - simulate a non-empty and an empty response.
 	 * @return array Args array containing a string to simulate a non-empty or empty response.
 	 */
 	public function providerUpdateResponse()
@@ -251,8 +251,8 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest
 		$quote = $this->getModelMock('sales/quote');
 		$quoteDiff = array('skus' => array('45-123' => 4), 'shipping' => array(array('method' => 'flatrate')));
 		$request = $this->getModelMock(
-			'eb2cinventory/request_interface',
-			array('makeRequestForQuote', 'updateQuoteWithResponse')
+			'eb2cinventory/request_abstract',
+			array('makeRequestForQuote', 'updateQuoteWithResponse', '_buildRequestMessage')
 		);
 		$request
 			->expects($this->once())

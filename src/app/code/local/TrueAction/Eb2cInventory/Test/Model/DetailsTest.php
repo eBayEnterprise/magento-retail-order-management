@@ -275,6 +275,38 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		// not optimal but I can't figure out how to mock a DOMNodeList to work here
 		$inventoryDetails = array($detailNode);
 
+		// a single delivery estimate node extracted from the response
+		$delEstNode = $this->getMockBuilder('DOMNode')
+			->disableOriginalConstructor()
+			->setMethods(array('getAttribute'))
+			->getMock();
+
+		// mock a DOMNodeList to return the delivery estimate node.
+		$delEstNodeList = $this->getMockBuilder('DOMNodeList')
+			->disableOriginalConstructor()
+			->setMethods(array('item'))
+			->getMock();
+		$delEstNodeList->expects($this->atLeastOnce())
+			->method('item')
+			->with($this->identicalTo(0))
+			->will($this->returnValue($delEstNode));
+
+		// a single ShipFromAddress node extracted from the response
+		$shipFromNode = $this->getMockBuilder('DOMNode')
+			->disableOriginalConstructor()
+			->setMethods(array('getAttribute'))
+			->getMock();
+
+		// mock a DOMNodeList to return the delivery estimate node.
+		$shipFromAddress = $this->getMockBuilder('DOMNodeList')
+			->disableOriginalConstructor()
+			->setMethods(array('item'))
+			->getMock();
+		$shipFromAddress->expects($this->atLeastOnce())
+			->method('item')
+			->with($this->identicalTo(0))
+			->will($this->returnValue($shipFromNode));
+
 		// returnValueMap to the getAttribute calls on the InventoryDetail node
 		$detailNodeAttributes = array(
 			array('itemId', 'item-sku'),
@@ -314,18 +346,21 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$xpathValueMap = array(
 			// this query is from the root to return all of the InventoryDetail nodes
 			array('//a:InventoryDetail', null, null, $inventoryDetails),
+			// query to get the delivery estimate and ship from adress nodes
+			array('a:DeliveryEstimate[1]', $detailNode, null, $delEstNodeList),
+			array('a:ShipFromAddress[1]', $detailNode, null, $shipFromAddress),
 			// rest of the queries should all be relative to a InventoryDetail node, passed as context in second arg
-			array('a:DeliveryEstimate/a:CreationTime', $detailNode, null, $nodeLists['creationTime']),
-			array('a:DeliveryEstimate/a:Display', $detailNode, null, $nodeLists['display']),
-			array('a:DeliveryEstimate/a:DeliveryWindow/a:From', $detailNode, null, $nodeLists['deliveryWindow_from']),
-			array('a:DeliveryEstimate/a:DeliveryWindow/a:To', $detailNode, null, $nodeLists['deliveryWindow_to']),
-			array('a:DeliveryEstimate/a:ShippingWindow/a:From', $detailNode, null, $nodeLists['shippingWindow_from']),
-			array('a:DeliveryEstimate/a:ShippingWindow/a:To', $detailNode, null, $nodeLists['shippingWindow_to']),
-			array('a:ShipFromAddress/a:Line1', $detailNode, null, $nodeLists['shipFromAddress_line1']),
-			array('a:ShipFromAddress/a:City', $detailNode, null, $nodeLists['shipFromAddress_city']),
-			array('a:ShipFromAddress/a:MainDivision', $detailNode, null, $nodeLists['shipFromAddress_mainDivision']),
-			array('a:ShipFromAddress/a:CountryCode', $detailNode, null, $nodeLists['shipFromAddress_countryCode']),
-			array('a:ShipFromAddress/a:PostalCode', $detailNode, null, $nodeLists['shipFromAddress_postalCode']),
+			array('a:CreationTime', $delEstNode, null, $nodeLists['creationTime']),
+			array('a:Display', $delEstNode, null, $nodeLists['display']),
+			array('a:DeliveryWindow/a:From', $delEstNode, null, $nodeLists['deliveryWindow_from']),
+			array('a:DeliveryWindow/a:To', $delEstNode, null, $nodeLists['deliveryWindow_to']),
+			array('a:ShippingWindow/a:From', $delEstNode, null, $nodeLists['shippingWindow_from']),
+			array('a:ShippingWindow/a:To', $delEstNode, null, $nodeLists['shippingWindow_to']),
+			array('a:Line1', $shipFromNode, null, $nodeLists['shipFromAddress_line1']),
+			array('a:City', $shipFromNode, null, $nodeLists['shipFromAddress_city']),
+			array('a:MainDivision', $shipFromNode, null, $nodeLists['shipFromAddress_mainDivision']),
+			array('a:CountryCode', $shipFromNode, null, $nodeLists['shipFromAddress_countryCode']),
+			array('a:PostalCode', $shipFromNode, null, $nodeLists['shipFromAddress_postalCode']),
 		);
 		// returnValueMap for the helper extractNodeVal, when passed the given nodeList, should return the given value
 		$nodeValMap = array(
@@ -400,7 +435,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 			->will($this->returnValueMap($attributeValueMap));
 
 		$this->assertSame(
-			array('item-sku' => array('itemId' => 'item-sku', 'lineId' => 'line-id')),
+			array('item-sku' => array('lineId' => 'line-id')),
 			Mage::getModel('eb2cinventory/details')->extractUnavailableItems($xpath)
 		);
 	}
@@ -495,7 +530,7 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	 * When updateQuoteWithResponse is given a falsey value - empty string, null, false, 0 -
 	 * it shouldn't attempt to update the quote, extract any data, dispatch the
 	 * eb2cinventory_details_process_after event.
-	 * @return [type] [description]
+	 * @test
 	 */
 	public function testUpdateQuoteWithResponseEmptyResponse()
 	{
@@ -510,6 +545,9 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 		$details->updateQuoteWithResponse($quote, null);
 		$this->assertEventNotDispatched('eb2cinventory_details_process_after');
 	}
+	/**
+	 * @test
+	 */
 	public function testUpdateQuoteItemWithDetails()
 	{
 		$inventoryData = array(

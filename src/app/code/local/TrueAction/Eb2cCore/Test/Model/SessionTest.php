@@ -58,7 +58,10 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 			->method('getAllVisibleItems')
 			->will($this->returnValue($items));
 
-		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
 		$method = $this->_reflectMethod($session, '_extractQuoteSkuData');
 		$this->assertSame(
 			array(
@@ -69,6 +72,9 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 			$method->invoke($session, $quote)
 		);
 	}
+	/**
+	 * @test
+	 */
 	public function testExtractAddressData()
 	{
 		$addressData = array(
@@ -223,9 +229,14 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	public function testExtractQuoteBillingData($billingAddress, $extractedData)
 	{
 		$quote = $this->getModelMock('sales/quote', array('getBillingAddress'));
-		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(array('_extractAddressData'))->getMock();
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('_extractAddressData'))
+			->getMock();
 
-		$quote->expects($this->any())->method('getBillingAddress')->will($this->returnValue($billingAddress));
+		$quote->expects($this->any())
+			->method('getBillingAddress')
+			->will($this->returnValue($billingAddress));
 		if ($billingAddress) {
 			$session
 				->expects($this->once())
@@ -233,13 +244,18 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 				->with($this->identicalTo($billingAddress))
 				->will($this->returnValue($extractedData));
 		} else {
-			$session->expects($this->never())->method('_extractAddressData');
+			$session->expects($this->never())
+				->method('_extractAddressData');
 		}
 
 		$method = $this->_reflectMethod($session, '_extractQuoteBillingData');
 		$this->assertSame($extractedData, $method->invoke($session, $quote));
 	}
-	public function testExtactQuoteData()
+	/**
+	 * @test
+	 * @dataProvider providerExtractBillingData
+	 */
+	public function testExtractQuoteData()
 	{
 		$quote = $this->getModelMock('sales/quote');
 		$session = $this->getModelMockBuilder('eb2ccore/session')
@@ -265,6 +281,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	/**
 	 * Data provider for diffBilling test. Providers array of old address data,
 	 * new address data and the expected diff.
+	 * @test
 	 * @return array Args array
 	 */
 	public function providerDiffBilling()
@@ -280,7 +297,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	/**
 	 * Test diffing billing data. When data has changed, should return array
 	 * with "billing" key containing the changed data. Currently, this either returns
-	 * an emtpy array or the array with "billing" set to the full address data.
+	 * an empty array or the array with "billing" set to the full address data.
 	 * @param  array  $old  Old billing address
 	 * @param  array  $new  New billing address
 	 * @param  array  $diff Expected diff
@@ -419,7 +436,10 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 */
 	public function testDiffSkus($old, $new, $diff)
 	{
-		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
 		$method = $this->_reflectMethod($session, '_diffSkus');
 		$this->assertSame($diff, $method->invoke($session, $old, $new));
 	}
@@ -503,7 +523,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	/**
 	 * When quote data has expired, the entire new quote should be returned as the
 	 * changes to the quote - consider whole quote as having changed.
-	 * @return [type] [description]
+	 * @test
 	 */
 	public function testDiffQuoteDataReturnNewQuoteDataWhenDataExpired()
 	{
@@ -612,8 +632,8 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$this->assertFalse($session->isDetailsUpdateRequired());
 	}
 	/**
-	 * Test reseting the tax update required flag. Calling this method should force the
-	 * flag go to be set to false.
+	 * Test resetting the tax update required flag. Calling this method should force the
+	 * flag go to be unset.
 	 * @test
 	 */
 	public function testResetTaxUpdateRequired()
@@ -621,23 +641,26 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
 		$session->setTaxUpdateRequiredFlag(true);
 		$this->assertSame($session, $session->resetTaxUpdateRequired());
-		$this->assertFalse($session->getTaxUpdateRequiredFlag());
+		$this->assertNull($session->getTaxUpdateRequiredFlag());
 	}
 	/**
-	 * Test reseting the tax update required flag. Calling this method should force the
-	 * flag go to be set to false.
+	 * Test resetting the inventory quantity update required flag. Calling this method should
+	 * force the flag go to be unset.
 	 * @test
 	 */
 	public function testResetQuantityUpdateRequired()
 	{
-		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
 		$session->setQuantityUpdateRequiredFlag(true);
 		$this->assertSame($session, $session->resetQuantityUpdateRequired());
-		$this->assertFalse($session->getQuantityUpdateRequiredFlag());
+		$this->assertNull($session->getQuantityUpdateRequiredFlag());
 	}
 	/**
-	 * Test reseting the tax update required flag. Calling this method should force the
-	 * flag go to be set to false.
+	 * Test resetting the inventory details update required flag. Calling this method should force the
+	 * flag go to be unset.
 	 * @test
 	 */
 	public function testResetDetailsUpdateRequired()
@@ -645,7 +668,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
 		$session->setTaxUpdateRequiredFlag(true);
 		$this->assertSame($session, $session->resetDetailsUpdateRequired());
-		$this->assertFalse($session->getDetailsUpdateRequiredFlag());
+		$this->assertNull($session->getDetailsUpdateRequiredFlag());
 	}
 	/**
 	 * Test getting the diff of the "old" quote to the new quote. Should just return
@@ -654,7 +677,10 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 */
 	public function testGetQuoteChanges()
 	{
-		$session = $this->getModelMockBuilder('eb2ccore/session')->disableOriginalConstructor()->setMethods(null)->getMock();
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
 		$changes = array('skus' => array('45-123' => array('qty' => 3)));
 		$session->setQuoteChanges($changes);
 		$this->assertSame($changes, $session->getQuoteChanges());
@@ -668,10 +694,10 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	public function providerUpdateWithQuote()
 	{
 		return array(
-			//    currFlag newFlag finalFlag
-			array(true,    false,  true),
-			array(false,   true,   true),
-			array(false,   false,  false),
+			//    currFlag newFlag
+			array(true,    false),
+			array(false,   true),
+			array(false,   false),
 		);
 	}
 	/**
@@ -683,11 +709,10 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * be updated based on the changes made to the quote.
 	 * @param  boolean $currFlag    Is details already flagged for updates
 	 * @param  boolean $changeFlag  Should these changes require details updates
-	 * @param  boolean $finalFlag   What should the details flag finally be set to
 	 * @test
 	 * @dataProvider providerUpdateWithQuote
 	 */
-	public function testUpdateWithQuote($currFlag, $changeFlag, $finalFlag) {
+	public function testUpdateWithQuote($currFlag, $changeFlag) {
 		$quote = $this->getModelMock('sales/quote');
 		$session = $this->getModelMockBuilder('eb2ccore/session')
 			->disableOriginalConstructor()
@@ -733,7 +758,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$session
 			->expects($this->once())
 			->method('setTaxUpdateRequiredFlag')
-			->with($this->identicalTo($finalFlag))
+			->with($this->identicalTo($changeFlag))
 			->will($this->returnSelf());
 		// quantity flag
 		$session
@@ -748,7 +773,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$session
 			->expects($this->once())
 			->method('setQuantityUpdateRequiredFlag')
-			->with($this->identicalTo($finalFlag))
+			->with($this->identicalTo($changeFlag))
 			->will($this->returnSelf());
 		// details flag
 		$session
@@ -763,7 +788,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 		$session
 			->expects($this->once())
 			->method('setDetailsUpdateRequiredFlag')
-			->with($this->identicalTo($finalFlag))
+			->with($this->identicalTo($changeFlag))
 			->will($this->returnSelf());
 
 		$session
@@ -871,7 +896,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @test
 	 * @dataProvider providerQuoteDiffs
 	 */
-	public function testChangeRequiresTaxUpate(
+	public function testChangeRequiresTaxUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets
 	) {
 		$session = $this->getModelMockBuilder('eb2ccore/session')
@@ -901,7 +926,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @test
 	 * @dataProvider providerQuoteDiffs
 	 */
-	public function testChangeRequiresQuantityUpate(
+	public function testChangeRequiresQuantityUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets
 	) {
 		$session = $this->getModelMockBuilder('eb2ccore/session')
@@ -931,7 +956,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @test
 	 * @dataProvider providerQuoteDiffs
 	 */
-	public function testChangeRequiresDetailsUpate(
+	public function testChangeRequiresDetailsUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets
 	) {
 		$session = $this->getModelMockBuilder('eb2ccore/session')
@@ -1002,5 +1027,69 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 			));
 
 		$this->assertSame($session, $session->updateQuoteInventory($quote));
+	}
+
+	public function provideTrueFalseSequence()
+	{
+		return array(
+			array(true, false, true),
+			array(false, true, true),
+			array(false, false, false),
+			array(null, true, true),
+		);
+	}
+	/**
+	 * make sure that once the value becomes true it remains true not matter what is set
+	 * @param  bool $init    initial flag value
+	 * @param  bool $current new value
+	 * @param  bool $result  expected result
+	 * @test
+	 * @dataProvider provideTrueFalseSequence()
+	 */
+	public function testSetTaxUpdateRequired($init, $current, $result)
+	{
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('noMockedMethods'))
+			->getMock();
+		$session->setTaxUpdateRequiredFlag($init);
+		$session->setTaxUpdateRequired($current);
+		$this->assertSame($result, $session->getTaxUpdateRequiredFlag());
+	}
+	/**
+	 * make sure that once the value becomes true it remains true not matter what is set
+	 * @param  bool $init    initial flag value
+	 * @param  bool $current new value
+	 * @param  bool $result  expected result
+	 * @test
+	 * @dataProvider provideTrueFalseSequence()
+	 */
+	public function testSetQuantityUpdateRequired($init, $current, $result)
+	{
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('noMockedMethods'))
+			->getMock();
+		$session->setQuantityUpdateRequiredFlag($init);
+		$session->setQuantityUpdateRequired($current);
+		$this->assertSame($result, $session->getQuantityUpdateRequiredFlag());
+	}
+	/**
+	 * make sure that once the value becomes true it remains true not matter what is set
+	 * @param  bool $init    initial flag value
+	 * @param  bool $current new value
+	 * @param  bool $result  expected result
+	 * @test
+	 * @dataProvider provideTrueFalseSequence()
+	 */
+	public function testDetailsTaxUpdateRequired($init, $current, $result)
+	{
+		$session = $this->getModelMockBuilder('eb2ccore/session')
+			->disableOriginalConstructor()
+			->setMethods(array('noMockedMethods'))
+			->getMock();
+		$session->setDetailsUpdateRequiredFlag($init);
+		$session->setDetailsUpdateRequired($current);
+		$this->assertSame($result, $session->getDetailsUpdateRequiredFlag());
 	}
 }

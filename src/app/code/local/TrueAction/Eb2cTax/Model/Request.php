@@ -23,6 +23,10 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected $_shipGroupIds       = array();
 	protected $_addresses          = array();
 
+	/**
+	 * true if the request is valid; false otherwise
+	 * @var boolean
+	 */
 	protected $_isValid            = false;
 	/**
 	 * map skus to a quote item
@@ -31,7 +35,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected $_skuItemMap = array();
 
 	/**
-	 * Determine if the request object has enough data to work with.
+	 * @see _isValid
 	 * @return boolean
 	 */
 	public function isValid()
@@ -56,6 +60,10 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 		return $this->_doc;
 	}
 
+	/**
+	 * add the billing destination data to the request
+	 * @return void
+	 */
 	protected function _addBillingDestination($address)
 	{
 		$this->setBillingAddressTaxId($address->getTaxId());
@@ -76,7 +84,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	 * ships to.
 	 * @param  Mage_Sales_Model_Quote_Item $item The item to process
 	 * @param  Mage_Sales_Model_Quote_Addres $address The address the item ships to
-	 * @return TrueAction_Eb2cTax_Model_Request $this object
+	 * @return self
 	 */
 	public function _processItem($item, $address)
 	{
@@ -113,7 +121,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			foreach ($items as $item) {
 				$this->_processItem($item, $address);
 			}
-			// Consider the request as being valid if nothign has thrown an exception
+			// Consider the request as being valid if nothing has thrown an exception
 			// as any previous validation errors would have thrown an exception.
 			$this->_isValid = true;
 		}
@@ -334,22 +342,12 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
 			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getBaseShippingAmount()),
 			'shipping_tax_class' => $this->_getShippingTaxClass(),
-			'AdminOrigin' => $this->_extractAdminData(),
 		);
-		$data = $this->_extractItemDiscountData($item, $address, $data);
-
-		if (!$item->getProduct()->isVirtual()) {
-			try {
-				$data['ShippingOrigin'] = $this->_extractShippingData($item);
-			}
-			catch (Mage_Core_Exception $e) {
-				$data['ShippingOrigin'] = $data['AdminOrigin'];
-			}
-		}
-		else {
-			$data['ShippingOrigin'] = $data['AdminOrigin'];
-		}
-		return $data;
+		return array_merge(
+			$data,
+			$this->_extractShippingData($item),
+			$this->_extractItemDiscountData($item, $address)
+		);
 	}
 
 	/**
@@ -638,29 +636,29 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	}
 
 	/**
-     * update the item data in $outData with discount information and return
-     * the newly modified array.
+	 * update the item data in $outData with discount information and return
+	 * the newly modified array.
 	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
 	 * @param  Mage_Sales_Model_Quote_Address       $address
-	 * @param  array                                $data
+	 * @return  array
 	 */
 	protected function _extractItemDiscountData(
 		Mage_Sales_Model_Quote_Item_Abstract $item,
-		Mage_Sales_Model_Quote_Address $address,
-		array $outData
+		Mage_Sales_Model_Quote_Address $address
 	)
 	{
 		$discountCode = $this->_getDiscountCode($address);
-		$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
-		$outData['merchandise_discount_code']      = $discountCode;
-		$outData['merchandise_discount_amount']    = $item->getBaseDiscountAmount();
-		$outData['merchandise_discount_calc_duty'] = $isDutyCalcNeeded;
-
-		$isDutyCalcNeeded = $this->_isDutyCalcNeeded($item, $address);
-		$outData['shipping_discount_code']      = $discountCode;
-		$outData['shipping_discount_amount']    = $address->getBaseShippingDiscountAmount();
-		$outData['shipping_discount_calc_duty'] = $isDutyCalcNeeded;
-		return $outData;
+		// since we're sending prices with discounts already calculated in,
+		// there's no need to set the flag to anything other than "false".
+		$isDutyCalcNeeded = false;
+		return array(
+			'merchandise_discount_code'      => $discountCode,
+			'merchandise_discount_amount'    => $item->getBaseDiscountAmount(),
+			'merchandise_discount_calc_duty' => $isDutyCalcNeeded,
+			'shipping_discount_code'         => $discountCode,
+			'shipping_discount_amount'       => $address->getBaseShippingDiscountAmount(),
+			'shipping_discount_calc_duty'    => $isDutyCalcNeeded,
+		);
 	}
 
 	/**
@@ -702,45 +700,51 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	}
 
 	/**
-	 * extract shipping origin data from quote item originally setup by inventory details request to eb2c
-	 *
+	 * Extract and collect shipping origin data. Includes the 'AdminOrigin' and
+	 * 'ShippingOrigin' for the item.
 	 * @param Mage_Sales_Model_Quote_Item $item, the quote item to get inventory detail information from
-	 *
 	 * @return array, the shipping origin address data
 	 */
 	protected function _extractShippingData(Mage_Sales_Model_Quote_Item_Abstract $item)
 	{
 		$item = $this->_getQuoteItem($item);
 		$data = array(
-			'Line1'        => trim($item->getEb2cShipFromAddressLine1()),
-			'Line2'        => trim($item->getEb2cShipFromAddressLine2()),
-			'Line3'        => trim($item->getEb2cShipFromAddressLine3()),
-			'Line4'        => trim($item->getEb2cShipFromAddressLine4()),
-			'City'         => trim($item->getEb2cShipFromAddressCity()),
-			'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
-			'CountryCode'  => trim($item->getEb2cShipFromAddressCountryCode()),
-			'PostalCode'   => trim($item->getEb2cShipFromAddressPostalCode()),
+			'AdminOrigin' => $this->_extractAdminData(),
+			'ShippingOrigin' => array(
+				'Lines'        => array_map(function ($n) use ($item) { $m = "getEb2cShipFromAddressLine$n"; return trim($item->$m()); }, array(1, 2, 3, 4)),
+				'City'         => trim($item->getEb2cShipFromAddressCity()),
+				'MainDivision' => trim($item->getEb2cShipFromAddressMainDivision()),
+				'CountryCode'  => trim($item->getEb2cShipFromAddressCountryCode()),
+				'PostalCode'   => trim($item->getEb2cShipFromAddressPostalCode()),
+			)
 		);
-		$this->_validateShipFromData($data);
+		// Virtual items are considered to "ship" from the admin origin.
+		// Also, use admin origin for shipping origin as a "close enough" shipping
+		// origin for tax estimations when the actual shipping origin is missing or incomplete.
+		if ($item->getProduct()->isVirtual() || !$this->_validateShipFromData($data['ShippingOrigin'])) {
+			$data['ShippingOrigin'] = $data['AdminOrigin'];
+		}
 		return $data;
 	}
 
 	/**
-	 * validate the ship from address.
-	 * @param  array               $data address data
-	 * @throws Mage_Core_Exception if Line1, City, or CountryCode is blank.
-	 * @return null
+	 * Validate the ship from address - ensure the address has: at least one
+	 * street line, a city and country code. Return true if address meets these
+	 * criteria, false otherwise.
+	 * @param  array   $data address data
+	 * @return boolean
 	 */
 	protected function _validateShipFromData($data)
 	{
-		foreach (array('Line1', 'City', 'CountryCode') as $key) {
-			$value = $data[$key];
-			if ($value === '') {
-				throw new Mage_Core_Exception(
-					'[ ' . __CLASS__ . ' ] unable to extract Line1, City, and CountryCode parts of the ship from address'
-				);
+		if ($data['Lines'][0] === '') {
+			return false;
+		}
+		foreach (array('City', 'CountryCode') as $key) {
+			if ($data[$key] === '') {
+				return false;
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -783,7 +787,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	protected function _buildShippingOriginNode(TrueAction_Dom_Element $parent, array $shippingOrigin)
 	{
 		return $parent->createChild('ShippingOrigin')
-			->addChild('Line1', isset($shippingOrigin['Line1']) ? $shippingOrigin['Line1'] : $shippingOrigin['Lines'][0])
+			->addChild('Line1', $shippingOrigin['Lines'][0])
 			->addChild('City', $shippingOrigin['City'])
 			->addChild('MainDivision', $shippingOrigin['MainDivision'])
 			->addChild('CountryCode', $shippingOrigin['CountryCode'])

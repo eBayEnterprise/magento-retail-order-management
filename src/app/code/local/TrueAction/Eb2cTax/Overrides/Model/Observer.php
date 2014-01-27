@@ -7,6 +7,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 	 * Put quote address tax information into order
 	 *
 	 * @param Varien_Event_Observer $observer
+	 * @return self
 	 */
 	public function salesEventConvertQuoteAddressToOrder(Varien_Event_Observer $observer)
 	{
@@ -21,12 +22,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 			$order->setAppliedTaxes($taxes);
 			$order->setConvertingFromQuote(true);
 		}
+		return $this;
 	}
 
 	/**
 	 * Save order tax information
 	 *
 	 * @param Varien_Event_Observer $observer
+	 * @return self
 	 */
 	public function salesEventOrderAfterSave(Varien_Event_Observer $observer)
 	{
@@ -51,14 +54,14 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 				}
 			}
 		}
+		return $this;
 	}
 	/**
 	 * Clean up all of the tax flags at the end of collectTotals.
-	 * @return TrueAction_Eb2cTax_Overrides_Model_Observer $this object
+	 * @return self
 	 */
 	public function cleanupTaxRequestFlags()
 	{
-		Mage::log(sprintf('[%s] Cleaning out tax session', __CLASS__));
 		Mage::helper('eb2ctax')->cleanupSessionFlags();
 		return $this;
 	}
@@ -66,43 +69,79 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 	 * Send a tax request for the address and update the calculator with the
 	 * response and indicate taxes should be calculated using the response.
 	 * @param Varien_Event_Observer $observer
-	 * @return Mage_Tax_Model_Observer
+	 * @return self
 	 */
 	public function taxEventSubtotalCollectBefore(Varien_Event_Observer $observer)
 	{
 		$address = $observer->getEvent()->getAddress();
 		if (Mage::helper('eb2ctax')->isRequestForAddressRequired($address)) {
-			$calc = Mage::helper('tax')->getCalculator();
-			$request = $calc->getTaxRequest($address);
+			$this->_fetchTaxUpdate($address);
+		}
+		return $this;
+	}
+	/**
+	 * attempt to fetch udpated tax information for an address.
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 * @return self
+	 */
+	protected function _fetchTaxUpdate(Mage_Sales_Model_Quote_Address $address=null)
+	{
+		$request = Mage::helper('tax')->getCalculator()
+			->getTaxRequest($address);
 
-			// If this doesn't get flipped to false, consider the request as having failed.
-			$requestFailed = true;
-
-			if ($request && $request->isValid()) {
-				Mage::log('[' . __CLASS__ . '] Sending TaxDutyQuote request for quote address ' . $address->getId(), Zend_Log::DEBUG);
-
-				try {
-					$response = Mage::helper('eb2ctax')->sendRequest($request);
-				} catch (Mage_Core_Exception $e) {
-					$response = null;
-					Mage::log(sprintf('[%s] Execption encountered making the TaxDutyQuote request: %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
-				}
-
-				if ($response && $response->isValid()) {
-					$calc->setTaxResponse($response)
-						->setCalculationTrigger(true);
-
-					// safe to assume the request was made successfully - set the the flag so the session doesn't get flagged with a failure
-					$requestFailed = false;
-				} else {
-					Mage::log('[' . __CLASS__ . '] Unsuccessful TaxDutyQuote request: valid request received an invalid response', Zend_Log::WARN);
-				}
-
-			}
-			if ($requestFailed) {
-				Mage::log(sprintf('[%s] TaxDutyRequest failed.', __CLASS__), Zend_Log::DEBUG);
-				Mage::helper('eb2ctax')->failTaxRequest();
-			}
+		if ($request->isValid()) {
+			Mage::log(
+				'[' . __CLASS__ . '] Sending TaxDutyQuote request for quote address ' . $address->getId(),
+				Zend_Log::DEBUG
+			);
+			$this->_doRequest($request);
+		} else {
+			Mage::log(
+				'[' . __CLASS__ . '] Unable to send TaxDutyQuote request: The request was empty or invalid',
+				Zend_Log::DEBUG
+			);
+			Mage::helper('eb2ctax')->failTaxRequest();
+		}
+		return $this;
+	}
+	/**
+	 * send the request and process the response.
+	 * @param  TrueAction_Eb2cTax_Model_Request $request
+	 * @return self
+	 */
+	protected function _doRequest(TrueAction_Eb2cTax_Model_Request $request)
+	{
+		try {
+			$response = Mage::helper('eb2ctax')->sendRequest($request);
+			$this->_handleResponse($response);
+		} catch (Mage_Core_Exception $e) {
+			Mage::log(sprintf(
+				'[%s] Exception encountered making the TaxDutyQuote request: %s',
+				__CLASS__,
+				$e->getMessage()),
+				Zend_Log::WARN
+			);
+			Mage::helper('eb2ctax')->failTaxRequest();
+		}
+		return $this;
+	}
+	/**
+	 * check the response and trigger the next steps if necessary.
+	 * @param  TrueAction_Eb2cTax_Model_Response $response
+	 * @return self
+	 */
+	protected function _handleResponse(TrueAction_Eb2cTax_Model_Response $response)
+	{
+		$calc = Mage::helper('tax')->getCalculator();
+		if ($response->isValid()) {
+			$calc->setTaxResponse($response)
+				->setCalculationTrigger(true);
+		} else {
+			Mage::log(
+				'[' . __CLASS__ . '] Unsuccessful TaxDutyQuote request: valid request received an invalid response',
+				Zend_Log::WARN
+			);
+			Mage::helper('eb2ctax')->failTaxRequest();
 		}
 		return $this;
 	}
