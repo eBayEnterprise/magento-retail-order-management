@@ -14,7 +14,7 @@
  */
 class TrueAction_Eb2cOrder_Model_Create
 {
-	const	GENDER_MALE = 1;
+	const GENDER_MALE = 1;
 	const ESTIMATED_DELIVERY_DATE_MODE = 'LEGACY';
 	const ESTIMATED_DELIVERY_DATE_MESSAGETYPE = 'NONE';
 	/**
@@ -375,11 +375,20 @@ class TrueAction_Eb2cOrder_Model_Create
 	{
 		$edd = $orderItem->createChild('EstimatedDeliveryDate');
 		$edd->createChild('DeliveryWindow')
-			->addChild('From', $item->getEb2cDeliveryWindowFrom())
-			->addChild('To', $item->getEb2cDeliveryWindowTo());
+			->addChild('From',
+				date_format(date_create($item->getEb2cDeliveryWindowFrom()), 'c')
+			)
+			->addChild('To',
+				date_format(date_create($item->getEb2cDeliveryWindowTo()), 'c')
+			);
 		$edd->createChild('ShippingWindow')
-			->addChild('From', $item->getEb2cShippingWindowFrom())
-			->addChild('To', $item->getEb2cShippingWindowTo());
+			->addChild('From',
+				date_format(date_create($item->getEb2cShippingWindowFrom()), 'c')
+			)
+			->addChild('To',
+				date_format(date_create($item->getEb2cShippingWindowTo()), 'c')
+			);
+
 		$edd->addChild('Mode', self::ESTIMATED_DELIVERY_DATE_MODE)
 			->addChild('MessageType', self::ESTIMATED_DELIVERY_DATE_MESSAGETYPE);
 		return $this;

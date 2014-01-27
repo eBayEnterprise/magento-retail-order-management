@@ -561,16 +561,16 @@ INVALID_XML;
 			->getMock();
 		$item->expects($this->once())
 			->method('getEb2cDeliveryWindowFrom')
-			->will($this->returnValue('eb2c_delivery_window_from'));
+			->will($this->returnValue('2014-01-28T20:46:34+00:00'));
 		$item->expects($this->once())
 			->method('getEb2cDeliveryWindowTo')
-			->will($this->returnValue('eb2c_delivery_window_to'));
+			->will($this->returnValue('2014-01-29T17:36:08Z'));
 		$item->expects($this->once())
 			->method('getEb2cShippingWindowFrom')
-			->will($this->returnValue('eb2c_shipping_window_from'));
+			->will($this->returnValue('2014-01-21 17:36:08'));
 		$item->expects($this->once())
 			->method('getEb2cShippingWindowTo')
-			->will($this->returnValue('eb2c_shipping_window_to'));
+			->will($this->returnValue('2014-01-27T17:36:08Z'));
 		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$orderItem = $doc->addElement('OrderItem')
 			->documentElement;
@@ -582,10 +582,10 @@ INVALID_XML;
 			->invoke($testModel, $orderItem, $item);
 		$x = new DomXPath($doc);
 		$paths = array(
-			'EstimatedDeliveryDate/DeliveryWindow/From[.="eb2c_delivery_window_from"]',
-			'EstimatedDeliveryDate/DeliveryWindow/To[.="eb2c_delivery_window_to"]',
-			'EstimatedDeliveryDate/ShippingWindow/From[.="eb2c_shipping_window_from"]',
-			'EstimatedDeliveryDate/ShippingWindow/To[.="eb2c_shipping_window_to"]',
+			'EstimatedDeliveryDate/DeliveryWindow/From[.="2014-01-28T20:46:34+00:00"]',
+			'EstimatedDeliveryDate/DeliveryWindow/To[.="2014-01-29T17:36:08+00:00"]',
+			'EstimatedDeliveryDate/ShippingWindow/From[.="2014-01-21T17:36:08+00:00"]',
+			'EstimatedDeliveryDate/ShippingWindow/To[.="2014-01-27T17:36:08+00:00"]',
 			'EstimatedDeliveryDate/Mode[.="LEGACY"]',
 			'EstimatedDeliveryDate/MessageType[.="NONE"]',
 		);
