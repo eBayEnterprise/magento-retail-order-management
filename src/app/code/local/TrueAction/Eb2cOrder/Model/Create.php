@@ -524,7 +524,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$line++;
 		}
 		$addressElement->createChild('City', $address->getCity());
-		$addressElement->createChild('MainDivision', $address->getRegion());
+		$addressElement->createChild('MainDivision', $address->getRegionCode());
 		$addressElement->createChild('CountryCode', $address->getCountryId());
 		$addressElement->createChild('PostalCode', $address->getPostcode());
 	}
