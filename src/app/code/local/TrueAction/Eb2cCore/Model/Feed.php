@@ -30,6 +30,16 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		}
 	}
 	/**
+	 * Return configuration registry
+	 * @return eb2ccore/config_registry+eb2ccore/config
+	 */
+	protected function _getCoreConfig() {
+		return Mage::getModel('eb2ccore/config_registry')
+			->setStore(null)
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+	}
+
+	/**
 	 * Assigns our folder variable and does the recursive creation
 	 * @param string $path the full path to the directory to set up.
 	 * @return boolean
@@ -50,9 +60,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	protected function _remoteCall($callable, $argArray)
 	{
 		$connectionAttempts = 0;
-		$coreConfig = Mage::getModel('eb2ccore/config_registry')
-			->setStore(null)
-			->addConfigModel(Mage::getModel('eb2ccore/config'));
+		$coreConfig = $this->_getCoreConfig(); 
 		while(true) {
 			try {
 				$connectionAttempts++;
@@ -119,6 +127,11 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 					$cfg::FILETRANSFER_CONFIG_PATH,
 				)
 			);
+			// Acknowledge Receipt of newly received files. If we decide to remove after receipt - this is the place.
+			$newlyReceivedFeeds = $this->lsInboundDir();
+			foreach ($newlyReceivedFeeds as $newFeedPath) {
+				$this->_acknowledgeReceipt($newFeedPath);
+			}
 		} else {
 			Mage::log(sprintf('[%s] Invalid sftp configuration, please configure sftp setting.', __METHOD__), Zend_Log::WARN);
 		}
@@ -199,5 +212,65 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	public function mvToArchiveDir($filePath)
 	{
 		return $this->_mvToDir($filePath, $this->getArchivePath());
+	}
+	/**
+	 * Build the Acknowledgement file's name
+	 * @param eventType (as parsed from newly-received feed)
+	 * @return string base filename
+	 */
+	protected function _getBaseAckFileName($eventType)
+	{
+		$coreConfig = $this->_getCoreConfig();
+		$timestamp  = date($coreConfig->feedAckTimestampFormat);
+		$filename   = str_replace(
+			array('{eventtype}', '{clientid}', '{storeid}', '{timestamp}'),
+			array($eventType, $coreConfig->clientId, $coreConfig->storeId, $timestamp),
+			$coreConfig->feedAckFilenamePattern
+		);
+		return $filename;
+	}
+	/**
+	 * Validate DOM created for an Acknowledgement
+	 * @param TrueAction_Dom_Document
+	 * @throws TrueAction_Eb2cCore_Exception if validation fails
+	 * @return self
+	*/
+	protected function _validateAckDom(TrueAction_Dom_Document $dom)
+	{
+		if (!Mage::getModel('eb2ccore/api', array('xsd' => $this->_getCoreConfig()->feedAckXsd))
+				->schemaValidate($dom))
+		{
+			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.');
+		}
+		return $this;
+	}
+	/**
+	 * Acknoweldge the XML Feed file at xmlToAckPath.
+	 * @param xmlToAckPath path to a feed we want to acknowledge
+	 * @return self
+	 */
+	protected function _acknowledgeReceipt($xmlToAckPath)
+	{
+		$coreHelper  = Mage::helper('eb2ccore');
+		$xmlToAckDom = $coreHelper->getNewDomDocument(); // The file I am acknowledging
+		$ackDom      = $coreHelper->getNewDomDocument(); // The acknowledgement file itself
+
+		$xmlToAckDom->load($xmlToAckPath);
+		$xpath     = new DOMXpath($xmlToAckDom);
+		$messageId = $coreHelper->extractQueryNodeValue($xpath, '//MessageHeader/MessageData/MessageId');
+		$eventType = $coreHelper->extractQueryNodeValue($xpath, '//MessageHeader/EventType');
+
+		$ack = $ackDom->addElement('Acknowledgement', null)->firstChild;
+		$ack->createChild('MessageHeader'/*, TODO Add in new header code */);
+		$ack->createChild('FileName', basename($xmlToAckPath));
+		$ack->createChild('ReceivedDateAndTime', date('c'));
+		$ack->createChild('ReferenceMessageId', $messageId);
+
+		$this->_validateAckDom($ackDom);
+		$filename = $this->getOutboundPath() . DS . $this->_getBaseAckFileName($eventType);
+		$ackDom->save($filename);
+		$coreHelper->sendFile($filename, $this->_getCoreConfig()->feedAckRemotePath);
+		$this->mvToArchiveDir($filename);
+		return $this;
 	}
 }

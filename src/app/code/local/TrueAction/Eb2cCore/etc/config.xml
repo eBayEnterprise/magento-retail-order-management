@@ -82,6 +82,12 @@
 						<feed>1</feed>
 					</eb2cproduct>
 				</available_models>
+				<acknowledgement>
+					<remote_path><![CDATA[/Outbox/Acknowledgement/]]></remote_path>
+					<timestamp_format><![CDATA[YmdHis]]></timestamp_format>
+					<filename_pattern><![CDATA[Ack_{eventtype}_{clientid}_{storeid}_{timestamp}.xml]]></filename_pattern>
+					<xsd><![CDATA[AcknowledgementV11.xsd]]></xsd>
+				</acknowledgement>
 			</feed>
 			<service>
 				<order>

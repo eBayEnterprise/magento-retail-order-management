@@ -103,6 +103,18 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Get value of node specified for query. In accordance with existing local custom here,
+	 * named 'extract', and calls extractNodeValue to ensure consistency.
+	 * @param DOMXpath xpath object
+	 * @param xpath query string
+	 * @return string value found at node found by query
+	 */
+	public function extractQueryNodeValue(DOMXpath $xpath, $query)
+	{
+		return $this->extractNodeVal($xpath->query($query));
+	}
+
+	/**
 	 * extract node value
 	 *
 	 * @return string, the extracted content
@@ -134,5 +146,22 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		// Deliberately bypass configurator so we can dynamically lookup.
 		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
+	}
+
+
+	/**
+	 * Send a file
+	 * @param string filepath to send
+	 * @param string remotePath where to send it.
+	 * @return self
+	 */
+	public function sendFile($fileName, $remotePath)
+	{
+		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
+		try {
+			$sftp->sendFile($fileName, $remotePath);
+		} catch(Exception $e) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_Failure("Error sending {$fileName} to {$remotePath}" . $e->getMessage());
+		}
 	}
 }

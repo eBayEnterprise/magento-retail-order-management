@@ -1,0 +1,24 @@
+vfs:
+  sample:
+    good.xml: |
+       <FooFeed>
+        <MessageHeader>
+          <MessageData>
+            <MessageId>7</MessageId>
+          </MessageData>
+        </MessageHeader>
+       </FooFeed>
+    bad.xml: |
+       <OtherFooFeed>
+        <MessageHeader>
+          <MessageData />
+        </MessageHeader>
+       </OtherFooFeed>
+    empty.xml: |
+       <OtherOtherFooFeed>
+        <MessageHeader>
+          <MessageData>
+            <MessageId />
+          </MessageData>
+        </MessageHeader>
+       </OtherOtherFooFeed>

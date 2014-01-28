@@ -305,7 +305,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_remoteCall', 'getInboundPath'))
+			->setMethods(array('_remoteCall', 'getInboundPath', 'lsInboundDir', '_acknowledgeReceipt'))
 			->getMock();
 		$feedModelMock->expects($this->once())
 			->method('_remoteCall')
@@ -320,6 +320,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$feedModelMock->expects($this->once())
 			->method('getInboundPath')
 			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'));
+		$feedModelMock->expects($this->once())
+			->method('_acknowledgeReceipt')
+			->will($this->returnSelf());
+		$feedModelMock->expects($this->once())
+			->method('lsInboundDir')
+			->will($this->returnValue(array('dummyfile.xml')));
 
 		$feedModelMock->fetchFeedsFromRemote('/Inbox/', 'ItemMaster*.xml');
 	}
@@ -548,6 +554,134 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$this->assertSame(
 			true,
 			$feedModelMock->mvToArchiveDir('feed/Sample1.xml')
+		);
+	}
+
+	/**
+	 * Test make the base acknowledgement file name from config values
+	 * @test
+	 * @loadFixture loadConfig.yaml
+	 */
+	public function test_getBaseAckFileName()
+	{
+		$phonyFileName = 'utAck_utEventType_utClientId_utStoreId_utDate.xml';
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertSame(
+			$phonyFileName,
+			$this->_reflectMethod($feedModelMock, '_getBaseAckFileName')
+				->invoke($feedModelMock, 'utEventType')
+		);
+	}
+
+	/**
+	 * Test that we'll thrown an exception with invalid dom
+	 * @test
+	 * @loadFixture loadAckSampleSetup.yaml
+	 * @expectedException TrueAction_Eb2cCore_Exception
+	 */
+	public function test_validateAckDomFails()
+	{
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('schemaValidate'))
+			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('schemaValidate')
+			->will($this->returnValue(false));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+		$vfs     = $this->getFixture()->getVfs();
+		$testDoc = Mage::helper('eb2ccore')->getNewDomDocument();
+
+		$testDoc->load($vfs->url('sample/test.xml'));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertSame(
+			'Galimatias_DoesntMatter_Expect_Exception_Before_This',
+			$this->_reflectMethod($feedModelMock, '_validateAckDom')
+				->invoke($feedModelMock, $testDoc)
+		);
+	}
+
+	/**
+	 * Test that we'll thrown an exception with invalid dom
+	 * @test
+	 * @loadFixture loadAckSampleSetup.yaml
+	 */
+	public function test_validateAckDomSucceeds()
+	{
+		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
+			->disableOriginalConstructor()
+			->setMethods(array('schemaValidate'))
+			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('schemaValidate')
+			->will($this->returnValue(true));
+		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
+		$vfs     = $this->getFixture()->getVfs();
+		$testDoc = Mage::helper('eb2ccore')->getNewDomDocument();
+
+		$testDoc->load($vfs->url('sample/test.xml'));
+
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cCore_Model_Feed',
+			$this->_reflectMethod($feedModelMock, '_validateAckDom')
+				->invoke($feedModelMock, $testDoc)
+		);
+	}
+
+	/**
+	 * Test that we'll successfully validate um valid dom
+	 * @test
+	 * @loadFixture loadAckSampleSetup.yaml
+	 */
+	public function test_acknowledgeReceipt()
+	{
+		$vfs      = $this->getFixture()->getVfs();
+		$testFile = $vfs->url('sample/test.xml'); // (Seems nutty, but actually, we should be able to ack an ack O.o)
+
+		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('sendFile'))
+			->getMock();
+		$coreFeedHelperMock->expects($this->once())
+			->method('sendFile')
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2ccore', $coreFeedHelperMock);
+
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_validateAckDom', 'getOutboundPath', '_getBaseAckFileName','mvToArchiveDir'))
+			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('_validateAckDom')
+			->will($this->returnSelf());
+		$feedModelMock->expects($this->once())
+			->method('getOutboundPath')
+			->will($this->returnValue($vfs->url('sample/outbound')));
+		$feedModelMock->expects($this->once())
+			->method('_getBaseAckFileName')
+			->will($this->returnValue('testOutBound.xml'));
+		$feedModelMock->expects($this->once())
+			->method('mvToArchiveDir')
+			->will($this->returnValue(true));
+
+		$this->assertInstanceOf(
+			'TrueAction_Eb2cCore_Model_Feed',
+			$this->_reflectMethod($feedModelMock, '_acknowledgeReceipt')
+				->invoke($feedModelMock, $testFile)
 		);
 	}
 }

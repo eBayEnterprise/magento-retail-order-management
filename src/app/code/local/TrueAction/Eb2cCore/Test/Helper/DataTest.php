@@ -237,4 +237,40 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$normalized = Mage::helper('eb2ccore')->normalizeSku($styleId, $catalogId);
 		$this->assertSame($this->expected('style-%s-%s', $styleId, $catalogId)->getStyleId(), $normalized);
 	}
+
+	/**
+	 * Testing the extractQueryNodeValue method
+	 * @test
+	 * @loadFixture
+	 */
+	public function testExtractQueryNodeValue()
+	{
+		$vfs           = $this->getFixture()->getVfs();
+		$coreHelper    = Mage::helper('eb2ccore');
+		$mySampleQuery = '//MessageHeader/MessageData/MessageId';
+
+		// Good returns the value of the MessageId string:
+		$goodDoc = $coreHelper->getNewDomDocument();
+		$goodDoc->load($vfs->url('sample/good.xml'));
+		$this->assertSame(
+			'7',
+			$coreHelper->extractQueryNodeValue(new DOMXpath($goodDoc), $mySampleQuery)
+		);
+
+		// 'Bad' in this case node not found - returns null
+		$badDoc = $coreHelper->getNewDomDocument();
+		$badDoc->load($vfs->url('sample/bad.xml'));
+		$this->assertSame(
+			null,
+			$coreHelper->extractQueryNodeValue(new DOMXpath($badDoc), $mySampleQuery)
+		);
+
+		// An empty node should return an empty string ''
+		$emptyDoc = $coreHelper->getNewDomDocument();
+		$emptyDoc->load($vfs->url('sample/empty.xml'));
+		$this->assertSame(
+			'',
+			$coreHelper->extractQueryNodeValue(new DOMXpath($emptyDoc), $mySampleQuery)
+		);
+	}
 }
