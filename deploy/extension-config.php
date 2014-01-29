@@ -16,14 +16,14 @@ function _createTempDir() {
  * Create a tar or the extension and return the location of the create .tar
  * @return string
  */
-function _createArchive($location, $archiveName) {
+function _createArchive($location, $archiveName, array $extensions) {
 	$path = $location . DIRECTORY_SEPARATOR . $archiveName;
 	echo "Creating archive @ $path\n";
-	$cmd = sprintf(
-		'for dir in src extensions/*/src/; do (cd "$dir" && tar --exclude "TrueAction/*/Test" -rpf "%s" .); done',
-		$path
-	);
-	shell_exec($cmd);
+	$cmdPat = "cd '%s' && tar --exclude 'TrueAction/*/Test' --exclude='order_id_init.php' -rpf '$path' .";
+	shell_exec(sprintf($cmdPat, 'src'));
+	foreach($extensions as $dir) {
+		shell_exec(sprintf($cmdPat, "extensions/$dir/src"));
+	}
 	return $path;
 }
 /**
@@ -43,7 +43,8 @@ $newVersion = _incrementVersion($oldVersion);
 echo "Setup config for upgrade from {$oldVersion} to {$newVersion}\n";
 $tempDir = _createTempDir();
 $archiveName = 'ebay_enterprise_exchange.tar';
-_createArchive($tempDir, $archiveName);
+$extensions = array('dom', 'filetransfer', 'mage_log', 'pbridge');
+_createArchive($tempDir, $archiveName, $extensions);
 $releaseNotes = trim(shell_exec(sprintf("git log --pretty=format:'%%s' \"%s\"..", $oldVersion)));
 
 return array(
@@ -100,5 +101,5 @@ return array(
 	//    to the extension's name and min/max required versions
 	//Example:
 	//    array('json', array('name' => 'mongo', 'min' => '1.3.0', 'max' => '1.4.0'))
-	'extensions'             => array('')
+	'extensions'             => array()
 );
