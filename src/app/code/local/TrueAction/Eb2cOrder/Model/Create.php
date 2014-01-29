@@ -564,7 +564,7 @@ class TrueAction_Eb2cOrder_Model_Create
 					$thisPayment = $payments->createChild($payMethodNode);
 					$paymentContext = $thisPayment->createChild('PaymentContext');
 					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payId));
-					$paymentContext->createChild('TenderType', $payMethod);
+					$paymentContext->createChild('TenderType', $payment->getAdditionalInformation('tender_code'));
 					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getAdditionalInformation('gateway_transaction_id'))
 						->setAttribute('isToken', 'true');
 					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payId));
