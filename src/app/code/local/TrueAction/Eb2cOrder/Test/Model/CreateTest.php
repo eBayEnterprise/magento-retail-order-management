@@ -943,14 +943,15 @@ INVALID_XML;
 			->method('getCreatedAt')
 			->will($this->returnValue('adate'));
 		$pmt
-			->expects($this->exactly(5))
+			->expects($this->atLeastOnce())
 			->method('getAdditionalInformation')
 			->will($this->returnValueMap(array(
+				array('gateway_transaction_id', 'anid'),
 				array('response_code', 'aresponsecode'),
 				array('bank_authorization_code', 'abankauthcode'),
 				array('cvv2_response_code', 'cvv'),
 				array('avs_response_code', 'anavscode'),
-				array('cc_expiration_date', 'ccexp'),
+				array('expiration_date', 'ccexp'),
 			)));
 		$pmt
 			->expects($this->once())
