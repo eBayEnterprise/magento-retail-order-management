@@ -947,7 +947,7 @@ INVALID_XML;
 			->method('getAdditionalInformation')
 			->will($this->returnValueMap(array(
 				array('gateway_transaction_id', 'anid'),
-				array('response_code', 'aresponsecode'),
+				array('response_code', 'AP01'),
 				array('bank_authorization_code', 'abankauthcode'),
 				array('cvv2_response_code', 'cvv'),
 				array('avs_response_code', 'anavscode'),
@@ -987,7 +987,7 @@ INVALID_XML;
 		$create->expects($this->any())->method('_buildContext')->will($this->returnSelf());
 		// Okay, here goes everything.
 		$create->buildRequest($order);
-		$expectedXml = '<_><Payment><BillingAddress ref="billing_1"></BillingAddress><Payments><CreditCard><PaymentContext><PaymentSessionId>paymentanid</PaymentSessionId><TenderType>Pbridge_eb2cpayment_cc</TenderType><PaymentAccountUniqueId isToken="true">anid</PaymentAccountUniqueId></PaymentContext><PaymentRequestId>paymentanid</PaymentRequestId><CreateTimeStamp>adate</CreateTimeStamp><Amount>12.34</Amount><Authorization><ResponseCode>aresponsecode</ResponseCode><BankAuthorizationCode>abankauthcode</BankAuthorizationCode><CVV2ResponseCode>cvv</CVV2ResponseCode><AVSResponseCode>anavscode</AVSResponseCode><AmountAuthorized>12.95</AmountAuthorized></Authorization><ExpirationDate>ccexp</ExpirationDate></CreditCard></Payments></Payment><Context></Context></_>';
+		$expectedXml = '<_><Payment><BillingAddress ref="billing_1"></BillingAddress><Payments><CreditCard><PaymentContext><PaymentSessionId>paymentanid</PaymentSessionId><TenderType>Pbridge_eb2cpayment_cc</TenderType><PaymentAccountUniqueId isToken="true">anid</PaymentAccountUniqueId></PaymentContext><PaymentRequestId>paymentanid</PaymentRequestId><CreateTimeStamp>adate</CreateTimeStamp><Amount>12.34</Amount><Authorization><ResponseCode>APPROVED</ResponseCode><BankAuthorizationCode>abankauthcode</BankAuthorizationCode><CVV2ResponseCode>cvv</CVV2ResponseCode><AVSResponseCode>anavscode</AVSResponseCode><AmountAuthorized>12.95</AmountAuthorized></Authorization><ExpirationDate>ccexp</ExpirationDate></CreditCard></Payments></Payment><Context></Context></_>';
 		$this->assertXmlStringEqualsXmlString($expectedXml, $pmtNd->C14N());
 	}
 }

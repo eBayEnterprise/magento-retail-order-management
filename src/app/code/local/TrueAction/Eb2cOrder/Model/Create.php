@@ -571,7 +571,8 @@ class TrueAction_Eb2cOrder_Model_Create
 					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 					$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 					$auth = $thisPayment->createChild('Authorization');
-					$auth->createChild('ResponseCode', $payment->getAdditionalInformation('response_code'));
+					$responseCode = ($payment->getAdditionalInformation('response_code') === 'AP01' ? 'APPROVED' : 'DECLINED');
+					$auth->createChild('ResponseCode', $responseCode);
 					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
 					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
