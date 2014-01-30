@@ -4,6 +4,8 @@ import json
 from os.path import basename
 import requests
 import sys
+from subprocess import Popen, PIPE
+from datetime import datetime as dt
 
 api_endpoint = 'https://github.scm.corp.ebay.com/api/v3'
 
@@ -13,10 +15,48 @@ def create_header_with_auth(auth_token):
 		'Authorization': 'token {key}'.format(key=auth_token),
 	}
 
+def create_tag(repo, version, auth_headers):
+	"""
+	Create a tag object and annotated tag reference for the new release.
+	"""
+	sha = Popen(["git", "show-ref", "-s", "HEAD"], stdout=PIPE).communicate()[0]
+	tag_obj_data = {
+		"tag": version,
+		"message": "Version {version}".format(version=version),
+		"object": sha,
+		"type": "commit",
+		"tagger": {
+			"name": "Jenkins",
+			"email": "msmith3@ebay.com",
+			"date": dt.isoformat(dt.now().replace(microsecond=0))
+		},
+	}
+	# If you only create the tag without the object
+	# it creates a lightweight tag. We want an annotated one.
+	tag_data = {
+		"ref": "refs/tags/{tag}".format(tag=version),
+		"sha": sha,
+	}
+	headers = dict(auth_headers.items() + {'Content-Type': 'application/json',}.items())
+	requests.post(
+		"{endpoint}/repos/{repo}/git/tags".format(endpoint=api_endpoint,repo=repo),
+		data=json.dumps(tag_obj_data),
+		headers=headers,
+	).raise_for_status()
+	requests.post(
+		"{endpoint}/repos/{repo}/git/refs".format(endpoint=api_endpoint,repo=repo),
+		data=json.dumps(tag_data),
+		headers=headers,
+	).raise_for_status()
+
 def create_release(repo, version, auth_headers):
 	"""
 	Create a new release and return the id of the new release.
 	"""
+	# For now, manually create the annotated tag and push that
+	# because github releases seems to create lightweight tags
+	# by default.
+	create_tag(repo,version,auth_headers)
 	release_data = {
 		'tag_name': version,
 		'target_commitish': 'master',
