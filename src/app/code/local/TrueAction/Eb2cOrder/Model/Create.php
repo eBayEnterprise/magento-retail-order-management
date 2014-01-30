@@ -576,6 +576,9 @@ class TrueAction_Eb2cOrder_Model_Create
 					$auth->createChild('BankAuthorizationCode', $payment->getAdditionalInformation('bank_authorization_code'));
 					$auth->createChild('CVV2ResponseCode', $payment->getAdditionalInformation('cvv2_response_code'));
 					$auth->createChild('AVSResponseCode', $payment->getAdditionalInformation('avs_response_code'));
+					$auth->createChild('PhoneResponseCode', $payment->getAdditionalInformation('phone_response_code'));
+					$auth->createChild('NameResponseCode', $payment->getAdditionalInformation('name_response_code'));
+					$auth->createChild('EmailResponseCode', $payment->getAdditionalInformation('email_response_code'));
 					$auth->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 					$thisPayment->createChild('ExpirationDate', $payment->getAdditionalInformation('expiration_date'));
 				} elseif ($payMethodNode === 'PayPal') {
