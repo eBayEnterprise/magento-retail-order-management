@@ -335,7 +335,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		}
 		// Tax on the Merchandise:
 		$merchTaxFragment = $this->_buildTaxDataNodes(
-			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::MERCHANDISE)
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::MERCHANDISE), $item
 		);
 		if ($merchTaxFragment->hasChildNodes()) {
 			$merchandise->appendChild($merchTaxFragment);
@@ -349,7 +349,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$shipping->createChild('Amount', $this->_getItemShippingAmount($item));
 		}
 		$shippingTaxFragment = $this->_buildTaxDataNodes(
-			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING)
+			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING), $item
 		);
 		if ($shippingTaxFragment->hasChildNodes()) {
 			$shipping->appendChild($shippingTaxFragment);
@@ -397,15 +397,19 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * Build TaxData nodes for the item
 	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for tax types.
 	 * @param  TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes Collection of tax quotes to build tax nodes for
+	 * @param  Mage_Sales_Model_Order_Item $item, the quote item to get the product object from
 	 * @return DOMDocumentFragment                  A DOM fragment of the nodes
 	 */
-	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes)
+	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes, Mage_Sales_Model_Order_Item $item)
 	{
 		$taxFragment = $this->_domRequest->createDocumentFragment();
 		if ($taxQuotes->count()) {
 			$taxData = $taxFragment->appendChild(
 				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
 			);
+			// adding TaxClass node
+			$taxData->createChild('TaxClass', $item->getProduct()->getTaxCode());
+
 			$taxes = $taxData->createChild('Taxes');
 			$calc = Mage::getModel('tax/calculation');
 			foreach ($taxQuotes as $taxQuote) {
@@ -459,7 +463,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			}
 			if ($dutyTotal > 0) {
 				$duty->createChild('Amount', $dutyTotal);
-				$dutyTax = $this->_buildTaxDataNodes($dutyQuotes);
+				$dutyTax = $this->_buildTaxDataNodes($dutyQuotes, $item);
 				if ($dutyTax->hasChildNodes()) {
 					$duty->addChild($dutyTax);
 				}

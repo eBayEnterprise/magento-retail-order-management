@@ -112,7 +112,24 @@ INVALID_XML;
 	}
 	/**
 	 * Test building out a DOMDocumentFragment for tax nodes
-	 * @test
+	 * The expectations for the TrueAction_Eb2cOrder_Model_Create::_buildTaxDataNodes is as followed
+	 * Expectation 1: the TrueAction_Eb2cOrder_Model_Create::_buildTaxDataNodes method is expected to be invoked with
+	 *                a mock of TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection object as the its first parameter
+	 *                and a real Mage_Sales_Model_Order_Item object with product object loaded to it, then this method (_buildTaxDataNodes)
+	 *                is expected to return DOMDocumentFragment object
+	 * Expectation 2: the return value of TrueAction_Eb2cOrder_Model_Create::_buildTaxDataNodes method get inspected for
+	 *                for valid nodes that should exists in the returned DOMDocumentFragment object
+	 * Expectation 3: the Mage_Tax_Model_Calculation::round method is expected to be called 6 times because the test mocked
+	 *                the TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::getIterator methods to run an array of two
+	 *                real TrueAction_Eb2cTax_Model_Response_Quote object elements with data loaded to them. Each iteration from the
+	 *                TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::getIterator result will call the
+	 *                Mage_Tax_Model_Calculation::round method 3 times
+	 * Expectation 4: the class property TrueAction_Eb2cOrder_Model_Create::_domRequest is expected to be initalized with an object of
+	 *                TrueAction_Dom_Document type, so the test set this property to a known state with the instantiation of
+	 *                TrueAction_Dom_Document class
+	 * @mock Mage_Tax_Model_Calculation::round
+	 * @mock TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::getIterator
+	 * @mock TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::count
 	 */
 	public function testBuildingTaxNodes()
 	{
@@ -122,7 +139,9 @@ INVALID_XML;
 			->getMock();
 		$calculationModelMock->expects($this->exactly(6))
 			->method('round')
-			->will($this->returnCallback(function($n) { return round($n, 2); }));
+			->will($this->returnCallback(function($n) {
+					return round($n, 2);
+				}));
 		$this->replaceByMock('model', 'tax/calculation', $calculationModelMock);
 		$taxQuotes = array();
 		$taxQuotes[] = Mage::getModel('eb2ctax/response_quote', array(
@@ -170,13 +189,17 @@ INVALID_XML;
 		$create = Mage::getModel('eb2corder/create');
 		$request = $this->_reflectProperty($create, '_domRequest');
 		$request->setValue($create, new TrueAction_Dom_Document());
-		$method = $this->_reflectMethod($create, '_buildTaxDataNodes');
-		$taxFragment = $method->invoke($create, $taxQuotesCollection);
+		$taxFragment = $this->_reflectMethod($create, '_buildTaxDataNodes')->invoke($create, $taxQuotesCollection, Mage::getModel('sales/order_item')->addData(array(
+			'product' => Mage::getModel('catalog/product')->addData(array('tax_code' => '1234533'))
+		)));
 		// probe the tax fragment a bit to hopefully ensure the nodes are all populated right
 		$this->assertSame(1, $taxFragment->childNodes->length);
 		$this->assertSame('TaxData', $taxFragment->firstChild->nodeName);
-		$this->assertSame('Taxes', $taxFragment->firstChild->firstChild->nodeName);
-		$taxes = $taxFragment->firstChild->firstChild;
+		$this->assertSame('TaxClass', $taxFragment->firstChild->firstChild->nodeName);
+		$this->assertSame('1234533', $taxFragment->firstChild->firstChild->nodeValue);
+		$this->assertSame('Taxes', $taxFragment->lastChild->lastChild->nodeName);
+
+		$taxes = $taxFragment->lastChild->lastChild;
 		$this->assertSame(2, $taxes->childNodes->length);
 		foreach ($taxes->childNodes as $idx => $taxNode) {
 			$this->assertSame('Tax', $taxNode->nodeName);
