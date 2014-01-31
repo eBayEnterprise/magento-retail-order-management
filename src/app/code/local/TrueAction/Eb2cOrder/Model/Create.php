@@ -408,7 +408,7 @@ class TrueAction_Eb2cOrder_Model_Create
 				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
 			);
 			// adding TaxClass node
-			$taxData->createChild('TaxClass', $item->getProduct()->getTaxCode());
+			$taxData->createChild('TaxClass', Mage::getResourceModel('catalog/product')->getAttributeRawValue($item->getProductId(), 'tax_code', Mage::app()->getStore()->getId()));
 
 			$taxes = $taxData->createChild('Taxes');
 			$calc = Mage::getModel('tax/calculation');
