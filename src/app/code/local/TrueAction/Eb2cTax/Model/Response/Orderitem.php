@@ -76,29 +76,62 @@ class TrueAction_Eb2cTax_Model_Response_Orderitem extends Varien_Object
 
 	/**
 	 * generate tax quote records with data extracted from the response.
+	 * using magic here by first casting the amount and unit price as float and checking if
+	 * they are greater than zero to the create the node magically if it is zero setting the value to null
+	 * will not create the node
+	 * @return void
 	 */
 	protected function _extractData()
 	{
 		$xpath = $this->_xpath;
 		$itemNode = $this->getNode();
-		$this->setSku($xpath->evaluate('string(./a:ItemId)', $itemNode));
-		$this->setLineNumber($xpath->evaluate('string(./@lineNumber)', $itemNode));
-		$this->setItemDesc($xpath->evaluate('string(./a:ItemDesc)', $itemNode));
-		$this->setHtsCode($xpath->evaluate('string(./a:HTSCode)', $itemNode));
-		$val = $xpath->evaluate('number(a:Pricing/a:Merchandise/a:Amount)', $itemNode);
-		$this->setMerchandiseAmount($val === NAN ? null : $val);
-		$val = $xpath->evaluate('number(a:Pricing/a:Merchandise/a:UnitPrice)', $itemNode);
-		$this->setUnitPrice($val === NAN ? null : $val);
-		$val = $xpath->evaluate('number(a:Pricing/a:Shipping/a:Amount)', $itemNode);
-		$this->setShippingAmount($val === NAN ? null : $val);
-		$val = $xpath->evaluate('number(a:Pricing/a:Duty/a:Amount)', $itemNode);
-		$this->setDutyAmount($val === NAN ? null : $val);
+		$this->addData(array_merge(
+			$this->_extractByType($itemNode, $xpath, array(
+				'sku' => 'string(./a:ItemId)',
+				'line_number' => 'string(./@lineNumber)',
+				'item_desc' => 'string(./a:ItemDesc)',
+				'hts_code' => 'string(./a:HTSCode)'
+			), 'string'),
+			$this->_extractByType($itemNode, $xpath, array(
+				'merchandise_amount' => 'number(a:Pricing/a:Merchandise/a:Amount)',
+				'unit_price' => 'number(a:Pricing/a:Merchandise/a:UnitPrice)',
+				'shipping_amount' => 'number(a:Pricing/a:Shipping/a:Amount)',
+				'duty_amount' => 'number(a:Pricing/a:Duty/a:Amount)'
+			), 'float')
+		));
+
 		$this->_validate();
 		// don't bother reading the tax data since the item is invalid
 		if ($this->_isValid) {
 			$this->_processTaxData($xpath, $itemNode);
 			$this->_processDiscountTaxData($xpath, $itemNode);
 		}
+	}
+
+	/**
+	 * extract all the map key from the map argument and return
+	 * an array of extracted value cast by the type pass to the method
+	 * @param DomElement $itemNode
+	 * @param DOMXPath $xpath
+	 * @param array $map
+	 * @param string $type (string, float)
+	 * @return array
+	 */
+	protected function _extractByType(DomElement $itemNode, DOMXPath $xpath, array $map, $type='string')
+	{
+		return array_reduce(array_keys($map), function($result=array(), $key) use ($itemNode, $xpath, $map, $type) {
+			$val = $xpath->evaluate($map[$key], $itemNode);
+			switch ($type) {
+				case 'float':
+					$val = (float) $val;
+					$result[$key] = $val > 0 ? $val : null;
+					break;
+				default:
+					$result[$key] = $val;
+					break;
+			}
+			return $result;
+		});
 	}
 
 	/**
