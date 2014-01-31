@@ -281,64 +281,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 	 * Test the collect method when there are actual items in the address.
 	 * @test
 	 */
-	public function testCollectWithoutTrigger()
-	{
-		$quote = $this->getModelMock('sales/quote', array('getStore'));
-		$quote->expects($this->any())
-			->method('getStore')
-			->will($this->returnValue(Mage::app()->getStore()));
-
-		$item = $this->_collectItemGenerator(null, false, false);
-		$item->expects($this->never())
-			->method('getChildren');
-
-		$items = array();
-
-		$address = $this->getModelMock('sales/quote_address', array(
-			'getQuote',
-		));
-		$address->expects($this->once())
-			->method('getQuote');
-
-		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
-			->disableOriginalConstructor()
-			->setMethods(array(
-				'_getAddressItems',
-				'_setAddress',
-				'_setAmount',
-				'_setBaseAmount',
-			))
-			->getMock();
-		$subtotal->expects($this->never())
-			->method('_getAddressItems');
-		// mock the functions used by the grandparent::collect method.
-		$subtotal->expects($this->never())
-			->method('_setAddress');
-		$subtotal->expects($this->never())
-			->method('_setAmount');
-		$subtotal->expects($this->never())
-			->method('_setBaseAmount');
-
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasCalculationTrigger'))
-			->getMock();
-		$calc->expects($this->once())
-			->method('hasCalculationTrigger')
-			->will($this->returnValue(false));
-
-		$this->mockObserver();
-
-		$this->_reflectProperty($subtotal, '_calculator')
-			->setValue($subtotal, $calc);
-
-		$subtotal->collect($address);
-	}
-
-	/**
-	 * Test the collect method when there are actual items in the address.
-	 * @test
-	 */
 	public function testCollectWithItems()
 	{
 		$quote = $this->getModelMock('sales/quote', array('getStore'));
@@ -430,17 +372,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 			->method('_addSubtotalAmount')
 			->will($this->returnSelf());
 
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasCalculationTrigger'))
-			->getMock();
-		$calc->expects($this->once())
-			->method('hasCalculationTrigger')
-			->will($this->returnValue(true));
-
-		$this->_reflectProperty($subtotal, '_calculator')
-			->setValue($subtotal, $calc);
-
 		$this->mockObserver();
 
 		$subtotal->collect($address);
@@ -520,17 +451,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 			->setMethods(array('_setAddress', '_setAmount', '_setBaseAmount'))
 			->getMock();
 
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disableOriginalConstructor()
-			->setMethods(array('hasCalculationTrigger'))
-			->getMock();
-		$calc->expects($this->once())
-			->method('hasCalculationTrigger')
-			->will($this->returnValue(true));
-
-		$this->_reflectProperty($subtotal, '_calculator')
-			->setValue($subtotal, $calc);
-
 		$this->mockObserver();
 
 		$subtotal->collect($mockQuoteAddress);
@@ -587,14 +507,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 		$address->expects($this->never())
 			->method('setRoundingDeltas');
 
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disaBleoriginalConstructor()
-			->setMethods(array('hasCalculationTrigger'))
-			->getMock();
-		$calc->expects($this->once())
-			->method('hasCalculationTrigger')
-			->will($this->returnValue(true));
-
 		$subtotal = $this->getModelMockBuilder('tax/sales_total_quote_subtotal')
 			->disableorIginalcOnstructor()->seTmethods(array(
 			'_getaDdressitems',
@@ -610,9 +522,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 			->will($this->returnValue(array()));
 		$subtotal->expects($this->never())
 			->method('_addSubtotalAmount');
-
-		$this->_reflectProperty($subtotal, '_calculator')
-			->setValue($subtotal, $calc);
 
 		$this->mockObserver();
 
@@ -658,17 +567,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 				'_setBaseAmount',
 			))
 			->getMock();
-
-		$calc = $this->getModelMockBuilder('tax/calculation')
-			->disaBleoriginalConstructor()
-			->setMethods(array('hasCalculationTrigger'))
-			->getMock();
-		$calc->expects($this->once())
-			->method('hasCalculationTrigger')
-			->will($this->returnValue(true));
-
-		$this->_reflectProperty($subtotal, '_calculator')
-			->setValue($subtotal, $calc);
 
 		$this->mockObserver();
 

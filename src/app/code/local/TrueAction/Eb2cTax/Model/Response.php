@@ -75,6 +75,9 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 					$this->_extractResults();
 				}
 			}
+			$this->storeResponseData();
+		} else {
+			$this->loadResponseData();
 		}
 	}
 
@@ -97,7 +100,30 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 			$this->_responseItems[$addressId][$sku] : null;
 		return $orderItem;
 	}
-
+	public function loadResponseData()
+	{
+		$session = Mage::getSingleton('eb2ccore/session');
+		foreach ((array) $session->getEb2cTaxResponseData() as $addressId => $addressItems) {
+			foreach ($addressItems as $sku => $orderItemData) {
+				$orderItem = Mage::getModel('eb2ctax/response_orderitem');
+				$orderItem->setOrderItemData($orderItemData);
+				$this->_responseItems[$addressId][$sku] = $orderItem;
+			}
+		}
+		$this->_isValid = (bool) $this->_responseItems;
+	}
+	public function storeResponseData()
+	{
+		$data = array();
+		foreach ($this->_responseItems as $addressId => $addressItems) {
+			$data[$addressId] = array();
+			foreach ($addressItems as $sku => $orderItem) {
+				$data[$addressId][$sku] = $orderItem->getOrderItemData();
+			}
+		}
+		$session = Mage::getSingleton('eb2ccore/session');
+		$session->setEb2cTaxResponseData($data);
+	}
 	/**
 	 * get the result records of the request
 	 * @return array(TrueAction_Eb2cTax_Model_Response_OrderItem)
@@ -108,12 +134,11 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 	}
 
 	/**
-	 * @see _isValid property
-	 * @return boolean
+	 * @return boolean true if response has valid data; false otherwise.
 	 */
 	public function isValid()
 	{
-		return $this->_isValid && $this->_isRequestValid();
+		return $this->_isValid;
 	}
 
 	/**

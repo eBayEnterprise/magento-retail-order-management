@@ -38,14 +38,20 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 		// save all of the response quote and response quote discount objects
 		if ($response = Mage::helper('tax')->getCalculator()->getTaxResponse()) {
 			foreach ($order->getQuote()->getAllAddresses() as $address) {
-				foreach ($address->getAllItems() as $item) {
+				foreach ($address->getAllVisibleItems() as $item) {
 					if ($responseItem = $response->getResponseForItem($item, $address)) {
 						foreach ($responseItem->getTaxQuotes() as $taxQuote) {
+							if ($taxQuote->getId()) {
+								continue;
+							}
 							$taxQuote->setQuoteItemId($item->getId())
 								->setQuoteAddressId($address->getId())
 								->save();
 						}
 						foreach ($responseItem->getTaxQuoteDiscounts() as $taxDiscount) {
+							if ($taxDiscount->getId()) {
+								continue;
+							}
 							$taxDiscount->setQuoteItemId($item->getId())
 								->setQuoteAddressId($address->getId())
 								->save();
@@ -53,6 +59,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 					}
 				}
 			}
+			$response->storeResponseData();
 		}
 		return $this;
 	}
@@ -134,8 +141,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Observer extends Mage_Tax_Model_Observe
 	{
 		$calc = Mage::helper('tax')->getCalculator();
 		if ($response->isValid()) {
-			$calc->setTaxResponse($response)
-				->setCalculationTrigger(true);
+			$calc->setTaxResponse($response);
 		} else {
 			Mage::log(
 				'[' . __CLASS__ . '] Unsuccessful TaxDutyQuote request: valid request received an invalid response',

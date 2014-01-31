@@ -7,6 +7,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 {
 	const EMAIL_MAX_LENGTH         = 70;
 	const NUM_STREET_LINES         = 4;
+	const SHIPPING_TAX_CLASS       = 93000;
 	protected $_xml                = '';
 	protected $_doc                = null;
 	protected $_tdRequest          = null;
@@ -340,8 +341,8 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			// @todo this needs to be the right value when the item is a child
 			'merchandise_unit_price' => Mage::app()->getStore()->roundPrice($this->_getItemOriginalPrice($item)),
 			'merchandise_tax_class' => $this->_getItemTaxClass($item),
-			'shipping_amount' => Mage::app()->getStore()->roundPrice($address->getBaseShippingAmount()),
-			'shipping_tax_class' => $this->_getShippingTaxClass(),
+			'shipping_amount' => Mage::app()->getStore()->roundPrice($this->_getShippingAmount($address)),
+			'shipping_tax_class' => self::SHIPPING_TAX_CLASS,
 		);
 		return array_merge(
 			$data,
@@ -384,6 +385,11 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 		return (string) $this->_checkLength($taxCode, 1, 40);
 	}
 
+	protected function _getShippingAmount($address)
+	{
+		Mage::getModel('sales/quote_address_total_shipping')->collect($address);
+		return $address->getBaseShippingAmount();
+	}
 	/**
 	 * return the sku truncated down to 20 characters if too long or
 	 * null if the sku doesn't meet minimum size requirements.
@@ -408,17 +414,6 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 			Mage::log('[' . __CLASS__ . '] ' . $message, Zend_Log::WARN);
 		}
 		return $newSku;
-	}
-
-	protected function _getShippingTaxClass()
-	{
-		return $this->_checkLength(
-			Mage::getStoreConfig(
-				Mage_Tax_Model_Config::CONFIG_XML_PATH_SHIPPING_TAX_CLASS,
-				$this->_storeId
-			),
-			1, 40
-		);
 	}
 
 	protected function _buildTaxDutyRequest()
@@ -623,10 +618,16 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 		$orderItem->appendChild($origins);
 		$orderItem->addChild('Quantity', $item['quantity']);
 
-		$unitPriceNode = $orderItem->createChild('Pricing')
+		$pricingNode = $orderItem->createChild('Pricing');
+
+		$unitPriceNode = $pricingNode
 			->createChild('Merchandise')
 			->addChild('Amount', Mage::app()->getStore()->roundPrice($item['merchandise_amount'] - $item['merchandise_discount_amount']))
 			->createChild('UnitPrice', Mage::app()->getStore()->roundPrice($item['merchandise_unit_price']));
+
+		$pricingNode->createChild('Shipping')
+			->addChild('Amount', Mage::app()->getStore()->roundPrice($item['shipping_amount']))
+			->addChild('TaxClass', $item['shipping_tax_class']);
 
 		$taxClass = $this->_checkLength($item['merchandise_tax_class'], 1, 40);
 		if ($taxClass) {

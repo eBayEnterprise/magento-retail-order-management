@@ -50,6 +50,30 @@ class TrueAction_Eb2cTax_Model_Response_Orderitem extends Varien_Object
 		}
 	}
 
+	public function setOrderItemData(array $data)
+	{
+		$this->_taxQuotes = array();
+		if (array_key_exists('tax_quotes', $data)) {
+			foreach ($data['tax_quotes'] as $record) {
+				$this->_taxQuotes[] = Mage::getModel('eb2ctax/response_quote', $record);
+			}
+		}
+	}
+
+	public function getOrderItemData()
+	{
+		$quoteData = array_map(
+			function($obj)
+			{
+				return $obj->unsNode()->getData();
+			},
+			$this->_taxQuotes
+		);
+		return $this
+			->setTaxQuotes($quoteData)
+			->getData();
+	}
+
 	/**
 	 * generate tax quote records with data extracted from the response.
 	 */

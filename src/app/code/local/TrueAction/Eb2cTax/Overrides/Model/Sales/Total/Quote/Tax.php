@@ -29,31 +29,28 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
-		Mage::log(__METHOD__, Zend_Log::DEBUG);
-		if ($this->_calculator->hasCalculationTrigger()) {
-			Mage::log('calculating', Zend_Log::DEBUG);
-			$this->_initBeforeCollect($address);
-			$this->_calculator->unsCalculationTrigger();
-			$this->_roundingDeltas = array();
-			$this->_baseRoundingDeltas = array();
-			$this->_hiddenTaxes = array();
-			$address->setShippingTaxAmount(0);
-			$address->setBaseShippingTaxAmount(0);
-			// zero amounts for the address.
-			$this->_store = $address->getQuote()->getStore();
-			$customer = $address->getQuote()->getCustomer();
+		Mage::log(sprintf('[%s] Calculating tax for address %s', __CLASS__, $address->getAddressType()), Zend_Log::DEBUG);
+		$this->_initBeforeCollect($address);
+		$this->_roundingDeltas = array();
+		$this->_baseRoundingDeltas = array();
+		$this->_hiddenTaxes = array();
+		$address->setShippingTaxAmount(0);
+		$address->setBaseShippingTaxAmount(0);
+		// zero amounts for the address.
+		$this->_store = $address->getQuote()->getStore();
+		$customer = $address->getQuote()->getCustomer();
 
-			$items = $this->_getAddressItems($address);
-			if (!count($items)) {
-				return $this;
-			}
-			$this->_calcTaxForAddress($address);
-			// adds extra tax amounts to the address
-			$this->_addAmount($address->getExtraTaxAmount());
-			$this->_addBaseAmount($address->getBaseExtraTaxAmount());
-			//round total amounts in address
-			$this->_roundTotals($address);
+		$items = $this->_getAddressItems($address);
+		if (!count($items)) {
+			return $this;
 		}
+		$this->_calcTaxForAddress($address);
+		// adds extra tax amounts to the address
+		$this->_addAmount($address->getExtraTaxAmount());
+		$this->_addBaseAmount($address->getBaseExtraTaxAmount());
+		$this->_calcShippingTaxes($address);
+		//round total amounts in address
+		$this->_roundTotals($address);
 		return $this;
 	}
 	/**
@@ -163,9 +160,21 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		}
 		return $this;
 	}
-	protected function _calcShippingTaxes($itemSelector)
+	/**
+	 * Calculate shipping tax for an address - as EB2C tax handles shipping tax at the item
+	 * leve, we always assume `FLATRATE` shipping charges which means shipping tax is only
+	 * included on the first item in the quote.
+	 * @param  Mage_Sales_Model_Quote_Address $address
+	 * @return self
+	 */
+	protected function _calcShippingTaxes($address)
 	{
-		$address = $itemSelector->getAddress();
+		$items = $this->_getAddressItems($address);
+		$itemSelector = new Varien_Object(array(
+			'address' => $address,
+			// get the first item in the address
+			'item' => reset($items),
+		));
 		$addressId = $address->getId();
 		$isPriceInclTax = $this->_isShippingPriceTaxInclusive();
 		$address->setIsShippingInclTax($isPriceInclTax || $address->getIsShippingInclTax());
@@ -175,7 +184,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$baseTax = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE) + $duty;
 		$this->_shippingTaxSubTotals[$addressId] += $baseTax;
 		$baseRuninngShippingTax = $this->_shippingTaxSubTotals[$addressId];
-		$baseTaxShipping = $baseShipping + $baseRuninngShippingTax;
+		$baseTaxShipping = $baseShipping + $baseTax;
 		$address->setBaseTotalAmount('shipping', $baseShipping);
 		$address->setBaseShippingInclTax($baseTaxShipping);
 		$address->setBaseShippingTaxable($baseTaxable);
@@ -198,6 +207,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$taxes = $this->_convertAmount($baseTaxes);
 		$address->setBaseShippingTaxAmount(max(0, $baseTaxes));
 		$address->setShippingTaxAmount(max(0, $taxes));
+		$this->_addAmount($taxes);
+		$this->_addBaseAmount($baseTaxes);
 		return $this;
 	}
 	/**
@@ -254,8 +265,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		foreach ($applied as $row) {
 			// key 'base_amount' is needed to calculate baseRealAmount in tax/observer class
 			// also to be referenced as a key in tax/observer class salesEventOrderAfterSave method
-			$row['base_amount'] = (float) $baseAmount;
-			if ($row['percent'] == 0) {
+				if ($row['percent'] == 0) {
 				continue;
 			}
 			if (!isset($previouslyAppliedTaxes[$row['id']])) {

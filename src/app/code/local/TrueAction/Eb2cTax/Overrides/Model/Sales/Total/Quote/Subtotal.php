@@ -18,36 +18,34 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 			'address' => $address,
 			'quote' => $address->getQuote()
 		));
-		if ($this->_calculator->hasCalculationTrigger()) {
-			Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
-			Mage::log('calculating tax subtotal', Zend_Log::DEBUG);
-			$this->_store   = $address->getQuote()->getStore();
-			$this->_address = $address;
-			$this->_subtotalInclTax     = 0;
-			$this->_baseSubtotalInclTax = 0;
-			$this->_subtotal            = 0;
-			$this->_baseSubtotal        = 0;
+		Mage_Sales_Model_Quote_Address_Total_Abstract::collect($address);
+		Mage::log('calculating tax subtotal', Zend_Log::DEBUG);
+		$this->_store   = $address->getQuote()->getStore();
+		$this->_address = $address;
+		$this->_subtotalInclTax     = 0;
+		$this->_baseSubtotalInclTax = 0;
+		$this->_subtotal            = 0;
+		$this->_baseSubtotal        = 0;
 
-			$address->setSubtotalInclTax(0);
-			$address->setBaseSubtotalInclTax(0);
-			$address->setTotalAmount('subtotal', 0);
-			$address->setBaseTotalAmount('subtotal', 0);
+		$address->setSubtotalInclTax(0);
+		$address->setBaseSubtotalInclTax(0);
+		$address->setTotalAmount('subtotal', 0);
+		$address->setBaseTotalAmount('subtotal', 0);
 
-			$items = (array) $this->_getAddressItems($address);
-			foreach ($items as $item) {
-				if ($item->getParentItem()) {
-					continue;
-				}
-				if ($item->getHasChildren() && $item->isChildrenCalculated()) {
-					foreach ($item->getChildren() as $child) {
-						$this->_applyTaxes($child, $address);
-					}
-					$this->_recalculateParent($item);
-				} else {
-					$this->_applyTaxes($item, $address);
-				}
-				$this->_addSubtotalAmount($address, $item);
+		$items = (array) $this->_getAddressItems($address);
+		foreach ($items as $item) {
+			if ($item->getParentItem()) {
+				continue;
 			}
+			if ($item->getHasChildren() && $item->isChildrenCalculated()) {
+				foreach ($item->getChildren() as $child) {
+					$this->_applyTaxes($child, $address);
+				}
+				$this->_recalculateParent($item);
+			} else {
+				$this->_applyTaxes($item, $address);
+			}
+			$this->_addSubtotalAmount($address, $item);
 		}
 		return $this;
 	}

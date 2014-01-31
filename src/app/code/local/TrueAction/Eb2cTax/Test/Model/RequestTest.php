@@ -66,6 +66,32 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	}
 
 	/**
+	 * Test getting the shipping amount for an address. As Magento has shipping totals
+	 * collected after tax, this method should force the shipping amounts to be collected
+	 * before returning the address' base shipping amount.
+	 * @test
+	 */
+	public function testGetShippingAmount()
+	{
+		$address = $this->getModelMock('sales/quote_address', array('getBaseShippingAmount'));
+		$shipTotal = $this->getModelMock('sales/quote_address_total_shipping', array('collect'));
+		$this->replaceByMock('model', 'sales/quote_address_total_shipping', $shipTotal);
+
+		$shipTotal->expects($this->once())
+			->method('collect')
+			->with($this->identicalTo($address))
+			->will($this->returnSelf());
+		$address->expects($this->once())
+			->method('getBaseShippingAmount')
+			->will($this->returnValue(5));
+
+		$request = Mage::getModel('eb2ctax/request');
+		$this->assertSame(
+			5,
+			$this->_reflectMethod($request, '_getShippingAmount')->invoke($request, $address)
+		);
+	}
+	/**
 	 * verify extracted data causes an exception when required fields have incorrect length
 	 * @dataProvider dataProvider
 	 */
@@ -1861,16 +1887,12 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'getBaseRowTotal' => $this->returnValue(50.0),
 		));
 
-		$address = $this->getModelMock('sales/quote_address', array('getBaseShippingAmount'));
-		$address->expects($this->any())
-			->method('getBaseShippingAmount')
-			->will($this->returnValue(5.0));
-
+		$address = $this->getModelMock('sales/quote_address');
 		$request = $this->getModelMockBuilder('eb2ctax/request')
 			->setMethods(array(
 				'_getItemOriginalPrice',
 				'_getItemTaxClass',
-				'_getShippingTaxClass',
+				'_getShippingAmount',
 				'_extractShippingData',
 				'_extractItemDiscountData',
 			))
@@ -1886,8 +1908,9 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			->with($this->identicalTo($item))
 			->will($this->returnValue('tax class'));
 		$request->expects($this->once())
-			->method('_getShippingTaxClass')
-			->will($this->returnValue('shipping tax class'));
+			->method('_getShippingAmount')
+			->with($this->identicalTo($address))
+			->will($this->returnValue(5.0));
 		$request->expects($this->once())
 			->method('_extractShippingData')
 			->with($this->identicalTo($item))
@@ -1913,7 +1936,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 			'merchandise_unit_price' => 51.0,
 			'merchandise_tax_class' => 'tax class',
 			'shipping_amount' => 5.0,
-			'shipping_tax_class' => 'shipping tax class',
+			'shipping_tax_class' => TrueAction_Eb2cTax_Model_Request::SHIPPING_TAX_CLASS,
 			'AdminOrigin' => 'the admin data',
 			'ShippingOrigin' => 'ship from data',
 			'some_discount_thing' => 'this is discount data',

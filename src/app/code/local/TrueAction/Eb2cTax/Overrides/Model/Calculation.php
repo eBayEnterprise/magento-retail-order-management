@@ -31,16 +31,21 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	{
 		$tax = 0.0;
 		$itemResponse = $this->_getItemResponse($itemSelector->getItem(), $itemSelector->getAddress());
-		$taxQuotes = $this->_extractTax($itemResponse, $mode);
-		$taxMethod = $this->_isForAmountMode($mode)? 'getEffectiveRate' : 'getCalculatedTax';
-		$tax = array_reduce($taxQuotes, function ($result, $taxQuote) use ($taxMethod, $type, $amount) {
-			if ($type === $taxQuote->getType()) {
-				$result += ($taxMethod === 'getEffectiveRate')? $amount * $taxQuote->getEffectiveRate() : $taxQuote->getCalculatedTax();
+		if ($itemResponse) {
+			$taxQuotes = $this->_extractTax($itemResponse, $mode);
+			$taxMethod = $this->_isForAmountMode($mode)? 'getEffectiveRate' : 'getCalculatedTax';
+			$tax = array_reduce($taxQuotes, function ($result, $taxQuote) use ($taxMethod, $type, $amount) {
+				if ($type === $taxQuote->getType()) {
+					$result += ($taxMethod === 'getEffectiveRate')? $amount * $taxQuote->getEffectiveRate() : $taxQuote->getCalculatedTax();
+				}
+				return $result;
+			});
+			if ($type === self::DUTY_TYPE) {
+				$dutyAmount = $itemResponse->getDutyAmount();
+				if (!is_nan($dutyAmount)) {
+					$tax += $itemResponse->getDutyAmount();
+				}
 			}
-			return $result;
-		});
-		if ($type === self::DUTY_TYPE) {
-			$tax += $itemResponse->getDutyAmount();
 		}
 		return $tax;
 	}
@@ -73,6 +78,11 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	public function getTaxForAmount($amount, Varien_Object $itemSelector, $type=self::MERCHANDISE_TYPE)
 	{
 		return $this->_calcTaxByMode($amount, $itemSelector, $type, self::TAX_REGULAR_FOR_AMOUNT);
+	}
+
+	public function getTaxResponse()
+	{
+		return $this->getData('tax_response') ?: Mage::getModel('eb2ctax/response');
 	}
 	/**
 	 * @param Varien_Object $itemSelector
@@ -162,6 +172,19 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$taxRate = $taxQuote->getEffectiveRate();
 				$code    = $taxQuote->getCode();
 				$id      = $code . '-' . $taxRate;
+
+			switch($taxQuote->getType()) {
+				case $taxQuote::MERCHANDISE:
+					$typeStr = 'Merchandise';
+					break;
+				case $taxQuote::SHIPPING:
+					$typeStr = 'Shipping';
+					break;
+				case $taxQuote::DUTY:
+					$typeStr = 'Duty';
+					break;
+			}
+
 				if (isset($result[$id])) {
 					$group = $result[$id];
 				} else {
@@ -169,10 +192,11 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 					$group['id']      = $id;
 					$group['percent'] = $taxRate * 100.0;
 					$group['amount']  = 0;
+					$group['base_amount'] = 0;
 					$group['rates']   = array();
 				}
 				$rate = array();
-				$rate['code']        = $code;
+				$rate['code']        = $typeStr . '-' . $code;
 				$rate['title']       = $helper->__($code);
 				$rate['percent']     = $taxRate * 100.0;
 				$rate['base_amount'] = $taxQuote->getCalculatedTax();
@@ -181,6 +205,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
 				$group['amount']     += $rate['amount'];
+				$group['base_amount'] += $rate['base_amount'];
 				$result[$id]         = $group;
 			}
 			// add rate for any duty amounts
@@ -190,6 +215,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$group['id']      = $id;
 				$group['percent'] = null;
 				$group['amount']  = 0;
+				$group['base_amount'] = 0;
 				$rate = array();
 				$rate['code']        = $id;
 				$rate['title']       = $helper->__($id);
@@ -200,6 +226,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$rate['priority']    = 1;
 				$group['rates'][]    = $rate;
 				$group['amount']     += $rate['amount'];
+				$group['base_amount'] += $rate['base_amount'];
 				$result[$id]         = $group;
 			}
 			if ($helper->getApplyTaxAfterDiscount($store)) {

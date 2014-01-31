@@ -388,7 +388,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 	 */
 	public function testHandleResponse()
 	{
-		$calcTriggerFlag = true;
 		$response = $this->getModelMockBuilder('eb2ctax/response')
 			->disableOriginalConstructor()
 			->setMethods(array('isValid'))
@@ -399,12 +398,8 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 
 		$calculator = $this->getModelMockBuilder('tax/calculation')
 			->disableOriginalConstructor()
-			->setMethods(array('setCalculationTrigger', 'setTaxResponse'))
+			->setMethods(array('setTaxResponse'))
 			->getMock();
-		$calculator->expects($this->once())
-			->method('setCalculationTrigger')
-			->with($this->identicalTo($calcTriggerFlag))
-			->will($this->returnSelf());
 		$calculator->expects($this->once())
 			->method('setTaxResponse')
 			->with($this->identicalTo($response))

@@ -347,12 +347,12 @@ class TrueAction_Eb2cOrder_Model_Create
 		if ($this->_getShippingChargeType($this->_o) !== self::SHIPPING_CHARGE_TYPE_FLATRATE || $webLineId === 1) {
 			$shipping = $pricing->createChild('Shipping');
 			$shipping->createChild('Amount', $this->_getItemShippingAmount($item));
-		}
-		$shippingTaxFragment = $this->_buildTaxDataNodes(
-			$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING), $item
-		);
-		if ($shippingTaxFragment->hasChildNodes()) {
-			$shipping->appendChild($shippingTaxFragment);
+			$shippingTaxFragment = $this->_buildTaxDataNodes(
+				$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING), $item
+			);
+			if ($shippingTaxFragment->hasChildNodes()) {
+				$shipping->appendChild($shippingTaxFragment);
+			}
 		}
 		// End Shipping
 		// Duty on the orderItem:
