@@ -1017,4 +1017,17 @@ INVALID_XML;
 		$expectedXml = '<_><Payment><BillingAddress ref="billing_1"></BillingAddress><Payments><CreditCard><PaymentContext><PaymentSessionId>paymentanid</PaymentSessionId><TenderType>XY</TenderType><PaymentAccountUniqueId isToken="true">anid</PaymentAccountUniqueId></PaymentContext><PaymentRequestId>paymentanid</PaymentRequestId><CreateTimeStamp>adate</CreateTimeStamp><Amount>12.34</Amount><Authorization><ResponseCode>APPROVED</ResponseCode><BankAuthorizationCode>abankauthcode</BankAuthorizationCode><CVV2ResponseCode>cvv</CVV2ResponseCode><AVSResponseCode>anavscode</AVSResponseCode><PhoneResponseCode>U</PhoneResponseCode><NameResponseCode>N</NameResponseCode><EmailResponseCode>Y</EmailResponseCode><AmountAuthorized>12.95</AmountAuthorized></Authorization><ExpirationDate>ccexp</ExpirationDate></CreditCard></Payments></Payment><Context></Context></_>';
 		$this->assertXmlStringEqualsXmlString($expectedXml, $pmtNd->C14N());
 	}
+	/**
+	 * @test
+	 */
+	function testGetOrderGiftCardPan()
+	{
+		$expectedPanToken = 'abc123';
+		$order = $this->getModelMock('sales/order', array('getGiftCards'));
+		$order
+			->expects($this->once())
+			->method('getGiftCards')
+			->will($this->returnValue(serialize(array(array('panToken' => $expectedPanToken)))));
+		$this->assertSame($expectedPanToken, TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan($order));
+	}
 }

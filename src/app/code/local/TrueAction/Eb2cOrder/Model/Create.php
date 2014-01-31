@@ -600,12 +600,12 @@ class TrueAction_Eb2cOrder_Model_Create
 				} elseif ($payMethodNode === 'StoredValueCard') {
 					// the payment method is free and there is gift card for the order
 					if ($this->_o->getGiftCardsAmount() > 0) {
-						$pan = $this->_getOrderGiftCardPan($this->_o);
+						$pan = self::getOrderGiftCardPan($this->_o);
 						$thisPayment = $payments->createChild($payMethodNode);
 						$paymentContext = $thisPayment->createChild('PaymentContext');
 						$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
 						$paymentContext->createChild('TenderType', Mage::helper('eb2cpayment')->getTenderType($pan));
-						$paymentContext->createChild('PaymentAccountUniqueId', $pan)->setAttribute('isToken', 'false');
+						$paymentContext->createChild('PaymentAccountUniqueId', $pan)->setAttribute('isToken', 'true');
 						$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 						$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGiftCardsAmount()));
 					} else {
@@ -621,17 +621,20 @@ class TrueAction_Eb2cOrder_Model_Create
 		}
 	}
 	/**
-	 * get order stored value pan
-	 * @param Mage_Sales_Model_Order $order, the order object
-	 * @return string, the pan
+	 * Get order stored value pan.
+	 * (This is a public static because I ran into strange test
+	 * behavior invoking it as a ReflectionMethod when it was private.)
+	 *
+	 * @param Mage_Sales_Model_Order $order the order object
+	 * @return string the panToken
 	 */
-	protected function _getOrderGiftCardPan(Mage_Sales_Model_Order $order)
+	public static function getOrderGiftCardPan(Mage_Sales_Model_Order $order)
 	{
 		$giftCardData = unserialize($order->getGiftCards());
 		if (!empty($giftCardData)) {
 			foreach ($giftCardData as $gcData) {
-				if (isset($gcData['pan']) && trim($gcData['pan']) !== '') {
-					return $gcData['pan'];
+				if (isset($gcData['panToken']) && trim($gcData['panToken']) !== '') {
+					return $gcData['panToken'];
 				}
 			}
 		}

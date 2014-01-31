@@ -39,43 +39,31 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 
 	public function providerRedeemGiftCard()
 	{
-		$quoteMock = $this->getMock(
-			'Mage_Sales_Model_Quote',
-			array('getId', 'getGiftCards')
-		);
-		$quoteMock->expects($this->any())
+		$quote = $this->getModelMock('sales/quote', array('getId', 'save'));
+		$quote
+			->expects($this->any())
 			->method('getId')
-			->will($this->returnValue(1)
-			);
-		$quoteMock->expects($this->any())
-			->method('getGiftCards')
-			->will($this->returnValue(
-				serialize(array(array(
-					'i' => 1, 'c' => '4111111ak4idq1111', 'a' => 50.00, 'ba' => 150.00, 'pan' => '4111111ak4idq1111', 'pin' => '5344'
-				)))
-			));
-
-		$eventMock = $this->getMock(
-			'Varien_Event',
-			array('getQuote')
-		);
+			->will($this->returnValue(1));
+		$quote->setGiftCards(serialize(array(array(
+			'a' => 50.00,
+			'ba' => 150.00,
+			'c' => '4111111ak4idq1111',
+			'i' => 1,
+			'pan' => '4111111ak4idq1111',
+			'pin' => '5344',
+		))));
+		$eventMock = $this->getMock('Varien_Event', array('getQuote'));
 		$eventMock->expects($this->any())
 			->method('getQuote')
-			->will($this->returnValue($quoteMock));
-
-		$observerMock = $this->getMock(
-			'Varien_Event_Observer',
-			array('getEvent')
-		);
+			->will($this->returnValue($quote));
+		$observerMock = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observerMock->expects($this->any())
 			->method('getEvent')
 			->will($this->returnValue($eventMock));
-
 		return array(
 			array($observerMock)
 		);
 	}
-
 	/**
 	 * testing redeeming gifcard observer method - successful redeem response
 	 *
@@ -88,22 +76,23 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 		$redeemMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_redeem')
 			->setMethods(array('getRedeem', 'parseResponse'))
 			->getMock();
-
+		$redeemReply = '<foo></foo>';
 		$redeemMock->expects($this->any())
 			->method('getRedeem')
-			->will($this->returnValue('<foo></foo>'));
-
+			->with($this->identicalTo('4111111ak4idq1111'), $this->identicalTo('5344'), $this->identicalTo(1))
+			->will($this->returnValue($redeemReply));
+		$expectedPanToken = 'panToken123';
 		$redeemMock->expects($this->any())
 			->method('parseResponse')
-			->will($this->returnValue(array('responseCode' => 'Success', 'pan' => '4111111ak4idq1111', 'pin' => '5344')));
-
+			->with($this->identicalTo($redeemReply))
+			->will($this->returnValue(array('responseCode' => 'Success', 'pan' => '4111111ak4idq1111', 'pin' => '5344', 'paymentAccountUniqueId' => $expectedPanToken)));
 		$this->replaceByMock('model', 'eb2cpayment/storedvalue_redeem', $redeemMock);
-
-		$this->assertNull(
-			$this->_observer->redeemGiftCard($observer)
-		);
+		$this->_observer->redeemGiftCard($observer);
+		// use getData to override mock.
+		$allResultGiftCards = unserialize($observer->getEvent()->getQuote()->getGiftCards());
+		$firstResultGiftCard = array_shift($allResultGiftCards);
+		$this->assertSame($expectedPanToken, $firstResultGiftCard['panToken']);
 	}
-
 	/**
 	 * testing redeemGiftCard unsucessful redeem response
 	 *
