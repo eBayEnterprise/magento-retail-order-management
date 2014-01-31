@@ -111,6 +111,40 @@ INVALID_XML;
 		$collection = $create->getItemTaxQuotes($item, $taxType);
 	}
 	/**
+	 * Test _getAttributeValueByProductId method with the following expectations
+	 * Expectation 1: this test is expected to mockout the method Mage_Catalog_Model_Resource_Product::getAttributeRawValue
+	 *                to be called once with product id (9) as first parameter, the attribute which is being passed the
+	 *                _getAttributeValueByProductId method in this test as 'tax_code' and also the value being returned
+	 *                from the mocked method Mage_Core_Helper_Data::getStoreId which is expected to return the value 1
+	 * Expectation 2: the method Mage_Core_Helper_Data::getStoreId is expected to be called once to return the value 1
+	 * @mock Mage_Catalog_Model_Resource_Product::getAttributeRawValue
+	 * @mock Mage_Core_Helper_Data::getStoreId
+	 */
+	public function testGetAttributeValueByProductId()
+	{
+		$productResourceModelMock = $this->getResourceModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getAttributeRawValue'))
+			->getMock();
+		$productResourceModelMock->expects($this->once())
+			->method('getAttributeRawValue')
+			->with($this->equalTo(9), $this->equalTo('tax_code'), $this->equalTo(1))
+			->will($this->returnValue('12334423'));
+		$this->replaceByMock('resource_model', 'catalog/product', $productResourceModelMock);
+
+		$coreHelperMock = $this->getHelperMockBuilder('core/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getStoreId'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getStoreId')
+			->will($this->returnValue(1));
+		$this->replaceByMock('helper', 'core', $coreHelperMock);
+
+		$create = Mage::getModel('eb2corder/create');
+		$this->assertSame('12334423', $this->_reflectMethod($create, '_getAttributeValueByProductId')->invoke($create, 'tax_code', 9));
+	}
+	/**
 	 * Test building out a DOMDocumentFragment for tax nodes
 	 * The expectations for the TrueAction_Eb2cOrder_Model_Create::_buildTaxDataNodes is as followed
 	 * Expectation 1: the TrueAction_Eb2cOrder_Model_Create::_buildTaxDataNodes method is expected to be invoked with
@@ -127,6 +161,10 @@ INVALID_XML;
 	 * Expectation 4: the class property TrueAction_Eb2cOrder_Model_Create::_domRequest is expected to be initalized with an object of
 	 *                TrueAction_Dom_Document type, so the test set this property to a known state with the instantiation of
 	 *                TrueAction_Dom_Document class
+	 * Expectation 5: the mocked method TrueAction_Eb2cOrder_Model_Create::_getAttributeValueByProductId is expected to get the attribute 'tax_code'
+	 *                as its first parameter and the product id which is added in the real order item object to be the value 9, this method is expected
+	 *                to be called once and will return the value '1234533' which is then get asserted within the test as the value in the TaxClass node
+	 * @mock TrueAction_Eb2cOrder_Model_Create::_getAttributeValueByProductId
 	 * @mock Mage_Tax_Model_Calculation::round
 	 * @mock TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::getIterator
 	 * @mock TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection::count
@@ -186,11 +224,19 @@ INVALID_XML;
 		$taxQuotesCollection->expects($this->any())
 			->method('count')
 			->will($this->returnValue(2));
-		$create = Mage::getModel('eb2corder/create');
+
+		$create = $this->getModelMockBuilder('eb2corder/create')
+			->setMethods(array('_getAttributeValueByProductId'))
+			->getMock();
+		$create->expects($this->once())
+			->method('_getAttributeValueByProductId')
+			->with($this->equalTo('tax_code'), $this->equalTo(9))
+			->will($this->returnValue('1234533'));
+
 		$request = $this->_reflectProperty($create, '_domRequest');
 		$request->setValue($create, new TrueAction_Dom_Document());
 		$taxFragment = $this->_reflectMethod($create, '_buildTaxDataNodes')->invoke($create, $taxQuotesCollection, Mage::getModel('sales/order_item')->addData(array(
-			'product' => Mage::getModel('catalog/product')->addData(array('tax_code' => '1234533'))
+			'product_id' => 9,
 		)));
 		// probe the tax fragment a bit to hopefully ensure the nodes are all populated right
 		$this->assertSame(1, $taxFragment->childNodes->length);

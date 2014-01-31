@@ -393,6 +393,22 @@ class TrueAction_Eb2cOrder_Model_Create
 			->addChild('MessageType', self::ESTIMATED_DELIVERY_DATE_MESSAGETYPE);
 		return $this;
 	}
+
+	/**
+	 * generic method that take product attribute and the product id and return the raw attribute value for the product
+	 * @param string $attribute (tax_code, color, brand_name, etc)
+	 * @param int $productId the entity_id value of a known product in magento
+	 * @return string the product attribute value
+	 */
+	protected function _getAttributeValueByProductId($attribute, $productId)
+	{
+		return Mage::getResourceModel('catalog/product')->getAttributeRawValue(
+			$productId,
+			$attribute,
+			Mage::helper('core')->getStoreId()
+		);
+	}
+
 	/**
 	 * Build TaxData nodes for the item
 	 * @see  TrueAction_Eb2cTax_Model_Response_Quote for tax types.
@@ -408,7 +424,7 @@ class TrueAction_Eb2cOrder_Model_Create
 				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
 			);
 			// adding TaxClass node
-			$taxData->createChild('TaxClass', Mage::getResourceModel('catalog/product')->getAttributeRawValue($item->getProductId(), 'tax_code', Mage::app()->getStore()->getId()));
+			$taxData->createChild('TaxClass', $this->_getAttributeValueByProductId('tax_code', $item->getProductId()));
 
 			$taxes = $taxData->createChild('Taxes');
 			$calc = Mage::getModel('tax/calculation');
