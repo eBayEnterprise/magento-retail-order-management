@@ -21,6 +21,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * The Shipping Charge Type recognized by the Exchange Platform for flatrate/order level shipping costs
 	 */
 	const SHIPPING_CHARGE_TYPE_FLATRATE = 'FLATRATE';
+	const PAYPAL_TENDER_TYPE = 'PY';
 	/**
 	 * @var Mage_Sales_Model_Order, Magento Order Object
 	 */
@@ -575,7 +576,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	/**
 	 * Creates the Tender entries within the Payments Element
 	 * @param DomElement payments node into which payment info is placed
-	 * @return void
+	 * @return self
 	 */
 	protected function _buildPayments(DomElement $payments)
 	{
@@ -611,7 +612,7 @@ class TrueAction_Eb2cOrder_Model_Create
 					$thisPayment->createChild('AmountAuthorized', sprintf('%.02f', $payment->getAmountAuthorized()));
 					$paymentContext = $thisPayment->createChild('PaymentContext');
 					$paymentContext->createChild('PaymentSessionId', sprintf('payment%s', $payment->getId()));
-					$paymentContext->createChild('TenderType', $payMethod);
+					$paymentContext->createChild('TenderType', self::PAYPAL_TENDER_TYPE);
 					$paymentContext->createChild('PaymentAccountUniqueId', $payment->getId())->setAttribute('isToken', 'true');
 					$thisPayment->createChild('CreateTimeStamp', str_replace(' ', 'T', $payment->getCreatedAt()));
 					$thisPayment->createChild('PaymentRequestId', sprintf('payment%s', $payment->getId()));
@@ -639,6 +640,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$thisPayment = $payments->createChild('PrepaidCreditCard');
 			$thisPayment->createChild('Amount', sprintf('%.02f', $this->_o->getGrandTotal()));
 		}
+		return $this;
 	}
 	/**
 	 * Get order stored value pan.

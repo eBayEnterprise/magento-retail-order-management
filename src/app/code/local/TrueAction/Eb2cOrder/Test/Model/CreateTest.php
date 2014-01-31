@@ -1031,95 +1031,84 @@ INVALID_XML;
 		);
 	}
 	/**
-	 * Test that _buildPayments tries to create the expected xml nodes if payments are enabled.
-	 *
-	 * @test
+	 * Test _buildPayments method for the following expectations for building paypal payment node type
+	 * Expectation 1: first this test is mocking the TrueAction_Eb2cCore_Model_Config_Registry::__get so that it can
+	 *                enabled the eb2cpayment method, when the test run this mock will run with the parament of 'isPaymentEnabled'
+	 *                in which it will return true
+	 * Expectation 2: the method TrueAction_Eb2cPayment_Helper_Data::getConfigModel get mocked and is expected to be called
+	 *                once with and is expected to return the mocked TrueAction_Eb2cCore_Model_Config_Registry object
+	 * Expectation 3: setting the class property TrueAction_Eb2cOrder_Model_Create::_o to a known states with a mock of order
+	 *                Mage_Sales_Model_Order object, the order object mocked the method Mage_Sales_Model_Order::getAllPayments to return
+	 *                a real object of Mage_Sales_Model_Order_Payment with expected data to be used in the run test method
+	 * Expectation 4: set the class property to TrueAction_Eb2cOrder_Model_Create::_ebcPaymentMethodMap array key value
+	 *                that we expect will return when the method call the Mage_Sales_Model_Order_Payment::getMethod, which we added data for
+	 * Expectation 5: mocked Mage_Sales_Model_Order::getGrandTotal method and expected to run once and to return a known value
+	 * Expectation 6: this take data provider  that pass in a request base root node to be loaded into the TrueAction_Dom_Document object
+	 *                and then pass in the DomElment of this dom object to the TrueAction_Eb2cOrder_Model_Create::_buildPayments method
+	 *                when invoked by this test, it then asserted the xml in this dom object should match what is expected in the loaded expectation
+	 *                for this test.
+	 * @mock TrueAction_Eb2cPayment_Helper_Data::getConfigModel
+	 * @mock TrueAction_Eb2cCore_Model_Config_Registry::__get
+	 * @mock Mage_Sales_Model_Order::getAllPayments
+	 * @mock Mage_Sales_Model_Order::getGrandTotal
+	 * @param string $response the xml string content to be loaded into the DOMDocument object
+	 * @dataProvider dataProvider
+	 * @loadExpectation
 	 */
-	function testBuildPayments()
+	public function testBuildPaymentsPaypal($response)
 	{
-		$cfg = $this->getModelMock('eb2cpayment/config');
-		$cfg->isPaymentEnabled = 1;
-		$pmtHlpr = $this->getHelperMockBuilder('eb2cpayment/data')
-			->setMethods(array('getConfigModel'))
-			->disableOriginalConstructor()
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML($response);
+
+		$mockConfig = $this->getModelMockBuilder('eb2ccore/config_registry')
+			->setMethods(array('__get'))
 			->getMock();
-		$pmtHlpr
-			->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue($cfg));
-		$this->replaceByMock('helper', 'eb2cpayment', $pmtHlpr);
-		// $pmts = $this->getModelMock('sales/order_payment_collection');
-		// $pmts should be a sales/order_payment_collection, but in the interest of time
-		// I'm making it an array to avoid certain complexities.
-		$pmt = $this->getModelMock('sales/order_payment', array('getMethod', 'getId', 'getCreatedAt', 'getAdditionalInformation', 'getAmountAuthorized'));
-		$pmt
-			->expects($this->once())
-			->method('getMethod')
-			->will($this->returnValue('Pbridge_eb2cpayment_cc'));
-		$pmt
-			->expects($this->once())
-			->method('getId')
-			->will($this->returnValue('anid'));
-		$pmt
-			->expects($this->once())
-			->method('getCreatedAt')
-			->will($this->returnValue('adate'));
-		$pmt
-			->expects($this->atLeastOnce())
-			->method('getAdditionalInformation')
+		$mockConfig->expects($this->once())
+			->method('__get')
 			->will($this->returnValueMap(array(
-				array('gateway_transaction_id', 'anid'),
-				array('response_code', 'AP01'),
-				array('bank_authorization_code', 'abankauthcode'),
-				array('cvv2_response_code', 'cvv'),
-				array('avs_response_code', 'anavscode'),
-				array('expiration_date', 'ccexp'),
-				array('phone_response_code', 'U'),
-				array('name_response_code', 'N'),
-				array('email_response_code', 'Y'),
-				array('tender_code', 'XY'),
+				array('isPaymentEnabled', true)
 			)));
-		$pmt
-			->expects($this->once())
-			->method('getAmountAuthorized')
-			->will($this->returnValue(12.95));
-		$order = $this->getModelMock('sales/order', array('getAllPayments', 'getGrandTotal'));
-		$order
-			->expects($this->once())
+
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($mockConfig));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$payment = Mage::getModel('sales/order_payment')->addData(array(
+			'entity_id' => 1,
+			'method' => 'Paypal_express',
+			'created_at' => '2012-07-06 10:09:05',
+			'amount_authorized' => 50.00,
+			'cc_status' => 'success'
+		));
+
+		$order = $this->getModelMockBuilder('sales/order')
+			->disableOriginalConstructor()
+			->setMethods(array('getAllPayments', 'getGrandTotal'))
+			->getMock();
+		$order->expects($this->once())
 			->method('getAllPayments')
-			->will($this->returnValue(array($pmt)));
-		$order
-			->expects($this->once())
+			->will($this->returnValue(array($payment)));
+		$order->expects($this->once())
 			->method('getGrandTotal')
-			->will($this->returnValue(12.34));
-		// This is necessary in order to be able to inspect the created XML, such as it is.
-		$tmpDom = new TrueAction_Dom_Document();
-		$pmtNd = $tmpDom->createElement('_');
-		$tmpDom->appendChild($pmtNd);
-		// Now we have to jump through some really heinous hoops
-		// in order to inject the order object because
-		// we didn't implement any kind of dependency injection.
-		// So we call buildRequest because it's the only thing
-		// that can set the order object, and it eventually
-		// calls _getPayment, which eventually calls _getPayments.
-		// ... yep.
-		// So first we stub as much as we can of buildRequest.
-		$create = $this->getModelMock('eb2corder/create', array('_buildOrderCreateRequest', '_buildOrder', '_buildItems', '_buildShip', '_buildAdditionalOrderNodes', '_buildContext'));
-		$create->expects($this->any())->method('_buildOrderCreateRequest')->will($this->returnValue($pmtNd));
-		$create->expects($this->any())->method('_buildOrder')->will($this->returnValue($pmtNd));
-		$create->expects($this->any())->method('_buildItems')->will($this->returnSelf());
-		$create->expects($this->any())->method('_buildShip')->will($this->returnSelf());
-		$create->expects($this->any())->method('_buildAdditionalOrderNodes')->will($this->returnSelf());
-		$create->expects($this->any())->method('_buildContext')->will($this->returnSelf());
-		// Okay, here goes everything.
-		$create->buildRequest($order);
-		$expectedXml = '<_><Payment><BillingAddress ref="billing_1"></BillingAddress><Payments><CreditCard><PaymentContext><PaymentSessionId>paymentanid</PaymentSessionId><TenderType>XY</TenderType><PaymentAccountUniqueId isToken="true">anid</PaymentAccountUniqueId></PaymentContext><PaymentRequestId>paymentanid</PaymentRequestId><CreateTimeStamp>adate</CreateTimeStamp><Amount>12.34</Amount><Authorization><ResponseCode>APPROVED</ResponseCode><BankAuthorizationCode>abankauthcode</BankAuthorizationCode><CVV2ResponseCode>cvv</CVV2ResponseCode><AVSResponseCode>anavscode</AVSResponseCode><PhoneResponseCode>U</PhoneResponseCode><NameResponseCode>N</NameResponseCode><EmailResponseCode>Y</EmailResponseCode><AmountAuthorized>12.95</AmountAuthorized></Authorization><ExpirationDate>ccexp</ExpirationDate></CreditCard></Payments></Payment><Context></Context></_>';
-		$this->assertXmlStringEqualsXmlString($expectedXml, $pmtNd->C14N());
+			->will($this->returnValue(50.00));
+
+		$create = Mage::getModel('eb2corder/create');
+		$this->_reflectProperty($create, '_o')->setValue($create, $order);
+		$this->_reflectProperty($create, '_ebcPaymentMethodMap')->setValue($create, array('Paypal_express' => 'PayPal'));
+		$this->assertSame($create, $this->_reflectMethod($create, '_buildPayments')->invoke($create, $doc->documentElement));
+
+		$this->assertSame(sprintf($this->expected('paypal')->getPaymentNode(), "\n"), trim($doc->saveXML()));
 	}
+
 	/**
 	 * @test
 	 */
-	function testGetOrderGiftCardPan()
+	public function testGetOrderGiftCardPan()
 	{
 		$expectedPanToken = 'abc123';
 		$order = $this->getModelMock('sales/order', array('getGiftCards'));

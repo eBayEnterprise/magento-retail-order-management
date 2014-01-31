@@ -1,0 +1,2 @@
+paypal:
+  payment_node: <?xml version="1.0"?>%s<Payments><PayPal><Amount><![CDATA[50.00]]></Amount><AmountAuthorized><![CDATA[50.00]]></AmountAuthorized><PaymentContext><PaymentSessionId><![CDATA[payment1]]></PaymentSessionId><TenderType><![CDATA[PY]]></TenderType><PaymentAccountUniqueId isToken="true"><![CDATA[1]]></PaymentAccountUniqueId></PaymentContext><CreateTimeStamp><![CDATA[2012-07-06T10:09:05]]></CreateTimeStamp><PaymentRequestId><![CDATA[payment1]]></PaymentRequestId><Authorization><ResponseCode><![CDATA[success]]></ResponseCode></Authorization></PayPal></Payments>
