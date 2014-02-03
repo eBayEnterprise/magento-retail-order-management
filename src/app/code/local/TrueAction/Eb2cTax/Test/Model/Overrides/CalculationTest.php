@@ -757,6 +757,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 				->disableOriginalConstructor()
 				->getMock();
 			$response = $this->getModelMockBuilder('eb2ctax/response')
+				->disableOriginalConstructor()
 				->setMethods(array(
 					'getRequest',
 					'isValid'
