@@ -17,6 +17,17 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 		self::$reqXml = file_get_contents(__DIR__ . '/ResponseTest/fixtures/request.xml');
 	}
 
+	public function setUp()
+	{
+		$this->replaceByMock(
+			'model',
+			'eb2ccore/session',
+			$this->getModelMockBuilder('eb2ccore/session')
+				->disableOriginalConstructor()
+				->setMethods(null)
+				->getMock()
+		);
+	}
 	/**
 	 * verify a fault message is properly parsed to a log message.
 	 */
@@ -156,20 +167,6 @@ XML;
 	}
 
 	/**
-	 * Testing isValid method
-	 */
-	public function testIsValidWithBadRequest()
-	{
-		// setup the SUT
-		$response = $this->_mockResponse();
-		$this->assertTrue($response->isValid());
-		$request = Mage::getModel('eb2ctax/request');
-		$this->assertFalse($request->isValid());
-		$response->setRequest($request);
-		$this->assertFalse($response->isValid());
-	}
-
-	/**
 	 * Testing _construct method - valid request/response match xml
 	 *
 	 * @test
@@ -251,7 +248,10 @@ XML;
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->preserveWhiteSpace = false;
 		$doc->loadXML($xml);
-		$response = Mage::getModel('eb2ctax/response');
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
 		$responseDoc = new ReflectionProperty($response, '_doc');
 		$responseDoc->setAccessible(true);
 		$responseDoc->setValue($response, $doc);
@@ -456,7 +456,11 @@ XML;
 
 		$this->assertSame(
 			$this->expected('set-%s-%s', $responseValue, $requestValue)->getSame(),
-			Mage::getModel('eb2ctax/response')->isSameNodelistElement($responseNodelist, $requestNodelist)
+			$this->getModelMockBuilder('eb2ctax/response')
+				->disableOriginalConstructor()
+				->setMethods(null)
+				->getMock()
+				->isSameNodelistElement($responseNodelist, $requestNodelist)
 		);
 	}
 
@@ -491,24 +495,8 @@ XML;
 	 */
 	public function testCheckXml($xml, $expected)
 	{
-		$response = Mage::getModel('eb2ctax/response');
+		$response = $this->_mockResponse();
 		$val = $this->_reflectMethod($response, '_checkXml')->invoke($response, $xml);
-		$this->assertSame($expected, $val);
-	}
-
-	/**
-	 * @dataProvider xmlProviderForValidateResponseItems
-	 */
-	public function testValidateResponseItems($pathA, $pathB, $expected)
-	{
-		$response = Mage::getModel('eb2ctax/response');
-		$docA = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$docB = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$docA->preserveWhiteSpace = false;
-		$docB->preserveWhiteSpace = false;
-		$docA->loadXML(file_get_contents($pathA));
-		$docB->loadXML(file_get_contents($pathB));
-		$val = $this->_reflectMethod($response, '_validateResponseItems')->invoke($response, $docA, $docB);
 		$this->assertSame($expected, $val);
 	}
 

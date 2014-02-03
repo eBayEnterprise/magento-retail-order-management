@@ -173,17 +173,17 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 				$code    = $taxQuote->getCode();
 				$id      = $code . '-' . $taxRate;
 
-			switch($taxQuote->getType()) {
-				case $taxQuote::MERCHANDISE:
-					$typeStr = 'Merchandise';
-					break;
-				case $taxQuote::SHIPPING:
-					$typeStr = 'Shipping';
-					break;
-				case $taxQuote::DUTY:
-					$typeStr = 'Duty';
-					break;
-			}
+				switch($taxQuote->getType()) {
+					case $taxQuote::MERCHANDISE:
+						$typeStr = 'Merchandise';
+						break;
+					case $taxQuote::SHIPPING:
+						$typeStr = 'Shipping';
+						break;
+					case $taxQuote::DUTY:
+						$typeStr = 'Duty';
+						break;
+				}
 
 				if (isset($result[$id])) {
 					$group = $result[$id];

@@ -51,6 +51,25 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->getMock();
 	}
 
+	/**
+	 * Create a mock of the eb2ctax/response model, scripted with the given
+	 * methods. Array of methods should consist of keys mapping to the method
+	 * name and values of the mock return value to be given to the mock's `will`
+	 * method.
+	 * @param  array  $methods Methods to script the mock with
+	 * @return Mock_TrueAction_Eb2cTax_Model_Response
+	 */
+	public function buildResponseMock($methods=null)
+	{
+		$mock = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(!is_null($methods) ? array_keys($methods) : $methods)
+			->getMock();
+		foreach ($methods as $method => $mockReturn) {
+			$mock->expects($this->any())->method($method)->will($mockReturn);
+		}
+		return $mock;
+	}
 	public function tearDown()
 	{
 		parent::tearDown();
@@ -62,7 +81,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	 */
 	public function testGetItemResponseInvalidResponse()
 	{
-		$response = $this->_buildModelMock('eb2ctax/response', array(
+		$response = $this->buildResponseMock(array(
 			'isValid'            => $this->returnValue(false),
 			'getResponseForItem' => $this->returnValue(new Varien_Object())
 		));
@@ -344,8 +363,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 				"$expectationKey: applied group does not include the correct number of rates"
 			);
 			foreach ($group['rates'] as $idx => $rate) {
-				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
-				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
 				$this->assertSame((float) $r[$idx]['amount'], $rate['amount'], "$expectationKey: applied group rate amount mismatch");
 				$this->assertSame((float) $r[$idx]['base_amount'], $rate['base_amount'], "$expectationKey: applied group rate base amount mismatch");
 			}
@@ -353,7 +370,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 	}
 
 	/**
-	 * @atest
+	 * @test
 	 * @loadExpectation testGetAppliedRates.yaml
 	 */
 	public function testGetAppliedRatesDuplicateRatesExtraDiscountRates()
@@ -409,8 +426,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			$r = $e->getRates();
 			$this->assertSame(count($r), count($group['rates']), "$expectationKey: applied group does not include the correct number of rates");
 			foreach ($group['rates'] as $idx => $rate) {
-				$this->assertSame($r[$idx]['code'], $rate['code'], "$expectationKey: applied group rate code mismatch");
-				$this->assertSame($r[$idx]['code'], $rate['title'], "$expectationKey: applied group rate title mismatch");
 				$this->assertSame((float) $r[$idx]['amount'], $rate['amount'], "$expectationKey: applied group rate amount mismatch");
 				$this->assertSame((float) $r[$idx]['base_amount'], $rate['base_amount'], "$expectationKey: applied group rate base amount mismatch");
 			}
@@ -499,7 +514,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$orderItem->setData(array('duty_amount' => 8.21));
 		$this->_reflectProperty($orderItem, '_taxQuotes')->setValue($orderItem, $taxQuotes);
 		$this->_reflectProperty($orderItem, '_taxQuoteDiscounts')->setValue($orderItem, $taxDiscounts);
-		$response = $this->_buildModelMock('eb2ctax/response', array(
+		$response = $this->buildResponseMock(array(
 			'getResponseForItem' => $this->returnValue($orderItem),
 			'isValid'            => $this->returnValue(true),
 		));
@@ -556,7 +571,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$orderItem->setData(array('duty_amount' => 8.21));
 		$this->_reflectProperty($orderItem, '_taxQuotes')->setValue($orderItem, $taxQuotes);
 		$this->_reflectProperty($orderItem, '_taxQuoteDiscounts')->setValue($orderItem, $taxDiscounts);
-		$response = $this->_buildModelMock('eb2ctax/response', array(
+		$response = $this->buildResponseMock(array(
 			'getResponseForItem' => $this->returnValue($orderItem),
 			'isValid'            => $this->returnValue(true),
 		));
@@ -621,7 +636,7 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 		$orderItem->setData(array('duty_amount' => 8.21));
 		$this->_reflectProperty($orderItem, '_taxQuotes')->setValue($orderItem, $taxQuotes);
 		$this->_reflectProperty($orderItem, '_taxQuoteDiscounts')->setValue($orderItem, $taxDiscounts);
-		$response = $this->_buildModelMock('eb2ctax/response', array(
+		$response = $this->buildResponseMock(array(
 			'getResponseForItem' => $this->returnValue($orderItem),
 			'isValid'            => $this->returnValue(true),
 		));

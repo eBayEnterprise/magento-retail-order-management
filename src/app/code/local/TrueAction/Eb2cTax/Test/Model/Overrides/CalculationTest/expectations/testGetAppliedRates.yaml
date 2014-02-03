@@ -6,7 +6,7 @@ beforediscount-0:
   base_amount: 6.25
   rates:
     0:
-      code: state tax foo
+      code: Merchandise-state tax foo
       title: state tax foo
       amount: 12.50
       percent: 6.25
@@ -19,7 +19,7 @@ beforediscount-1:
   base_amount: 0.20
   rates:
     0:
-      code: shipping tax
+      code: Shipping-shipping tax
       title: shipping tax
       amount: 0.40
       percent: 1.33
@@ -32,7 +32,7 @@ beforediscount-2:
   base_amount: 0.51
   rates:
     0:
-      code: duty tax
+      code: Duty-duty tax
       title: duty tax
       amount: 1.02
       percent: 2.62
@@ -45,7 +45,7 @@ beforediscount-3:
   base_amount: 8.21
   rates:
     0:
-      code: eb2c-duty-amount
+      code: Duty-eb2c-duty-amount
       title: eb2c-duty-amount
       amount: 16.42
       percent: null
@@ -58,7 +58,7 @@ afterdiscount-0:
   base_amount: 5.48
   rates:
     0:
-      code: state tax foo
+      code: Merchandise-state tax foo
       title: state tax foo
       amount: 10.96
       percent: 6.25
@@ -71,7 +71,7 @@ afterdiscount-1:
   base_amount: 0.13
   rates:
     0:
-      code: shipping tax
+      code: Shipping-shipping tax
       title: shipping tax
       amount: 0.26
       percent: 1.33
@@ -84,7 +84,7 @@ afterdiscount-2:
   base_amount: 0.51
   rates:
     0:
-      code: duty tax
+      code: Duty-duty tax
       title: duty tax
       amount: 1.02
       percent: 2.62
@@ -97,7 +97,7 @@ afterdiscount-3:
   base_amount: 8.21
   rates:
     0:
-      code: eb2c-duty-amount
+      code: Duty-eb2c-duty-amount
       title: eb2c-duty-amount
       amount: 16.42
       percent: null
@@ -110,13 +110,13 @@ duplicate-after-0:
   base_amount: 10.96
   rates:
     0:
-      code: state tax foo
+      code: Merchandise-state tax foo
       title: state tax foo
       amount: 9.42
       percent: 6.25
       base_amount: 4.71
     1:
-      code: state tax foo
+      code: Merchandise-state tax foo
       title: state tax foo
       amount: 12.50
       percent: 6.25
@@ -129,7 +129,7 @@ duplicate-after-2:
   base_amount: 0.51
   rates:
     0:
-      code: duty tax
+      code: Duty-duty tax
       title: duty tax
       amount: 1.02
       percent: 2.62
@@ -142,7 +142,7 @@ duplicate-after-double-2:
   base_amount: 0.00
   rates:
     0:
-      code: duty tax
+      code: Duty-duty tax
       title: duty tax
       amount: 0.00
       percent: 0.00
@@ -155,7 +155,7 @@ duplicate-after-3:
   base_amount: 8.21
   rates:
     0:
-      code: eb2c-duty-amount
+      code: Duty-eb2c-duty-amount
       title: eb2c-duty-amount
       amount: 16.42
       percent: null

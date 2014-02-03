@@ -66,11 +66,19 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	 */
 	public function testSendRequest()
 	{
+		$responseMessage = '<foo>something</foo>';
 		$requestDocument = new TrueAction_Dom_Document();
 		$request = $this->getModelMock('eb2ctax/request', array('getDocument'));
 		$request->expects($this->any())
 			->method('getDocument')
 			->will($this->returnValue($requestDocument));
+
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(array())
+			->getMock();
+		$this->replaceByMock('model', 'eb2ctax/response', $response);
+
 		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
 		$apiModelMock->expects($this->once())
 			->method('addData')
@@ -82,10 +90,10 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 		$apiModelMock->expects($this->once())
 			->method('request')
 			->with($this->identicalTo($requestDocument))
-			->will($this->returnValue('<foo>something</foo>'));
+			->will($this->returnValue($responseMessage));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cTax_Model_Response',
+		$this->assertSame(
+			$response,
 			Mage::helper('eb2ctax')->sendRequest($request)
 		);
 	}

@@ -187,7 +187,10 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 
 	protected function _orderSaveResponseMock($responseItem, $quoteItems, $address)
 	{
-		$response = $this->getModelMock('eb2ctax/response', array('getResponseForItem'));
+		$response = $this->getModelMockBuilder('eb2ctax/response')
+			->disableOriginalConstructor()
+			->setMethods(array('getResponseForItem', 'storeResponseData'))
+			->getMock();
 		$itemResponseMap = array(
 			array($quoteItems[0], $address, null),
 			array($quoteItems[1], $address, $responseItem),
@@ -195,6 +198,9 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 		$response->expects($this->any())
 			->method('getResponseForItem')
 			->will($this->returnValueMap($itemResponseMap));
+		$response->expects($this->once())
+			->method('storeResponseData')
+			->will($this->returnSelf());
 		return $response;
 	}
 
