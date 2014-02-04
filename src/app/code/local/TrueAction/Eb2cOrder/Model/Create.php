@@ -348,7 +348,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$shipping = $pricing->createChild('Shipping');
 			$shipping->createChild('Amount', $this->_getItemShippingAmount($item));
 			$shippingTaxFragment = $this->_buildTaxDataNodes(
-				$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING), $item
+				$this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING), $item, TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING
 			);
 			if ($shippingTaxFragment->hasChildNodes()) {
 				$shipping->appendChild($shippingTaxFragment);
@@ -416,7 +416,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param  Mage_Sales_Model_Order_Item $item, the quote item to get the product object from
 	 * @return DOMDocumentFragment                  A DOM fragment of the nodes
 	 */
-	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes, Mage_Sales_Model_Order_Item $item)
+	protected function _buildTaxDataNodes(TrueAction_Eb2cTax_Model_Resource_Response_Quote_Collection $taxQuotes, Mage_Sales_Model_Order_Item $item, $taxType = null)
 	{
 		$taxFragment = $this->_domRequest->createDocumentFragment();
 		if ($taxQuotes->count()) {
@@ -424,7 +424,11 @@ class TrueAction_Eb2cOrder_Model_Create
 				$this->_domRequest->createElement('TaxData', null, $this->_config->apiXmlNs)
 			);
 			// adding TaxClass node
-			$taxData->createChild('TaxClass', $this->_getAttributeValueByProductId('tax_code', $item->getProductId()));
+			if ($taxType === TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING) {
+				$taxData->createChild('TaxClass', $this->_config->shippingTaxClass);
+			} else {
+				$taxData->createChild('TaxClass', $this->_getAttributeValueByProductId('tax_code', $item->getProductId()));
+			}
 
 			$taxes = $taxData->createChild('Taxes');
 			$calc = Mage::getModel('tax/calculation');

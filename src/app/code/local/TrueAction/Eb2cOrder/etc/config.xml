@@ -121,6 +121,9 @@
 				<event_type>OrderStatus</event_type>
 				<xsd>Order-Status-1 0.xsd</xsd>
 			</status_feed>
+			<shipping>
+				<tax_class>93000</tax_class>
+			</shipping>
 		</eb2corder>
 	</default>
 	<phpunit>

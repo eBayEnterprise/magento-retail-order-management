@@ -17,6 +17,7 @@ class TrueAction_Eb2cOrder_Model_Config extends TrueAction_Eb2cCore_Model_Config
 		'api_ship_group_destination_id'  => 'eb2corder/api/ship_group_destination_id',
 		'api_xml_ns'                     => 'eb2ccore/api/xml_namespace',
 		'eb2c_payments_enabled'          => 'eb2cpayment/enabled',
+		'shipping_tax_class'             => 'eb2corder/shipping/tax_class',
 		'status_feed_event_type'         => 'eb2corder/status_feed/event_type',
 		'status_feed_file_pattern'       => 'eb2corder/status_feed/file_pattern',
 		'status_feed_header_version'     => 'eb2corder/status_feed/header_version',

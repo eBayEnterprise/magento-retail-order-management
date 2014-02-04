@@ -269,6 +269,59 @@ INVALID_XML;
 			}
 		}
 	}
+	/**
+	 * Test that we pull the TaxClass for shipping from config. 
+	 * @test
+	 */
+	public function testBuildTaxDataNodesShipping()
+	{
+		$this->replaceCoreConfigRegistry(
+			array(
+				'shippingTaxClass' => 'UNIT_TEST_CLASS',
+			)
+		);
+
+		$taxQuotes[] = Mage::getModel(
+			'eb2ctax/response_quote',
+			array(
+				'id' => '1',
+				'quote_item_id' => '15',
+				'type' => '0',
+				'tax_type' => 'SALES',
+				'taxability' => 'TAXABLE',
+				'jurisdiction' => 'PENNSYLVANIA',
+				'jurisdiction_id' => '31152',
+				'jurisdiction_level' => 'STATE',
+				'imposition' => 'Sales and Use Tax',
+				'imposition_type' => 'General Sales and Use Tax',
+				'situs' => 'ADMINISTRATIVE_ORIGIN',
+				'effective_rate' => 0.06,
+				'taxable_amount' => 43.96,
+				'calculated_tax' => 2.64,
+			)
+		);
+
+		$taxQuotesCollection = $this->getModelMockBuilder('eb2ctax/resource_response_quote_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getIterator', 'count'))
+			->getMock();
+		$taxQuotesCollection->expects($this->any())
+			->method('getIterator')
+			->will($this->returnValue(new ArrayIterator($taxQuotes)));
+		$taxQuotesCollection->expects($this->any())
+			->method('count')
+			->will($this->returnValue(1));
+
+		$create = Mage::getModel('eb2corder/create');
+		$request = $this->_reflectProperty($create, '_domRequest');
+		$request->setValue($create, new TrueAction_Dom_Document());
+		$taxFragment = $this
+			->_reflectMethod($create, '_buildTaxDataNodes')
+			->invoke($create, $taxQuotesCollection, Mage::getModel('sales/order_item'), TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING);
+
+		$this->assertSame('UNIT_TEST_CLASS', $taxFragment->firstChild->firstChild->nodeValue);
+	}
+
 	public function testGettingXmlRequest()
 	{
 		$create = Mage::getModel('eb2corder/create');
