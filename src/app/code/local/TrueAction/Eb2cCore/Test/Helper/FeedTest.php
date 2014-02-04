@@ -12,10 +12,8 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	public function providerValidateHeader()
 	{
 		return array(
-			array('bad-dest-feed'),
 			array('bad-event-feed'),
 			array('good-feed'),
-			array('no-dest-feed'),
 			array('no-event-feed'),
 		);
 	}
