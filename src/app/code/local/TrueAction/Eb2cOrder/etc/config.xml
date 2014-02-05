@@ -2,7 +2,7 @@
 <config>
 	<modules>
 		<TrueAction_Eb2cOrder>
-			<version>0.9.0</version>
+			<version>1.0.0.18</version>
 		</TrueAction_Eb2cOrder>
 	</modules>
 	<global>
