@@ -556,27 +556,32 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			$feedModelMock->mvToArchiveDir('feed/Sample1.xml')
 		);
 	}
-
 	/**
 	 * Test make the base acknowledgement file name from config values
 	 * @test
-	 * @loadFixture loadConfig.yaml
 	 */
 	public function test_getBaseAckFileName()
 	{
-		$phonyFileName = 'utAck_utEventType_utClientId_utStoreId_utDate.xml';
+		$this->replaceCoreConfigRegistry(
+			array(
+				'clientId'               => 'utClientId',
+				'storeId'                => 'utStoreId',
+				'feedAckTimestampFormat' => '\u\t\D\a\t\e',
+				'feedAckFilenamePattern' => 'utAckTest_{eventtype}_{clientid}_{storeid}_{timestamp}.xml',
+			)
+		);
+		$shouldBeFileName = 'utAckTest_utEventType_utClientId_utStoreId_utDate.xml';
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array())
 			->getMock();
 
 		$this->assertSame(
-			$phonyFileName,
+			$shouldBeFileName,
 			$this->_reflectMethod($feedModelMock, '_getBaseAckFileName')
 				->invoke($feedModelMock, 'utEventType')
 		);
 	}
-
 	/**
 	 * Test that we'll thrown an exception with invalid dom
 	 * @test
