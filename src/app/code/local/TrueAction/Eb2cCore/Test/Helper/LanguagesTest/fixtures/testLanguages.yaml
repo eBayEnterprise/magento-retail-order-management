@@ -1,0 +1,55 @@
+scope:
+  website:
+   - website_id: 2
+     code: usa_website
+     name: Team USA
+     default_group_id: 2
+   - website_id: 3
+     code: canada_website
+     name: Les Habitants 
+     default_group_id: 3
+   - website_id: 4
+     code: german_website
+     name: Fußball-Bundesliga 
+     default_group_id: 4
+  group:
+   - group_id: 2
+     website_id: 2
+     name: USA Store Group
+     default_store_id: 2
+     root_category_id: 2
+   - group_id: 3
+     website_id: 3
+     name: Français magasins Canadian Groupes 
+     default_store_id: 3
+     root_category_id: 2
+   - group_id: 4
+     website_id: 4
+     name: Deutsch-Store Gruppen 
+     default_store_id: 4
+     root_category_id: 2
+  store:
+   - store_id: 2
+     website_id: 2
+     group_id: 2
+     code: usa
+     name: USA Store
+     is_active: 1
+   - store_id: 3
+     website_id: 3
+     group_id: 3
+     code: canada
+     name: Canada Store
+     is_active: 1
+   - store_id: 4
+     website_id: 4
+     group_id: 4
+     code: germany
+     name: Germany Store
+     is_active: 1
+config:
+  default/eb2ccore/general/language_code: default_lang
+  stores/canada/eb2ccore/general/store_id: 3
+  stores/canada/eb2ccore/general/language_code: store3_lang 
+  stores/germany/eb2ccore/general/store_id: 4
+  stores/germany/eb2ccore/general/language_code:  store4_lang

@@ -55,6 +55,7 @@
 				<client_customer_id_prefix/>
 				<client_id/>
 				<client_order_id_prefix/>
+				<language_code/>
 				<store_id/>
 			</general>
 			<api>

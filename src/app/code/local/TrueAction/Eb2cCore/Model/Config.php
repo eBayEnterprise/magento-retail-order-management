@@ -24,6 +24,7 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'feed_ack_timestamp_format'   => 'eb2ccore/feed/acknowledgement/timestamp_format',
 		'feed_ack_xsd'                => 'eb2ccore/feed/acknowledgement/xsd',
 		'inventory_expiration_time'   => 'eb2ccore/service/inventory/expiration',
+		'language_code'               =>  'eb2ccore/general/language_code',
 		'service_order_timeout'       => 'eb2ccore/service/order/timeout',
 		'service_payment_timeout'     => 'eb2ccore/service/payment/timeout',
 		'sftp_auth_type'              => 'eb2ccore/feed/filetransfer_sftp_auth_type',
