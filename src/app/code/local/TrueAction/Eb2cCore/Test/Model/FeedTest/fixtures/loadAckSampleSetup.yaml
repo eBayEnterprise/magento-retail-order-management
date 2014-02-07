@@ -1,5 +1,5 @@
 config:
-  default/eb2ccore/feed/acknowledgement/xsd: AcknowledgementV11.xsd
+  eb2cproduct/item_master_feed/outbound/message_header/event_type: 'ItemMaster'
 vfs:
   sample:
     test.xml: |
@@ -17,7 +17,7 @@ vfs:
             <DestinationId>TBLEU</DestinationId>
             <DestinationType>CLIENT</DestinationType>
           </DestinationData>
-          <EventType>Acknowledgement</EventType>
+          <EventType>ItemMaster</EventType>
           <MessageData>
             <MessageId>123456</MessageId>
             <CorrelationId>456789</CorrelationId>

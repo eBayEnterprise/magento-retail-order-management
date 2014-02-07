@@ -219,12 +219,23 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * generate the message id
+	 * Generate a message id
+	 * This is an arbitrary construct, designed only to pass XSD validation
 	 * @return string
 	 */
 	public function getMessageId()
 	{
-		return uniqid(sprintf('%s_%s_', $this->getStoreId(), $this->getClientId()));
+		return sprintf("%-.20s", uniqid('M-',true));
+	}
+
+	/**
+	 * Generate a correlation id
+	 * This is an arbitrary construct, designed only to pass XSD validation
+	 * @return string
+	 */
+	public function getCorrelationId()
+	{
+		return sprintf("%-.20s", uniqid('C-',true));
 	}
 
 	/**

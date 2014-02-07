@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2012 sp1 (http://www.altova.com) by user (private) -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cc="http://www.tm-xml.org/XMLSchema/common"  elementFormDefault="qualified" attributeFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:documentation xml:lang="en-US">Common types and attributes support V11.  $Rev: 289 $</xsd:documentation>
+		<xsd:documentation>$Id: CommonTypes.xsd 289 2012-01-18 19:49:15Z loweryt $</xsd:documentation>
+		<xsd:documentation>$URL: http://svn.gspt.net/phx/ph-schemas/branches/v2.3_1/XSD/CommonTypes.xsd $</xsd:documentation>
+	</xsd:annotation>
+	<xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/03/xml.xsd"/>
+	<xsd:include schemaLocation="external/ISOCountryCodeType-V2006.xsd"/>
+	<xsd:attribute name="operation_type" default="Add">
+		<xsd:annotation>
+			<xsd:documentation>Defines the action requested by the event. Add, Change or Delete.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleType>
+			<xsd:restriction base="Simple.String.Operation.Type.AD"/>
+		</xsd:simpleType>
+	</xsd:attribute>
+	<xsd:attribute name="import_mode" default="Update">
+		<xsd:annotation>
+			<xsd:documentation>Defines the action requested by the event. Update, Delete or Replace. 
+Update changes existing data or adds if not existing.  Replace remove the data point section then adds the new values.
+Example:  Sending Replace in Category Link causes ALL the links for this item to be removed and replaced by link contained in this document.			
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleType>
+			<xsd:restriction base="Simple.String.Operation.Type.UDR"/>
+		</xsd:simpleType>
+	</xsd:attribute>
+	<xsd:attributeGroup name="image_attributes">
+		<xsd:annotation>
+			<xsd:documentation>Attributes to describe an image.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:attribute name="type" type="Simple.StringType.32" use="required"/>
+		<xsd:attribute name="view" type="Simple.StringType.32" use="optional" default="main"/>
+		<xsd:attribute name="height" type="Simple.IntegerType" use="required"/>
+		<xsd:attribute name="width" type="Simple.IntegerType" use="required"/>
+	</xsd:attributeGroup>
+	<xsd:attribute name="link_type">
+		<xsd:annotation>
+			<xsd:documentation>link type is used to classify how the link is used.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleType>
+			<xsd:restriction base="Simple.StringType.32">
+				<xsd:enumeration value="ES_Accessory"/>
+				<xsd:enumeration value="ES_CrossSelling"/>
+				<xsd:enumeration value="ES_DifferentOrderUnit"/>
+				<xsd:enumeration value="ES_FollowUp"/>
+				<xsd:enumeration value="ES_Other"/>
+				<xsd:enumeration value="ES_Replacement"/>
+				<xsd:enumeration value="ES_SpareParts"/>
+				<xsd:enumeration value="ES_UpSelling"/>
+				<xsd:enumeration value="ES_Warranty"/>
+				<xsd:enumeration value="ES_GiftMessage"/>
+				<xsd:enumeration value="ES_GiftWrap"/>
+				<xsd:enumeration value="ES_Proxy"/>
+				<xsd:enumeration value="GSI_Accessory"/>
+				<xsd:enumeration value="GSI_CrossSellSlot01"/>
+				<xsd:enumeration value="GSI_CrossSellSlot02"/>
+				<xsd:enumeration value="GSI_CrossSellSlot03"/>
+				<xsd:enumeration value="GSI_CrossSellSlot04"/>
+				<xsd:enumeration value="GSI_CrossSellSlot05"/>
+				<xsd:enumeration value="GSI_CrossSellSlot06"/>
+				<xsd:enumeration value="GSI_CrossSellSlot07"/>
+				<xsd:enumeration value="GSI_CrossSellSlot08"/>
+				<xsd:enumeration value="GSI_CrossSellSlot09"/>
+				<xsd:enumeration value="GSI_CrossSellSlot10"/>
+				<xsd:enumeration value="GSI_CrossSellSlot11"/>
+				<xsd:enumeration value="GSI_CrossSellSlot12"/>
+				<xsd:enumeration value="GSI_CrossSellSlot13"/>
+				<xsd:enumeration value="GSI_CrossSellSlot14"/>
+				<xsd:enumeration value="GSI_CrossSellSlot15"/>
+				<xsd:enumeration value="GSI_CrossSellSlot16"/>
+				<xsd:enumeration value="GSI_CrossSellSlot17"/>
+				<xsd:enumeration value="GSI_CrossSellSlot18"/>
+				<xsd:enumeration value="GSI_CrossSellSlot19"/>
+				<xsd:enumeration value="GSI_CrossSellSlot20"/>
+			</xsd:restriction>
+		</xsd:simpleType>
+	</xsd:attribute>
+	<xsd:complexType name="Complex.StringType.Description" mixed="false">
+		<xsd:annotation>
+			<xsd:documentation>Complrex String Description length 4000 - Lang Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Simple.StringType.Description.Value">
+				<xsd:attribute ref="xml:lang"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StyleType.StyleID" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String for String for Style ID</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Simple.StringType.15"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.PriceEvent.Description" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String for Long Title  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:restriction base="Complex.StringType.Title">
+				<xsd:minLength value="0"/>
+				<xsd:maxLength value="256"/>
+				<xsd:whiteSpace value="collapse"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.PriceEvent.ID" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String for ID  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:restriction base="Complex.StringType.Title">
+				<xsd:minLength value="0"/>
+				<xsd:maxLength value="256"/>
+				<xsd:whiteSpace value="collapse"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.LongTitle" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String for Long Title  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:restriction base="Complex.StringType.Title">
+				<xsd:minLength value="0"/>
+				<xsd:maxLength value="120"/>
+				<xsd:whiteSpace value="collapse"/>
+			</xsd:restriction>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.Title" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String Title  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Complex.StringType.Description"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.Measure" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String Title  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Simple.StringType.15">
+				<xsd:attribute name="UnitOfMeasure" type="Simple.StringType.10"/>
+			</xsd:extension>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.ItemDimension" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Item Dimension  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:all>
+			<xsd:element name="Width" type="Complex.DecimalType">
+				<xsd:annotation>
+					<xsd:documentation>The item's width, made using the unit of measure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Length" type="Complex.DecimalType">
+				<xsd:annotation>
+					<xsd:documentation>The item's length, made using the unit of measure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Height" type="Complex.DecimalType">
+				<xsd:annotation>
+					<xsd:documentation>The item's height, made using the unit of measure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:all>
+		<xsd:attribute name="unit_of_measure" type="Simple.StringType.3" use="required">
+			<xsd:annotation>
+				<xsd:documentation>UOM or Unit of Measure for these Dimensions.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StringType.ItemWeight" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Item Weight  - Localized Support</xsd:documentation>
+		</xsd:annotation>
+		<xsd:all>
+			<xsd:element name="Weight" type="Complex.DecimalType">
+				<xsd:annotation>
+					<xsd:documentation>The item's weight. Made using the unit of measure.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:all>
+		<xsd:attribute name="unit_of_measure" type="Simple.StringType.3" use="required">
+			<xsd:annotation>
+				<xsd:documentation>UOM or Unit of Measure for these Dimensions.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.StyleType.UniqID" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String for Unique ID used to identify the product/master product to assoicate.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Simple.StringType.15"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Custom.Extend.Id" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Allow the defination of Extended Id for an Item.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Value" type="Complex.StyleType.UniqID"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="Simple.StringType.132">
+			<xsd:annotation>
+				<xsd:documentation>Agreed upon name of the attribute.  Warning - No validation is completed on this name.  It's possible to add a new attribute without additional changes to the feed however the attribute may not be usable by downstream systems.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Custom.Attribute" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String  Custom Attribute</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Value" type="Simple.StringType.Description.Value"/>
+		</xsd:sequence>
+		<xsd:attribute name="name" type="Simple.StringType.132" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Agreed upon name of the attribute.  Warning - No validation is completed on this name.  It's possible to add a new attribute without additional changes to the feed however the attribute may not be usable by downstream systems.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute ref="operation_type"/>
+		<xsd:attribute ref="xml:lang"/>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attribute.ValueDesc" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String  Custom Attribute</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Code" type="Simple.StringType.Description.Value"/>
+			<xsd:element name="Description" type="Complex.StringType.Description" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attribute.ValueDescSeq" mixed="true">
+		<xsd:complexContent>
+			<xsd:extension base="Complex.Attribute.ValueDesc">
+				<xsd:sequence>
+					<xsd:element name="Sequence" type="Simple.IntegerType" minOccurs="0"/>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attribute.ValueDescLocalize" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex String  Custom Attribute</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Code" type="Simple.StringType.Description.Value"/>
+			<xsd:element name="Description" type="Simple.StringType.Description.Value"/>
+		</xsd:sequence>
+		<xsd:attribute ref="xml:lang"/>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.ProductLink.Attribute" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Complex Product Link Attribute</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="LinkToUniqueID" type="Complex.StyleType.UniqID">
+				<xsd:annotation>
+					<xsd:documentation>The Unique ID used to for this link.  This Item or Style must exist when the feed is received.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute ref="link_type" use="required">
+			<xsd:annotation>
+				<xsd:documentation>Link type is used to classify how the link is used.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="operation_type" type="Simple.String.Operation.Type.AD" default="Add">
+			<xsd:annotation>
+				<xsd:documentation>Add or Delete a product link.  Delete not supported.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.DecimalType" mixed="false">
+		<xsd:annotation>
+			<xsd:documentation>Complex Decimal</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Simple.DecimalType"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Manufacturer.Type">
+		<xsd:annotation>
+			<xsd:documentation> Manufactuerer information</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Name" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Company Name of the Manufacturer.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ManufacturerId" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>A unique identifier to denote the Item Manufacturer.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attributes.Custom" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Custom attributes (name/value paris) unique to this feed.</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attributes.Extended" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Extended attributes that are not required however default values exist</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Attributes.Base" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Base attributes that are required (mandatory) by feed</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.GTIN.Type">
+		<xsd:annotation>
+			<xsd:documentation>Global Trade Item Number also call UPC in the US, IAN (formerly EAN), in Europe and JAN in Japan.</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="IdNumber">
+				<xsd:annotation>
+					<xsd:documentation>Actual value.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:simpleType>
+					<xsd:restriction base="Simple.StringType.20">
+						<xsd:maxLength value="18"/>
+					</xsd:restriction>
+				</xsd:simpleType>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="IdType">
+			<xsd:annotation>
+				<xsd:documentation>UPC, IAN, JAN</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction base="Simple.StringType.12">
+					<xsd:whiteSpace value="collapse"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+		<xsd:attribute name="operation_type" default="Add">
+			<xsd:annotation>
+				<xsd:documentation>Add or Delete a GTIN related to the item id.</xsd:documentation>
+			</xsd:annotation>
+			<xsd:simpleType>
+				<xsd:restriction>
+					<xsd:simpleType>
+						<xsd:list itemType="Simple.StringType.10"/>
+					</xsd:simpleType>
+					<xsd:enumeration value="Add"/>
+					<xsd:enumeration value="Delete"/>
+				</xsd:restriction>
+			</xsd:simpleType>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Brand.Type">
+		<xsd:sequence>
+			<xsd:element name="Name" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The selling and promotional name used to identify a product for advertising and name recognition purposes.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="Description" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>Short Description of the selling and promotional name used to identify a product for advertising and name recognition purposes.</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:simpleContent>
+						<xsd:restriction base="Complex.StringType.Description">
+							<xsd:maxLength value="100"/>
+						</xsd:restriction>
+					</xsd:simpleContent>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Buyer.Type">
+		<xsd:sequence>
+			<xsd:element name="Name" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The name of the individual/organization responsible for the procurement of the merchandise identified within the purchase order.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="BuyerId" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Specifies the individual/organization responsible for the purchase of the merchandise specified in the purchase order message.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Supplier.Type">
+		<xsd:sequence>
+			<xsd:element name="Name" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>The name of the individual/organization responsible for providing/supplying the merchandise identified within the purchase order.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SupplierId" type="Simple.StringType.50" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>Specifies the individual/organization that acts as a source for merchandise and services offered for sale, or for supplies and services consumed by the buyer and/or client.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Message.Data.Type">
+		<xsd:sequence>
+			<xsd:element name="MessageId" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>Globally unique identifier for each message.
+
+The MessageId will be populated from the source system and must be a global identifier for GSI Xchange.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CorrelationId" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>When present, it must contain the MessageId value of an earlier GSI Xchange Message to which this message relates.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="StyleID" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Style ID or Reference Value</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Complex.StyleType.StyleID"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="LongDescription" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>Long Description - Localized</xsd:documentation>
+		</xsd:annotation>
+		<xsd:simpleContent>
+			<xsd:extension base="Complex.StringType.Description"/>
+		</xsd:simpleContent>
+	</xsd:complexType>
+	<xsd:complexType name="MessageHeaderType">
+		<xsd:sequence>
+			<xsd:element name="Standard" type="Simple.StringType.10">
+				<xsd:annotation>
+					<xsd:documentation>Code identifying the schema controlling agency.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="HeaderVersion" type="Simple.StringType.10">
+				<xsd:annotation>
+					<xsd:documentation>Version of the message being used.  Each new version whole number represents a significant change from a previous whole version and reflects a need for upgrades.  For example, a change from Version 1.X to 2.X represents a substantial change in the framework and would be a recommended upgrade point.  A change in the number after the decimal represents a minor upgrade/modification to the framework.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="VersionReleaseNumber" type="Simple.StringType.15">
+				<xsd:annotation>
+					<xsd:documentation>Release number within the current message header version number.  </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SourceData" type="Complex.Source.Data.Type"/>
+			<xsd:element name="DestinationData" type="Complex.Destination.Data.Type" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>Encapsulates data related to the Destination or Receiving System.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="EventType" type="Simple.StringType.35">
+				<xsd:annotation>
+					<xsd:documentation>The name of the event to which the message pertains.  See Appendix A for list.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="MessageData" type="Complex.Message.Data.Type">
+				<xsd:annotation>
+					<xsd:documentation>Encapsulates message identification information unique to the GSI Xchange.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="CreateDateAndTime" type="Simple.DateTime.Type">
+				<xsd:annotation>
+					<xsd:documentation>Original message creation date and time assigned by the Source. Use yyyy-mm-ddTHH:mm:ss-hh:mm standard with offset from GMT/UTC.  </xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Source.Data.Type">
+		<xsd:sequence>
+			<xsd:element name="SourceId" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>Unique identifier of the System that originated the message.
+
+The SourceId is a unique identifier provided by the initiator of the message.  For those messages originating from an Order Management System (OMS), it would be the unique OMS identifier.  For those messages originating from a Warehouse Management System (WMS), it would be the unique WMS identifier.   
+</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="SourceType" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>The descriptive category/name/code used to define the system that originated the message. OMS = Order Management System, WMS = Warehouse Management System.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Complex.Destination.Data.Type">
+		<xsd:sequence>
+			<xsd:element name="DestinationId" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>Unique identifier of the System that is the intended recipient of the message.  There can be more than one DestinationId/DestinationType sets per message to allow for one message to be sent to multiple receiving systems.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="DestinationType" type="Simple.StringType.20">
+				<xsd:annotation>
+					<xsd:documentation>The descriptive category used to define the system that is the intended recipient of the message. PH = Product Hub, OMS = Order Management System, WMS = Warehouse Management System.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="Simple.ClientID.Type">
+		<xsd:annotation>
+			<xsd:documentation> 
+The identifier provided by GSI for an individual or organization that has a contractual relationship with GSI in which GSI is providing e-commerce, fulfillment or other services for the individual or organization.  			
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.32"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.CatalogType.CatalogID">
+		<xsd:annotation>
+			<xsd:documentation>Simple String for Catalog ID</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.32"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.Boolean.Type">
+		<xsd:annotation>
+			<xsd:documentation>Simple Boolean data type</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:boolean">
+			<!-- no special restriction for string attribute values -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.DecimalType">
+		<xsd:annotation>
+			<xsd:documentation>Simple Decimal</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:decimal">
+			<!-- no special restriction for string attribute values -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.IntegerType">
+		<xsd:annotation>
+			<xsd:documentation>Simple Integer</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:integer"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.DateTime.Type">
+		<xsd:annotation>
+			<xsd:documentation>Date and Timestamp using yyyy-mm-dd'T'hh:mm:ss-hh:mm</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:dateTime"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.DateType">
+		<xsd:annotation>
+			<xsd:documentation>Simple Date</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:date">
+			<!-- no special restriction for string attribute values -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.Description.Value">
+		<xsd:annotation>
+			<xsd:documentation>Simple String Type Description</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.4000">
+			<!-- no special restriction for string attribute values -->
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.4012">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 4012</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="4012"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.4000">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 4000</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="4000"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.462">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 462</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="462"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.132">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 132</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="132"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.100">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 100</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="100"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.72">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 72</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="72"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.50">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 50</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="50"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.35">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 35</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="35"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.32">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 32</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="32"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.30">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 30</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="30"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.25">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 25</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="25"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.20">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 20</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="20"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.15">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 15</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="15"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.12">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 12</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="12"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.11">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 11</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="11"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.10">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 10</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="10"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.9">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 9</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="9"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.7">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 7</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="7"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.5">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 5</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="5"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.3">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 3</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="3"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.2">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 2</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="2"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.1">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 1</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="1"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType">
+		<xsd:annotation>
+			<xsd:documentation> Simple String</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.String.Operation.Type.AC" final="list">
+		<xsd:annotation>
+			<xsd:documentation> Known operation types</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.10">
+			<xsd:enumeration value="Add"/>
+			<xsd:enumeration value="Change"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.String.Operation.Type.AD" final="list">
+		<xsd:annotation>
+			<xsd:documentation> Known operation types</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.10">
+			<xsd:enumeration value="Add"/>
+			<xsd:enumeration value="Delete"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.String.Operation.Type.ACD" final="list">
+		<xsd:annotation>
+			<xsd:documentation> Operation Type, Add, Change Delete</xsd:documentation>
+		</xsd:annotation>
+		<xsd:union memberTypes="Simple.String.Operation.Type.AD Simple.String.Operation.Type.AC"/>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.String.Operation.Type.UDR" final="list">
+		<xsd:annotation>
+			<xsd:documentation> Update, Delete, Replace operation type.		
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType.10">
+			<xsd:enumeration value="Update"/>
+			<xsd:enumeration value="Delete"/>
+			<xsd:enumeration value="Replace"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+</xsd:schema>

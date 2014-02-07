@@ -220,8 +220,8 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
 		try {
 			$sftp->sendFile($fileName, $remotePath);
-		} catch(Exception $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Failure("Error sending {$fileName} to {$remotePath}" . $e->getMessage());
+		} catch(TrueAction_FileTransfer_Exception_Transfer $e) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure("Error sending {$fileName} to {$remotePath}: " . $e->getMessage());
 		}
 	}
 }

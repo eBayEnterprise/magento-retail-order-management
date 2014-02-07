@@ -657,6 +657,16 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$vfs      = $this->getFixture()->getVfs();
 		$testFile = $vfs->url('sample/test.xml'); // (Seems nutty, but actually, we should be able to ack an ack O.o)
 
+		$this->replaceCoreConfigRegistry(
+			array(
+				'clientId'               => 'utClientId',
+				'storeId'                => 'utStoreId',
+				'feedAckTimestampFormat' => '\u\t\D\a\t\e',
+				'feedAckFilenamePattern' => 'utAckTest_{eventtype}_{clientid}_{storeid}_{timestamp}.xml',
+				'feedHeaderTemplate'     => '<MessageHeader>stuff</MessageHeader>',
+			)
+		);
+
 		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
 			->disableOriginalConstructor()
 			->setMethods(array('sendFile'))

@@ -104,6 +104,11 @@
 							<class>eb2ccore/feed</class>
 							<method>getMessageId</method>
 						</message_id>
+						<correlation_id>
+							<type>helper</type>
+							<class>eb2ccore/feed</class>
+							<method>getCorrelationId</method>
+						</correlation_id>
 						<create_date_and_time>
 							<type>helper</type>
 							<class>eb2ccore/feed</class>
@@ -147,7 +152,7 @@
 		<EventType>{event_type}</EventType>
 		<MessageData>
 			<MessageId>{message_id}</MessageId>
-			<CorrelationId>{message_id}</CorrelationId>
+			<CorrelationId>{correlation_id}</CorrelationId>
 		</MessageData>
 		<CreateDateAndTime>{create_date_and_time}</CreateDateAndTime>
 	</MessageHeader>]]></header_template>

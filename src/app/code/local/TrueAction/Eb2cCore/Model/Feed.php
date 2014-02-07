@@ -261,14 +261,29 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$eventType = $coreHelper->extractQueryNodeValue($xpath, '//MessageHeader/EventType');
 
 		$ack = $ackDom->addElement('Acknowledgement', null)->firstChild;
-		$ack->createChild('MessageHeader'/*, TODO Add in new header code */);
+
+		$configMap           = Mage::helper('eb2ccore/feed')->getHeaderConfig($eventType);
+		$headerTemplate      = $this->_getCoreConfig()->feedHeaderTemplate;
+		$messageHeaderString = str_replace(
+			array_map(function ($key) { return "{{$key}}"; }, array_keys($configMap)),
+			array_values($configMap),
+			$headerTemplate
+		);
+
+		$messageHeaderDom = $coreHelper->getNewDomDocument();
+		$messageHeaderDom->loadXml($messageHeaderString);
+		$messageHeaderNode = $messageHeaderDom->getElementsByTagName('MessageHeader')->item(0);
+
+		$messageHeaderNode = $ackDom->importNode($messageHeaderNode, true);
+		$ack->appendChild($messageHeaderNode);
 		$ack->createChild('FileName', basename($xmlToAckPath));
 		$ack->createChild('ReceivedDateAndTime', date('c'));
 		$ack->createChild('ReferenceMessageId', $messageId);
 
-		$this->_validateAckDom($ackDom);
 		$filename = $this->getOutboundPath() . DS . $this->_getBaseAckFileName($eventType);
 		$ackDom->save($filename);
+		$this->_validateAckDom($ackDom);
+
 		$coreHelper->sendFile($filename, $this->_getCoreConfig()->feedAckRemotePath);
 		$this->mvToArchiveDir($filename);
 		return $this;

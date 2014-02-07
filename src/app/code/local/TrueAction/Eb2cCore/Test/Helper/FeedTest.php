@@ -276,20 +276,21 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 
 	/**
 	 * Test getMessageId method
+	 * As per the XSD, the message id has to be <= 20 characters long
 	 * @test
 	 */
 	public function testGetMessageId()
 	{
-		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('getStoreId', 'getClientId'))
-			->getMock();
-		$feedHelperMock->expects($this->once())
-			->method('getStoreId')
-			->will($this->returnValue('ABCD'));
-		$feedHelperMock->expects($this->once())
-			->method('getClientId')
-			->will($this->returnValue('1234'));
-		$this->assertStringStartsWith('ABCD_1234_', $feedHelperMock->getMessageId());
+		$this->assertLessThanOrEqual(20, strlen(Mage::helper('eb2ccore/feed')->getMessageId()));
+	}
+
+	/**
+	 * Test getCorrelationId method
+	 * As per the XSD, the correlation id has to be <= 20 characters long
+	 * @test
+	 */
+	public function testGetCorrelationId()
+	{
+		$this->assertLessThanOrEqual(20, strlen(Mage::helper('eb2ccore/feed')->getCorrelationId()));
 	}
 }
