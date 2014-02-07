@@ -20,7 +20,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		return $this->_getFullMocker(
 			'sales/order',
 			array(
-				'getAllItems'           => array($this->_getMockSalesOrderItem()),
 				'getAllPayments'        => array($this->_getMockSalesOrderPayment()),
 				'getBillingAddress'     => $this->_getMockSalesOrderAddress(),
 				'getCreatedAt'          => '2013-08-09',
@@ -71,7 +70,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		return $this->_getFullMocker(
 			'sales/order',
 			array(
-				'getAllItems'           => array($this->_getMockSalesOrderItem()),
 				'getAllPayments'        => array($this->_getMockSalesOrderPayment2()),
 				'getBillingAddress'     => $this->_getMockSalesOrderAddress(),
 				'getCreatedAt'          => '2013-08-09',
@@ -122,7 +120,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		return $this->_getFullMocker(
 			'sales/order',
 			array(
-				'getAllItems'           => array($this->_getMockSalesOrderItem()),
 				'getAllPayments'        => array($this->_getMockSalesOrderPayment3()),
 				'getBillingAddress'     => $this->_getMockSalesOrderAddress(),
 				'getCreatedAt'          => '2013-08-09',
@@ -174,7 +171,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 		return $this->_getFullMocker(
 			'sales/order',
 			array(
-				'getAllItems'           => array($this->_getMockSalesOrderItem()),
 				'getAllPayments'        => array($this->_getMockSalesOrderPayment3()),
 				'getBillingAddress'     => $this->_getMockSalesOrderAddress(),
 				'getCreatedAt'          => '2013-08-09',

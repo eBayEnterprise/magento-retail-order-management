@@ -270,7 +270,7 @@ INVALID_XML;
 		}
 	}
 	/**
-	 * Test that we pull the TaxClass for shipping from config. 
+	 * Test that we pull the TaxClass for shipping from config.
 	 * @test
 	 */
 	public function testBuildTaxDataNodesShipping()
@@ -769,23 +769,25 @@ INVALID_XML;
 			->disableOriginalConstructor()
 			->setMethods(array('_extractResponseState'))
 			->getMock();
+		$successResponse = '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>';
+		$failResponse = '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Failure</ResponseStatus></OrderCreateResponse>';
 		$createModelMock->expects($this->at(0))
 			->method('_extractResponseState')
-			->with($this->equalTo('<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'))
+			->with($this->equalTo($successResponse))
 			->will($this->returnValue(Mage_Sales_Model_Order::STATE_PROCESSING));
 		$createModelMock->expects($this->at(1))
 			->method('_extractResponseState')
-			->with($this->equalTo('<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Failure</ResponseStatus></OrderCreateResponse>'))
+			->with($this->equalTo($failResponse))
 			->will($this->returnValue(Mage_Sales_Model_Order::STATE_NEW));
 		$this->_reflectProperty($createModelMock, '_o')->setValue($createModelMock, $orderModelMock);
 		$testData = array(
 			array(
 				'expect' => 'TrueAction_Eb2cOrder_Model_Create',
-				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'
+				'response' => $successResponse,
 			),
 			array(
 				'expect' => 'TrueAction_Eb2cOrder_Model_Create',
-				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Failure</ResponseStatus></OrderCreateResponse>'
+				'response' => $failResponse,
 			)
 		);
 		foreach ($testData as $data) {
@@ -867,21 +869,17 @@ INVALID_XML;
 	public function testBuildItems()
 	{
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<root>
-				<foo></foo>
-			</root>'
-		);
+		$doc->loadXML('<root/>');
 		$itemModelMock = $this->getModelMockBuilder('sales/order_item')
 			->disableOriginalConstructor()
 			->setMethods(array())
 			->getMock();
 		$orderModelMock = $this->getModelMockBuilder('sales/order')
 			->disableOriginalConstructor()
-			->setMethods(array('getAllItems'))
+			->setMethods(array('getAllVisibleItems'))
 			->getMock();
 		$orderModelMock->expects($this->once())
-			->method('getAllItems')
+			->method('getAllVisibleItems')
 			->will($this->returnValue(array($itemModelMock)));
 		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
 			->disableOriginalConstructor()

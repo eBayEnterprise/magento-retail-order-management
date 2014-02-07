@@ -219,7 +219,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	{
 		$webLineId = 1;
 		$orderItems = $order->createChild('OrderItems');
-		foreach ($this->_o->getAllItems() as $item) {
+		foreach ($this->_o->getAllVisibleItems() as $item) {
 			$this->_buildOrderItem($orderItems->createChild('OrderItem'), $item, $webLineId++);
 		}
 		return $this;
