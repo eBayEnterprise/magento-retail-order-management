@@ -172,12 +172,12 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * Send a file
-	 * @param string filepath to send
-	 * @param string remotePath where to send it.
-	 * @return self
+	 * abstracting calling is dir
+	 * @param string $dir
+	 * @return bool true|false
+	 * @codeCoverageIgnore
 	 */
-	public function sendFile($fileName, $remotePath)
+	public function isDir($dir)
 	{
 		return $this->loadFile($dir)->isDir();
 	}
