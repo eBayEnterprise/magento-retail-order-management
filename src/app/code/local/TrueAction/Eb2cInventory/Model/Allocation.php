@@ -32,32 +32,14 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 		// can't make the allocation request.
 		if ($quote && $quote->getShippingAddress()) {
 			// build request
-			$requestDoc = $this->_buildAllocationRequestMessage($quote);
-
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-			try {
-				// make request to eb2c for quote items allocation
-				$responseMessage = Mage::getModel('eb2ccore/api')
-					->addData(array(
-						'uri' => Mage::helper('eb2cinventory')->getOperationUri('allocate_inventory'),
-						'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileAllocation,
-					))
-					->request($requestDoc);
-
-			} catch(Zend_Http_Client_Exception $e) {
-				Mage::log(
-					sprintf(
-						'[ %s ] The following error has occurred while sending allocation request to eb2c: (%s).',
-						__CLASS__, $e->getMessage()
-					),
-					Zend_Log::ERR
-				);
-			}
+			$doc = $this->_buildAllocationRequestMessage($quote);
+			$helper = Mage::helper('eb2cinventory');
+			$uri = $helper->getOperationUri('allocate_inventory');
+			$xsd = $helper->getConfigModel()->xsdFileAllocation;
+			$responseMessage = Mage::getModel('eb2ccore/api')->request($doc, $xsd, $uri);
 		}
-
 		return $responseMessage;
 	}
-
 	/**
 	 * Build  Allocation request.
 	 *
@@ -254,39 +236,20 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	/**
 	 * Roll back allocation request.
 	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XMLfrom
-	 * @return string, the string xml message
+	 * @param Mage_Sales_Model_Quote $quote to generate request XML from
+	 * @return string the xml response
 	 */
 	public function rollbackAllocation(Mage_Sales_Model_Quote $quote)
 	{
 		// remove last allocations data from quote item
 		$this->_emptyQuoteAllocation($quote);
-
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildRollbackAllocationRequestMessage($quote);
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-		try {
-			// make request to eb2c for inventory rollback allocation
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => Mage::helper('eb2cinventory')->getOperationUri('rollback_allocation'),
-					'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->xsdFileRollback,
-				))
-				->request($requestDoc);
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending rollback allocation request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-
-		return $responseMessage;
+		$hlpr = Mage::helper('eb2cinventory');
+		return Mage::getModel('eb2ccore/api')->request(
+			$this->buildRollbackAllocationRequestMessage($quote),
+			$hlpr->getConfigModel()->xsdFileRollback,
+			$hlpr->getOperationUri('rollback_allocation')
+		);
 	}
-
 	/**
 	 * Build Rollback Allocation request.
 	 *

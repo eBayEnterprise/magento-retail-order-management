@@ -15,34 +15,21 @@ class TrueAction_Eb2cTax_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * send a request and return the response
-	 * @param  TrueAction_Eb2cTax_Model_Request $request
+	 * Request tax and duty information from EB2C and return the xml response string.
+	 *
+	 * @param TrueAction_Eb2cTax_Model_Request $request
 	 * @return TrueAction_Eb2cTax_Model_Response
 	 */
 	public function sendRequest(TrueAction_Eb2cTax_Model_Request $request)
 	{
-		$uri = Mage::helper('eb2ccore')->getApiUri(
-			$this->_service,
-			$this->_operation,
-			array(),
-			$this->_responseFormat
-		);
-		try {
-			$response = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => $uri,
-					'xsd' => $this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest
-				))
-				->request($request->getDocument());
-		} catch(Exception $e) {
-			Mage::throwException('TaxDutyFee communications error: ' . $e->getMessage() );
-		}
-
-		$response = Mage::getModel('eb2ctax/response', array(
-			'xml'     => $response,
-			'request' => $request
+		return Mage::getModel('eb2ctax/response', array(
+			'request' => $request,
+			'xml' => Mage::getModel('eb2ccore/api')->request(
+				$request->getDocument(),
+				$this->_configRegistry->xsdFileTaxDutyFeeQuoteRequest,
+				Mage::helper('eb2ccore')->getApiUri($this->_service, $this->_operation, array(), $this->_responseFormat)
+			),
 		));
-		return $response;
 	}
 	/**
 	 * Record the tax request failure - flip the flag in the eb2ccore/session to true.

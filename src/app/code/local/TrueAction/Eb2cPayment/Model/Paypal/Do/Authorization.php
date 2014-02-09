@@ -4,44 +4,23 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization
 	/**
 	 * Do paypal Authorization from eb2c.
 	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to do Authorization paypal checkout for in eb2c
-	 *
-	 * @return string the eb2c response to the request.
+	 * @param Mage_Sales_Model_Quote $quote the quote to do Authorization paypal checkout for in eb2c
+	 * @return string the eb2c response to the request
 	 */
-	public function doAuthorization($quote)
+	public function doAuthorization(Mage_Sales_Model_Quote $quote)
 	{
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildPayPalDoAuthorizationRequest($quote);
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-
-		try{
-			// make request to eb2c for quote items PaypalDoAuthorization
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_authorization'),
-					'xsd' => Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalDoAuth
-				))
-				->request($requestDoc);
-
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending Do paypal Authorization request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-
-		return $responseMessage;
+		$helper = Mage::helper('eb2cpayment');
+		return Mage::getModel('eb2ccore/api')->request(
+			$this->buildPayPalDoAuthorizationRequest($quote),
+			$helper->getConfigModel()->xsdFilePaypalDoAuth,
+			$helper->getOperationUri('get_paypal_do_authorization')
+		);
 	}
 
 	/**
 	 * Build  PaypalDoAuthorization request.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
 	 * @return DOMDocument The XML document, to be sent as request to eb2c.
 	 */
 	public function buildPayPalDoAuthorizationRequest($quote)

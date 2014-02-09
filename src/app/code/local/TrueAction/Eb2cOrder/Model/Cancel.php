@@ -66,46 +66,23 @@ class TrueAction_Eb2cOrder_Model_Cancel
 	}
 
 	/**
-	 * Handles communication with service endpoint. send order cancel request to
-	 * eb2c services and log any request exceptions, or xsd validation
+	 * Send request to cancel order to EB2C.
+	 *
 	 * @return self
 	 */
 	public function sendRequest()
 	{
-		$uri = $this->_helper->getOperationUri($this->_config->apiCancelOperation);
-
-		$response = '';
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->_domRequest->saveXML()), Zend_Log::DEBUG);
-		try {
-			$response = Mage::getModel('eb2ccore/api')
-				->setUri($uri)
-				->setTimeout($this->_helper->getConfig()->serviceOrderTimeout)
-				->setXsd($this->_config->xsdFileCancel)
-				->request($this->_domRequest);
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending order cancel request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		} catch(Mage_Core_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::CRIT
-			);
-		}
-
+		$response = Mage::getModel('eb2ccore/api')->request(
+			$this->_domRequest,
+			$this->_config->xsdFileCancel,
+			$this->_helper->getOperationUri($this->_config->apiCancelOperation),
+			$this->_helper->getConfig()->serviceOrderTimeout
+		);
 		if (trim($response) !== '') {
 			// load load response with actual content
 			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
 			$this->_domResponse->loadXML($response);
 		}
-
 		return $this;
 	}
 

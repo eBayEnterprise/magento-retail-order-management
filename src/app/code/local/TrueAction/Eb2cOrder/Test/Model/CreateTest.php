@@ -321,16 +321,6 @@ INVALID_XML;
 
 		$this->assertSame('UNIT_TEST_CLASS', $taxFragment->firstChild->firstChild->nodeValue);
 	}
-
-	public function testGettingXmlRequest()
-	{
-		$create = Mage::getModel('eb2corder/create');
-		$this->assertNull($create->getXmlRequest(), 'XML Request properly should be null on new instance.');
-		$xmlRequest = '<foo><bar /></foo>';
-		$xmlRequestProp = $this->_reflectProperty($create, '_xmlRequest');
-		$xmlRequestProp->setValue($create, $xmlRequest);
-		$this->assertSame($xmlRequest, $create->getXmlRequest());
-	}
 	/**
 	 * When the observer triggers, the create model should build a new request
 	 * and send it.
@@ -389,75 +379,12 @@ INVALID_XML;
 			->will($this->returnValue(self::SAMPLE_SUCCESS_XML));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiStub);
 		$create = $this->getModelMockBuilder('eb2corder/create')
-			->setMethods(array('_processResponse', 'getXmlRequest'))
+			->setMethods(array('_processResponse'))
 			->getMock();
 		$create->expects($this->once())
 			->method('_processResponse')
 			->with($this->identicalTo(self::SAMPLE_SUCCESS_XML))
 			->will($this->returnSelf());
-		$create->expects($this->any())
-			->method('getXmlRequest')
-			->will($this->returnValue(''));
-		$createRequest = $this->_reflectProperty($create, '_domRequest');
-		$createRequest->setValue($create, $requestDoc);
-		$create->sendRequest();
-	}
-	/**
-	 * Provider for the types of exceptions that the Api model could throw when
-	 * attempting to make a request.
-	 * @return array Arguments arrays containing the different Exceptions
-	 */
-	public function providerApiExceptions()
-	{
-		return array(
-			array(new Zend_Http_Client_Exception),
-			array(new Mage_Core_Exception),
-		);
-	}
-	/**
-	 * Test the handling of exceptions from the Api model. Any expected exceptions should
-	 * be caught and logged. Process response should then be given an empty response.
-	 * @test
-	 * @dataProvider providerApiExceptions
-	 */
-	public function testSendRequestExceptions($exception)
-	{
-		$requestDoc = new TrueAction_Dom_Document();
-		$this->replaceCoreConfigRegistry(array(
-			'serviceOrderTimeout' => 100,
-			'xsdFileCreate' => 'example.xsd',
-			'apiCreateOperation' => 'create',
-		));
-		$helperStub = $this->getHelperMock('eb2corder/data', array('getOperationUri'));
-		$helperStub->expects($this->once())
-			->method('getOperationUri')
-			->with($this->identicalTo('create'))
-			->will($this->returnValue('http://example.com/order/create.xml'));
-		$this->replaceByMock('helper', 'eb2corder', $helperStub);
-		$apiStub = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
-		$apiStub->expects($this->any())
-			->method('addData')
-			->with($this->logicalAnd(
-				$this->arrayHasKey('uri'),
-				$this->arrayHasKey('timeout'),
-				$this->arrayHasKey('xsd')
-			))
-			->will($this->returnSelf());
-		$apiStub->expects($this->once())
-			->method('request')
-			->with($this->identicalTo($requestDoc))
-			->will($this->throwException($exception));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiStub);
-		$create = $this->getModelMockBuilder('eb2corder/create')
-			->setMethods(array('_processResponse', 'getXmlRequest'))
-			->getMock();
-		$create->expects($this->once())
-			->method('_processResponse')
-			->with($this->identicalTo(''))
-			->will($this->returnSelf());
-		$create->expects($this->any())
-			->method('getXmlRequest')
-			->will($this->returnValue(''));
 		$createRequest = $this->_reflectProperty($create, '_domRequest');
 		$createRequest->setValue($create, $requestDoc);
 		$create->sendRequest();
@@ -485,27 +412,23 @@ INVALID_XML;
 	 */
 	public function testResponseProcessing($response, $responseStatus)
 	{
-		$orderMock = $this->getModelMock('sales/order', array('save'));
-		$orderMock->expects($this->once())
+		$order = $this->getModelMock('sales/order', array('save'));
+		$order->expects($this->once())
 			->method('save')
 			->will($this->returnSelf());
-		$create = Mage::getModel('eb2corder/create');
-		$orderProperty = $this->_reflectProperty($create, '_o');
-		$orderProperty->setValue($create, $orderMock);
+		$create = $this->getModelMock('eb2corder/create', array('_extractResponseState'));
+		$create
+			->expects($this->any())
+			->method('_extractResponseState')
+			->will($this->returnValue($this->expected($responseStatus)->getOrderState()));
+		$orderProp = $this->_reflectProperty($create, '_o');
+		$orderProp->setValue($create, $order);
 		$processMethod = $this->_reflectMethod($create, '_processResponse');
 		$processMethod->invoke($create, $response);
 		$this->assertSame(
 			$this->expected($responseStatus)->getOrderState(),
-			$orderMock->getState(),
-			'Order status not set properly for the reponse status'
+			$order->getState()
 		);
-		$responseProp = $this->_reflectProperty($create, '_domResponse');
-		$responseDom = $responseProp->getValue($create);
-		if (empty($response)) {
-			$this->assertNull($responseDom, 'Empty response should result in no Response DOM object');
-		} else {
-			$this->assertInstanceOf('TrueAction_Dom_Document', $responseDom, 'Response DOM should be a TrueAction_Dom_Document');
-		}
 	}
 	/**
 	 * Building out the customer XML for a given order
@@ -795,33 +718,27 @@ INVALID_XML;
 		}
 	}
 	/**
-	 * Test _extractResponseState method
+	 * If the response XML exists and has a ResponseStatus node with a value of 'success' in any capitalization,
+	 * we should see a value of STATE_PROCESSING. Otherwise, we should see STATE_NEW.
+	 *
 	 * @test
 	 */
 	public function testExtractResponseState()
 	{
-		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-		$this->_reflectProperty($createModelMock, '_domResponse')->setValue($createModelMock, new TrueAction_Dom_Document('1.0', 'UTF-8'));
-		$testData = array(
-			array(
-				'expect' => Mage_Sales_Model_Order::STATE_PROCESSING,
-				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>Success</ResponseStatus></OrderCreateResponse>'
-			),
-			array(
-				'expect' => Mage_Sales_Model_Order::STATE_NEW,
-				'response' => '<?xml version="1.0" encoding="UTF-8"?><OrderCreateResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><ResponseStatus>failure</ResponseStatus></OrderCreateResponse>'
-			),
-			array(
-				'expect' => Mage_Sales_Model_Order::STATE_NEW,
-				'response' => ''
-			)
+		$create = Mage::getModel('eb2corder/create');
+		$crRefl = new ReflectionClass($create);
+		$extRespSt = $crRefl->getMethod('_extractResponseState');
+		$extRespSt->setAccessible(true);
+		$this->assertSame(Mage_Sales_Model_Order::STATE_NEW, $extRespSt->invoke($create, ''));
+		$this->assertSame(Mage_Sales_Model_Order::STATE_NEW, $extRespSt->invoke($create, '<fail/>'));
+		$this->assertSame(Mage_Sales_Model_Order::STATE_NEW, $extRespSt->invoke(
+			$create,
+			'<_><ResponseStatus>nobodyhome!</ResponseStatus></_>')
 		);
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $this->_reflectMethod($createModelMock, '_extractResponseState')->invoke($createModelMock, $data['response']));
-		}
+		$this->assertSame(
+			Mage_Sales_Model_Order::STATE_PROCESSING,
+			$extRespSt->invoke($create, '<_><ResponseStatus>sUcCeSs</ResponseStatus></_>')
+		);
 	}
 	/**
 	 * Test _buildOrder method

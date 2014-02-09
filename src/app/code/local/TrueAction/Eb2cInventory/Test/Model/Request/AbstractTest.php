@@ -1,7 +1,5 @@
 <?php
-
-class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * Data provider for the testMakeRequestForQuote method. Providers the type of
@@ -35,8 +33,8 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 			->setMethods(array('getOperationUri', 'getConfigModel'))
 			->getMock();
 		$configModel = $this->getModelMock('eb2ccore/config_registry', array('getConfig'));
-		$request = $this->getModelMock($requestType, array('_buildRequestMessage', '_canMakeRequestWithQuote', '_handleEmptyResponse'));
-		$api = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
+		$request = $this->getModelMock($requestType, array('_buildRequestMessage', '_canMakeRequestWithQuote'));
+		$api = $this->getModelMock('eb2ccore/api', array('request', 'getStatus'));
 
 		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelper);
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
@@ -72,17 +70,11 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 			->method('_canMakeRequestWithQuote')
 			->with($this->identicalTo($quote))
 			->will($this->returnValue(true));
-
-		$api
-			->expects($this->once())
-			->method('addData')
-			->with($this->identicalTo(array('uri' => $uri, 'xsd' => $xsd)))
-			->will($this->returnSelf());
 		if ($requestSuccess) {
 			$api
 				->expects($this->once())
 				->method('request')
-				->with($this->identicalTo($requestMessage))
+				->with($this->identicalTo($requestMessage, $xsd, $uri))
 				->will($this->returnValue($responseMessage));
 			// _handleEmptyRespnose should only be called when API returns an empty response, which doesn't happen here
 			$request
@@ -93,21 +85,16 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 			$api
 				->expects($this->once())
 				->method('request')
-				->with($this->identicalTo($requestMessage))
-				->will($this->throwException(new Zend_Http_Client_Exception));
-			// when the request fails, _handleEmptyResponse will trigger, causing an exception to be thrown
-			$request
+				->with($this->identicalTo($requestMessage, $xsd, $uri))
+				->will($this->returnValue(''));
+			$api
 				->expects($this->once())
-				->method('_handleEmptyResponse')
-				->with($this->identicalTo($api))
-				->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart));
+				->method('getStatus')
+				->will($this->returnValue(0));
+			// when the request fails, _handleEmptyResponse will trigger, causing an exception to be thrown
 			$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
 		}
-
-		$this->assertSame(
-			$responseMessage,
-			$request->makeRequestForQuote($quote)
-		);
+		$this->assertSame($responseMessage, $request->makeRequestForQuote($quote));
 	}
 	/**
 	 * Test that when an unusable quote is given, no request is made.
@@ -155,7 +142,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 			array('_canMakeRequestWithQuote', '_buildRequestMessage', '_handleEmptyResponse'),
 			true
 		);
-		$api = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
+		$api = $this->getModelMock('eb2ccore/api', array('request'));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
 		$requestDoc = new TrueAction_Dom_Document();
 
@@ -198,12 +185,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest
 			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart));
 		$api
 			->expects($this->once())
-			->method('addData')
-			->will($this->returnSelf());
-		$api
-			->expects($this->once())
 			->method('request')
-			->with($this->identicalTo($requestDoc))
 			->will($this->returnValue(''));
 
 		$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');

@@ -200,17 +200,9 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
+			->setMethods(array('request'))
 			->getMock();
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$api->expects($this->once())
-			->method('addData')
-			->with($this->identicalTo(array(
-				'uri' => $uri,
-				'xsd' => $xsd
-			)))
-			->will($this->returnSelf());
-
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->loadXml('<inventoryallocation />');
 
@@ -232,48 +224,11 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		$response = '<What>Ever</What>';
 		$api->expects($this->once())
 			->method('request')
-			->with($this->identicalTo($doc))
+			->with($this->identicalTo($doc, $xsd, $uri))
 			->will($this->returnValue($response));
 		// Validate the request message matches the expected message
 		$this->assertSame($response, $testModel->allocateQuoteItems($quote));
 	}
-
-	/**
-	 * testing when allocating quote item API call throw an exception
-	 *
-	 * @test
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testAllocateQuoteItemsWithApiCallException()
-	{
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
-		$apiModelMock->expects($this->any())
-			->method('addData')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will(
-				$this->throwException(new Zend_Http_Client_Exception)
-			);
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		// Avoid overly broad coverage as the only assertion in this test is that
-		// API model exceptions are caught and an empty string is given as the response.
-		// This will help ensure coverage relfects that.
-		$allocation = $this->getModelMock('eb2cinventory/allocation', array('_buildAllocationRequestMessage'));
-		$allocation->expects($this->any())
-			->method('_buildAllocationRequestMessage')
-			->will($this->returnValue(new DOMDocument()));
-
-		// just need a quote item to pass, won't be used for anything
-		$dummyQuote = Mage::getModel('sales/quote');
-
-		$this->assertSame(
-			'',
-			trim($allocation->allocateQuoteItems($dummyQuote))
-		);
-	}
-
 	public function providerProcessAllocation()
 	{
 		$allocationData = array(
@@ -528,11 +483,8 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// Mock the API to verify the request is made with the proper request
 		$api = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
+			->setMethods(array('request'))
 			->getMock();
-		$api->expects($this->once())
-			->method('addData')
-			->will($this->returnSelf());
 		// Validate the request message matches the expected message
 		$api->expects($this->once())
 			->method('request')
@@ -562,39 +514,6 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			$this->assertNull($item->getEb2cQtyReserved());
 		}
 	}
-
-	/**
-	 * Testing when rolling back allocation quote item API call throw an exception.
-	 *
-	 * @test
-	 * @dataProvider providerRollbackAllocation
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testRollbackAllocationWithApiCallException($quote)
-	{
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('addData', 'request'));
-		$apiModelMock->expects($this->any())
-			->method('addData')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->once())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception('Unit test request fail')));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		// Avoid overly broad coverage as the only assertion in this test is that
-		// API model exceptions are caught and an empty string is given as the response.
-		// This will help ensure coverage relfects that.
-		$allocation = $this->getModelMock('eb2cinventory/allocation', array('buildRollbackAllocationRequestMessage'));
-		$allocation->expects($this->any())
-			->method('buildRollbackAllocationRequestMessage')
-			->will($this->returnValue(new DOMDocument()));
-
-		$this->assertSame(
-			'',
-			trim($allocation->rollbackAllocation($quote))
-		);
-	}
-
 	public function providerHasAllocation()
 	{
 		$stockItemMock = $this->getMock(

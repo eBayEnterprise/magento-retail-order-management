@@ -5,39 +5,19 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 	 * Do paypal express checkout from eb2c.
 	 *
 	 * @param Mage_Sales_Model_Quote $quote, the quote to do express paypal checkout for in eb2c
-	 *
-	 * @return string the eb2c response to the request.
+	 * @return string the eb2c response to the request
 	 */
 	public function doExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildPayPalDoExpressCheckoutRequest($quote);
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-
-		try{
-			// make request to eb2c for quote items PaypalDoExpressCheckout
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => Mage::helper('eb2cpayment')->getOperationUri('get_paypal_do_express_checkout'),
-					'xsd' => Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalDoExpress
-				))
-				->request($requestDoc);
-
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending Do paypal express checkout request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-
+		$helper = Mage::helper('eb2cpayment');
+		$response = Mage::getModel('eb2ccore/api')->request(
+			$this->buildPayPalDoExpressCheckoutRequest($quote),
+			$helper->getConfigModel()->xsdFilePaypalDoExpress,
+			$helper->getOperationUri('get_paypal_do_express_checkout')
+		);
 		// Save payment data
 		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
-
-		return $responseMessage;
+		return $response;
 	}
 
 	/**
@@ -162,7 +142,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 			$nodePaymentStatus = $checkoutXpath->query('//a:PaymentInfo/a:PaymentStatus');
 			$nodePendingReason = $checkoutXpath->query('//a:PaymentInfo/a:PendingReason');
 			$nodeReasonCode = $checkoutXpath->query('//a:PaymentInfo/a:ReasonCode');
-			$checkoutObject = new Varien_Object(array(
+			$checkoutObject->setData(array(
 				'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
 				'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
 				'transaction_id' => ($nodeTransactionID->length)? (string) $nodeTransactionID->item(0)->nodeValue : null,
@@ -171,7 +151,6 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 				'reason_code' => ($nodeReasonCode->length)? (string) $nodeReasonCode->item(0)->nodeValue : null,
 			));
 		}
-
 		return $checkoutObject;
 	}
 

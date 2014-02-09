@@ -27,21 +27,9 @@ class TrueAction_Eb2cOrder_Model_Create
 	 */
 	protected $_o;
 	/**
-	 * @var string, Human readable XML
-	 */
-	protected $_xmlRequest;
-	/**
-	 * @var string, Human readable XML
-	 */
-	protected $_xmlResponse;
-	/**
 	 * @var TrueAction_Dom_Document, DOM Object
 	 */
 	protected $_domRequest;
-	/**
-	 * @var TrueAction_Dom_Document, DOM Object
-	 */
-	protected $_domResponse;
 	/**
 	 * @var array, Saves an array of item_id's for use in shipping node
 	 */
@@ -54,11 +42,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @var array, hold magento payment map to eb2c
 	 * @see https://trueaction.atlassian.net/wiki/display/EBC/Magento+Payment+Method+Map+with+Eb2c
 	 */
-	protected $_ebcPaymentMethodMap = array();
-	public function __construct()
-	{
-		$this->_config = Mage::helper('eb2corder')->getConfig();
-		$this->_ebcPaymentMethodMap = array(
+	protected $_ebcPaymentMethodMap = array(
 			'Pbridge_eb2cpayment_cc' => 'CreditCard',
 			'Paypal_express' => 'PayPal',
 			'PrepaidCreditCard' => 'PrepaidCreditCard', // Not use
@@ -67,21 +51,13 @@ class TrueAction_Eb2cOrder_Model_Create
 			'PrepaidCashOnDelivery' => 'PrepaidCashOnDelivery', // Not use
 			'Free' => 'StoredValueCard',
 		);
+	public function __construct()
+	{
+		$this->_config = Mage::helper('eb2corder')->getConfig();
 		// initiaze these class properties in the constructor.
 		$this->_o = null;
-		$this->_xmlRequest = null;
-		$this->_xmlResponse = null;
 		$this->_domRequest = null;
-		$this->_domResponse = null;
 		$this->_orderItemRef = array();
-	}
-	/**
-	 * getter method to retrieve _xmlRequest property
-	 * @see _xmlRequest
-	 */
-	public function getXmlRequest()
-	{
-		return $this->_xmlRequest;
 	}
 	/**
 	 * The event observer version of transmit order
@@ -102,34 +78,8 @@ class TrueAction_Eb2cOrder_Model_Create
 		$uri = Mage::helper('eb2corder')->getOperationUri($this->_config->apiCreateOperation);
 		$response = '';
 		if ($this->_domRequest instanceof DOMDocument) {
-			Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $this->getXmlRequest()), Zend_Log::DEBUG);
-			try {
-				$response = Mage::getModel('eb2ccore/api')
-					->addData(
-						array(
-							'uri' => $uri,
-							'timeout' => $this->_config->serviceOrderTimeout,
-							'xsd' => $this->_config->xsdFileCreate,
-						)
-					)
-					->request($this->_domRequest);
-			} catch(Zend_Http_Client_Exception $e) {
-				Mage::log(
-					sprintf(
-						'[ %s ] The following error has occurred while sending order create request to eb2c: (%s).',
-						__CLASS__, $e->getMessage()
-					),
-					Zend_Log::ERR
-				);
-			} catch(Mage_Core_Exception $e) {
-				Mage::log(
-					sprintf(
-						'[ %s ] xsd validation occurred while sending order create request to eb2c: (%s).',
-						__CLASS__, $e->getMessage()
-					),
-					Zend_Log::ERR
-				);
-			}
+			$response = Mage::getModel('eb2ccore/api')
+				->request($this->_domRequest, $this->_config->xsdFileCreate, $uri, $this->_config->serviceOrderTimeout);
 		}
 		return $this->_processResponse($response);
 	}
@@ -141,10 +91,12 @@ class TrueAction_Eb2cOrder_Model_Create
 	protected function _extractResponseState($response)
 	{
 		if (trim($response) !== '') {
-			$this->_domResponse = Mage::helper('eb2ccore')->getNewDomDocument();
-			$this->_domResponse->loadXML($response);
-			return (strtoupper(trim($this->_domResponse->getElementsByTagName('ResponseStatus')->item(0)->nodeValue)) === 'SUCCESS')?
-				Mage_Sales_Model_Order::STATE_PROCESSING : Mage_Sales_Model_Order::STATE_NEW;
+			$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+			$doc->loadXML($response);
+			$status = $doc->getElementsByTagName('ResponseStatus')->item(0);
+			if ($status && strtoupper(trim($status->nodeValue)) === 'SUCCESS') {
+				return Mage_Sales_Model_Order::STATE_PROCESSING;
+			}
 		}
 		return Mage_Sales_Model_Order::STATE_NEW;
 	}
@@ -274,7 +226,6 @@ class TrueAction_Eb2cOrder_Model_Create
 			->_buildPayment($order->createChild('Payment'))
 			->_buildAdditionalOrderNodes($order)
 			->_buildContext($orderCreateRequest->createChild('Context'));
-		$this->_xmlRequest = $this->_domRequest->saveXML();
 		return $this;
 	}
 	/**

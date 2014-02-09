@@ -60,7 +60,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	protected function _remoteCall($callable, $argArray)
 	{
 		$connectionAttempts = 0;
-		$coreConfig = $this->_getCoreConfig(); 
+		$coreConfig = $this->_getCoreConfig();
 		while(true) {
 			try {
 				$connectionAttempts++;
@@ -230,21 +230,6 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		return $filename;
 	}
 	/**
-	 * Validate DOM created for an Acknowledgement
-	 * @param TrueAction_Dom_Document
-	 * @throws TrueAction_Eb2cCore_Exception if validation fails
-	 * @return self
-	*/
-	protected function _validateAckDom(TrueAction_Dom_Document $dom)
-	{
-		if (!Mage::getModel('eb2ccore/api', array('xsd' => $this->_getCoreConfig()->feedAckXsd))
-				->schemaValidate($dom))
-		{
-			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.');
-		}
-		return $this;
-	}
-	/**
 	 * Acknoweldge the XML Feed file at xmlToAckPath.
 	 * @param xmlToAckPath path to a feed we want to acknowledge
 	 * @return self
@@ -280,10 +265,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$ack->createChild('ReceivedDateAndTime', date('c'));
 		$ack->createChild('ReferenceMessageId', $messageId);
 
+		Mage::getModel('eb2ccore/api')->schemaValidate($ackDom, $this->_getCoreConfig()->feedAckXsd);
 		$filename = $this->getOutboundPath() . DS . $this->_getBaseAckFileName($eventType);
 		$ackDom->save($filename);
-		$this->_validateAckDom($ackDom);
-
 		$coreHelper->sendFile($filename, $this->_getCoreConfig()->feedAckRemotePath);
 		$this->mvToArchiveDir($filename);
 		return $this;

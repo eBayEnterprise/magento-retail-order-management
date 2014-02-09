@@ -45,56 +45,12 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_AuthorizationTest extends Ecom
 			array($this->buildQuoteMock())
 		);
 	}
-
-	/**
-	 * testing doAuthorization method
-	 *
-	 * @test
-	 * @dataProvider providerDoAuthorization
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testDoAuthorization($quote)
-	{
-		$this->assertNotNull(
-			$this->_authorization->doAuthorization($quote)
-		);
-	}
-
-	/**
-	 * testing when doAuthorization API call throw an exception
-	 *
-	 * @test
-	 * @dataProvider providerDoAuthorization
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testDoAuthorizationWithException($quote)
-	{
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->setMethods(array('setUri', 'request'))
-			->getMock();
-
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
-
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$this->assertSame(
-			'',
-			trim($this->_authorization->doAuthorization($quote))
-		);
-	}
-
 	public function providerParseResponse()
 	{
 		return array(
 			array(file_get_contents(__DIR__ . '/AuthorizationTest/fixtures/PayPalDoAuthorizationReply.xml', true))
 		);
 	}
-
 	/**
 	 * testing parseResponse method
 	 *

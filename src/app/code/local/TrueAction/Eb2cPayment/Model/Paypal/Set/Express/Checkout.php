@@ -2,37 +2,22 @@
 class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout
 {
 	/**
-	 * setting paypal express checking in eb2c.
-	 * @param Mage_Sales_Model_Quote $quote, the quote to set paypal express checkout in eb2c
-	 * @return string the eb2c response to the request.
+	 * Set paypal express checking in eb2c.
+	 *
+	 * @param Mage_Sales_Model_Quote $quote the quote to set paypal express checkout in eb2c
+	 * @return string the eb2c response to the request
 	 */
 	public function setExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildPayPalSetExpressCheckoutRequest($quote);
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-		try{
-			// make request to eb2c for quote items PaypalSetExpressCheckout
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->setUri(Mage::helper('eb2cpayment')->getOperationUri('get_paypal_set_express_checkout'))
-				->setXsd(Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalSetExpress)
-				->request($requestDoc);
-
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending Set Express Paypal Checkout request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-
+		$helper = Mage::helper('eb2cpayment');
+		$response = Mage::getModel('eb2ccore/api')->request(
+			$this->buildPayPalSetExpressCheckoutRequest($quote),
+			$helper->getConfigModel()->xsdFilePaypalSetExpress,
+			$helper->getOperationUri('get_paypal_set_express_checkout')
+		);
 		// Save payment data
-		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
-
-		return $responseMessage;
+		$this->_savePaymentData($this->parseResponse($response), $quote);
+		return $response;
 	}
 
 	/**
@@ -102,8 +87,9 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout
 
 	/**
 	 * Parse PayPal SetExpress reply xml.
+	 *
 	 * @param string $payPalSetExpressCheckoutReply the xml response from eb2c
-	 * @return Varien_Object, an object of response data
+	 * @return Varien_Object an object of response data
 	 */
 	public function parseResponse($payPalSetExpressCheckoutReply)
 	{
@@ -116,13 +102,12 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout
 			$nodeOrderId = $checkoutXpath->query('//a:OrderId');
 			$nodeResponseCode = $checkoutXpath->query('//a:ResponseCode');
 			$nodeToken = $checkoutXpath->query('//a:Token');
-			$checkoutObject = new Varien_Object(array(
+			$checkoutObject->setData(array(
 				'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
 				'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
 				'token' => ($nodeToken->length)? (string) $nodeToken->item(0)->nodeValue : null,
 			));
 		}
-
 		return $checkoutObject;
 	}
 

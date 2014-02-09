@@ -3,41 +3,21 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 {
 	/**
 	 * Get paypal express checkout from eb2c.
-	 * @param Mage_Sales_Model_Quote $quote the quote to Get express paypal checkout for in eb2c
-	 * @return string the eb2c response to the request.
+	 *
+	 * @param Mage_Sales_Model_Quote $quote the quote to get express paypal checkout for in eb2c
+	 * @return string the eb2c response to the request
 	 */
 	public function getExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildPayPalGetExpressCheckoutRequest($quote);
-		Mage::log(sprintf('[ %s ]: Making request with body: %s', __METHOD__, $requestDoc->saveXml()), Zend_Log::DEBUG);
-
-		try{
-			// make request to eb2c for quote items PaypalGetExpressCheckout
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => Mage::helper('eb2cpayment')->getOperationUri('get_paypal_get_express_checkout'),
-					'xsd' => Mage::helper('eb2cpayment')->getConfigModel()->xsdFilePaypalGetExpress
-				))
-				->request($requestDoc);
-
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending Get Express Paypal Checkout request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-
-		// Save payment data
-		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
-
-		return $responseMessage;
+		$helper = Mage::helper('eb2cpayment');
+		$response = Mage::getModel('eb2ccore/api')->request(
+			$this->buildPayPalGetExpressCheckoutRequest($quote),
+			$helper->getConfigModel()->xsdFilePaypalGetExpress,
+			$helper->getOperationUri('get_paypal_get_express_checkout')
+		);
+		$this->_savePaymentData($this->parseResponse($response), $quote);
+		return $response;
 	}
-
 	/**
 	 * Build PaypalGetExpressCheckout request.
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
@@ -108,41 +88,38 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 			$nodeShpCountryCode = $checkoutXpath->query('//a:ShippingAddress/a:CountryCode');
 			$nodeShpPostalCode = $checkoutXpath->query('//a:ShippingAddress/a:PostalCode');
 			$nodeShpAddressStatus = $checkoutXpath->query('//a:ShippingAddress/a:AddressStatus');
-			$checkoutObject = new Varien_Object(
-				array(
-					'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
-					'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
-					'payer_email' => ($nodePayerEmail->length)? (string) $nodePayerEmail->item(0)->nodeValue : null,
-					'payer_id' => ($nodePayerId->length)? (string) $nodePayerId->item(0)->nodeValue : null,
-					'payer_status' => ($nodePayerStatus->length)? (string) $nodePayerStatus->item(0)->nodeValue : null,
-					'payer_name_honorific' => ($nodeHonorific->length)? (string) $nodeHonorific->item(0)->nodeValue : null,
-					'payer_name_last_name' => ($nodeLastName->length)? (string) $nodeLastName->item(0)->nodeValue : null,
-					'payer_name_middle_name' => ($nodeMiddleName->length)? (string) $nodeMiddleName->item(0)->nodeValue : null,
-					'payer_name_first_name' => ($nodeFirstName->length)? (string) $nodeFirstName->item(0)->nodeValue : null,
-					'payer_country' => ($nodePayerCountry->length)? (string) $nodePayerCountry->item(0)->nodeValue : null,
-					'billing_address_line1' => ($nodeLineA->length)? (string) $nodeLineA->item(0)->nodeValue : null,
-					'billing_address_line2' => ($nodeLineB->length)? (string) $nodeLineB->item(0)->nodeValue : null,
-					'billing_address_line3' => ($nodeLineC->length)? (string) $nodeLineC->item(0)->nodeValue : null,
-					'billing_address_line4' => ($nodeLineD->length)? (string) $nodeLineD->item(0)->nodeValue : null,
-					'billing_address_city' => ($nodeCity->length)? (string) $nodeCity->item(0)->nodeValue : null,
-					'billing_address_main_division' => ($nodeMainDivision->length)? (string) $nodeMainDivision->item(0)->nodeValue : null,
-					'billing_address_country_code' => ($nodeCountryCode->length)? (string) $nodeCountryCode->item(0)->nodeValue : null,
-					'billing_address_postal_code' => ($nodePostalCode->length)? (string) $nodePostalCode->item(0)->nodeValue : null,
-					'billing_address_status' => ($nodeAddressStatus->length)? (string) $nodeAddressStatus->item(0)->nodeValue : null,
-					'payer_phone' => ($nodePayerPhone->length)? (string) $nodePayerPhone->item(0)->nodeValue : null,
-					'shipping_address_line1' => ($nodeShpLineA->length)? (string) $nodeShpLineA->item(0)->nodeValue : null,
-					'shipping_address_line2' => ($nodeShpLineB->length)? (string) $nodeShpLineB->item(0)->nodeValue : null,
-					'shipping_address_line3' => ($nodeShpLineC->length)? (string) $nodeShpLineC->item(0)->nodeValue : null,
-					'shipping_address_Line4' => ($nodeShpLineD->length)? (string) $nodeShpLineD->item(0)->nodeValue : null,
-					'shipping_address_city' => ($nodeShpCity->length)? (string) $nodeShpCity->item(0)->nodeValue : null,
-					'shipping_address_main_division' => ($nodeShpMainDivision->length)? (string) $nodeShpMainDivision->item(0)->nodeValue : null,
-					'shipping_address_country_code' => ($nodeShpCountryCode->length)? (string) $nodeShpCountryCode->item(0)->nodeValue : null,
-					'shipping_address_postal_code' => ($nodeShpPostalCode->length)? (string) $nodeShpPostalCode->item(0)->nodeValue : null,
-					'shipping_address_status' => ($nodeShpAddressStatus->length)? (string) $nodeShpAddressStatus->item(0)->nodeValue : null,
-				)
-			);
+			$checkoutObject->setData(array(
+				'order_id' => ($nodeOrderId->length)? (int) $nodeOrderId->item(0)->nodeValue : 0,
+				'response_code' => ($nodeResponseCode->length)? (string) $nodeResponseCode->item(0)->nodeValue : null,
+				'payer_email' => ($nodePayerEmail->length)? (string) $nodePayerEmail->item(0)->nodeValue : null,
+				'payer_id' => ($nodePayerId->length)? (string) $nodePayerId->item(0)->nodeValue : null,
+				'payer_status' => ($nodePayerStatus->length)? (string) $nodePayerStatus->item(0)->nodeValue : null,
+				'payer_name_honorific' => ($nodeHonorific->length)? (string) $nodeHonorific->item(0)->nodeValue : null,
+				'payer_name_last_name' => ($nodeLastName->length)? (string) $nodeLastName->item(0)->nodeValue : null,
+				'payer_name_middle_name' => ($nodeMiddleName->length)? (string) $nodeMiddleName->item(0)->nodeValue : null,
+				'payer_name_first_name' => ($nodeFirstName->length)? (string) $nodeFirstName->item(0)->nodeValue : null,
+				'payer_country' => ($nodePayerCountry->length)? (string) $nodePayerCountry->item(0)->nodeValue : null,
+				'billing_address_line1' => ($nodeLineA->length)? (string) $nodeLineA->item(0)->nodeValue : null,
+				'billing_address_line2' => ($nodeLineB->length)? (string) $nodeLineB->item(0)->nodeValue : null,
+				'billing_address_line3' => ($nodeLineC->length)? (string) $nodeLineC->item(0)->nodeValue : null,
+				'billing_address_line4' => ($nodeLineD->length)? (string) $nodeLineD->item(0)->nodeValue : null,
+				'billing_address_city' => ($nodeCity->length)? (string) $nodeCity->item(0)->nodeValue : null,
+				'billing_address_main_division' => ($nodeMainDivision->length)? (string) $nodeMainDivision->item(0)->nodeValue : null,
+				'billing_address_country_code' => ($nodeCountryCode->length)? (string) $nodeCountryCode->item(0)->nodeValue : null,
+				'billing_address_postal_code' => ($nodePostalCode->length)? (string) $nodePostalCode->item(0)->nodeValue : null,
+				'billing_address_status' => ($nodeAddressStatus->length)? (string) $nodeAddressStatus->item(0)->nodeValue : null,
+				'payer_phone' => ($nodePayerPhone->length)? (string) $nodePayerPhone->item(0)->nodeValue : null,
+				'shipping_address_line1' => ($nodeShpLineA->length)? (string) $nodeShpLineA->item(0)->nodeValue : null,
+				'shipping_address_line2' => ($nodeShpLineB->length)? (string) $nodeShpLineB->item(0)->nodeValue : null,
+				'shipping_address_line3' => ($nodeShpLineC->length)? (string) $nodeShpLineC->item(0)->nodeValue : null,
+				'shipping_address_Line4' => ($nodeShpLineD->length)? (string) $nodeShpLineD->item(0)->nodeValue : null,
+				'shipping_address_city' => ($nodeShpCity->length)? (string) $nodeShpCity->item(0)->nodeValue : null,
+				'shipping_address_main_division' => ($nodeShpMainDivision->length)? (string) $nodeShpMainDivision->item(0)->nodeValue : null,
+				'shipping_address_country_code' => ($nodeShpCountryCode->length)? (string) $nodeShpCountryCode->item(0)->nodeValue : null,
+				'shipping_address_postal_code' => ($nodeShpPostalCode->length)? (string) $nodeShpPostalCode->item(0)->nodeValue : null,
+				'shipping_address_status' => ($nodeShpAddressStatus->length)? (string) $nodeShpAddressStatus->item(0)->nodeValue : null,
+			));
 		}
-
 		return $checkoutObject;
 	}
 

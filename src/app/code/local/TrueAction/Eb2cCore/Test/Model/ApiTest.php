@@ -1,14 +1,6 @@
 <?php
 class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 {
-	/**
-	 * setUp method
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-	}
-
 	public function providerApiCall()
 	{
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
@@ -26,19 +18,13 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 		return array(
 			array(
 				$domDocument,
-				'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd',
-				'Inventory-Service-Quantity-1.0.xsd'
-			),
-			array(
-				$domDocument,
-				'http://eb2c.edge.mage.tandev.net/GSI%20eb2c%20Web%20Service%20Schemas%20v1.0/Inventory-Service-Quantity-1.0.xsd',
+				'http://example.com/',
 				'Inventory-Service-Quantity-1.0.xsd'
 			),
 		);
 	}
-
 	/**
-	 * testing request() method
+	 * Test that the request method returns a non-empty string on successful response.
 	 *
 	 * @test
 	 * @dataProvider providerApiCall
@@ -46,13 +32,11 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 	public function testRequest($request, $apiUri, $xsdName)
 	{
 		$strType = gettype('');
-
 		$configConstraint = new PHPUnit_Framework_Constraint_And();
 		$configConstraint->setConstraints(array(
 			$this->arrayHasKey('adapter'),
 			$this->arrayHasKey('timeout')
 		));
-
 		$httpResponse = $this->getMock('Zend_Http_Response', array('isSuccessful', 'getBody'), array(200, array()));
 		$httpResponse->expects($this->once())
 			->method('isSuccessful')
@@ -60,7 +44,6 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 		$httpResponse->expects($this->once())
 			->method('getBody')
 			->will($this->returnValue('abc'));
-
 		$httpClient = $this->getMock('Varien_Http_Client', array('setHeaders', 'setUri', 'setConfig', 'setRawData', 'setEncType', 'request'));
 		$httpClient->expects($this->once())
 			->method('setHeaders')
@@ -86,103 +69,11 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			->method('request')
 			->with($this->identicalTo('POST'))
 			->will($this->returnValue($httpResponse));
-
-		$api = Mage::getModel('eb2ccore/api')
-			->setHttpClient($httpClient)
-			->addData(array(
-				'xsd' => $xsdName,
-				'uri' => $apiUri
-			));
-		$this->assertNotEmpty($api->request($request));
-	}
-
-	/**
-	 * Test that request throws exception when xsd is not set.
-	 * @expectedException TrueAction_Eb2cCore_Exception
-	 * @test
-	 */
-	public function testRequestNoXsd()
-	{
-		Mage::getModel('eb2ccore/api')->request(new DOMDocument());
-	}
-
-	/**
-	 * Test that request throws exception when xsd is not set.
-	 * @expectedException TrueAction_Eb2cCore_Exception
-	 * @test
-	 */
-	public function testRequestInvalidXml()
-	{
-		$doc = new DOMDocument();
-		$doc->appendChild($doc->createElement('_'));
-		Mage::getModel('eb2ccore/api')->setXsd('Address-Validation-Datatypes-1.0.xsd')->request($doc);
-	}
-	/**
-	 * testing request() method will store the status when the request is not successful
-	 *
-	 * @test
-	 */
-	public function testRequestStatus()
-	{
-		$data = $this->providerApiCall();
-		$request = $data[0][0];
-		$apiUri = $data[0][1];
-		$xsdName = $data[0][2];
-
-		$strType = gettype('');
-
-		$configConstraint = new PHPUnit_Framework_Constraint_And();
-		$configConstraint->setConstraints(array(
-			$this->arrayHasKey('adapter'),
-			$this->arrayHasKey('timeout')
-		));
-
-		$httpResponse = $this->getMock('Zend_Http_Response', array('isSuccessful'), array(401, array()));
-		$httpResponse->expects($this->once())
-			->method('isSuccessful')
-			->will($this->returnValue(false));
-
-		$httpClient = $this->getMock('Varien_Http_Client', array('setHeaders', 'setUri', 'setConfig', 'setRawData', 'setEncType', 'request'));
-		$httpClient->expects($this->once())
-			->method('setHeaders')
-			->will($this->returnSelf());
-		$httpClient->expects($this->once())
-			->method('setUri')
-			->will($this->returnSelf());
-		$httpClient->expects($this->once())
-			->method('setConfig')
-			->will($this->returnSelf());
-		$httpClient->expects($this->once())
-			->method('setRawData')
-			->will($this->returnSelf());
-		$httpClient->expects($this->once())
-			->method('setEncType')
-			->will($this->returnSelf());
-		$httpClient->expects($this->once())
-			->method('request')
-			->will($this->returnValue($httpResponse));
-
-		$api = Mage::getModel('eb2ccore/api')
-			->setHttpClient($httpClient)
-			->addData(array(
-				'xsd' => $xsdName,
-				'uri' => $apiUri
-			));
-		$this->assertEmpty($api->request($request));
-		$this->assertSame(401, $api->getStatus());
-	}
-
-	/**
-	 * Test setting http client to something silly
-	 * @expectedException Exception
-	 */
-	public function testInvalidSetHttpClientThrowsException()
-	{
-		$status = false;
 		$api = Mage::getModel('eb2ccore/api');
-		$api->setHttpClient($api);
+		$this->assertSame(0, $api->getStatus());
+		$this->assertNotEmpty($api->request($request, $xsdName, $apiUri, 0, 'foo', $httpClient));
+		$this->assertSame(200, $api->getStatus());
 	}
-
 	/**
 	 * Mock out the config helper.
 	 */
@@ -194,9 +85,10 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 			->getMock();
 		$mockConfig = array(
 			array('apiEnvironment', 'prod'),
-			array('apiRegion', 'eu'),
 			array('apiMajorVersion', '1'),
 			array('apiMinorVersion', '10'),
+			array('apiRegion', 'eu'),
+			array('apiXsdPath', 'app/code/local/TrueAction/Eb2cCore/xsd'),
 			array('storeId', 'store-123'),
 		);
 		$mock->expects($this->any())

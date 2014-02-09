@@ -1,5 +1,3 @@
-config:
-  eb2cproduct/item_master_feed/outbound/message_header/event_type: 'ItemMaster'
 vfs:
   sample:
     test.xml: |

@@ -33,63 +33,18 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 
 		return $quoteMock;
 	}
-
 	public function providerDoVoid()
 	{
 		return array(
 			array($this->buildQuoteMock())
 		);
 	}
-
-	/**
-	 * testing doVoid method
-	 *
-	 * @test
-	 * @dataProvider providerDoVoid
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testDoVoid($quote)
-	{
-		$this->assertNotNull(
-			$this->_void->doVoid($quote)
-		);
-	}
-
-	/**
-	 * testing when doVoid API call throw an exception
-	 *
-	 * @test
-	 * @dataProvider providerDoVoid
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testDoVoidWithException($quote)
-	{
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->setMethods(array('setUri', 'request'))
-			->getMock();
-
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
-
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$this->assertSame(
-			'',
-			trim($this->_void->doVoid($quote))
-		);
-	}
-
 	public function providerParseResponse()
 	{
 		return array(
 			array(file_get_contents(__DIR__ . '/VoidTest/fixtures/PayPalDoVoidReply.xml', true))
 		);
 	}
-
 	/**
 	 * testing parseResponse method
 	 *

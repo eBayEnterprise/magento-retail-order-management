@@ -34,19 +34,15 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_BalanceTest
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
+			->setMethods(array('request'))
 			->getMock();
 		$apiModelMock->expects($this->once())
-			->method('addData')
-			->with($this->equalTo(array(
-				'uri' => 'https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml',
-				'xsd' => 'Payment-Service-StoredValueBalance-1.0.xsd'
-			)))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->once())
 			->method('request')
-			->with($this->isInstanceOf('TrueAction_Dom_Document'))
-			->will($this->returnValue(
+			->with(
+				$this->isInstanceOf('TrueAction_Dom_Document'),
+				'Payment-Service-StoredValueBalance-1.0.xsd',
+				'https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml'
+			)->will($this->returnValue(
 				'<StoredValueBalanceReply xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 					<PaymentAccountUniqueId isToken="true">80000000000000</PaymentAccountUniqueId>
 					<ResponseCode>Success</ResponseCode>
@@ -79,121 +75,33 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_BalanceTest
 			$this->assertSame($data['expect'], $balanceModelMock->getBalance($data['pan'], $data['pin']));
 		}
 	}
-
 	/**
 	 * Test getBalance method, where getSvcUri return an empty url
 	 * @test
 	 */
 	public function testGetBalanceWithEmptyUrl()
 	{
+		$pan = '00000000000000';
+		$pin = '1234';
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->loadXML(
-			'<StoredValueBalanceRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<PaymentAccountUniqueId isToken="false">00000000000000</PaymentAccountUniqueId>
-				<Pin>1234</Pin>
+			"<StoredValueBalanceRequest xmlns='http://api.gsicommerce.com/schema/checkout/1.0'>
+				<PaymentAccountUniqueId isToken='false'>$pan</PaymentAccountUniqueId>
+				<Pin>$pin</Pin>
 				<CurrencyCode>USD</CurrencyCode>
-			</StoredValueBalanceRequest>'
+			</StoredValueBalanceRequest>"
 		);
-
-		$paymentHelperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+		$payHelper = $this->getHelperMockBuilder('eb2cpayment/data')
 			->disableOriginalConstructor()
 			->setMethods(array('getSvcUri'))
 			->getMock();
-		$paymentHelperMock->expects($this->once())
+		$payHelper->expects($this->once())
 			->method('getSvcUri')
-			->with($this->equalTo('get_gift_card_balance'), $this->equalTo('00000000000000'))
+			->with($this->equalTo('get_gift_card_balance'), $this->equalTo($pan))
 			->will($this->returnValue(''));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
-
-		$balanceModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_balance')
-			->setMethods(array('buildStoredValueBalanceRequest'))
-			->getMock();
-		$balanceModelMock->expects($this->once())
-			->method('buildStoredValueBalanceRequest')
-			->with($this->equalTo('00000000000000'), $this->equalTo('1234'))
-			->will($this->returnValue($doc));
-
-		$testData = array(
-			array(
-				'expect' => '',
-				'pan' => '00000000000000',
-				'pin' => '1234'
-			),
-		);
-
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $balanceModelMock->getBalance($data['pan'], $data['pin']));
-		}
+		$this->replaceByMock('helper', 'eb2cpayment', $payHelper);
+		$this->assertSame('', Mage::getModel('eb2cpayment/storedvalue_balance')->getBalance($pan, '1234'));
 	}
-
-	/**
-	 * Test getBalance method, with Zend_Http_Client_Exception exception thrown
-	 * @test
-	 */
-	public function testGetBalanceWithExceptionThrow()
-	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<StoredValueBalanceRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
-				<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
-				<Pin>1234</Pin>
-				<CurrencyCode>USD</CurrencyCode>
-			</StoredValueBalanceRequest>'
-		);
-
-		$paymentHelperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getSvcUri', 'getConfigModel'))
-			->getMock();
-		$paymentHelperMock->expects($this->once())
-			->method('getSvcUri')
-			->with($this->equalTo('get_gift_card_balance'), $this->equalTo('80000000000000'))
-			->will($this->returnValue('https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml'));
-		$paymentHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue((object) array(
-				'xsdFileStoredValueBalance' => 'Payment-Service-StoredValueBalance-1.0.xsd'
-			)));
-		$this->replaceByMock('helper', 'eb2cpayment', $paymentHelperMock);
-
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->disableOriginalConstructor()
-			->setMethods(array('addData', 'request'))
-			->getMock();
-		$apiModelMock->expects($this->once())
-			->method('addData')
-			->with($this->equalTo(array(
-				'uri' => 'https://api.example.com/vM.m/stores/storeId/payments/storedvalue/balance/GS.xml',
-				'xsd' => 'Payment-Service-StoredValueBalance-1.0.xsd'
-			)))
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->once())
-			->method('request')
-			->with($this->isInstanceOf('TrueAction_Dom_Document'))
-			->will($this->throwException(new Zend_Http_Client_Exception('Unittest, simulating when storedvalue blance request throw exception')));
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$balanceModelMock = $this->getModelMockBuilder('eb2cpayment/storedvalue_balance')
-			->setMethods(array('buildStoredValueBalanceRequest'))
-			->getMock();
-		$balanceModelMock->expects($this->once())
-			->method('buildStoredValueBalanceRequest')
-			->with($this->equalTo('80000000000000'), $this->equalTo('1234'))
-			->will($this->returnValue($doc));
-
-		$testData = array(
-			array(
-				'expect' => '',
-				'pan' => '80000000000000',
-				'pin' => '1234'
-			),
-		);
-
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $balanceModelMock->getBalance($data['pan'], $data['pin']));
-		}
-	}
-
 	/**
 	 * Test buildStoredValueBalanceRequest method
 	 * @test

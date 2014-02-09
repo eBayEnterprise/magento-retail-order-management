@@ -110,86 +110,12 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 
 		return $quoteMock;
 	}
-
 	public function providerSetExpressCheckout()
 	{
 		return array(
 			array($this->buildQuoteMock())
 		);
 	}
-
-	/**
-	 * testing setExpressCheckout method
-	 *
-	 * @test
-	 * @dataProvider providerSetExpressCheckout
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testSetExpressCheckout($quote)
-	{
-		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
-			->setMethods(array('setEb2cPaypalToken', 'save'))
-			->getMock();
-
-		$paypalMock->expects($this->any())
-			->method('setEb2cPaypalToken')
-			->will($this->returnSelf()
-			);
-		$paypalMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf()
-			);
-
-		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalMock);
-
-		$this->assertNotNull(
-			$this->_checkout->setExpressCheckout($quote)
-		);
-	}
-
-	/**
-	 * testing when setExpressCheckout API call throw an exception
-	 *
-	 * @test
-	 * @dataProvider providerSetExpressCheckout
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testSetExpressCheckoutWithException($quote)
-	{
-		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
-			->setMethods(array('setUri', 'request'))
-			->getMock();
-
-		$apiModelMock->expects($this->any())
-			->method('setUri')
-			->will($this->returnSelf());
-		$apiModelMock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Zend_Http_Client_Exception));
-
-		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
-
-		$paypalMock = $this->getModelMockBuilder('eb2cpayment/paypal')
-			->setMethods(array('setEb2cPaypalToken', 'save'))
-			->getMock();
-
-		$paypalMock->expects($this->any())
-			->method('setEb2cPaypalToken')
-			->will($this->returnSelf()
-			);
-		$paypalMock->expects($this->any())
-			->method('save')
-			->will($this->returnSelf()
-			);
-
-		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalMock);
-
-		$this->assertSame(
-			'',
-			trim($this->_checkout->setExpressCheckout($quote))
-		);
-	}
-
 	public function providerParseResponse()
 	{
 		return array(

@@ -7,8 +7,9 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	const XSD_FILE_CONFIG = '';
 	/**
 	 * Make a request to the inventory service with details from the given quote.
-	 * @param  Mage_Sales_Model_Quote $quote Quote to make the inventory request for.
-	 * @return string The response from the service.
+	 *
+	 * @param Mage_Sales_Model_Quote $quote quote to make the inventory request for
+	 * @return string xml response from the service
 	 */
 	public function makeRequestForQuote(Mage_Sales_Model_Quote $quote)
 	{
@@ -17,18 +18,15 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 		// Shipping address required for the details request, if there's no address,
 		// can't make the details request.
 		if ($this->_canMakeRequestWithQuote($quote)) {
-			$requestDoc = $this->_buildRequestMessage($quote);
+			$doc = $this->_buildRequestMessage($quote);
 			// using separate call to addData instead of constructor for testability
-			$api = Mage::getModel('eb2ccore/api')->addData(array(
-				'uri' => Mage::helper('eb2cinventory')->getOperationUri(static::OPERATION_KEY),
-				'xsd' => Mage::helper('eb2cinventory')->getConfigModel()->getConfig(static::XSD_FILE_CONFIG),
-			));
-			try {
-				$responseMessage = $api->request($requestDoc);
-			} catch (Zend_Http_Client_Exception $e) {
-				// if the request errors out, log the error and allow the still empty response to be handled with other emtpy responses
-				Mage::log(sprintf('[%s] The following error has occurred while sending the request to eb2c: %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
-			}
+			$helper = Mage::helper('eb2cinventory');
+			$api = Mage::getModel('eb2ccore/api');
+			$responseMessage = $api->request(
+				$doc,
+				$helper->getConfigModel()->getConfig(static::XSD_FILE_CONFIG),
+				$helper->getOperationUri(static::OPERATION_KEY)
+			);
 			if ($responseMessage === '') {
 				$this->_handleEmptyResponse($api);
 				// @codeCoverageIgnoreStart
@@ -49,19 +47,16 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	 * a blocking (TrueAction_Eb2cInventory_Exception_Cart_Interrupt) or
 	 * non-blocking (TrueAction_Eb2cInventory_Exception_Cart) exception being thrown.
 	 * @param  TrueAction_Eb2cCore_Model_Api $api The API model used to make the request
-	 * @return TrueAction_Eb2cInventory_Model_Request_Abstract $this object
 	 * @throws TrueAction_Eb2cInventory_Exception_Cart_Interrupt If blocking error encountered
 	 * @throws TrueAction_Eb2cInventory_Exception_Cart If non-blocking error encountered
 	 */
 	protected function _handleEmptyResponse(TrueAction_Eb2cCore_Model_Api $api)
 	{
-		if (!$api->hasStatus()) {
-			throw new TrueAction_Eb2cInventory_Exception_Cart('Inventory request received an empty response with no status code.');
+		$status = $api->getStatus();
+		if (Mage::helper('eb2cinventory')->isBlockingStatus($status)) {
+			throw new TrueAction_Eb2cInventory_Exception_Cart_Interrupt("Inventory service returned a disruptive status: $status");
 		}
-		if (Mage::helper('eb2cinventory')->isBlockingStatus($api->getStatus())) {
-			throw new TrueAction_Eb2cInventory_Exception_Cart_Interrupt('Inventory service returned a disruptive status: ' . $api->getStatus());
-		}
-		throw new TrueAction_Eb2cInventory_Exception_Cart('Inventory request returned an empty response with status: ' . $api->getSatus());
+		throw new TrueAction_Eb2cInventory_Exception_Cart("Inventory request returned an empty response with status: $status");
 	}
 	/**
 	 * Determine if a valid message can be sent using the quote. All inventory services

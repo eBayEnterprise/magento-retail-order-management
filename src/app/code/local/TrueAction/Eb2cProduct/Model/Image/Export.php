@@ -77,7 +77,8 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 			$this->_buildMessageHeader($itemImages->createChild('MessageHeader'));
 
 			if ($this->_buildItemImages($itemImages) > 0) {
-				$this->_validateDom($dom)->_sendXml($dom, $storeId);
+				Mage::getModel('eb2ccore/api')->schemaValidate($dom, $this->_getConfig()->xsdFileImageExport);
+				$this->_sendXml($dom, $storeId);
 			}
 
 			$dom = null;
@@ -86,22 +87,6 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 		}
 		return $numberOfStoresProcessed;
 	}
-
-	/**
-	 * Validate the DOM
-	 * @param TrueAction_Dom_Document
-	 * @throws TrueAction_Eb2cCore_Exception if validation fails
-	 * @return self
-	 */
-	protected function _validateDom(TrueAction_Dom_Document $dom)
-	{
-		$api = Mage::getModel('eb2ccore/api', array('xsd' => $this->_getConfig()->xsdFileImageExport));
-		if (!$api->schemaValidate($dom)) {
-			throw new TrueAction_Eb2cCore_Exception('Schema validation failed.'); // Inbound validation throws this, so I'm doing the same outbound.
-		}
-		return $this;
-	}
-
 	/**
 	 * Create a file from the dom, and return its full path.
 	 * 'protected' so we can test around it.

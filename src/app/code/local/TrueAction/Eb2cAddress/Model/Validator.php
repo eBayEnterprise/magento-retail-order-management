@@ -191,25 +191,26 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 */
 	public function shouldValidateAddress(Mage_Customer_Model_Address_Abstract $address)
 	{
+		$log = Mage::helper('trueaction_magelog');
 		if ($this->_hasAddressBeenValidated($address)) {
-			self::_logDebug('No validation - already validated');
+			$log->logDebug('[ %s ] No validation - already validated', array(__CLASS__));
 			return false;
 		}
 		if ($this->_isCheckoutAddress($address)) {
 			if ($this->_isAddressFromAddressBook($address)) {
-				self::_logDebug('No validation - from address book');
+				$log->logDebug('[ %s ] No validation - from address book', array(__CLASS__));
 				return false;
 			}
 			if ($this->_isAddressBeingSaved($address)) {
-				self::_logDebug('Require validation - saving address in address book');
+				$log->logDebug('[ %s ] Require validation - saving address in address book', array(__CLASS__));
 				return true;
 			}
 			if ($this->_isVirtualOrder()) {
-				self::_logDebug('No validation - virtual order');
+				$log->logDebug('[ %s ] No validation - virtual order', array(__CLASS__));
 				return false;
 			}
 			if ($this->_isAddressBillingOnly($address)) {
-				self::_logDebug('No validation - billing only');
+				$log->logDebug('[ %s ] No validation - billing only', array(__CLASS__));
 				return false;
 			}
 		}
@@ -223,47 +224,21 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 */
 	protected function _makeRequestForAddress(Mage_Customer_Model_Address_Abstract $address)
 	{
-		$apiResponse = '';
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2caddress/config'));
-		$api = Mage::getModel('eb2ccore/api');
-		$api->addData(array(
-			'xsd' => $cfg->xsdFileAddressValidation,
-			'uri' => Mage::helper('eb2ccore')->getApiUri(
-				TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
-				TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION
-			),
-		));
-		try {
-			$apiResponse = $api->request(
-				Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage()
-			);
-		} catch (Exception $e) {
-			self::_logWarn('API request returned error: ' . $e->getMessage());
+		$xsd = $cfg->xsdFileAddressValidation;
+		$uri = Mage::helper('eb2ccore')->getApiUri(
+			TrueAction_Eb2cAddress_Model_Validation_Request::API_SERVICE,
+			TrueAction_Eb2cAddress_Model_Validation_Request::API_OPERATION
+		);
+		$msg = Mage::getModel('eb2caddress/validation_request')->setAddress($address)->getMessage();
+		$log = Mage::helper('trueaction_magelog');
+		$apiResponse = Mage::getModel('eb2ccore/api')->request($msg, $xsd, $uri);
+		if (isset($apiResponse) && trim($apiResponse)) {
+			return Mage::getModel('eb2caddress/validation_response', array('message', $apiResponse));
 		}
-		if (empty($apiResponse)) {
-			self::_logWarn('Address Validation service returned empty response.');
-		} else {
-			return Mage::getModel('eb2caddress/validation_response')->setMessage($apiResponse);
-		}
+		$log->logWarn('[ %s ] Address validation service returned empty response.', array(__CLASS__));
 	}
-	/**
-	 * Log the message at the WARN loglevel in a standard format.
-	 * @codeCoverageIgnore
-	 */
-	private static function _logWarn($s)
-	{
-		Mage::log(sprintf('[ %s ] %s', __CLASS__, $s), Zend_Log::WARN);
-	}
-	/**
-	 * Log the message at the DEBUG loglevel in a standard format.
-	 * @codeCoverageIgnore
-	 */
-	private static function _logDebug($s)
-	{
-		Mage::log(sprintf('[ %s ] %s', __CLASS__, $s), Zend_Log::DEBUG);
-	}
-
 	/**
 	 * Validate an address via the EB2C Address Validation service.
 	 * Calls the EB2C API and feeds the results into a response model.
@@ -271,7 +246,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 * the response from EB2C and suggested addresses are stashed in the session
 	 * for later use.
 	 * @param Mage_Customer_Model_Address_Abstract $address
-	 * @return string - the error message generated in validation
+	 * @return string the error message generated in validation
 	 */
 	public function validateAddress(Mage_Customer_Model_Address_Abstract $address)
 	{

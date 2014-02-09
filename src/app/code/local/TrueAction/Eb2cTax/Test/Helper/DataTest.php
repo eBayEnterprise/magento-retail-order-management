@@ -79,18 +79,14 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 			->getMock();
 		$this->replaceByMock('model', 'eb2ctax/response', $response);
 
-		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request', 'addData'));
-		$apiModelMock->expects($this->once())
-			->method('addData')
-			->with($this->identicalTo(array(
-				'uri' => 'https://api.example.com/vM.m/stores/store_id/taxes/quote.xml',
-				'xsd' => 'TaxDutyFee-QuoteRequest-1.0.xsd'
-			)))
-			->will($this->returnSelf());
+		$apiModelMock = $this->getModelMock('eb2ccore/api', array('request'));
 		$apiModelMock->expects($this->once())
 			->method('request')
-			->with($this->identicalTo($requestDocument))
-			->will($this->returnValue($responseMessage));
+			->with(
+				$this->identicalTo($requestDocument),
+				'TaxDutyFee-QuoteRequest-1.0.xsd',
+				'https://api.example.com/vM.m/stores/store_id/taxes/quote.xml'
+			)->will($this->returnValue($responseMessage));
 		$this->replaceByMock('model', 'eb2ccore/api', $apiModelMock);
 		$this->assertSame(
 			$response,

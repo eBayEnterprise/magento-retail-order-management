@@ -649,34 +649,6 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 
 		$this->assertNull($errors);
 	}
-
-	/**
-	 * When the API model's request method throws an error, validation should
-	 * be considered successful.
-	 * @test
-	 */
-	public function testErrorResponseFromService()
-	{
-		$mock = $this->getModelMock(
-			'eb2ccore/api',
-			array('addData', 'request')
-		);
-		$mock->expects($this->any())
-			->method('addData')
-			->will($this->returnSelf());
-		$mock->expects($this->any())
-			->method('request')
-			->will($this->throwException(new Exception()));
-		$this->replaceByMock('model', 'eb2ccore/api', $mock);
-
-		$address = Mage::getModel('customer/address');
-
-		$validator = Mage::getModel('eb2caddress/validator');
-		$errors = $validator->validateAddress($address);
-
-		$this->assertNull($errors);
-	}
-
 	/**
 	 * Test retrieval of address objects from the validator by key.
 	 * Each address should have a stash_key which will be used to get

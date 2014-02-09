@@ -2,46 +2,27 @@
 class TrueAction_Eb2cPayment_Model_Storedvalue_Redeem
 {
 	/**
-	 * Get gift card Redeem from eb2c.
-	 * @param string $pan, Either a raw PAN or a token representing a PAN
-	 * @param string $pin, The personal identification number or code associated with a gift card or gift certificate.
-	 * @param string $entityId, the sales/quote entity_id value
-	 * @param string $amount, the amount to redeem
-	 * @return string the eb2c response to the request
+	 * Get gift card redeem from eb2c.
+	 * @param string $pan Either a raw PAN or a token representing a PAN
+	 * @param string $pin personal identification number or code associated with a gift card or gift certificate
+	 * @param string $entityId sales/quote entity_id value
+	 * @param string $amount amount to redeem
+	 * @return string eb2c response to the request
 	 */
 	public function getRedeem($pan, $pin, $entityId, $amount)
 	{
-		$responseMessage = '';
-		// build request
-		$requestDoc = $this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount);
 		$hlpr = Mage::helper('eb2cpayment');
-		// HACK: EBC-238
-		// Replace the "GS" at the end of the url with the right tender type for the SVC.
 		$uri = $hlpr->getSvcUri('get_gift_card_redeem', $pan);
 		if ($uri === '') {
 			Mage::log(sprintf('[ %s ] pan "%s" is out of range of any configured tender type bin.', __CLASS__, $pan), Zend_Log::ERR);
 			return '';
 		}
-		try {
-			// make request to eb2c for Gift Card Redeem
-			$responseMessage = Mage::getModel('eb2ccore/api')
-				->addData(array(
-					'uri' => $uri,
-					'xsd' => Mage::helper('eb2cpayment')->getConfigModel()->xsdFileStoredValueRedeem
-				))
-				->request($requestDoc);
-		} catch(Zend_Http_Client_Exception $e) {
-			Mage::log(
-				sprintf(
-					'[ %s ] The following error has occurred while sending StoredValueRedeem request to eb2c: (%s).',
-					__CLASS__, $e->getMessage()
-				),
-				Zend_Log::ERR
-			);
-		}
-		return $responseMessage;
+		return Mage::getModel('eb2ccore/api')->request(
+			$this->buildStoredValueRedeemRequest($pan, $pin, $entityId, $amount),
+			$hlpr->getConfigModel()->xsdFileStoredValueRedeem,
+			$uri
+		);
 	}
-
 	/**
 	 * Build gift card Redeem request.
 	 * @param string $pan, the payment account number
