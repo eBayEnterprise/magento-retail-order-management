@@ -591,16 +591,20 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	public function testAcknowledgeReceipt()
 	{
 		$vfs = $this->getFixture()->getVfs();
-		$testFile = $vfs->url('sample/test.xml'); // (Seems nutty, but actually, we should be able to ack an ack O.o)
-		$helper = $this->getHelperMock('eb2ccore/data', array('sendFile'));
-		$helper->expects($this->once())
-			->method('sendFile')
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$testFile = $vfs->url('sample/test.xml');
 		$feed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('getOutboundPath', '_getBaseAckFileName','mvToArchiveDir'))
-			->getMock();
+			->setMethods(
+				array(
+					'_getBaseAckFileName',
+					'getOutboundPath',
+					'mvToArchiveDir',
+					'_remoteCall',
+				)
+			)->getMock();
+		$feed->expects($this->once())
+			->method('_remoteCall')
+			->will($this->returnValue(true));
 		$feed->expects($this->once())
 			->method('getOutboundPath')
 			->will($this->returnValue($vfs->url('sample/outbound')));

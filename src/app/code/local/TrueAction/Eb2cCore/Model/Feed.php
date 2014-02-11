@@ -237,6 +237,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	protected function _acknowledgeReceipt($xmlToAckPath)
 	{
 		$coreHelper  = Mage::helper('eb2ccore');
+		$feedHelper  = Mage::helper('eb2ccore/feed');
 		$xmlToAckDom = $coreHelper->getNewDomDocument(); // The file I am acknowledging
 		$ackDom      = $coreHelper->getNewDomDocument(); // The acknowledgement file itself
 
@@ -247,7 +248,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 
 		$ack = $ackDom->addElement('Acknowledgement', null)->firstChild;
 
-		$configMap           = Mage::helper('eb2ccore/feed')->getHeaderConfig($eventType);
+		$configMap           = $feedHelper->getHeaderConfig($eventType);
 		$headerTemplate      = $this->_getCoreConfig()->feedHeaderTemplate;
 		$messageHeaderString = str_replace(
 			array_map(function ($key) { return "{{$key}}"; }, array_keys($configMap)),
@@ -266,10 +267,19 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$ack->createChild('ReferenceMessageId', $messageId);
 
 		Mage::getModel('eb2ccore/api')->schemaValidate($ackDom, $this->_getCoreConfig()->feedAckXsd);
-		$filename = $this->getOutboundPath() . DS . $this->_getBaseAckFileName($eventType);
-		$ackDom->save($filename);
-		$coreHelper->sendFile($filename, $this->_getCoreConfig()->feedAckRemotePath);
-		$this->mvToArchiveDir($filename);
+		$basename = $this->_getBaseAckFileName($eventType);
+		$localPath = $this->getOutboundPath() . DS . $basename;
+		$ackDom->save($localPath);
+		$remotePath = $this->_getCoreConfig()->feedAckRemotePath . DS . $basename;
+		$this->_remoteCall(
+			array(Mage::helper('filetransfer'), 'sendFile'),
+			array(
+				$localPath,
+				$remotePath,
+				$feedHelper::FILETRANSFER_CONFIG_PATH
+			)
+		);
+		$this->mvToArchiveDir($localPath);
 		return $this;
 	}
 }

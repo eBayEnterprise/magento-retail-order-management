@@ -209,19 +209,4 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move ${source} to ${destination}");
 		}
 	}
-	/**
-	 * Send a file
-	 * @param string filepath to send
-	 * @param string remotePath where to send it.
-	 * @return self
-	 */
-	public function sendFile($fileName, $remotePath)
-	{
-		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
-		try {
-			$sftp->sendFile($fileName, $remotePath);
-		} catch(TrueAction_FileTransfer_Exception_Transfer $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure("Error sending {$fileName} to {$remotePath}: " . $e->getMessage());
-		}
-	}
 }

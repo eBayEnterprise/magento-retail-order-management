@@ -157,7 +157,7 @@
 		<CreateDateAndTime>{create_date_and_time}</CreateDateAndTime>
 	</MessageHeader>]]></header_template>
 				<acknowledgement>
-					<remote_path>/Outbox/</remote_path>
+					<remote_path>/</remote_path>
 					<filename_pattern>ack_{eventtype}_{clientid}_{storeid}_{timestamp}.xml</filename_pattern>
 					<timestamp_format>YmdHis</timestamp_format>
 					<xsd>AcknowledgementV11.xsd</xsd>
