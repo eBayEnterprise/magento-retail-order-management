@@ -60,10 +60,13 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			$valueMap[] = array($configPath, $configValue);
 		}
 
-		$mockConfig = $this->getModelMock(self::EB2CCORE_CONFIG_REGISTRY_MODEL, array('__get'));
+		$mockConfig = $this->getModelMock(self::EB2CCORE_CONFIG_REGISTRY_MODEL, array('__get', 'setStore'));
 		$mockConfig->expects($this->any())
 			->method('__get')
 			->will($this->returnValueMap($valueMap));
+		$mockConfig->expects($this->any())
+			->method('setStore')
+			->will($this->returnSelf());
 
 		return $mockConfig;
 	}
@@ -171,5 +174,13 @@ abstract class TrueAction_Eb2cCore_Test_Base
 			->method('set')
 			->will($this->returnSelf());
 		$this->replaceByMock('singleton', 'core/cookie', $cookieMock);
+	}
+	/**
+	 * Simple data provider function that will provide true then false.
+	 * @return array
+	 */
+	public function provideTrueFalse()
+	{
+		return array(array(true), array(false));
 	}
 }

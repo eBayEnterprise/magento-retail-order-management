@@ -20,6 +20,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		'Price' => 'eb2cproduct/item_pricing_feed/outbound/message_header',
 		'ImageMaster' => 'eb2cproduct/image_master_feed/outbound/message_header',
 		'ItemInventories' => 'eb2cinventory/feed/outbound/message_header',
+		'PIMExport' => 'eb2cproduct/pim_export_feed/outbound/message_header',
 	);
 
 	/**

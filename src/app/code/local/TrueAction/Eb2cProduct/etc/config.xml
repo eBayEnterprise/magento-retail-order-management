@@ -265,6 +265,15 @@
 					</message_header>
 				</outbound>
 			</image_master_feed>
+			<pim_export_feed>
+				<local_path>TrueAction/Eb2c/Feed/Product/PIM/</local_path>
+				<xsd>CombinedProduct.xsd</xsd>
+				<outbound>
+					<message_header>
+						<event_type>PIMExport</event_type>
+					</message_header>
+				</outbound>
+			</pim_export_feed>
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>
 			<processor_update_batch_size>100</processor_update_batch_size>
@@ -384,6 +393,29 @@
 					<xpath></xpath>
 				</allow_open_amount>
 			</feed_attribute_mappings>
+			<feed_pim_mapping>
+				<sku>
+					<class>eb2cproduct/pim</class>
+					<type>helper</type>
+					<method>getTextAsNode</method>
+					<xml_dest>ItemId/ClientItemId</xml_dest>
+					<translate>0</translate>
+				</sku>
+				<name>
+					<class>eb2cproduct/pim</class>
+					<type>helper</type>
+					<method>getTextAsNode</method>
+					<xml_dest>BaseAttributes/Title</xml_dest>
+					<translate>1</translate>
+				</name>
+			</feed_pim_mapping>
+			<default_pim_mapping>
+				<class>eb2cproduct/pim</class>
+				<type>helper</type>
+				<method>getValueAsDefault</method>
+				<xml_dest>CustomAttributes/Attribute[@name="%s"]</xml_dest>
+				<translate>1</translate>
+			</default_pim_mapping>
 		</eb2cproduct>
 	</default>
 	<phpunit>

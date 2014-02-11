@@ -39,6 +39,10 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 		'item_feed_local_path'                => 'eb2cproduct/item_master_feed/local_path',
 		'item_feed_remote_received_path'      => 'eb2cproduct/item_master_feed/remote_path',
 
+		'pim_export_feed_event_type'          => 'eb2cproduct/pim_export_feed/outbound/message_header/event_type',
+		'pim_export_feed_local_path'          => 'eb2cproduct/pim_export_feed/local_path',
+		'pim_export_xsd'                      => 'eb2cproduct/pim_export_feed/xsd',
+
 		'pricing_feed_event_type'             => 'eb2cproduct/item_pricing_feed/event_type',
 		'pricing_feed_file_pattern'           => 'eb2cproduct/item_pricing_feed/file_pattern',
 		'pricing_feed_header_version'         => 'eb2cproduct/item_pricing_feed/header_version',

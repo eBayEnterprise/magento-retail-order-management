@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cm="http://www.tm-xml.org/XMLSchema/common" elementFormDefault="qualified">
+	<xsd:annotation>
+		<xsd:documentation>Support for Magento-as-PIM outgoing product master feed</xsd:documentation>
+	</xsd:annotation>
+	<xsd:include schemaLocation="ContentFeedV11.xsd"/>
+	<xsd:include schemaLocation="Image_Feed.xsd"/>
+	<xsd:include schemaLocation="ItemMasterV11.xsd"/>
+	<xsd:include schemaLocation="PriceEventV11.xsd"/>
+	<xsd:element name="MageMaster">
+		<xsd:annotation>
+			<xsd:documentation>Root. Message for Magento-as-PIM combined product feed</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="MessageHeader" type="MessageHeaderType"/>
+				<xsd:element name="Item" maxOccurs="unbounded">
+					<xsd:annotation>
+						<xsd:documentation>Describes individual products in Magento</xsd:documentation>
+					</xsd:annotation>
+					<xsd:complexType>
+						<xsd:sequence>
+							<xsd:element name="ItemId" type="Complex.ItemId.Type"/>
+							<xsd:element name="StyleID" type="Complex.StyleType.StyleID" minOccurs="0"/>
+							<xsd:element name="ProductLinks" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>List of related products. Includes support of any number of relationship types.</xsd:documentation>
+								</xsd:annotation>
+								<xsd:complexType>
+									<xsd:sequence minOccurs="0">
+										<xsd:element name="ProductLink" type="Complex.ProductLink.Attribute" maxOccurs="unbounded">
+											<xsd:annotation>
+												<xsd:documentation>This list of links is used to create a new list or replace an existing list of links.</xsd:documentation>
+											</xsd:annotation>
+										</xsd:element>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="CategoryLinks" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>Establish links to categories.</xsd:documentation>
+								</xsd:annotation>
+								<xsd:complexType>
+									<xsd:sequence minOccurs="0">
+										<xsd:element name="CategoryLink" maxOccurs="unbounded">
+											<xsd:complexType>
+												<xsd:sequence>
+													<xsd:element name="Name" type="Simple.StringType.132">
+														<xsd:annotation>
+															<xsd:documentation>Name of the category (catalog) to link this product.</xsd:documentation>
+														</xsd:annotation>
+													</xsd:element>
+												</xsd:sequence>
+												<xsd:attribute name="catalog_id" type="Simple.StringType.132">
+													<xsd:annotation>
+														<xsd:documentation>Used to cross category link products. No validation provided by transforms engine. Catalog must exist before linking occurs.</xsd:documentation>
+													</xsd:annotation>
+												</xsd:attribute>
+												<xsd:attribute name="default" type="Simple.Boolean.Type" default="false">
+													<xsd:annotation>
+														<xsd:documentation>Only one in the list may be the default (true).</xsd:documentation>
+													</xsd:annotation>
+												</xsd:attribute>
+												<xsd:attribute ref="import_mode"/>
+											</xsd:complexType>
+										</xsd:element>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="BaseAttributes" type="Complex.Attributes.Base.Content">
+								<xsd:annotation>
+									<xsd:documentation>Required attributes when adding or updating the product.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="ExtendedAttributes" type="Complex.Attributes.Extended.Content" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>This are known attributes commonly defined. Some may contain data restrictions.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="CustomAttributes" minOccurs="0">
+								<xsd:annotation>
+									<xsd:documentation>Allow 0 or more custom attributes. Spelling and case important. Names are defined during the design phase to be included on a page or used on a site.</xsd:documentation>
+								</xsd:annotation>
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element name="Attribute" type="Complex.Custom.Attribute" maxOccurs="unbounded"/>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="PriceEvent" type="Complex.Price.Events.Type" minOccurs="0" maxOccurs="unbounded">
+								<xsd:annotation>
+									<xsd:documentation>Encapsulates the various price references that an item can have. Price or Price events may include localization by currency.</xsd:documentation>
+								</xsd:annotation>
+							</xsd:element>
+							<xsd:element name="HTSCode" minOccurs="0" maxOccurs="unbounded">
+								<xsd:complexType>
+									<xsd:simpleContent>
+										<xsd:extension base="Simple.StringType.100">
+											<xsd:attribute name="mfn_duty_rate" type="Simple.DecimalType"/>
+											<xsd:attribute name="destination_country" type="ISOCountryCodeType"/>
+											<xsd:attribute name="restricted" type="Simple.Boolean.Type"/>
+										</xsd:extension>
+									</xsd:simpleContent>
+								</xsd:complexType>
+							</xsd:element>
+							<xsd:element name="Images" minOccurs="0" maxOccurs="1">
+								<xsd:complexType>
+									<xsd:sequence>
+										<xsd:element ref="Image" minOccurs="0" maxOccurs="unbounded"/>
+									</xsd:sequence>
+								</xsd:complexType>
+							</xsd:element>
+						</xsd:sequence>
+						<xsd:attribute name="gsi_client_id" type="Simple.ClientID.Type" use="required">
+							<xsd:annotation>
+								<xsd:documentation>The identifier provided by eBay Enterprise for an individual or organization that has a contractual relationship with eBay Enterprise in which eBay Enterprise is providing e-commerce, fulfillment or other services for the individual or organization.</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+						<xsd:attribute name="catalog_id" type="Simple.CatalogType.CatalogID" use="required">
+							<xsd:annotation>
+								<xsd:documentation>Catalog id for the item</xsd:documentation>
+							</xsd:annotation>
+						</xsd:attribute>
+					</xsd:complexType>
+				</xsd:element>
+			</xsd:sequence>
+			<xsd:attribute name="imageDomain" type="xsd:string" use="required">
+				<xsd:annotation>
+					<xsd:documentation>URI for all image references found in this document.</xsd:documentation>
+				</xsd:annotation>
+			</xsd:attribute>
+		</xsd:complexType>
+	</xsd:element>
+</xsd:schema>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSpy v2012 sp1 (http://www.altova.com) by user (private) -->
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cc="http://www.tm-xml.org/XMLSchema/common"  elementFormDefault="qualified" attributeFormDefault="qualified">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cc="http://www.tm-xml.org/XMLSchema/common" elementFormDefault="qualified" attributeFormDefault="qualified">
 	<xsd:annotation>
-		<xsd:documentation xml:lang="en-US">Common types and attributes support V11.  $Rev: 289 $</xsd:documentation>
-		<xsd:documentation>$Id: CommonTypes.xsd 289 2012-01-18 19:49:15Z loweryt $</xsd:documentation>
+		<xsd:documentation xml:lang="en-US">Common types and attributes support V11.  $Rev: 297 $</xsd:documentation>
+		<xsd:documentation>$Id: CommonTypes.xsd 297 2012-02-13 19:52:35Z loweryt $</xsd:documentation>
 		<xsd:documentation>$URL: http://svn.gspt.net/phx/ph-schemas/branches/v2.3_1/XSD/CommonTypes.xsd $</xsd:documentation>
 	</xsd:annotation>
 	<xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="http://www.w3.org/2001/03/xml.xsd"/>
@@ -596,6 +596,15 @@ The identifier provided by GSI for an individual or organization that has a cont
 		<xsd:restriction base="Simple.StringType">
 			<xsd:minLength value="0"/>
 			<xsd:maxLength value="462"/>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:simpleType name="Simple.StringType.256">
+		<xsd:annotation>
+			<xsd:documentation>Simple String max length of 256</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="Simple.StringType">
+			<xsd:minLength value="0"/>
+			<xsd:maxLength value="256"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="Simple.StringType.132">
