@@ -432,9 +432,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$skus = array('skus-to-update');
 		// DOMNode containing data for the product
 		$contextNode = $this->getMockBuilder('DOMNode')->disableOriginalConstructor()->getMock();
-		// mapping of SKUs to known entity ids - in this case, it should be empty as
-		// the product to import is new
-		$skuMapping = array('skus-to-update' => 2);
 		// DOMNodeList of all items in the feed. Using an array instead of actual
 		// DOMNodeList as it isn't possible, so far as I can tell, to mock a
 		// DOMNodeList to behave as desired. As all this method really needs is a
@@ -444,8 +441,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(array(
-				'_getSkusToUpdate', '_mapSkusToEntityIds',
-				'_buildProductCollection', '_updateItem'
+				'_getSkusToUpdate', '_buildProductCollection', '_updateItem'
 			))
 			->getMock();
 		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomXPath'));
@@ -453,7 +449,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->disableOriginalConstructor()
 			->setMethods(array('query'))
 			->getMock();
-		$productCollection = $this->getResourceModelMockBuilder('catalog/product_collection')
+		$productCollection = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
 			->disableOriginalConstructor()
 			->setMethods(array('setStore', 'save', 'count'))
 			->getMock();
@@ -474,16 +470,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->with($this->identicalTo($skus))
 			->will($this->returnValue($productCollection));
 		$file->expects($this->once())
-			->method('_mapSkusToEntityIds')
-			->with($this->identicalTo($productCollection))
-			->will($this->returnValue($skuMapping));
-		$file->expects($this->once())
 			->method('_updateItem')
 			->with(
 				$this->identicalTo($xpath),
 				$this->identicalTo($contextNode),
-				$this->identicalTo($productCollection),
-				$this->identicalTo($skuMapping)
+				$this->identicalTo($productCollection)
 			)
 			->will($this->returnSelf());
 
@@ -519,11 +510,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 * to the product colleciotn.
 	 * @param boolean $isNew
 	 * @param string $sku
-	 * @param array $skuMap
 	 * @test
 	 * @dataProvider dataProvider
 	 */
-	public function testUpdateItem($isNew, $sku, $skuMap)
+	public function testUpdateItem($isNew, $sku)
 	{
 		$contextNode = $this->getMockBuilder('DOMNode')->disableOriginalConstructor()->getMock();
 		$productFeedData = array('sku' => $sku, 'title' => 'Shiny New Title');
@@ -534,7 +524,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->setMethods(array('extractItem', 'extractSku'))
 			->getMock();
 		$productHelper = $this->getHelperMock('eb2cproduct/data', array('createNewProduct'));
-		$productCollection = $this->getResourceModelMockBuilder('catalog/product_collection')
+		$productCollection = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
 			->disableOriginalConstructor()
 			->setMethods(array('getItemById', 'addItem'))
 			->getMock();
@@ -573,8 +563,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 				->method('addItem')
 				->with($this->identicalTo($product))
 				->will($this->returnSelf());
-			$productCollection->expects($this->never())
-				->method('getItemById');
+			$productCollection->expects($this->once())
+				->method('getItemById')
+				->with($this->identicalTo($sku))
+				->will($this->returnValue(null));
 		} else {
 			$productHelper->expects($this->never())
 				->method('createNewProduct');
@@ -582,14 +574,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 				->method('addItem');
 			$productCollection->expects($this->once())
 				->method('getItemById')
-				->with($this->identicalTo($skuMap[$sku]))
+				->with($this->identicalTo($sku))
 				->will($this->returnValue($product));
 		}
 
 		$this->assertSame(
 			$file,
 			EcomDev_Utils_Reflection::invokeRestrictedMethod(
-				$file, '_updateItem', array($xpath, $contextNode, $productCollection, $skuMap)
+				$file, '_updateItem', array($xpath, $contextNode, $productCollection)
 			)
 		);
 	}
@@ -604,7 +596,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	{
 		$skus = array('12345', '4321');
 
-		$productCollectionMock = $this->getResourceModelMockBuilder('catalog/product_collection')
+		$productCollectionMock = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
 			->disableOriginalConstructor()
 			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'load'))
 			->getMock();
@@ -626,7 +618,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->method('load')
 			->will($this->returnSelf());
 
-		$this->replaceByMock('resource_model', 'catalog/product_collection', $productCollectionMock);
+		$this->replaceByMock('resource_model', 'eb2cproduct/feed_product_collection', $productCollectionMock);
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(null)
@@ -634,27 +626,4 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$this->assertSame($productCollectionMock, $this->_reflectMethod($file, '_buildProductCollection')->invoke($file, $skus));
 	}
 
-	/**
-	 * Test creating a mapping of product SKUs to entity ids. Given a collection
-	 * of products, this method should return an array with SKUs as keys and
-	 * product entity ids as values.
-	 * @test
-	 */
-	public function testMapSkusToEntityIds()
-	{
-		$productCollection = Mage::getResourceModel('catalog/product_collection');
-
-		$productCollection
-			->addItem(Mage::getModel('catalog/product')->addData(array('sku' => '45-1234','entity_id' => 1,)))
-			->addItem(Mage::getModel('catalog/product')->addData(array('sku' => '45-4321','entity_id' => 2,)));
-
-		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
-			->disableOriginalConstructor()
-			->setMethods(null)
-			->getMock();
-		$this->assertSame(
-			array('45-1234' => 1, '45-4321' => 2),
-			$this->_reflectMethod($file, '_mapSkusToEntityIds')->invoke($file, $productCollection)
-		);
-	}
 }

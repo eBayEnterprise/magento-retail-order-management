@@ -177,15 +177,10 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	protected function _importExtractedData(DOMDocument $productDataDoc, $storeId)
 	{
 		$feedXPath = Mage::helper('eb2ccore')->getNewDomXPath($productDataDoc);
-
 		$productCollection = $this->_buildProductCollection($this->_getSkusToUpdate($feedXPath));
-
-		$skuMapping = $this->_mapSkusToEntityIds($productCollection);
-
 		foreach ($feedXPath->query(self::BASE_ITEM_XPATH) as $itemNode) {
-			$this->_updateItem($feedXPath, $itemNode, $productCollection, $skuMapping);
+			$this->_updateItem($feedXPath, $itemNode, $productCollection);
 		}
-
 		Mage::log(sprintf('[%s] saving collection of %d products', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
 		$productCollection->setStore($storeId)->save();
 		return $this;
@@ -198,19 +193,19 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * colleciton.
 	 * @param  DOMXPath $feedXPath
 	 * @param  DOMNode $itemNode
-	 * @param  Mage_Catalog_Model_Resource_Product_Collection $productCollection
-	 * @param  array $skuMapping
+	 * @param  TrueAction_Eb2cProduct_Model_Resource_Feed_Product_Collection $productCollection
 	 * @return self
 	 */
-	protected function _updateItem(DOMXPath $feedXPath, DOMNode $itemNode, Mage_Catalog_Model_Resource_Product_Collection $productCollection, array $skuMapping)
+	protected function _updateItem(
+		DOMXPath $feedXPath,
+		DOMNode $itemNode,
+		TrueAction_Eb2cProduct_Model_Resource_Feed_Product_Collection $productCollection)
 	{
 		$extractor = Mage::getSingleton('eb2cproduct/feed_extractor');
 		$helper = Mage::helper('eb2cproduct');
 		$sku = $extractor->extractSku($feedXPath, $itemNode);
-		if (isset($skuMapping[$sku])) {
-			$product = $productCollection->getItemById($skuMapping[$sku]);
-			Mage::log(sprintf('[%s] applying update to product %s', __CLASS__, $sku), Zend_Log::DEBUG);
-		} else {
+		$product = $productCollection->getItemById($sku);
+		if (is_null($product)) {
 			$product = $helper->createNewProduct($sku);
 			$productCollection->addItem($product);
 			Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
@@ -279,29 +274,9 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 */
 	protected function _buildProductCollection(array $skus=array())
 	{
-		return Mage::getResourceModel('catalog/product_collection')
+		return Mage::getResourceModel('eb2cproduct/feed_product_collection')
 			->addAttributeToSelect(array('entity_id'))
 			->addAttributeToFilter(array(array('attribute' => 'sku', 'in' => $skus)))
 			->load();
-	}
-	/**
-	 * Create a mapping of SKUs to entity ids. This mapping serves two purposes:
-	 * 1. It provides a simple means of determining if a product with a given SKU
-	 *    already exists in Magento - if the mapping has a key for a given SKU,
-	 *    the product already exists.
-	 * 2. It allows for faster lookups of products in a collection as getting a
-	 *    product from a collection by SKU requires waling the entire collection
-	 *    for each lookup, while getting a product by an entity id is a
-	 *    simple key lookup within the collection.
-	 * @param Mage_Catalog_Model_Resource_Product_Collection $collection
-	 * @return array
-	 */
-	protected function _mapSkusToEntityIds(Mage_Catalog_Model_Resource_Product_Collection $collection)
-	{
-		$mapping = array();
-		foreach ($collection as $product) {
-			$mapping[$product->getSku()] = $product->getId();
-		}
-		return $mapping;
 	}
 }

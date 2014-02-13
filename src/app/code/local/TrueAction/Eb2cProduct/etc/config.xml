@@ -9,7 +9,11 @@
 		<models>
 			<eb2cproduct>
 				<class>TrueAction_Eb2cProduct_Model</class>
+				<resourceModel>eb2cproduct_resource</resourceModel>
 			</eb2cproduct>
+			<eb2cproduct_resource>
+				<class>TrueAction_Eb2cProduct_Model_Resource</class>
+			</eb2cproduct_resource>
 		</models>
 		<helpers>
 			<eb2cproduct>
