@@ -16,20 +16,17 @@ class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 		'suggestion_count' => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:ResultSuggestionCount',
 		'suggestions'      => 'eb2c:AddressValidationResponse/eb2c:Result/eb2c:SuggestedAddresses/eb2c:SuggestedAddress',
 	);
-
-	/**
-	 * @var TrueAction_Eb2cAddress_Helper_Data
-	 */
-	protected $_helper;
-
 	/**
 	 * @var TrueAction_Dom_Document
 	 */
 	protected $_doc;
-
 	protected function _construct()
 	{
 		$this->_doc = new TrueAction_Dom_Document();
+		// Apply the side-effects of setMessage
+		if ($this->hasMessage()) {
+			$this->setMessage($this->getMessage());
+		}
 	}
 
 	/**

@@ -235,7 +235,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 		$log = Mage::helper('trueaction_magelog');
 		$apiResponse = Mage::getModel('eb2ccore/api')->request($msg, $xsd, $uri);
 		if (isset($apiResponse) && trim($apiResponse)) {
-			return Mage::getModel('eb2caddress/validation_response', array('message', $apiResponse));
+			return Mage::getModel('eb2caddress/validation_response', array('message' => $apiResponse));
 		}
 		$log->logWarn('[ %s ] Address validation service returned empty response.', array(__CLASS__));
 	}
