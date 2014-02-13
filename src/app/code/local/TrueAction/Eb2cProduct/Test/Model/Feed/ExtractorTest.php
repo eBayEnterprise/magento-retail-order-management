@@ -25,52 +25,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 		);
 	}
 	/**
-	 * Create DOMXPath from given feed DOMDocument
-	 * Chunk feed DOMDocument into items
-	 * Extract each item.
-	 * Merge extracted data
-	 * Return full list of data
-	 * @test
-	 */
-	public function testExtractData()
-	{
-		$xpath = $this->getMockBuilder('DOMXPath')
-			->disableOriginalConstructor()
-			->setMethods(array('query'))
-			->getMock();
-		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomXPath'));
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
-		$extractor = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
-			->disableOriginalConstructor()
-			->setMethods(array('_extractItem'))
-			->getMock();
-		$doc = $this->getMock('TrueAction_Dom_Document');
-
-		$extractedData = array(array('sku' => 'item-one'), array('sku' => 'item-two'));
-		// As it isn't actually possible to mock a DOMNodeList, replace it with an
-		// array which at least implements the same Traversable interface needed
-		// in this method.
-		$nodeList = array($this->getMock('DOMNode'), $this->getMock('DOMNode'));
-		$itemDataMapValues = array(
-			array($xpath, $nodeList[0], $extractedData[0]),
-			array($xpath, $nodeList[1], $extractedData[1]),
-		);
-
-		$coreHelper->expects($this->once())
-			->method('getNewDomXPath')
-			->with($this->identicalTo($doc))
-			->will($this->returnValue($xpath));
-		$xpath->expects($this->once())
-			->method('query')
-			->with($this->identicalTo(TrueAction_Eb2cProduct_Model_Feed_Extractor::BASE_XPATH))
-			->will($this->returnValue($nodeList));
-		$extractor->expects($this->exactly(2))
-			->method('_extractItem')
-			->will($this->returnValueMap($itemDataMapValues));
-
-		$this->assertSame($extractedData, $extractor->extractData($doc));
-	}
-	/**
 	 * Build array of key => value pairs of product attribute to value for a
 	 * single item in the feed.
 	 * Iterate over configured callbacks
@@ -85,6 +39,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 			'bad_path' => array('xpath' => 'Xpath/To/Bad', 'type' => 'helper'),
 		);
 		$itemData = array('sku' => 'abc-123');
+		$product = $this->getModelMock('catalog/product');
 
 		$feedHelper = $this->getHelperMock('eb2ccore/feed', array('invokeCallback'));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
@@ -95,11 +50,11 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 		$contextNode = $this->getMock('DOMNode');
 
 		$skuNodeList = $this->getMockBuilder('DOMNodeList')->disableOriginalConstructor()->getMock();
-		$skuCallback = array('xpath' => 'Xpath/To/Sku', 'type' => 'helper', 'parameters' => array($skuNodeList));
-
+		$skuCallback = array('xpath' => 'Xpath/To/Sku', 'type' => 'helper', 'parameters' => array($skuNodeList, $product));
+		$emptyNodeList = $this->getMockBuilder('DOMNodeList')->disableOriginalConstructor()->getMock();
 		$xpathToNodeListMap = array(
 			array($callbackConfig['sku']['xpath'], $contextNode, null, $skuNodeList),
-			array($callbackConfig['bad_path']['xpath'], $contextNode, null, false),
+			array($callbackConfig['bad_path']['xpath'], $contextNode, null, $emptyNodeList),
 		);
 		$callbackToValueMap = array(
 			array($skuCallback, 'abc-123'),
@@ -107,7 +62,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 
 		$validateValueMap = array(
 			array($skuNodeList, true),
-			array(false, false)
+			array($emptyNodeList, false)
 		);
 
 		$xpath->expects($this->exactly(2))
@@ -131,9 +86,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 
 		$this->assertSame(
 			$itemData,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod(
-				$extractor, '_extractItem', array($xpath, $contextNode)
-			)
+			$extractor->extractItem($xpath, $contextNode, $product)
 		);
 	}
 
@@ -190,5 +143,24 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 			->setMethods(null)
 			->getMock();
 		$this->assertSame(true, EcomDev_Utils_Reflection::invokeRestrictedMethod($extractor, '_validateResult', array($result)));
+	}
+	/**
+	 * Test extracting a SKU from a DOMNode containing an item.
+	 * @param string $xml XML snipped to extract a SKU from
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testExtractSku($xml)
+	{
+		$dom = new DOMDocument();
+		$dom->loadXML($xml);
+		$xpath = new DOMXPath($dom);
+		$node = $xpath->query('/root/Item')->item(0);
+
+		$extractor = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$this->assertSame('45-12345', $extractor->extractSku($xpath, $node));
 	}
 }

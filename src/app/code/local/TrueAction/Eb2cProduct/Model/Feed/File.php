@@ -23,6 +23,16 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	const XSLT_SINGLE_TEMPLATE_PATH = 'single-language-template.xsl';
 
 	/**
+	 * XPath expression used to chunk the feed file into separate items
+	 */
+	const BASE_ITEM_XPATH = '/Items/Item';
+
+	/**
+	 * XPath expression to get all SKUs in a feed file
+	 */
+	const ALL_SKUS_XPATH = '/Items/Item/ItemId/ClientItemId|/Items/Item/UniqueID|/Items/Item/ClientItemId';
+
+	/**
 	 * Array of information about the feed file to be processed. Expected to be
 	 * passed to the constructor and *must* contain the following keys:
 	 * 'error_file' => filename of the file used for the error confirmation response feed
@@ -118,6 +128,20 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		return $result;
 	}
 	/**
+	 * Get an array of SKUs included in the given DOMXPath.
+	 * @param  DOMXPath $xpath
+	 * @return array
+	 */
+	protected function _getSkusToUpdate(DOMXPath $xpath)
+	{
+		$updateSkuNodes = $xpath->query(self::ALL_SKUS_XPATH);
+		$skus = array();
+		foreach ($updateSkuNodes as $skuNode) {
+			$skus[] = $skuNode->nodeValue;
+		}
+		return $skus;
+	}
+	/**
 	 * Get the path to the given XSLT template. Methods assumes all XSLTs are
 	 * in an XSLT directory within the eb2cproduct module directory.
 	 * @param  string $templateName File name of the XSLT
@@ -146,33 +170,52 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * load a product collection base on a given set of product data and apply
 	 * the product data to the collection and then save
 	 * product data is expected to have known SKU in order to load the collection
-	 * @param array $productDataList
-	 * @param string $storeId
+	 * @param DOMDocument $productDataDoc
+	 * @param int $storeId
 	 * @return self
 	 */
-	protected function _importExtractedData(array $productData, $storeId)
+	protected function _importExtractedData(DOMDocument $productDataDoc, $storeId)
 	{
-		Mage::log(sprintf('[%s] importing %d products', __CLASS__, count($productData)), Zend_Log::DEBUG);
-		$productHelper = Mage::helper('eb2cproduct');
-		$productCollection = $this->_buildProductCollection(
-			array_map(function ($p) { return $p['sku']; }, $productData)
-		);
-		Mage::log(sprintf('[%s] loaded %d products to update', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
+		$feedXPath = Mage::helper('eb2ccore')->getNewDomXPath($productDataDoc);
+
+		$productCollection = $this->_buildProductCollection($this->_getSkusToUpdate($feedXPath));
+
 		$skuMapping = $this->_mapSkusToEntityIds($productCollection);
-		foreach ($productData as $datum) {
-			$sku = $datum['sku'];
-			if (isset($skuMapping[$sku])) {
-				Mage::log(sprintf('[%s] applying update to product %s', __CLASS__, $sku), Zend_Log::DEBUG);
-				$productCollection->getItemById($skuMapping[$sku])->addData($datum);
-			} else {
-				Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
-				$productCollection->addItem(
-					$productHelper->createNewProduct($sku)->addData($datum)
-				);
-			}
+
+		foreach ($feedXPath->query(self::BASE_ITEM_XPATH) as $itemNode) {
+			$this->_updateItem($feedXPath, $itemNode, $productCollection, $skuMapping);
 		}
+
 		Mage::log(sprintf('[%s] saving collection of %d products', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
 		$productCollection->setStore($storeId)->save();
+		return $this;
+	}
+	/**
+	 * Update a single product with data from the feed. Should check for the
+	 * product to already exist in the collection and when it does, update the
+	 * product in the collection. When the product doesn't exist yet, it should
+	 * create a new product, set the extracted data on it and add it to the
+	 * colleciton.
+	 * @param  DOMXPath $feedXPath
+	 * @param  DOMNode $itemNode
+	 * @param  Mage_Catalog_Model_Resource_Product_Collection $productCollection
+	 * @param  array $skuMapping
+	 * @return self
+	 */
+	protected function _updateItem(DOMXPath $feedXPath, DOMNode $itemNode, Mage_Catalog_Model_Resource_Product_Collection $productCollection, array $skuMapping)
+	{
+		$extractor = Mage::getSingleton('eb2cproduct/feed_extractor');
+		$helper = Mage::helper('eb2cproduct');
+		$sku = $extractor->extractSku($feedXPath, $itemNode);
+		if (isset($skuMapping[$sku])) {
+			$product = $productCollection->getItemById($skuMapping[$sku]);
+			Mage::log(sprintf('[%s] applying update to product %s', __CLASS__, $sku), Zend_Log::DEBUG);
+		} else {
+			$product = $helper->createNewProduct($sku);
+			$productCollection->addItem($product);
+			Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
+		}
+		$product->addData($extractor->extractItem($feedXPath, $itemNode, $product));
 		return $this;
 	}
 	/**
@@ -197,14 +240,15 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	public function processForLanguage($languageCode)
 	{
 		Mage::log(sprintf('[%s] processing %s language', __CLASS__, $languageCode), Zend_Log::DEBUG);
-		$productData = Mage::getSingleton('eb2cproduct/feed_extractor')->extractData(
-			$this->_splitByLanguageCode($languageCode, TrueAction_Eb2cProduct_Model_Feed_File::XSLT_SINGLE_TEMPLATE_PATH)
+		$splitDoc = $this->_splitByLanguageCode(
+			$languageCode,
+			TrueAction_Eb2cProduct_Model_Feed_File::XSLT_SINGLE_TEMPLATE_PATH
 		);
 		foreach (Mage::helper('eb2ccore/languages')->getStores($languageCode) as $store) {
 			// do not reprocess the default store
 			$storeId = $store->getId();
 			if ($storeId !== Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID) {
-				$this->_importExtractedData($productData, $storeId);
+				$this->_importExtractedData($splitDoc, $storeId);
 			}
 		}
 		return $this;
@@ -220,11 +264,9 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		Mage::log(sprintf('[%s] processing default store', __CLASS__), Zend_Log::DEBUG);
 		$defaultStoreId = Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
 		return $this->_importExtractedData(
-			Mage::getSingleton('eb2cproduct/feed_extractor')->extractData(
-				$this->_splitByLanguageCode(
-					Mage::helper('eb2cproduct')->getConfigModel($defaultStoreId)->languageCode,
-					TrueAction_Eb2cProduct_Model_Feed_File::XSLT_DEFAULT_TEMPLATE_PATH
-				)
+			$this->_splitByLanguageCode(
+				Mage::helper('eb2cproduct')->getConfigModel($defaultStoreId)->languageCode,
+				TrueAction_Eb2cProduct_Model_Feed_File::XSLT_DEFAULT_TEMPLATE_PATH
 			),
 			$defaultStoreId
 		);

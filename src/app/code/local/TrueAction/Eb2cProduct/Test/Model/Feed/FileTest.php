@@ -142,16 +142,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnValue(array($storeModelMock, $storeModelMock, $storeModelMock)));
 		$this->replaceByMock('helper', 'eb2ccore/languages', $languagesHelperMock);
 
-		$extractorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
-			->disableOriginalConstructor()
-			->setMethods(array('extractData'))
-			->getMock();
-		$extractorModelMock->expects($this->once())
-			->method('extractData')
-			->with($this->equalTo($splitDoc))
-			->will($this->returnValue($extractedData));
-		$this->replaceByMock('model', 'eb2cproduct/feed_extractor', $extractorModelMock);
-
 		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(array('_splitByLanguageCode', '_importExtractedData'))
@@ -162,7 +152,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnValue($splitDoc));
 		$fileModelMock->expects($this->exactly(2))
 			->method('_importExtractedData')
-			->with($this->equalTo($extractedData), $this->logicalOr($this->equalTo(3), $this->equalTo(4)))
+			->with($this->equalTo($splitDoc), $this->logicalOr($this->equalTo(3), $this->equalTo(4)))
 			->will($this->returnSelf());
 
 		$this->assertSame($fileModelMock, $fileModelMock->processForLanguage($languageCode));
@@ -180,7 +170,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 
 		$xsltFilePath = 'mock/path/to/default-language-template.xsl';
-		$extractedData = array(array('sku' => '1234'));
 
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
@@ -194,16 +183,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			))));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
-		$extractorModelMock = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
-			->disableOriginalConstructor()
-			->setMethods(array('extractData'))
-			->getMock();
-		$extractorModelMock->expects($this->once())
-			->method('extractData')
-			->with($this->equalTo($splitDoc))
-			->will($this->returnValue($extractedData));
-		$this->replaceByMock('model', 'eb2cproduct/feed_extractor', $extractorModelMock);
-
 		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(array('_splitByLanguageCode', '_importExtractedData'))
@@ -214,7 +193,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnValue($splitDoc));
 		$fileModelMock->expects($this->once())
 			->method('_importExtractedData')
-			->with($this->equalTo($extractedData), $this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
+			->with($this->equalTo($splitDoc), $this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
 			->will($this->returnSelf());
 
 		$this->assertSame($fileModelMock, $fileModelMock->processDefaultStore());
@@ -406,85 +385,214 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			$this->_reflectMethod($file, '_getSkusToDelete')->invoke($file)
 		);
 	}
-
 	/**
-	 * Importing extracted data should create a product collection of items
-	 * included in the feed that already exist in Magento. The method should
-	 * then iterate over all of the data extracted from the feed. Any products
-	 * that already exist should be updated. Any new products should be created
-	 * as dummy products, updated and added to the collection. The collection
-	 * should finally have the proper store context set and be saved.
+	 * Test getting an array of all SKUs contained in a split feed file. Can
+	 * assume that any SKUs to delete have already been stripped out by the XSLT.
+	 * @test
+	 */
+	public function testGetSkusToUpdate()
+	{
+		$doc = '<Items>
+	<Item><ItemId><ClientItemId>45-12345</ClientItemId></ItemId></Item>
+	<Item><ClientItemId>45-23456</ClientItemId></Item>
+	<Item><UniqueID>45-34567</UniqueID></Item>
+</Items>';
+		$dom = new DOMDocument();
+		$dom->loadXML($doc);
+		$xpath = new DOMXPath($dom);
+
+		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$this->assertSame(
+			array('45-12345', '45-23456', '45-34567'),
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$file,
+				'_getSkusToUpdate',
+				array($xpath)
+			)
+		);
+	}
+	/**
+	 * To extract data from the feed, the feed file needs to be loaded into a new
+	 * DOMXPath, creating a product collection based on SKUs present in the feed,
+	 * split the feed file into individual item nodes and create/update the
+	 * product for each item. Finally, the collection should be set within the
+	 * store context the product data should be saved in and save the collection.
 	 * @test
 	 */
 	public function testImportExtractedData()
 	{
-		$skus = array('12345', '4321');
-		$productData = array(array('sku' => '12345'), array('sku' => '4321'));
-		$storeId = 3;
-		$productMock = $this->getModelMockBuilder('catalog/product')
-			->disableOriginalConstructor()
-			->setMethods(array('addData'))
-			->getMock();
-		$productMock->expects($this->once())
-			->method('addData')
-			->with($this->equalTo($productData[0]))
-			->will($this->returnSelf());
-
-		$dummyProductMock = $this->getModelMockBuilder('catalog/product')
-			->disableOriginalConstructor()
-			->setMethods(array('addData'))
-			->getMock();
-		$dummyProductMock->expects($this->once())
-			->method('addData')
-			->with($this->equalTo($productData[1]))
-			->will($this->returnSelf());
-
-		$catalogResourceModelProductMock = $this->getResourceModelMockBuilder('catalog/product_collection')
-			->disableOriginalConstructor()
-			->setMethods(array('setStore', 'save', 'getItemById', 'addItem', 'count'))
-			->getMock();
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('setStore')
-			->with($this->equalTo($storeId))
-			->will($this->returnSelf());
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('save')
-			->will($this->returnSelf());
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('getItemById')
-			->with($this->equalTo(1))
-			->will($this->returnValue($productMock));
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('addItem')
-			->with($this->equalTo($dummyProductMock))
-			->will($this->returnSelf());
-
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('createNewProduct'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('createNewProduct')
-			->with($this->equalTo('4321'), $this->equalTo(''))
-			->will($this->returnValue($dummyProductMock));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+		// DOMDocument containing data to be imported
+		$doc = $this->getMockBuilder('TrueAction_Dom_Document')->disableOriginalConstructor()->getMock();
+		// store context to save the products in
+		$storeId = 1;
+		// skus extracted from the DOM to be added/updated - in this case one to add
+		$skus = array('skus-to-update');
+		// DOMNode containing data for the product
+		$contextNode = $this->getMockBuilder('DOMNode')->disableOriginalConstructor()->getMock();
+		// mapping of SKUs to known entity ids - in this case, it should be empty as
+		// the product to import is new
+		$skuMapping = array('skus-to-update' => 2);
+		// DOMNodeList of all items in the feed. Using an array instead of actual
+		// DOMNodeList as it isn't possible, so far as I can tell, to mock a
+		// DOMNodeList to behave as desired. As all this method really needs is a
+		// Traversable object containing DOMNodes, the array substitution works.
+		$itemNodeList = array($contextNode);
 
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
-			->setMethods(array('_buildProductCollection', '_mapSkusToEntityIds'))
+			->setMethods(array(
+				'_getSkusToUpdate', '_mapSkusToEntityIds',
+				'_buildProductCollection', '_updateItem'
+			))
 			->getMock();
+		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomXPath'));
+		$xpath = $this->getMockBuilder('DOMXPath')
+			->disableOriginalConstructor()
+			->setMethods(array('query'))
+			->getMock();
+		$productCollection = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('setStore', 'save', 'count'))
+			->getMock();
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
+
+		$coreHelper->expects($this->once())
+			->method('getNewDomXPath')
+			->with($this->identicalTo($doc))
+			->will($this->returnValue($xpath));
+
+		$file->expects($this->once())
+			->method('_getSkusToUpdate')
+			->with($this->identicalTo($xpath))
+			->will($this->returnValue($skus));
 		$file->expects($this->once())
 			->method('_buildProductCollection')
-			->with($this->equalTo($skus))
-			->will($this->returnValue($catalogResourceModelProductMock));
+			->with($this->identicalTo($skus))
+			->will($this->returnValue($productCollection));
 		$file->expects($this->once())
 			->method('_mapSkusToEntityIds')
-			->with($this->equalTo($catalogResourceModelProductMock))
-			->will($this->returnValue(array('12345' => 1)));
+			->with($this->identicalTo($productCollection))
+			->will($this->returnValue($skuMapping));
+		$file->expects($this->once())
+			->method('_updateItem')
+			->with(
+				$this->identicalTo($xpath),
+				$this->identicalTo($contextNode),
+				$this->identicalTo($productCollection),
+				$this->identicalTo($skuMapping)
+			)
+			->will($this->returnSelf());
 
-		$this->assertSame($file, $this->_reflectMethod($file, '_importExtractedData')->invoke($file, $productData, $storeId));
+		$xpath->expects($this->once())
+			->method('query')
+			->with($this->identicalTo('/Items/Item'))
+			->will($this->returnValue($itemNodeList));
+
+		$productCollection->expects($this->once())
+			->method('setStore')
+			->with($this->identicalTo($storeId))
+			->will($this->returnSelf());
+		$productCollection->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$this->assertSame(
+			$file,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$file,
+				'_importExtractedData',
+				array($doc, $storeId)
+			)
+		);
 	}
 
+	/**
+	 * Test creating/updating a product with data extracted from the feed.
+	 * Should check for the product to exist in the product collection. If the
+	 * product exists, the product in the collection should be retrieved and
+	 * updated with data extracted from the feed. If it does not exist, a new
+	 * product should be created, updated with data from the feed, and added
+	 * to the product colleciotn.
+	 * @param boolean $isNew
+	 * @param string $sku
+	 * @param array $skuMap
+	 * @test
+	 * @dataProvider dataProvider
+	 */
+	public function testUpdateItem($isNew, $sku, $skuMap)
+	{
+		$contextNode = $this->getMockBuilder('DOMNode')->disableOriginalConstructor()->getMock();
+		$productFeedData = array('sku' => $sku, 'title' => 'Shiny New Title');
+		$xpath = $this->getMockBuilder('DOMXPath')->disableOriginalConstructor()->getMock();
+
+		$extractor = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
+			->disableOriginalConstructor()
+			->setMethods(array('extractItem', 'extractSku'))
+			->getMock();
+		$productHelper = $this->getHelperMock('eb2cproduct/data', array('createNewProduct'));
+		$productCollection = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getItemById', 'addItem'))
+			->getMock();
+		$product = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('addData'))
+			->getMock();
+		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->replaceByMock('singleton', 'eb2cproduct/feed_extractor', $extractor);
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelper);
+
+		$extractor->expects($this->once())
+			->method('extractSku')
+			->with($this->identicalTo($xpath), $this->identicalTo($contextNode))
+			->will($this->returnValue($sku));
+		$extractor->expects($this->once())
+			->method('extractItem')
+			->with($this->identicalTo($xpath), $this->identicalTo($contextNode), $this->identicalTo($product))
+			->will($this->returnValue($productFeedData));
+
+		$product->expects($this->once())
+			->method('addData')
+			->with($this->identicalTo($productFeedData))
+			->will($this->returnSelf());
+
+		if ($isNew) {
+			$productHelper->expects($this->once())
+				->method('createNewProduct')
+				->with($this->identicalTo($sku))
+				->will($this->returnValue($product));
+			$productCollection->expects($this->once())
+				->method('addItem')
+				->with($this->identicalTo($product))
+				->will($this->returnSelf());
+			$productCollection->expects($this->never())
+				->method('getItemById');
+		} else {
+			$productHelper->expects($this->never())
+				->method('createNewProduct');
+			$productCollection->expects($this->never())
+				->method('addItem');
+			$productCollection->expects($this->once())
+				->method('getItemById')
+				->with($this->identicalTo($skuMap[$sku]))
+				->will($this->returnValue($product));
+		}
+
+		$this->assertSame(
+			$file,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$file, '_updateItem', array($xpath, $contextNode, $productCollection, $skuMap)
+			)
+		);
+	}
 	/**
 	 * Build a product collection from a list of SKUs. The collection should only
 	 * be expected to inlcude products that already exist in Magneto. The

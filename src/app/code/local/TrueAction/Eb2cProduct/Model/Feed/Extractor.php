@@ -4,9 +4,9 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor
 {
 	const CALLBACK_CONFIG_PATH = 'eb2cproduct/feed_attribute_mappings';
 	/**
-	 * XPath expression used to chunk the feed file into separate items
+	 * XPath expression to extract a sku from any Item node.
 	 */
-	const BASE_XPATH = '/Items/Item';
+	const SKU_XPATH = 'ItemId/ClientItemId|UniqueID|ClientItemId';
 	/**
 	 * Array of callback configuration
 	 * @var array
@@ -21,27 +21,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor
 		$this->_callbacks = Mage::helper('eb2ccore/feed')->getConfigData(self::CALLBACK_CONFIG_PATH);
 	}
 	/**
-	 * @param DOMDocument $doc
-	 * @return array
-	 */
-	public function extractData(DOMDocument $doc)
-	{
-		$xpath = Mage::helper('eb2ccore')->getNewDomXPath($doc);
-		$items = $xpath->query(self::BASE_XPATH);
-		$extractedData = array();
-		foreach ($items as $item) {
-			$extractedData[] = $this->_extractItem($xpath, $item);
-		}
-		return $extractedData;
-	}
-	/**
 	 * Extract data from a single item using the callback configuration.
 	 * only callback methods on key value array with type not disabled
 	 * @param  DOMXPath $xpath       DOMXPath object loaded with the DOMDocument to extract data from
 	 * @param  DOMNode  $contextNode DOMNode to be used as the context for all XPath queries
 	 * @return array Extracted data
 	 */
-	protected function _extractItem(DOMXPath $xpath, DOMNode $contextNode)
+	public function extractItem(DOMXPath $xpath, DOMNode $contextNode, Mage_Catalog_Model_Product $product)
 	{
 		$coreHelper = Mage::helper('eb2ccore/feed');
 		$itemData = array();
@@ -49,14 +35,13 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor
 			if ($callback['type'] !== 'disabled') {
 				$result = $xpath->evaluate($callback['xpath'], $contextNode);
 				if ($this->_validateResult($result)) {
-					$callback['parameters'] = array($result);
+					$callback['parameters'] = array($result, $product);
 					$itemData[$attribute] = $coreHelper->invokeCallback($callback);
 				}
 			}
 		}
 		return $itemData;
 	}
-
 	/**
 	 * in order to determine if the result from the xpath evaluate fail
 	 * because of a bad xpath expression or if the result is actually the value of
@@ -71,5 +56,10 @@ class TrueAction_Eb2cProduct_Model_Feed_Extractor
 	protected function _validateResult($result)
 	{
 		return !($result instanceof DOMNodeList && $result->length === 0);
+	}
+
+	public function extractSku(DOMXPath $xpath, DOMNode $contextNode)
+	{
+			return $xpath->query(self::SKU_XPATH, $contextNode)->item(0)->nodeValue;
 	}
 }

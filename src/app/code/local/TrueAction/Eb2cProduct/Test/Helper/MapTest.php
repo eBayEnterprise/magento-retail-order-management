@@ -21,9 +21,13 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			</ItemMaster>'
 		);
 		$xpath = new DOMXPath($doc);
-		$this->assertSame('45-2BCEC162', Mage::helper('eb2cproduct/map')->extractStringValue($xpath->query(
-			'Item/ItemId/ClientItemId', $doc->documentElement)
-		));
+		$this->assertSame(
+			'45-2BCEC162',
+			Mage::helper('eb2cproduct/map')->extractStringValue(
+				$xpath->query('Item/ItemId/ClientItemId', $doc->documentElement),
+				Mage::getModel('catalog/product')
+			)
+		);
 	}
 
 	/**
@@ -60,9 +64,13 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			)));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
-		$this->assertSame(true, Mage::helper('eb2cproduct/map')->extractBoolValue($xpath->query(
-			'Item/BaseAttributes/IsDropShipped', $doc->documentElement)
-		));
+		$this->assertSame(
+			true,
+			Mage::helper('eb2cproduct/map')->extractBoolValue(
+				$xpath->query('Item/BaseAttributes/IsDropShipped', $doc->documentElement),
+				Mage::getModel('catalog/product')
+			)
+		);
 	}
 
 	/**
@@ -86,9 +94,13 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			</ItemMaster>'
 		);
 		$xpath = new DOMXPath($doc);
-		$this->assertSame(999, Mage::helper('eb2cproduct/map')->extractIntValue($xpath->query(
-			'Item/ExtendedAttributes/Buyer/BuyerId', $doc->documentElement)
-		));
+		$this->assertSame(
+			999,
+			Mage::helper('eb2cproduct/map')->extractIntValue(
+				$xpath->query('Item/ExtendedAttributes/Buyer/BuyerId', $doc->documentElement),
+				Mage::getModel('catalog/product')
+			)
+		);
 	}
 
 	/**
@@ -110,9 +122,13 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			</ItemMaster>'
 		);
 		$xpath = new DOMXPath($doc);
-		$this->assertSame(3.98, Mage::helper('eb2cproduct/map')->extractFloatValue($xpath->query(
-			'Item/ExtendedAttributes/Price', $doc->documentElement)
-		));
+		$this->assertSame(
+			3.98,
+			Mage::helper('eb2cproduct/map')->extractFloatValue(
+				$xpath->query('Item/ExtendedAttributes/Price', $doc->documentElement),
+				Mage::getModel('catalog/product')
+			)
+		);
 	}
 
 	/**
@@ -137,8 +153,9 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame(
 			Mage_Catalog_Model_Product_Status::STATUS_ENABLED,
-			Mage::helper('eb2cproduct/map')->extractStatusValue($xpath->query(
-				'Item/BaseAttributes/ItemStatus', $doc->documentElement)
+			Mage::helper('eb2cproduct/map')->extractStatusValue(
+				$xpath->query('Item/BaseAttributes/ItemStatus', $doc->documentElement),
+				Mage::getModel('catalog/product')
 			)
 		);
 	}
@@ -161,8 +178,9 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame(
 			Mage_Catalog_Model_Product_Status::STATUS_DISABLED,
-			Mage::helper('eb2cproduct/map')->extractStatusValue($xpath->query(
-				'Item/BaseAttributes/ItemStatus', $doc->documentElement)
+			Mage::helper('eb2cproduct/map')->extractStatusValue(
+				$xpath->query('Item/BaseAttributes/ItemStatus', $doc->documentElement),
+				Mage::getModel('catalog/product')
 			)
 		);
 	}
@@ -191,8 +209,9 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame(
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH,
-			Mage::helper('eb2cproduct/map')->extractVisibilityValue($xpath->query(
-				'Item/BaseAttributes/CatalogClass', $doc->documentElement)
+			Mage::helper('eb2cproduct/map')->extractVisibilityValue(
+				$xpath->query('Item/BaseAttributes/CatalogClass', $doc->documentElement),
+				Mage::getModel('catalog/product')
 			)
 		);
 	}
@@ -218,8 +237,9 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 		$xpath = new DOMXPath($doc);
 		$this->assertSame(
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			Mage::helper('eb2cproduct/map')->extractVisibilityValue($xpath->query(
-				'Item/BaseAttributes/CatalogClass', $doc->documentElement)
+			Mage::helper('eb2cproduct/map')->extractVisibilityValue(
+				$xpath->query('Item/BaseAttributes/CatalogClass', $doc->documentElement),
+				Mage::getModel('catalog/product')
 			)
 		);
 	}
@@ -231,6 +251,11 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	public function  testPassThrough()
 	{
 		$x = 'anything';
-		$this->assertSame($x, Mage::helper('eb2cproduct/map')->passThrough($x));
+		$this->assertSame(
+			$x,
+			Mage::helper('eb2cproduct/map')->passThrough(
+				$x, Mage::getModel('catalog/product')
+			)
+		);
 	}
 }
