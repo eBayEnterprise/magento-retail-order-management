@@ -148,6 +148,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 		if (!$this->hasData('is_valid')) {
 			$resultCode = $this->_lookupPath('result_code');
 			$validity;
+			$logger = Mage::helper('trueaction_magelog');
 			switch ($resultCode) {
 				case 'V':
 					$validity = true;
@@ -166,49 +167,34 @@ class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 					$validity = true;
 					break;
 				case 'U':
-					Mage::log(
-						'[' . __CLASS__ . ']: Unable to contact provider',
-						Zend_Log::WARN
-					);
+					$logger->logWarn('[%s] Unable to contact provider', array(__CLASS__));
 					$validity = true;
 					break;
 				case 'T':
-					Mage::log(
-						'[' . __CLASS__ . ']: Provider timed out',
-						Zend_Log::WARN
-					);
+					$logger->logWarn('[%s] Provider timed out', array(__CLASS__));
 					$validity = true;
 					break;
 				case 'P':
-					Mage::log(
-						'[' . __CLASS__ . ']: Provider returned a system error',
-						Zend_Log::WARN
-					);
-					Mage::log(
-						'[' . __CLASS__ . '] ' . $this->_lookupPath('provider_error'),
-						Zend_Log::DEBUG
-					);
+					$logger->logWarn('[%s] Provider returned a system error', array(__CLASS__));
+					$logger->logDebug('[%s] %s', array(__CLASS__, $this->_lookupPath('provider_error')));
 					$validity = true;
 					break;
 				case 'M':
-					Mage::log(
-						'[' . __CLASS__ . ']: The request message was malformed or contained invalid data',
-						Zend_Log::WARN
-					);
+					$logger->logWarn('[%s] The request message was malformed or contained invalid data', array(__CLASS__));
 					$validity = true;
 					break;
 				default:
-					Mage::log(
-						sprintf('[ %s ]: The response message did not contain a known result code. Result Code: %s', __CLASS__, $resultCode),
-						Zend_Log::WARN
+					$logger->logWarn(
+						'[%s] Response message did not contain a known result code. Result Code: %s',
+						array(__CLASS__, $resultCode)
 					);
 					$validity = true;
 					break;
 			}
 			$this->setData('is_valid', $validity);
-			Mage::log(
-				sprintf('[ %s ]: Response with status code "%s" is %s.', __CLASS__, $resultCode, ($validity ? 'valid' : 'invalid')),
-				Zend_Log::DEBUG
+			$logger->logDebug(
+				'[%s]: Response with status code "%s" is %s.',
+				array(__CLASS__, $resultCode, ($validity ? 'valid' : 'invalid'))
 			);
 		}
 		return $this->getData('is_valid');

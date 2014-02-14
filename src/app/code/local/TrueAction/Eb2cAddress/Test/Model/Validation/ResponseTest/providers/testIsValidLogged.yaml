@@ -1,18 +1,24 @@
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>U</ResultCode></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>U</ResultCode></Result></AddressValidationResponse>'
+  'logMessage': '[%s] Unable to contact provider'
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>T</ResultCode></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>T</ResultCode></Result></AddressValidationResponse>'
+  'logMessage': '[%s] Provider timed out'
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>P</ResultCode><ProviderErrorText>Provider Error Message</ProviderErrorText></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>P</ResultCode><ProviderErrorText>Provider Error Message</ProviderErrorText></Result></AddressValidationResponse>'
+  'logMessage': '[%s] Provider returned a system error'
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>M</ResultCode></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>M</ResultCode></Result></AddressValidationResponse>'
+  'logMessage': '[%s] The request message was malformed or contained invalid data'
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>Unknown</ResultCode></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result><ResultCode>Unknown</ResultCode></Result></AddressValidationResponse>'
+  'logMessage': '[%s] Response message did not contain a known result code. Result Code: %s'
 -
-  - 1
-  - <?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result></Result></AddressValidationResponse>
+  'valid': 1
+  'message': '<?xml version="1.0" encoding="UTF-8"?><AddressValidationResponse xmlns="http://api.gsicommerce.com/schema/checkout/1.0"><Result></Result></AddressValidationResponse>'
+  'logMessage': '[%s] Response message did not contain a known result code. Result Code: %s'

@@ -17,12 +17,17 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_ResponseTest
 	 * @test
 	 * @dataProvider dataProvider
 	 */
-	public function testIsValidLogged($valid, $message)
+	public function testIsValidLogged($valid, $message, $logMessage)
 	{
+		$mockLog = $this->getHelperMock('trueaction_magelog/data', array('logWarn'));
+		$mockLog->expects($this->once())
+			->method('logWarn')
+			->with($this->identicalTo($logMessage), $this->contains('TrueAction_Eb2cAddress_Model_Validation_Response'))
+			->will($this->returnSelf());
+		$this->replaceByMock('helper', 'trueaction_magelog', $mockLog);
 		$response = Mage::getModel('eb2caddress/validation_response');
 		$response->setMessage($message);
 		$this->assertEquals((bool) $valid, $response->isAddressValid());
-		$this->markTestIncomplete('Need to test that messages are properly logged.');
 	}
 
 	/**
