@@ -117,7 +117,7 @@ class TrueAction_Eb2cCore_Model_Api
 		$log = Mage::helper('trueaction_magelog');
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
-		$isValid = $doc->schemaValidate($cfg->apiXsdPath . DS . $xsdName);
+		$isValid = $doc->schemaValidate(Mage::getBaseDir() . DS . $cfg->apiXsdPath . DS . $xsdName);
 		restore_error_handler();
 		if (!$isValid) {
 			$msg = sprintf(

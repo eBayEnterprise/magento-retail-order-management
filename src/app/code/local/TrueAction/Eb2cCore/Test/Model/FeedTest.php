@@ -560,7 +560,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 	 * Test make the base acknowledgement file name from config values
 	 * @test
 	 */
-	public function test_getBaseAckFileName()
+	public function testGetBaseAckFileName()
 	{
 		$this->replaceCoreConfigRegistry(
 			array(
@@ -594,14 +594,12 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$testFile = $vfs->url('sample/test.xml');
 		$feed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(
-				array(
-					'_getBaseAckFileName',
-					'getOutboundPath',
-					'mvToArchiveDir',
-					'_remoteCall',
-				)
-			)->getMock();
+			->setMethods(array(
+				'_getBaseAckFileName',
+				'getOutboundPath',
+				'mvToArchiveDir',
+				'_remoteCall',
+			))->getMock();
 		$feed->expects($this->once())
 			->method('_remoteCall')
 			->will($this->returnValue(true));
