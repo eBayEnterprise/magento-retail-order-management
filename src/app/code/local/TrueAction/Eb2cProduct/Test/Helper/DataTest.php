@@ -935,44 +935,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	}
 
 	/**
-	 * Test _loadCategoryByName method
-	 * @test
-	 */
-	public function testLoadCategoryByName()
-	{
-		$category = Mage::getModel('catalog/category')->addData(array('entity_id' => 56));
-		$catogyCollectionModelMock = $this->getResourceModelMockBuilder('catalog/category_collection')
-			->disableOriginalConstructor()
-			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'load', 'getFirstItem'))
-			->getMock();
-		$catogyCollectionModelMock->expects($this->once())
-			->method('addAttributeToSelect')
-			->with($this->equalTo('*'))
-			->will($this->returnSelf());
-		$catogyCollectionModelMock->expects($this->once())
-			->method('addAttributeToFilter')
-			->with($this->equalTo('name'), $this->isType('array'))
-			->will($this->returnSelf());
-		$catogyCollectionModelMock->expects($this->once())
-			->method('load')
-			->will($this->returnSelf());
-		$catogyCollectionModelMock->expects($this->once())
-			->method('getFirstItem')
-			->will($this->returnValue($category));
-
-		$categoryModelMock = $this->getModelMockBuilder('catalog/category')
-			->disableOriginalConstructor()
-			->setMethods(array('getCollection'))
-			->getMock();
-		$categoryModelMock->expects($this->any())
-			->method('getCollection')
-			->will($this->returnValue($catogyCollectionModelMock));
-		$this->replaceByMock('model', 'catalog/category', $categoryModelMock);
-
-		$this->assertSame($category, Mage::helper('eb2cproduct')->loadCategoryByName('Toys'));
-	}
-
-	/**
 	 * Test _getDefaultParentCategoryId method
 	 * @test
 	 */
@@ -980,33 +942,25 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	{
 		$catogyCollectionModelMock = $this->getResourceModelMockBuilder('catalog/category_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'load', 'getFirstItem'))
+			->setMethods(array('addAttributeToSelect', 'addAttributeToFilter', 'getFirstItem'))
 			->getMock();
 		$catogyCollectionModelMock->expects($this->once())
 			->method('addAttributeToSelect')
-			->with($this->equalTo('*'))
+			->with($this->equalTo('entity_id'))
 			->will($this->returnSelf());
 		$catogyCollectionModelMock->expects($this->once())
 			->method('addAttributeToFilter')
 			->with($this->equalTo('parent_id'), $this->equalTo(array('eq' => 0)))
 			->will($this->returnSelf());
 		$catogyCollectionModelMock->expects($this->once())
-			->method('load')
-			->will($this->returnSelf());
-		$catogyCollectionModelMock->expects($this->once())
 			->method('getFirstItem')
 			->will($this->returnValue(Mage::getModel('catalog/category')->addData(array('entity_id' => 1))));
+		$this->replaceByMock('resource_model', 'catalog/category_collection', $catogyCollectionModelMock);
 
-		$categoryModelMock = $this->getModelMockBuilder('catalog/category')
-			->disableOriginalConstructor()
-			->setMethods(array('getCollection'))
-			->getMock();
-		$categoryModelMock->expects($this->any())
-			->method('getCollection')
-			->will($this->returnValue($catogyCollectionModelMock));
-		$this->replaceByMock('model', 'catalog/category', $categoryModelMock);
+		$helper = Mage::helper('eb2cproduct');
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($helper, '_defaultParentCategoryId', null);
 
-		$this->assertSame(1, Mage::helper('eb2cproduct')->getDefaultParentCategoryId());
+		$this->assertSame(1, $helper->getDefaultParentCategoryId());
 	}
 
 	/**

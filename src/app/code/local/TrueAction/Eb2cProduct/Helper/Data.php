@@ -5,6 +5,11 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	const ABSOLUTE_PATH_PATTERN = '%s%s';
 
 	/**
+	 * @var int, the default category id
+	 */
+	protected $_defaultParentCategoryId = null;
+
+	/**
 	 * @see self::getCustomAttributeCodeSet - method
 	 */
 	protected $_customAttributeCodeSets = array();
@@ -420,32 +425,19 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * load category by name
-	 * @param string $categoryName the category name to filter the category table
-	 * @return Mage_Catalog_Model_Category
-	 */
-	public function loadCategoryByName($categoryName)
-	{
-		return Mage::getModel('catalog/category')
-			->getCollection()
-			->addAttributeToSelect('*')
-			->addAttributeToFilter('name', array('eq' => $categoryName))
-			->load()
-			->getFirstItem();
-	}
-
-	/**
 	 * get parent default category id
 	 * @return int default parent category id
 	 */
 	public function getDefaultParentCategoryId()
 	{
-		return Mage::getModel('catalog/category')->getCollection()
-			->addAttributeToSelect('*')
+		if (is_null($this->_defaultParentCategoryId)) {
+			$this->_defaultParentCategoryId = Mage::getResourceModel('catalog/category_collection')
+			->addAttributeToSelect('entity_id')
 			->addAttributeToFilter('parent_id', array('eq' => 0))
-			->load()
 			->getFirstItem()
 			->getId();
+		}
+		return $this->_defaultParentCategoryId;
 	}
 
 	/**

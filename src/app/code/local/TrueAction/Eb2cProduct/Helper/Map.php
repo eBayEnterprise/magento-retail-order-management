@@ -17,6 +17,18 @@
 class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 {
 	/**
+	 * Map ownerDocuments to DomXPath objects to avoid recreating them.
+	 *
+	 * @var SplObjectStorage
+	 */
+	protected $_splStorageDocMap = null;
+	/**
+	 * Keep from having to reinstantiate this collection when doing the product imports.
+	 *
+	 * @var Mage_Catalog_Model_Category_Collection
+	 */
+	protected $_categoryCollection = null;
+	/**
 	 * extract the first element of a dom node list and return a string value
 	 * @param DOMNodeList $nodes
 	 * @return string
@@ -25,7 +37,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return ($nodes->length)? $nodes->item(0)->nodeValue : null;
 	}
-
 	/**
 	 * extract the first element of a dom node list and return a boolean
 	 * value of the extract string
@@ -36,7 +47,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return Mage::helper('eb2cproduct')->parseBool(($nodes->length)? $nodes->item(0)->nodeValue : null);
 	}
-
 	/**
 	 * extract the first element of a dom node list and return the string value cast as integer value
 	 * @param DOMNodeList $nodes
@@ -46,7 +56,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return ($nodes->length)? (int) $nodes->item(0)->nodeValue : 0;
 	}
-
 	/**
 	 * extract the first element of a dom node list and return the string value cast as float value
 	 * @param DOMNodeList $nodes
@@ -56,7 +65,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return ($nodes->length)? (float) $nodes->item(0)->nodeValue : 0;
 	}
-
 	/**
 	 * check if the node list has item and if the first item node value equal to 'active' to return
 	 * the status for enable otherwise status for disable
@@ -69,7 +77,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 			Mage_Catalog_Model_Product_Status::STATUS_ENABLED:
 			Mage_Catalog_Model_Product_Status::STATUS_DISABLED;
 	}
-
 	/**
 	 * if the node list has node value is not 'always' or 'regular' a magento value
 	 * that's not visible oherwise return a magento visibility both
@@ -82,7 +89,6 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH:
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
 	}
-
 	/**
 	 * it return the pass in value parameter
 	 * it's a callback to return static value set in the config
@@ -93,11 +99,10 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return $value;
 	}
-
 	/**
 	 * extract the first element of a dom node list make sure it is lower case
-	 * if there's no item in the DONNodeList return the default simple product type constant value
-	 * @param DOMNodeList $nodes
+	 * if there's no item in the DOMNodeList return the default simple product type constant value
+	 * @param DOMNodeList $node
 	 * @return string
 	 */
 	public function extractProductTypeValue(DOMNodeList $nodes)
@@ -122,7 +127,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 				// If the link_type in the feed dosn't match a known link type, do not
 				// include it and move on to the next link.
 				continue;
-			}
+}
 			$links[] = array(
 				'link_type' => $linkType,
 				'operation_type' => $attrs->getNamedItem('operation_type')->nodeValue,

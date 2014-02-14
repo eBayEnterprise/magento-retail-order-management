@@ -71,6 +71,16 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * Create and return a new instance of SplObjectStorage.
+	 * @return SplObjectStorage
+	 * @codeCoverageIgnore
+	 */
+	public function getNewSplObjectStorage()
+	{
+		return new SplObjectStorage();
+	}
+
+	/**
 	 * validating ftp settings by simply checking if there's actual setting data.
 	 *
 	 * @return bool, true valid ftp settings otherwise false
