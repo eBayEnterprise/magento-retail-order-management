@@ -258,4 +258,90 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			)
 		);
 	}
+	/**
+	 * Test extracting product links. Should return a serialized array of
+	 * product links in the feed.
+	 * @test
+	 */
+	public function testExtractProductLinks()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<root><ProductLink link_type="ES_Accessory" operation_type="Add"><LinkToUniqueId>45-12345</LinkToUniqueId></ProductLink><ProductLink link_type="ES_CrossSelling" operation_type="Delete"><LinkToUniqueId>45-23456</LinkToUniqueId></ProductLink></root>');
+		$nodes = $doc->getElementsByTagName('ProductLink');
+
+		$links = array(
+			array('link_type' => 'related', 'operation_type' => 'Add', 'link_to_unique_id' => '45-12345'),
+			array('link_type' => 'crosssell', 'operation_type' => 'Delete', 'link_to_unique_id' => '45-23456'),
+		);
+
+		$map = $this->getHelperMock('eb2cproduct/map', array('_convertToMagentoLinkType'));
+		$map->expects($this->exactly(2))
+			->method('_convertToMagentoLinkType')
+			->will($this->returnValueMap(array(
+				array('ES_Accessory', 'related'),
+				array('ES_CrossSelling', 'crosssell')
+			)));
+
+		$this->assertSame(
+			serialize($links),
+			$map->extractProductLinks(
+				$nodes, Mage::getModel('catalog/product')
+			)
+		);
+	}
+	public function testExtractProductLinksUnknownLink()
+	{
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc->loadXML('<root><ProductLink link_type="NO_CLUE_WHAT_THIS_IS" operation_type="Add"><LinkToUniqueId>45-23456</LinkToUniqueId></ProductLink></root>');
+		$nodes = $doc->getElementsByTagName('ProductLink');
+
+		$links = array();
+
+		$map = $this->getHelperMock('eb2cproduct/map', array('_convertToMagentoLinkType'));
+		$map->expects($this->once())
+			->method('_convertToMagentoLinkType')
+			->with($this->identicalTo('NO_CLUE_WHAT_THIS_IS'))
+			->will($this->throwException(new Mage_Core_Exception()));
+
+		$this->assertSame(
+			serialize($links),
+			$map->extractProductLinks(
+				$nodes, Mage::getModel('catalog/product')
+			)
+		);
+	}
+	/**
+	 * Test mapping related product link types through the config registry.
+	 * @test
+	 */
+	public function testConvertToMagentoLinkType()
+	{
+		$linkTypes = array('ES_Accessory' => 'related', 'ES_CrossSelling' => 'crosssell', 'ES_UpSelling' => 'upsell');
+
+		$configRegistry = $this->getModelMockBuilder('eb2ccore/config_registry')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig'))
+			->getMock();
+		$configRegistry->expects($this->any())
+			->method('getConfig')
+			->will($this->returnValueMap(array(
+				array('link_types_es_accessory', null, 'related'),
+				array('link_types_es_crossselling', null, 'crosssell'),
+				array('link_types_es_upselling', null, 'upsell'),
+			)));
+
+		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('getConfigModel'));
+		$prodHelper->expects($this->any())
+			->method('getConfigModel')
+			->will($this->returnValue($configRegistry));
+		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
+
+		$helper = Mage::helper('eb2cproduct/map');
+		foreach ($linkTypes as $eb2cLink => $magentoLink) {
+			$this->assertSame(
+				$magentoLink,
+				EcomDev_Utils_Reflection::invokeRestrictedMethod($helper, '_convertToMagentoLinkType', array($eb2cLink))
+			);
+		}
+	}
 }

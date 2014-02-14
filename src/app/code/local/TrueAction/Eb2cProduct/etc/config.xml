@@ -274,6 +274,11 @@
 					<ext_keys>brand_name,buyer_id,color,companion_flag,country_of_origin,gift_card_tender_code,hazardous_material_code,long_description,lot_tracking_indicator,ltl_freight_cost,may_ship_expedite,may_ship_international,may_ship_usps,msrp,price,safety_stock,sales_class,serial_number_type,ship_group,ship_window_max_hour,ship_window_min_hour,short_description,street_date,style_description,style_id,supplier_name,supplier_supplier_id</ext_keys>
 					<ext_keys_bool>allow_gift_message,back_orderable,gift_wrap,gift_wrapping_available,is_hidden_product,service_indicator</ext_keys_bool>
 				</map>
+				<related_link_types>
+					<es_accessory>related</es_accessory>
+					<es_crossselling>crosssell</es_crossselling>
+					<es_upselling>upsell</es_upselling>
+				</related_link_types>
 			</feed>
 			<feed_attribute_mappings>
 				<is_clean>
@@ -307,10 +312,10 @@
 					<xpath>BaseAttributes/TaxCode</xpath>
 				</tax_code>
 				<unresolved_product_links>
-					<class></class>
-					<type>disabled</type>
-					<method></method>
-					<xpath></xpath>
+					<class>eb2cproduct/map</class>
+					<type>helper</type>
+					<method>extractProductLinks</method>
+					<xpath>ProductLinks/ProductLink</xpath>
 				</unresolved_product_links>
 				<name>
 					<class>eb2cproduct/map</class>

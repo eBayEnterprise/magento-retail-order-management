@@ -104,4 +104,42 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		return ($nodes->length)? strtolower($nodes->item(0)->nodeValue) : Mage_Catalog_Model_Product_Type::TYPE_SIMPLE;
 	}
+
+	/**
+	 * This should produce a serialized array of product links to be handled by
+	 * the product cleaner. Arrays should consist of
+	 * @param  DOMNodeList                $node    DOM nodes extracted from the feed
+	 * @return string Serialized array
+	 */
+	public function extractProductLinks(DOMNodeList $nodes)
+	{
+		$links = array();
+		foreach ($nodes as $linkNode) {
+			$attrs = $linkNode->attributes;
+			try {
+				$linkType = $this->_convertToMagentoLinkType($attrs->getNamedItem('link_type')->nodeValue);
+			} catch (Mage_Core_Exception $e) {
+				// If the link_type in the feed dosn't match a known link type, do not
+				// include it and move on to the next link.
+				continue;
+			}
+			$links[] = array(
+				'link_type' => $linkType,
+				'operation_type' => $attrs->getNamedItem('operation_type')->nodeValue,
+				'link_to_unique_id' => trim($linkNode->nodeValue),
+			);
+		}
+		return serialize($links);
+	}
+	/**
+	 * Convert the EB2C link types to link types Magneto knows about through a
+	 * mapping in the product config.xml.
+	 * @param  string $linkType
+	 * @return string
+	 * @throws Mage_Core_Exception If the link type is not mapped to a Magento link type
+	 */
+	protected function _convertToMagentoLinkType($linkType)
+	{
+		return Mage::helper('eb2cproduct')->getConfigModel()->getConfig(strtolower("link_types_$linkType"));
+	}
 }

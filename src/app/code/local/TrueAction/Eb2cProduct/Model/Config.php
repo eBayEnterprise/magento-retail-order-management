@@ -53,5 +53,9 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 
 		'ext_keys'                            => 'eb2cproduct/feed/map/ext_keys',
 		'ext_keys_bool'                       => 'eb2cproduct/feed/map/ext_keys_bool',
+
+		'link_types_es_accessory'             => 'eb2cproduct/feed/related_link_types/es_accessory',
+		'link_types_es_crossselling'          => 'eb2cproduct/feed/related_link_types/es_crossselling',
+		'link_types_es_upselling'             => 'eb2cproduct/feed/related_link_types/es_upselling',
 	);
 }
