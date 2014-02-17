@@ -239,7 +239,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		$method = $reflection->getMethod('_updateAddressWithSelection');
 		$method->setAccessible(true);
 
-		$updated = $method->invoke($validator, $submittedAddress);
+		$method->invoke($validator, $submittedAddress);
 
 		$this->assertSame(
 			$this->expected($expectationKey)->getStreet1(),
@@ -284,7 +284,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			'postcode' => '13021',
 		));
 
-		$mockResponse = $this->_mockValidationResponse(true, false, $address, $address);
+		$this->_mockValidationResponse(true, false, $address, $address);
 		$validator = Mage::getModel('eb2caddress/validator');
 		$errorMessage = $validator->validateAddress($origAddress);
 		$this->assertNull($errorMessage, 'Validation of a valid address produces no errors.');
@@ -574,7 +574,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 				'has_been_validated' => true,
 			)),
 		);
-		$mockResponse = $this->_mockValidationResponse(false, true, $origAddress, null, $suggestions);
+		$this->_mockValidationResponse(false, true, $origAddress, null, $suggestions);
 
 		// set up some stale data in the session that should be overwritten by the validator model
 		$staleSessionData = 'STALE_DATA';
@@ -617,7 +617,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			'postcode' => '13025',
 			'has_been_validated' => true,
 		));
-		$mockResponse = $this->_mockValidationResponse(false, false, $origAddress, null);
+		$this->_mockValidationResponse(false, false, $origAddress, null);
 
 		$validator = Mage::getModel('eb2caddress/validator');
 		$errorMessage = $validator->validateAddress($address);
@@ -812,7 +812,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		$method = $reflection->getMethod('_copyAddressName');
 		$method->setAccessible(true);
 
-		$mergedClone = $method->invoke($validator, $destAddr, $sourceAddr);
+		$method->invoke($validator, $destAddr, $sourceAddr);
 
 		// first and last name should be copied to the dest address
 		$this->assertSame($sourceAddr->getFirstname(), $destAddr->getFirstname());

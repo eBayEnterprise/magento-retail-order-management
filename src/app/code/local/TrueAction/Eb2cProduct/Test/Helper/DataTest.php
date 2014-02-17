@@ -764,7 +764,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	public function testBuildFileName()
 	{
 		$baseDir = Mage::getBaseDir('var');
-
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
 			->setMethods(array('generateFilePath', 'generateFileName', 'generateMessageHeader'))
@@ -772,7 +771,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$productHelperMock->expects($this->once())
 			->method('generateFilePath')
 			->with($this->equalTo('ItemMaster'), $this->isInstanceOf('TrueAction_Eb2cProduct_Helper_Struct_Outboundfeedpath'))
-			->will($this->returnValue("${baseDir}/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/"));
+			->will($this->returnValue("$baseDir/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/"));
 
 		$productHelperMock->expects($this->once())
 			->method('generateFileName')
@@ -781,7 +780,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 
 		$testData = array(
 			array(
-				'expect' => "${baseDir}/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml",
+				'expect' => "$baseDir/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml",
 				'feedType' => 'ItemMaster'
 			),
 		);

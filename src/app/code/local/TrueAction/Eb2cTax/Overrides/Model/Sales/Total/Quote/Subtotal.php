@@ -59,8 +59,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Subtotal extends Mage
 	 */
 	protected function _applyTaxes($item, $address)
 	{
-		$helper          = $this->_helper;
-		$qty             = $item->getTotalQty();
 		$basePrice       = $baseTaxPrice = $this->_calculator->round($item->getBaseCalculationPriceOriginal());
 
 		$baseSubtotal = $baseTaxSubtotal = $item->getBaseRowTotal();

@@ -86,11 +86,7 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 	 */
 	private function _getFullMocker($classAlias, $mockedMethodSet, $disableConstructor=true)
 	{
-		$justMethodNames = array();
-		foreach( $mockedMethodSet as $method => $returnValue ) {
-			$justMethodNames[] = $method;
-		}
-
+		$justMethodNames = array_keys($mockedMethodSet);
 		$mock = null;
 
 		if( $disableConstructor ) {

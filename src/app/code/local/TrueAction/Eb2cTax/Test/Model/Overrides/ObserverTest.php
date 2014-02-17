@@ -509,7 +509,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_ObserverTest extends TrueAction_Eb
 	public function testDoRequestException()
 	{
 		$request = $this->_mockRequest(true);
-		$response = $this->_mockResponse(true);
 		$eb2cTaxHelper = $this->getHelperMock(
 			'eb2ctax/data',
 			array('sendRequest', 'failTaxRequest')

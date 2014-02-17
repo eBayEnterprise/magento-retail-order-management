@@ -313,7 +313,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			$pricing->appendChild($dutyFragment);
 		}
 		// End Duty
-		$shippingMethod = $orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
+		$orderItem->createChild('ShippingMethod', Mage::helper('eb2ccore')->lookupShipMethod($order->getShippingMethod()));
 		$this->_buildEstimatedDeliveryDate($orderItem, $item);
 		$orderItem->createChild('ReservationId', $reservationId);
 	}
@@ -427,7 +427,7 @@ class TrueAction_Eb2cOrder_Model_Create
 		$dutyQuotes = $this->getItemTaxQuotes($item, TrueAction_Eb2cTax_Model_Response_Quote::DUTY);
 		if ($dutyQuotes->count()) {
 			$duty = $dutyFragment->appendChild(
-				$this->_domRequest->createElement('Duty', null, $tihs->_config->apiXmlNs)
+				$this->_domRequest->createElement('Duty', null, $this->_config->apiXmlNs)
 			);
 			$dutyTotal = 0;
 			foreach ($dutyQuotes as $dutyQuote) {
@@ -659,7 +659,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * @param  Mage_Sales_Model_Order $order Order the shipping charge applies to
 	 * @return string Shipping charge type used by Exchange Platform
 	 */
-	protected function _getShippingChargeType(Mage_Sales_Model_Order $order)
+	protected function _getShippingChargeType()
 	{
 		return self::SHIPPING_CHARGE_TYPE_FLATRATE;
 	}

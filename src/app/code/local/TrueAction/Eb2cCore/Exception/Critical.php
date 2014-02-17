@@ -10,6 +10,7 @@ class TrueAction_Eb2cCore_Exception_Critical extends TrueAction_Eb2cCore_Excepti
 	public function __construct($message="", $code=0, Exception $previous=null)
 	{
 		Mage::helper('trueaction_magelog')->logCrit('%s', array($this));
+		parent::__construct($message, $code, $previous);
 	}
 }
 

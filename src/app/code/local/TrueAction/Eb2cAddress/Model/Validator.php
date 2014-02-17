@@ -142,19 +142,13 @@ class TrueAction_Eb2cAddress_Model_Validator
 	{
 		return $this->_isBillingAddress($address) && !$this->_isAddressUsedForShipping($address);
 	}
-
-	/**
-	 * When a quote object exists in the checkout session, this will return the
-	 * checkout "method" for
-	 */
-
 	/**
 	 * Determine if the address is to be saved in the address book as part of
 	 * onepage checkout.
 	 * @param Mage_Customer_Model_Address_Abstract $address
 	 * @return boolean
 	 */
-	protected function _isAddressBeingSaved(Mage_Customer_Model_Address_Abstract $address)
+	protected function _isAddressBeingSaved()
 	{
 		$request = Mage::app()->getRequest();
 		// get billing post data or shipping post data or emtpy array
@@ -201,7 +195,7 @@ class TrueAction_Eb2cAddress_Model_Validator
 				$log->logDebug('[ %s ] No validation - from address book', array(__CLASS__));
 				return false;
 			}
-			if ($this->_isAddressBeingSaved($address)) {
+			if ($this->_isAddressBeingSaved()) {
 				$log->logDebug('[ %s ] Require validation - saving address in address book', array(__CLASS__));
 				return true;
 			}

@@ -62,7 +62,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 		$vfs = $this->getFixture()->getVfs();
 		$vfsDump = $vfs->dump();
 		$dummyFiles = array();
-		foreach( $vfsDump[self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+		foreach(array_keys($vfsDump[self::VFS_ROOT]['inbound']) as $filename) {
 			$dummyFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 
@@ -319,7 +319,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 			->method('open')
 			->will($this->returnSelf());
 
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array('param' => array(
 				'feed_config'       => 'dummy_config',
@@ -330,8 +330,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 				'feed_remote_path'  => $remotePath,
 				'fs_tool'           => $mockFs,
 			))
-		);
-		$model->archiveFeed($filePath);
+		)->archiveFeed($filePath);
 	}
 
 	/**
@@ -358,7 +357,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$args = $this->_getDummyValueMap();
 		unset($args['feed_remote_path']);
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array(
 				'param' => $args
@@ -376,7 +375,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$args = $this->_getDummyValueMap();
 		unset($args['feed_local_path']);
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array(
 				'param' => $args
@@ -394,7 +393,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$args = $this->_getDummyValueMap();
 		unset($args['feed_file_pattern']);
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array(
 				'param' => $args
@@ -412,7 +411,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$args = $this->_getDummyValueMap();
 		unset($args['feed_config']);
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array(
 				'param' => $args
@@ -430,7 +429,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_AbstractTest extends TrueAction_Eb2cCo
 	{
 		$args = $this->_getDummyValueMap();
 		unset($args['feed_event_type']);
-		$model = $this->getMockForAbstractClass(
+		$this->getMockForAbstractClass(
 			self::CLASS_TESTED,
 			array(
 				'param' => $args

@@ -19,7 +19,8 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Shipping extends Mage
 	 *
 	 * @param Mage_Sales_Model_Quote_Address $address
 	 * @return Mage_Sales_Model_Quote_Address_Total_Abstract
-	*/
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+	 */
 	public function collect(Mage_Sales_Model_Quote_Address $address)
 	{
 		return $this;

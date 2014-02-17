@@ -891,10 +891,9 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @param  boolean $hasVirtual Does the quote contain virtual items
 	 * @param  boolean $hasManaged Does the quote contain managed stock items
 	 * @param  boolean $flagTax    Should this flag tax
-	 * @param  boolean $flagQty    Should this flag quantity
-	 * @param  boolean $flagDeets  Should this flag details
 	 * @test
 	 * @dataProvider providerQuoteDiffs
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function testChangeRequiresTaxUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets
@@ -925,6 +924,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @param  boolean $flagDeets  Should this flag details
 	 * @test
 	 * @dataProvider providerQuoteDiffs
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function testChangeRequiresQuantityUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets
@@ -955,6 +955,7 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	 * @param  boolean $flagDeets  Should this flag details
 	 * @test
 	 * @dataProvider providerQuoteDiffs
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function testChangeRequiresDetailsUpdate(
 		$quoteData, $diffData, $hasVirtual, $hasManaged, $flagTax, $flagQty, $flagDeets

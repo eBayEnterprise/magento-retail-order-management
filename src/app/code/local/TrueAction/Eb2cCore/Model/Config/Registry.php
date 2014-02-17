@@ -67,7 +67,7 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 				return Mage::$configMethod($configModel->getPathForKey($configKey), $store);
 			}
 		}
-		Mage::throwException('Configuration path specified by ' . $key . ' was not found.');
+		Mage::throwException('Configuration path specified by ' . $configKey . ' was not found.');
 		// @codeCoverageIgnoreStart
 	}
 	// @codeCoverageIgnoreEnd

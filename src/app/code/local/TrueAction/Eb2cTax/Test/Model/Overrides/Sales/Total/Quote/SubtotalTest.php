@@ -30,7 +30,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 
 		$item = $this->getModelMock('sales/quote_item', array(
 			'getQuote',
-			'getTotalQty',
 			'getBaseCalculationPriceOriginal',
 			'getBaseRowTotal',
 			'setTaxPercent',
@@ -65,7 +64,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 		$rate = 0;
 
 		// make sure all of the expectation values are actually floats
-		$tax = (float) $e->getTax();
 		$taxPrice = (float) $e->getTaxPrice();
 		$taxSubtotal = (float) $e->getTaxSubtotal();
 		$taxable = (float) $e->getTaxable();
@@ -81,9 +79,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_SubtotalTest
 			->will($this->returnValue($quote));
 		// item getters, should mainly return the inputs to this test, tax calculations
 		// will start with these numbers
-		$item->expects($this->once())
-			->method('getTotalQty')
-			->will($this->returnValue($qty));
 		$item->expects($this->once())
 			->method('getBaseCalculationPriceOriginal')
 			->will($this->returnValue($basePrice));

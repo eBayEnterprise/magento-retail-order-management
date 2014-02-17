@@ -126,7 +126,6 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	protected function _formatScope($data)
 	{
 		$scopeStr = strtolower((string) $data);
-		$key = strtolower($scopeStr);
 		if (!isset(self::$_scopeMap[$scopeStr])) {
 			// @codeCoverageIgnoreStart
 			Mage::throwException('Invalid scope value "' . $scopeStr . '"');
@@ -209,7 +208,7 @@ class TrueAction_Eb2cProduct_Model_Attributes
 	 * @param string $groupFilter
 	 * @return array
 	 */
-	public function getDefaultAttributesCodeList($groupFilter=null, $onlyUngrouped=false)
+	public function getDefaultAttributesCodeList($groupFilter=null)
 	{
 		Mage::log("getDefaultAttributesCodeList called with $groupFilter");
 		$result = array();

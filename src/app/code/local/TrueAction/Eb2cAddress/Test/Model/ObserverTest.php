@@ -33,7 +33,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testValidationValidationDisabled()
 	{
-		$config = $this->_mockConfig(0);
+		$this->_mockConfig(0);
 
 		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observer->expects($this->never())
@@ -51,7 +51,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 	 */
 	public function testAddSuggestionsValidationDisabled()
 	{
-		$config = $this->_mockConfig(0);
+		$this->_mockConfig(0);
 
 		$observer = $this->getMock('Varien_Event_Observer', array('getEvent'));
 		$observer->expects($this->never())
@@ -97,8 +97,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 			->will($this->returnValue($expectedError));
 		$this->replaceByMock('model', 'eb2caddress/validator', $validator);
 
-		$addressObserver = Mage::getSingleton('eb2caddress/observer');
-		$addressObserver->validateAddress($observer);
+		Mage::getSingleton('eb2caddress/observer')->validateAddress($observer);
 	}
 
 	/**
@@ -201,7 +200,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 			->method('getEvent')
 			->will($this->returnValue($event));
 
-		$addressObserver = Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
+		Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
 	}
 
 	/**
@@ -271,7 +270,7 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 			->method('getEvent')
 			->will($this->returnValue($event));
 
-		$addressObserver = Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
+		Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
 	}
 
 	/**
@@ -339,6 +338,6 @@ class TrueAction_Eb2cAddress_Test_Model_ObserverTest
 			->method('getEvent')
 			->will($this->returnValue($event));
 
-		$addressObserver = Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
+		Mage::getSingleton('eb2caddress/observer')->addSuggestionsToResponse($observer);
 	}
 }

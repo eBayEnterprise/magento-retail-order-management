@@ -2016,7 +2016,6 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	{
 		$quote = $this->_stubMultiShipNotSameAsBill();
 		$addressGetter = 'getShippingAddress';
-		$scenario = 'shipping-address';
 		$address = $quote->$addressGetter();
 
 		$request = $this->getModelMockBuilder('eb2ctax/request')

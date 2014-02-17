@@ -208,7 +208,7 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	)
 	{
 		$destinationId = $this->_getDestinationId($address, $isVirtual);
-		$id = $this->_addShipGroupId($address, $isVirtual);
+		$this->_addShipGroupId($address, $isVirtual);
 		if (!isset($this->_shipGroups[$destinationId])) {
 			$this->_shipGroups[$destinationId] = array();
 		}
@@ -672,15 +672,6 @@ class TrueAction_Eb2cTax_Model_Request extends Varien_Object
 	{
 		return '_' . $address->getCouponCode();
 	}
-
-	/**
-	 * return false since we don't do any duty informaiton.
-	 */
-	protected function _isDutyCalcNeeded($item, $address)
-	{
-		return false;
-	}
-
 	/**
 	 * extract admin origin data from the Magento store configuration
 	 *

@@ -260,7 +260,6 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_ResponseTest
 	</Result>
 </AddressValidationResponse>
 		');
-		$origAddress = $response->getOriginalAddress();
 		$this->assertSame(
 			$response->getOriginalAddress(),
 			$response->getValidAddress()

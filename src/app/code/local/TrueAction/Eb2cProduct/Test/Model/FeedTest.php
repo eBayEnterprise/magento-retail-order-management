@@ -314,7 +314,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->will($this->returnValue(null));
 		$this->replaceByMock('model', 'eb2ccore/indexer', $coreIndexerModelMock);
 
-		$fildDetail = array(
+		$fileDetail = array(
 			'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
 			'remote' => '/ItemMaster/',
 			'timestamp' => '2012-07-06 10:09:05',
@@ -327,14 +327,14 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->getMock();
 		$feed->expects($this->once())
 			->method('_getAllFeedFiles')
-			->will($this->returnValue(array($fildDetail)));
+			->will($this->returnValue(array($fileDetail)));
 		$feed->expects($this->once())
 			->method('setFeedEventType')
 			->with($this->equalTo('ItemMaster'))
 			->will($this->returnSelf());
 		$feed->expects($this->once())
 			->method('processFile')
-			->with($this->equalTo($fildDetail))
+			->with($this->equalTo($fileDetail))
 			->will($this->returnValue(null));
 		$feed->expects($this->once())
 			->method('archiveFeed')
@@ -396,14 +396,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('process')
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'eb2cproduct/feed_file', $fileModelMock);
-
-		$fildDetail = array(
-			'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-			'remote' => '/ItemMaster/',
-			'timestamp' => '2012-07-06 10:09:05',
-			'type' => 'ItemMaster',
-			'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
-		);
 		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('_construct'))

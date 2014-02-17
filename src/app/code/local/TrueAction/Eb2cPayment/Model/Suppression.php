@@ -74,7 +74,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	 */
 	public function saveEb2CPaymentMethods($enabled)
 	{
-		$config = Mage::app()->getStore($this->_getStoreId())->getConfig('payment');
+		Mage::app()->getStore($this->_getStoreId())->getConfig('payment');
 		// when enabled, should enable all allowed payment methods
 		// when disabled, should only disable methods exclusive to eb2c payments
 		foreach ($this->_eb2cPaymentMethods as $method) {
@@ -115,7 +115,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 
 	protected function _disablePaymentMethods($methodConfigs, $scope, $scopeId)
 	{
-		foreach ($methodConfigs as $method => $config) {
+		foreach (array_keys($methodConfigs) as $method) {
 			if (!$this->isMethodAllowed($method)) {
 				$this->_configModel->saveConfig('payment/' . $method . '/active', 0, $scope, $scopeId);
 			}
@@ -149,7 +149,7 @@ class TrueAction_Eb2cPayment_Model_Suppression
 	public function isAnyNonEb2CPaymentMethodEnabled()
 	{
 		foreach (Mage::app()->getStores() as $store) {
-			foreach ($this->getActivePaymentMethods($store) as $method => $methodConfig) {
+			foreach (array_keys($this->getActivePaymentMethods($store)) as $method) {
 				if (!$this->isMethodAllowed($method)) {
 					return true;
 				}

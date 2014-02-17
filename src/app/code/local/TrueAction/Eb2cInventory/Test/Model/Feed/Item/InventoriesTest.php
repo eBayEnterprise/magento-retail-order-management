@@ -47,7 +47,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends True
 		// Set up a Varien_Io_File style array for dummy file listing.
 		$vfsDump = $vfs->dump();
 		$sampleFiles = array();
-		foreach($vfsDump['root'][self::VFS_ROOT]['inbound'] as $filename => $contents ) {
+		foreach(array_keys($vfsDump['root'][self::VFS_ROOT]['inbound']) as $filename) {
 			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
 		}
 		$mockFsTool = $this->getMock('Varien_Io_File', array(

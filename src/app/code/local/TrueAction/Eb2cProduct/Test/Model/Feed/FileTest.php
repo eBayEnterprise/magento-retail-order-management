@@ -115,9 +115,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	{
 		$languageCode = 'en-us';
 		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$xsltFilePath = 'mock/path/to/single-language-template.xsl';
-		$extractedData = array(array('sku' => '1234'));
-
 		$storeModelMock = $this->getModelMockBuilder('core/store')
 			->disableOriginalConstructor()
 			->setMethods(array('getId'))
@@ -168,9 +165,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	public function testProcessDefaultStore()
 	{
 		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-
-		$xsltFilePath = 'mock/path/to/default-language-template.xsl';
-
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
 			->setMethods(array('getConfigModel'))

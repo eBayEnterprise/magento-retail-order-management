@@ -256,20 +256,12 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$this->assertInstanceOf('Varien_Object', $dummyObject);
 		$this->assertSame($dummyObject, $attrData);
 	}
-
-	public function callbackGetModuleDir($dir, $module)
-	{
-		$vfs = $this->getFixture()->getVfs();
-		$url = $vfs->url('app/code/local/TrueAction');
-		return $url . DS . $module . DS . 'etc';
-	}
-
 	/**
 	 * verify the default config in the config.xml can be overridden by another xml file.
 	 * @loadExpectation attributesConfig.yaml
 	 * @dataProvider provideOverrideXmlVfsStructure
 	 */
-	public function testLoadDefaultAttributesConfig($expectation, $vfsStructure)
+	public function testLoadDefaultAttributesConfig($expectation)
 	{
 		$model  = Mage::getModel('eb2cproduct/attributes');
 		$config = $this->_reflectMethod($model, '_loadDefaultAttributesConfig')->invoke($model);

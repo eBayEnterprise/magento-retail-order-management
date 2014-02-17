@@ -183,17 +183,12 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 		// namespace variable
 		$xpath->registerNamespace('a', $this->_namespaceUri);
 		$root = $this->_doc->documentElement;
-		$mailingAddresses = $xpath->query(
-			'/a:Shipping/a:Destinations/a:MailingAddress',
-			$root
-		);
 		$shipGroups = $xpath->query(
 			'a:Shipping/a:ShipGroups/a:ShipGroup',
 			$root
 		);
 		foreach ($shipGroups as $shipGroup) {
 			$addressId = $this->_getAddressId($shipGroup);
-			$responseSkus = array();
 			if ($addressId) {
 				$items = $xpath->query('./a:Items/a:OrderItem', $shipGroup);
 				// skip the shipgroup we can't get the address
@@ -249,7 +244,6 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 			// if nodelist is empty fail
 			$isValid = $isValid && $result->length === 1;
 			if ($isValid) {
-				$responseShipgroup = $result->item(0);
 				$orderItems = $requestXpath->query('./a:Items/a:OrderItem', $shipGroup);
 				foreach ($orderItems as $orderItem) {
 					if (!$isValid) {

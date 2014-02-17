@@ -7,7 +7,6 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 {
 	const FAKE_PROCESS_FEEDS_RETURN = 42;
 	private $_shellCore;
-	private $_config;
 
 	public function setUp()
 	{
@@ -49,7 +48,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 				)
 			)
 		);
-		$rc = $fakeShell->runFeedModel('feed');
+		$fakeShell->runFeedModel('feed');
 	}
 
 	/**
@@ -67,7 +66,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 				)
 			)
 		);
-		$rc = $fakeShell->runFeedModel('Garbage');
+		$fakeShell->runFeedModel('Garbage');
 	}
 
 	/**
@@ -110,7 +109,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_ShellTest extends TrueAction_Eb2cCore_
 	 */
 	public function testMultipleMatchesIsFalse()
 	{
-		$fakeShell = Mage::getModel('eb2ccore/feed_shell',
+		Mage::getModel('eb2ccore/feed_shell',
 			array (
 				'feed_set' => array(
 					'michael_p',

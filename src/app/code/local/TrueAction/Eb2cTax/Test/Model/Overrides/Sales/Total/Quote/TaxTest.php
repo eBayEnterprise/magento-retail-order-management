@@ -838,33 +838,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_Sales_Total_Quote_TaxTest extends 
 			->will($this->returnValue(Mage::app()->getStore()));
 		return $itemMock;
 	}
-
-	public  function getTaxCallback($itemSelector)
-	{
-		if ($itemSelector->getItem()->getSku() == 'classic-jeans') {
-			return (self::$isDiscountTest) ? 6.4 : 8.0;
-		}
-		return 0;
-	}
-
-	public function getDiscountTaxCallback($item, $address)
-	{
-		if ($itemSelector->getItem()->getSku() == 'classic-jeans') {
-			return (self::$isDiscountTest) ? 1.6 : 1.6;
-		}
-		return 0;
-	}
-
-	public function getAppliedRatesCallback($itemSelector)
-	{
-		if ($item->getSku() == 'classic-jeans') {
-			return (self::$isDiscountTest) ?
-				$this->classicJeansAppliedRatesAfter :
-				$this->classicJeansAppliedRatesBefore;
-		}
-		return 0;
-	}
-
 	public $classicJeansAppliedRatesBefore = array(
 		'PENNSYLVANIA-Sales and Use Tax-0.06' => array(
 			'percent'     => 0.06,

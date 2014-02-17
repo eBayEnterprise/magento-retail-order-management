@@ -96,10 +96,6 @@ class TrueAction_Eb2cInventory_Model_Observer
 	{
 		// get the quote from the event observer
 		$quote = $observer->getEvent()->getQuote();
-
-		// get the event response object
-		$response = $observer->getEvent()->getResponse();
-
 		$allocation = Mage::getModel('eb2cinventory/allocation');
 		// only allow allocation only when, there's no previous allocation or the previous allocation expired
 		if ($allocation->requiresAllocation($quote)) {

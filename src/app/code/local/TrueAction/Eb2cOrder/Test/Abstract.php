@@ -226,35 +226,6 @@ abstract class TrueAction_Eb2cOrder_Test_Abstract extends TrueAction_Eb2cCore_Te
 			)
 		);
 	}
-
-	/**
-	 * Mocks the Mage_Sales_Model_Order_Item
-	 *
-	 */
-	private function _getMockSalesOrderItem()
-	{
-		return $this->_getFullMocker(
-			'sales/order_item',
-			array (
-				'getId'                     => '48',
-				'getDiscountAmount'         => '0',
-				'getEb2cDeliveryWindowFrom' => '2013-08-09',
-				'getEb2cDeliveryWindowTo'   => '2013-08-13',
-				'getEb2cMessageType'        => 'MessageType',
-				'getEb2cReservationId'      => '0123456789',
-				'getEb2cShippingWindowFrom' => '2013-08-09',
-				'getEb2cShippingWindowTo'   => '2013-08-13',
-				'getName'                   => 'An Item Name',
-				'getPrice'                  => '1776',
-				'getQtyOrdered'             => '1',
-				'getSku'                    => 'SKU123456',
-				'getTaxAmount'              => '0',
-				'getTaxPercent'             => '0',
-				'getOrder'                  => $this->_getFullMocker('sales/order', array ('getQuoteId' => 1)),
-			)
-		);
-	}
-
 	/**
  	 * Let us mock a Mage_Sales_Model_Order_Payment
 	 *

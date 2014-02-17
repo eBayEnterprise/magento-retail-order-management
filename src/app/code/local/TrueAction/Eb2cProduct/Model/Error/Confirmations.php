@@ -152,8 +152,7 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 				'[ %s ] Error Confirmations file stream is not instantiated', __CLASS__
 			));
 		}
-		$spfFileObject = $this->_fileStream->openFile('a');
-		$spfFileObject->fwrite("${content}\n");
+		$this->_fileStream->openFile('a')->fwrite("$content\n");
 		return $this;
 	}
 

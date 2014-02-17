@@ -16,7 +16,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 			$helper->getOperationUri('get_paypal_do_express_checkout')
 		);
 		// Save payment data
-		$this->_savePaymentData($this->parseResponse($responseMessage), $quote);
+		$this->_savePaymentData($this->parseResponse($response), $quote);
 		return $response;
 	}
 

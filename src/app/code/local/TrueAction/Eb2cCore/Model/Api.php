@@ -111,10 +111,9 @@ class TrueAction_Eb2cCore_Model_Api
 	public function schemaValidate(DOMDocument $doc, $xsdName)
 	{
 		$errors = array();
-		set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$errors) {
+		set_error_handler(function ($errno, $errstr) use (&$errors) {
 			$errors[] = "'$errstr' [Errno $errno]";
 		});
-		$log = Mage::helper('trueaction_magelog');
 		$cfg = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 		$isValid = $doc->schemaValidate(Mage::getBaseDir() . DS . $cfg->apiXsdPath . DS . $xsdName);

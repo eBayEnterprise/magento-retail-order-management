@@ -36,7 +36,7 @@ abstract class TrueAction_Eb2cCore_Test_Base
 	 *   global/events/Name_Of_Your_Dispatched_Event/observers/Your_Observers_Name/method: 'stubObserver'
 	 *
 	 */
-	public function stubObserver($observerArgs)
+	public function stubObserver()
 	{
 		return $this;
 	}

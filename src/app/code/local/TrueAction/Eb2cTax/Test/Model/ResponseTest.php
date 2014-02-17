@@ -225,7 +225,6 @@ XML;
 	 */
 	public function testConstructMailingAddressMisMatch()
 	{
-		$request = $this->_mockRequest(file_get_contents(dirname(__FILE__) . '/ResponseTest/fixtures/request-invalid-2.xml'));
 		$response = Mage::getModel('eb2ctax/response', array(
 			'xml' => self::$respXml,
 			'request' => $this->request
@@ -283,8 +282,6 @@ XML;
 		$itemMock->expects($this->any())
 			->method('getSku')
 			->will($this->returnValue('gc_virtual1'));
-		$responseItems = $response->getResponseItems();
-
 		$this->assertNotEmpty($response->getResponseItems());
 		$itemResponse = $response->getResponseForItem($itemMock, $addressMockA);
 		$this->assertNotNull($itemResponse);

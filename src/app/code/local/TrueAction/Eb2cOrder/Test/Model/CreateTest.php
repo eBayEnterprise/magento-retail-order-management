@@ -107,8 +107,7 @@ INVALID_XML;
 			->method('getCollection')
 			->will($this->returnValue($quoteCollection));
 		$this->replaceByMock('model', 'eb2ctax/response_quote', $taxQuote);
-		$create = Mage::getModel('eb2corder/create');
-		$collection = $create->getItemTaxQuotes($item, $taxType);
+		Mage::getModel('eb2corder/create')->getItemTaxQuotes($item, $taxType);
 	}
 	/**
 	 * Test _getAttributeValueByProductId method with the following expectations

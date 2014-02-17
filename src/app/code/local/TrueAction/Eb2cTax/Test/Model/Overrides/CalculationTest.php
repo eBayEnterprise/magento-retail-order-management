@@ -780,10 +780,6 @@ class TrueAction_Eb2cTax_Test_Model_Overrides_CalculationTest extends TrueAction
 			->will($this->returnValue($hasResponse ? $response : null));
 		$calc->expects($this->never())
 			->method('unsTaxResponse');
-
-		$address = $this->getModelMockBuilder('sales/quote_address')
-		->disableOriginalConstructor()
-		->getMock();
 		$result = $calc->getTaxRequest();
 		$this->assertSame($hasResponse ? $oldRequest : $request, $result);
 	}

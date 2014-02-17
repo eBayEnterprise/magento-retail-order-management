@@ -56,10 +56,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 			array($callbackConfig['sku']['xpath'], $contextNode, null, $skuNodeList),
 			array($callbackConfig['bad_path']['xpath'], $contextNode, null, $emptyNodeList),
 		);
-		$callbackToValueMap = array(
-			array($skuCallback, 'abc-123'),
-		);
-
 		$validateValueMap = array(
 			array($skuNodeList, true),
 			array($emptyNodeList, false)

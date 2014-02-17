@@ -38,8 +38,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$address->setBaseShippingTaxAmount(0);
 		// zero amounts for the address.
 		$this->_store = $address->getQuote()->getStore();
-		$customer = $address->getQuote()->getCustomer();
-
 		$items = $this->_getAddressItems($address);
 		if (!count($items)) {
 			return $this;
@@ -124,13 +122,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	protected function _calcTaxForItem($itemSelector)
 	{
 		$item = $itemSelector->getItem();
-		$inclTax = $item->getIsPriceInclTax();
-		$baseSubtotal = $baseTaxSubtotal = $item->getBaseTaxableAmount();
-		$subtotal = $taxSubtotal = $item->getTaxableAmount();
+		$baseSubtotal = $item->getBaseTaxableAmount();
 		// default to 0 since there isn't any one rate
 		$item->setTaxPercent(0);
-		$baseHiddenTax = null;
-		$hiddenTax = null;
 		if (Mage::helper('eb2ctax')->getApplyTaxAfterDiscount()) { // tax only what you pay
 			$baseDiscountAmount = $item->getBaseDiscountAmount();
 			// calculate the full tax amount
@@ -179,11 +173,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 		$isPriceInclTax = $this->_isShippingPriceTaxInclusive();
 		$address->setIsShippingInclTax($isPriceInclTax || $address->getIsShippingInclTax());
 		$baseTaxable = $baseShipping = $baseTaxShipping = $address->getBaseShippingAmount();
-		$rate = 0;
 		$duty = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::DUTY_TYPE);
 		$baseTax = $this->_calculator->getTax($itemSelector, TrueAction_Eb2cTax_Overrides_Model_Calculation::SHIPPING_TYPE) + $duty;
 		$this->_shippingTaxSubTotals[$addressId] += $baseTax;
-		$baseRuninngShippingTax = $this->_shippingTaxSubTotals[$addressId];
 		$baseTaxShipping = $baseShipping + $baseTax;
 		$address->setBaseTotalAmount('shipping', $baseShipping);
 		$address->setBaseShippingInclTax($baseTaxShipping);
@@ -248,17 +240,12 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 * Collect applied tax rates information on address level
 	 * @param Mage_Sales_Model_Quote_Address $address
 	 * @param array $applied
-	 * @param float $amount
-	 * @param float $baseAmount
-	 * @param float $rate
+	 * @param float $amount unused; only here to maintain signature
+	 * @param float $baseAmount unused; only here to maintain signature
+	 * @param float $rate unused; only here to maintain signature
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
-	protected function _saveAppliedTaxes(
-		Mage_Sales_Model_Quote_Address $address,
-		$applied,
-		$amount,
-		$baseAmount,
-		$rate
-	)
+	protected function _saveAppliedTaxes(Mage_Sales_Model_Quote_Address $address, $applied, $amount, $baseAmount, $rate)
 	{
 		$previouslyAppliedTaxes = $address->getAppliedTaxes();
 		$process = count($previouslyAppliedTaxes);
@@ -319,8 +306,9 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 * ensures the taxes are calculated chronologically after the discounts.
 	 * see the tax and sales etc/config.xml
 	 * @param array $config
-	 * @param store $store
+	 * @param store $store unused; only here to maintain signature
 	 * @return array
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function processConfigArray($config, $store)
 	{
@@ -331,9 +319,10 @@ class TrueAction_Eb2cTax_Overrides_Model_Sales_Total_Quote_Tax extends Mage_Tax_
 	 * Check if price include tax should be used for calculations.
 	 * We are using price include tax just in case when catalog prices are including tax
 	 * and customer tax request is same as store tax request
-	 * @param $store
+	 * @param $store unused; only here to maintain signature
 	 * @return bool
 	 * @codeCoverageIgnore
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	protected function _usePriceIncludeTax($store)
 	{

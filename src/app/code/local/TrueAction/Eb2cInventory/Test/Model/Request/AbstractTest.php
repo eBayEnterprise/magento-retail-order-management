@@ -27,7 +27,6 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 	public function testMakeRequestForQuote($requestType, $operationKey, $xsdConfigKey, $requestSuccess)
 	{
 		$quote = $this->getModelMock('sales/quote', array());
-		$item = $this->getModelMock('sales/quote_item', array());
 		$inventoryHelper = $this->getHelperMockBuilder('eb2cinventory/data')
 			->disableOriginalConstructor()
 			->setMethods(array('getOperationUri', 'getConfigModel'))
