@@ -281,7 +281,6 @@ class TrueAction_Eb2cCore_Test_Model_SessionTest
 	/**
 	 * Data provider for diffBilling test. Providers array of old address data,
 	 * new address data and the expected diff.
-	 * @test
 	 * @return array Args array
 	 */
 	public function providerDiffBilling()
