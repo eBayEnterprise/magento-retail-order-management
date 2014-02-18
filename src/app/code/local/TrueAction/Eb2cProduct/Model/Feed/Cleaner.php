@@ -65,7 +65,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 		if ($product->getTypeId() === 'configurable') {
 			$this->_addUsedProducts($product);
 		} elseif ($product->getStyleId() && $product->getStyleId() !== $product->getSku()) {
-			$this->_addToCofigurableProduct($product);
+			$this->_addToConfigurableProduct($product);
 		}
 		$this->markProductClean($product);
 		$product->save();
@@ -220,7 +220,7 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 	 * @param Mage_Catalog_Model_Product $product Simple product used to configure a configurable product.
 	 * @return $this object
 	 */
-	protected function _addToCofigurableProduct(Mage_Catalog_Model_Product $product)
+	protected function _addToConfigurableProduct(Mage_Catalog_Model_Product $product)
 	{
 		$configurableProduct = Mage::helper('eb2cproduct')->loadProductBySku($product->getStyleId());
 		if ($configurableProduct->getId()) {

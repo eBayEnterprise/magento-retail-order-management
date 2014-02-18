@@ -133,14 +133,14 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 			->will($this->returnSelf());
 
 		$feedCleanerModelProductMock = $this->getModelMockBuilder('eb2cproduct/feed_cleaner')
-			->setMethods(array('_resolveProductLinks', '_addToCofigurableProduct', 'markProductClean'))
+			->setMethods(array('_resolveProductLinks', '_addToConfigurableProduct', 'markProductClean'))
 			->getMock();
 		$feedCleanerModelProductMock->expects($this->once())
 			->method('_resolveProductLinks')
 			->with($this->isInstanceOf('Mage_Catalog_Model_Product'))
 			->will($this->returnSelf());
 		$feedCleanerModelProductMock->expects($this->once())
-			->method('_addToCofigurableProduct')
+			->method('_addToConfigurableProduct')
 			->with($this->isInstanceOf('Mage_Catalog_Model_Product'))
 			->will($this->returnSelf());
 		$feedCleanerModelProductMock->expects($this->once())
@@ -512,10 +512,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 	}
 
 	/**
-	 * Test _addToCofigurableProduct method, when child product has a known Parent configruable product
+	 * Test _addToConfigurableProduct method, when child product has a known Parent configruable product
 	 * @test
 	 */
-	public function testAddToCofigurableProduct()
+	public function testAddToConfigurableProduct()
 	{
 		$product = $this->getModelMockBuilder('catalog/product')
 			->setMethods(array('getId', 'getStyleId'))
@@ -574,12 +574,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed_Cleaner',
-			$this->_reflectMethod($cleanerObject, '_addToCofigurableProduct')->invoke($cleanerObject, $product)
+			$this->_reflectMethod($cleanerObject, '_addToConfigurableProduct')->invoke($cleanerObject, $product)
 		);
 	}
 
 	/**
-	 * Test _addToCofigurableProduct method, when child product has a known Parent configruable product
+	 * Test _addToConfigurableProduct method, when child product has a known Parent configruable product
 	 * @test
 	 */
 	public function testAddToCofigurableProductNoParentProduct()
@@ -610,7 +610,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_CleanerTest extends TrueAction_Eb2c
 
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cProduct_Model_Feed_Cleaner',
-			$this->_reflectMethod($cleanerObject, '_addToCofigurableProduct')->invoke($cleanerObject, $product)
+			$this->_reflectMethod($cleanerObject, '_addToConfigurableProduct')->invoke($cleanerObject, $product)
 		);
 	}
 
