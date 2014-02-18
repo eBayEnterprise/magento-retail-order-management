@@ -9,6 +9,7 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 *
 	 * @param Varien_Event_Observer $observer
 	 * @return void
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function redeemGiftCard($observer)
 	{
@@ -53,7 +54,7 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 * RedeemVoid any gift card when 'eb2c_event_dispatch_after_inventory_allocation' event is dispatched
 	 *
 	 * @param Varien_Event_Observer $observer
-	 *
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 * @return void
 	 */
 	public function redeemVoidGiftCard($observer)

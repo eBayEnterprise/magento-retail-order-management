@@ -50,6 +50,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 	 * Parse PayPal GetExpress reply xml.
 	 * @param string $payPalGetExpressCheckoutReply the xml response from eb2c
 	 * @return Varien_Object an object of response data
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function parseResponse($payPalGetExpressCheckoutReply)
 	{

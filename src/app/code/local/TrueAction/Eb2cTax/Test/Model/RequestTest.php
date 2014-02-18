@@ -194,6 +194,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 * @param  boolean                         $childrenCalculated Are children of this item calculated
 	 * @param  integer                         $discountAmt        Expected discount amount of the item
 	 * @return Mock_Mage_Sales_Model_Quote_Item                    The stubbed quote item.
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	protected function _stubQuoteItem(
 		$product=null, $totalQty=1, $id=1, $sku='12345',

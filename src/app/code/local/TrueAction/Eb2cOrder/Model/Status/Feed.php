@@ -2,9 +2,7 @@
 /**
  * Order Status processing Class, gets Order Status feeds from remote
  */
-class TrueAction_Eb2cOrder_Model_Status_Feed
-	extends TrueAction_Eb2cCore_Model_Feed_Abstract
-	implements TrueAction_Eb2cCore_Model_Feed_Interface
+class TrueAction_Eb2cOrder_Model_Status_Feed extends TrueAction_Eb2cCore_Model_Feed_Abstract implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
 	protected function _construct()
 	{
@@ -16,7 +14,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		$this->setFeedEventType($this->getFeedConfig()->statusFeedEventType);
 		parent::_construct();
 	}
-
 	/**
 	 * Load a Mage Order
 	 * @param Order Increment Id
@@ -27,7 +24,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		$mageOrder = Mage::getModel('sales/order')->loadByIncrementId($orderId);
 		return $mageOrder;
 	}
-
 	/**
 	 * Is this status older than a status that's already been applied?
 	 * @param Mage_Sales_Model_Order
@@ -40,27 +36,23 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		}
 		return false;
 	}
-
 	/**
 	 * This is the only abstracted method - process the acutal DOM
 	 * @param TrueAction_Dom_Document the feed as already in a DOM
 	 * @param array $fileDetail not implemented
-	 * @return self;
+	 * @return self
+	 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
 	 */
 	public function processDom(TrueAction_Dom_Document $dom, array $fileDetail=null)
 	{
 		$extractor = Mage::getModel('eb2corder/status_feed_extractor');
-
 		foreach( $dom->getElementsByTagName($this->getFeedRootNodeName()) as $orderStatusUpdate) {
-
 			foreach( $dom->getElementsByTagName('OrderStatus') as $orderStatusNode ) {
-
 				$statusType      = $extractor->extractStatusType($orderStatusNode);
 				$statusTimeStamp = $extractor->extractStatusTimeStamp($orderStatusNode);
 				$orderNode       = $extractor->extractOrderNode($orderStatusNode);
 				$orderNumber     = $extractor->extractExternalOrderNumber($extractor->extractOrderHeaderNode($orderNode));
 				$mageOrder       = $this->_loadMageOrder($orderNumber);
-
 				if( !$mageOrder->getId() ) {
 					Mage::log("$orderNumber not found, status $statusType discarded", Zend_log::WARN);
 				} else if ($this->_statusIsExpired($mageOrder, $statusTimeStamp)) {
@@ -101,7 +93,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		}
 		return $this;
 	}
-
 	/**
 	 * Set the eb2cOrdereStatusFields
 	 */
@@ -112,24 +103,24 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 			->setEb2cOrderStatusType($status)
 			->setEb2cOrderStatusTimestamp($statusTimeStamp);
 	}
-
 	/**
 	 * Nothing to do, except log that we received confirmation, and update the order eb2cStatusType
 	 * @param $mageOrder Mage_Sales_Model_Order
 	 * @param array $orderDetails line item details
 	 * @return self
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	protected function _confirmation($mageOrder, $orderDetails, $statusTimeStamp)
 	{
 		$this->_setEb2cOrderStatus($mageOrder, __FUNCTION__, $statusTimeStamp)->save();
 		return $this;
 	}
-
 	/**
 	 * Cancel items on an order. If all items are canceled, we cancel the whole order.
 	 * @param $mageOrder Mage_Sales_Model_Order
 	 * @param array $orderDetails line item details
 	 * @return self
+	 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
 	 */
 	protected function _cancellation($mageOrder, $orderDetails)
 	{
@@ -141,7 +132,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 					->save();
 			}
 		}
-
 		$cancelComplete = true;
 		foreach ($mageOrder->getAllVisibleItems() as $mageLineItem) {
 			if (($mageLineItem->getQtyOrdered() - $mageLineItem->getQtyCanceled()) !== 0) {
@@ -149,7 +139,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				break;
 			}
 		}
-
 		if ($cancelComplete === false) {
 			// This means there are items still left to ship - it's a partial cancelation
 			$this->_setEb2cOrderStatus($mageOrder, __FUNCTION__, $statusTimeStamp)
@@ -170,7 +159,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				$this->_setEb2cOrderStatus($mageOrder, __FUNCTION__, $statusTimeStamp);
 				Mage::dispatchEvent('order_cancel_after', array('order' => $mageOrder));
 				$mageOrder->save();
-
 				Mage::log(
 					'Exception canceling ' . $mage->getIncrementId() . $e->getMessage(),
 					Zend_log::ERR
@@ -183,12 +171,13 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		}
 		return $this;
 	}
-
 	/**
 	 * Apply a credit amount.
 	 * @param $mageOrder Mage_Sales_Model_Order
 	 * @param array $orderDetails line item details
 	 * @return self
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+	 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
 	 */
 	protected function _returnCreditIssued($mageOrder, $orderDetails)
 	{
@@ -205,18 +194,17 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 			->save();
 		return $this;
 	}
-
 	/**
 	 * Note shipped items. If all items shipped, order is complete, and we can issue invoice.
 	 * @param $mageOrder Mage_Sales_Model_Order
 	 * @param array $orderDetails line item details
 	 * @return self
+	 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
 	 */
 	protected function _shipment($mageOrder, $orderDetails)
 	{
 		$invoiceItems = array(); // Because we've shipped something, we have to invoice something
 		$trackingInfo = array(); // Because we've shipped something, we have some tracking info
-
 		foreach ($orderDetails as $shipmentId => $lineItems) {
 			foreach ($lineItems as $lineItem) {
 				$mageOrderLine = Mage::getModel('sales/order_item')->load($lineItem->getLineItemNumber());
@@ -230,7 +218,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				}
 			}
 		}
-
 		// Do we have tracking info? Let's make some shipment records
 		if (count($trackingInfo)) {
 			$mageShipment = $mageOrder->prepareShipment($invoiceItems);
@@ -238,7 +225,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				$trackingData = array('carrier_code' => $url /*TODO Do we know carrier? For now, it's the URL? */, 'title' => /* TODO How do we know title? */'', 'number' => $number);
 				$mageTracking = Mage::getModel('sales/order_shipment_track')->addData($trackingData);
 				$mageShipment->addTrack($mageTracking);
-
 				// TODO: There is a ShipmentId coming from OrderStatus - maybe that's the array of Packages to be sent to ->setPackages()? */
 				$mageShipment->register();
 				try {
@@ -258,7 +244,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				}
 			}
 		}
-
 		// Invoice what's just been shipped
 		$mageInvoice = Mage::getModel('sales/service_order', $mageOrder)->prepareInvoice($invoiceItems);
 		try {
@@ -269,7 +254,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 				->addObject($mageInvoice)
 				->addObject($mageInvoice->getOrder());
 			$transaction->save();
-
 			// TODO: Don't know if I can do eMail here?
 			$mageInvoice->sendEmail();
 			$mageInvoice->setEmailSent(true);
@@ -280,10 +264,8 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		}
 		$this->_setEb2cOrderStatus($mageOrder, __FUNCTION__, $statusTimeStamp)
 			->save();
-
 		return $this;
 	}
-
 	/**
 	 * Rolls up the XML into array indexed by ShipmentId. Each element is in turn an array
 	 * of Varien_Objects representing  Line Item Information.
@@ -307,7 +289,6 @@ class TrueAction_Eb2cOrder_Model_Status_Feed
 		}
 		return $rolledUpDetails;
 	}
-
 	/**
 	 * Dumps rolled-up order line item detail into human readable form, for logging
 	 * @param $method calling method

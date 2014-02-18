@@ -7,6 +7,7 @@ class TrueAction_Eb2cInventory_Override_Checkout_OnepageController extends Mage_
 
 	/**
 	 * Create order action - overriding for eb2c allocation
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function saveOrderAction()
 	{

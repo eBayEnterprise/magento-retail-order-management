@@ -10,7 +10,6 @@
  */
 class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_Test_Case
 {
-
 	/**
 	 * Create a stub config model to populate the config helper with keys/paths.
 	 */
@@ -145,8 +144,7 @@ class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_
 	 */
 	public function testConfigNotFoundExceptions()
 	{
-		$config = Mage::getModel('eb2ccore/config_registry');
-		$config->getConfig('nonexistent_config');
+		Mage::getModel('eb2ccore/config_registry')->getConfig('nonexistent_config');
 	}
 
 	/**
@@ -158,17 +156,8 @@ class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_
 	 */
 	public function testUnknownPropError()
 	{
-		$config = Mage::getModel('eb2ccore/config_registry');
-		$nonexistent = $config->nonexistentConfig;
+		Mage::getModel('eb2ccore/config_registry')->nonexistentConfig;
 	}
-
-	/**
-	 * prevent PHPUnits normal handling of errors,
-	 * allowing execution to continue after an error is encountered
-	 */
-	public function noopErrorHandler($errno, $errstr, $errfile, $errline, $errcontext)
-	{}
-
 	/**
 	 * Getting a nonexistent property should error but still return null.
 	 * @test
@@ -176,7 +165,7 @@ class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_
 	public function testUnknownProp()
 	{
 		// ensure code execution continues after the error is triggered
-		$handler = set_error_handler(array($this, 'noopErrorHandler'));
+		$handler = set_error_handler(function(){});
 		$config = Mage::getModel('eb2ccore/config_registry');
 		$nonexistent = $config->nonexistentConfig;
 		$this->assertNull($nonexistent);
@@ -186,15 +175,13 @@ class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_
 
 	/**
 	 * All properties on the config helper should be readonly.
-	 * Attemtping to set a property on the object should trigger an error.
+	 * Attempting to set a property on the object should trigger an error.
 	 * @test
 	 * @expectedException Exception
 	 */
 	public function testAllPropsReadonlyError()
 	{
-
-		$config = Mage::getModel('eb2ccore/config_registry');
-		$config->someConfig = 'foo';
+		Mage::getModel('eb2ccore/config_registry')->someConfig = 'foo';
 	}
 
 	/**
@@ -204,7 +191,7 @@ class TrueAction_Eb2cCore_Test_Model_ConfigRegistryTest extends EcomDev_PHPUnit_
 	 */
 	public function testAllPropsReadonly()
 	{
-		$handler = set_error_handler(array($this, 'noopErrorHandler'));
+		$handler = set_error_handler(function(){});
 		$config = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel($this->_createConfigStub());
 		$config->catalogId = 'foo';

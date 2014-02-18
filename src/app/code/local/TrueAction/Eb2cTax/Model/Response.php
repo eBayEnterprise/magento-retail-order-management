@@ -215,6 +215,7 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 	 * @param  TrueAction_Dom_Document $requestDoc  The request document
 	 * @param  TrueAction_Dom_Document $responseDoc The response document
 	 * @return bool
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	protected function _validateResponseItems($requestDoc, $responseDoc)
 	{
@@ -358,6 +359,7 @@ class TrueAction_Eb2cTax_Model_Response extends Varien_Object
 	 * easy access to the validated data.
 	 *
 	 * @return bool, true both destination response/request are the same, false not the same
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	protected function _validateDestinations()
 	{

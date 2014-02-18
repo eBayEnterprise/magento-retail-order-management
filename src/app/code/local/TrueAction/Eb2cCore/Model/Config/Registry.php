@@ -133,7 +133,9 @@ class TrueAction_Eb2cCore_Model_Config_Registry
 		}
 		return null;
 	}
-
+	/**
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
+	 */
 	public function __set($name, $value)
 	{
 		trigger_error(sprintf('Cannot write property %s::%s in php shell code on line %d', get_class($this), $name, __LINE__), E_USER_ERROR);

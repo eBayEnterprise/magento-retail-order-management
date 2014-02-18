@@ -157,6 +157,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	 *
 	 * @param  Varien_Object $itemSelector A wrapper object for an item and address
 	 * @return array               The tax rates that have been applied to the item.
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function getAppliedRates($itemSelector)
 	{
@@ -165,7 +166,6 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 		$address      = $itemSelector->getAddress();
 		$store        = $address->getQuote()->getStore();
 		$result       = array();
-		$baseAmount   = $item->getBaseTaxAmount();
 		$itemResponse = $this->_getItemResponse($item, $address);
 		if ($itemResponse) {
 			foreach ($itemResponse->getTaxQuotes() as $index => $taxQuote) {
@@ -252,6 +252,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 	/**
 	 * @codeCoverageIgnore
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function getRateRequest($shippingAddress=null, $billingAddress=null, $customerTaxClass='', $store=null)
 	{
@@ -259,6 +260,7 @@ class TrueAction_Eb2cTax_Overrides_Model_Calculation extends Mage_Tax_Model_Calc
 	}
 	/**
 	 * @codeCoverageIgnore
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function getRate($request)
 	{

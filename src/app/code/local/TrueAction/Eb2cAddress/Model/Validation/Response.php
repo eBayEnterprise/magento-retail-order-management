@@ -142,6 +142,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 	/**
 	 * Indicates if the address should be considered valid.
 	 * @return bool
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function isAddressValid()
 	{

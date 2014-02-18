@@ -62,6 +62,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	 * of 0 will be returned.
 	 * @param  string  $filename path to the xml file
 	 * @return DateTime
+	 * @SuppressWarnings(PHPMD.CyclomaticComplexity)
 	 */
 	public function getMessageDate($filename)
 	{
