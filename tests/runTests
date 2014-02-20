@@ -20,7 +20,7 @@ dropAllTables
 
 # Fetch Magento ee and untar it.
 mv magento magento.deleteme && rm magento.deleteme &
-	wget -O- https://ebay.box.com/shared/static/q2peu39zawc8px9vdun8.gz |
+	wget -o wget.log -O- https://ebay.box.com/shared/static/q2peu39zawc8px9vdun8.gz |
 	tar -xzpf-
 
 cd magento
@@ -58,4 +58,4 @@ cp ../../tests/local.xml.phpunit app/etc # Magento configuration
 cp ../../tests/phpunit.xml.dist . # PHPUnit configuration
 
 # Run phpunit
-phpunit --debug
+phpunit
