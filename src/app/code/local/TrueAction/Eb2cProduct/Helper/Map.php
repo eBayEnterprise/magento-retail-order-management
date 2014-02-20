@@ -103,11 +103,32 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	 * extract the first element of a dom node list make sure it is lower case
 	 * if there's no item in the DOMNodeList return the default simple product type constant value
 	 * @param DOMNodeList $node
+	 * @param Mage_Catalog_Model_Product $product
 	 * @return string
 	 */
-	public function extractProductTypeValue(DOMNodeList $nodes)
+	public function extractProductTypeValue(DOMNodeList $nodes, Mage_Catalog_Model_Product $product)
 	{
-		return ($nodes->length)? strtolower($nodes->item(0)->nodeValue) : Mage_Catalog_Model_Product_Type::TYPE_SIMPLE;
+		$value = strtolower(Mage::helper('eb2ccore')->extractNodeVal($nodes));
+		$type = ($this->_isValidProductType($value))? $value : Mage_Catalog_Model_Product_Type::TYPE_SIMPLE;
+		$product->setTypeId($type)
+			->setTypeInstance(Mage_Catalog_Model_Product_Type::factory($product, true), true);
+		return $type;
+	}
+
+	/**
+	 * check if a given string is a valid product type value
+	 * @param string $value the value that must match one of magento product type
+	 * @return bool true the value match magento product type otherwise false
+	 */
+	protected function _isValidProductType($value)
+	{
+		return in_array($value, array(
+			Mage_Catalog_Model_Product_Type::TYPE_SIMPLE,
+			Mage_Catalog_Model_Product_Type::TYPE_BUNDLE,
+			Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
+			Mage_Catalog_Model_Product_Type::TYPE_GROUPED,
+			Mage_Catalog_Model_Product_Type::TYPE_VIRTUAL,
+		));
 	}
 
 	/**
@@ -127,7 +148,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 				// If the link_type in the feed dosn't match a known link type, do not
 				// include it and move on to the next link.
 				continue;
-}
+			}
 			$links[] = array(
 				'link_type' => $linkType,
 				'operation_type' => $attrs->getNamedItem('operation_type')->nodeValue,
@@ -146,5 +167,20 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	protected function _convertToMagentoLinkType($linkType)
 	{
 		return Mage::helper('eb2cproduct')->getConfigModel()->getConfig(strtolower("link_types_$linkType"));
+	}
+
+	/**
+	 * extract the value in the nodelist and then passed it to helper
+	 * function to ensure the value has the right info
+	 * @param DOMNodeList $nodes
+	 * @return string
+	 */
+	public function extractSkuValue(DOMNodeList $nodes)
+	{
+		$helper = Mage::helper('eb2ccore');
+		return $helper->normalizeSku(
+			$helper->extractNodeVal($nodes),
+			Mage::helper('eb2cproduct')->getConfigModel()->catalogId
+		);
 	}
 }

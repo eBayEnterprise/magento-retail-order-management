@@ -302,13 +302,13 @@
 				<sku>
 					<class>eb2cproduct/map</class>
 					<type>helper</type>
-					<method>extractStringValue</method>
+					<method>extractSkuValue</method>
 					<xpath>ItemId/ClientItemId|UniqueID|ClientItemId</xpath>
 				</sku>
 				<style_id>
 					<class>eb2cproduct/map</class>
 					<type>helper</type>
-					<method>extractStringValue</method>
+					<method>extractSkuValue</method>
 					<xpath>ExtendedAttributes/Style/StyleID</xpath>
 				</style_id>
 				<tax_code>

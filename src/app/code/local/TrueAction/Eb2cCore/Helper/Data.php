@@ -128,8 +128,11 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function normalizeSku($itemId, $catalogId)
 	{
-		if (!empty($itemId) && strpos($itemId, $catalogId . '-') !== 0) {
-			return sprintf('%s-%s', $catalogId, $itemId);
+		if (!empty($itemId)) {
+			$pos = strpos($itemId, $catalogId . '-');
+			if ($pos === false || $pos !== 0) {
+				return sprintf('%s-%s', $catalogId, $itemId);
+			}
 		}
 		return $itemId;
 	}

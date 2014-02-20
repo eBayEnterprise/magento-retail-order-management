@@ -178,11 +178,12 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	{
 		$feedXPath = Mage::helper('eb2ccore')->getNewDomXPath($productDataDoc);
 		$productCollection = $this->_buildProductCollection($this->_getSkusToUpdate($feedXPath));
+		$productCollection->setStore($storeId);
 		foreach ($feedXPath->query(self::BASE_ITEM_XPATH) as $itemNode) {
 			$this->_updateItem($feedXPath, $itemNode, $productCollection);
 		}
 		Mage::log(sprintf('[%s] saving collection of %d products', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
-		$productCollection->setStore($storeId)->save();
+		$productCollection->save();
 		return $this;
 	}
 	/**
@@ -210,6 +211,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 			$productCollection->addItem($product);
 			Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
 		}
+		$product->setStoreId($productCollection->getStoreId());
 		$product->addData($extractor->extractItem($feedXPath, $itemNode, $product));
 		return $this;
 	}

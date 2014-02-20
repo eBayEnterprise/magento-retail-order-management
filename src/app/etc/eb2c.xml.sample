@@ -409,17 +409,23 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<xpath></xpath>
 				</url_key>
 				<color>
-					<class>eb2cproduct/map</class>
-					<type>disabled</type>
-					<method></method>
-					<xpath></xpath>
+					<class>eb2cproduct/map_attribute</class>
+					<type>helper</type>
+					<method>extractColorValue</method>
+					<xpath>ExtendedAttributes/ColorAttributes/Color/Code</xpath>
 				</color>
 				<configurable_attributes_data>
-					<class>eb2cproduct/map</class>
-					<type>disabled</type>
-					<method></method>
-					<xpath></xpath>
+					<class>eb2cproduct/map_attribute</class>
+					<type>helper</type>
+					<method>extractConfigurableAttributesData</method>
+					<xpath>CustomAttributes/Attribute[@name="ConfigurableAttributes"]/Value</xpath>
 				</configurable_attributes_data>
+				<can_save_configurable_attributes>
+					<class>eb2cproduct/map_attribute</class>
+					<type>helper</type>
+					<method>extractCanSaveConfigurableAttributes</method>
+					<xpath>CustomAttributes/Attribute[@name="ConfigurableAttributes"]/Value</xpath>
+				</can_save_configurable_attributes>
 			</feed_attribute_mappings>
 		</eb2cproduct>
 	</default>

@@ -220,6 +220,15 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * retrieve the catalog id from the config
+	 * @return string
+	 */
+	public function getCatalogId()
+	{
+		return $this->getConfig()->catalogId;
+	}
+
+	/**
 	 * Generate a message id
 	 * This is an arbitrary construct, designed only to pass XSD validation
 	 * @return string

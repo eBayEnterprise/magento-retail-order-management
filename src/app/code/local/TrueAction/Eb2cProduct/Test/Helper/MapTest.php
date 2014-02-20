@@ -7,6 +7,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 * Expectation 1: this test is expected to call the TrueAction_Eb2cProduct_Helper_Map::extractStringValue method with a known
 	 *                DOMNodeList object the method is then expected to return a string value extract from the
 	 *                DOMNodeList object
+	 * @test
 	 */
 	public function testExtractStringValue()
 	{
@@ -38,6 +39,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 * Expectation 2: the TrueAction_Eb2cProduct_Helper_Data::parseBool method is expected to be given, the extract value
 	 *                from the DOMNodeList object object and return a boolean representative of the passed in string
 	 * @mock TrueAction_Eb2cProduct_Helper_Data::parseBool
+	 * @test
 	 */
 	public function testExtractBoolValue()
 	{
@@ -78,6 +80,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 * Expectation 1: this test is expected to call the TrueAction_Eb2cProduct_Helper_Map::extractIntValue method with a known
 	 *                DOMNodeList object the method is then expected to return a string value cast as an integer value
 	 *                DOMNodeList object
+	 * @test
 	 */
 	public function testExtractIntValue()
 	{
@@ -108,6 +111,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 * Expectation 1: this test is expected to call the TrueAction_Eb2cProduct_Helper_Map::extractFloatValue method with a known
 	 *                DOMNodeList object the method is then expected to return a string value cast as an float value
 	 *                DOMNodeList object
+	 * @test
 	 */
 	public function testExtractFloatValue()
 	{
@@ -137,6 +141,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 *                DOMNodeList object the method is then expected to return a value for enabling magento product by first
 	 *                extracting the first value of the DOMNodeList and then checking if it is equal to 'active' and then returning
 	 *                the Mage_Catalog_Model_Product_Status::STATUS_ENABLED constant
+	 * @test
 	 */
 	public function testExtractStatusValueWhenActive()
 	{
@@ -162,6 +167,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 
 	/**
 	 * @see testExtractStatusValueWhenActive test, now testing when the extract string is not equal to 'active'
+	 * @test
 	 */
 	public function testExtractStatusValueWhenNotActive()
 	{
@@ -192,6 +198,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 *                if the value equal to 'regular' or 'always' in order to return
 	 *                Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH contstant otherwise
 	 *                return Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE constant
+	 * @test
 	 */
 	public function testExtractVisibilityValueWhenVisibilityBoth()
 	{
@@ -220,6 +227,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 * @see testExtractVisibilityValueWhenVisibilityBoth testing the case where the constant
 	 *      Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE will be returned from
 	 *      the extracted data
+	 * @test
 	 */
 	public function testExtractVisibilityValueWhenNotVisible()
 	{
@@ -266,7 +274,16 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	public function testExtractProductLinks()
 	{
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML('<root><ProductLink link_type="ES_Accessory" operation_type="Add"><LinkToUniqueId>45-12345</LinkToUniqueId></ProductLink><ProductLink link_type="ES_CrossSelling" operation_type="Delete"><LinkToUniqueId>45-23456</LinkToUniqueId></ProductLink></root>');
+		$doc->loadXML(
+			'<root>
+				<ProductLink link_type="ES_Accessory" operation_type="Add">
+					<LinkToUniqueId>45-12345</LinkToUniqueId>
+				</ProductLink>
+				<ProductLink link_type="ES_CrossSelling" operation_type="Delete">
+					<LinkToUniqueId>45-23456</LinkToUniqueId>
+				</ProductLink>
+			</root>'
+		);
 		$nodes = $doc->getElementsByTagName('ProductLink');
 
 		$links = array(
@@ -289,6 +306,9 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			)
 		);
 	}
+	/**
+	 * @test
+	 */
 	public function testExtractProductLinksUnknownLink()
 	{
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
@@ -337,11 +357,128 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
 
 		$helper = Mage::helper('eb2cproduct/map');
-		foreach ($linkTypes as $eb2cLink => $magentoLink) {
+		foreach ($linkTypes as $ebcLink => $magentoLink) {
 			$this->assertSame(
 				$magentoLink,
-				EcomDev_Utils_Reflection::invokeRestrictedMethod($helper, '_convertToMagentoLinkType', array($eb2cLink))
+				EcomDev_Utils_Reflection::invokeRestrictedMethod($helper, '_convertToMagentoLinkType', array($ebcLink))
 			);
+		}
+	}
+
+	/**
+	 * Test extractSkuValue method with the following expectations
+	 * Expectation 1: when this test invoked this method TrueAction_Eb2cProduct_Helper_Map::extractSkuValue
+	 *                with a node list that the extract value doesn't have the catalog id, the called to
+	 *                the method TrueAction_Eb2cCore_Helper_Data::normalizeSku will prepend the catalog
+	 *                to the extract value
+	 * @test
+	 */
+	public function testExtractSkuValue()
+	{
+		$nodes = new DOMNodeList();
+		$catalogId = '85';
+		$sku = '847499';
+		$result = $catalogId . '-' . $sku;
+
+		$prodHelper = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$prodHelper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'catalogId' => $catalogId
+			))));
+		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('extractNodeVal', 'normalizeSku'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('extractNodeVal')
+			->with($this->identicalTo($nodes))
+			->will($this->returnValue($sku));
+		$coreHelperMock->expects($this->once())
+			->method('normalizeSku')
+			->with($this->identicalTo($sku), $this->identicalTo($catalogId))
+			->will($this->returnValue($result));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$this->assertSame($result, Mage::helper('eb2cproduct/map')->extractSkuValue($nodes));
+	}
+
+	/**
+	 * Test extractProductTypeValue method for the following expectations
+	 * Expectation 1: when this test invoked the method TrueAction_Eb2cProduct_Helper_Map::extractProductTypeValue with
+	 *                a DOMNodeList object and a Mage_Catalog_Model_Product object it will extract the type value
+	 *                and then call the mocked method TrueAction_Eb2cProduct_Helper_Map::_isValidProductType method
+	 *                to make sure the value extracted match with the know type of magento product type
+	 * Expectation 2: the given product object set type id will be set with the extract method and also the
+	 *                the product object set type instance will be set with the return value of the
+	 *                static call to the product factory
+	 */
+	public function testExtractProductTypeValue()
+	{
+		$value = 'configurable';
+		$nodes = new DOMNodeList();
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('extractNodeVal'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('extractNodeVal')
+			->with($this->identicalTo($nodes))
+			->will($this->returnValue($value));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$product = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('setTypeId', 'setTypeInstance'))
+			->getMock();
+		$product->expects($this->once())
+			->method('setTypeId')
+			->with($this->identicalTo($value))
+			->will($this->returnSelf());
+		$product->expects($this->once())
+			->method('setTypeInstance')
+			->with($this->isInstanceOf('Mage_Catalog_Model_Product_Type_Abstract'), $this->identicalTo(true))
+			->will($this->returnSelf());
+
+		$mapMock = $this->getHelperMockBuilder('eb2cproduct/map')
+			->disableOriginalConstructor()
+			->setMethods(array('_isValidProductType'))
+			->getMock();
+		$mapMock->expects($this->once())
+			->method('_isValidProductType')
+			->with($this->identicalTo($value))
+			->will($this->returnValue(true));
+
+		$this->assertSame($value, $mapMock->extractProductTypeValue($nodes, $product));
+	}
+
+	/**
+	 * Test _isValidProductType method for the following expectations
+	 * Expectation 1: when this test invoked the method TrueAction_Eb2cProduct_Helper_Map::_isValidProductType
+	 *                with a given value it will check if the value in the six possible Magento product type
+	 *                it will return true if value match otherwise false
+	 */
+	public function testIsValidProductType()
+	{
+		$testData = array(
+			array('expect' => true, 'value' => 'simple'),
+			array('expect' => false, 'value' => 'wrong'),
+		);
+
+		$map = Mage::helper('eb2cproduct/map');
+
+		foreach ($testData as $data) {
+			$this->assertSame($data['expect'], EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$map,
+				'_isValidProductType',
+				array($data['value'])
+			));
 		}
 	}
 }
