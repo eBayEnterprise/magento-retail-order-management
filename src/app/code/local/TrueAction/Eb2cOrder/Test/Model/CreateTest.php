@@ -31,53 +31,6 @@ INVALID_XML;
 		$testPbridge = $method->invoke($create, self::SAMPLE_PBRIDGE_ADDITIONAL_DATA);
 		$this->assertEquals('VI', $testPbridge['cc_type']);
 	}
-
-	/**
-	 * Tests for correctly as parsed from Pbridge Credit Card extensions 'additional_information' variable.
-	 * @test
-	 */
-	public function testPbridgeGetAdditionalInformation()
-	{
-		$this->markTestIncomplete('overly broad test');
-		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$helperMock->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue((Object) array('isPaymentEnabled' => true)));
-		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
-		$_SERVER['HTTP_ACCEPT'] = '/';
-		$_SERVER['HTTP_ACCEPT_ENCODING'] = 'gzip, deflate';
-		$this->replaceCoreSession();
-		$this->replaceCoreConfigRegistry();
-		$orderCreator = Mage::getModel('eb2corder/create')
-			->buildRequest($this->getMockSalesOrder());
-		$reflectXmlRequest = $this->_reflectProperty($orderCreator, '_xmlRequest');
-		$xmlRequestValue = $reflectXmlRequest->getValue($orderCreator);
-		$testDom = new DOMDocument();
-		$testDom->loadXML($xmlRequestValue);
-		$this->assertStringStartsWith(
-			'pb_avsResponseCode',
-			$testDom->getElementsByTagName('AVSResponseCode')->item(0)->nodeValue,
-			'AVS Response Code was incorrect.'
-		);
-		$this->assertStringStartsWith(
-			'pb_bankAuthorizationCode',
-			$testDom->getElementsByTagName('BankAuthorizationCode')->item(0)->nodeValue,
-			'BankAuthorizationCode was incorrect.'
-		);
-		$this->assertStringStartsWith(
-			'pb_cvv2ResponseCode',
-			$testDom->getElementsByTagName('CVV2ResponseCode')->item(0)->nodeValue,
-			'CVV2ResponseCode was incorrect.'
-		);
-		$this->assertStringStartsWith(
-			'pb_responseCode',
-			$testDom->getElementsByTagName('ResponseCode')->item(0)->nodeValue,
-			'ResponseCode was incorrect.'
-		);
-	}
 	/**
 	 * Test getting tax quotes for a given item
 	 * @test

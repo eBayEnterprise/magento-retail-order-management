@@ -40,50 +40,6 @@ class TrueAction_Eb2cProduct_Test_Model_Image_ExportTest extends TrueAction_Eb2c
 
 		return $stubImageExport;
 	}
-
-	/**
-	 * Test build image feed
-	 * @loadFixture ExportTest.yaml
-	 * There is only one public method - buildExport, which takes null or a valid store Id as an argument,
-	 * and returns the number of stores examined.
-	 *
-	 * 'null' means 'process all stores' so it's a number > 0
- 	 * 0 is a the admin store id, so it should always be exactly 1 store processed
-	 * An invalid store argument throws a Mage_Core_Model_Store_Exception
-	 */
-	public function testBuilder()
-	{
-		$this->markTestSkipped('not a unit test');
-		$vfs = $this->getFixture()->getVfs();
-		$this->replaceCoreConfigRegistry(
-			array (
-				'xsdFileImageExport' => $vfs->url(self::VFS_ROOT . '/xsd/Image_Feed.xsd'),
-			)
-		);
-
-		$this->replaceByMock('model', self::MODEL_NAME, $this->_stubImageExportModel());
-
-		// Don't want to actually send a file:
-		$stubTransport = $this->getModelMockBuilder(self::FILETRANSFER_MODEL_NAME)
-			->disableOriginalConstructor()
-			->setMethods(array('sendFile'))
-			->getMock();
-		$stubTransport->expects($this->any())
-			->method('sendFile')
-			->will($this->returnValue(true));
-		$this->replaceByMock('model', self::FILETRANSFER_MODEL_NAME, $stubTransport);
-
-		// Builds 'all' XML (calls _getAllStoreIds for the list)
-		$this->assertEquals(1,
-			Mage::getModel(self::MODEL_NAME)->buildExport()
-		);
-
-		// 0 is always the admin store - if I provide an argument, I should process one and only 1 store
-		$this->assertEquals(1,
-			Mage::getModel(self::MODEL_NAME)->buildExport(0)
-		);
-	}
-
 	/**
 	 * @test
 	 * Test no products - test that when getCollection finds no products, we don't crash, just return 0
