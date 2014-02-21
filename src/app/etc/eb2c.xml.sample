@@ -408,12 +408,6 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<method></method>
 					<xpath></xpath>
 				</url_key>
-				<category_ids>
-					<class>eb2cproduct/map_category</class>
-					<type>helper</type>
-					<method>extractCategoryIds</method>
-					<xpath>CategoryLinks/CategoryLink[@import_mode!="Delete"]/Name</xpath>
-				</category_ids>
 				<color>
 					<class>eb2cproduct/map</class>
 					<type>disabled</type>

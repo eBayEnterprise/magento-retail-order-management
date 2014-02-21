@@ -39,26 +39,33 @@ class TrueAction_Eb2cProduct_Helper_Map_Category extends Mage_Core_Helper_Abstra
 	 * Convert a list of CategoryLink Name nodes into an array of category
 	 * ids the given product should be in.
 	 *
-	 * @param DOMNodeList $node
+	 * @param DOMNodeList $nodes
 	 * @return array
 	 */
-	public function extractCategoryIds(DOMNodeList $node)
+	public function extractCategoryIds(DOMNodeList $nodes)
 	{
-		return array_map(array($this, '_mapNamePathToId'), $this->_convertNodesToDashNames($node));
+		return array_filter(
+			array_map(array($this, '_mapNamePathToId'), $this->_convertNodesToDashNames($nodes)),
+			function($id) {
+				// Strip elements where the path was not found.
+				// @see _mapNamePathToId
+				return $id !== -1;
+			}
+		);
 	}
 	/**
 	 * Convert a list of nodes into an array of dash-delimited category names.
 	 *
-	 * @param DOMNodeList $node CategoryLink/Name nodes
+	 * @param DOMNodeList $nodes CategoryLink/Name nodes
 	 * @return array
 	 */
-	protected function _convertNodesToDashNames(DOMNodeList $node)
+	protected function _convertNodesToDashNames(DOMNodeList $nodes)
 	{
 		$dashNames = array();
-		foreach ($node as $element) {
-			$dashNames[] = trim($element->nodeValue);
+		foreach($nodes as $node) {
+			$dashNames[] = 'Root Catalog-' . trim($node->nodeValue);
 		}
-		return array_filter($dashNames);
+		return array_unique($dashNames);
 	}
 	/**
 	 * Map a dash-delimited path of category names to an individual category
@@ -90,7 +97,12 @@ class TrueAction_Eb2cProduct_Helper_Map_Category extends Mage_Core_Helper_Abstra
 				$ids
 			);
 		}
-		return $this->_namePathToIdMap[$namePath];
+		if (isset($this->_namePathToIdMap[$namePath])) {
+			return $this->_namePathToIdMap[$namePath];
+		} else {
+			Mage::helper('trueaction_magelog')->logWarn('[ %s ] No category was found with path matching "%s".', array(__CLASS__, $namePath));
+			return -1;
+		}
 	}
 }
 

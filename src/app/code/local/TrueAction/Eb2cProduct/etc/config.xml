@@ -281,6 +281,12 @@
 				</related_link_types>
 			</feed>
 			<feed_attribute_mappings>
+				<category_ids>
+					<class>eb2cproduct/map_category</class>
+					<type>helper</type>
+					<method>extractCategoryIds</method>
+					<xpath>CategoryLinks/CategoryLink[@import_mode!="Delete"]/Name</xpath>
+				</category_ids>
 				<is_clean>
 					<class>eb2cproduct/map</class>
 					<type>helper</type>

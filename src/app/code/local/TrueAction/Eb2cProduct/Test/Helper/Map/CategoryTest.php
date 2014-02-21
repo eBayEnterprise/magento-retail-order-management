@@ -20,6 +20,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest extends TrueAction_Eb2cCore_Tes
 				<CategoryLink import_mode="Update">
 					<Name>Luma Root-Shoes-Boots</Name>
 				</CategoryLink>
+				<!-- The item should end up in Luma Root/Outerwear/Jackets, but not Luma Root/Outerwear -->
 				<CategoryLink import_mode="Update">
 					<Name>Luma Root-Outerwear-Jackets</Name>
 				</CategoryLink>
@@ -35,14 +36,15 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest extends TrueAction_Eb2cCore_Tes
 			->method('addAttributeToSelect')
 			->with($this->identicalTo(array('name', 'path', 'id')))
 			->will($this->returnSelf());
-		$ids = array(0, 1, 2, 30, 31);
-		$names = array('Luma Root', 'Shoes', 'Boots', 'Outerwear', 'Jackets');
+		$ids = array(0, 1, 2, 3, 30, 31);
+		$names = array('Root Catalog', 'Luma Root', 'Shoes', 'Boots', 'Outerwear', 'Jackets');
 		$paths = array(
-			'0', // Luma Root
-			'0/1', // Luma Root-Shoes
-			'0/1/2', // Luma Root-Shoes-Boots
-			'0/30', // Luma Root-Outerwear
-			'0/30/31', // Luma Root-Outerwear-Jackets
+			'0', // Root Catalog
+			'0/1', // Luma Root
+			'0/1/2', // Luma Root-Shoes
+			'0/1/2/3', // Luma Root-Shoes-Boots
+			'0/1/30', // Luma Root-Outerwear
+			'0/1/30/31', // Luma Root-Outerwear-Jackets
 		);
 		$catCol
 			->expects($this->any())
@@ -69,7 +71,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest extends TrueAction_Eb2cCore_Tes
 	{
 		$this->replaceByMock('resource_model', 'catalog/category_collection', $catCol);
 		$this->assertSame(
-			array(0,1,2,31),
+			array(1,2,3,31), // everything except Luma Root-Outerwear
 			Mage::helper('eb2cproduct/map_category')->extractCategoryIds($nodes)
 		);
 	}
