@@ -15,11 +15,6 @@
 					<entity_type>TrueAction_Eb2cOrder_Overrides_Model_Eav_Entity_Type</entity_type>
 				</rewrite>
 			</eav>
-			<paypal>
-				<rewrite>
-					<express_checkout>TrueAction_Eb2cOrder_Overrides_Model_Paypal_Express_Checkout</express_checkout>
-				</rewrite>
-			</paypal>
 			<enterprise_rma>
 				<rewrite>
 					<rma>TrueAction_Eb2cOrder_Overrides_Model_Enterprise_Rma</rma>
@@ -53,6 +48,17 @@
 				</setup>
 			</eb2corder_setup>
 		</resources>
+		<events>
+			<checkout_submit_all_after>
+				<observers>
+					<createrequest_observer>
+						<type>singleton</type>
+						<class>TrueAction_Eb2cOrder_Model_Create</class>
+						<method>observerCreate</method>
+					</createrequest_observer>
+				</observers>
+			</checkout_submit_all_after>
+		</events>
 	</global>
 	<crontab>
 		<jobs>
@@ -74,17 +80,6 @@
 				</trueaction_eb2corder>
 			</updates>
 		</layout>
-		<events>
-			<checkout_type_onepage_save_order_after>
-				<observers>
-					<createrequest_observer>
-						<type>singleton</type>
-						<class>TrueAction_Eb2cOrder_Model_Create</class>
-						<method>observerCreate</method>
-					</createrequest_observer>
-				</observers>
-			</checkout_type_onepage_save_order_after>
-		</events>
 	</frontend>
 	<default>
 		<eb2ccore>

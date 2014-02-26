@@ -55,17 +55,17 @@ class TrueAction_Eb2cInventory_Test_Model_DetailsTest
 	public function providerCanMakeRequestWithQuote()
 	{
 		$item = $this->getModelMock('sales/quote_item');
-		$addressNoMethod = $this->getModelMock('sales/quote_address', array('hasShippingMethod'));
-		$addressWithMethod = $this->getModelMock('sales/quote_address', array('hasShippingMethod'));
+		$addressNoMethod = $this->getModelMock('sales/quote_address', array('getShippingMethod'));
+		$addressWithMethod = $this->getModelMock('sales/quote_address', array('getShippingMethod'));
 
 		$addressNoMethod
 			->expects($this->any())
-			->method('hasShippingMethod')
+			->method('getShippingMethod')
 			->will($this->returnValue(false));
 
 		$addressWithMethod
 			->expects($this->any())
-			->method('hasShippingMethod')
+			->method('getShippingMethod')
 			->will($this->returnValue(true));
 		return array(
 			array(array(), null, false),

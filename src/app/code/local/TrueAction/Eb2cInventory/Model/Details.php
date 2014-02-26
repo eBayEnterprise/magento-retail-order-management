@@ -21,7 +21,7 @@ class TrueAction_Eb2cInventory_Model_Details
 	protected function _canMakeRequestWithQuote(Mage_Sales_Model_Quote $quote)
 	{
 		return parent::_canMakeRequestWithQuote($quote) &&
-			$quote->getShippingAddress() && $quote->getShippingAddress()->hasShippingMethod();
+			$quote->getShippingAddress() && $quote->getShippingAddress()->getShippingMethod();
 	}
 	/**
 	 * Take a quote address and interpolate it into a ShipmentDetails xml node string.
@@ -38,7 +38,7 @@ class TrueAction_Eb2cInventory_Model_Details
 				$lines .= sprintf('<Line%d>%s</Line%d>', $i, $st, $i);
 			}
 		}
-		return sprintf(
+		$xmlStr = sprintf(
 			'<ShipmentDetails><ShippingMethod>%s</ShippingMethod><ShipToAddress>%s<City>%s</City><MainDivision>%s</MainDivision><CountryCode>%s</CountryCode><PostalCode>%s</PostalCode></ShipToAddress></ShipmentDetails>',
 			Mage::helper('eb2ccore')->lookupShipMethod($address->getShippingMethod()),
 			$lines,
@@ -47,6 +47,7 @@ class TrueAction_Eb2cInventory_Model_Details
 			$address->getCountryId(),
 			$address->getPostcode()
 		);
+		return $xmlStr;
 	}
 	/**
 	 * Take a single quote item and shipment details xml node string.
