@@ -1,5 +1,5 @@
 <?php
-class TrueAction_Eb2cProduct_Test_Helper_MapTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cProduct_Test_Helper_Map_CategoryTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * Provide DOMNodeLists of CategoryLink/Name nodes and a collection of categories.
