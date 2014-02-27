@@ -685,4 +685,251 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 
 		$this->assertSame($confirmations, $confirmations->archive($source));
 	}
+
+	/**
+	 * Test processByOperationType method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cProduct_Model_Error_Confirmations::_processByOperationType will be
+	 *                invoked and given an object of Varient_Event_Observer contain methods to get all skues that were deleted
+	 *                and another method got get feed file detail. It will query the magento database for these
+	 *                deleted skus and report any product that still exist in magento.
+	 */
+	public function testProcessByOperationType()
+	{
+		$skus = array('58-HTC038', '58-JKT8844');
+		$type = 'ItemMaster';
+		$file = 'local/Feed/ItemMaster/inbox/ItemMaster_Subset-Sample.xml';
+		$errorFile = 'local/Feed/ItemMaster/outbound/ItemMaster_20140115063947_ABCD_1234.xml';
+		$operationType = 'delete';
+		$fileDetail = array('local' => $file, 'type' => $type, 'error_file' => $errorFile, 'operation_type' => $operationType);
+
+		$eventMock = $this->getMockBuilder('Varien_Event')
+			->disableOriginalConstructor()
+			->setMethods(array('getFeedDetail', 'getSkus', 'getOperationType'))
+			->getMock();
+		$eventMock->expects($this->once())
+			->method('getFeedDetail')
+			->will($this->returnValue($fileDetail));
+		$eventMock->expects($this->once())
+			->method('getSkus')
+			->will($this->returnValue($skus));
+		$eventMock->expects($this->once())
+			->method('getOperationType')
+			->will($this->returnValue($operationType));
+
+		$observerMock = $this->getMockBuilder('Varien_Event_Observer')
+			->disableOriginalConstructor()
+			->setMethods(array('getEvent'))
+			->getMock();
+		$observerMock->expects($this->once())
+			->method('getEvent')
+			->will($this->returnValue($eventMock));
+
+		$productCollection = Mage::getResourceModel('catalog/product_collection');
+
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('loadFile', '_getProductCollectionBySkus', '_addDeleteErrors'))
+			->getMock();
+		$errorConfirmationMock->expects($this->once())
+			->method('loadFile')
+			->with($this->identicalTo($errorFile))
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->once())
+			->method('_getProductCollectionBySkus')
+			->with($this->identicalTo($skus))
+			->will($this->returnValue($productCollection));
+		$errorConfirmationMock->expects($this->once())
+			->method('_addDeleteErrors')
+			->with($this->identicalTo($productCollection), $this->identicalTo(basename($file)), $this->identicalTo($type))
+			->will($this->returnSelf());
+
+		$this->assertSame($errorConfirmationMock, $errorConfirmationMock->processByOperationType($observerMock));
+	}
+
+	/**
+	 * Test _addDeleteErrors method for the following expectations
+	 * Expectation 1: given a mock object of class Mage_Catalog_Model_Resource_Product_Collection, a feed file name
+	 *                and an event type to the method TrueAction_Eb2cProduct_Model_Error_Confirmations::_addDeleteErrors
+	 *                when invoked by this test will check the count on the collection loop through all the product
+	 *                on the collection call addMessage, addError, AddErrrorConfirmation and flush methods to error confirmation
+	 *                to the file
+	 */
+	public function testAddDeleteErrors()
+	{
+		$skus = array('58-HTC038', '58-JKT8844');
+		$type = 'ItemMaster';
+		$fileName = 'ItemMaster_Subset-Sample.xml';
+
+		$productCollection = Mage::getResourceModel('catalog/product_collection');
+		foreach ($skus as $sku) {
+			$productCollection->addItem(Mage::getModel('catalog/product')->addData(array('sku' => $sku)));
+		}
+
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('_appendError'))
+			->getMock();
+		$errorConfirmationMock->expects($this->at(0))
+			->method('_appendError')
+			->with(
+				$this->identicalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_REMOVE),
+				$this->identicalTo(''),
+				$this->identicalTo($type),
+				$this->identicalTo($fileName),
+				$this->identicalTo($skus[0])
+			)
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->at(1))
+			->method('_appendError')
+			->with(
+				$this->identicalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_REMOVE),
+				$this->identicalTo(''),
+				$this->identicalTo($type),
+				$this->identicalTo($fileName),
+				$this->identicalTo($skus[1])
+			)
+			->will($this->returnSelf());
+
+		$this->assertSame($errorConfirmationMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$errorConfirmationMock,
+			'_addDeleteErrors',
+			array($productCollection, $fileName, $type)
+		));
+	}
+
+	/**
+	 * Test _addImportErrors method for the following expectations
+	 * Expectation 1: given a mock object of class Mage_Catalog_Model_Resource_Product_Collection, a list of imported skus, a feed file name
+	 *                and an event type to the method TrueAction_Eb2cProduct_Model_Error_Confirmations::_addImportErrors
+	 *                when invoked by this test will loop through all the imported skus and check if the sku is in
+	 *                the collection if it is not it will add error confirmations
+	 */
+	public function testAddImportErrors()
+	{
+		$skus = array('58-HTC038', '58-JKT8844');
+		$type = 'ItemMaster';
+		$fileName = 'ItemMaster_Subset-Sample.xml';
+
+		$collectionMock = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getItemByColumnValue'))
+			->getMock();
+		$collectionMock->expects($this->exactly(2))
+			->method('getItemByColumnValue')
+			->will($this->returnValueMap(array(
+				array('sku', $skus[0], null),
+				array('sku', $skus[1], null)
+			)));
+
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('_appendError'))
+			->getMock();
+		$errorConfirmationMock->expects($this->at(0))
+			->method('_appendError')
+			->with(
+				$this->identicalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_IMPORTED),
+				$this->identicalTo(''),
+				$this->identicalTo($type),
+				$this->identicalTo($fileName),
+				$this->identicalTo($skus[0])
+			)
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->at(1))
+			->method('_appendError')
+			->with(
+				$this->identicalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_IMPORTED),
+				$this->identicalTo(''),
+				$this->identicalTo($type),
+				$this->identicalTo($fileName),
+				$this->identicalTo($skus[1])
+			)
+			->will($this->returnSelf());
+
+		$this->assertSame($errorConfirmationMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$errorConfirmationMock,
+			'_addImportErrors',
+			array($collectionMock, $skus, $fileName, $type)
+		));
+	}
+
+	/**
+	 * Test _appendError method for the following expectations
+	 * Expectation 1: given a mock object of class Mage_Catalog_Model_Resource_Product_Collection, a list of imported skus, a feed file name
+	 *                and an event type to the method TrueAction_Eb2cProduct_Model_Error_Confirmations::_appendError
+	 *                when invoked by this test will loop through all the imported skus and check if the sku is in
+	 *                the collection if it is not it will add error confirmations
+	 */
+	public function testAppendError()
+	{
+		$sku = '58-HTC038';
+		$type = 'ItemMaster';
+		$fileName = 'ItemMaster_Subset-Sample.xml';
+
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('addMessage', 'addError', 'addErrorConfirmation', 'flush'))
+			->getMock();
+		$errorConfirmationMock->expects($this->once())
+			->method('addMessage')
+			->with($this->identicalTo(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_IMPORTED), $this->identicalTo(''))
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->once())
+			->method('addError')
+			->with($this->identicalTo($type), $this->identicalTo($fileName))
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->once())
+			->method('addErrorConfirmation')
+			->with($this->identicalTo($sku))
+			->will($this->returnSelf());
+		$errorConfirmationMock->expects($this->once())
+			->method('flush')
+			->will($this->returnSelf());
+
+		$this->assertSame($errorConfirmationMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$errorConfirmationMock,
+			'_appendError',
+			array(TrueAction_Eb2cProduct_Model_Error_Confirmations::SKU_NOT_IMPORTED, '', $type, $fileName, $sku)
+		));
+	}
+
+	/**
+	 * Test _getProductCollectionBySkus method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cProduct_Model_Feed_File::_getProductCollectionBySkus when
+	 *                invoked by this test will be given an array of skus as parameter
+	 *                with that parameter it will query the Mage_Catalog_Model_Resource_Product_Collection by skus
+	 *                and return a collection of product
+	 */
+	public function testGetProductCollectionBySkus()
+	{
+		$skus = array('58-HTC038', '58-JKT8844');
+
+		$collectionMock = $this->getResourceModelMockBuilder('catalog/product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'load'))
+			->getMock();
+		$collectionMock->expects($this->once())
+			->method('addFieldToFilter')
+			->with($this->identicalTo('sku'), $this->identicalTo($skus))
+			->will($this->returnSelf());
+		$collectionMock->expects($this->once())
+			->method('addAttributeToSelect')
+			->with($this->identicalTo(array('sku')))
+			->will($this->returnSelf());
+		$collectionMock->expects($this->once())
+			->method('load')
+			->will($this->returnSelf());
+		$this->replaceByMock('resource_model', 'catalog/product_collection', $collectionMock);
+
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($collectionMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$errorConfirmationMock,
+			'_getProductCollectionBySkus',
+			array($skus)
+		));
+	}
 }

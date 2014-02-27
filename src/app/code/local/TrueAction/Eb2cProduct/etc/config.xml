@@ -188,6 +188,14 @@
 					</eb2c_error_confirmations>
 				</observers>
 			</product_feed_complete_error_confirmation>
+			<product_feed_process_operation_type_error_confirmation>
+				<observers>
+					<eb2c_error_confirmations_operation>
+						<class>eb2cproduct/error_confirmations</class>
+						<method>processByOperationType</method>
+					</eb2c_error_confirmations_operation>
+				</observers>
+			</product_feed_process_operation_type_error_confirmation>
 		</events>
 	</global>
 	<default>

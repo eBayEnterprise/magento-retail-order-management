@@ -40,6 +40,11 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * @var array
 	 */
 	protected $_feedDetails;
+
+	/**
+	 * @var array hold an list of sku to be imported
+	 */
+	protected $_importedSkus = array();
 	/**
 	 * The Mage factory method only allows passing a single array of data as
 	 * arguments to constructors. As the constructor requires certain data to be
@@ -81,7 +86,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * @return string
 	 * @codeCoverageIgnore
 	 */
-	public function getErrorFile()
+	protected function _getErrorFile()
 	{
 		return $this->_feedDetails['error_file'];
 	}
@@ -94,6 +99,11 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		$this->deleteProducts()
 			->processDefaultStore()
 			->processTranslations();
+
+		Mage::dispatchEvent(
+			'product_feed_process_operation_type_error_confirmation',
+			array('feed_detail' => $this->_feedDetails, 'skus' => $this->_importedSkus, 'operation_type' => 'import')
+		);
 		return $this;
 	}
 	/**
@@ -110,6 +120,11 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 				->addAttributeToSelect(array('entity_id'))
 				->load()
 				->delete();
+
+			Mage::dispatchEvent(
+				'product_feed_process_operation_type_error_confirmation',
+				array('feed_detail' => $this->_feedDetails, 'skus' => $skus, 'operation_type' => 'delete')
+			);
 		}
 		return $this;
 	}
@@ -134,18 +149,20 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 */
 	protected function _getSkusToUpdate(DOMXPath $xpath)
 	{
-		$updateSkuNodes = $xpath->query(self::ALL_SKUS_XPATH);
-		$skus = array();
-		foreach ($updateSkuNodes as $skuNode) {
-			$skus[] = $skuNode->nodeValue;
+		if (empty($this->_importedSkus)) {
+			$updateSkuNodes = $xpath->query(self::ALL_SKUS_XPATH);
+			foreach ($updateSkuNodes as $skuNode) {
+				$this->_importedSkus[] = $skuNode->nodeValue;
+			}
 		}
-		return $skus;
+		return $this->_importedSkus;
 	}
 	/**
 	 * Get the path to the given XSLT template. Methods assumes all XSLTs are
 	 * in an XSLT directory within the eb2cproduct module directory.
 	 * @param  string $templateName File name of the XSLT
 	 * @return string
+	 * @codeCoverageIgnore
 	 */
 	protected function _getXsltPath($templateName)
 	{
@@ -200,7 +217,8 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	protected function _updateItem(
 		DOMXPath $feedXPath,
 		DOMNode $itemNode,
-		TrueAction_Eb2cProduct_Model_Resource_Feed_Product_Collection $productCollection)
+		TrueAction_Eb2cProduct_Model_Resource_Feed_Product_Collection $productCollection
+	)
 	{
 		$extractor = Mage::getSingleton('eb2cproduct/feed_extractor');
 		$helper = Mage::helper('eb2cproduct');

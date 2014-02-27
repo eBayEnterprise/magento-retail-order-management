@@ -42,23 +42,8 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 
 	const XML_MESSAGE_NODE = '<Message xml:lang="{language_code}" code="">{message_data}</Message>';
 
-	const DEFAULT_ERR = 'Unknown error occurred: %s';
-	const DOM_LOAD_ERR = 'Error exception occurred: %s';
-	const BEFORE_PROCESS_DOM_ERR = 'Error exception occurred before processing the Dom document: %s';
-	const EVENT_TYPE_ERR = 'Event Type error occurred: %s';
-	const INVALID_HEADER_ERR = 'Invalid Header error occurred in feed file %s';
-	const INVALID_DATA_ERR = 'Invalid Data error occurred in feed file %s';
-	const INVALID_OPERATION_ERR = 'Invalid Operation Type Error exception occurred: %s';
-	const INVALID_SKU_ERR = 'Invalid sku in feed file (%s)';
-	const SAVE_PRODUCT_EXCEPTION_ERR = 'Saving product exception: %s';
-	const INVALID_LANG_CODE_ERR = 'Invalid language code %s';
-	const INVALID_ATTRIBUTE_OPERATION_ERR = 'Invalid attribute operation %s';
-	const MISSING_ATTRIBUTE_OPERATION_ERR = 'missing custom attribute operation for "%s"';
-	const MISSING_IN_ATTRIBUTE_SET_ERR = 'The following custom attribute is missing from the attribute set "%s"';
-	const ADD_COLOR_OPTION_ERR = 'Adding new color option exception: "%s"';
-	const COLOR_DESCRIPTION_ERR = 'Saving product with language color description exception: "%s"';
-	const CONFIGURABLE_ATTRIBUTE_ERR = 'Processing configurable attribute throw exception: "%s"';
-	const MISSING_SKU_ERR = 'Sku "%s" not in magento store for this inventory update feed.';
+	const SKU_NOT_REMOVE = 'The feed process failed to remove this product of operation type "delete"';
+	const SKU_NOT_IMPORTED = 'The feed process failed to import this product of operation type "add" or "change"';
 
 	/**
 	 * @var array hold message string xml node
@@ -332,5 +317,114 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 		$destination = str_replace('outbound', 'archive', $source);
 		Mage::helper('eb2ccore')->moveFile($source, $destination);
 		return $this;
+	}
+
+	/**
+	 * listen for 'product_feed_process_operation_type_error_confirmation' event dispatch
+	 * get the feed detail and an array of skus that were deleted get a collection of product by the skus
+	 * if there's any product in the collection start adding error confirmation node to the error confirmation file
+	 * @param Varien_Event_Observer $observer
+	 * @return self
+	 */
+	public function processByOperationType(Varien_Event_Observer $observer)
+	{
+		$event = $observer->getEvent();
+		$detail = $event->getFeedDetail();
+		$skus = $event->getSkus();
+		$operationType = $event->getOperationType();
+		$collection = $this->_getProductCollectionBySkus($skus);
+
+		$fileName = basename($detail['local']);
+		$errorFile = $detail['error_file'];
+		$type = $detail['type'];
+
+		$this->loadFile($errorFile);
+
+		Mage::log(
+			sprintf(
+				'[%s] start error confirmation for %d %sed product(s) on file (%s).',
+				__CLASS__, count($skus), $operationType, $fileName
+			),
+			Zend_Log::DEBUG
+		);
+
+		return ($operationType === 'delete')?
+			$this->_addDeleteErrors($collection, $fileName, $type) :
+			$this->_addImportErrors($collection, $skus, $fileName, $type);
+	}
+
+	/**
+	 * given a Mage_Catalog_Model_Resource_Product_Collection object if there's any product
+	 * add them to the error confirmation file
+	 * @param Mage_Catalog_Model_Resource_Product_Collection $collection
+	 * @param string $fileName the file the sku was found on
+	 * @param string $type the event type
+	 * @return self
+	 */
+	protected function _addDeleteErrors(
+		Mage_Catalog_Model_Resource_Product_Collection $collection, $fileName, $type
+	)
+	{
+		if ($collection->count()) {
+			foreach ($collection as $product) {
+				$this->_appendError(self::SKU_NOT_REMOVE, '', $type, $fileName, $product->getSku());
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * given a Mage_Catalog_Model_Resource_Product_Collection object and a list of skus
+	 * if the skus in the list of sku is not in the collection then add error confirmation node
+	 * to feed file about sku was not imported
+	 * @param Mage_Catalog_Model_Resource_Product_Collection $collection
+	 * @param array $skus list of skus that were suppose to be imported
+	 * @param string $fileName the file the sku was found on
+	 * @param string $type the event type
+	 * @return self
+	 */
+	protected function _addImportErrors(
+		Mage_Catalog_Model_Resource_Product_Collection $collection, array $skus, $fileName, $type
+	)
+	{
+		foreach ($skus as $sku) {
+			$product = $collection->getItemByColumnValue('sku', $sku);
+			if (is_null($product)) {
+				$this->_appendError(self::SKU_NOT_IMPORTED, '', $type, $fileName, $sku);
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * given message template, message, event type, file name and a sku call
+	 * the neccessary method to add and error confirmation node with these data
+	 * @param string $template the message template to use
+	 * @param string $message the message to be mapped to the template
+	 * @param string $type the event type
+	 * @param string $fileName the file this error occurred on
+	 * @param string $sku the sku this error is for
+	 * @return self
+	 */
+	protected function _appendError($template, $message, $type, $fileName, $sku)
+	{
+		return $this->addMessage($template, $message)
+			->addError($type, $fileName)
+			->addErrorConfirmation($sku)
+			->flush();
+	}
+
+	/**
+	 * given a list of skus query the Mage_Catalog_Model_Resource_Product_Collection
+	 * for all product in this list of skus
+	 * @param array $skus the list of skus to filter the collection for
+	 * @return Mage_Catalog_Model_Resource_Product_Collection
+	 */
+	protected function _getProductCollectionBySkus(array $skus)
+	{
+		return Mage::getResourceModel('catalog/product_collection')
+			->addFieldToFilter('sku', $skus)
+			->addAttributeToSelect(array('sku'))
+			->load();
 	}
 }
