@@ -75,6 +75,49 @@ class TrueAction_Eb2cCore_Test_Model_ApiTest extends EcomDev_PHPUnit_Test_Case
 		$this->assertSame(200, $api->getStatus());
 	}
 	/**
+	 * Test that we can handle a Zend_Http_Client_Exception
+	 *
+	 * @test
+	 * @dataProvider providerApiCall
+	 */
+	public function testZendHttpClientException($request, $apiUri, $xsdName)
+	{
+		$strType = gettype('');
+		$configConstraint = new PHPUnit_Framework_Constraint_And();
+		$configConstraint->setConstraints(array(
+			$this->arrayHasKey('adapter'),
+			$this->arrayHasKey('timeout')
+		));
+		$httpClient = $this->getMock('Varien_Http_Client', array('setHeaders', 'setUri', 'setConfig', 'setRawData', 'setEncType', 'request'));
+		$httpClient->expects($this->once())
+			->method('setHeaders')
+			->with($this->identicalTo('apiKey'), $this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setUri')
+			->with($this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setConfig')
+			->with($configConstraint)
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setRawData')
+			->with($this->isType($strType))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('setEncType')
+			->with($this->identicalTo('text/xml'))
+			->will($this->returnSelf());
+		$httpClient->expects($this->once())
+			->method('request')
+			->with($this->identicalTo('POST'))
+			->will($this->throwException(new Zend_Http_Client_Exception));
+		$api = Mage::getModel('eb2ccore/api');
+		$this->assertSame(0, $api->getStatus());
+		$this->assertSame('', $api->request($request, $xsdName, $apiUri, 0, 'foo', $httpClient));
+	}
+	/**
 	 * Mock out the config helper.
 	 */
 	protected function _mockConfig()

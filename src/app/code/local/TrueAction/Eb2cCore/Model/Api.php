@@ -39,7 +39,7 @@ class TrueAction_Eb2cCore_Model_Api
 		$log = Mage::helper('trueaction_magelog');
 		try {
 			$response = $client->request(self::DEFAULT_METHOD);
-		} catch (Zend_Client_Exception $e) {
+		} catch (Zend_Http_Client_Exception $e) {
 			$log->logErr('[ %s ] Failed to send request to %s; API client error: %s', array(__CLASS__, $uri, $e));
 			$this->_status = 0;
 			return '';
