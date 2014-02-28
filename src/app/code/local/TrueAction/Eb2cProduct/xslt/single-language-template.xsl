@@ -4,7 +4,14 @@
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 	<xsl:output method="xml" indent="yes" encoding="UTF-8"/>
 	<xsl:strip-space elements="*" />
+
+	<!-- 
+		The purpose of this transform is to deliver only those elements relevant to 'lang_code'.
+		'lang_code' comparison is case-insensitive, although the output will be present unchanged.
+	-->
 	<xsl:param name="lang_code">en-US</xsl:param>
+	<xsl:variable name="lower" select="'abcdefghijklmnopqrstuvwxyz'" />
+	<xsl:variable name="upper" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
 
 	<!--
 		Normalize the outer structure of the DOM:
@@ -34,7 +41,7 @@
 				with the proper xml:lang, first copying the current node and any
 				attributes of the node.
 			-->
-			<xsl:when test="*[.//*[@xml:lang=$lang_code]]|*[@xml:lang=$lang_code]">
+			<xsl:when test="*[.//*[translate(@xml:lang, $upper, $lower)=translate($lang_code, $upper, $lower)]]|*[translate(@xml:lang, $upper, $lower)=translate($lang_code, $upper, $lower)]">
 				<xsl:copy>
 					<xsl:copy-of select="@*" />
 					<xsl:apply-templates select="*" />
@@ -55,13 +62,13 @@
 		languages, else they would have been filtered out already.
 	-->
 	<xsl:template match="*[@xml:lang]">
-		<xsl:if test="@xml:lang = $lang_code">
+		<xsl:if test="translate(@xml:lang, $upper, $lower) = translate($lang_code, $upper, $lower)">
 			<xsl:copy-of select="." />
 		</xsl:if>
 	</xsl:template>
 
 	<xsl:template match="/*/*">
-		<xsl:if test="*[.//*[@xml:lang=$lang_code]]">
+		<xsl:if test="*[.//*[translate(@xml:lang, $upper, $lower)=translate($lang_code, $upper, $lower)]]">
 			<Item>
 				<xsl:copy-of select="@*" />
 				<xsl:apply-templates/>

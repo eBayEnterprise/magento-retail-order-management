@@ -60,6 +60,7 @@
 							<comment>Language Code matching incoming feeds Language Codes</comment>
 							<sort_order>40</sort_order>
 							<frontend_type>text</frontend_type>
+                            <backend_model>eb2ccore/system_config_backend_language_code</backend_model>
 							<validate>validate-xml-identifier</validate>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
