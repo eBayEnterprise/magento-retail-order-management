@@ -85,7 +85,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_ProductTest
 			'Exception',
 			'User Error: TrueAction_Eb2cProduct_Model_Pim_Product::_construct missing arguments: client_id, catalog_id, sku'
 		);
-		$pimProduct = Mage::getModel('eb2cproduct/pim_product', $initArray);
+		Mage::getModel('eb2cproduct/pim_product', $initArray);
 	}
 	public function testConstructor()
 	{

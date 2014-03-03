@@ -8,6 +8,7 @@ class TrueAction_Eb2cProduct_Helper_Pim
 	 * @param  Mage_Catalog_Model_Product          $product
 	 * @param  TrueAction_Dom_Document             $doc
 	 * @return DOMNode|null
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function getValueAsDefault(
 		$attrValue,
@@ -24,6 +25,7 @@ class TrueAction_Eb2cProduct_Helper_Pim
 	 * @param  Mage_Catalog_Model_Product          $product
 	 * @param  TrueAction_Dom_Document             $doc
 	 * @return DOMNode|null
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 */
 	public function getTextAsNode(
 		$attrValue,

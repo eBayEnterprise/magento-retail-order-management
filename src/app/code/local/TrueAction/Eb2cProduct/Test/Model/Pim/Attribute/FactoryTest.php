@@ -78,12 +78,6 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 	{
 		$doc = new TrueAction_Dom_Document();
 		$attributeMapping = array('xml_dest' => 'Some/XPath');
-		$pimAttrConstructorArgs = array(
-			'destination_xpath' => 'Some/XPath',
-			'sku' => 'SomeSku',
-			'value' => $this->getMockBuilder('DOMDocumentFragment')->disableOriginalConstructor()->getMock()
-		);
-
 		$product = $this->getModelMock('catalog/product');
 		$attribute = $this->getModelMock('catalog/entity_attribute');
 		$pimAttribute = $this->getModelMockBuilder('eb2cproduct/pim_attribute')

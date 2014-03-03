@@ -65,7 +65,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	public function testConstructorBadDomError()
 	{
 		$this->setExpectedException('Exception', 'User Error: TrueAction_Eb2cProduct_Model_Pim::__construct called with invalid doc. Must be instance of TrueAction_Dom_Document');
-		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => 'Fish'));
+		Mage::getModel('eb2cproduct/pim', array('doc' => 'Fish'));
 	}
 	/**
 	 * Create feed data set from product collection.
@@ -193,7 +193,6 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->with($this->identicalTo($product), $this->identicalTo($doc))
 			->will($this->returnSelf());
 
-		$store = $this->getModelMockBuilder('core/store')->disableOriginalConstructor()->getMock();
 		$config = $this->buildCoreConfigRegistry(array(
 			'client_id' => 'theclientid', 'catalog_id' => 'thecatalogid'
 		));
@@ -447,9 +446,6 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$importedValueFragment = $this->getMockBuilder('DOMDocumentFragment')
 			->disableOriginalConstructor()
 			->getMock();
-
-		$languageCode = 'en-us';
-
 		$pimAttribute = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
 			->disableOriginalConstructor()
 			->getMock();
