@@ -54,6 +54,16 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 */
 	public function testProcess()
 	{
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('processByOperationType'))
+			->getMock();
+		$errorConfirmationMock->expects($this->once())
+			->method('processByOperationType')
+			->with($this->isInstanceOf('Varien_Event_Observer'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $errorConfirmationMock);
+
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(array('deleteProducts', 'processDefaultStore', 'processTranslations'))
@@ -67,7 +77,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$file->expects($this->once())
 			->method('processTranslations')
 			->will($this->returnSelf());
+
 		$this->assertSame($file, $file->process());
+
+		$this->assertEventDispatched('product_feed_process_operation_type_error_confirmation');
 	}
 
 	/**
@@ -245,6 +258,16 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 */
 	public function testDeleteProducts()
 	{
+		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+			->disableOriginalConstructor()
+			->setMethods(array('processByOperationType'))
+			->getMock();
+		$errorConfirmationMock->expects($this->once())
+			->method('processByOperationType')
+			->with($this->isInstanceOf('Varien_Event_Observer'))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $errorConfirmationMock);
+
 		$skus = array('45-4321', '45-9432');
 
 		$catalogResourceModelProductMock = $this->getResourceModelMockBuilder('catalog/product_collection')
@@ -279,6 +302,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			$fileModelMock,
 			$this->_reflectMethod($fileModelMock, 'deleteProducts')->invoke($fileModelMock)
 		);
+
+		$this->assertEventDispatched('product_feed_process_operation_type_error_confirmation');
 	}
 
 	/**

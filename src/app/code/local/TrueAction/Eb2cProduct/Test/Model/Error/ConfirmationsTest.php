@@ -234,7 +234,7 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 		$this->_reflectProperty($confirmations, '_queueMessage')->setValue($confirmations, array());
 
 		$this->assertInstanceOf('TrueAction_Eb2cProduct_Model_Error_Confirmations', $confirmations->addMessage(
-			$confirmations::DOM_LOAD_ERR, 'UnitTest Simulate Throw Exception on Dom load'
+			$confirmations::SKU_NOT_REMOVE, 'UnitTest Simulate Throw Exception on Dom load'
 		));
 
 		$this->assertSame(
@@ -438,7 +438,7 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 		$this->_reflectProperty($confirmations, '_queueMessage')->setValue($confirmations, array());
 		$this->assertSame(false, $confirmations->hasMessage());
 
-		$confirmations->addMessage($confirmations::DOM_LOAD_ERR, 'UnitTest Simulate Throw Exception on Dom load');
+		$confirmations->addMessage($confirmations::SKU_NOT_REMOVE, 'UnitTest Simulate Throw Exception on Dom load');
 		$this->assertSame(true, $confirmations->hasMessage());
 	}
 
@@ -465,7 +465,7 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 		$this->_reflectProperty($confirmations, '_queueError')->setValue($confirmations, array());
 		$this->assertSame(false, $confirmations->hasError());
 
-		$confirmations->addMessage($confirmations::DOM_LOAD_ERR, 'UnitTest Simulate Throw Exception on Dom load')
+		$confirmations->addMessage($confirmations::SKU_NOT_REMOVE, 'UnitTest Simulate Throw Exception on Dom load')
 			->addError('ItemMaster', 'ItemMaster_Test_Subset.xml');
 		$this->assertSame(true, $confirmations->hasError());
 	}
@@ -496,7 +496,7 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 		$this->_reflectProperty($confirmations, '_queueConfirmation')->setValue($confirmations, array());
 		$this->assertSame(false, $confirmations->hasErrorConfirmation());
 
-		$confirmations->addMessage($confirmations::DOM_LOAD_ERR, 'UnitTest Simulate Throw Exception on Dom load')
+		$confirmations->addMessage($confirmations::SKU_NOT_REMOVE, 'UnitTest Simulate Throw Exception on Dom load')
 			->addError('ItemMaster', 'ItemMaster_Test_Subset.xml')
 			->addErrorConfirmation('1234');
 		$this->assertSame(true, $confirmations->hasErrorConfirmation());

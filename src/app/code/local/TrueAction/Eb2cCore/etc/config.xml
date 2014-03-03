@@ -122,11 +122,16 @@
 							<class>eb2ccore/feed</class>
 							<method>getTimeStamp</method>
 						</time_stamp>
-						<channel>
+						<client_id>
 							<type>helper</type>
 							<class>eb2ccore/feed</class>
 							<method>getClientId</method>
-						</channel>
+						</client_id>
+						<catalog_id>
+							<type>helper</type>
+							<class>eb2ccore/feed</class>
+							<method>getCatalogId</method>
+						</catalog_id>
 						<store_id>
 							<type>helper</type>
 							<class>eb2ccore/feed</class>
@@ -135,7 +140,7 @@
 					</file_name>
 				</outbound>
 				<error_confirmation_feed>
-					<file_pattern>{feed_type}_{time_stamp}_{channel}_{store_id}.xml</file_pattern>
+					<file_pattern>{client_id}_{catalog_id}_{store_id}_errorconfirmation_{feed_type}_{time_stamp}.xml</file_pattern>
 					<remote_mailbox>/</remote_mailbox>
 				</error_confirmation_feed>
 				<header_template><![CDATA[<MessageHeader>
