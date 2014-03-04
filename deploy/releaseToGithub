@@ -5,6 +5,7 @@ from os.path import basename
 import requests
 import sys
 from subprocess import Popen
+from os import getenv
 
 api_endpoint = 'https://github.scm.corp.ebay.com/api/v3'
 
@@ -14,24 +15,13 @@ def create_header_with_auth(auth_token):
 		'Authorization': 'token {key}'.format(key=auth_token),
 	}
 
-def create_tag(version):
-	"""
-	Create a tag object and annotated tag reference for the new release.
-	"""
-	Popen(["git", "tag", "-a", version, "-m", "Version {version}".format(version=version)]).communicate()
-	Popen(["git", "push", "--tags"]).communicate()
-
 def create_release(repo, version, auth_headers):
 	"""
 	Create a new release and return the id of the new release.
 	"""
-	# For now, manually create the annotated tag and push that
-	# because github releases seems to create lightweight tags
-	# by default.
-	create_tag(version)
 	release_data = {
 		'tag_name': version,
-		'target_commitish': 'master',
+		'target_commitish': getenv('COMMITISH'),
 		'name': version,
 		'body': version,
 		'draft': False,
