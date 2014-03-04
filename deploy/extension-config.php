@@ -26,20 +26,9 @@ function _createArchive($location, $archiveName, array $extensions) {
 	}
 	return $path;
 }
-/**
- * Get the new verion number of the new release
- * inverment last part of the current version
- * @return string
- */
-function _incrementVersion($version) {
-	$versionParts = explode('.', $version);
-	++$versionParts[3];
-	return implode('.', $versionParts);
-}
-
 // Get the latest reachable tag as the current, to become old version
-$oldVersion = trim(shell_exec('git describe --abbrev=0'));
-$newVersion = _incrementVersion($oldVersion);
+$newVersion = trim(shell_exec('git describe --abbrev=0'));
+$oldVersion = trim(shell_exec(sprintf('git describe --abbrev=0 %s~', $newVersion)));
 echo "Setup config for upgrade from {$oldVersion} to {$newVersion}\n";
 $tempDir = _createTempDir();
 $archiveName = 'ebay_enterprise_exchange.tar';
