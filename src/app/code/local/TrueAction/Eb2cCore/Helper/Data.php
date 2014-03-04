@@ -243,4 +243,30 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move ${source} to ${destination}");
 		}
 	}
+
+	/**
+	 * abstring getting store configuration value
+	 * @see Mage::getStoreConfig
+	 * @param string $path
+	 * @param mixed $store
+	 * @return mixed
+	 * @codeCoverageIgnore
+	 */
+	public function getStoreConfig($path, $store = null)
+	{
+		return Mage::getStoreConfig($path, $store);
+	}
+
+	/**
+	 * abstring getting store configuration flag
+	 * @see Mage::getStoreConfigFlag
+	 * @param string $path
+	 * @param mixed $store
+	 * @return bool
+	 * @codeCoverageIgnore
+	 */
+	public function getStoreConfigFlag($path, $store = null)
+	{
+		return Mage::getStoreConfigFlag($path, $store);
+	}
 }

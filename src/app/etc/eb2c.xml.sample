@@ -38,6 +38,16 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 				SFTP server after processing the feed files.
 				-->
 				<delete_remote_feed_files>1</delete_remote_feed_files>
+				<!--
+				Mapping feed giftCardTenderCode to a known Magento giftcard type
+				-->
+				<gift_card_tender_code>
+					<SD>virtual</SD>
+					<SP>physical</SP>
+					<ST>combined</ST>
+					<SV>virtual</SV>
+					<SX>combined</SX>
+				</gift_card_tender_code>
 			</feed>
 		</eb2ccore>
 		<eb2cproduct>
@@ -427,6 +437,42 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<method>extractCanSaveConfigurableAttributes</method>
 					<xpath>CustomAttributes/Attribute[@name="ConfigurableAttributes"]/Value</xpath>
 				</can_save_configurable_attributes>
+				<giftcard_type>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractGiftcardTenderValue</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</giftcard_type>
+				<is_redeemable>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractIsRedeemable</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</is_redeemable>
+				<use_config_is_redeemable>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractIsRedeemable</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</use_config_is_redeemable>
+				<lifetime>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractLifetime</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</lifetime>
+				<allow_message>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractBoolValue</method>
+					<xpath>ExtendedAttributes/AllowGiftMessage</xpath>
+				</allow_message>
+				<email_template>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractEmailTemplate</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</email_template>
 			</feed_attribute_mappings>
 		</eb2cproduct>
 	</default>

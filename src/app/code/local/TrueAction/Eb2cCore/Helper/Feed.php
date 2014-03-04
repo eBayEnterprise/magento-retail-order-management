@@ -9,6 +9,7 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 
 	const DEFAULT_HEADER_CONF = 'eb2ccore/feed/outbound/message_header';
 	const FILE_NAME_CONF = 'eb2ccore/feed/outbound/file_name';
+	const GIFTCARD_TENDER_CONFIG_PATH = 'eb2ccore/feed/gift_card_tender_code';
 
 	/**
 	 * @var array map of feed type and message header configuration path

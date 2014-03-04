@@ -217,3 +217,92 @@ The following custom attributes are not part of any EB2C schema, but must be set
 	<dt>AttributeSet</dt><dd>Used along with the <code>operation_type</code> of the <code>AttributeSet</code> custom attribute to update the attribute set for the product.</dd>
 	<dt>ProductType</dt><dd>The Magento <code>type</code> of the product. Possible values include <code>Bundle</code>, <code>Configurable</code>, <code>Downloadable</code>, <code>Gift Card</code>, <code>Grouped</code>, <code>Simple</code> and <code>Virtual</code>, but only <code>Configurable</code>, <code>Downloadable</code>, <code>Simple</code> and <code>Virtual</code> are supported</dd>
 </dl>
+
+## How to Import Giftcard Product Types
+
+The Giftcard Specific Mapping exists in app/etc/eb2c.xml.sample file:
+
+
+One mapping is eb2c GiftcardTenderCode to Magento Giftcard Type:
+```xml
+<config>
+	<default>
+		<eb2ccore>
+			<feed>
+				<gift_card_tender_code>
+					<SD>virtual</SD>
+					<SP>physical</SP>
+					<ST>combined</ST>
+					<SV>virtual</SV>
+					<SX>combined</SX>
+				</gift_card_tender_code>
+			</feed>
+		</eb2ccore>
+	</default>
+</config>
+```
+
+Second mapping is the mapping of Magento product attribute to the eb2c feed xpath and callback configuration:
+```xml
+<config>
+	<default>
+		<eb2cproduct>
+			<feed_attribute_mappings>
+				<giftcard_type>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractGiftcardTenderValue</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</giftcard_type>
+				<is_redeemable>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractIsRedeemable</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</is_redeemable>
+				<use_config_is_redeemable>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractIsRedeemable</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</use_config_is_redeemable>
+				<lifetime>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractLifetime</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</lifetime>
+				<allow_message>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractBoolValue</method>
+					<xpath>ExtendedAttributes/AllowGiftMessage</xpath>
+				</allow_message>
+				<email_template>
+					<class>eb2cproduct/map_giftcard</class>
+					<type>helper</type>
+					<method>extractEmailTemplate</method>
+					<xpath>ExtendedAttributes/GiftCardTenderCode</xpath>
+				</email_template>
+			</feed_attribute_mappings>
+		</eb2cproduct>
+	</default>
+</config>
+```
+
+The ItemMaster Feed Need The Following Nodes In Order To Import Giftcard:
+```xml
+<ItemMaster>
+	<Item>
+		<ExtendedAttributes>
+			<AllowGiftMessage>true</AllowGiftMessage> <!--This can be optional and the possible values are (true, false)-->
+			<GiftCardTenderCode>SP</GiftCardTenderCode><!--This is required and can be any value that's in the map for tender code type and Magento giftcard type-->
+		</ExtendedAttributes>
+		<CustomAttributes>
+			<Attribute name="ProductType">
+				<Value>giftcard</Value> <!-- This value 'giftcard' is required if this item is giftcard-->
+			</Attribute>
+		</CustomAttributes>
+	</Item>
+</ItemMaster>
+```

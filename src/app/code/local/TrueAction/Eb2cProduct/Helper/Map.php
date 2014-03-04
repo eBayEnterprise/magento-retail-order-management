@@ -16,6 +16,7 @@
  */
 class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 {
+	const TYPE_GIFTCARD = 'giftcard';
 	/**
 	 * Map ownerDocuments to DomXPath objects to avoid recreating them.
 	 *
@@ -123,6 +124,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	protected function _isValidProductType($value)
 	{
 		return in_array($value, array(
+			self::TYPE_GIFTCARD,
 			Mage_Catalog_Model_Product_Type::TYPE_SIMPLE,
 			Mage_Catalog_Model_Product_Type::TYPE_BUNDLE,
 			Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE,
@@ -205,6 +207,35 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	public function extractFalse()
 	{
 		return false;
+	}
+	/**
+	 * given a gift card type return the gift card constant mapped to it
+	 * @param string $type the gift card type in this set (virtual, physical or combined)
+	 * @see Enterprise_GiftCard_Model_Giftcard
+	 * @return int|null
+	 */
+	protected function _getGiftCardType($type)
+	{
+		switch ($type) {
+			case self::GIFTCARD_PHYSICAL:
+				return Enterprise_GiftCard_Model_Giftcard::TYPE_PHYSICAL;
+			case self::GIFTCARD_COMBINED:
+				return Enterprise_GiftCard_Model_Giftcard::TYPE_COMBINED;
+			default:
+				return Enterprise_GiftCard_Model_Giftcard::TYPE_VIRTUAL;
+		}
+	}
+	/**
+	 * extract the giftcard tender code from the DOMNOdeList object get it's map value
+	 * from the config and then return the actual constant to the know magento gift card sets
+	 * @param DOMNodeList $nodes
+	 * @return int|null integer value a valid tender type was extracted null tender type is not configure
+	 */
+	public function extractGiftcardTenderValue(DOMNodeList $nodes)
+	{
+		$value = Mage::helper('eb2ccore')->extractNodeVal($nodes);
+		$mapData = Mage::helper('eb2ccore/feed')->getConfigData(TrueAction_Eb2cCore_Helper_Feed::GIFTCARD_TENDER_CONFIG_PATH);
+		return isset($mapData[$value])? $this->_getGiftCardType($mapData[$value]) : null;
 	}
 }
 
