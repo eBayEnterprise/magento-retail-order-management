@@ -1,0 +1,62 @@
+Index: app/code/core/Mage/Customer/Model/Address/Abstract.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- app/code/core/Mage/Customer/Model/Address/Abstract.php	(revision 72e68449f231ce809b7043ee67d0c9a867a1c4df)
++++ app/code/core/Mage/Customer/Model/Address/Abstract.php	(revision )
+@@ -365,6 +365,29 @@
+ 
+         $this->implodeStreetAddress();
+ 
++        $this->_basicCheck();
++
++        if (!$this->_getErrors()) {
++            Mage::dispatchEvent('customer_address_validation_after', array('address' => $this));
++        }
++
++        $errors = $this->_getErrors();
++
++        $this->_resetErrors();
++
++        if (empty($errors) || $this->getShouldIgnoreValidation()) {
++            return true;
++        }
++        return $errors;
++    }
++
++    /**
++     * Perform basic validation
++     *
++     * @return void
++     */
++    protected function _basicCheck()
++    {
+         if (!Zend_Validate::is($this->getFirstname(), 'NotEmpty')) {
+             $this->addError(Mage::helper('customer')->__('Please enter the first name.'));
+         }
+@@ -397,22 +420,11 @@
+         }
+ 
+         if ($this->getCountryModel()->getRegionCollection()->getSize()
+-               && !Zend_Validate::is($this->getRegionId(), 'NotEmpty')
+-               && Mage::helper('directory')->isRegionRequired($this->getCountryId())
++            && !Zend_Validate::is($this->getRegionId(), 'NotEmpty')
++            && Mage::helper('directory')->isRegionRequired($this->getCountryId())
+         ) {
+             $this->addError(Mage::helper('customer')->__('Please enter the state/province.'));
+         }
+-
+-        Mage::dispatchEvent('customer_address_validation_after', array('address' => $this));
+-
+-        $errors = $this->_getErrors();
+-
+-        $this->_resetErrors();
+-
+-        if (empty($errors) || $this->getShouldIgnoreValidation()) {
+-            return true;
+-        }
+-        return $errors;
+     }
+ 
+     /**
