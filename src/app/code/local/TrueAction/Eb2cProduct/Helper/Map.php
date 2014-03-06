@@ -86,8 +86,9 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	 */
 	public function extractVisibilityValue(DOMNodeList $nodes)
 	{
-		return ($nodes->length && (strtolower($nodes->item(0)->nodeValue) === 'regular' || strtolower($nodes->item(0)->nodeValue) === 'always'))?
-			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH:
+		$catalogClass = Mage::helper('eb2ccore')->extractNodeVal($nodes);
+		return (strtolower($catalogClass) === 'regular' || strtolower($catalogClass) === 'always') ?
+			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH :
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
 	}
 	/**

@@ -190,7 +190,18 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			)
 		);
 	}
-
+	/**
+	 * Provide an expected catalog class from the feed and the Magento visibility
+	 * it should map to.
+	 */
+	public function provideCatalogClassAndVisibility()
+	{
+		return array(
+			array('regular', Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH),
+			array('always', Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH),
+			array('nosale', Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE),
+		);
+	}
 	/**
 	 * Test extractVisibilityValue for the following expectation
 	 * Expectation 1: the method TrueAction_Eb2cProduct_Helper_Map::extractVisibilityValue when invoked
@@ -199,56 +210,25 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 *                Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH contstant otherwise
 	 *                return Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE constant
 	 * @test
+	 * @dataProvider provideCatalogClassAndVisibility
 	 */
-	public function testExtractVisibilityValueWhenVisibilityBoth()
+	public function testExtractVisibilityValueWhenVisibilityBoth($catalogClass, $visibility)
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<Items>
-				<Item>
-					<BaseAttributes>
-						<CatalogClass>regular</CatalogClass>
-					</BaseAttributes>
-				</Item>
-			</Items>'
-		);
+		$nodes = $this->getMockBuilder('DOMNodeList')
+			->disableOriginalConstructor()
+			->getMock();
 
-		$xpath = new DOMXPath($doc);
+		$helper = $this->getHelperMock('eb2ccore/data', array('extractNodeVal'));
+		$helper->expects($this->once())
+			->method('extractNodeVal')
+			->with($this->identicalTo($nodes))
+			->will($this->returnValue($catalogClass));
+
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+
 		$this->assertSame(
-			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH,
-			Mage::helper('eb2cproduct/map')->extractVisibilityValue(
-				$xpath->query('Item/BaseAttributes/CatalogClass', $doc->documentElement),
-				Mage::getModel('catalog/product')
-			)
-		);
-	}
-
-	/**
-	 * @see testExtractVisibilityValueWhenVisibilityBoth testing the case where the constant
-	 *      Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE will be returned from
-	 *      the extracted data
-	 * @test
-	 */
-	public function testExtractVisibilityValueWhenNotVisible()
-	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<Items>
-				<Item>
-					<BaseAttributes>
-						<CatalogClass>nosale</CatalogClass>
-					</BaseAttributes>
-				</Item>
-			</Items>'
-		);
-
-		$xpath = new DOMXPath($doc);
-		$this->assertSame(
-			Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE,
-			Mage::helper('eb2cproduct/map')->extractVisibilityValue(
-				$xpath->query('Item/BaseAttributes/CatalogClass', $doc->documentElement),
-				Mage::getModel('catalog/product')
-			)
+			$visibility,
+			Mage::helper('eb2cproduct/map')->extractVisibilityValue($nodes)
 		);
 	}
 

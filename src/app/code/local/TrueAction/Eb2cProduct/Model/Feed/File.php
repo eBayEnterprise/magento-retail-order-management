@@ -289,13 +289,20 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	/**
 	 * Create a product collection containing any product with a SKU in the
 	 * given list. This will only load products that already exist in Magento.
+	 * Ensure all attributes are loaded for products in the collection. This
+	 * forces the object's origData to be properly populated with all existing
+	 * data, which then ensures that:
+	 * 1. attributes not set on a given pass are not wiped out
+	 * 2. attributes set to the same value as the default are not duplicated
 	 * @param  array $skus
 	 * @return Mage_Catalog_Model_Resource_Product_Collection
 	 */
 	protected function _buildProductCollection(array $skus=array())
 	{
 		return Mage::getResourceModel('eb2cproduct/feed_product_collection')
-			->addAttributeToSelect(array('entity_id'))
+			// load all attributes to prevent previously set attributes from being
+			// lost when saving updates to only some attributes
+			->addAttributeToSelect(array('*'))
 			->addAttributeToFilter(array(array('attribute' => 'sku', 'in' => $skus)))
 			->load();
 	}
