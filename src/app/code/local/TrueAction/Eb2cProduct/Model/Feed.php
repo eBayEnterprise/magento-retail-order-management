@@ -30,9 +30,9 @@ class TrueAction_Eb2cProduct_Model_Feed
 	{
 		$this->_eventTypes = array(
 			'ItemMaster' => 'feed_item',
-			'Content'    => 'feed_content',
-			'Price'      => 'feed_pricing',
-			'iShip'      => 'feed_iship',
+			'ContentMaster' => 'feed_content',
+			'Pricing' => 'feed_pricing',
+			'iShip' => 'feed_iship',
 		);
 	}
 

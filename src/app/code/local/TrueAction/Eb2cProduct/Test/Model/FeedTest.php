@@ -23,8 +23,8 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		$this->assertSame(
 			array(
 				'ItemMaster' => 'feed_item',
-				'Content' => 'feed_content',
-				'Price' => 'feed_pricing',
+				'ContentMaster' => 'feed_content',
+				'Pricing' => 'feed_pricing',
 				'iShip' => 'feed_iship',
 			),
 			$this->_reflectProperty($feed, '_eventTypes')->getValue($feed)
@@ -411,74 +411,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
 		)));
 	}
-
-	/**
-	 * Test _compareFeedFiles method with the following assumptions when invoked by this test
-	 * Expectation 1: this test is testing the different set of inputs yielding different expected output
-	 *                verify comparing to feed file entries will yield the correct result
-	 * Expectation 2: this test is mainly dependent on the known state of the class property
-	 *                TrueAction_Eb2cProduct_Model_Feed::_eventTypes, the test begin by setting
-	 *                this property to a known state of an array of key value map
-	 */
-	public function testCompareFeedFiles()
-	{
-		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-
-		$this->_reflectProperty($feedModelMock, '_eventTypes')->setValue($feedModelMock, array(
-			'ItemMaster' => 'feed_item',
-			'Content' => 'feed_content',
-			'Price' => 'feed_pricing',
-			'iShip' => 'feed_iship',
-		));
-
-		$testData = array(
-			array(
-				'expect' => 0,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
-			),
-			array(
-				'expect' => -1,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'Content', 'timestamp' => 1),
-			),
-			array(
-				'expect' => 2,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'Price', 'timestamp' => 1),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 1),
-			),
-			array(
-				'expect' => -1,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
-			),
-			array(
-				'expect' => 1,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ItemMaster', 'timestamp' => 1),
-			),
-			array(
-				'expect' => 1,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'ItemMaster', 'timestamp' => 2),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 1),
-			),
-			array(
-				'expect' => -1,
-				'a' => array('local' => 'FeedFileA.xml', 'type' => 'Price', 'timestamp' => 1),
-				'b' => array('local' => 'FeedFileB.xml', 'type' => 'ContentMaster', 'timestamp' => 2),
-			)
-		);
-		foreach ($testData as $data) {
-			$this->assertSame(
-				$data['expect'],
-				$this->_reflectMethod($feedModelMock, '_compareFeedFiles')->invoke($feedModelMock, $data['a'], $data['b'])
-			);
-		}
-	}
-
 	/**
 	 * Test _getEventTypeModel method with the following assumptions when invoked by this test
 	 * Expectation 1: this set first set the class property TrueAction_Eb2cProduct_Model_Feed::_eventTypes
@@ -492,8 +424,8 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	{
 		$eventTypes = array(
 			'ItemMaster' => 'feed_item',
-			'Content' => 'feed_content',
-			'Price' => 'feed_pricing',
+			'ContentMaster' => 'feed_content',
+			'Pricing' => 'feed_pricing',
 			'iShip' => 'feed_iship',
 		);
 		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')

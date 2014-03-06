@@ -65,13 +65,13 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 				'ItemMaster' => array(
 					'local_path' => $cfg->itemFeedLocalPath,
 				),
-				'Content' => array(
+				'ContentMaster' => array(
 					'local_path' => $cfg->contentFeedLocalPath,
 				),
 				'iShip' => array(
 					'local_path' => $cfg->iShipFeedLocalPath,
 				),
-				'Price' => array(
+				'Pricing' => array(
 					'local_path' => $cfg->pricingFeedLocalPath,
 				)
 			);
@@ -334,7 +334,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * generate file name by feed type
-	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @param string $feedType
 	 * @return string the errorconfirmations file name
 	 */
 	public function generateFileName($feedType)
@@ -356,7 +356,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * generate file path by feed type, check if directory exists if not created the directory
-	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @param string $feedType
 	 * @param TrueAction_Eb2cProduct_Helper_Struct_Feedpath $dir
 	 * @return string the file path
 	 */

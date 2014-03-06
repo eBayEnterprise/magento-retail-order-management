@@ -228,8 +228,7 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
 				<remote_path>/Inbox/Product</remote_path>
 				<file_pattern>Content_*.xml</file_pattern>
-				<event_type>Content</event_type>
-				<!-- because consistency only matters "sometimes" -->
+				<event_type>ContentMaster</event_type>
 				<header_version>2.3.0</header_version>
 				<outbound>
 					<message_header>
@@ -253,7 +252,7 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
 				<remote_path>/Inbox/Channel/{storeid}/Pricing</remote_path>
 				<file_pattern>Price_*.xml</file_pattern>
-				<event_type>Price</event_type>
+				<event_type>Pricing</event_type>
 				<header_version>2.3.0</header_version>
 				<outbound>
 					<message_header>

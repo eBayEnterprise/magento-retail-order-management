@@ -111,7 +111,7 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 	/**
 	 * insert initial data to feed file such as
 	 * appending xml directive, open root node, and message header
-	 * @param string $feedType known feed types are (ItemMaster, Content, iShip, Price, ImageMaster, ItemInventories)
+	 * @param string $feedType
 	 * @return self
 	 */
 	public function initFeed($feedType)

@@ -15,13 +15,13 @@ type-order1:
     timestamp: 1
   array_b:
     local: FeedFileB.xml
-    type: Content
+    type: ContentMaster
     timestamp: 1
   result: -1
 type-order2:
   array_a:
     local: FeedFileA.xml
-    type: Price
+    type: Pricing
     timestamp: 1
   array_b:
     local: FeedFileB.xml
@@ -61,7 +61,7 @@ date-type-priority1:
 date-type-priority2:
   array_a:
     local: FeedFileA.xml
-    type: Price
+    type: Pricing
     timestamp: 1
   array_b:
     local: FeedFileB.xml

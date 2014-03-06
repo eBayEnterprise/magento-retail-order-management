@@ -3,5 +3,5 @@ config:
   local_path: TrueAction/Eb2c/Feed/Product/Pricing/
   remote_path: /Inbox/Pricing/storeId/
   file_pattern: Price*.xml
-  event_type: Price
+  event_type: Pricing
   header_version: 2.3.0

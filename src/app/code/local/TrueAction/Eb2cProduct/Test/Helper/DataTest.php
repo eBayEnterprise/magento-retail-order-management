@@ -572,13 +572,13 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 				'ItemMaster' => array(
 					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
 				),
-				'Content' => array(
+				'ContentMaster' => array(
 					'local_path' => 'TrueAction/Eb2c/Feed/Product/ContentMaster/',
 				),
 				'iShip' => array(
 					'local_path' => 'TrueAction/Eb2c/Feed/Product/iShip/',
 				),
-				'Price' => array(
+				'Pricing' => array(
 					'local_path' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
 				),
 			),
