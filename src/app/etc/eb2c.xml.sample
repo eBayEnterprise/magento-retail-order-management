@@ -403,10 +403,11 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<xpath></xpath>
 				</msrp>
 				<url_key>
+					<!-- There are some known issues with url_key in multi-store settings. By explicitly forcing the url_key to false, we cause it to fallback up the scope to the default store before saving each time. -->
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
-					<method></method>
-					<xpath></xpath>
+					<type>helper</type>
+					<method>extractFalse</method>
+					<xpath>.</xpath>
 				</url_key>
 				<color>
 					<class>eb2cproduct/map_attribute</class>
