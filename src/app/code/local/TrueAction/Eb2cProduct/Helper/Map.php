@@ -88,7 +88,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 	{
 		$catalogClass = Mage::helper('eb2ccore')->extractNodeVal($nodes);
 		return (strtolower($catalogClass) === 'regular' || strtolower($catalogClass) === 'always') ?
-			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH :
+			Mage_Catalog_Model_Product_Visibility::VISIBILITY_BOTH:
 			Mage_Catalog_Model_Product_Visibility::VISIBILITY_NOT_VISIBLE;
 	}
 	/**
