@@ -80,7 +80,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout
 			$nodePostalCode = $checkoutXpath->query('//a:BillingAddress/a:PostalCode');
 			$nodeAddressStatus = $checkoutXpath->query('//a:BillingAddress/a:AddressStatus');
 			$nodePayerPhone = $checkoutXpath->query('//a:PayerPhone');
-			$nodeShpLineA = $checkoutXpath->query('//a:shipping_address_/a:Line1');
+			$nodeShpLineA = $checkoutXpath->query('//a:ShippingAddress/a:Line1');
 			$nodeShpLineB = $checkoutXpath->query('//a:ShippingAddress/a:Line2');
 			$nodeShpLineC = $checkoutXpath->query('//a:ShippingAddress/a:Line3');
 			$nodeShpLineD = $checkoutXpath->query('//a:ShippingAddress/a:Line4');
