@@ -36,5 +36,11 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'feed_header_template'        => 'eb2ccore/feed/header_template',
 		'error_feed_file_pattern'     => 'eb2ccore/feed/error_confirmation_feed/file_pattern',
 		'error_feed_remote_mailbox'   => 'eb2ccore/feed/error_confirmation_feed/remote_mailbox',
+		'export_resend_time_limit'    => 'eb2ccore/feed/export/ack/resend_wait_time',
+		'feed_send_directory'         => 'eb2ccore/feed/filetransfer_exports/product/sent_directory',
+		'feed_outbox_directory'       => 'eb2ccore/feed/filetransfer_exports/product/local_directory',
+		'feed_import_archive'         => 'eb2ccore/feed/import_archive',
+		'feed_export_archive'         => 'eb2ccore/feed/export_archive',
+		'feed_ack_inbox'              => 'eb2ccore/feed/filetransfer_imports/acknowledgments/local_directory',
 	);
 }

@@ -72,6 +72,8 @@
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
+				<import_archive>Feed/archive/import</import_archive>
+				<export_archive>Feed/archive/export</export_archive>
 				<available_models>
 					<eb2cinventory>
 						<feed_item_inventories>1</feed_item_inventories>
@@ -83,6 +85,35 @@
 						<feed>1</feed>
 					</eb2cproduct>
 				</available_models>
+				<filetransfer_exports>
+					<acknowledgments>
+						<local_directory>Feed/outbox/ack</local_directory>
+						<remote_directory>remote/inbox</remote_directory>
+						<sent_directory>Feed/archive/export/ack</sent_directory>
+					</acknowledgments>
+					<product>
+						<local_directory>Feed/outbox/product</local_directory>
+						<remote_directory>remote/inbox</remote_directory>
+						<sent_directory>Feed/sent/product</sent_directory>
+					</product>
+				</filetransfer_exports>
+				<filetransfer_imports>
+					<acknowledgments>
+						<local_directory>Feed/inbox/ack</local_directory>
+						<remote_directory>remote/outbox</remote_directory>
+						<file_pattern>*Ack*.xml</file_pattern>
+					</acknowledgments>
+					<product>
+						<local_directory>Feed/inbox/product</local_directory>
+						<remote_directory>remote/outbox</remote_directory>
+						<file_pattern>*ItemMaster*.xml</file_pattern>
+					</product>
+					<inventory>
+						<local_directory>Feed/inbox/inventory</local_directory>
+						<remote_directory>remote/outbox</remote_directory>
+						<file_pattern>*Inventory*.xml</file_pattern>
+					</inventory>
+				</filetransfer_imports>
 				<outbound>
 					<message_header>
 						<standard>GSI</standard>

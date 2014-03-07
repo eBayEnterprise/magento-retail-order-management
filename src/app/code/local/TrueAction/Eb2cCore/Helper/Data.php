@@ -50,6 +50,17 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
+	 * given DOMDocument get the DOMElement from it.
+	 * @param DOMDocument $doc
+	 * @return DOMELement
+	 * @codeCoverageIgnore
+	 */
+	public function getDomElement(DOMDocument $doc)
+	{
+		return $doc->documentElement;
+	}
+
+	/**
 	 * Create and return a new instance of XSLTProcessor.
 	 * @return XSLTProcessor
 	 * @codeCoverageIgnore
@@ -240,33 +251,103 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		@rename($source, $destination);
 
 		if (!$this->isFileExist($destination)) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move ${source} to ${destination}");
+			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move $source to $destination");
 		}
 	}
 
 	/**
-	 * abstring getting store configuration value
+	 * abstracting removing a file
+	 * @param string $file
+	 * @return void
+	 * @codeCoverageIgnore
+	 */
+	public function removeFile($file)
+	{
+		@unlink($file);
+
+		if ($this->isFileExist($file)) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not remove $file");
+		}
+	}
+
+	/**
+	 * abstracting getting store configuration value
 	 * @see Mage::getStoreConfig
 	 * @param string $path
 	 * @param mixed $store
 	 * @return mixed
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfig($path, $store = null)
+	public function getStoreConfig($path, $store=null)
 	{
 		return Mage::getStoreConfig($path, $store);
 	}
 
 	/**
-	 * abstring getting store configuration flag
+	 * abstracting getting store configuration flag
 	 * @see Mage::getStoreConfigFlag
 	 * @param string $path
 	 * @param mixed $store
 	 * @return bool
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfigFlag($path, $store = null)
+	public function getStoreConfigFlag($path, $store=null)
 	{
 		return Mage::getStoreConfigFlag($path, $store);
+	}
+
+	/**
+	 * abstracting getting the magento base directory with a given scope or default
+	 * scope and a given relative path to build an absolute full path
+	 * @see Mage::getBaseDir
+	 * @param string $relative
+	 * @param string $scope
+	 * @return string
+	 * @codeCoverageIgnore
+	 */
+	public function getAbsolutePath($relative, $scope='base')
+	{
+		return Mage::getBaseDir($scope) . DS . $relative;
+	}
+
+	/**
+	 * getting how long ago a file has been modified or created in minutes
+	 * @param string $sourceFile
+	 * @return int time ago in minutes
+	 */
+	public function getFileTimeElapse($sourceFile)
+	{
+		$date = Mage::getModel('core/date');
+		$startDate = $this->getNewDateTime($date->gmtDate('Y-m-d H:i:s', $this->loadFile($sourceFile)->getCTime()));
+		$interVal = $startDate->diff($this->getNewDateTime($date->gmtDate('Y-m-d H:i:s', $this->getTime())));
+		return (
+			($interVal->y * 365 * 24 * 60) +
+			($interVal->m * 30 * 24 * 60) +
+			($interVal->d * 24 * 60) +
+			($interVal->h * 60) +
+			$interVal->i
+		);
+	}
+
+	/**
+	 * abstracting instantiating a new DataTime object
+	 * @param $time
+	 * @param DateTimeZone $timezone
+	 * @return DateTime
+	 * @codeCoverageIgnore
+	 */
+	public function getNewDateTime($time='now', DateTimeZone $timezone=null)
+	{
+		return new DateTime($time, $timezone);
+	}
+
+	/**
+	 * abstracting getting the current time
+	 * @return int
+	 * @codeCoverageIgnore
+	 */
+	public function getTime()
+	{
+		return time();
 	}
 }

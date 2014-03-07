@@ -48,6 +48,18 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<SV>virtual</SV>
 					<SX>combined</SX>
 				</gift_card_tender_code>
+				<export>
+					<ack>
+						<resend_wait_time>5</resend_wait_time><!--in minutes-->
+					</ack>
+					<sent>/Cheetah/Eb2c/Feed/Sent/</sent>
+					<outbound>
+						<archive>
+							<pim>/Cheetah/Eb2c/Feed/Archive/Pim/</pim>
+							<image>/Cheetah/Eb2c/Feed/Archive/ImageMaster/</image>
+						</archive>
+					</outbound>
+				</export>
 			</feed>
 		</eb2ccore>
 		<eb2cproduct>

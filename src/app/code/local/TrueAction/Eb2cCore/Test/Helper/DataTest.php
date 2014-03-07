@@ -273,4 +273,86 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 			$coreHelper->extractQueryNodeValue(new DOMXpath($emptyDoc), $mySampleQuery)
 		);
 	}
+
+	/**
+	 * Test getFileTimeElapse method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cCore_Helper_Data::getFileTimeElapse will be invoked by this test
+	 *                and given a sourceFile in which will be passed to the method TrueAction_Eb2cCore_Helper_Data::loadFile
+	 *                and then call the method getCTime which will return the time source file was created, this time will
+	 *                then be passed to the method TrueAction_Eb2cCore_Helper_Data::getNewDateTime which will return a date
+	 *                time object, the method DateTime::diff will then be called given a new DataTime Instance of the current
+	 *                time, the diff method will return DateInterval object which contain pulic property for calculating
+	 *                the time elapse between the time the file was created and the current time
+	 */
+	public function testGetFileTimeElapse()
+	{
+		$createdTime = '2014-03-08 01:25:13';
+		$format = 'Y-m-d H:i:s';
+		$fTime = strtotime($createdTime);
+		$sourceFile = 'path/to/some/source/file/sample.xml';
+
+		$currentTime = '2014-03-08 01:30:13';
+		$cTime = strtotime($currentTime);
+
+		$elapse = 5;
+
+		$interval = new DateInterval('P0Y0DT0H5M');
+		$interval->y = 0;
+		$interval->m = 0;
+		$interval->d = 0;
+		$interval->h = 0;
+		$interval->i = $elapse;
+
+		$splInfoMock = $this->getMockBuilder('SplFileInfo')
+			->disableOriginalConstructor()
+			->setMethods(array('getCTime'))
+			->getMock();
+		$splInfoMock->expects($this->once())
+			->method('getCTime')
+			->will($this->returnValue($fTime));
+
+		$currentTimeMock = $this->getMockBuilder('DateTime')
+			->setMethods(null)
+			->getMock();
+
+		$startTimeMock = $this->getMockBuilder('DateTime')
+			->setMethods(array('diff'))
+			->getMock();
+		$startTimeMock->expects($this->once())
+			->method('diff')
+			->with($this->identicalTo($currentTimeMock))
+			->will($this->returnValue($interval));
+
+		$dateMock = $this->getModelMockBuilder('core/date')
+			->disableOriginalConstructor()
+			->setMethods(array('gmtDate'))
+			->getMock();
+		$dateMock->expects($this->exactly(2))
+			->method('gmtDate')
+			->will($this->returnValueMap(array(
+				array($format, $fTime, $createdTime),
+				array($format, $cTime, $currentTime),
+			)));
+		$this->replaceByMock('model', 'core/date', $dateMock);
+
+		$helperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDateTime', 'loadFile', 'getTime'))
+			->getMock();
+		$helperMock->expects($this->exactly(2))
+			->method('getNewDateTime')
+			->will($this->returnValueMap(array(
+				array($createdTime, null, $startTimeMock),
+				array($currentTime, null, $currentTimeMock),
+			)));
+		$helperMock->expects($this->once())
+			->method('loadFile')
+			->with($this->identicalTo($sourceFile))
+			->will($this->returnValue($splInfoMock));
+		$helperMock->expects($this->once())
+			->method('getTime')
+			->will($this->returnValue($cTime));
+
+		$this->assertSame($elapse, $helperMock->getFileTimeElapse($sourceFile));
+	}
 }
