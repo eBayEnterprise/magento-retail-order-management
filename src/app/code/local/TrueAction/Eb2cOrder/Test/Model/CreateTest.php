@@ -693,45 +693,6 @@ INVALID_XML;
 		);
 	}
 	/**
-	 * Test _buildOrder method
-	 * @test
-	 */
-	public function testBuildOrder()
-	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<root>
-				<foo></foo>
-			</root>'
-		);
-		$orderModelMock = $this->getModelMockBuilder('sales/order')
-			->disableOriginalConstructor()
-			->setMethods(array('getIncrementId', 'getCreatedAt'))
-			->getMock();
-		$orderModelMock->expects($this->once())
-			->method('getIncrementId')
-			->will($this->returnValue('00054000000000001'));
-		$orderModelMock->expects($this->once())
-			->method('getCreatedAt')
-			->will($this->returnValue('2013-11-15 17:01:09'));
-		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
-			->disableOriginalConstructor()
-			->setMethods(array('_buildCustomer'))
-			->getMock();
-		$createModelMock->expects($this->once())
-			->method('_buildCustomer')
-			->with($this->isInstanceOf('DOMElement'))
-			->will($this->returnValue(null));
-		$this->_reflectProperty($createModelMock, '_o')->setValue($createModelMock, $orderModelMock);
-		$this->_reflectProperty($createModelMock, '_config')->setValue($createModelMock, (object) array(
-			'apiLevelOfService' => 'REGULAR',
-		));
-		$this->assertInstanceOf(
-			'TrueAction_Dom_Element',
-			$this->_reflectMethod($createModelMock, '_buildOrder')->invoke($createModelMock, $doc->documentElement)
-		);
-	}
-	/**
 	 * Test _buildItems method
 	 * @test
 	 */
@@ -791,50 +752,6 @@ INVALID_XML;
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cOrder_Model_Create',
 			$this->_reflectMethod($createModelMock, '_buildShip')->invoke($createModelMock, $doc->documentElement)
-		);
-	}
-	/**
-	 * Test _buildAdditionalOrderNodes method
-	 * @test
-	 */
-	public function testBuildAdditionalOrderNodes()
-	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML(
-			'<root>
-				<foo></foo>
-			</root>'
-		);
-		$orderHelperMock = $this->getHelperMockBuilder('eb2corder/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getOrderHistoryUrl'))
-			->getMock();
-		$orderHelperMock->expects($this->once())
-			->method('getOrderHistoryUrl')
-			->with($this->isInstanceOf('Mage_Sales_Model_Order'))
-			->will($this->returnValue('https://example.com/order/history/'));
-		$this->replaceByMock('helper', 'eb2corder', $orderHelperMock);
-		$orderModelMock = $this->getModelMockBuilder('sales/order')
-			->disableOriginalConstructor()
-			->setMethods(array('getOrderCurrencyCode', 'getGrandTotal'))
-			->getMock();
-		$orderModelMock->expects($this->once())
-			->method('getOrderCurrencyCode')
-			->will($this->returnValue('USD'));
-		$orderModelMock->expects($this->once())
-			->method('getGrandTotal')
-			->will($this->returnValue(87.00));
-		$createModelMock = $this->getModelMockBuilder('eb2corder/create')
-			->disableOriginalConstructor()
-			->setMethods(array('_getSourceData'))
-			->getMock();
-		$createModelMock->expects($this->once())
-			->method('_getSourceData')
-			->will($this->returnValue(array('source' => 'Web', 'type' => 'sales')));
-		$this->_reflectProperty($createModelMock, '_o')->setValue($createModelMock, $orderModelMock);
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cOrder_Model_Create',
-			$this->_reflectMethod($createModelMock, '_buildAdditionalOrderNodes')->invoke($createModelMock, $doc->documentElement)
 		);
 	}
 	/**
