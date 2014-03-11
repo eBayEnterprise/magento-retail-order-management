@@ -962,51 +962,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 
 		$this->assertSame(1, $helper->getDefaultParentCategoryId());
 	}
-
-	/**
-	 * Test splitDomByXslt method for the following expectations
-	 * Expectation 1: this test is expected to call the TrueAction_Eb2cProduct_Helper_Data::splitDomByXslt with a known
-	 *                TrueAction_Dom_Document object with xml data loaded to it from the data provider as the first paremter
-	 *                and path to the delete xslt template file
-	 * Expectation 2: the test is expected to call TrueAction_Eb2cCore_Helper_Data::getNewDomDocument twice within the invoking the splitDomByXslt
-	 *               method, the first time it will load the xslt template file, the TrueAction_Eb2cCore_Helper_Data::getNewXsltProcessor will be called
-	 *               and return an object of XSLTProcessor, this object will then be use to import the stylesheet pass by the dom object
-	 * Expectation 3: the second time that the method TrueAction_Eb2cCore_Helper_Data::getNewDomDocument it will return the transformation doc
-	 *                in which the xslt object will load  the transformation doc object with the split xml extract from the doc that was pass to the method
-	 * @mock TrueAction_Eb2cCore_Helper_Data::getNewDomDocument
-	 * @mock TrueAction_Eb2cCore_Helper_Data::getNewXsltProcessor
-	 * @param string $feedContent the xml string content to be loaded into the DOMDocument object
-	 * @dataProvider dataProvider
-	 * @loadExpectation
-	 */
-	public function testSplitDomByXslt($feedContent)
-	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$doc->loadXML($feedContent);
-		$dom = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$transformDom = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$xsl = new XSLTProcessor();
-
-		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->setMethods(array('getNewDomDocument', 'getNewXsltProcessor'))
-			->getMock();
-		$coreHelperMock->expects($this->at(0))
-			->method('getNewDomDocument')
-			->will($this->returnValue($dom));
-		$coreHelperMock->expects($this->at(2))
-			->method('getNewDomDocument')
-			->will($this->returnValue($transformDom));
-		$coreHelperMock->expects($this->once())
-			->method('getNewXsltProcessor')
-			->will($this->returnValue($xsl));
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
-
-		$helper = Mage::helper('eb2cproduct');
-		$this->assertSame($transformDom, $helper->splitDomByXslt($doc, dirname(dirname(__DIR__)) . '/xslt/delete-template.xsl', array()));
-
-		$this->assertSame(sprintf($this->expected('xslt')->getResults(), "\n"), trim($transformDom->saveXML()));
-	}
-
 	/**
 	 * @test
 	 */

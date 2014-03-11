@@ -90,15 +90,20 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	{
 		return $this->_feedDetails['error_file'];
 	}
+
 	/**
 	 * Process the file - making necessary deletes and adds/updates.
 	 * @return self
 	 */
 	public function process()
 	{
-		$this->deleteProducts()
-			->processDefaultStore()
-			->processTranslations();
+		$this->deleteProducts();
+
+		$siteFilters = Mage::helper('eb2cproduct')->loadWebsiteFilters();
+		foreach($siteFilters as $siteFilter) {
+			$this->_importedSkus = array();
+			$this->processWebsite($siteFilter)->processTranslations($siteFilter);
+		}
 
 		Mage::dispatchEvent(
 			'product_feed_process_operation_type_error_confirmation',
@@ -184,6 +189,23 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		);
 	}
 	/**
+	 * Get a new DOMDocument including only the data that should be set for a given
+	 * language using the specified XSLT.
+	 * @param array $websiteFilter 
+	 * @param string $template
+	 * @return TrueAction_Dom_Document
+	 */
+	protected function _splitByFilter($websiteFilter, $template)
+	{
+		return Mage::helper('eb2cproduct')->splitDomByXslt(
+			$this->getDoc(),
+			$this->_getXsltPath($template),
+			array('lang_code' => $websiteFilter['lang_code']),
+			array($this, 'xslCallBack'), // Call Back to massage XSL after initial load
+			$websiteFilter // Site Context
+		);
+	}
+	/**
 	 * load a product collection base on a given set of product data and apply
 	 * the product data to the collection and then save
 	 * product data is expected to have known SKU in order to load the collection
@@ -223,13 +245,17 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		$extractor = Mage::getSingleton('eb2cproduct/feed_extractor');
 		$helper = Mage::helper('eb2cproduct');
 		$sku = $extractor->extractSku($feedXPath, $itemNode);
+		$websiteId = Mage::getModel('core/store')->load($productCollection->getStoreId())->getWebsiteId();
 		$product = $productCollection->getItemById($sku);
 		if (is_null($product)) {
 			$product = $helper->createNewProduct($sku);
+			$product->setWebsiteIds(array($websiteId));
 			$productCollection->addItem($product);
 			Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
 		}
 		$product->setStoreId($productCollection->getStoreId());
+		$webSiteIds = array_unique(array_merge($product->getWebsiteIds(), array($websiteId)));
+		$product->setWebsiteIds($webSiteIds);
 		$product->addData($extractor->extractItem($feedXPath, $itemNode, $product));
 		return $this;
 	}
@@ -269,22 +295,39 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		return $this;
 	}
 	/**
-	 * Process the feed for the default store view - should process the file using
+	 * Process the feed for this website. Should process the file using
 	 * the default language XSLT and the language the default store view is
 	 * configured for.
 	 * @return self
 	 */
-	public function processDefaultStore()
+	public function processWebsite($websiteFilter)
 	{
-		Mage::log(sprintf('[%s] processing default store', __CLASS__), Zend_Log::DEBUG);
-		$defaultStoreId = Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID;
+		Mage::log(sprintf('[%s] processing %s', __METHOD__, print_r($websiteFilter,true)), Zend_Log::DEBUG);
+		$mageStoreId = $websiteFilter['mage_store_id'];
 		return $this->_importExtractedData(
-			$this->_splitByLanguageCode(
-				Mage::helper('eb2cproduct')->getConfigModel($defaultStoreId)->languageCode,
+			$this->_splitByFilter(
+				$websiteFilter,
 				TrueAction_Eb2cProduct_Model_Feed_File::XSLT_DEFAULT_TEMPLATE_PATH
 			),
-			$defaultStoreId
+			$mageStoreId
 		);
+		return $this;
+	}
+	/**
+	 * This is a callback; adds additional template handling for configurable variables that XSLT 1.0 just doesn't do.
+	 * @return
+	 */
+	public function xslCallBack(DOMDocument $xslDoc, array $websiteFilter)
+	{
+		$helper = Mage::helper('eb2cproduct');
+		foreach( array('Item', 'PricePerItem', 'Content') as $nodeToMatch) {
+			$helper->appendXslTemplateMatchNode($xslDoc, "/*/{$nodeToMatch}[(@catalog_id and @catalog_id!='{$websiteFilter['catalog_id']}')]");
+			$helper->appendXslTemplateMatchNode($xslDoc, "/*/{$nodeToMatch}[(@gsi_client_id and @gsi_client_id!='{$websiteFilter['client_id']}')]");
+			$helper->appendXslTemplateMatchNode($xslDoc, "/*/{$nodeToMatch}[(@gsi_store_id and @gsi_store_id!='{$websiteFilter['store_id']}')]");
+		}
+		Mage::log(sprintf('[%s] XSLT now %s', __METHOD__, $xslDoc->saveXML()), Zend_Log::DEBUG);
+		$xslDoc->loadXML($xslDoc->saveXML());
+		return;
 	}
 	/**
 	 * Create a product collection containing any product with a SKU in the

@@ -66,13 +66,13 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
-			->setMethods(array('deleteProducts', 'processDefaultStore', 'processTranslations'))
+			->setMethods(array('deleteProducts', 'processWebsite', 'processTranslations'))
 			->getMock();
 		$file->expects($this->once())
 			->method('deleteProducts')
 			->will($this->returnSelf());
 		$file->expects($this->once())
-			->method('processDefaultStore')
+			->method('processWebsite')
 			->will($this->returnSelf());
 		$file->expects($this->once())
 			->method('processTranslations')
@@ -166,44 +166,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnSelf());
 
 		$this->assertSame($fileModelMock, $fileModelMock->processForLanguage($languageCode));
-	}
-
-	/**
-	 * To process the default store, the original feed file should be split into
-	 * a spearate file containing any data that does not include a translation or
-	 * is for the language of the default store. Product data should then be
-	 * extracted from the split file and imported within the default store view.
-	 * @test
-	 */
-	public function testProcessDefaultStore()
-	{
-		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnValue($this->buildCoreConfigRegistry(array(
-				'languageCode' => 'en-us'
-			))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
-		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
-			->disableOriginalConstructor()
-			->setMethods(array('_splitByLanguageCode', '_importExtractedData'))
-			->getMock();
-		$fileModelMock->expects($this->once())
-			->method('_splitByLanguageCode')
-			->with($this->equalTo('en-us'), $this->equalTo(TrueAction_Eb2cProduct_Model_Feed_File::XSLT_DEFAULT_TEMPLATE_PATH))
-			->will($this->returnValue($splitDoc));
-		$fileModelMock->expects($this->once())
-			->method('_importExtractedData')
-			->with($this->equalTo($splitDoc), $this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnSelf());
-
-		$this->assertSame($fileModelMock, $fileModelMock->processDefaultStore());
 	}
 
 	/**
@@ -516,91 +478,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 				$file,
 				'_importExtractedData',
 				array($doc, $storeId)
-			)
-		);
-	}
-
-	/**
-	 * Test creating/updating a product with data extracted from the feed.
-	 * Should check for the product to exist in the product collection. If the
-	 * product exists, the product in the collection should be retrieved and
-	 * updated with data extracted from the feed. If it does not exist, a new
-	 * product should be created, updated with data from the feed, and added
-	 * to the product colleciotn.
-	 * @param boolean $isNew
-	 * @param string $sku
-	 * @test
-	 * @dataProvider dataProvider
-	 */
-	public function testUpdateItem($isNew, $sku)
-	{
-		$contextNode = $this->getMockBuilder('DOMNode')->disableOriginalConstructor()->getMock();
-		$productFeedData = array('sku' => $sku, 'title' => 'Shiny New Title');
-		$xpath = $this->getMockBuilder('DOMXPath')->disableOriginalConstructor()->getMock();
-
-		$extractor = $this->getModelMockBuilder('eb2cproduct/feed_extractor')
-			->disableOriginalConstructor()
-			->setMethods(array('extractItem', 'extractSku'))
-			->getMock();
-		$productHelper = $this->getHelperMock('eb2cproduct/data', array('createNewProduct'));
-		$productCollection = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
-			->disableOriginalConstructor()
-			->setMethods(array('getItemById', 'addItem'))
-			->getMock();
-		$product = $this->getModelMockBuilder('catalog/product')
-			->disableOriginalConstructor()
-			->setMethods(array('addData'))
-			->getMock();
-		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
-			->disableOriginalConstructor()
-			->setMethods(null)
-			->getMock();
-
-		$this->replaceByMock('singleton', 'eb2cproduct/feed_extractor', $extractor);
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelper);
-
-		$extractor->expects($this->once())
-			->method('extractSku')
-			->with($this->identicalTo($xpath), $this->identicalTo($contextNode))
-			->will($this->returnValue($sku));
-		$extractor->expects($this->once())
-			->method('extractItem')
-			->with($this->identicalTo($xpath), $this->identicalTo($contextNode), $this->identicalTo($product))
-			->will($this->returnValue($productFeedData));
-
-		$product->expects($this->once())
-			->method('addData')
-			->with($this->identicalTo($productFeedData))
-			->will($this->returnSelf());
-
-		if ($isNew) {
-			$productHelper->expects($this->once())
-				->method('createNewProduct')
-				->with($this->identicalTo($sku))
-				->will($this->returnValue($product));
-			$productCollection->expects($this->once())
-				->method('addItem')
-				->with($this->identicalTo($product))
-				->will($this->returnSelf());
-			$productCollection->expects($this->once())
-				->method('getItemById')
-				->with($this->identicalTo($sku))
-				->will($this->returnValue(null));
-		} else {
-			$productHelper->expects($this->never())
-				->method('createNewProduct');
-			$productCollection->expects($this->never())
-				->method('addItem');
-			$productCollection->expects($this->once())
-				->method('getItemById')
-				->with($this->identicalTo($sku))
-				->will($this->returnValue($product));
-		}
-
-		$this->assertSame(
-			$file,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod(
-				$file, '_updateItem', array($xpath, $contextNode, $productCollection)
 			)
 		);
 	}

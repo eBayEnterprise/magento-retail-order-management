@@ -446,14 +446,18 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param TrueAction_Dom_Document $doc the document got get the nodelist
 	 * @param string $xsltFilePath the xslt stylesheet template file absolute fulle path
 	 * @param array $params parameters for the xslt
+	 * @param function $postXsltLoadCall function to be called after loading XSLT, but before Processing it
 	 * @return TrueAction_Dom_Document
 	 */
-	public function splitDomByXslt(TrueAction_Dom_Document $doc, $xsltFilePath, array $params=array())
+	public function splitDomByXslt(TrueAction_Dom_Document $doc, $xsltFilePath, array $params=array(), $postXsltLoadCall=null, $websiteFilter=array())
 	{
 		$helper = Mage::helper('eb2ccore');
 		// create a new DOMDocument for the xsl
-		$xslDom = $helper->getNewDomDocument();
+		$xslDom =  new DOMDocument();
 		$xslDom->load($xsltFilePath);
+		if (is_callable($postXsltLoadCall)) {
+			call_user_func($postXsltLoadCall, $xslDom, $websiteFilter);
+		}
 		// load the xsl document into a XSLProcessor
 		$xslProcessor = $helper->getNewXsltProcessor();
 		$xslProcessor->importStyleSheet($xslDom);
@@ -461,6 +465,71 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		// create a new DOMDocument from the transformed XML
 		$transformed = $helper->getNewDomDocument();
 		$transformed->loadXML($xslProcessor->transformToXML($doc));
+		preg_match_all('/<ClientItemId ?.*>(.*)<\/ClientItemId>/', $transformed->saveXML(), $matches);
+		Mage::log(sprintf("[%s] transformed, SKUs eligible:\n %s", __METHOD__, implode("\n", $matches[1])), Zend_Log::DEBUG);
 		return $transformed;
+	}
+
+	/**
+	 * Appends an <xsl:template match='' /> node to the XSLT DOM.
+	 * XSLT 1.0 won't let us use a variable reference, we have to form the
+	 * xpath as a string, and build a node and insert it.
+	 * @param DOMDocument xslDoc an already loaded DOM
+	 * @param string xpathExpression to match
+	 * @return boolean true (node inserted), or false (node insert failed)
+	 */
+	function appendXslTemplateMatchNode($xslDoc, $xpathExpression)
+	{
+		$templateNode          = $xslDoc->createElement('xsl:template');
+		$matchAttribute        = $xslDoc->createAttribute('match');
+		$matchAttribute->value = $xpathExpression;
+		$templateNode->appendChild($matchAttribute);
+		$rc = $xslDoc->documentElement->insertBefore($templateNode);
+		return $rc;
+	}
+
+	/**
+	 * Loads a key/ value pair with the relevant config fields of each Magento Web Store which allows us
+	 * to match an incoming feed to that specific destination.
+	 *
+	 * @return array of key/value pairs mapping an inbound feed to the given Magento Web Store.
+	 */
+	protected function _loadWebsiteFilter($mageStoreId)
+	{
+		$config = Mage::getModel('eb2ccore/config_registry')
+			->setStore($mageStoreId)
+			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
+		return array (
+			'catalog_id'      => $config->catalogId,
+			'client_id'       => $config->clientId,
+			'store_id'        => $config->storeId,
+			'lang_code'       => $config->languageCode,
+			'mage_store_id'   => $mageStoreId,
+			'mage_website_id' => Mage::getModel('core/store')->load($mageStoreId)->getWebsiteId(),
+		);
+	}
+
+	/**
+	 * Loads the relevant config fields of each Magento Web Site that allows us
+	 * to match an incoming feed to the appropriate destination.
+	 *
+	 * @return array of unique key/value pairs mapping an inbound feed to a Magento Web Site.
+	 */
+	public function loadWebsiteFilters()
+	{
+		$allWebsites = array();
+		// Default Store it has its own special configuration.
+		$allWebsites[Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID] = $this->_loadWebSiteFilter(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
+		foreach (Mage::app()->getWebsites() as $website) {
+			foreach ($website->getGroups() as $group) {
+				foreach ($group->getStores() as $store) {
+					$allWebsites[$store->getId()] = $this->_loadWebsiteFilter($store->getId());
+				}
+			}
+		}
+		// We're keyed by Mage Store Id. But some Store Ids could point to the same incoming feed. We de-dupe to avoid processing twice.
+		// Similarly, if every website uses the default store configuration, we have but one incoming-website-match to worry about.
+		$uniqueSites = array_map("unserialize", array_unique(array_map("serialize", $allWebsites)));
+		return $uniqueSites;
 	}
 }
