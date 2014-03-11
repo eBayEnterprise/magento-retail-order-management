@@ -603,7 +603,7 @@ class TrueAction_Eb2cOrder_Model_Create
 	 * behavior invoking it as a ReflectionMethod when it was private.)
 	 *
 	 * @param Mage_Sales_Model_Order $order the order object
-	 * @return string the panToken
+	 * @return string the panToken | pan
 	 */
 	public static function getOrderGiftCardPan(Mage_Sales_Model_Order $order)
 	{
@@ -612,6 +612,11 @@ class TrueAction_Eb2cOrder_Model_Create
 			foreach ($giftCardData as $gcData) {
 				if (isset($gcData['panToken']) && trim($gcData['panToken']) !== '') {
 					return $gcData['panToken'];
+				} elseif (isset($gcData['pan']) && trim($gcData['pan']) !== '') {
+					// the giftcard data in the admin order creation is expecting the pan key
+					// from the unserialize data, not quite sure about the panToken key here
+					// perhaps it's a front-end expectation
+					return $gcData['pan'];
 				}
 			}
 		}

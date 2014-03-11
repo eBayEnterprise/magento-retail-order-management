@@ -902,4 +902,48 @@ INVALID_XML;
 			->will($this->returnValue(serialize(array(array('panToken' => $expectedPanToken)))));
 		$this->assertSame($expectedPanToken, TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan($order));
 	}
+
+	/**
+	 * test TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan for the following expectation
+	 * Expectation 1: this test will invoke the method TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan given
+	 *                a mock order object of class Mage_Sales_Model_Order in which the method Mage_Sales_Model_Order::getGiftCards
+	 *                will be invoked once and return an array of array of giftcard data in the order object it will then
+	 *                loop through the array of array of giftcard data and return the pan key value
+	 * @mock Mage_Sales_Model_Order::getGiftCards
+	 */
+	public function testGetOrderGiftCardPanWhenKeyPanIsInGiftcardData()
+	{
+		$data = array(array('pan' => '000000000003939388322'));
+		$giftcards = serialize($data);
+
+		$orderMock = $this->getModelMockBuilder('sales/order')
+			->disableOriginalConstructor()
+			->setMethods(array('getGiftCards'))
+			->getMock();
+		$orderMock->expects($this->once())
+			->method('getGiftCards')
+			->will($this->returnValue($giftcards));
+
+		$this->assertSame($data[0]['pan'], TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan($orderMock));
+	}
+
+	/**
+	 * @see self::testGetOrderGiftCardPanWhenKeyPanIsInGiftcardData except we now testing when the return value of
+	 *      Mage_Sales_Model_Order::getGiftCards unserialized into an empty array
+	 * @mock Mage_Sales_Model_Order::getGiftCards
+	 */
+	public function testGetOrderGiftCardPanWNoGiftcardData()
+	{
+		$giftcards = serialize(array(array()));
+
+		$orderMock = $this->getModelMockBuilder('sales/order')
+			->disableOriginalConstructor()
+			->setMethods(array('getGiftCards'))
+			->getMock();
+		$orderMock->expects($this->once())
+			->method('getGiftCards')
+			->will($this->returnValue($giftcards));
+
+		$this->assertSame('', TrueAction_Eb2cOrder_Model_Create::getOrderGiftCardPan($orderMock));
+	}
 }

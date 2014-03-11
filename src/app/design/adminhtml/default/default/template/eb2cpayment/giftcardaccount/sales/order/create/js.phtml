@@ -1,0 +1,38 @@
+<?php
+/**
+ * Add new JS to do specific giftcard functionality
+ */
+?>
+<script type="text/javascript">
+	//<![CDATA[
+	var giftcardForm = new varienForm('edit_form');
+	function checkGiftCardStatus()
+	{
+		new Ajax.Updater(
+			'giftcard_balance_lookup',
+			'<?php echo Mage::getUrl('enterprise_giftcardaccount/cart/quickCheck') ?>',
+			{
+				onCreate: function() { $('gc-please-wait').show(); },
+				onComplete: function() { $('gc-please-wait').hide(); },
+				parameters : {giftcard_code : $('giftcard_code').value, giftcard_pin : $('giftcard_pin').value}
+			}
+		);
+	}
+
+	function addGiftCard() {
+		var code = $('giftcard_code').value;
+		var pin = $('giftcard_pin').value;
+		var data = {};
+		data['giftcard_add'] = code;
+		data['giftcard_pan'] = code;
+		data['giftcard_pin'] = pin;
+		order.loadArea(['totals', 'billing_method', 'items'], true, data);
+	}
+
+	function removeGiftCard(code) {
+		var data = {};
+		data['giftcard_remove'] = code;
+		order.loadArea(['totals', 'billing_method', 'items'], true, data);
+	}
+	//]]>
+</script>

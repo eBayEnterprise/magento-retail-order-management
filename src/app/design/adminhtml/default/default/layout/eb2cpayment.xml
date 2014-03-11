@@ -5,4 +5,28 @@
 			<block type="eb2cpayment/adminhtml_notifications" name="eb2cpayment_notifications" template="eb2cpayment/notifications.phtml"></block>
 		</reference>
 	</default>
+	<adminhtml_sales_order_create_load_block_items>
+		<reference name="items_grid">
+			<block type="enterprise_giftcardaccount/adminhtml_sales_order_create_payment" template="eb2cpayment/giftcardaccount/sales/order/create/items.phtml" name="giftcardaccount" after="-" />
+		</reference>
+	</adminhtml_sales_order_create_load_block_items>
+	<adminhtml_sales_order_create_load_block_data>
+		<reference name="items_grid">
+			<block type="enterprise_giftcardaccount/adminhtml_sales_order_create_payment" template="eb2cpayment/giftcardaccount/sales/order/create/items.phtml" name="giftcardaccount" after="-" />
+		</reference>
+	</adminhtml_sales_order_create_load_block_data>
+
+	<adminhtml_sales_order_create_index>
+		<reference name="js">
+			<block type="adminhtml/template" template="eb2cpayment/giftcardaccount/sales/order/create/js.phtml" name="giftcardaccount_js" />
+		</reference>
+		<reference name="items_grid">
+			<block type="enterprise_giftcardaccount/adminhtml_sales_order_create_payment" template="eb2cpayment/giftcardaccount/sales/order/create/items.phtml" name="giftcardaccount" after="-" />
+		</reference>
+		<reference name="head">
+			<action method="addCss">
+				<stylesheet>css/eb2c-giftcard-admin.css</stylesheet>
+			</action>
+		</reference>
+	</adminhtml_sales_order_create_index>
 </layout>

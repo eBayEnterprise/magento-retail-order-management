@@ -25,6 +25,7 @@
 			<enterprise_giftcardaccount>
 				<rewrite>
 					<giftcardaccount>TrueAction_Eb2cPayment_Overrides_Model_Giftcardaccount</giftcardaccount>
+					<observer>TrueAction_Eb2cPayment_Overrides_Model_Observer</observer>
 				</rewrite>
 			</enterprise_giftcardaccount>
 			<paypal>

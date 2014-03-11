@@ -1,0 +1,39 @@
+<?php
+/**
+ * @see Enterprise_GiftCardAccount_Block_Adminhtml_Sales_Order_Create_Payment
+ * overriding giftcardaccount payment block in order to add pan and pin field and do gift card balance check
+ */
+?>
+<div class="entry-edit box-right">
+	<div class="entry-edit-head">
+		<h4 class="icon-head"><?php echo $this->__('Gift Cards'); ?></h4>
+	 </div>
+	 <div id="giftcard_balance_lookup"></div>
+	 <span id="gc-please-wait" class="please-wait" style="display:none;">
+		<img src="<?php echo $this->getSkinUrl('images/opc-ajax-loader.gif') ?>" alt="" class="v-middle" /> <?php echo $this->__('Please wait, loading...') ?>
+	</span>
+	 <fieldset class="np">
+		 <div class="content">
+			<ul class="form-list">
+				<li>
+					<label style="text-align:left; display: block; margin: 0 0 7px; padding: 2px 15px 0 0;font-weight: bold;" for="giftcard_code"><em class="required" style="margin-right: 4px;">*</em>
+					<?php echo $this->__('Payment Account Numbers (PAN)') ?></label>
+					<input style="width: 280px;" class="" id="giftcard_code" name="giftcard_code" value="" />
+				</li>
+				<li>
+					<label style="text-align:left; display: block;margin: 0 0 7px; padding: 2px 15px 0 0;font-weight: bold;" for="giftcard_pin"><em class="required" style="margin-right: 4px;">*</em>
+					<?php echo $this->__('Personal Identification Number (PIN)') ?></label>
+					<input style="width: 280px;" class="" id="giftcard_pin" name="giftcard_pin" value="" />
+				</li>
+			</ul>
+			<div class="buttons-set">
+				<button class="button" onclick="addGiftCard()" type="button" value="<?php echo $this->__('Add Gift Card') ?>"><span><span><?php echo $this->__('Add Gift Card') ?></span></span></button>
+			<button class="button check-gc-status" onclick="checkGiftCardStatus();" type="button" value="<?php echo $this->__('Check Gift Card status and balance') ?>"><span><span><?php echo $this->__('Check Gift Card status and balance') ?></span></span></button>
+			</div>
+
+			<?php foreach ($this->getGiftCards() as $_card): ?>
+				<p><strong><?php echo $_card; ?></strong> [<a href="#" onclick="removeGiftCard('<?php echo $_card; ?>'); return false;" title="<?php echo $this->__('Remove'); ?>"><?php echo $this->__('Remove'); ?></a>]</p>
+			<?php endforeach; ?>
+		</div>
+	</fieldset>
+</div>
