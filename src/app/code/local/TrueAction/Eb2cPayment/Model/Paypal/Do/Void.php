@@ -10,11 +10,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Void
 	public function doVoid(Mage_Sales_Model_Quote $quote)
 	{
 		$helper = Mage::helper('eb2cpayment');
-		return Mage::getModel('eb2ccore/api')->request(
-			$this->buildPayPalDoVoidRequest($quote),
-			$helper->getConfigModel()->xsdFilePaypalVoidAuth,
-			$helper->getOperationUri('get_paypal_do_void')
-		);
+		return Mage::getModel('eb2ccore/api')
+			->setStatusHandlerPath(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH)
+			->request(
+				$this->buildPayPalDoVoidRequest($quote),
+				$helper->getConfigModel()->xsdFilePaypalVoidAuth,
+				$helper->getOperationUri('get_paypal_do_void')
+			);
 	}
 	/**
 	 * Build PaypalDoVoid request.

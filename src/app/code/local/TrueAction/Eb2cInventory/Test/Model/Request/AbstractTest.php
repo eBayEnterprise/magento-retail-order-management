@@ -33,7 +33,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 			->getMock();
 		$configModel = $this->getModelMock('eb2ccore/config_registry', array('getConfig'));
 		$request = $this->getModelMock($requestType, array('_buildRequestMessage', '_canMakeRequestWithQuote'));
-		$api = $this->getModelMock('eb2ccore/api', array('request', 'getStatus'));
+		$api = $this->getModelMock('eb2ccore/api', array('request', 'setStatusHandlerPath'));
 
 		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelper);
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
@@ -69,16 +69,16 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 			->method('_canMakeRequestWithQuote')
 			->with($this->identicalTo($quote))
 			->will($this->returnValue(true));
+		$api->expects($this->once())
+			->method('setStatusHandlerPath')
+			->with($this->identicalTo(TrueAction_Eb2cInventory_Model_Request_Abstract::STATUS_HANDLER_CONFIG_PATH))
+			->will($this->returnSelf());
 		if ($requestSuccess) {
 			$api
 				->expects($this->once())
 				->method('request')
 				->with($this->identicalTo($requestMessage, $xsd, $uri))
 				->will($this->returnValue($responseMessage));
-			// _handleEmptyRespnose should only be called when API returns an empty response, which doesn't happen here
-			$request
-				->expects($this->never())
-				->method('_handleEmptyResponse');
 		} else {
 			// cause the API request to fail
 			$api
@@ -86,12 +86,6 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 				->method('request')
 				->with($this->identicalTo($requestMessage, $xsd, $uri))
 				->will($this->returnValue(''));
-			$api
-				->expects($this->once())
-				->method('getStatus')
-				->will($this->returnValue(0));
-			// when the request fails, _handleEmptyResponse will trigger, causing an exception to be thrown
-			$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
 		}
 		$this->assertSame($responseMessage, $request->makeRequestForQuote($quote));
 	}
@@ -175,20 +169,12 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 			->method('_canMakeRequestWithQuote')
 			->with($this->identicalTo($quote))
 			->will($this->returnValue(true));
-		// when empty response returned from API, this method should deal with it,
-		// throwing the appropriate exception
-		$request
-			->expects($this->once())
-			->method('_handleEmptyResponse')
-			->with($this->identicalTo($api))
-			->will($this->throwException(new TrueAction_Eb2cInventory_Exception_Cart));
 		$api
 			->expects($this->once())
 			->method('request')
 			->will($this->returnValue(''));
 
-		$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
-		$request->makeRequestForQuote($quote);
+		$this->assertSame('', $request->makeRequestForQuote($quote));
 	}
 	/**
 	 * Data provider to the testHandlingOfEmptyResponse test. Providers
@@ -206,43 +192,5 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 			// blocking status on the api model
 			array(true, true),
 		);
-	}
-	/**
-	 * Test the handling of empty responses from the API model. When the API model
-	 * includes a "blocking" status, a TrueAction_Eb2cInventory_Exception_Cart_Interrupt
-	 * exception should be thrown. Otherwise, a TrueAction_Eb2cInventory_Exception_Cart
-	 * exception should be thrown.
-	 * @param  bool $hasStatus        Does the API model include a status code.
-	 * @param  bool $isBlockingStatus Is the API model's status code a "blocking" status
-	 * @test
-	 * @dataProvider providerHandlingOfEmptyResponses
-	 */
-	public function testHandlingOfEmptyResponses($hasStatus, $isBlockingStatus)
-	{
-		$api = $this->getModelMock('eb2ccore/api', array('hasStatus', 'getStatus'));
-		$helper = $this->getHelperMock('eb2cinventory/data', array('isBlockingStatus'));
-		$this->replaceByMock('helper', 'eb2cinventory', $helper);
-
-		$api
-			->expects($this->any())
-			->method('hasStatus')
-			->will($this->returnValue($hasStatus));
-		$api
-			->expects($this->any())
-			->method('getStatus')
-			->will($this->returnValue(123));
-		$helper
-			->expects($this->any())
-			->method('isBlockingStatus')
-			->will($this->returnValue($isBlockingStatus));
-
-		if ($hasStatus && $isBlockingStatus) {
-			$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart_Interrupt');
-		} else {
-			$this->setExpectedException('TrueAction_Eb2cInventory_Exception_Cart');
-		}
-		$request = $this->getModelMock('eb2cinventory/request_abstract', array('none'), true);
-		$meth = $this->_reflectMethod($request, '_handleEmptyResponse');
-		$meth->invoke($request, $api);
 	}
 }

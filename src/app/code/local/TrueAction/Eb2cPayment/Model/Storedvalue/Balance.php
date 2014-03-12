@@ -18,11 +18,13 @@ class TrueAction_Eb2cPayment_Model_Storedvalue_Balance
 			Mage::log(sprintf('[ %s ] pan "%s" is out of range of any configured tender type bin.', __CLASS__, $pan), Zend_Log::ERR);
 			return '';
 		}
-		return Mage::getModel('eb2ccore/api')->request(
-			$this->buildStoredValueBalanceRequest($pan, $pin),
-			$hlpr->getConfigModel()->xsdFileStoredValueBalance,
-			$uri
-		);
+		return Mage::getModel('eb2ccore/api')
+			->setStatusHandlerPath('eb2cpayment/api_status_handler')
+			->request(
+				$this->buildStoredValueBalanceRequest($pan, $pin),
+				$hlpr->getConfigModel()->xsdFileStoredValueBalance,
+				$uri
+			);
 	}
 
 	/**

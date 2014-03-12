@@ -34,8 +34,12 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_BalanceTest
 
 		$apiModelMock = $this->getModelMockBuilder('eb2ccore/api')
 			->disableOriginalConstructor()
-			->setMethods(array('request'))
+			->setMethods(array('request', 'setStatusHandlerPath'))
 			->getMock();
+		$apiModelMock->expects($this->once())
+			->method('setStatusHandlerPath')
+			->with($this->equalTo(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH))
+			->will($this->returnSelf());
 		$apiModelMock->expects($this->once())
 			->method('request')
 			->with(

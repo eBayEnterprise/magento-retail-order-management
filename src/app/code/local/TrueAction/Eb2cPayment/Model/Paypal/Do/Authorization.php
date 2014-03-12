@@ -10,11 +10,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Authorization
 	public function doAuthorization(Mage_Sales_Model_Quote $quote)
 	{
 		$helper = Mage::helper('eb2cpayment');
-		return Mage::getModel('eb2ccore/api')->request(
-			$this->buildPayPalDoAuthorizationRequest($quote),
-			$helper->getConfigModel()->xsdFilePaypalDoAuth,
-			$helper->getOperationUri('get_paypal_do_authorization')
-		);
+		return Mage::getModel('eb2ccore/api')
+			->setStatusHandlerPath(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH)
+			->request(
+				$this->buildPayPalDoAuthorizationRequest($quote),
+				$helper->getConfigModel()->xsdFilePaypalDoAuth,
+				$helper->getOperationUri('get_paypal_do_authorization')
+			);
 	}
 
 	/**

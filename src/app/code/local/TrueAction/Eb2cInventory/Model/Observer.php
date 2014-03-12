@@ -74,14 +74,7 @@ class TrueAction_Eb2cInventory_Model_Observer
 		TrueAction_Eb2cInventory_Model_Request_Abstract $requestModel,
 		Mage_Sales_Model_Quote $quote
 	) {
-		$response = null;
-		try {
-			$response = $requestModel->makeRequestForQuote($quote);
-		} catch (TrueAction_Eb2cInventory_Exception_Cart_Interrupt $e) {
-			Mage::log(sprintf('[%s] Unable to update cart: %s', __CLASS__, $e->getMessage()), Zend_Log::ERR);
-		} catch (TrueAction_Eb2cInventory_Exception_Cart $e) {
-			Mage::log(sprintf('[%s] Updated cart but with some errors: %s', __CLASS__, $e->getMessage()), Zend_Log::WARN);
-		}
+		$response = $requestModel->makeRequestForQuote($quote);
 		$requestModel->updateQuoteWithResponse($quote, $response);
 		return $response;
 	}

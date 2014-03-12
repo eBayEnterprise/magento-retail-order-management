@@ -355,4 +355,36 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 
 		$this->assertSame($elapse, $helperMock->getFileTimeElapse($sourceFile));
 	}
+	/**
+	 * verify the core feed helper's invokeCallback method is called correctly.
+	 * @test
+	 */
+	public function testInvokeCallback()
+	{
+		$argArray = array('the args');
+		$feedHelper = $this->getHelperMock('eb2ccore/feed', array('invokeCallback'));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
+		$feedHelper->expects($this->once())
+			->method('invokeCallback')
+			->with($this->identicalTo($argArray))
+			->will($this->returnValue('foo'));
+		$helper = Mage::helper('eb2ccore');
+		$this->assertSame('foo', $helper->invokeCallback($argArray));
+	}
+	/**
+	 * verify the core feed helper's getConfigData method is called correctly.
+	 * @test
+	 */
+	public function testGetConfigData()
+	{
+		$configPath = 'the/config/path';
+		$feedHelper = $this->getHelperMock('eb2ccore/feed', array('getConfigData'));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
+		$feedHelper->expects($this->once())
+			->method('getConfigData')
+			->with($this->identicalTo($configPath))
+			->will($this->returnValue(array('config data')));
+		$helper = Mage::helper('eb2ccore');
+		$this->assertSame(array('config data'), $helper->getConfigData($configPath));
+	}
 }

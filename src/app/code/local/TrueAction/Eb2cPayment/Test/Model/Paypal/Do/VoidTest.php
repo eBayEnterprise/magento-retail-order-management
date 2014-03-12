@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_void;
 
@@ -58,5 +59,49 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Do_VoidTest extends EcomDev_PHPUn
 			'Varien_Object',
 			$this->_void->parseResponse($payPalDoVoidReply)
 		);
+	}
+	public function testDoVoid()
+	{
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->getMock();
+		$api = $this->getModelMock('eb2ccore/api', array('request', 'setStatusHandlerPath'));
+		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel', 'getOperationUri'))
+			->getMock();
+		$testModel = $this->getModelMock('eb2cpayment/paypal_do_void', array('buildPayPalDoVoidRequest'));
+		$config = $this->buildCoreConfigRegistry(array('xsdFilePaypalVoidAuth' => 'xsdfile'));
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+		$this->replaceByMock('helper', 'eb2cpayment', $helper);
+
+		$helper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($config));
+		$helper->expects($this->once())
+			->method('getOperationUri')
+			->with($this->identicalTo('get_paypal_do_void'))
+			->will($this->returnValue('/uri/'));
+
+		$testModel->expects($this->once())
+			->method('buildPayPalDoVoidRequest')
+			->with($this->identicalto($quote))
+			->will($this->returnValue($doc));
+		$api->expects($this->once())
+			->method('setStatusHandlerPath')
+			->with($this->identicalto(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH))
+			->will($this->returnSelf());
+		$api->expects($this->once())
+			->method('request')
+			->with(
+				$this->identicalto($doc),
+				$this->identicalTo('xsdfile'),
+				$this->identicalTo('/uri/')
+			)
+			->will($this->returnValue('responseText'));
+
+		$this->assertSame('responseText', $testModel->doVoid($quote));
 	}
 }

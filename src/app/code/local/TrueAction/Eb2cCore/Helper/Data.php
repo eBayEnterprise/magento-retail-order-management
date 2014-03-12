@@ -254,7 +254,6 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not move $source to $destination");
 		}
 	}
-
 	/**
 	 * abstracting removing a file
 	 * @param string $file
@@ -278,7 +277,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return mixed
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfig($path, $store=null)
+	public function getStoreConfig($path, $store = null)
 	{
 		return Mage::getStoreConfig($path, $store);
 	}
@@ -291,11 +290,10 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return bool
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfigFlag($path, $store=null)
+	public function getStoreConfigFlag($path, $store = null)
 	{
 		return Mage::getStoreConfigFlag($path, $store);
 	}
-
 	/**
 	 * abstracting getting the magento base directory with a given scope or default
 	 * scope and a given relative path to build an absolute full path
@@ -308,6 +306,15 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getAbsolutePath($relative, $scope='base')
 	{
 		return Mage::getBaseDir($scope) . DS . $relative;
+	}
+	/**
+	 * @see invokeCallback of TrueAction_Eb2cCore_Helper_Feed
+	 * @param  array  $callback
+	 * @return mixed
+	 */
+	public function invokeCallback(array $callback=array())
+	{
+		return Mage::helper('eb2ccore/feed')->invokeCallback($callback);
 	}
 
 	/**
@@ -328,7 +335,6 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			$interVal->i
 		);
 	}
-
 	/**
 	 * abstracting instantiating a new DataTime object
 	 * @param $time
@@ -340,7 +346,6 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return new DateTime($time, $timezone);
 	}
-
 	/**
 	 * abstracting getting the current time
 	 * @return int
@@ -349,5 +354,14 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getTime()
 	{
 		return time();
+	}
+	/**
+	 * @see getConfigData of TrueAction_Eb2cCore_Helper_Feed
+	 * @param  string  $configPath
+	 * @return mixed
+	 */
+	public function getConfigData($configPath)
+	{
+		return Mage::helper('eb2ccore/feed')->getConfigData($configPath);
 	}
 }

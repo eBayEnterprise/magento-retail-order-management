@@ -186,4 +186,59 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			$this->_reflectMethod($checkout, '_savePaymentData')->invoke($checkout, $checkoutObject, $quoteMock)
 		);
 	}
+	public function testSetExpressCheckout()
+	{
+		$quote = $this->getModelMockBuilder('sales/quote')
+			->disableOriginalConstructor()
+			->getMock();
+		$api = $this->getModelMock('eb2ccore/api', array('request', 'setStatusHandlerPath'));
+		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel', 'getOperationUri'))
+			->getMock();
+		$auth = $this->getModelMock('eb2cpayment/paypal_set_express_checkout', array('buildPayPalSetExpressCheckoutRequest', '_savepaymentData', 'parseResponse'));
+		$config = $this->buildCoreConfigRegistry(array('xsdFilePaypalSetExpress' => 'xsdfile'));
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$parsedData = new Varien_Object();
+
+		$this->replaceByMock('model', 'eb2ccore/api', $api);
+		$this->replaceByMock('helper', 'eb2cpayment', $helper);
+
+		$helper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($config));
+		$helper->expects($this->once())
+			->method('getOperationUri')
+			->with($this->identicalTo('get_paypal_set_express_checkout'))
+			->will($this->returnValue('/uri/'));
+
+		$auth->expects($this->once())
+			->method('buildPayPalSetExpressCheckoutRequest')
+			->with($this->identicalTo($quote))
+			->will($this->returnValue($doc));
+		$auth->expects($this->once())
+			->method('parseResponse')
+			->with($this->identicalTo('responseText'))
+			->will($this->returnValue($parsedData));
+		$auth->expects($this->once())
+			->method('_savePaymentData')
+			->with($this->identicalTo($parsedData, $this->identicalTo($quote)))
+			->will($this->returnSelf());
+
+		$api->expects($this->once())
+			->method('setStatusHandlerPath')
+			->with($this->identicalTo(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH))
+			->will($this->returnSelf());
+		$api->expects($this->once())
+			->method('request')
+			->with(
+				$this->identicalTo($doc),
+				$this->identicalTo('xsdfile'),
+				$this->identicalTo('/uri/')
+			)
+			->will($this->returnValue('responseText'));
+
+
+		$this->assertSame('responseText', $auth->setExpressCheckout($quote));
+	}
 }

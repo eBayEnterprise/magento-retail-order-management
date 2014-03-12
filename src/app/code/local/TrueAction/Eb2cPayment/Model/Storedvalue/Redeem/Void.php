@@ -18,11 +18,13 @@ class TrueAction_Eb2cPayment_Model_Storedvalue_Redeem_Void
 			Mage::log(sprintf('[ %s ] pan "%s" is out of range of any configured tender type bin.', __CLASS__, $pan), Zend_Log::ERR);
 			return '';
 		}
-		return Mage::getModel('eb2ccore/api')->request(
-			$this->buildStoredValueRedeemVoidRequest($pan, $pin, $entityId, $amount),
-			$hlpr->getConfigModel()->xsdFileStoredValueVoidRedeem,
-			$uri
-		);
+		return Mage::getModel('eb2ccore/api')
+			->setStatusHandlerPath(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH)
+			->request(
+				$this->buildStoredValueRedeemVoidRequest($pan, $pin, $entityId, $amount),
+				$hlpr->getConfigModel()->xsdFileStoredValueVoidRedeem,
+				$uri
+			);
 	}
 	/**
 	 * Build gift card Redeem Void request.

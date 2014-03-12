@@ -94,16 +94,4 @@ class TrueAction_Eb2cInventory_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return array_filter($quoteItems, array($this, 'isItemInventoried'));
 	}
-	/**
-	 * determine if the status should prevent adding an item to the cart.
-	 * @param  int  $status    http status code from the api response.
-	 * @return boolean         true if the item should not be added to the cart; false otherwise.
-	 */
-	public function isBlockingStatus($status)
-	{
-		$status = (int) $status;
-		return $status && ($status >= 400 && $status < 408) ||
-			($status >= 409 && $status < 500) ||
-			$status === 505;
-	}
 }

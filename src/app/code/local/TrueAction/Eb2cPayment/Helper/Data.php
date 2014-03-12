@@ -1,6 +1,8 @@
 <?php
 class TrueAction_Eb2cPayment_Helper_Data extends Mage_Core_Helper_Abstract
 {
+	const STATUS_HANDLER_PATH = 'eb2cpayment/api_status_handler';
+
 	public $configModel;
 	public $apiModel;
 	protected $_operation;

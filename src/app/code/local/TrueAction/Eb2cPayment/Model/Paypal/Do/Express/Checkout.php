@@ -10,11 +10,13 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 	public function doExpressCheckout(Mage_Sales_Model_Quote $quote)
 	{
 		$helper = Mage::helper('eb2cpayment');
-		$response = Mage::getModel('eb2ccore/api')->request(
-			$this->buildPayPalDoExpressCheckoutRequest($quote),
-			$helper->getConfigModel()->xsdFilePaypalDoExpress,
-			$helper->getOperationUri('get_paypal_do_express_checkout')
-		);
+		$response = Mage::getModel('eb2ccore/api')
+			->setStatusHandlerPath(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH)
+			->request(
+				$this->buildPayPalDoExpressCheckoutRequest($quote),
+				$helper->getConfigModel()->xsdFilePaypalDoExpress,
+				$helper->getOperationUri('get_paypal_do_express_checkout')
+			);
 		// Save payment data
 		$this->_savePaymentData($this->parseResponse($response), $quote);
 		return $response;

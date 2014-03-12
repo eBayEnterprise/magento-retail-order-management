@@ -227,26 +227,14 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest
 		$method = $this->_reflectMethod($observer, '_updateDetails');
 		$this->assertSame($observer, $method->invoke($observer, $quote));
 	}
-	public function providerMakeRequestAndUpdate()
-	{
-		return array(
-			array(new TrueAction_Eb2cInventory_Exception_Cart, null),
-			array(new TrueAction_Eb2cInventory_Exception_Cart_Interrupt, null),
-			array(null, '<MockResponse/>'),
-		);
-	}
 	/**
 	 * Test the abstract method for making an inventory service request and updating
-	 * the quote with the results. Method should handle catching inventory exceptions
-	 * thrown while making the request, this may result in flagging the observer to
-	 * interrupt the cart add/update.
-	 * @param  TrueAction_Eb2cInventory_Exception_Cart|TrueAction_Eb2cInventory_Exception_Cart_Interrupt|null $exception Exception to throw from makeRequestForQuote or null of no exception
-	 * @param  string|null $response Response expected from the inventory service
+	 * the quote with the results.
 	 * @test
-	 * @dataProvider providerMakeRequestAndUpdate
 	 */
-	public function testMakeRequestAndUpdate($exception, $response)
+	public function testMakeRequestAndUpdate()
 	{
+		$response = '<MockResponse/>';
 		$observer = Mage::getModel('eb2cinventory/observer');
 		$quote = $this->getModelMock('sales/quote');
 		$quoteDiff = array('skus' => array('45-123' => 4), 'shipping' => array(array('method' => 'flatrate')));
@@ -258,7 +246,7 @@ class TrueAction_Eb2cInventory_Test_Model_ObserverTest
 			->expects($this->once())
 			->method('makeRequestForQuote')
 			->with($this->identicalTo($quote))
-			->will(is_null($exception) ? $this->returnValue($response) : $this->throwException($exception));
+			->will($this->returnValue($response));
 		$request
 			->expects($this->once())
 			->method('updateQuoteWithResponse')

@@ -67,6 +67,66 @@
 				<timeout/>
 				<xml_namespace><![CDATA[http://api.gsicommerce.com/schema/checkout/1.0]]></xml_namespace>
 				<xsd_path><![CDATA[app/code/local/TrueAction/Eb2cCore/xsd]]></xsd_path>
+				<default_status_handlers>
+					<loud>
+						<alert_level>loud</alert_level>
+						<status>
+							<no_response>
+								<logger>logWarn</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>displayDefaultMessage</method>
+								</callback>
+							</no_response>
+							<server_error>
+								<logger>logWarn</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>displayDefaultMessage</method>
+								</callback>
+							</server_error>
+						</status>
+					</loud>
+					<silent>
+						<alert_level>silent</alert_level>
+						<status>
+							<no_response>
+								<logger>logWarn</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>returnEmpty</method>
+								</callback>
+							</no_response>
+							<server_error>
+								<logger>logWarn</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>returnEmpty</method>
+								</callback>
+							</server_error>
+							<client_error>
+								<logger>logCrit</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>throwException</method>
+								</callback>
+							</client_error>
+							<success>
+								<logger>logInfo</logger>
+								<callback>
+									<type>helper</type>
+									<class>eb2ccore/api_action</class>
+									<method>returnBody</method>
+								</callback>
+							</success>
+						</status>
+					</silent>
+				</default_status_handlers>
 			</api>
 			<feed>
 				<destination_type>MAILBOX</destination_type>

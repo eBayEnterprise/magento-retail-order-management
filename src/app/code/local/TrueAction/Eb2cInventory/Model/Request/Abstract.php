@@ -5,6 +5,8 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	const OPERATION_KEY = '';
 	// Config key used to identify the xsd file used to validate the request message
 	const XSD_FILE_CONFIG = '';
+	// path to definition of what to do for different statuses in the api response.
+	const STATUS_HANDLER_CONFIG_PATH = '';
 	/**
 	 * Make a request to the inventory service with details from the given quote.
 	 *
@@ -22,16 +24,13 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 			// using separate call to addData instead of constructor for testability
 			$helper = Mage::helper('eb2cinventory');
 			$api = Mage::getModel('eb2ccore/api');
-			$responseMessage = $api->request(
-				$doc,
-				$helper->getConfigModel()->getConfig(static::XSD_FILE_CONFIG),
-				$helper->getOperationUri(static::OPERATION_KEY)
-			);
-			if ($responseMessage === '') {
-				$this->_handleEmptyResponse($api);
-				// @codeCoverageIgnoreStart
-			}
-			// @codeCoverageIgnoreEnd
+			$responseMessage = $api
+				->setStatusHandlerPath(static::STATUS_HANDLER_CONFIG_PATH)
+				->request(
+					$doc,
+					$helper->getConfigModel()->getConfig(static::XSD_FILE_CONFIG),
+					$helper->getOperationUri(static::OPERATION_KEY)
+				);
 		}
 		return $responseMessage;
 	}
@@ -42,22 +41,6 @@ abstract class TrueAction_Eb2cInventory_Model_Request_Abstract
 	 * @return self
 	 */
 	abstract public function updateQuoteWithResponse(Mage_Sales_Model_Quote $quote, $responseMessage);
-	/**
-	 * Handle cases where the API model returns an empty response. This could result in
-	 * a blocking (TrueAction_Eb2cInventory_Exception_Cart_Interrupt) or
-	 * non-blocking (TrueAction_Eb2cInventory_Exception_Cart) exception being thrown.
-	 * @param  TrueAction_Eb2cCore_Model_Api $api The API model used to make the request
-	 * @throws TrueAction_Eb2cInventory_Exception_Cart_Interrupt If blocking error encountered
-	 * @throws TrueAction_Eb2cInventory_Exception_Cart If non-blocking error encountered
-	 */
-	protected function _handleEmptyResponse(TrueAction_Eb2cCore_Model_Api $api)
-	{
-		$status = $api->getStatus();
-		if (Mage::helper('eb2cinventory')->isBlockingStatus($status)) {
-			throw new TrueAction_Eb2cInventory_Exception_Cart_Interrupt("Inventory service returned a disruptive status: $status");
-		}
-		throw new TrueAction_Eb2cInventory_Exception_Cart("Inventory request returned an empty response with status: $status");
-	}
 	/**
 	 * Determine if a valid message can be sent using the quote. All inventory services
 	 * require at least a set of items to send in the request.
