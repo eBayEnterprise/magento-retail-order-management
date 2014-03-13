@@ -5,6 +5,23 @@ The below configurations translate from Magento to Exchange.
 Copy this file to eb2c.xml and configure the appropriate values below.
 -->
 <config>
+	<!--
+	Configuration for setting the time product feed and inventory feed runs
+	-->
+	<crontab>
+		<jobs>
+			<eb2cinventory_feed_item_inventories>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
+			</eb2cinventory_feed_item_inventories>
+			<eb2cproduct_feed>
+				<schedule>
+					<cron_expr>*/15 * * * *</cron_expr>
+				</schedule>
+			</eb2cproduct_feed>
+		</jobs>
+	</crontab>
 	<default>
 		<eb2ccore>
 			<!--

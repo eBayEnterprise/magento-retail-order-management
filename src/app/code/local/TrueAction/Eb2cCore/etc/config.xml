@@ -31,17 +31,11 @@
 	<crontab>
 		<jobs>
 			<eb2cinventory_feed_item_inventories>
-				<schedule>
-					<cron_expr>*/15 * * * *</cron_expr>
-				</schedule>
 				<run>
 					<model>eb2cinventory/feed_item_inventories::processFeeds</model>
 				</run>
 			</eb2cinventory_feed_item_inventories>
 			<eb2cproduct_feed>
-				<schedule>
-					<cron_expr>*/15 * * * *</cron_expr>
-				</schedule>
 				<run>
 					<model>eb2cproduct/feed::processFeeds</model>
 				</run>
