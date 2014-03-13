@@ -227,7 +227,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 		}
 	}
 	/**
-	 * extract the giftcard tender code from the DOMNOdeList object get it's map value
+	 * extract the giftcard tender code from the DOMNOdeList object get its map value
 	 * from the config and then return the actual constant to the know magento gift card sets
 	 * @param DOMNodeList $nodes
 	 * @return int|null integer value a valid tender type was extracted null tender type is not configure

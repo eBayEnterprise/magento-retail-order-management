@@ -141,7 +141,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	/**
 	 * Removing all allocation data from quote item.
 	 *
-	 * @param Mage_Sales_Model_Quote $quote the quote to empty any allocation data from it's item
+	 * @param Mage_Sales_Model_Quote $quote the quote to empty any allocation data from its item
 	 * @return void
 	 */
 	protected function _emptyQuoteAllocation(Mage_Sales_Model_Quote $quote)
@@ -158,7 +158,7 @@ class TrueAction_Eb2cInventory_Model_Allocation extends TrueAction_Eb2cInventory
 	/**
 	 * checking if any quote item has allocation data.
 	 *
-	 * @param Mage_Sales_Model_Quote $quote the quote to check if it's items have any allocation data
+	 * @param Mage_Sales_Model_Quote $quote the quote to check if its items have any allocation data
 	 * @return boolean, true reserved allocation is found, false no allocation data found on any quote item
 	 */
 	public function hasAllocation(Mage_Sales_Model_Quote $quote)

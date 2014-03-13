@@ -64,7 +64,7 @@ class TrueAction_Eb2cCore_Model_Feed_Export_Ack
 	}
 
 	/**
-	 * given an imported acknowledgment file extract it's related exported file
+	 * given an imported acknowledgment file extract its related exported file
 	 * @param string $ackFile
 	 */
 	protected function _extractExportedFile($ackFile)

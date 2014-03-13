@@ -4,7 +4,7 @@ document.observe('dom:loaded', function() {
 	 * Need to ensure the original method is called as well as the additinal steps
 	 * to insert the suggestions. This means some steps are duplicated but
 	 * also helps to reduce the risk of the overridden method diverging too far from
-	 * it's replacement.
+	 * its replacement.
 	 * @param function originalFn - the original method this is replacing
 	 * @param Ajax.Response transport - the result of the Ajax call this is a callback to
 	 * @return boolean
