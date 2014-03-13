@@ -1,18 +1,13 @@
 default:
-  - tax_code
   - is_drop_shipped
   - drop_ship_supplier_name
   - drop_ship_supplier_number
   - drop_ship_supplier_part
-  - price_is_vat_inclusive
-  - brand_name
-  - size
-  - buyer_name
-  - hazardous_material_code
-  - brand_description
   - item_type
+  - tax_code
+  - size
   - style_id
   - is_clean
   - unresolved_product_links
 prices:
-  - price_is_vat_inclusive
+  - tax_code

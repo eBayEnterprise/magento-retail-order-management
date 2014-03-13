@@ -271,32 +271,6 @@ class TrueAction_Eb2cProduct_Test_Model_AttributesTest extends TrueAction_Eb2cCo
 		$this->assertSame($e->getData('tax_code'), $configArray['tax_code']);
 	}
 
-	/**
-	 * verify a list of default codes is generated from the config.
-	 * @loadExpectation testGetDefaultAttributesCodeList.yaml
-	 */
-	public function testGetDefaultAttributesCodeList()
-	{
-		$model  = Mage::getModel('eb2cproduct/attributes');
-		$fn     = $this->_reflectMethod($model, 'getDefaultAttributesCodeList');
-		$result	= $fn->invoke($model);
-		$e      = $this->expected('default');
-		$this->assertSame($e->getData(), $result);
-	}
-
-	/**
-	 * verify the list of codes can be filtered by group.
-	 * @loadExpectation testGetDefaultAttributesCodeList.yaml
-	 */
-	public function testGetDefaultAttributesCodeListFilterByGroup()
-	{
-		$model  = Mage::getModel('eb2cproduct/attributes');
-		$fn     = $this->_reflectMethod($model, 'getDefaultAttributesCodeList');
-		$result	= $fn->invoke($model, 'Prices');
-		$e      = $this->expected('prices');
-		$this->assertSame($e->getData(), $result);
-	}
-
 	public function provideOverrideXmlVfsStructure()
 	{
 		return array(

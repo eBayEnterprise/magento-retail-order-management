@@ -2,7 +2,7 @@ base_config:
   tax_code:
     scope: Website
     label: Tax Code
-    group: Price
+    group: Prices
     input_type: text
     unique: "N"
     product_types: "simple,configurable,virtual,bundle,downloadable,giftcard"

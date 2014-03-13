@@ -32,113 +32,21 @@
 				<tax_code>
 					<scope>Website</scope>
 					<label>Tax Code</label>
-					<group>Price</group>
+					<group>Prices</group>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
 					<default/>
 				</tax_code>
-				<is_drop_shipped>
-					<scope>Website</scope>
-					<label>Is Drop Shipped</label>
-					<group/>
-					<input_type>boolean</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default>N</default>
-					<backend_type>int</backend_type>
-				</is_drop_shipped>
-				<drop_ship_supplier_name>
-					<scope>Website</scope>
-					<label>Drop Ship Supplier Name</label>
-					<group/>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default/>
-				</drop_ship_supplier_name>
-				<drop_ship_supplier_number>
-					<scope>Website</scope>
-					<label>Drop Ship Supplier Number</label>
-					<group/>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default/>
-				</drop_ship_supplier_number>
-				<drop_ship_supplier_part>
-					<scope>Website</scope>
-					<label>Drop Ship Supplier Part Number</label>
-					<group/>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
-					<default/>
-				</drop_ship_supplier_part>
-				<price_is_vat_inclusive>
-					<scope>Store</scope>
-					<label>Price is VAT Inclusive</label>
-					<group>Prices</group>
-					<input_type>boolean</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default>N</default>
-					<backend_type>int</backend_type>
-				</price_is_vat_inclusive>
-				<brand_name>
-					<scope>Website</scope>
-					<label>Brand Name</label>
-					<group></group>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
-				</brand_name>
 				<size>
 					<scope>Website</scope>
 					<label>Size</label>
-					<group></group>
+					<group>General</group>
 					<input_type>text</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
 					<default></default>
 				</size>
-				<buyer_name>
-					<scope>Website</scope>
-					<label>Buyer Name</label>
-					<group></group>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
-				</buyer_name>
-				<hazardous_material_code>
-					<scope>Website</scope>
-					<label>Hazardous Material Code</label>
-					<group></group>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
-				</hazardous_material_code>
-				<brand_description>
-					<scope>Website</scope>
-					<label>Brand Description</label>
-					<group></group>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
-				</brand_description>
-				<item_type>
-					<scope>Website</scope>
-					<label>eBay Enterprise Item Type</label>
-					<group></group>
-					<input_type>text</input_type>
-					<unique>N</unique>
-					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
-					<default></default>
-				</item_type>
 				<style_id>
 					<scope>Website</scope>
 					<label>Style Id</label>
@@ -151,7 +59,7 @@
 				<is_clean>
 					<scope>Website</scope>
 					<label>Is Clean</label>
-					<group></group>
+					<group>Exchange Platform</group>
 					<input_type>boolean</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
@@ -161,7 +69,7 @@
 				<unresolved_product_links>
 					<scope>Website</scope>
 					<label>Unresolved Product Links</label>
-					<group></group>
+					<group>Exchange Platform</group>
 					<input_type>textarea</input_type>
 					<unique>N</unique>
 					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
@@ -170,7 +78,6 @@
 				</unresolved_product_links>
 			</default>
 		</eb2cproduct_attributes>
-
 		<events>
 			<product_feed_processing_complete>
 				<observers>

@@ -83,27 +83,27 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 			<feed_attribute_mappings>
 				<is_drop_shipped>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
+					<type>helper</type>
 					<method>extractBoolValue</method>
 					<xpath>BaseAttributes/IsDropShipped</xpath>
 				</is_drop_shipped>
 				<drop_ship_supplier_name>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
+					<type>helper</type>
 					<method>extractStringValue</method>
-					<xpath></xpath>
+					<xpath>DropShipSupplierInformation/SupplierName</xpath>
 				</drop_ship_supplier_name>
 				<drop_ship_supplier_number>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
+					<type>helper</type>
 					<method>extractStringValue</method>
-					<xpath></xpath>
+					<xpath>DropShipSupplierInformation/SupplierNumber</xpath>
 				</drop_ship_supplier_number>
 				<drop_ship_supplier_part>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
+					<type>helper</type>
 					<method>extractStringValue</method>
-					<xpath></xpath>
+					<xpath>DropShipSupplierInformation/SupplierPartNumber</xpath>
 				</drop_ship_supplier_part>
 				<gift_message_available>
 					<class>eb2cproduct/map</class>
@@ -131,9 +131,9 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 				</gift_card_tender_code>
 				<item_type>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
+					<type>helper</type>
 					<method>extractStringValue</method>
-					<xpath></xpath>
+					<xpath>BaseAttributes/ItemType</xpath>
 				</item_type>
 				<client_alt_item_id>
 					<class>eb2cproduct/map</class>
@@ -505,4 +505,56 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 			</feed_attribute_mappings>
 		</eb2cproduct>
 	</default>
+	<global>
+		<eb2cproduct_attributes>
+			<default>
+				<is_drop_shipped>
+					<scope>Website</scope>
+					<label>Is Drop Shipped</label>
+					<group>Exchange Platform</group>
+					<input_type>boolean</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default>N</default>
+					<backend_type>int</backend_type>
+				</is_drop_shipped>
+				<drop_ship_supplier_name>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Name</label>
+					<group>Exchange Platform</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default/>
+				</drop_ship_supplier_name>
+				<drop_ship_supplier_number>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Number</label>
+					<group>Exchange Platform</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default/>
+				</drop_ship_supplier_number>
+				<drop_ship_supplier_part>
+					<scope>Website</scope>
+					<label>Drop Ship Supplier Part Number</label>
+					<group>Exchange Platform</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,bundle]]></product_types>
+					<default/>
+				</drop_ship_supplier_part>
+				<item_type>
+					<scope>Website</scope>
+					<label>eBay Enterprise Item Type</label>
+					<group>Exchange Platform</group>
+					<input_type>text</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+				</item_type>
+			</default>
+		</eb2cproduct_attributes>
+	</global>
 </config>
