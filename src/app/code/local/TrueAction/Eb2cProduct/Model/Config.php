@@ -41,6 +41,7 @@ class TrueAction_Eb2cProduct_Model_Config extends TrueAction_Eb2cCore_Model_Conf
 
 		'pim_export_feed_event_type'          => 'eb2cproduct/pim_export_feed/outbound/message_header/event_type',
 		'pim_export_feed_local_path'          => 'eb2cproduct/pim_export_feed/local_path',
+		'pim_export_feed_cutoff_date'          => 'eb2cproduct/pim_export_feed/cutoff_date',
 		'pim_export_xsd'                      => 'eb2cproduct/pim_export_feed/xsd',
 
 		'pricing_feed_event_type'             => 'eb2cproduct/item_pricing_feed/event_type',

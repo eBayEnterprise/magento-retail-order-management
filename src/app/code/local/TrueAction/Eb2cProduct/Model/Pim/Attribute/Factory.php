@@ -30,13 +30,13 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute_Factory
 	}
 	/**
 	 * Get a new PIM Attribute model for the given product attribute and product
-	 * @param  Mage_Catalog_Model_Entity_Attribute $attribute
+	 * @param  Mage_Eav_Model_Entity_Attribute $attribute
 	 * @param  Mage_Catalog_Model_Product          $product
 	 * @param  TrueAction_Dom_Document             $doc
 	 * @return TrueAction_Eb2cProduct_Model_Pim_Attribute
 	 */
 	public function getPimAttribute(
-		Mage_Catalog_Model_Entity_Attribute $attribute,
+		Mage_Eav_Model_Entity_Attribute $attribute,
 		Mage_Catalog_Model_Product $product,
 		TrueAction_Dom_Document $doc)
 	{
@@ -51,10 +51,10 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute_Factory
 	/**
 	 * Get the attribute mapping, either from the configured mappings or using
 	 * a generated default mapping for the attribute.
-	 * @param  Mage_Catalog_Model_Entity_Attribute $attribute
+	 * @param  Mage_Eav_Model_Entity_Attribute $attribute
 	 * @return array
 	 */
-	protected function _getAttributeMapping(Mage_Catalog_Model_Entity_Attribute $attribute)
+	protected function _getAttributeMapping(Mage_Eav_Model_Entity_Attribute $attribute)
 	{
 		$attributeCode = $attribute->getAttributeCode();
 		return isset($this->_attributeMappings[$attributeCode]) ?
@@ -77,7 +77,7 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute_Factory
 
 	protected function _resolveMappedCallback(
 		array $callbackMapping=array(),
-		Mage_Catalog_Model_Entity_Attribute $attribute,
+		Mage_Eav_Model_Entity_Attribute $attribute,
 		Mage_Catalog_Model_Product $product,
 		TrueAction_Dom_Document $doc)
 	{

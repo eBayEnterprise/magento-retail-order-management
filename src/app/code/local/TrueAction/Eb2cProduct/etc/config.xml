@@ -27,6 +27,14 @@
 				</setup>
 			</eb2cproduct_attributes_setup>
 		</resources>
+		<crontab>
+			<jobs>
+				<pim_export_build_feed>
+					<schedule><cron_expr>0,15,30,45 * * * *</cron_expr></schedule>
+					<run><model>eb2cproduct/pim_collector::runExport</model></run>
+				</pim_export_build_feed>
+			</jobs>
+		</crontab>
 		<eb2cproduct_attributes>
 			<default>
 				<tax_code>
@@ -187,6 +195,8 @@
 						<event_type>PIMExport</event_type>
 					</message_header>
 				</outbound>
+				<cutoff_date />
+				<batch_size />
 			</pim_export_feed>
 			<processor_delete_batch_size>200</processor_delete_batch_size>
 			<processor_max_total_entries>200</processor_max_total_entries>

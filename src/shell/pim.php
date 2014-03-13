@@ -13,10 +13,7 @@ class TrueAction_Eb2c_Shell_Pim extends Mage_Shell_Abstract
 	 */
 	public function run()
 	{
-		$a = Mage::getResourceModel('catalog/product_collection')
-			->addAttributeToSelect('entity_id');
-		$pim = Mage::getModel('eb2cproduct/pim');
-		$pim->buildFeed($a->getColumnValues('entity_id'));
+		Mage::getModel('eb2cproduct/pim_collector')->runExport();
 	}
 }
 
