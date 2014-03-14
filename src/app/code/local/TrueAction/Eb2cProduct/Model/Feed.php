@@ -28,11 +28,12 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 */
 	protected function _construct()
 	{
+		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
 		$this->_eventTypes = array(
-			'ItemMaster' => 'feed_item',
-			'ContentMaster' => 'feed_content',
-			'Pricing' => 'feed_pricing',
-			'iShip' => 'feed_iship',
+			$cfg->itemFeedEventType => 'feed_item',
+			$cfg->contentFeedEventType => 'feed_content',
+			$cfg->pricingFeedEventType => 'feed_pricing',
+			$cfg->iShipFeedEventType => 'feed_iship',
 		);
 	}
 

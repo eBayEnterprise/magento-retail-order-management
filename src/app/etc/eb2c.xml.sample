@@ -165,9 +165,9 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 				</brand_name>
 				<hts_codes>
 					<class>eb2cproduct/map</class>
-					<type>disabled</type>
-					<method></method>
-					<xpath></xpath>
+					<type>helper</type>
+					<method>extractHtsCodesValue</method>
+					<xpath>HTSCodes/HTSCode</xpath>
 				</hts_codes>
 				<brand_description>
 					<class>eb2cproduct/map</class>

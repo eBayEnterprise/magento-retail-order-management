@@ -277,7 +277,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return mixed
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfig($path, $store = null)
+	public function getStoreConfig($path, $store=null)
 	{
 		return Mage::getStoreConfig($path, $store);
 	}
@@ -290,7 +290,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return bool
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfigFlag($path, $store = null)
+	public function getStoreConfigFlag($path, $store=null)
 	{
 		return Mage::getStoreConfigFlag($path, $store);
 	}
@@ -363,5 +363,24 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getConfigData($configPath)
 	{
 		return Mage::helper('eb2ccore/feed')->getConfigData($configPath);
+	}
+
+	/**
+	 * given a product object and a country code retrieve the hts_code value for this product
+	 * matching a given country code
+	 * @param Mage_Catalog_Model_Product $product
+	 * @param string $countryCode the two letter code for a country (US, CA, DE, etc...)
+	 * @return string | null the htscode matching the country code for that product otherwise null
+	 */
+	public function getProductHtsCodeByCountry(Mage_Catalog_Model_Product $product, $countryCode)
+	{
+		$htsCodes = unserialize($product->getHtsCodes());
+		foreach ($htsCodes as $htsCode) {
+			if ($countryCode === $htsCode['destination_country']) {
+				return $htsCode['hts_code'];
+			}
+		}
+
+		return null;
 	}
 }

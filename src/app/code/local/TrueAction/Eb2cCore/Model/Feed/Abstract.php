@@ -89,10 +89,10 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 			try {
 				$this->processFile(array('local' => $xmlFeedFile));
 				$filesProcessed++;
-			// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
-			// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
-			// one should just log the error and move on. Leaving out the TrueAction_Core_Feed_Failure
-			// for now as none of the feeds expect to use it.
+				// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
+				// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
+				// one should just log the error and move on. Leaving out the TrueAction_Core_Feed_Failure
+				// for now as none of the feeds expect to use it.
 			} catch (Mage_Core_Exception $e) {
 				Mage::log(sprintf('[ %s ] Failed to process file, %s.', __CLASS__, $xmlFeedFile), Zend_Log::WARN);
 			}

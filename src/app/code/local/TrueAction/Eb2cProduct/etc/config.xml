@@ -85,6 +85,16 @@
 					<default></default>
 					<backend_type>text</backend_type>
 				</unresolved_product_links>
+				<hts_codes>
+					<scope>Website</scope>
+					<label>HTS Codes</label>
+					<group>Exchange Platform</group>
+					<input_type>textarea</input_type>
+					<unique>N</unique>
+					<product_types><![CDATA[simple,configurable,virtual,bundle,downloadable,giftcard]]></product_types>
+					<default></default>
+					<backend_type>text</backend_type>
+				</hts_codes>
 			</default>
 		</eb2cproduct_attributes>
 		<events>
@@ -144,7 +154,7 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/ContentMaster/</local_path>
 				<remote_path>/Inbox/Product</remote_path>
 				<file_pattern>Content_*.xml</file_pattern>
-				<event_type>ContentMaster</event_type>
+				<event_type>Content</event_type>
 				<header_version>2.3.0</header_version>
 				<outbound>
 					<message_header>
@@ -156,7 +166,7 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/iShip/</local_path>
 				<remote_path>/Inbox/Product</remote_path>
 				<file_pattern>iShip_*.xml</file_pattern>
-				<event_type>iShip</event_type>
+				<event_type>ISHIPDuties</event_type>
 				<header_version>2.3.0</header_version>
 				<outbound>
 					<message_header>
@@ -168,7 +178,7 @@
 				<local_path>TrueAction/Eb2c/Feed/Product/Pricing/</local_path>
 				<remote_path>/Inbox/Channel/{storeid}/Pricing</remote_path>
 				<file_pattern>Price_*.xml</file_pattern>
-				<event_type>Pricing</event_type>
+				<event_type>Price</event_type>
 				<header_version>2.3.0</header_version>
 				<outbound>
 					<message_header>

@@ -387,4 +387,53 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 		$helper = Mage::helper('eb2ccore');
 		$this->assertSame(array('config data'), $helper->getConfigData($configPath));
 	}
+
+	/**
+	 * Test getProductHtsCodeByCountry method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cCore_Helper_Data::getProductHtsCodeByCountry will be invoked by this test
+	 *                given a mock Mage_Catalog_Model_Product object and known country code, then the test expect
+	 *                the method Mage_Catalog_Model_Product::getHtsCodes to be called once and return a know serialize
+	 *                string in which will be unzerialized and loop through to return the match htscode data match match
+	 *                the given country code
+	 */
+	public function testGetProductHtsCodeByCountry()
+	{
+		$countryCode = 'US';
+		$data = array(array('destination_country' => $countryCode, 'hts_code' => '73739.33'),);
+		$htscodes = serialize($data);
+
+		$productMock = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getHtsCodes'))
+			->getMock();
+		$productMock->expects($this->once())
+			->method('getHtsCodes')
+			->will($this->returnValue($htscodes));
+
+		$this->assertSame($data[0]['hts_code'], Mage::helper('eb2ccore')->getProductHtsCodeByCountry(
+			$productMock, $countryCode
+		));
+	}
+
+	/**
+	 * @see self::testGetProductHtsCodeByCountry, however this test is expecting no hts_code data in which
+	 *      the return value for the method TrueAction_Eb2cCore_Helper_Data::getProductHtsCodeByCountry to return null
+	 */
+	public function testGetProductHtsCodeByCountryNoHtsCodeFound()
+	{
+		$countryCode = 'US';
+		$htscodes = serialize(array());
+
+		$productMock = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getHtsCodes'))
+			->getMock();
+		$productMock->expects($this->once())
+			->method('getHtsCodes')
+			->will($this->returnValue($htscodes));
+
+		$this->assertSame(null, Mage::helper('eb2ccore')->getProductHtsCodeByCountry(
+			$productMock, $countryCode
+		));
+	}
 }

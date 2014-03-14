@@ -461,4 +461,36 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			));
 		}
 	}
+
+	/**
+	 * Test extractHtsCodesValue method for the following expectations
+	 * Expectation 1: this test will invoke the method TrueAction_Eb2cProduct_Helper_Map::extractHtsCodesValue given
+	 *                a DOMNodeList object, the test then expect the nodelist object to be loop through
+	 *                and build an array containing key extract data and the return value would be  serialize string
+	 *                of such array.
+	 */
+	public function testExtractHtsCodesValue()
+	{
+		$data = serialize(array(
+			array('mfn_duty_rate' => '10', 'destination_country' => 'AU', 'restricted' => 'N', 'hts_code' => '6114.2'),
+			array('mfn_duty_rate' => '12', 'destination_country' => 'AT', 'restricted' => 'N', 'hts_code' => '6114.20')
+		));
+
+		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+
+		$doc->loadXML(
+			'<root>
+				<htscodes>
+					<HTSCode mfn_duty_rate="10" destination_country="AU" restricted="N">6114.2</HTSCode>
+					<HTSCode mfn_duty_rate="12" destination_country="AT" restricted="N">6114.20</HTSCode>
+				</htscodes>
+			</root>'
+		);
+
+		$xpath = new DOMXPath($doc);
+
+		$this->assertSame($data, Mage::helper('eb2cproduct/map')->extractHtsCodesValue($xpath->query(
+			'htscodes/HTSCode', $doc->documentElement
+		)));
+	}
 }

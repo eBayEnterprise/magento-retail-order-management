@@ -12,6 +12,29 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testConstruct()
 	{
+		$configMap = array(
+			'itemFeedEventType' => 'ItemMaster',
+			'contentFeedEventType' => 'ContentMaster',
+			'pricingFeedEventType' => 'Pricing',
+			'iShipFeedEventType' => 'iShip',
+		);
+
+		$eventTypeMap = array(
+			$configMap['itemFeedEventType'] => 'feed_item',
+			$configMap['contentFeedEventType'] => 'feed_content',
+			$configMap['pricingFeedEventType'] => 'feed_pricing',
+			$configMap['iShipFeedEventType'] => 'feed_iship',
+		);
+
+		$helperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($this->buildCoreConfigRegistry($configMap)));
+		$this->replaceByMock('helper', 'eb2cproduct', $helperMock);
+
 		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
 			->setMethods(array())
@@ -21,12 +44,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 		$this->_reflectProperty($feed, '_eventTypes')->setValue($feed, array());
 		$this->_reflectMethod($feed, '_construct')->invoke($feed);
 		$this->assertSame(
-			array(
-				'ItemMaster' => 'feed_item',
-				'ContentMaster' => 'feed_content',
-				'Pricing' => 'feed_pricing',
-				'iShip' => 'feed_iship',
-			),
+			$eventTypeMap,
 			$this->_reflectProperty($feed, '_eventTypes')->getValue($feed)
 		);
 	}

@@ -238,5 +238,24 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 		$mapData = Mage::helper('eb2ccore/feed')->getConfigData(TrueAction_Eb2cCore_Helper_Feed::GIFTCARD_TENDER_CONFIG_PATH);
 		return isset($mapData[$value])? $this->_getGiftCardType($mapData[$value]) : null;
 	}
-}
 
+	/**
+	 * given DOMNodeList object containing htscode data extract the htscode data
+	 * into an array of array of keys and return a serialize string of the build array of htscode data
+	 * @param DOMNodeList $nodes
+	 * @return string a serialize string of array of htscodes
+	 */
+	public function extractHtsCodesValue(DOMNodeList $nodes)
+	{
+		$htscodes = array();
+		foreach ($nodes as $item) {
+			$htscodes[] = array(
+				'mfn_duty_rate' => $item->getAttribute('mfn_duty_rate'),
+				'destination_country' => $item->getAttribute('destination_country'),
+				'restricted' => $item->getAttribute('restricted'),
+				'hts_code' => $item->nodeValue
+			);
+		}
+		return serialize($htscodes);
+	}
+}
