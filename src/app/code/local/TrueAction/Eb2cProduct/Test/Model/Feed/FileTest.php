@@ -606,7 +606,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	}
 	/**
 	 * Build a product collection from a list of SKUs. The collection should only
-	 * be expected to inlcude products that already exist in Magneto. The
+	 * be expected to inlcude products that already exist in Magento. The
 	 * collection should also load as little product data as possible while still
 	 * allowing all of the necessary updates and saves to be performed.
 	 * @test

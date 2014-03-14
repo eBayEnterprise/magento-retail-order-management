@@ -161,7 +161,7 @@ class TrueAction_Eb2cProduct_Helper_Map extends Mage_Core_Helper_Abstract
 		return serialize($links);
 	}
 	/**
-	 * Convert the EB2C link types to link types Magneto knows about through a
+	 * Convert the EB2C link types to link types Magento knows about through a
 	 * mapping in the product config.xml.
 	 * @param  string $linkType
 	 * @return string
