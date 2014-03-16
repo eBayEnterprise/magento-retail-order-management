@@ -466,7 +466,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		$transformed = $helper->getNewDomDocument();
 		$transformed->loadXML($xslProcessor->transformToXML($doc));
 		preg_match_all('/<ClientItemId ?.*>(.*)<\/ClientItemId>/', $transformed->saveXML(), $matches);
-		Mage::log(sprintf("[%s] transformed, SKUs eligible:\n %s", __METHOD__, implode("\n", $matches[1])), Zend_Log::DEBUG);
+		Mage::log(sprintf("[%s] transformed, SKUs eligible: (%s)", __METHOD__, implode(", ", $matches[1])), Zend_Log::DEBUG);
 		return $transformed;
 	}
 

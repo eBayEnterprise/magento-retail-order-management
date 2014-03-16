@@ -54,16 +54,6 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 */
 	public function testProcess()
 	{
-		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
-			->disableOriginalConstructor()
-			->setMethods(array('processByOperationType'))
-			->getMock();
-		$errorConfirmationMock->expects($this->once())
-			->method('processByOperationType')
-			->with($this->isInstanceOf('Varien_Event_Observer'))
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $errorConfirmationMock);
-
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(array('deleteProducts', 'processWebsite', 'processTranslations'))
@@ -79,95 +69,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnSelf());
 
 		$this->assertSame($file, $file->process());
-
-		$this->assertEventDispatched('product_feed_process_operation_type_error_confirmation');
 	}
-
-	/**
-	 * Test processing translations. Should get a list of all languages configured
-	 * in the admin and then processing the feed for that language.
-	 * @test
-	 */
-	public function testProcessTranslations()
-	{
-		$languageCodes = array('en-us', 'fr-fr');
-		$languageHelperMock = $this->getHelperMockBuilder('eb2ccore/languages')
-			->disableOriginalConstructor()
-			->setMethods(array('getLanguageCodesList'))
-			->getMock();
-		$languageHelperMock->expects($this->once())
-			->method('getLanguageCodesList')
-			->will($this->returnValue($languageCodes));
-		$this->replaceByMock('helper', 'eb2ccore/languages', $languageHelperMock);
-
-		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
-			->disableOriginalConstructor()
-			->setMethods(array('processForLanguage'))
-			->getMock();
-		$fileModelMock->expects($this->at(0))
-			->method('processForLanguage')
-			->with($this->equalTo('en-us'))
-			->will($this->returnSelf());
-		$fileModelMock->expects($this->at(1))
-			->method('processForLanguage')
-			->with($this->equalTo('fr-fr'))
-			->will($this->returnSelf());
-
-		$this->assertSame($fileModelMock, $fileModelMock->processTranslations());
-
-	}
-
-	/**
-	 * To process a single languages, the original feed should be split into a
-	 * separate DOM including only data for that language and then extracting all
-	 * product data from the split DOM. Then, for each store configured for the
-	 * given language, the data should be imported within that store view.
-	 * @test
-	 */
-	public function testProcessForLanguage()
-	{
-		$languageCode = 'en-us';
-		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$storeModelMock = $this->getModelMockBuilder('core/store')
-			->disableOriginalConstructor()
-			->setMethods(array('getId'))
-			->getMock();
-		$storeModelMock->expects($this->at(0))
-			->method('getId')
-			->will($this->returnValue(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID));
-		$storeModelMock->expects($this->at(1))
-			->method('getId')
-			->will($this->returnValue(3));
-		$storeModelMock->expects($this->at(2))
-			->method('getId')
-			->will($this->returnValue(4));
-
-		$languagesHelperMock = $this->getHelperMockBuilder('eb2ccore/languages')
-			->disableOriginalConstructor()
-			->setMethods(array('getStores'))
-			->getMock();
-		$languagesHelperMock->expects($this->once())
-			->method('getStores')
-			->with($this->equalTo('en-us'))
-			->will($this->returnValue(array($storeModelMock, $storeModelMock, $storeModelMock)));
-		$this->replaceByMock('helper', 'eb2ccore/languages', $languagesHelperMock);
-
-		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
-			->disableOriginalConstructor()
-			->setMethods(array('_splitByLanguageCode', '_importExtractedData'))
-			->getMock();
-		$fileModelMock->expects($this->once())
-			->method('_splitByLanguageCode')
-			->with($this->equalTo('en-us'), $this->equalTo(TrueAction_Eb2cProduct_Model_Feed_File::XSLT_SINGLE_TEMPLATE_PATH))
-			->will($this->returnValue($splitDoc));
-		$fileModelMock->expects($this->exactly(2))
-			->method('_importExtractedData')
-			->with($this->equalTo($splitDoc), $this->logicalOr($this->equalTo(3), $this->equalTo(4)))
-			->will($this->returnSelf());
-
-		$this->assertSame($fileModelMock, $fileModelMock->processForLanguage($languageCode));
-	}
-
 	/**
 	 * When splitting the feed DOMDocument by language code, use eb2cproduct/data
 	 * helper's splitDomByXslt method, passing through the original DOMDocument,
@@ -242,7 +144,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->will($this->returnSelf());
 		$catalogResourceModelProductMock->expects($this->once())
 			->method('addAttributeToSelect')
-			->with($this->equalTo(array('entity_id')))
+			->with($this->equalTo(array('*')))
 			->will($this->returnSelf());
 		$catalogResourceModelProductMock->expects($this->once())
 			->method('load')

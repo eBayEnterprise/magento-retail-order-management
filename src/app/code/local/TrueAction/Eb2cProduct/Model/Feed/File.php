@@ -97,18 +97,27 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 */
 	public function process()
 	{
+		$skusToReport = array();
 		$this->deleteProducts();
+		$skusToReport = array_merge($skusToReport, $this->_importedSkus);
 
 		$siteFilters = Mage::helper('eb2cproduct')->loadWebsiteFilters();
 		foreach($siteFilters as $siteFilter) {
 			$this->_importedSkus = array();
 			$this->processWebsite($siteFilter)->processTranslations($siteFilter);
+			$skusToReport = array_merge($skusToReport, $this->_importedSkus);
 		}
 
-		Mage::dispatchEvent(
-			'product_feed_process_operation_type_error_confirmation',
-			array('feed_detail' => $this->_feedDetails, 'skus' => $this->_importedSkus, 'operation_type' => 'import')
-		);
+		if(count($skusToReport)) {
+			Mage::dispatchEvent(
+				'product_feed_process_operation_type_error_confirmation',
+				array(
+					'feed_detail'    => $this->_feedDetails,
+					'skus'           => $skusToReport,
+					'operation_type' => 'import'
+				)
+			);
+		}
 		return $this;
 	}
 	/**
@@ -122,7 +131,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		Mage::log(sprintf('[%s] deleting %d skus', __CLASS__, count($skus)), Zend_Log::DEBUG);
 		if (!empty($skus)) {
 			Mage::getResourceModel('catalog/product_collection')->addFieldToFilter('sku', $skus)
-				->addAttributeToSelect(array('entity_id'))
+				->addAttributeToSelect(array('*'))
 				->load()
 				->delete();
 
@@ -216,13 +225,16 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	protected function _importExtractedData(DOMDocument $productDataDoc, $storeId)
 	{
 		$feedXPath = Mage::helper('eb2ccore')->getNewDomXPath($productDataDoc);
-		$productCollection = $this->_buildProductCollection($this->_getSkusToUpdate($feedXPath));
-		$productCollection->setStore($storeId);
-		foreach ($feedXPath->query(self::BASE_ITEM_XPATH) as $itemNode) {
-			$this->_updateItem($feedXPath, $itemNode, $productCollection);
+		$skusToUpdate = $this->_getSkusToUpdate($feedXPath);
+		if (count($skusToUpdate)) {
+			$productCollection = $this->_buildProductCollection($skusToUpdate);
+			$productCollection->setStore($storeId);
+			foreach ($feedXPath->query(self::BASE_ITEM_XPATH) as $itemNode) {
+				$this->_updateItem($feedXPath, $itemNode, $productCollection);
+			}
+			Mage::log(sprintf('[%s] saving collection of %d products', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
+			$productCollection->save();
 		}
-		Mage::log(sprintf('[%s] saving collection of %d products', __CLASS__, $productCollection->count()), Zend_Log::DEBUG);
-		$productCollection->save();
 		return $this;
 	}
 	/**
@@ -230,7 +242,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * product to already exist in the collection and when it does, update the
 	 * product in the collection. When the product doesn't exist yet, it should
 	 * create a new product, set the extracted data on it and add it to the
-	 * colleciton.
+	 * collection.
 	 * @param  DOMXPath $feedXPath
 	 * @param  DOMNode $itemNode
 	 * @param  TrueAction_Eb2cProduct_Model_Resource_Feed_Product_Collection $productCollection
@@ -252,6 +264,8 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 			$product->setWebsiteIds(array($websiteId));
 			$productCollection->addItem($product);
 			Mage::log(sprintf('[%s] creating new product %s', __CLASS__, $sku), Zend_Log::DEBUG);
+		} else {
+			$product->setUrlKey(false);
 		}
 		$product->setStoreId($productCollection->getStoreId());
 		$webSiteIds = array_unique(array_merge($product->getWebsiteIds(), array($websiteId)));
@@ -264,11 +278,12 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * each language.
 	 * @return self
 	 */
-	public function processTranslations()
+	public function processTranslations($siteFilter)
 	{
-		Mage::log(sprintf('[%s] processing translation', __CLASS__), Zend_Log::DEBUG);
 		foreach (Mage::helper('eb2ccore/languages')->getLanguageCodesList() as $language) {
-			$this->processForLanguage($language);
+			if ($siteFilter['lang_code'] === $language) {
+				$this->processForLanguage($siteFilter);
+			}
 		}
 		return $this;
 	}
@@ -278,17 +293,17 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * @param string $languageCode
 	 * @return self
 	 */
-	public function processForLanguage($languageCode)
+	public function processForLanguage($siteFilter)
 	{
-		Mage::log(sprintf('[%s] processing %s language', __CLASS__, $languageCode), Zend_Log::DEBUG);
-		$splitDoc = $this->_splitByLanguageCode(
-			$languageCode,
+		Mage::log(sprintf('[%s] processing %s language', __CLASS__, $siteFilter['lang_code']), Zend_Log::DEBUG);
+		$splitDoc = $this->_splitByFilter(
+			$siteFilter,
 			TrueAction_Eb2cProduct_Model_Feed_File::XSLT_SINGLE_TEMPLATE_PATH
 		);
-		foreach (Mage::helper('eb2ccore/languages')->getStores($languageCode) as $store) {
+		foreach (Mage::helper('eb2ccore/languages')->getStores($siteFilter['lang_code']) as $store) {
 			// do not reprocess the default store
 			$storeId = $store->getId();
-			if ($storeId !== Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID) {
+			if ($siteFilter['mage_store_id'] === $storeId && $storeId !== Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID) {
 				$this->_importExtractedData($splitDoc, $storeId);
 			}
 		}
@@ -302,7 +317,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 */
 	public function processWebsite($websiteFilter)
 	{
-		Mage::log(sprintf('[%s] processing %s', __METHOD__, print_r($websiteFilter,true)), Zend_Log::DEBUG);
+		Mage::log(sprintf('[%s] site filter = %s', __METHOD__, json_encode($websiteFilter)), Zend_Log::DEBUG);
 		$mageStoreId = $websiteFilter['mage_store_id'];
 		return $this->_importExtractedData(
 			$this->_splitByFilter(
@@ -311,7 +326,6 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 			),
 			$mageStoreId
 		);
-		return $this;
 	}
 	/**
 	 * This is a callback; adds additional template handling for configurable variables that XSLT 1.0 just doesn't do.
@@ -325,26 +339,18 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 			$helper->appendXslTemplateMatchNode($xslDoc, "/*/{$nodeToMatch}[(@gsi_client_id and @gsi_client_id!='{$websiteFilter['client_id']}')]");
 			$helper->appendXslTemplateMatchNode($xslDoc, "/*/{$nodeToMatch}[(@gsi_store_id and @gsi_store_id!='{$websiteFilter['store_id']}')]");
 		}
-		Mage::log(sprintf('[%s] XSLT now %s', __METHOD__, $xslDoc->saveXML()), Zend_Log::DEBUG);
 		$xslDoc->loadXML($xslDoc->saveXML());
 		return;
 	}
 	/**
 	 * Create a product collection containing any product with a SKU in the
 	 * given list. This will only load products that already exist in Magento.
-	 * Ensure all attributes are loaded for products in the collection. This
-	 * forces the object's origData to be properly populated with all existing
-	 * data, which then ensures that:
-	 * 1. attributes not set on a given pass are not wiped out
-	 * 2. attributes set to the same value as the default are not duplicated
 	 * @param  array $skus
 	 * @return Mage_Catalog_Model_Resource_Product_Collection
 	 */
 	protected function _buildProductCollection(array $skus=array())
 	{
 		return Mage::getResourceModel('eb2cproduct/feed_product_collection')
-			// load all attributes to prevent previously set attributes from being
-			// lost when saving updates to only some attributes
 			->addAttributeToSelect(array('*'))
 			->addAttributeToFilter(array(array('attribute' => 'sku', 'in' => $skus)))
 			->load();
