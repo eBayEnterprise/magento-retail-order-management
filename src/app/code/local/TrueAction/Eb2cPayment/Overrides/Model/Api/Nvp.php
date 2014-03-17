@@ -57,7 +57,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 
 			if ($quote) {
 				// We have a valid quote, let's set PayPal Express checkout it through eb2c.
-				$payPalSetExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_set_express_checkout')->setExpressCheckout($quote);
+				$payPalSetExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_set_express_checkout')->processExpressCheckout($quote);
 				if ($payPalSetExpressCheckoutReply) {
 					$payPalSetExpressCheckoutObject = Mage::getModel('eb2cpayment/paypal_set_express_checkout')->parseResponse($payPalSetExpressCheckoutReply);
 					if ($payPalSetExpressCheckoutObject) {
@@ -100,7 +100,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 
 			if ($quote) {
 				// We have a valid quote, let's Get PayPal Express checkout it through eb2c.
-				$payPalGetExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_get_express_checkout')->getExpressCheckout($quote);
+				$payPalGetExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_get_express_checkout')->processExpressCheckout($quote);
 				if ($payPalGetExpressCheckoutReply) {
 					$payPalGetExpressCheckoutObject = Mage::getModel('eb2cpayment/paypal_get_express_checkout')->parseResponse($payPalGetExpressCheckoutReply);
 					if ($payPalGetExpressCheckoutObject) {
@@ -168,7 +168,7 @@ class TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp extends Mage_Paypal_Model_A
 
 			if ($quote->getId()) {
 				// We have a valid quote, let's Do PayPal Express checkout it through eb2c.
-				$payPalDoExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_do_express_checkout')->doExpressCheckout($quote);
+				$payPalDoExpressCheckoutReply = Mage::getModel('eb2cpayment/paypal_do_express_checkout')->processExpressCheckout($quote);
 				if ($payPalDoExpressCheckoutReply) {
 					$payPalDoExpressCheckoutObject = Mage::getModel('eb2cpayment/paypal_do_express_checkout')->parseResponse($payPalDoExpressCheckoutReply);
 					if ($payPalDoExpressCheckoutObject) {

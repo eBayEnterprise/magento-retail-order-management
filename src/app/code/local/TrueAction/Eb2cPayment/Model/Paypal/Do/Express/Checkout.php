@@ -1,134 +1,52 @@
 <?php
-class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
+class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout extends TrueAction_Eb2cPayment_Model_Paypal_Abstract
 {
+	// A mapping to something in the helper. Pretty contrived.
+	const URI_KEY = 'get_paypal_do_express_checkout';
+	const XSD_FILE = 'xsd_file_paypal_do_express';
 	/**
-	 * Do paypal express checkout from eb2c.
+	 * Build PaypalDoExpressCheckout request.
 	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to do express paypal checkout for in eb2c
-	 * @return string the eb2c response to the request
+	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from
+	 * @return DOMDocument The XML document to be sent as request to eb2c.
 	 */
-	public function doExpressCheckout(Mage_Sales_Model_Quote $quote)
-	{
-		$helper = Mage::helper('eb2cpayment');
-		$response = Mage::getModel('eb2ccore/api')
-			->setStatusHandlerPath(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH)
-			->request(
-				$this->buildPayPalDoExpressCheckoutRequest($quote),
-				$helper->getConfigModel()->xsdFilePaypalDoExpress,
-				$helper->getOperationUri('get_paypal_do_express_checkout')
-			);
-		// Save payment data
-		$this->_savePaymentData($this->parseResponse($response), $quote);
-		return $response;
-	}
-
-	/**
-	 * Build  PaypalDoExpressCheckout request.
-	 *
-	 * @param Mage_Sales_Model_Quote $quote, the quote to generate request XML from
-	 *
-	 * @return DOMDocument The XML document, to be sent as request to eb2c.
-	 */
-	public function buildPayPalDoExpressCheckoutRequest(Mage_Sales_Model_Quote $quote)
+	protected function _buildRequest(Mage_Sales_Model_Quote $quote)
 	{
 		$totals = $quote->getTotals();
+		$currencyAttr = array('currencyCode' => $quote->getQuoteCurrencyCode());
 		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$payPalDoExpressCheckoutRequest = $domDocument->addElement('PayPalDoExpressCheckoutRequest', null, Mage::helper('eb2cpayment')->getXmlNs())->firstChild;
 		$payPalDoExpressCheckoutRequest->setAttribute('requestId', Mage::helper('eb2cpayment')->getRequestId($quote->getEntityId()));
-		$payPalDoExpressCheckoutRequest->createChild(
-			'OrderId',
-			(string) $quote->getEntityId()
-		);
-
+		$payPalDoExpressCheckoutRequest->createChild('OrderId', (string) $quote->getEntityId());
 		$paypal = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
-
-		$payPalDoExpressCheckoutRequest->createChild(
-			'Token',
-			(string) $paypal->getEb2cPaypalToken()
-		);
-		$payPalDoExpressCheckoutRequest->createChild(
-			'PayerId',
-			(string) $paypal->getEb2cPaypalPayerId()
-		);
-
-		$payPalDoExpressCheckoutRequest->createChild(
-			'Amount',
-			sprintf('%.02f', (isset($totals['grand_total']) ? $totals['grand_total']->getValue() : 0)),
-			array('currencyCode' => $quote->getQuoteCurrencyCode())
-		);
-
+		$payPalDoExpressCheckoutRequest->createChild('Token', (string) $paypal->getEb2cPaypalToken());
+		$payPalDoExpressCheckoutRequest->createChild('PayerId', (string) $paypal->getEb2cPaypalPayerId());
+		$payPalDoExpressCheckoutRequest->createChild('Amount', sprintf('%.02f', isset($totals['grand_total']) ? $totals['grand_total']->getValue() : 0), $currencyAttr);
 		$quoteShippingAddress = $quote->getShippingAddress();
-		$payPalDoExpressCheckoutRequest->createChild(
-			'ShipToName',
-			(string) $quoteShippingAddress->getName()
-		);
-
-		// creating lineItems element
-		$lineItems = $payPalDoExpressCheckoutRequest->createChild(
-			'LineItems',
-			null
-		);
-
-		// add LineItemsTotal
-		$lineItems->createChild(
-			'LineItemsTotal',
-			sprintf('%.02f', (isset($totals['subtotal']) ? $totals['subtotal']->getValue() : 0)),
-			array('currencyCode' => $quote->getQuoteCurrencyCode())
-		);
-
-		// add ShippingTotal
-		$lineItems->createChild(
-			'ShippingTotal',
-			sprintf('%.02f', (isset($totals['shipping']) ? $totals['shipping']->getValue() : 0)),
-			array('currencyCode' => $quote->getQuoteCurrencyCode())
-		);
-
-		// add TaxTotal
-		$lineItems->createChild(
-			'TaxTotal',
-			sprintf('%.02f', (isset($totals['tax']) ? $totals['tax']->getValue() : 0)),
-			array('currencyCode' => $quote->getQuoteCurrencyCode())
-		);
+		$payPalDoExpressCheckoutRequest->createChild('ShipToName', (string) $quoteShippingAddress->getName());
+		$lineItems = $payPalDoExpressCheckoutRequest->createChild('LineItems', null);
+		$lineItems->createChild('LineItemsTotal', sprintf('%.02f', isset($totals['subtotal']) ? $totals['subtotal']->getValue() : 0), $currencyAttr);
+		$lineItems->createChild('ShippingTotal', sprintf('%.02f', isset($totals['shipping']) ? $totals['shipping']->getValue() : 0), $currencyAttr);
+		$lineItems->createChild('TaxTotal', sprintf('%.02f', isset($totals['tax']) ? $totals['tax']->getValue() : 0), $currencyAttr);
 		if ($quote) {
 			foreach($quote->getAllAddresses() as $addresses){
 				if ($addresses){
 					foreach ($addresses->getAllItems() as $item) {
-						// creating lineItem element
-						$lineItem = $lineItems->createChild(
-							'LineItem',
-							null
-						);
-
-						// add Name
-						$lineItem->createChild(
-							'Name',
-							(string) $item->getName()
-						);
-
-						// add Quantity
-						$lineItem->createChild(
-							'Quantity',
-							(string) $item->getQty()
-						);
-
-						// add UnitAmount
-						$lineItem->createChild(
-							'UnitAmount',
-							sprintf('%.02f', $item->getPrice()),
-							array('currencyCode' => $quote->getQuoteCurrencyCode())
-						);
+						$lineItem = $lineItems->createChild('LineItem', null);
+						$lineItem->createChild('Name', (string) $item->getName());
+						$lineItem->createChild('Quantity', (string) $item->getQty());
+						$lineItem->createChild('UnitAmount', sprintf('%.02f', $item->getPrice()), $currencyAttr);
 					}
 				}
 			}
 		}
-
 		return $domDocument;
 	}
-
 	/**
 	 * Parse PayPal DoExpress reply xml.
+	 *
 	 * @param string $payPalDoExpressCheckoutReply the xml response from eb2c
-	 * @return Varien_Object, an object of response data
+	 * @return Varien_Object an object of response data
 	 */
 	public function parseResponse($payPalDoExpressCheckoutReply)
 	{
@@ -154,22 +72,5 @@ class TrueAction_Eb2cPayment_Model_Paypal_Do_Express_Checkout
 			));
 		}
 		return $checkoutObject;
-	}
-
-	/**
-	 * save payment data to quote_payment.
-	 * @param Varien_Object $checkoutObject, response data
-	 * @param Mage_Sales_Model_Quote $quote, sales quote instantiated object
-	 * @return self
-	 */
-	protected function _savePaymentData(Varien_Object $checkoutObject, Mage_Sales_Model_Quote $quote)
-	{
-		if (trim($checkoutObject->getTransactionId()) !== '') {
-			$paypalObj = Mage::getModel('eb2cpayment/paypal')->loadByQuoteId($quote->getEntityId());
-			$paypalObj->setQuoteId($quote->getEntityId())
-				->setEb2cPaypalTransactionId($checkoutObject->getTransactionId())
-				->save();
-		}
-		return $this;
 	}
 }

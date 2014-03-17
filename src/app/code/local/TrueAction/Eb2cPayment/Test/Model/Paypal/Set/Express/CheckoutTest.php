@@ -1,17 +1,11 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
-	extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_checkout;
-
-	/**
-	 * setUp method
-	 */
 	public function setUp()
 	{
 		parent::setUp();
 		$this->_checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
-
 		$urlMock = $this->getModelMockBuilder('core/url')
 			->disableOriginalConstructor()
 			->setMethods(array('getUrl'))
@@ -19,9 +13,7 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 		$urlMock->expects($this->any())
 			->method('getUrl')
 			->will($this->returnValue('checkout/cart'));
-
 		$this->replaceByMock('singleton', 'core/url', $urlMock);
-
 		$sessionMock = $this->getModelMockBuilder('core/session')
 			->disableOriginalConstructor()
 			->setMethods(array('getCookieShouldBeReceived', 'getSessionIdQueryParam', 'getSessionId', 'getSessionIdForHost'))
@@ -40,24 +32,20 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			->will($this->returnValue(1));
 		$this->replaceByMock('singleton', 'core/session', $sessionMock);
 	}
-
 	public function buildQuoteMock()
 	{
 		$addressMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Address',
 			array('getAllItems')
 		);
-
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
 			array('getName', 'getQty', 'getPrice')
 		);
-
 		$addressMock->expects($this->any())
 			->method('getAllItems')
 			->will($this->returnValue(array($itemMock))
 			);
-
 		$itemMock->expects($this->any())
 			->method('getName')
 			->will($this->returnValue('Product A')
@@ -70,7 +58,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			->method('getPrice')
 			->will($this->returnValue(25.00)
 			);
-
 		$totals = array();
 		$totals['grand_total'] = Mage::getModel('sales/quote_address_total', array(
 			'code' => 'grand_total', 'value' => 50.00
@@ -84,7 +71,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 		$totals['tax'] = Mage::getModel('sales/quote_address_total', array(
 			'code' => 'tax', 'value' => 5.00
 		));
-
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array(
@@ -107,7 +93,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			->method('getAllAddresses')
 			->will($this->returnValue(array($addressMock))
 			);
-
 		return $quoteMock;
 	}
 	public function providerSetExpressCheckout()
@@ -122,7 +107,6 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			array(file_get_contents(__DIR__ . '/CheckoutTest/fixtures/PayPalSetExpressCheckoutReply.xml', true))
 		);
 	}
-
 	/**
 	 * testing parseResponse method
 	 *
@@ -136,109 +120,5 @@ class TrueAction_Eb2cPayment_Test_Model_Paypal_Set_Express_CheckoutTest
 			'Varien_Object',
 			$this->_checkout->parseResponse($payPalSetExpressCheckoutReply)
 		);
-	}
-
-	/**
-	 * Test _savePaymentData method
-	 * @test
-	 */
-	public function testSavePaymentData()
-	{
-		$checkoutObject = new Varien_Object(array(
-			'order_id' => '0005400000182',
-			'response_code' => 'Success',
-			'token' => '12373474885888'
-		));
-
-		$quoteMock = $this->getModelMockBuilder('sales/quote')
-			->disableOriginalConstructor()
-			->setMethods(array('getEntityId'))
-			->getMock();
-		$quoteMock->expects($this->exactly(2))
-			->method('getEntityId')
-			->will($this->returnValue(51));
-
-		$paypalModelMock = $this->getModelMockBuilder('eb2cpayment/paypal')
-			->disableOriginalConstructor()
-			->setMethods(array('loadByQuoteId', 'setQuoteId', 'setEb2cPaypalToken', 'save'))
-			->getMock();
-		$paypalModelMock->expects($this->once())
-			->method('loadByQuoteId')
-			->with($this->equalTo(51))
-			->will($this->returnSelf());
-		$paypalModelMock->expects($this->once())
-			->method('setQuoteId')
-			->with($this->equalTo(51))
-			->will($this->returnSelf());
-		$paypalModelMock->expects($this->once())
-			->method('setEb2cPaypalToken')
-			->with($this->equalTo('12373474885888'))
-			->will($this->returnSelf());
-		$paypalModelMock->expects($this->once())
-			->method('save')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypalModelMock);
-
-		$checkout = Mage::getModel('eb2cpayment/paypal_set_express_checkout');
-
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout',
-			$this->_reflectMethod($checkout, '_savePaymentData')->invoke($checkout, $checkoutObject, $quoteMock)
-		);
-	}
-	public function testSetExpressCheckout()
-	{
-		$quote = $this->getModelMockBuilder('sales/quote')
-			->disableOriginalConstructor()
-			->getMock();
-		$api = $this->getModelMock('eb2ccore/api', array('request', 'setStatusHandlerPath'));
-		$helper = $this->getHelperMockBuilder('eb2cpayment/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel', 'getOperationUri'))
-			->getMock();
-		$auth = $this->getModelMock('eb2cpayment/paypal_set_express_checkout', array('buildPayPalSetExpressCheckoutRequest', '_savepaymentData', 'parseResponse'));
-		$config = $this->buildCoreConfigRegistry(array('xsdFilePaypalSetExpress' => 'xsdfile'));
-		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
-		$parsedData = new Varien_Object();
-
-		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$this->replaceByMock('helper', 'eb2cpayment', $helper);
-
-		$helper->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue($config));
-		$helper->expects($this->once())
-			->method('getOperationUri')
-			->with($this->identicalTo('get_paypal_set_express_checkout'))
-			->will($this->returnValue('/uri/'));
-
-		$auth->expects($this->once())
-			->method('buildPayPalSetExpressCheckoutRequest')
-			->with($this->identicalTo($quote))
-			->will($this->returnValue($doc));
-		$auth->expects($this->once())
-			->method('parseResponse')
-			->with($this->identicalTo('responseText'))
-			->will($this->returnValue($parsedData));
-		$auth->expects($this->once())
-			->method('_savePaymentData')
-			->with($this->identicalTo($parsedData, $this->identicalTo($quote)))
-			->will($this->returnSelf());
-
-		$api->expects($this->once())
-			->method('setStatusHandlerPath')
-			->with($this->identicalTo(TrueAction_Eb2cPayment_Helper_Data::STATUS_HANDLER_PATH))
-			->will($this->returnSelf());
-		$api->expects($this->once())
-			->method('request')
-			->with(
-				$this->identicalTo($doc),
-				$this->identicalTo('xsdfile'),
-				$this->identicalTo('/uri/')
-			)
-			->will($this->returnValue('responseText'));
-
-
-		$this->assertSame('responseText', $auth->setExpressCheckout($quote));
 	}
 }

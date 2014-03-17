@@ -23,7 +23,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->method('getEb2cPaypalTransactionID')
 			->will($this->returnValue('O-5SM75867VD734394E')
 			);
-
 		$paymentMock->expects($this->any())
 			->method('setEb2cPaypalToken')
 			->will($this->returnSelf()
@@ -40,7 +39,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->method('save')
 			->will($this->returnSelf()
 			);
-
 		$quoteMock = $this->getMock(
 			'Mage_Sales_Model_Quote',
 			array('getEntityId', 'getAllItems', 'getPayment')
@@ -49,7 +47,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->method('getEntityId')
 			->will($this->returnValue(1)
 			);
-
 		$itemMock = $this->getMock(
 			'Mage_Sales_Model_Quote_Item',
 			array('getName', 'getQty', 'getPrice')
@@ -74,10 +71,8 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->method('getPayment')
 			->will($this->returnValue($paymentMock)
 			);
-
 		return $quoteMock;
 	}
-
 	/**
 	 * replacing by mock of the Mage_Checkout_Model_Session class
 	 *
@@ -103,7 +98,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->will($this->returnValue(1));
 		$this->replaceByMock('singleton', 'checkout/session', $sessionMock);
 	}
-
 	/**
 	 * replacing by mock of the eb2cpayment/paypal_set_express_checkout class
 	 *
@@ -123,7 +117,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			->will($this->returnValue(new Varien_Object(array('response_code' => 'success', 'token' => '1234455'))));
 		$this->replaceByMock('model', 'eb2cpayment/paypal_set_express_checkout', $paypalSetExpressCheckoutMock);
 	}
-
 	/**
 	 * replacing by mock of the eb2cpayment/paypal_get_express_checkout class
 	 *
@@ -162,7 +155,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			));
 		$this->replaceByMock('model', 'eb2cpayment/paypal_get_express_checkout', $paypalGetExpressCheckoutMock);
 	}
-
 	/**
 	 * replacing by mock of the eb2cpayment/paypal_do_express_checkout class
 	 *
@@ -193,7 +185,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			));
 		$this->replaceByMock('model', 'eb2cpayment/paypal_do_express_checkout', $paypalDoExpressCheckoutMock);
 	}
-
 	/**
 	 * replacing by mock of the eb2cpayment/paypal_do_authorization class
 	 *
@@ -222,7 +213,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			));
 		$this->replaceByMock('model', 'eb2cpayment/paypal_do_authorization', $paypalDoAuthorizationMock);
 	}
-
 	/**
 	 * replacing by mock of the eb2cpayment/paypal_do_void class
 	 *
@@ -244,7 +234,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 			))));
 		$this->replaceByMock('model', 'eb2cpayment/paypal_do_void', $paypalDoVoidMock);
 	}
-
 	/**
 	 * setUp method
 	 */
@@ -254,87 +243,6 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 		$this->_nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
 		$this->replaceByMockCheckoutSessionModel();
 	}
-
-	/**
-	 * testing callSetExpressCheckout method
-	 *
-	 * @test
-	 * @medium
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCallSetExpressCheckout()
-	{
-		$this->replaceByMockPaypalSetExpressCheckoutModel();
-		// because we are setting the paypal set express checkout class property in the setup as a reflection some of te code
-		// is not being covered, let make sure in this test that the code get covered and that it return the right class instantiation
-		$nvp = Mage::getModel('eb2cpaymentoverrides/api_nvp');
-		$nvpReflector = new ReflectionObject($nvp);
-
-		// get coverage for getCart method
-		$getCart = $nvpReflector->getMethod('_getCart');
-		$getCart->setAccessible(true);
-
-		$this->assertInstanceOf(
-			'Mage_Paypal_Model_Cart',
-			$getCart->invoke($nvp)
-		);
-
-		$configObject = new Mage_Paypal_Model_Config();
-		$config = $nvpReflector->getProperty('_config');
-		$config->setAccessible(true);
-		$config->setValue($this->_nvp, $configObject);
-
-		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-
-		$cart = $nvpReflector->getProperty('_cart');
-		$cart->setAccessible(true);
-		$cart->setValue($this->_nvp, $cartObject);
-
-		// adding profiles
-		$item = new Varien_Object();
-		$item->setScheduleDescription('Unit Test Contents');
-		$this->_nvp->addRecurringPaymentProfiles(array($item));
-
-		// set shipping options
-		$this->_nvp->setShippingOptions(array($this->_nvp));
-		$this->_nvp->setAmount(10.00);
-
-		$this->assertNull($this->_nvp->callSetExpressCheckout());
-	}
-
-	/**
-	 * testing callSetExpressCheckout method - with address defined
-	 *
-	 * @test
-	 * @medium
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCallSetExpressCheckoutWithAddress()
-	{
-		$this->replaceByMockPaypalSetExpressCheckoutModel();
-
-		$nvpReflector = new ReflectionObject($this->_nvp);
-
-		$configObject = new Mage_Paypal_Model_Config();
-		$config = $nvpReflector->getProperty('_config');
-		$config->setAccessible(true);
-		$config->setValue($this->_nvp, $configObject);
-
-		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-		$cart = $nvpReflector->getProperty('_cart');
-		$cart->setAccessible(true);
-		$cart->setValue($this->_nvp, $cartObject);
-
-		// adding profiles
-		$item = new Varien_Object();
-		$item->setScheduleDescription('Unit Test Contents');
-		$this->_nvp->addRecurringPaymentProfiles(array($item));
-
-		$this->_nvp->setAddress(new Varien_Object());
-
-		$this->assertNull($this->_nvp->callSetExpressCheckout());
-	}
-
 	/**
 	 * testing callSetExpressCheckout method - when eb2c PayPalSetExpressCheckout is disabled
 	 *
@@ -346,53 +254,21 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallSetExpressCheckoutDisabled()
 	{
 		$this->replaceByMockPaypalSetExpressCheckoutModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		// adding profiles
 		$item = new Varien_Object();
 		$item->setScheduleDescription('Unit Test Contents');
 		$this->_nvp->addRecurringPaymentProfiles(array($item));
-
 		$this->assertNull($this->_nvp->callSetExpressCheckout());
 	}
-
-	/**
-	 * testing callGetExpressCheckoutDetails method
-	 *
-	 * @test
-	 * @medium
-	 * @loadFixture loadConfig.yaml
-	 */
-	public function testCallGetExpressCheckoutDetails()
-	{
-		$this->replaceByMockPaypalGetExpressCheckoutModel();
-
-		$nvpReflector = new ReflectionObject($this->_nvp);
-
-		$configObject = new Mage_Paypal_Model_Config();
-		$config = $nvpReflector->getProperty('_config');
-		$config->setAccessible(true);
-		$config->setValue($this->_nvp, $configObject);
-
-		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-
-		$cart = $nvpReflector->getProperty('_cart');
-		$cart->setAccessible(true);
-		$cart->setValue($this->_nvp, $cartObject);
-
-		$this->assertNull($this->_nvp->callGetExpressCheckoutDetails());
-	}
-
 	/**
 	 * testing callGetExpressCheckoutDetails method - when eb2c PayPalGetExpressCheckout is disabled
 	 *
@@ -404,22 +280,17 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallGetExpressCheckoutDetailsDisabled()
 	{
 		$this->replaceByMockPaypalGetExpressCheckoutModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertNull($this->_nvp->callGetExpressCheckoutDetails());
 	}
-
 	/**
 	 * testing callDoExpressCheckoutPayment method
 	 *
@@ -430,25 +301,18 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoExpressCheckoutPayment()
 	{
 		$this->replaceByMockPaypalDoExpressCheckoutModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->_nvp->setAddress(new Varien_Object());
-
 		$this->assertNull($this->_nvp->callDoExpressCheckoutPayment());
 	}
-
 	/**
 	 * testing callDoExpressCheckoutPayment method - when eb2c PayPalDoExpressCheckout is disabled
 	 *
@@ -460,22 +324,17 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoExpressCheckoutPaymentDisabled()
 	{
 		$this->replaceByMockPaypalDoExpressCheckoutModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertNull($this->_nvp->callDoExpressCheckoutPayment());
 	}
-
 	/**
 	 * testing callDoAuthorization method
 	 *
@@ -486,26 +345,20 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoAuthorization()
 	{
 		$this->replaceByMockPaypalDoAuthorizationModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp',
 			$this->_nvp->callDoAuthorization()
 		);
 	}
-
 	/**
 	 * testing callDoAuthorization method - when eb2c PayPalDoAuthorization is disabled
 	 *
@@ -517,25 +370,20 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoAuthorizationDisabled()
 	{
 		$this->replaceByMockPaypalDoAuthorizationModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertInstanceOf(
 			'TrueAction_Eb2cPayment_Overrides_Model_Api_Nvp',
 			$this->_nvp->callDoAuthorization()
 		);
 	}
-
 	/**
 	 * testing callDoVoid method
 	 *
@@ -546,23 +394,17 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoVoid()
 	{
 		$this->replaceByMockPaypalDoVoidModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
-
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertNull($this->_nvp->callDoVoid());
 	}
-
 	/**
 	 * testing callDoVoid method - when eb2c PayPalDoVoid is disabled
 	 *
@@ -574,22 +416,17 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 	public function testCallDoVoidDisabled()
 	{
 		$this->replaceByMockPaypalDoVoidModel();
-
 		$nvpReflector = new ReflectionObject($this->_nvp);
-
 		$configObject = new Mage_Paypal_Model_Config();
 		$config = $nvpReflector->getProperty('_config');
 		$config->setAccessible(true);
 		$config->setValue($this->_nvp, $configObject);
-
 		$cartObject = new Mage_Paypal_Model_Cart(array($this->buildQuoteMock()));
 		$cart = $nvpReflector->getProperty('_cart');
 		$cart->setAccessible(true);
 		$cart->setValue($this->_nvp, $cartObject);
-
 		$this->assertNull($this->_nvp->callDoVoid());
 	}
-
 	/**
 	 * Test that when any non-overridden API call tries to get through the call
 	 * method while Eb2cPayments is enabled, an exception is thrown.
@@ -602,5 +439,4 @@ class TrueAction_Eb2cPayment_Test_Model_Overrides_Api_NvpTest extends EcomDev_PH
 		$this->setExpectedException('Mage_Core_Exception', 'Non-EB2C PayPal API call attempted for UnsupportedPayPalMethod');
 		Mage::getModel('paypal/api_nvp')->call('UnsupportedPayPalMethod', array());
 	}
-
 }
