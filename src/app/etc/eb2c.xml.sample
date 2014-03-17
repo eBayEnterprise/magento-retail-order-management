@@ -20,6 +20,16 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2cproduct_feed>
+			<eb2corder_order_create_retry>
+				<schedule>
+					<cron_expr>0 3 * * *</cron_expr>
+				</schedule>
+			</eb2corder_order_create_retry>
+			<pim_export_build_feed>
+				<schedule>
+					<cron_expr>0,15,30,45 * * * *</cron_expr>
+				</schedule>
+			</pim_export_build_feed>
 		</jobs>
 	</crontab>
 	<default>

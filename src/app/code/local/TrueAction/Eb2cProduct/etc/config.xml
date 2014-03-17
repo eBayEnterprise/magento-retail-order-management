@@ -30,8 +30,9 @@
 		<crontab>
 			<jobs>
 				<pim_export_build_feed>
-					<schedule><cron_expr>0,15,30,45 * * * *</cron_expr></schedule>
-					<run><model>eb2cproduct/pim_collector::runExport</model></run>
+					<run>
+						<model>eb2cproduct/pim_collector::runExport</model>
+					</run>
 				</pim_export_build_feed>
 			</jobs>
 		</crontab>

@@ -63,9 +63,6 @@
 	<crontab>
 		<jobs>
 			<eb2corder_order_create_retry>
-				<schedule>
-					<cron_expr>0 3 * * *</cron_expr>
-				</schedule>
 				<run>
 					<model>eb2corder/create::retryOrderCreate</model>
 				</run>
