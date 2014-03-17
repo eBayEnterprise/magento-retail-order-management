@@ -27,15 +27,6 @@
 				</setup>
 			</eb2cproduct_attributes_setup>
 		</resources>
-		<crontab>
-			<jobs>
-				<pim_export_build_feed>
-					<run>
-						<model>eb2cproduct/pim_collector::runExport</model>
-					</run>
-				</pim_export_build_feed>
-			</jobs>
-		</crontab>
 		<eb2cproduct_attributes>
 			<default>
 				<tax_code>
@@ -353,6 +344,15 @@
 			</default_pim_mapping>
 		</eb2cproduct>
 	</default>
+	<crontab>
+		<jobs>
+			<eb2cproduct_pim_export_feed>
+				<run>
+					<model>eb2cproduct/pim_collector::runExport</model>
+				</run>
+			</eb2cproduct_pim_export_feed>
+		</jobs>
+	</crontab>
 	<phpunit>
 		<suite>
 			<modules>
