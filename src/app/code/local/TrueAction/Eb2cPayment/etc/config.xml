@@ -64,6 +64,11 @@
 					<system_config_tabs>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_System_Config_Tabs</system_config_tabs>
 				</rewrite>
 			</adminhtml>
+			<enterprise_pbridge>
+				<rewrite>
+					<adminhtml_sales_order_create_abstract>TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_Sales_Order_Create_Abstract</adminhtml_sales_order_create_abstract>
+				</rewrite>
+			</enterprise_pbridge>
 		</blocks>
 		<resources>
 			<eb2cpayment_setup>
