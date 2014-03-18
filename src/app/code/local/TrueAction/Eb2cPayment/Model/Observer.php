@@ -100,10 +100,18 @@ class TrueAction_Eb2cPayment_Model_Observer
 	 */
 	public function suppressPaymentModule($observer)
 	{
-		$store = $observer->getEvent()->getStore();
+		$event = $observer->getEvent();
+		$helper = Mage::helper('eb2ccore');
+
+		$store = $event->getStore();
+		$website = $event->getWebsite();
+
+		$store = ($store instanceof Mage_Core_Model_Store)? $store : $helper->getDefaultStore();
+		$website = ($website instanceof Mage_Core_Mode_Website)? $website : $helper->getDefaultWebsite();
+
 		$supressor = Mage::getModel('eb2cpayment/suppression', array(
 			'store' => $store,
-			'website' => $observer->getEvent()->getWebsite()
+			'website' => $website
 		));
 		if (Mage::helper('eb2cpayment')->getConfigModel($store)->isPaymentEnabled) {
 			Mage::log(sprintf('[%s::%s] Enabling eBay Enterprise Payment Methods', __CLASS__, __METHOD__), Zend_Log::DEBUG);

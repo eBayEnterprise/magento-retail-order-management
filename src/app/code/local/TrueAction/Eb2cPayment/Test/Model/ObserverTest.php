@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_Case
+class TrueAction_Eb2cPayment_Test_Model_ObserverTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	protected $_observer;
 	/**
@@ -267,5 +268,170 @@ class TrueAction_Eb2cPayment_Test_Model_ObserverTest extends EcomDev_PHPUnit_Tes
 		$this->assertNull(
 			$this->_observer->redeemVoidGiftCard($observer)
 		);
+	}
+
+	/**
+	 * Test TrueAction_Eb2cPayment_Model_Observer::suppressPaymentModule method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cPayment_Model_Observer::suppressPaymentModule will be invoked by this
+	 *                test given a mocked Varien_Event_Observer object in which the method
+	 *                Varien_Event_Observer::getEvent will be invoked and return a mocked Varien_Event object
+	 *                in which the mehods Varien_Event::getStore, getWebsite will be invoked once and return null
+	 *                so that the methods TrueAction_Eb2cCore_Helper_Data::getDefaultStore, and getDefaultWebsite will
+	 *                will return mocked Mage_Core_Model_Store and Mage_Core_Model_Website respectively
+	 * Expectation 2: the method TrueAction_Eb2cPayment_Helper_Data::getConfigModel will be invoked given the mocked
+	 *                Mage_Core_Model_Store object in which it will return the mocked TrueAction_Eb2cCore_Model_Config_Registry
+	 *                object with the magic property 'isPaymentEnabled' set to true, which will allowed the following methods
+	 *                to be invoked TrueAction_Eb2cPayment_Model_Suppression::disableNonEb2CPaymentMethods, and saveEb2CPaymentMethods
+	 *                given the value 1
+	 */
+	public function testSuppressPaymentModule()
+	{
+		$storeMock = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$websiteMock = $this->getModelMockBuilder('core/website')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$eventMock = $this->getMockBuilder('Varien_Event')
+			->disableOriginalConstructor()
+			->setMethods(array('getStore', 'getWebsite'))
+			->getMock();
+		$eventMock->expects($this->once())
+			->method('getStore')
+			->will($this->returnValue(null));
+		$eventMock->expects($this->once())
+			->method('getWebsite')
+			->will($this->returnValue(null));
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getDefaultStore', 'getDefaultWebsite'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getDefaultStore')
+			->will($this->returnValue($storeMock));
+		$coreHelperMock->expects($this->once())
+			->method('getDefaultWebsite')
+			->will($this->returnValue($websiteMock));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$observerMock = $this->getMockBuilder('Varien_Event_Observer')
+			->disableOriginalConstructor()
+			->setMethods(array('getEvent'))
+			->getMock();
+		$observerMock->expects($this->once())
+			->method('getEvent')
+			->will($this->returnValue($eventMock));
+
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('getConfigModel')
+			->with($this->identicalTo($storeMock))
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'isPaymentEnabled' => true
+			))));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$suppressionMock = $this->getModelMockBuilder('eb2cpayment/suppression')
+			->disableOriginalConstructor()
+			->setMethods(array('disableNonEb2CPaymentMethods', 'saveEb2CPaymentMethods'))
+			->getMock();
+		$suppressionMock->expects($this->once())
+			->method('disableNonEb2CPaymentMethods')
+			->will($this->returnSelf());
+		$suppressionMock->expects($this->once())
+			->method('saveEb2CPaymentMethods')
+			->with($this->identicalTo(1))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cpayment/suppression', $suppressionMock);
+
+		$oMock = $this->getModelMockBuilder('eb2cpayment/observer')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($oMock, $oMock->suppressPaymentModule($observerMock));
+	}
+
+	/**
+	 * @see self::testSuppressPaymentModule except this time we are testing when the payment is disabled
+	 *      and when the Varien_Event::getstore, and getWebsite methods return a mock Mage_Core_Model_Store object
+	 *      and a mock Mage_Core_Model_Website object respectively.
+	 */
+	public function testSuppressPaymentModuleWhenPaymentIsDisabled()
+	{
+		$storeMock = $this->getModelMockBuilder('core/store')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$websiteMock = $this->getModelMockBuilder('core/website')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$eventMock = $this->getMockBuilder('Varien_Event')
+			->disableOriginalConstructor()
+			->setMethods(array('getStore', 'getWebsite'))
+			->getMock();
+		$eventMock->expects($this->once())
+			->method('getStore')
+			->will($this->returnValue($storeMock));
+		$eventMock->expects($this->once())
+			->method('getWebsite')
+			->will($this->returnValue($websiteMock));
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$observerMock = $this->getMockBuilder('Varien_Event_Observer')
+			->disableOriginalConstructor()
+			->setMethods(array('getEvent'))
+			->getMock();
+		$observerMock->expects($this->once())
+			->method('getEvent')
+			->will($this->returnValue($eventMock));
+
+		$helperMock = $this->getHelperMockBuilder('eb2cpayment/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('getConfigModel')
+			->with($this->identicalTo($storeMock))
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'isPaymentEnabled' => false
+			))));
+		$this->replaceByMock('helper', 'eb2cpayment', $helperMock);
+
+		$suppressionMock = $this->getModelMockBuilder('eb2cpayment/suppression')
+			->disableOriginalConstructor()
+			->setMethods(array('disableNonEb2CPaymentMethods', 'saveEb2CPaymentMethods'))
+			->getMock();
+		$suppressionMock->expects($this->once())
+			->method('disableNonEb2CPaymentMethods')
+			->will($this->returnSelf());
+		$suppressionMock->expects($this->once())
+			->method('saveEb2CPaymentMethods')
+			->with($this->identicalTo(0))
+			->will($this->returnSelf());
+		$this->replaceByMock('model', 'eb2cpayment/suppression', $suppressionMock);
+
+		$oMock = $this->getModelMockBuilder('eb2cpayment/observer')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($oMock, $oMock->suppressPaymentModule($observerMock));
 	}
 }

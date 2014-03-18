@@ -383,4 +383,24 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 
 		return null;
 	}
+
+	/**
+	 * abstracting getting an instance of the default store
+	 * @return Mage_Core_Model_Store
+	 * @codeCoverageIgnore
+	 */
+	public function getDefaultStore()
+	{
+		return $this->getDefaultWebsite()->getDefaultStore();
+	}
+
+	/**
+	 * abstracting getting an instance of the default website
+	 * @return Mage_Core_Model_Website
+	 * @codeCoverageIgnore
+	 */
+	public function getDefaultWebsite()
+	{
+		return Mage::app()->getWebsite(true);
+	}
 }
