@@ -1,95 +1,44 @@
 <?xml version='1.0' encoding="utf-8" ?>
 <!--
-Magento to Exchange platform mappings:
-The below configurations translate from Magento to Exchange.
-Copy this file to eb2c.xml and configure the appropriate values below.
+Magento to Exchange Platform Product Import Mappings
+
+The below configurations translate from Exchange to Magento.
+Copy this file to productimport.xml and configure the appropriate values below.
 -->
 <config>
-	<!--
-	Configuration for setting the time product feed and inventory feed runs
-	-->
 	<crontab>
 		<jobs>
+			<!-- 
+			This cron expression indicates how often the inventory feed
+			should be checked.
+			 -->
 			<eb2cinventory_feed_item_inventories>
 				<schedule>
 					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2cinventory_feed_item_inventories>
+			<!-- 
+			This cron expression indicates how often the product feed
+			should be checked.
+			 -->
 			<eb2cproduct_feed>
 				<schedule>
 					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2cproduct_feed>
-			<eb2corder_order_create_retry>
-				<schedule>
-					<cron_expr>0 3 * * *</cron_expr>
-				</schedule>
-			</eb2corder_order_create_retry>
-			<eb2cproduct_pim_export_feed>
-				<schedule>
-					<cron_expr>0,15,30,45 * * * *</cron_expr>
-				</schedule>
-			</eb2cproduct_pim_export_feed>
 		</jobs>
 	</crontab>
 	<default>
-		<eb2ccore>
-			<!--
-			Shipping method mappings:
-			Map Magento shipping methods to the desired Exchange platform shipping method name. Add one node for each configured Magento shipping method.
-			-->
-			<shipmap>
-				<!-- This example maps the Magento flatrate_flatrate shipping method to Exchange's ANY_STD shipping. -->
-				<flatrate_flatrate>ANY_STD</flatrate_flatrate>
-			</shipmap>
-			<payment>
-				<!--
-				Stored Value Card ranges:
-				List the ranges for valid stored value card numbers of each type.
-				Ranges may not overlap.
-				-->
-				<svc_bin_range>
-					<!-- Gift card -->
-					<GS>800199900000000-800199910000000</GS>
-					<!-- Physical card -->
-					<SP>6006592800000000000-6006592800100000000</SP>
-					<!-- Virtual card -->
-					<SV>6969280000000000-6969280010000000</SV>
-					<!-- Value Link -->
-					<VL>9900000000000000-9900000010000000</VL>
-				</svc_bin_range>
-			</payment>
-			<feed>
-				<!--
-				This setting will enable (1) or disable (0) the deletion of files from the remote
-				SFTP server after processing the feed files.
-				-->
-				<delete_remote_feed_files>1</delete_remote_feed_files>
-				<!--
-				Mapping feed giftCardTenderCode to a known Magento giftcard type
-				-->
-				<gift_card_tender_code>
-					<SD>virtual</SD>
-					<SP>physical</SP>
-					<ST>combined</ST>
-					<SV>virtual</SV>
-					<SX>combined</SX>
-				</gift_card_tender_code>
-				<export>
-					<ack>
-						<resend_wait_time>5</resend_wait_time><!--in minutes-->
-					</ack>
-					<sent>/Cheetah/Eb2c/Feed/Sent/</sent>
-					<outbound>
-						<archive>
-							<pim>/Cheetah/Eb2c/Feed/Archive/Pim/</pim>
-							<image>/Cheetah/Eb2c/Feed/Archive/ImageMaster/</image>
-						</archive>
-					</outbound>
-				</export>
-			</feed>
-		</eb2ccore>
 		<eb2cproduct>
+			<!--
+			Here you can customize the mapping of incoming values to Magento Attributes.  If an
+			incoming node does not match a node listed here, the import process will attempt to
+			find a Magento Attribute Code that matches the name of the Exchange Platform
+			Code. In that case, the value is stored as a string value.
+
+			WARNING: If an Exchange Platform Code is not mapped, and the Exchange Platform Code does
+			not match any existing Magento Attribute, it will be silently ignored by the import process.
+			 -->
 			<feed_attribute_mappings>
 				<is_drop_shipped>
 					<class>eb2cproduct/map</class>
@@ -516,6 +465,12 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 		</eb2cproduct>
 	</default>
 	<global>
+		<!--
+		Here you can customize which of the enhanced Exchange Platform attributes you
+		wish to have imported into your Magento instance. These attributes will be created
+		for you by this extension. They are then imported according to the feed_attribute_mappings
+		listed above.
+		 -->
 		<eb2cproduct_attributes>
 			<default>
 				<is_drop_shipped>

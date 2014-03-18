@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding="utf-8" ?>
+<!--
+Magento to Exchange platform mappings:
+The below configurations translate from Magento to Exchange.
+Copy this file to eb2c.xml and configure the appropriate values below.
+-->
+<config>
+	<!--
+	Configuration for setting the time product feed and inventory feed runs
+	-->
+	<crontab>
+		<jobs>
+			<eb2corder_order_create_retry>
+				<schedule>
+					<cron_expr>0 3 * * *</cron_expr>
+				</schedule>
+			</eb2corder_order_create_retry>
+		</jobs>
+	</crontab>
+	<default>
+		<eb2ccore>
+			<!--
+			Shipping method mappings:
+			Map Magento shipping methods to the desired Exchange platform shipping method name. Add one node for each configured Magento shipping method.
+			-->
+			<shipmap>
+				<!-- This example maps the Magento flatrate_flatrate shipping method to Exchange's ANY_STD shipping. -->
+				<flatrate_flatrate>ANY_STD</flatrate_flatrate>
+			</shipmap>
+			<feed>
+				<!--
+				Incoming giftCardTenderCodes must be matched to a known Magento giftcard type.
+				-->
+				<gift_card_tender_code>
+					<SD>virtual</SD>
+					<SP>physical</SP>
+					<ST>combined</ST>
+					<SV>virtual</SV>
+					<SX>combined</SX>
+				</gift_card_tender_code>
+			</feed>
+			<payment>
+				<!--
+				Stored Value Card ranges:
+				List the ranges for valid stored value card numbers of each type.
+				Ranges may not overlap.
+				-->
+				<svc_bin_range>
+					<!-- Gift card -->
+					<GS>800199900000000-800199910000000</GS>
+					<!-- Physical card -->
+					<SP>6006592800000000000-6006592800100000000</SP>
+					<!-- Virtual card -->
+					<SV>6969280000000000-6969280010000000</SV>
+					<!-- Value Link -->
+					<VL>9900000000000000-9900000010000000</VL>
+				</svc_bin_range>
+			</payment>
+			<feed>
+				<!--
+				This setting will enable (1) or disable (0) the deletion of files from the remote
+				SFTP server after processing the feed files.
+				-->
+				<delete_remote_feed_files>1</delete_remote_feed_files>
+			</feed>
+		</eb2ccore>
+	</default>
+</config>

@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding="utf-8" ?>
+<!--
+Magento to Exchange Platform Product Export Mappings
+
+This configuration file controls exporting data from Magento to Exchange.
+Copy this file to productexport.xml and configure the appropriate values below.
+-->
+<config>
+	<crontab>
+		<jobs>
+			<!--
+			Configuration for setting the Product Export Cron runtimes
+			 -->
+			<pim_export_build_feed>
+				<schedule>
+					<cron_expr>0,15,30,45 * * * *</cron_expr>
+				</schedule>
+			</pim_export_build_feed>
+		</jobs>
+	</crontab>
+	<default>
+		<eb2ccore>
+			<feed>
+				<export>
+					<ack>
+						<!--
+						Time, in minutes, to wait before an attempt is made to
+						resend and Acknowledgement file.
+						-->
+						<resend_wait_time>5</resend_wait_time>
+					</ack>
+						<!--
+						@todo I don't know what this is
+						 -->
+					<sent>/Cheetah/Eb2c/Feed/Sent/</sent>
+					<outbound>
+						<!--
+						Directory into which sent feeds are archived. This path
+						is relative to your Magento installation's var directory.
+						-->
+						<archive>
+							<pim>/Cheetah/Eb2c/Feed/Archive/Pim/</pim>
+							<image>/Cheetah/Eb2c/Feed/Archive/ImageMaster/</image>
+						</archive>
+					</outbound>
+				</export>
+			</feed>
+		</eb2ccore>
+	</default>
+</config>
