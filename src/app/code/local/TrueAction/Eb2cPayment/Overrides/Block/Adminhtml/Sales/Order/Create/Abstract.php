@@ -9,7 +9,7 @@ class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_Sales_Order_Create_Abstra
 	 * @return bool false because we hardcoded to always return false
 	 * @codeCoverageIgnore
 	 */
-	public function is3dSecureEnabled(array $data)
+	public function is3dSecureEnabled()
 	{
 		return false;
 	}
