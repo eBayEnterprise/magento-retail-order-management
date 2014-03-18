@@ -52,18 +52,7 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest extends EcomDev_P
 	}
 
 	/**
-	 * Create a TrueAction_Eb2cAddress_Model_Validation_Request to test against.
-	 * Ensures that all of the necessary setup of the object is done.
-	 */
-	protected function _createRequest()
-	{
-		$request = Mage::getModel('eb2caddress/validation_request');
-		$address = $this->_createAddressStub();
-		$request->setAddress($address);
-		return $request;
-	}
-
-	/**
+	 * build the message dom for an address.
 	 * @test
 	 * @large
 	 */
@@ -107,5 +96,15 @@ class TrueAction_Eb2cAddress_Test_Model_Validation_RequestTest extends EcomDev_P
 		$request = $this->_createRequest();
 		$message = $request->getMessage();
 		$this->assertTrue($message->schemaValidate($xsd));
+	}
+
+	/**
+	 * Create a TrueAction_Eb2cAddress_Model_Validation_Request to test against.
+	 * Ensures that all of the necessary setup of the object is done.
+	 */
+	protected function _createRequest()
+	{
+		return Mage::getModel('eb2caddress/validation_request')
+			->setAddress($this->_createAddressStub());
 	}
 }

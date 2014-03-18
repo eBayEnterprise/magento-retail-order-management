@@ -207,6 +207,10 @@ class TrueAction_Eb2cAddress_Model_Validator
 				$log->logDebug('[ %s ] No validation - billing only', array(__CLASS__));
 				return false;
 			}
+			if ($this->_isMissingRequiredFields($address)) {
+				$log->logDebug('[ %s ] No validation - missing required fields', array(__CLASS__));
+				return false;
+			}
 		}
 		return true;
 	}
@@ -491,5 +495,19 @@ class TrueAction_Eb2cAddress_Model_Validator
 	{
 		$this->_getSession()->unsetData(self::SESSION_KEY);
 		return $this;
+	}
+
+	/**
+	 * return true if the address contains enough data to be submitted for verification
+	 * @return boolean
+	 */
+	protected function _isMissingRequiredFields(Mage_Customer_Model_Address_Abstract $address)
+	{
+		$methods = array('getStreet1', 'getCity', 'getCountry');
+		$hasMissingFieds = false;
+		foreach ($methods as $method) {
+			$hasMissingFieds = $hasMissingFieds || !$address->$method();
+		}
+		return $hasMissingFieds;
 	}
 }

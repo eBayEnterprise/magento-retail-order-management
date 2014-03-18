@@ -4,6 +4,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Get_Express_Checkout extends TrueActio
 	// A mapping to something in the helper. Pretty contrived.
 	const URI_KEY = 'get_paypal_get_express_checkout';
 	const XSD_FILE = 'xsd_file_paypal_get_express';
+	const STORED_FIELD = 'payer_id';
 	/**
 	 * Build PaypalGetExpressCheckout request.
 	 * @param Mage_Sales_Model_Quote $quote the quote to generate request XML from

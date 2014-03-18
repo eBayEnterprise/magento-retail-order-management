@@ -1027,7 +1027,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			->method('getCustomerAddressId')
 			->will($this->returnValue($customerAddressId));
 
-		$validator = Mage::getModel('eb2caddress/validator');
+		$validator = $this->getModelMock('eb2caddress/validator', array('_isMissingRequiredFields'));
 		$this->assertEquals(
 			!($id && $customerId && $customerAddressId),
 			$validator->shouldValidateAddress($address)
@@ -1144,7 +1144,7 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 		}
 
 		$expectations = $this->expected('%s-%s-%s', $addressType, $hasBillingPost, $useForShipping);
-		$validator = Mage::getModel('eb2caddress/validator');
+		$validator = $this->getModelMock('eb2caddress/validator', array('_isMissingRequiredFields'));
 		$this->assertSame(
 			$expectations->getShouldValidate(),
 			$validator->shouldValidateAddress($address)
@@ -1246,5 +1246,45 @@ class TrueAction_Eb2cAddress_Test_Model_ValidatorTest
 			$this->expected('%s-%s', $hasResponse, $isValid)->getIsValid(),
 			$validator->isValid()
 		);
+	}
+
+	/**
+	 * provide methods that should return the equivalent of a true result.
+	 */
+	public function provideNonEmptyGetters()
+	{
+		return array(
+			array(array('getStreet1', 'getCity', 'getCountry'), true),
+			array(array('getStreet1', 'getCity'), false),
+			array(array('getStreet1'), false),
+			array(array(), false),
+		);
+	}
+	/**
+	 * if any one of the required fields are missing, return true; false otherwise.
+	 * @param  array  $nonEmptyGetters
+	 * @param  bool   $result
+	 * @dataProvider provideNonEmptyGetters
+	 */
+	public function testShouldValidateIfIsMissingRequiredFields($nonEmptyGetters, $result) {
+		$address = $this->getModelMock('sales/quote_address', $nonEmptyGetters);
+		$validator = $this->getModelMock('eb2caddress/validator', array(
+			'_hasAddressBeenValidated',
+			'_isCheckoutAddress',
+			'_isAddressFromAddressBook',
+			'_isAddressBeingSaved',
+			'_isVirtualOrder',
+			'_isAddressBillingOnly'
+		));
+		$validator->expects($this->any())
+			->method('_isCheckoutAddress')
+			->will($this->returnValue(true));
+
+		foreach ($nonEmptyGetters as $method) {
+			$address->expects($this->once())
+				->method($method)
+				->will($this->returnValue(true));
+		}
+		$this->assertSame($result, $validator->shouldValidateAddress($address));
 	}
 }

@@ -4,6 +4,7 @@ class TrueAction_Eb2cPayment_Model_Paypal_Set_Express_Checkout extends TrueActio
 	// A mapping to something in the helper. Pretty contrived.
 	const URI_KEY = 'get_paypal_set_express_checkout';
 	const XSD_FILE = 'xsd_file_paypal_set_express';
+	const STORED_FIELD = 'token';
 	/**
 	 * Build PaypalSetExpressCheckout request.
 	 *

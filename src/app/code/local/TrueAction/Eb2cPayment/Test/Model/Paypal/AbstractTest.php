@@ -1,5 +1,6 @@
 <?php
-class TrueAction_Eb2cPayment_Test_Helper_PaypalTest
+class TrueAction_Eb2cPayment_Test_Model_Paypal_AbstractTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
 	 * Test _savePaymentData method
@@ -10,7 +11,7 @@ class TrueAction_Eb2cPayment_Test_Helper_PaypalTest
 		$quoteId = 51;
 		$transId = '12354666233';
 		$checkoutObject = new Varien_Object(array(
-			'transaction_id' => $transId,
+			'some_field' => $transId,
 		));
 		$quote = $this->getModelMockBuilder('sales/quote')
 			->disableOriginalConstructor()
@@ -31,8 +32,9 @@ class TrueAction_Eb2cPayment_Test_Helper_PaypalTest
 			->method('save')
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'eb2cpayment/paypal', $paypal);
-		Mage::helper('eb2cpayment/paypal')->savePaymentData($checkoutObject, $quote);
+		$abstract = new TrueAction_Eb2cPayment_Test_Model_Paypal_AbstractTest_Stub();
+		EcomDev_Utils_Reflection::invokeRestrictedMethod($abstract, '_savePaymentData', array($checkoutObject, $quote));
 		$this->assertSame($quoteId, $paypal->getQuoteId());
-		$this->assertSame($transId, $paypal->getEb2cPaypalTransactionId());
+		$this->assertSame($transId, $paypal->getEb2cPaypalSomeField());
 	}
 }
