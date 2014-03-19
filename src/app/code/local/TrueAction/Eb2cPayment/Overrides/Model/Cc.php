@@ -1,6 +1,5 @@
 <?php
-class TrueAction_Eb2cPayment_Overrides_Block_Adminhtml_Sales_Order_Create_Abstract
-	extends Enterprise_Pbridge_Block_Adminhtml_Sales_Order_Create_Abstract
+class TrueAction_Eb2cPayment_Overrides_Model_Cc extends TrueAction_Pbridge_Model_Cc
 {
 	/**
 	 * @see Enterprise_Pbridge_Block_Adminhtml_Sales_Order_Create_Abstract::is3dSecureEnabled
