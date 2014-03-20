@@ -2,6 +2,14 @@
 class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
+	 * Get a mock Varien_Io_File object to sub out for a real one.
+	 * @return Mock_Varien_File_Io
+	 */
+	protected function _getMockFsTool()
+	{
+		return $this->getMockBuilder('Varien_Io_File', array('__destruct'));
+	}
+	/**
 	 * Test _construct method
 	 * @test
 	 */
@@ -18,7 +26,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('hasFsTool', 'setFsTool', 'hasBaseDir', 'setUpDirs', 'getFsTool'))
+			->setMethods(array('hasFsTool', 'setFsTool', 'getFsTool', '_validateFeedConfig', '_setUpDirs'))
 			->getMock();
 		$feedModelMock->expects($this->once())
 			->method('hasFsTool')
@@ -28,24 +36,114 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			->with($this->isInstanceOf('Varien_Io_File'))
 			->will($this->returnSelf());
 		$feedModelMock->expects($this->once())
-			->method('hasBaseDir')
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->once())
-			->method('setUpDirs')
-			->will($this->returnValue(null));
-		$feedModelMock->expects($this->once())
 			->method('getFsTool')
 			->will($this->returnValue($fileMock));
+		$feedModelMock->expects($this->once())
+			->method('_validateFeedConfig')
+			->will($this->returnSelf());
+		$feedModelMock->expects($this->once())
+			->method('_setUpDirs')
+			->will($this->returnSelf());
 
 		$this->_reflectMethod($feedModelMock, '_construct')->invoke($feedModelMock);
 	}
+	/**
+	 * Constructing an instance of the core feed model with invalid config should
+	 * thrown an exception.
+	 * @test
+	 */
+	public function testConstructInvalidConfig()
+	{
+		$fileMock = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
+		// if the feed config is invalid, no reason to set up the FS tool
+		$fileMock->expects($this->never())
+			->method('setAllowCreateFolders');
 
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('hasFsTool', 'getFsTool', '_validateFeedConfig', '_setUpDirs'))
+			->getMock();
+		$feedModelMock->expects($this->any())
+			->method('hasFsTool')
+			->will($this->returnValue(true));
+		$feedModelMock->expects($this->any())
+			->method('getFsTool')
+			->will($this->returnValue($fileMock));
+		$feedModelMock->expects($this->once())
+			->method('_validateFeedConfig')
+			->will($this->throwException(new TrueAction_Eb2cCore_Exception_Feed_File()));
+		$feedModelMock->expects($this->never())
+			->method('_setUpDirs');
+
+		$this->setExpectedException('TrueAction_Eb2cCore_Exception_Feed_File');
+		$this->_reflectMethod($feedModelMock, '_construct')->invoke($feedModelMock);
+	}
+	/**
+	 * Provide a set of feed configuration and, if the config is invalid, the
+	 * exception message expected.
+	 * @return array
+	 */
+	public function provideFeedConfigForValidation()
+	{
+		return array(
+			array(array('local_directory' => 'some/local', 'event_type' => 'ItemMaster'), null),
+			array(array(), "TrueAction_Eb2cCore_Model_Feed missing configuration: 'local_directory', 'event_type'."),
+			array('this is not right', "TrueAction_Eb2cCore_Model_Feed 'feed_config' must be an array of feed configuration values.")
+		);
+	}
+	/**
+	 * Test validation of the feed config. Provider will give a set of feed config
+	 * and if the config is expected to be invalid, the exception message that
+	 * should be caught.
+	 * @param  array  $feedConfig
+	 * @param  string $exceptionMessage
+	 * @test
+	 * @dataProvider provideFeedConfigForValidation
+	 */
+	public function testValidateFeedConfig($feedConfig, $exceptionMessage)
+	{
+		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$feedModelMock->setFeedConfig($feedConfig);
+		// ensure the list of required config fields are set to an expected set of fields
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($feedModelMock, '_requiredConfigFields', array('local_directory', 'event_type'));
+
+		if ($exceptionMessage) {
+			$this->setExpectedException('TrueAction_Eb2cCore_Exception_Feed_File', $exceptionMessage);
+			$this->_reflectMethod($feedModelMock, '_validateFeedConfig')->invoke($feedModelMock);
+		} else {
+			$this->assertSame(
+				$feedModelMock,
+				$this->_reflectMethod($feedModelMock, '_validateFeedConfig')->invoke($feedModelMock)
+			);
+		}
+	}
+	/**
+	 * Test getting the event type from the feed config.
+	 * @test
+	 */
+	public function testGetEventType()
+	{
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		// when event_type included in the feed config, should return it
+		$feed->setFeedConfig(array('event_type' => 'SomeEventType'));
+		$this->assertSame('SomeEventType', $feed->getEventType());
+		// when evnet_type not included, should return empty string
+		$feed->setFeedConfig(array('local_directory' => 'some/local'));
+		$this->assertSame('', $feed->getEventType());
+	}
 	/**
 	 * Test _setCheckAndCreateDir method
 	 * @test
 	 */
 	public function testSetCheckAndCreateDir()
 	{
+		$dir = 'TrueAction/Feed/ItemMaster/';
 		$fileMock = $this->getMock('Varien_Io_File', array('checkAndCreateFolder'));
 		$fileMock->expects($this->once())
 			->method('checkAndCreateFolder')
@@ -61,412 +159,204 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			->will($this->returnValue($fileMock));
 
 		$this->assertSame(
-			true,
+			$feedModelMock,
 			$this->_reflectMethod($feedModelMock, '_setCheckAndCreateDir')
-			->invoke($feedModelMock, 'TrueAction/Feed/ItemMaster/')
+				->invoke($feedModelMock, $dir, 'local_directory')
 		);
+		$this->assertSame($dir, $feedModelMock->getLocalDIrectory());
 	}
-
 	/**
-	 * Test _remoteCall method
+	 * When creating the a directory fails, throw an exception indicating the
+	 * directory could not be created.
 	 * @test
 	 */
-	public function testRemoteCall()
+	public function testSetCheckAndCreateDirFailure()
 	{
-		$fileTransferMock = $this->getMock('TrueAction_FileTransfer_Helper_Data', array('getAllFiles'));
-		$fileTransferMock->expects($this->once())
-			->method('getAllFiles')
-			->with(
-				$this->equalTo('/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'),
-				$this->equalTo('/Inbox/'),
-				$this->equalTo('ItemMaster*.xml'),
-				$this->equalTo('eb2ccore/feed')
-			)
-			->will($this->returnValue(true));
-
-		$callable = array($fileTransferMock, 'getAllFiles');
-		$argArray = array(
-			'/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound',
-			'/Inbox/',
-			'ItemMaster*.xml',
-			'eb2ccore/feed',
-		);
-
-		$registryFeedModelMock = $this->getModelMockBuilder('eb2ccore/config_registry')
-			->disableOriginalConstructor()
-			->setMethods(array('setStore', 'addConfigModel'))
-			->getMock();
-		$registryFeedModelMock->expects($this->once())
-			->method('setStore')
-			->with($this->equalTo(null))
-			->will($this->returnSelf());
-		$registryFeedModelMock->expects($this->once())
-			->method('addConfigModel')
-			->with($this->isInstanceOf('TrueAction_Eb2cCore_Model_Config'))
-			->will($this->returnValue((object) array(
-				'feedFetchConnectAttempts' => 1,
-				'feedFetchRetryTimer' => 0.1,
-			)));
-
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $registryFeedModelMock);
+		$dir = 'TrueAction/Feed/ItemMaster/';
+		$fileMock = $this->getMock('Varien_Io_File', array('checkAndCreateFolder'));
+		$fileMock->expects($this->once())
+			->method('checkAndCreateFolder')
+			->with($this->equalTo('TrueAction/Feed/ItemMaster/'))
+			->will($this->throwException(new Exception("Unable to create directory '{$dir}'. Access forbidden.")));
 
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array())
+			->setMethods(array('getFsTool'))
 			->getMock();
+		$feedModelMock->expects($this->once())
+			->method('getFsTool')
+			->will($this->returnValue($fileMock));
 
-		$this->_reflectMethod($feedModelMock, '_remoteCall')->invoke($feedModelMock, $callable, $argArray);
+		$this->setExpectedException('TrueAction_Eb2cCore_Exception_Feed_File', "Unable to create directory '{$dir}'. Access forbidden.");
+		$this->_reflectMethod($feedModelMock, '_setCheckAndCreateDir')
+			->invoke($feedModelMock, $dir);
 	}
-
 	/**
-	 * Test _remoteCall method, where file transfer throw connection exception
+	 * Test joining parts of a path and getting a normalized, joined path.
 	 * @test
 	 */
-	public function testRemoteCallWithConnectionException()
+	public function testNormalPaths()
 	{
-		$fileTransferMock = $this->getMock('TrueAction_FileTransfer_Helper_Data', array('getAllFiles'));
-		$fileTransferMock->expects($this->exactly(2))
-			->method('getAllFiles')
-			->with(
-				$this->equalTo('/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'),
-				$this->equalTo('/Inbox/'),
-				$this->equalTo('ItemMaster*.xml'),
-				$this->equalTo('eb2ccore/feed')
-			)
-			->will($this->throwException(
-				new TrueAction_FileTransfer_Exception_Connection('UnitTest Simulate Throw Connection Exception on File Transfer getAllFiles')
-			));
+		// joining these two paths with a `DS` would result in duplicate
+		// slashes -> head///tail
+		$head = 'head/';
+		$tail = '/tail';
+		$fsTool = $this->getMock('Varien_Io_File', array('__destruct', 'getCleanPath'));
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$feed->setFsTool($fsTool);
 
-		$callable = array($fileTransferMock, 'getAllFiles');
-		$argArray = array(
-			'/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound',
-			'/Inbox/',
-			'ItemMaster*.xml',
-			'eb2ccore/feed',
+		// method will join all parts of the path with a `DS`, resulting in
+		// initial duplicate slashes which this method will clean away
+		$fsTool->expects($this->once())
+			->method('getCleanPath')
+			->with($this->identicalTo($head . DS . $tail))
+			->will($this->returnValue('head/tail'));
+
+		$this->assertSame(
+			'head/tail',
+			EcomDev_Utils_Reflection::invokeRestrictedMethod($feed, '_normalPaths', array($head, $tail))
 		);
-
-		$registryFeedModelMock = $this->getModelMockBuilder('eb2ccore/config_registry')
-			->disableOriginalConstructor()
-			->setMethods(array('setStore', 'addConfigModel'))
-			->getMock();
-		$registryFeedModelMock->expects($this->once())
-			->method('setStore')
-			->with($this->equalTo(null))
-			->will($this->returnSelf());
-		$registryFeedModelMock->expects($this->once())
-			->method('addConfigModel')
-			->with($this->isInstanceOf('TrueAction_Eb2cCore_Model_Config'))
-			->will($this->returnValue((object) array(
-				'feedFetchConnectAttempts' => 2,
-				'feedFetchRetryTimer' => 0.1,
-			)));
-
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $registryFeedModelMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-
-		$this->_reflectMethod($feedModelMock, '_remoteCall')->invoke($feedModelMock, $callable, $argArray);
 	}
-
 	/**
-	 * Test _remoteCall method, where file transfer throw exception
-	 * @test
-	 */
-	public function testRemoteCallWithException()
-	{
-		$fileTransferMock = $this->getMock('TrueAction_FileTransfer_Helper_Data', array('getAllFiles'));
-		$fileTransferMock->expects($this->once())
-			->method('getAllFiles')
-			->with(
-				$this->equalTo('/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'),
-				$this->equalTo('/Inbox/'),
-				$this->equalTo('ItemMaster*.xml'),
-				$this->equalTo('eb2ccore/feed')
-			)
-			->will($this->throwException(
-				new Exception('UnitTest Simulate Throw Exception on File Transfer getAllFiles')
-			));
-
-		$callable = array($fileTransferMock, 'getAllFiles');
-		$argArray = array(
-			'/var/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound',
-			'/Inbox/',
-			'ItemMaster*.xml',
-			'eb2ccore/feed',
-		);
-
-		$registryFeedModelMock = $this->getModelMockBuilder('eb2ccore/config_registry')
-			->disableOriginalConstructor()
-			->setMethods(array('setStore', 'addConfigModel'))
-			->getMock();
-		$registryFeedModelMock->expects($this->once())
-			->method('setStore')
-			->with($this->equalTo(null))
-			->will($this->returnSelf());
-		$registryFeedModelMock->expects($this->once())
-			->method('addConfigModel')
-			->with($this->isInstanceOf('TrueAction_Eb2cCore_Model_Config'))
-			->will($this->returnValue((object) array(
-				'feedFetchConnectAttempts' => 1,
-				'feedFetchRetryTimer' => 0.1,
-			)));
-
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $registryFeedModelMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-
-		$this->_reflectMethod($feedModelMock, '_remoteCall')->invoke($feedModelMock, $callable, $argArray);
-	}
-
-	/**
-	 * Test setUpDirs method
+	 * Test setUpDirs method when a local directory and sent directory are present
 	 * @test
 	 */
 	public function testSetUpDirs()
 	{
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+		$feedConfig = array('local_directory' => 'local/directory', 'sent_directory' => 'sent/directory');
+		$cleanLocal = 'Mage/var/local/directory';
+		$cleanSent = 'Mage/var/sent/directory';
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('getBaseDir', 'addData', 'getInboundPath', 'getOutboundPath', 'getArchivePath', '_setCheckAndCreateDir'))
+			->setMethods(array('_setCheckAndCreateDir', '_normalPaths'))
 			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('getBaseDir')
-			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster/'));
-		$feedModelMock->expects($this->once())
-			->method('addData')
-			->with($this->equalTo(array(
-				'inbound_path' => '/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound',
-				'outbound_path' => '/TrueAction/Eb2c/Feed/Product/ItemMaster//outbound',
-				'archive_path' => '/TrueAction/Eb2c/Feed/Product/ItemMaster//archive'
-			)))
-			->will($this->returnSelf());
-		$feedModelMock->expects($this->once())
-			->method('getInboundPath')
-			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'));
-		$feedModelMock->expects($this->once())
-			->method('getOutboundPath')
-			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster//outbound'));
-		$feedModelMock->expects($this->once())
-			->method('getArchivePath')
-			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster//archive'));
-		$feedModelMock->expects($this->at(3))
-			->method('_setCheckAndCreateDir')
-			->with($this->equalTo('/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->at(5))
-			->method('_setCheckAndCreateDir')
-			->with($this->equalTo('/TrueAction/Eb2c/Feed/Product/ItemMaster//outbound'))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->at(7))
-			->method('_setCheckAndCreateDir')
-			->with($this->equalTo('/TrueAction/Eb2c/Feed/Product/ItemMaster//archive'))
-			->will($this->returnValue(true));
-
-		$feedModelMock->setUpDirs();
-	}
-
-	/**
-	 * Test setUpDirs method, with exception throw
-	 * @test
-	 * @expectedException Mage_Core_Exception
-	 */
-	public function testSetUpDirsWithException()
-	{
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('getBaseDir'))
-			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('getBaseDir')
-			->will($this->returnValue(null));
-
-		$feedModelMock->setUpDirs();
-	}
-
-	/**
-	 * Test fetchFeedsFromRemote method
-	 * @test
-	 */
-	public function testFetchFeedsFromRemote()
-	{
-		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings'))
-			->getMock();
-		$coreFeedHelperMock->expects($this->once())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2ccore', $coreFeedHelperMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_remoteCall', 'getInboundPath', 'lsInboundDir', '_acknowledgeReceipt'))
-			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('_remoteCall')
-			->with($this->isType('array'), $this->equalTo(
-				array(
-					'/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound',
-					'/Inbox/',
-					'ItemMaster*.xml',
-					'eb2ccore/feed'
-				)))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->once())
-			->method('getInboundPath')
-			->will($this->returnValue('/TrueAction/Eb2c/Feed/Product/ItemMaster//inbound'));
-		$feedModelMock->expects($this->once())
-			->method('_acknowledgeReceipt')
-			->will($this->returnSelf());
-		$feedModelMock->expects($this->once())
-			->method('lsInboundDir')
-			->will($this->returnValue(array('dummyfile.xml')));
-
-		$feedModelMock->fetchFeedsFromRemote('/Inbox/', 'ItemMaster*.xml');
-	}
-
-	/**
-	 * Test fetchFeedsFromRemote method, where ftp setting is invalid
-	 * @test
-	 */
-	public function testFetchFeedsFromRemoteWithInvalidFtpSettings()
-	{
-		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings'))
-			->getMock();
-		$coreFeedHelperMock->expects($this->once())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(false));
-		$this->replaceByMock('helper', 'eb2ccore', $coreFeedHelperMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_remoteCall', 'getInboundPath'))
-			->getMock();
-
-		$feedModelMock->fetchFeedsFromRemote('/Inbox/', 'ItemMaster*.xml');
-	}
-
-	/**
-	 * Test removeFromRemote method
-	 * @test
-	 */
-	public function testRemoveFromRemote()
-	{
-		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings'))
-			->getMock();
-		$coreFeedHelperMock->expects($this->once())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2ccore', $coreFeedHelperMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_remoteCall'))
-			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('_remoteCall')
-			->with($this->isType('array'), $this->equalTo(
-				array(
-					'/Inbox//Sample-ItemMaster.xml',
-					'eb2ccore/feed'
-				)))
-			->will($this->returnValue(true));
-
-		$feedModelMock->removeFromRemote('/Inbox/', 'Sample-ItemMaster.xml');
-	}
-
-	/**
-	 * Test removeFromRemote method, with invalid ftp setting
-	 * @test
-	 */
-	public function testRemoveFromRemoteWithInvalidFtpSettings()
-	{
-		$coreFeedHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isValidFtpSettings'))
-			->getMock();
-		$coreFeedHelperMock->expects($this->once())
-			->method('isValidFtpSettings')
-			->will($this->returnValue(false));
-		$this->replaceByMock('helper', 'eb2ccore', $coreFeedHelperMock);
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_remoteCall'))
-			->getMock();
-		$feedModelMock->expects($this->never())
-			->method('_remoteCall')
-			->will($this->returnValue(true));
-
-		$feedModelMock->removeFromRemote('/Inbox/', 'Sample-ItemMaster.xml');
-	}
-
-	/**
-	 * Test lsInboundDir method
-	 * @test
-	 */
-	public function testLsInboundDir()
-	{
-		$fileMock = $this->getMock('Varien_Io_File', array('cd', 'ls', 'pwd'));
-		$fileMock->expects($this->once())
-			->method('cd')
-			->with($this->equalTo('TrueAction/Feed/ItemMaster/inbound'))
-			->will($this->returnSelf());
-		$fileMock->expects($this->once())
-			->method('ls')
-			->will($this->returnValue(array(
-				array(
-					'filetype' => 'xml',
-					'text' => 'Sample1.xml'
-				),
-				array(
-					'filetype' => 'xml',
-					'text' => 'Sample2.xml'
-				)
+		// inject the dir config post construct so setUpDir can be triggered manually
+		$feed->setFeedConfig($feedConfig);
+		$feed->expects($this->exactly(2))
+			->method('_normalPaths')
+			->will($this->returnValueMap(array(
+				array(Mage::getBaseDir('var'), $feedConfig['local_directory'], $cleanLocal),
+				array(Mage::getBaseDir('var'), $feedConfig['sent_directory'], $cleanSent),
 			)));
-		$fileMock->expects($this->exactly(2))
-			->method('pwd')
-			->will($this->returnValue('TrueAction/Feed/ItemMaster/inbound'));
-
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('getFsTool', 'getInboundPath'))
-			->getMock();
-		$feedModelMock->expects($this->exactly(4))
-			->method('getFsTool')
-			->will($this->returnValue($fileMock));
-		$feedModelMock->expects($this->once())
-			->method('getInboundPath')
-			->will($this->returnValue('TrueAction/Feed/ItemMaster/inbound'));
-
-		$files = $feedModelMock->lsInboundDir();
-
-		$this->assertCount(2, $files);
-		$this->assertSame('TrueAction/Feed/ItemMaster/inbound/Sample1.xml', $files[0]);
-		$this->assertSame('TrueAction/Feed/ItemMaster/inbound/Sample2.xml', $files[1]);
+		$feed->expects($this->exactly(2))
+			->method('_setCheckAndCreateDir')
+			->will($this->returnValueMap(array(
+				array($cleanLocal, $feed),
+				array($cleanSent, $feed),
+			)));
+		$this->_reflectMethod($feed, '_setUpDirs')->invoke($feed);
 	}
-
 	/**
-	 * Test _mvToDir method
+	 * Test setUpDirs method when a local directory but no sent directory configured
+	 * @test
+	 */
+	public function testSetUpDirsLocalOnly()
+	{
+		$feedConfig = array('local_directory' => 'local/directory',);
+		$cleanLocal = 'Mage/var/local/directory';
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_setCheckAndCreateDir', '_normalPaths'))
+			->getMock();
+		// inject the dir config post construct so setUpDir can be triggered manually
+		$feed->setFeedConfig($feedConfig);
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with(
+				$this->identicalTo(Mage::getBaseDir('var')),
+				$this->identicalTo($feedConfig['local_directory'])
+			)
+			->will($this->returnValue($cleanLocal));
+		$feed->expects($this->once())
+			->method('_setCheckAndCreateDir')
+			->with($this->identicalTo($cleanLocal))
+			->will($this->returnSelf());
+		$this->_reflectMethod($feed, '_setUpDirs')->invoke($feed);
+	}
+	/**
+	 * Test lsLocalDirectory method when local dir already set up
+	 * @test
+	 */
+	public function testLsLocalDir()
+	{
+		$locPath = 'path/to/local/';
+		$matches = array('globbed.xml', 'globbed.txt');
+		$feedConfig = array('file_pattern' => 'glob*');
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getLocalDirectory', '_normalPaths', '_glob'))
+			->getMock();
+		$feed->setFeedConfig($feedConfig);
+
+		$feed->expects($this->once())
+			->method('getLocalDirectory')
+			->will($this->returnValue($locPath));
+		// the normalPaths method may append trailing slash if no file extension in pattern
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with($this->identicalTo($locPath), $this->identicalTo($feedConfig['file_pattern']))
+			->will($this->returnValue($locPath . $feedConfig['file_pattern'] . DS));
+		$feed->expects($this->once())
+			->method('_glob')
+			->with($this->identicalTo($locPath . $feedConfig['file_pattern']))
+			->will($this->returnValue($matches));
+
+		$this->assertSame(
+			$matches,
+			$feed->lsLocalDirectory()
+		);
+	}
+	/**
+	 * Test lsLocalDirectory method when with default pattern
+	 * @test
+	 */
+	public function testLsLocalDirDefaultPattern()
+	{
+		$locPath = 'path/to/local/';
+		$matches = array('globbed.xml', 'globbed.txt');
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getLocalDirectory', '_normalPaths', '_glob'))
+			->getMock();
+		$feed->expects($this->once())
+			->method('getLocalDirectory')
+			->will($this->returnValue($locPath));
+		// the normalPaths method may append trailing slash if no file extension in pattern
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with($this->identicalTo($locPath), '*')
+			->will($this->returnValue($locPath . '*' . DS));
+		$feed->expects($this->once())
+			->method('_glob')
+			->with($this->identicalTo($locPath . '*'))
+			->will($this->returnValue($matches));
+
+		$this->assertSame(
+			$matches,
+			$feed->lsLocalDirectory()
+		);
+	}
+	/**
+	 * Test _mv method
 	 * @test
 	 */
 	public function testMvToDir()
 	{
+		$srcFile = 'TrueAction/Feed/ItemMaster/inbound/Sample1.xml';
+		$targetFile = 'TrueAction/Feed/ItemMaster/archive/Sample1.xml';
 		$fileMock = $this->getMock('Varien_Io_File', array('mv'));
 		$fileMock->expects($this->once())
 			->method('mv')
 			->with(
-				$this->equalTo('TrueAction/Feed/ItemMaster/inbound/Sample1.xml'),
-				$this->equalTo('TrueAction/Feed/ItemMaster/archive/Sample1.xml')
+				$this->equalTo($srcFile),
+				$this->equalTo($targetFile)
 			)
 			->will($this->returnValue(true));
 
@@ -479,82 +369,173 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			->will($this->returnValue($fileMock));
 
 		$this->assertSame(
-			true,
-			$this->_reflectMethod($feedModelMock, '_mvToDir')
-			->invoke($feedModelMock, 'TrueAction/Feed/ItemMaster/inbound/Sample1.xml', 'TrueAction/Feed/ItemMaster/archive')
+			$feedModelMock,
+			$this->_reflectMethod($feedModelMock, '_mv')
+				->invoke($feedModelMock, $srcFile, $targetFile)
 		);
 	}
-
 	/**
-	 * Test mvToInboundDir method
+	 * If moving a file fails, an exception should be thrown
 	 * @test
 	 */
-	public function testMvToInboundDir()
+	public function testMvFail()
 	{
+		$srcFile = 'TrueAction/Feed/ItemMaster/inbound/Sample1.xml';
+		$targetFile = 'TrueAction/Feed/ItemMaster/archive/Sample1.xml';
+		$fileMock = $this->getMock('Varien_Io_File', array('mv'));
+		$fileMock->expects($this->once())
+			->method('mv')
+			->with(
+				$this->equalTo($srcFile),
+				$this->equalTo($targetFile)
+			)
+			->will($this->returnValue(false));
+
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_mvToDir', 'getInboundPath'))
+			->setMethods(array('getFsTool'))
 			->getMock();
 		$feedModelMock->expects($this->once())
-			->method('_mvToDir')
-			->with($this->equalTo('feed/Sample1.xml'), $this->equalTo('TrueAction/Feed/ItemMaster/inbound'))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->once())
-			->method('getInboundPath')
-			->will($this->returnValue('TrueAction/Feed/ItemMaster/inbound'));
+			->method('getFsTool')
+			->will($this->returnValue($fileMock));
 
-		$this->assertSame(
-			true,
-			$feedModelMock->mvToInboundDir('feed/Sample1.xml')
+		$this->setExpectedException('TrueAction_Eb2cCore_Exception_Feed_File', "Could not move {$srcFile} to {$targetFile}");
+		$this->_reflectMethod($feedModelMock, '_mv')
+			->invoke($feedModelMock, $srcFile, $targetFile);
+	}
+	/**
+	 * Should call _mv with the local directory as the target directory.
+	 * @test
+	 */
+	public function testMvToLocalDir()
+	{
+		$srcFile = 'source/file.xml';
+		$locDir = 'local/directory/path';
+		$targetFile = 'local/directory/path/file.xml';
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_mv', '_normalPaths'))
+			->getMock();
+		// set the local_directory
+		$feed->setLocalDirectory($locDir);
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with($this->identicalTo($locDir), $this->identicalTo('file.xml'))
+			->will($this->returnValue($targetFile));
+		$feed->expects($this->once())
+			->method('_mv')
+			->with($this->identicalTo($srcFile), $this->identicalTo($targetFile))
+			->will($this->returnSelf());
+		$this->assertSame($targetFile, $feed->mvToLocalDirectory($srcFile));
+	}
+	/**
+	 * Test moving the file to the configured sent directory. When the directory
+	 * has already been set up, simply move the file to the configured directory
+	 * via_mv
+	 * @test
+	 */
+	public function testMvToSentDir()
+	{
+		$srcFile = 'source/file.xml';
+		$sentDir = 'sent/directory';
+		$targetFile = 'sent/directory/file.xml';
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_mv', '_normalPaths'))
+			->getMock();
+		// set the sent_directory
+		$feed->setSentDirectory($sentDir);
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with($this->identicalTo($sentDir), $this->identicalTo('file.xml'))
+			->will($this->returnValue($targetFile));
+		$feed->expects($this->once())
+			->method('_mv')
+			->with($this->identicalTo($srcFile), $this->identicalTo($targetFile))
+			->will($this->returnSelf());
+		$this->assertSame($targetFile, $feed->mvToSentDirectory($srcFile));
+	}
+	/**
+	 * When the sent directory hasn't been set up yet, check that one was supplied
+	 * in the configuration. If no, throw an exception.
+	 * @test
+	 */
+	public function testMvToSentNoSentConfigured()
+	{
+		$srcFile = 'source/file.xml';
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_mv', '_normalPaths', 'setUpDirs', 'getSentDirectory'))
+			->getMock();
+		// set after construction to prevent unwanted call to setUpDirs
+		$feed->setFeedConfig(array('local_directory' => 'local/only'));
+
+		$feed->expects($this->once())
+			->method('getSentDirectory')
+			->will($this->returnValue(null));
+		$feed->expects($this->never())
+			->method('setUpDirs')
+			->will($this->returnSelf());
+		$feed->expects($this->never())
+			->method('_normalPaths');
+		$feed->expects($this->never())
+			->method('_mv');
+		$this->setExpectedException('TrueAction_Eb2cCore_Exception_Feed_File', 'No sent directory configured');
+		$this->assertSame($feed, $feed->mvToSentDirectory($srcFile));
+	}
+	public function provideMvToGlobalConfigDir()
+	{
+		return array(
+			array('mvToProcessingDirectory', 'feedProcessingDirectory'),
+			array('mvToExportArchive', 'feedExportArchive'),
+			array('mvToImportArchive', 'feedImportArchive'),
 		);
 	}
-
 	/**
-	 * Test mvToOutboundDir method
+	 * Test moving the source file to one of the globally configured directories
+	 * via the given method - method expected to get path from config registry
+	 * key matching given config key.
+	 * @param string $method method to call
+	 * @param string $feedConfigKey config registry key to get the dir path from
 	 * @test
+	 * @dataProvider provideMvToGlobalConfigDir
 	 */
-	public function testMvToOutboundDir()
+	public function testMvToGlobalConfiguredDir($method, $feedConfigKey)
 	{
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
+		$srcFile = 'source/file.xml';
+		$globalDir = 'global/dir';
+		$absPathToDir = "/Mage/var/$globalDir";
+		$targetFile = "$absPathToDir/file.xml";
+
+		$feed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_mvToDir', 'getOutboundPath'))
+			->setMethods(array('_normalPaths', '_mv', '_setCheckAndCreateDir', '_getCoreConfig'))
 			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('_mvToDir')
-			->with($this->equalTo('feed/Sample1.xml'), $this->equalTo('TrueAction/Feed/ItemMaster/outbound'))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->once())
-			->method('getOutboundPath')
-			->will($this->returnValue('TrueAction/Feed/ItemMaster/outbound'));
+		// mock out config value
+		$cfg = $this->buildCoreConfigRegistry(array($feedConfigKey => $globalDir));
+		$feed->expects($this->once())
+			->method('_getCoreConfig')
+			->will($this->returnValue($cfg));
+		$feed->expects($this->once())
+			->method('_normalPaths')
+			->with(
+				$this->identicalTo(Mage::getBaseDir('var')),
+				$this->identicalTo($globalDir),
+				$this->identicalTo('file.xml')
+			)
+			->will($this->returnValue($targetFile));
+		$feed->expects($this->once())
+			->method('_setCheckAndCreateDir')
+			->with($this->identicalTo($absPathToDir))
+			->will($this->returnSelf());
+		$feed->expects($this->once())
+			->method('_mv')
+			->with($this->identicalTo($srcFile), $this->identicalTo($targetFile))
+			->will($this->returnSelf());
 
-		$this->assertSame(
-			true,
-			$feedModelMock->mvToOutboundDir('feed/Sample1.xml')
-		);
-	}
-
-	/**
-	 * Test mvToArchiveDir method
-	 * @test
-	 */
-	public function testMvToArchiveDir()
-	{
-		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_mvToDir', 'getArchivePath'))
-			->getMock();
-		$feedModelMock->expects($this->once())
-			->method('_mvToDir')
-			->with($this->equalTo('feed/Sample1.xml'), $this->equalTo('TrueAction/Feed/ItemMaster/archive'))
-			->will($this->returnValue(true));
-		$feedModelMock->expects($this->once())
-			->method('getArchivePath')
-			->will($this->returnValue('TrueAction/Feed/ItemMaster/archive'));
-
-		$this->assertSame(
-			true,
-			$feedModelMock->mvToArchiveDir('feed/Sample1.xml')
-		);
+		$this->assertSame($targetFile, $feed->$method($srcFile));
 	}
 	/**
 	 * Test make the base acknowledgement file name from config values
@@ -567,7 +548,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 				'clientId'               => 'utClientId',
 				'storeId'                => 'utStoreId',
 				'feedAckTimestampFormat' => '\u\t\D\a\t\e',
-				'feedAckFilenamePattern' => 'utAckTest_{eventtype}_{clientid}_{storeid}_{timestamp}.xml',
+				'feedAckFilenameFormat' => 'utAckTest_{eventtype}_{clientid}_{storeid}_{timestamp}.xml',
 			)
 		);
 		$shouldBeFileName = 'utAckTest_utEventType_utClientId_utStoreId_utDate.xml';
@@ -580,42 +561,6 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 			$shouldBeFileName,
 			$this->_reflectMethod($feedModelMock, '_getBaseAckFileName')
 				->invoke($feedModelMock, 'utEventType')
-		);
-	}
-	/**
-	 * Test that we'll successfully validate um valid dom
-	 *
-	 * @test
-	 * @loadFixture loadAckSampleSetup.yaml
-	 */
-	public function testAcknowledgeReceipt()
-	{
-		$vfs = $this->getFixture()->getVfs();
-		$testFile = $vfs->url('sample/test.xml');
-		$feed = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array(
-				'_getBaseAckFileName',
-				'getOutboundPath',
-				'mvToArchiveDir',
-				'_remoteCall',
-			))->getMock();
-		$feed->expects($this->once())
-			->method('_remoteCall')
-			->will($this->returnValue(true));
-		$feed->expects($this->once())
-			->method('getOutboundPath')
-			->will($this->returnValue($vfs->url('sample/outbound')));
-		$feed->expects($this->once())
-			->method('_getBaseAckFileName')
-			->will($this->returnValue('testOutBound.xml'));
-		$feed->expects($this->once())
-			->method('mvToArchiveDir')
-			->will($this->returnValue(true));
-		$this->assertInstanceOf(
-			'TrueAction_Eb2cCore_Model_Feed',
-			$this->_reflectMethod($feed, '_acknowledgeReceipt')
-				->invoke($feed, $testFile)
 		);
 	}
 }

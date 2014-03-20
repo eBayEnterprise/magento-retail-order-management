@@ -1,9 +1,6 @@
 <?php
 class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 {
-	const PATH_PATTERN = '%s/%s%s/';
-	const ABSOLUTE_PATH_PATTERN = '%s%s';
-
 	/**
 	 * @var int, the default category id
 	 */
@@ -50,34 +47,6 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		return $this->_prodTplt;
 	}
 
-	/**
-	 * @var array hold map value between feed type and config feed local path
-	 */
-	protected $_feedTypeMap;
-	/**
-	 * @return array the feed type map config local path
-	 */
-	public function getFeedTypeMap()
-	{
-		if (!$this->_feedTypeMap) {
-			$cfg = $this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
-			$this->_feedTypeMap = array(
-				'ItemMaster' => array(
-					'local_path' => $cfg->itemFeedLocalPath,
-				),
-				'ContentMaster' => array(
-					'local_path' => $cfg->contentFeedLocalPath,
-				),
-				'iShip' => array(
-					'local_path' => $cfg->iShipFeedLocalPath,
-				),
-				'Pricing' => array(
-					'local_path' => $cfg->pricingFeedLocalPath,
-				)
-			);
-		}
-		return $this->_feedTypeMap;
-	}
 	/**
 	 * @return array all website ids
 	 */
@@ -339,8 +308,11 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function generateFileName($feedType)
 	{
-		$cfg = $this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID);
-		return $this->mapPattern(Mage::helper('eb2ccore/feed')->getFileNameConfig($feedType), $cfg->errorFeedFilePattern);
+		return $this->mapPattern(
+			Mage::helper('eb2ccore/feed')->getFileNameConfig($feedType),
+			$this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)
+				->errorFeedFilenameFormat
+		);
 	}
 
 	/**
@@ -355,19 +327,14 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * generate file path by feed type, check if directory exists if not created the directory
-	 * @param string $feedType
-	 * @param TrueAction_Eb2cProduct_Helper_Struct_Feedpath $dir
-	 * @return string the file path
+	 * Get the absolute path to the global processing directory set
+	 * in configuration.
+	 * @return string
 	 */
-	public function generateFilePath($feedType, TrueAction_Eb2cProduct_Helper_Struct_Feedpath $dir)
+	public function getProcessingDirectory()
 	{
-		$type = $this->getFeedTypeMap();
-		if (!isset($type[$feedType])) {
-			return '';
-		}
 		$helper = Mage::helper('eb2ccore');
-		$path = sprintf(self::PATH_PATTERN, Mage::getBaseDir('var'), $type[$feedType]['local_path'], $dir->getValue());
+		$path = Mage::getBaseDir('var') . DS .  $this->getConfigModel()->feedProcessingDirectory;
 		$helper->createDir($path);
 		if (!$helper->isDir($path)){
 			throw new TrueAction_Eb2cCore_Exception_Feed_File("Can not create the following directory (${path})");
@@ -382,11 +349,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function buildFileName($feedType)
 	{
-		return sprintf(
-			self::ABSOLUTE_PATH_PATTERN,
-			$this->generateFilePath($feedType, Mage::helper('eb2cproduct/struct_outboundfeedpath')),
-			$this->generateFileName($feedType)
-		);
+		return $this->getProcessingDirectory() . DS . $this->generateFileName($feedType);
 	}
 
 	/**

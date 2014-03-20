@@ -126,8 +126,12 @@
 				<destination_type>MAILBOX</destination_type>
 				<filetransfer_protocol>sftp</filetransfer_protocol>
 				<filetransfer_sftp_auth_type>pub_key</filetransfer_sftp_auth_type>
-				<import_archive>Feed/archive/import</import_archive>
-				<export_archive>Feed/archive/export</export_archive>
+				<!--
+				Archive directories for all acknowledged imported and exported files
+				-->
+				<import_archive>TrueAction/Eb2c/Feed/archive/import</import_archive>
+				<export_archive>TrueAction/Eb2c/Feed/archive/export</export_archive>
+				<processing_directory>TrueAction/Eb2c/Feed/processing</processing_directory>
 				<available_models>
 					<eb2cinventory>
 						<feed_item_inventories>1</feed_item_inventories>
@@ -139,35 +143,56 @@
 						<feed>1</feed>
 					</eb2cproduct>
 				</available_models>
-				<filetransfer_exports>
-					<acknowledgments>
-						<local_directory>Feed/outbox/ack</local_directory>
-						<remote_directory>remote/inbox</remote_directory>
-						<sent_directory>Feed/archive/export/ack</sent_directory>
-					</acknowledgments>
-					<product>
-						<local_directory>Feed/outbox/product</local_directory>
-						<remote_directory>remote/inbox</remote_directory>
-						<sent_directory>Feed/sent/product</sent_directory>
-					</product>
-				</filetransfer_exports>
 				<filetransfer_imports>
-					<acknowledgments>
-						<local_directory>Feed/inbox/ack</local_directory>
-						<remote_directory>remote/outbox</remote_directory>
+					<acknowledgements>
+						<!-- Local directory is relative to Magento's 'var' directory -->
+						<local_directory>ExchangePlatform/Feed/inbox/ack</local_directory>
+						<remote_directory>/</remote_directory>
 						<file_pattern>*Ack*.xml</file_pattern>
-					</acknowledgments>
-					<product>
-						<local_directory>Feed/inbox/product</local_directory>
-						<remote_directory>remote/outbox</remote_directory>
-						<file_pattern>*ItemMaster*.xml</file_pattern>
-					</product>
-					<inventory>
-						<local_directory>Feed/inbox/inventory</local_directory>
-						<remote_directory>remote/outbox</remote_directory>
-						<file_pattern>*Inventory*.xml</file_pattern>
-					</inventory>
+					</acknowledgements>
+					<order_status_feed>
+						<local_directory>ExchangePlatform/Feed/inbox/order</local_directory>
+						<remote_directory>/Inbox/</remote_directory>
+						<file_pattern>*OrderStatus_*.xml</file_pattern>
+					</order_status_feed>
 				</filetransfer_imports>
+				<filetransfer_exports>
+					<acknowledgements>
+						<!-- Local directory is always relative to Magento's configured 'var' directory. -->
+						<local_directory>ExchangePlatform/Feed/outbox/ack</local_directory>
+						<remote_directory>/</remote_directory>
+						<!--
+						Sent acks can go straight to archive as there will never be
+						a received ack for a sent ack nor will we ever need to resent them.
+						-->
+						<sent_directory>ExchangePlatform/Feed/archive/export/ack</sent_directory>
+						<filename_format>ack_{eventtype}_{clientid}_{storeid}_{timestamp}.xml</filename_format>
+						<timestamp_format>YmdHis</timestamp_format>
+						<xsd>AcknowledgementV11.xsd</xsd>
+					</acknowledgements>
+					<error_confirmations>
+						<local_directory>ExchangePlatform/Feed/outbox/error</local_directory>
+						<remote_directory>/</remote_directory>
+						<!--
+						Sent error confirmations can go straight to archive as there will
+						never be a received ack for a sent error confirmation nor will we
+						ever need to resent them.
+						-->
+						<sent_directory>ExchangePlatform/Feed/archive/export/error</sent_directory>
+						<filename_format>{client_id}_{catalog_id}_{store_id}_errorconfirmation_{feed_type}_{time_stamp}.xml</filename_format>
+					</error_confirmations>
+					<!--
+					This outbox can be used for any other files that need to be exported.
+					This should largely prevent other modules from needing to provide
+					any further export configuration and provide a single known point
+					for all export configuration.
+					-->
+					<eb2c_outbox>
+						<local_directory>ExchangePlatform/Feed/outbox/</local_directory>
+						<remote_directory>/</remote_directory>
+						<sent_directory>ExchangePlatform/Feed/sent/</sent_directory>
+					</eb2c_outbox>
+				</filetransfer_exports>
 				<outbound>
 					<message_header>
 						<standard>GSI</standard>
@@ -224,10 +249,6 @@
 						</store_id>
 					</file_name>
 				</outbound>
-				<error_confirmation_feed>
-					<file_pattern>{client_id}_{catalog_id}_{store_id}_errorconfirmation_{feed_type}_{time_stamp}.xml</file_pattern>
-					<remote_mailbox>/</remote_mailbox>
-				</error_confirmation_feed>
 				<header_template><![CDATA[<MessageHeader>
 		<Standard>{standard}</Standard>
 		<HeaderVersion>{header_version}</HeaderVersion>
@@ -247,12 +268,6 @@
 		</MessageData>
 		<CreateDateAndTime>{create_date_and_time}</CreateDateAndTime>
 	</MessageHeader>]]></header_template>
-				<acknowledgement>
-					<remote_path>/</remote_path>
-					<filename_pattern>ack_{eventtype}_{clientid}_{storeid}_{timestamp}.xml</filename_pattern>
-					<timestamp_format>YmdHis</timestamp_format>
-					<xsd>AcknowledgementV11.xsd</xsd>
-				</acknowledgement>
 			</feed>
 			<service>
 				<order>
@@ -266,6 +281,11 @@
 				</inventory>
 			</service>
 		</eb2ccore>
+		<filetransfer>
+			<registry>
+				<eb2ccore_filetransfer_registry>eb2ccore/feed</eb2ccore_filetransfer_registry>
+			</registry>
+		</filetransfer>
 	</default>
 	<phpunit>
 		<suite>

@@ -182,7 +182,7 @@ class TrueAction_Eb2cProduct_Model_Pim
 	protected function _setUpCoreFeed()
 	{
 		return Mage::getModel('eb2ccore/feed', array(
-			'base_dir' => Mage::getBaseDir('var') . DS . Mage::helper('eb2cproduct')->getConfigModel()->pimExportFeedLocalPath
+			'feed_config' => Mage::helper('eb2cproduct')->getConfigModel()->pimExportFeed
 		));
 	}
 	/**
@@ -191,7 +191,7 @@ class TrueAction_Eb2cProduct_Model_Pim
 	 */
 	protected function _getFeedFilePath()
 	{
-		return $this->_coreFeed->getOutboundPath() . DS .
+		return $this->_coreFeed->getLocalDirectory() . DS .
 			Mage::helper('eb2cproduct')->generateFileName(self::DOCUMENT_NODE_NAME);
 	}
 	/**

@@ -3,31 +3,31 @@
  * This class is intended to simplify file movements during feed processing, and make sure
  * all dirs exists.
  *
- * @method string getArchivePath()
- * @method string getBaseDir()
  * @method string getFsTool()
- * @method string getInboundPath()
- * @method string getOutboundPath()
- * @method string setBaseDir(string pathName)
+ * @method string getLocalDirectory()
+ * @method string getSentDirectory()
+ * @method string getFeedConfig()
  */
 class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 {
-	const INBOUND_DIR_NAME  = 'inbound';
-	const OUTBOUND_DIR_NAME = 'outbound';
-	const ARCHIVE_DIR_NAME  = 'archive';
+	const GLOBAL_PROCESSING_DIR = 'feedProcessingDirectory';
+	const GLOBAL_IMPORT_ARCHIVE_DIR = 'feedImportArchive';
+	const GLOBAL_EXPORT_ARCHIVE_DIR = 'feedExportArchive';
+
+	protected $_requiredConfigFields = array('local_directory');
 	/**
-	 * Turn on allow create folders; it's off by default in the base Varien_Io_File. Set up
-	 * subdirectories if we're passed a base_dir
+	 * Validate the feed config the instance was set up with. If valid, setup
+	 * a new or the injected file system tool (a Varien_Io_File) - allow it to
+	 * create folders and open it - and set up any local directoriues.
 	 */
 	protected function _construct()
 	{
+		$this->_validateFeedConfig();
 		if (!$this->hasFsTool()) {
 			$this->setFsTool(new Varien_Io_File());
 		}
 		$this->getFsTool()->setAllowCreateFolders(true)->open();
-		if ($this->hasBaseDir()) {
-			$this->setUpDirs();
-		}
+		$this->_setUpDirs();
 	}
 	/**
 	 * Return configuration registry
@@ -38,180 +38,207 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 			->setStore(null)
 			->addConfigModel(Mage::getSingleton('eb2ccore/config'));
 	}
-
 	/**
-	 * Assigns our folder variable and does the recursive creation
+	 * Validate the feed config the instance was constructed with.
+	 * Must have a 'local_directory' and 'event_type' key/value pairs.
+	 * @return self
+	 * @throws TrueAction_Eb2cCore_Exception_Feed_File if config is invalid
+	 */
+	protected function _validateFeedConfig()
+	{
+		$feedConfig = $this->getFeedConfig();
+		if (!is_array($feedConfig)) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File(
+				sprintf("%s 'feed_config' must be an array of feed configuration values.", __CLASS__)
+			);
+		}
+		if ($missingConfig = array_diff($this->_requiredConfigFields, array_keys($feedConfig))) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File(
+				sprintf("%s missing configuration: '%s'.", __CLASS__, implode("', '", $missingConfig)));
+		}
+		return $this;
+	}
+	/**
+	 * Return the event type included in the config data.
+	 * @return string
+	 */
+	public function getEventType()
+	{
+		$feedConfig = $this->getFeedConfig();
+		return isset($feedConfig['event_type']) ? $feedConfig['event_type'] : '';
+	}
+	/**
+	 * Ensure the directory at the given path exists or recursively create
+	 * necessary directories. If the directory is given a "name", save the path
+	 * as magic data with that key.
 	 * @param string $path the full path to the directory to set up.
-	 * @return boolean
+	 * @param string $dirName magic data field to save path to
+	 * @return self
 	 */
-	protected function _setCheckAndCreateDir($path)
+	protected function _setCheckAndCreateDir($path, $dirName=null)
 	{
-		return $this->getFsTool()->checkAndCreateFolder($path);
-	}
-	/**
-	 * Wrapper function/scaffolding for calls that involve remote connections and
-	 * should be retried. Will retry up to a configured number of times. Meant to be used
-	 * with TrueAction/FileTransfer's helper methods.
-	 *
-	 * @param  callable $callable Callback to be tried each time.
-	 * @param  array    $argArray Arguments that should be passed to the callable.
-	 * @return void
-	 */
-	protected function _remoteCall($callable, $argArray)
-	{
-		$connectionAttempts = 0;
-		$coreConfig = $this->_getCoreConfig();
-		while(true) {
-			try {
-				$connectionAttempts++;
-				call_user_func_array($callable, $argArray);
-				break;
-			} catch( TrueAction_FileTransfer_Exception_Connection $e ) {
-				// Connection exceptions we'll retry, could be a temporary condition
-				Mage::logException($e);
-				if( $connectionAttempts >= $coreConfig->feedFetchConnectAttempts ) {
-					Mage::log('Connect failed, retry limit reached', Zend_Log::ERR);
-					break;
-				}
-				else {
-					Mage::log(
-						sprintf('Connect failed, sleeping %d seconds (attempt %d of %d)',
-						$coreConfig->feedFetchRetryTimer, $connectionAttempts, $coreConfig->feedFetchConnectAttempts),
-						Zend_Log::DEBUG
-					);
-					sleep($coreConfig->feedFetchRetryTimer);
-				}
-			} catch (Exception $e ) {
-				// Any other exception is failure, log and return
-				Mage::logException($e);
-				break;
-			}
+		try {
+			$this->getFsTool()->checkAndCreateFolder($path);
+		} catch (Exception $e) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File($e->getMessage());
 		}
-	}
-	/**
-	 * For feeds, just configure a base folder, and you'll get the rest.
-	 */
-	public function setUpDirs()
-	{
-		$base = $this->getBaseDir();
-		if (!$base) {
-			Mage::throwException('No base dir specified. Cannot set up dirs.');
-			// @codeCoverageIgnoreStart
+		if ($dirName) {
+			$this->setData($dirName, $path);
 		}
-		// @codeCoverageIgnoreEnd
-		$this->addData(array(
-			'inbound_path'  => $base . DS . self::INBOUND_DIR_NAME,
-			'outbound_path' => $base . DS . self::OUTBOUND_DIR_NAME,
-			'archive_path'  => $base . DS . self::ARCHIVE_DIR_NAME,
-		));
-		$this->_setCheckAndCreateDir($this->getInboundPath());
-		$this->_setCheckAndCreateDir($this->getOutboundPath());
-		$this->_setCheckAndCreateDir($this->getArchivePath());
+		return $this;
 	}
 	/**
-	 * Fetchs feeds from remote, places them into inBoundPath
-	 *
-	 * @param string $remotePath path on remote to pull from
-	 * @param string $filePattern filename pattern  to match
+	 * Get a "clean" representation of the given file path.
+	 * @param string $_,...
+	 * @return string
 	 */
-	public function fetchFeedsFromRemote($remotePath, $filePattern)
+	protected function _normalPaths($_)
 	{
-		if (Mage::helper('eb2ccore')->isValidFtpSettings()) {
-			$cfg = Mage::helper('eb2ccore/feed');
-			$this->_remoteCall(
-				array(Mage::helper('filetransfer'), 'getAllFiles'),
-				array(
-					$this->getInboundPath(),
-					$remotePath,
-					$filePattern,
-					$cfg::FILETRANSFER_CONFIG_PATH,
-				)
-			);
-			// Acknowledge Receipt of newly received files. If we decide to remove after receipt - this is the place.
-			$newlyReceivedFeeds = $this->lsInboundDir();
-			foreach ($newlyReceivedFeeds as $newFeedPath) {
-				$this->_acknowledgeReceipt($newFeedPath);
-			}
-		} else {
-			Mage::log(sprintf('[%s] Invalid sftp configuration, please configure sftp setting.', __METHOD__), Zend_Log::WARN);
-		}
+		return $this->getFsTool()->getCleanPath(implode(DS, func_get_args()));
 	}
 	/**
-	 * Remote the file from the remote.
-	 * @param  string $remotePath Directory the file resides in.
-	 * @param  string $fileName   Name of the file to remove
-	 * @return void
+	 * If a dir config has been set, use it to check for those directories to
+	 * exist and create them if they don't. This method may safely be called
+	 * multiple times with the same directory configuration.
+	 * After ensuring the directories exist, set the path to each as "magic"
+	 * data attributes.
+	 * @return self
 	 */
-	public function removeFromRemote($remotePath, $fileName)
+	protected function _setUpDirs()
 	{
-		if (Mage::helper('eb2ccore')->isValidFtpSettings()) {
-			$cfg = Mage::helper('eb2ccore/feed');
-			$this->_remoteCall(
-				array(Mage::helper('filetransfer'), 'deleteFile'),
-				array($remotePath . DS . $fileName, $cfg::FILETRANSFER_CONFIG_PATH)
-			);
-		} else {
-			Mage::log(sprintf('[%s] Invalid sftp configuration, please configure sftp setting.', __METHOD__), Zend_Log::WARN);
+		$base = Mage::getBaseDir('var');
+		$feedConfig = $this->getFeedConfig();
+		// The local directory will always exist on if the instance is valid,
+		// checked during instance construction.
+		$localDirectory = $this->_normalPaths($base, $feedConfig['local_directory']);
+		$this->_setCheckAndCreateDir($localDirectory, 'local_directory');
+		// Sent directory may exist as another local directory for exported files
+		// to be moved to while awaiting an ack.
+		if (isset($feedConfig['sent_directory'])) {
+			$sentDirectory = $this->_normalPaths($base, $feedConfig['sent_directory']);
+			$this->_setCheckAndCreateDir($sentDirectory, 'sent_directory');
 		}
+		return $this;
 	}
 	/**
-	 * Lists contents of the Inbound Dir
-	 *
-	 * @return array() of file names
+	 * Return an array of files matching the given shell glob
+	 * @param  string $pattern shell glob
+	 * @return attay
+	 * @codeCoverageIgnore Dependency on the file system makes this trivial code non-trivial to test.
 	 */
-	public function lsInboundDir($filetype='xml')
+	protected function _glob($pattern)
 	{
-		$dirContents = array();
-		$this->getFsTool()->cd($this->getInboundPath());
-		foreach ($this->getFsTool()->ls() as $file) {
-			if (!strcasecmp($filetype, $file['filetype'])) {
-				$dirContents[] = $this->getFsTool()->pwd() . DS . $file['text'];
-			}
-		}
-		asort($dirContents);
-		return $dirContents;
+		return glob($pattern);
 	}
 	/**
-	 * mv a source file to a directory
-	 *
+	 * Get a list files in the local directory, optionally matching a
+	 * given pattern. If the pattern is not given, a 'file_pattern' in the feed
+	 * config will be used if it exists. If not, a default value of '*' will be
+	 * used to list everything in the directory.
+	 * @param  string $pattern
+	 * @return array
+	 */
+	public function lsLocalDirectory($pattern=null)
+	{
+		// If not given a file pattern, attempt to use the one that may have been
+		// included with the dir config.
+		if (is_null($pattern)) {
+			$feedConfig = $this->getFeedConfig();
+			$pattern = isset($feedConfig['file_pattern']) ? $feedConfig['file_pattern'] : '*';
+		}
+		return $this->_glob(rtrim($this->_normalPaths($this->getLocalDirectory(), $pattern), DS));
+	}
+	/**
+	 * mv a source file to a directory, keeping same file name
 	 * @param string $srcFile
-	 * @param string $targetDir
-	 * @return boolean
+	 * @param string $targetFile
+	 * @return self
+	 * @throws TrueAction_Eb2cCore_Exception_Feed_File if file could not be moved
 	 */
-	protected function _mvToDir($srcFile, $targetDir)
+	protected function _mv($srcFile, $targetFile)
 	{
-		$dest = $targetDir . DS . basename($srcFile);
-		return $this->getFsTool()->mv($srcFile, $dest);
+		if (!$this->getFsTool()->mv($srcFile, $targetFile)) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File("Could not move {$srcFile} to {$targetFile}.");
+		}
+		return $this;
 	}
 	/**
-	 * mv file to Inbound Dir
-	 *
-	 * @param string $filePath to move
-	 * @return boolean
+	 * Move the source file to the local directory, keeping same file name and
+	 * returning the new location of the file
+	 * @param  string $srcFile Absolute path to file to move
+	 * @return string
 	 */
-	public function mvToInboundDir($filePath)
+	public function mvToLocalDirectory($srcFile)
 	{
-		return $this->_mvToDir($filePath, $this->getInboundPath());
+		$targetFile = $this->_normalPaths($this->getLocalDirectory(), basename($srcFile));
+		$this->_mv($srcFile, $targetFile);
+		return $targetFile;
 	}
 	/**
-	 * mv file to Outbound Dir
-	 *
-	 * @param string $filePath to move
-	 * @return boolean
+	 * Move the source file to the sent directory if one has been configured,
+	 * keeping same file name and returning the new location of the file.
+	 * @param  string $srcFile
+	 * @return string
+	 * @throws TrueAction_Eb2cCore_Exception_Feed_File if no sent file has been configured
 	 */
-	public function mvToOutboundDir($filePath)
+	public function mvToSentDirectory($srcFile)
 	{
-		return $this->_mvToDir($filePath, $this->getOutboundPath());
+		if (!$this->getSentDirectory()) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_File('No sent directory configured');
+		}
+		$targetFile = $this->_normalPaths($this->getSentDirectory(), basename($srcFile));
+		$this->_mv($srcFile, $targetFile);
+		return $targetFile;
 	}
 	/**
-	 * mv file to Archive Dir
-	 *
-	 * @param string $filePath to move
-	 * @return boolean
+	 * Move the source file to one of the globally configured directories, e.g.
+	 * import archive, export archive, processing. The relative path to the
+	 * directory should be retrievable via that given config key. Should return
+	 * the new location of the file.
+	 * @param  string $srcFile
+	 * @param  string $feedConfigKey Known config registry key
+	 * @return string
 	 */
-	public function mvToArchiveDir($filePath)
+	private function _mvToGlobalDirectory($srcFile, $feedConfigKey)
 	{
-		return $this->_mvToDir($filePath, $this->getArchivePath());
+		$targetFile = $this->_normalPaths(
+			Mage::getBaseDir('var'),
+			$this->_getCoreConfig()->$feedConfigKey,
+			basename($srcFile)
+		);
+		$this->_setCheckAndCreateDir(dirname($targetFile));
+		$this->_mv($srcFile, $targetFile);
+		return $targetFile;
+	}
+	/**
+	 * Move the source file to the configured processing directory and return
+	 * the new location of the file.
+	 * @param  string $srcFile
+	 * @return string
+	 */
+	public function mvToProcessingDirectory($srcFile)
+	{
+		return $this->_mvToGlobalDirectory($srcFile, self::GLOBAL_PROCESSING_DIR);
+	}
+	/**
+	 * Move the file to the import archive directory, keeping same file name, and
+	 * return the new location of the file.
+	 * @param  string $srcFile Absolute path to the file to move
+	 * @return string
+	 */
+	public function mvToImportArchive($srcFile)
+	{
+		return $this->_mvToGlobalDirectory($srcFile, self::GLOBAL_IMPORT_ARCHIVE_DIR);
+	}
+	/**
+	 * Move the fiel to the export archive directory, keeping same file name, and
+	 * return the new location of the file.
+	 * @param  string $srcFile Absolute path to the file to move.
+	 * @return string
+	 */
+	public function mvToExportArchive($srcFile)
+	{
+		return $this->_mvToGlobalDirectory($srcFile, self::GLOBAL_EXPORT_ARCHIVE_DIR);
 	}
 	/**
 	 * Build the Acknowledgement file's name
@@ -225,7 +252,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$filename   = str_replace(
 			array('{eventtype}', '{clientid}', '{storeid}', '{timestamp}'),
 			array($eventType, $coreConfig->clientId, $coreConfig->storeId, $timestamp),
-			$coreConfig->feedAckFilenamePattern
+			$coreConfig->feedAckFilenameFormat
 		);
 		return $filename;
 	}
@@ -234,8 +261,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	 * @param xmlToAckPath path to a feed we want to acknowledge
 	 * @return self
 	 */
-	protected function _acknowledgeReceipt($xmlToAckPath)
+	public function acknowledgeReceipt($xmlToAckPath)
 	{
+		$cfg = $this->_getCoreConfig();
 		$coreHelper  = Mage::helper('eb2ccore');
 		$feedHelper  = Mage::helper('eb2ccore/feed');
 		$xmlToAckDom = $coreHelper->getNewDomDocument(); // The file I am acknowledging
@@ -249,7 +277,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$ack = $ackDom->addElement('Acknowledgement', null)->firstChild;
 
 		$configMap           = $feedHelper->getHeaderConfig($eventType);
-		$headerTemplate      = $this->_getCoreConfig()->feedHeaderTemplate;
+		$headerTemplate      = $cfg->feedHeaderTemplate;
 		$messageHeaderString = str_replace(
 			array_map(function ($key) { return "{{$key}}"; }, array_keys($configMap)),
 			array_values($configMap),
@@ -266,20 +294,13 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 		$ack->createChild('ReceivedDateAndTime', date('c'));
 		$ack->createChild('ReferenceMessageId', $messageId);
 
-		Mage::getModel('eb2ccore/api')->schemaValidate($ackDom, $this->_getCoreConfig()->feedAckXsd);
+		Mage::getModel('eb2ccore/api')->schemaValidate($ackDom, $cfg->feedAckXsd);
 		$basename = $this->_getBaseAckFileName($eventType);
-		$localPath = $this->getOutboundPath() . DS . $basename;
-		$ackDom->save($localPath);
-		$remotePath = $this->_getCoreConfig()->feedAckRemotePath . DS . $basename;
-		$this->_remoteCall(
-			array(Mage::helper('filetransfer'), 'sendFile'),
-			array(
-				$localPath,
-				$remotePath,
-				$feedHelper::FILETRANSFER_CONFIG_PATH
-			)
+		$localPath = $this->_normalPaths(
+			Mage::getBaseDir('var'), $cfg->feedAckOutbox, $basename
 		);
-		$this->mvToArchiveDir($localPath);
+		$this->_setCheckAndCreateDir(dirname($localPath));
+		$ackDom->save($localPath);
 		return $this;
 	}
 }

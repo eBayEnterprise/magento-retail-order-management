@@ -545,48 +545,6 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	}
 
 	/**
-	 * Test getFeedTypeMap method
-	 * @test
-	 */
-	public function testGetFeedTypeMap()
-	{
-		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$dataHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnValue((object) array(
-				'itemFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
-				'contentFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/ContentMaster/',
-				'iShipFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/iShip/',
-				'pricingFeedLocalPath' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
-			)));
-
-		$this->_reflectProperty($dataHelperMock, '_feedTypeMap')->setValue($dataHelperMock, null);
-		$dataHelperMock->getFeedTypeMap();
-
-		$this->assertSame(
-			array(
-				'ItemMaster' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
-				),
-				'ContentMaster' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/ContentMaster/',
-				),
-				'iShip' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/iShip/',
-				),
-				'Pricing' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/Pricing/',
-				),
-			),
-			$this->_reflectProperty($dataHelperMock, '_feedTypeMap')->getValue($dataHelperMock)
-		);
-	}
-
-	/**
 	 * Test mapPattern method
 	 * @test
 	 */
@@ -646,7 +604,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->method('getConfigModel')
 			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
 			->will($this->returnValue((object) array(
-				'errorFeedFilePattern' => '{feed_type}_{time_stamp}_{channel}_{store_id}.xml',
+				'errorFeedFilenameFormat' => '{feed_type}_{time_stamp}_{channel}_{store_id}.xml',
 				'clientId' => '12345',
 				'storeId' => 'ABCD',
 			)));
@@ -664,96 +622,85 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	}
 
 	/**
-	 * Test generateFilePath method, when invalid feedType empty string
+	 * Test getting the processing directory set in the configuration, creating
+	 * the directory if it doesn't exist already.
 	 * @test
 	 */
-	public function testGenerateFilePathInvalidFeedType()
+	public function testGetProcessingDirectory()
 	{
-		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getFeedTypeMap'))
-			->getMock();
-		$dataHelperMock->expects($this->once())
-			->method('getFeedTypeMap')
-			->will($this->returnValue(array()));
-		$this->assertSame('', $dataHelperMock->generateFilePath('unknown', Mage::helper('eb2cproduct/struct_outboundfeedpath')));
-	}
+		$base = Mage::getBaseDir('var');
+		$processingDir = 'processing';
 
-	/**
-	 * Test generateFilePath method
-	 * @test
-	 */
-	public function testGenerateFilePath()
-	{
-		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isDir', 'createDir'))
-			->getMock();
+		$coreHelperMock = $this->getHelperMock(
+			'eb2ccore/data',
+			array('isDir', 'createDir')
+		);
+		$prodHelper = $this->getHelperMock(
+			'eb2cproduct/data',
+			array('getConfigModel')
+		);
+		$cfg = $this->buildCoreConfigRegistry(array(
+			'feedProcessingDirectory' => $processingDir,
+		));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
 		$coreHelperMock->expects($this->once())
 			->method('isDir')
 			->will($this->returnValue(true));
 		$coreHelperMock->expects($this->once())
 			->method('createDir')
 			->will($this->returnValue(null));
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+		$prodHelper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($cfg));
 
-		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getFeedTypeMap'))
-			->getMock();
-		$dataHelperMock->expects($this->once())
-			->method('getFeedTypeMap')
-			->will($this->returnValue(array(
-				'ItemMaster' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
-				),
-			)));
-
-		$testData = array(
-			array(
-				'expect' => Mage::getBaseDir('var') . '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/',
-				'feedType' => 'ItemMaster',
-				'dir' => Mage::helper('eb2cproduct/struct_outboundfeedpath')
-			),
+		$this->assertSame(
+			$base . DS . $processingDir,
+			$prodHelper->getProcessingDirectory()
 		);
-
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $dataHelperMock->generateFilePath($data['feedType'], $data['dir']));
-		}
 	}
 
 	/**
-	 * Test generateFilePath method, throw exception if the directory did not and exists and creating it fail for any reason.
+	 * Test generateFilePath method, throw exception if the directory did not
+	 * and exists and creating it fail for any reason.
 	 * @test
 	 * @expectedException TrueAction_Eb2cCore_Exception_Feed_File
 	 */
 	public function testGenerateFilePathWithException()
 	{
-		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('isDir', 'createDir'))
-			->getMock();
+		$base = Mage::getBaseDir('var');
+		$processingDir = 'processing';
+
+		$coreHelperMock = $this->getHelperMock(
+			'eb2ccore/data',
+			array('isDir', 'createDir')
+		);
+		$prodHelper = $this->getHelperMock(
+			'eb2cproduct/data',
+			array('getConfigModel')
+		);
+		$cfg = $this->buildCoreConfigRegistry(array(
+			'feedProcessingDirectory' => $processingDir,
+		));
+
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
 		$coreHelperMock->expects($this->once())
 			->method('isDir')
 			->will($this->returnValue(false));
 		$coreHelperMock->expects($this->once())
 			->method('createDir')
 			->will($this->returnValue(null));
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+		$prodHelper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($cfg));
 
-		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getFeedTypeMap'))
-			->getMock();
-		$dataHelperMock->expects($this->once())
-			->method('getFeedTypeMap')
-			->will($this->returnValue(array(
-				'ItemMaster' => array(
-					'local_path' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/',
-				),
-			)));
-
-		$dataHelperMock->generateFilePath('ItemMaster', Mage::helper('eb2cproduct/struct_outboundfeedpath'));
+		$this->setExpectedException(
+			'TrueAction_Eb2cCore_Exception_Feed_File',
+			"Can not create the following directory ({$base}/{$processingDir})"
+		);
+		$prodHelper->getProcessingDirectory();
 	}
 
 
@@ -763,31 +710,22 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 */
 	public function testBuildFileName()
 	{
-		$baseDir = Mage::getBaseDir('var');
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('generateFilePath', 'generateFileName', 'generateMessageHeader'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('generateFilePath')
-			->with($this->equalTo('ItemMaster'), $this->isInstanceOf('TrueAction_Eb2cProduct_Helper_Struct_Outboundfeedpath'))
-			->will($this->returnValue("$baseDir/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/"));
-
-		$productHelperMock->expects($this->once())
-			->method('generateFileName')
-			->with($this->equalTo('ItemMaster'))
-			->will($this->returnValue('ItemMaster_20140107224605_12345_ABCD.xml'));
-
-		$testData = array(
-			array(
-				'expect' => "$baseDir/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml",
-				'feedType' => 'ItemMaster'
-			),
+		$feedType = 'SomeEvent';
+		$helper = $this->getHelperMock(
+			'eb2cproduct/data',
+			array('getProcessingDirectory', 'generateFileName')
 		);
-
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $productHelperMock->buildFileName($data['feedType']));
-		}
+		$helper->expects($this->once())
+			->method('getProcessingDirectory')
+			->will($this->returnValue('/Mage/var/processing'));
+		$helper->expects($this->once())
+			->method('generateFileName')
+			->with($this->identicalTo($feedType))
+			->will($this->returnValue('error_file.xml'));
+		$this->assertSame(
+			'/Mage/var/processing/error_file.xml',
+			$helper->buildFileName($feedType)
+		);
 	}
 
 	/**

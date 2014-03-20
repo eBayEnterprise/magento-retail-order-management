@@ -8,7 +8,7 @@ Copy this file to productimport.xml and configure the appropriate values below.
 <config>
 	<crontab>
 		<jobs>
-			<!-- 
+			<!--
 			This cron expression indicates how often the inventory feed
 			should be checked.
 			 -->
@@ -17,7 +17,7 @@ Copy this file to productimport.xml and configure the appropriate values below.
 					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2cinventory_feed_item_inventories>
-			<!-- 
+			<!--
 			This cron expression indicates how often the product feed
 			should be checked.
 			 -->
@@ -29,6 +29,44 @@ Copy this file to productimport.xml and configure the appropriate values below.
 		</jobs>
 	</crontab>
 	<default>
+		<eb2ccore>
+			<feed>
+				<filetransfer_imports>
+					<!--
+					This configuration controls which files will be trasferred from the
+					remote SFTP server to be processed by Magento.
+					The remote_directory specifies where on the remote SFTP server files
+					should be trasferred from.
+					The file_pattern specifies a file glob files to be transferred must
+					match. The file_pattern is optional and if excluded will default
+					to '*'.
+
+					Transferring and processing of any of these feeds may be disabled by
+					removing the configuration for the feed.
+					-->
+					<inventory>
+						<remote_directory>/Inbox/Product</remote_directory>
+						<file_pattern>*inventatp*_*.xml</file_pattern>
+					</inventory>
+					<item_master>
+						<remote_directory>/Inbox/Product</remote_directory>
+						<file_pattern>*ItemMaster_*.xml</file_pattern>
+					</item_master>
+					<content_master>
+						<remote_directory>/Inbox/Product</remote_directory>
+						<file_pattern>*Content_*.xml</file_pattern>
+					</content_master>
+					<i_ship>
+						<remote_directory>/Inbox/Product</remote_directory>
+						<file_pattern>*iShip_*.xml</file_pattern>
+					</i_ship>
+					<item_pricing>
+						<remote_directory>/Inbox/Channel/MAGT1/Pricing</remote_directory>
+						<file_pattern>*Price_*.xml</file_pattern>
+					</item_pricing>
+				</filetransfer_imports>
+			</feed>
+		</eb2ccore>
 		<eb2cproduct>
 			<!--
 			Here you can customize the mapping of incoming values to Magento Attributes.  If an

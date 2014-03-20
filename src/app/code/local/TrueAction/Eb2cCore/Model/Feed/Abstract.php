@@ -4,7 +4,7 @@
  */
 abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 {
-	protected $_coreFeed; // Handles file fetching, moving, listing, etc.
+	protected $_coreFeed; // Handles file moving, listing, etc.
 
 	/**
 	 * Processes the DOM loaded into xmlDom. At minimum, you'll have to implement this. You may
@@ -15,56 +15,21 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 	 * @see processFile
 	 */
 	abstract public function processDom(TrueAction_Dom_Document $xmlDom, array $fileDetail);
-
 	/**
-	 * Returns a message string for an exception message
-	 *
-	 * @param string $missingConfigName which config name is missing.
+	 * Validate that the feed model has necessary configuration for the core
+	 * feed model. Instantiate and store a core feed model using config data
+	 * and optionally a fs_tool set in magic data.
+	 * @return self
 	 */
-	private function _missingConfigMessage($missingConfigName)
-	{
-		return __CLASS__ . " can't be instantiated, '$missingConfigName' not configured.";
-	}
-
 	protected function _construct()
 	{
-		if( !$this->hasFeedConfig() ) {
-			Mage::throwException( __CLASS__ . ' no configuration specifed.');
-			// @codeCoverageIgnoreStart
+		if(!$this->hasFeedConfig()) {
+			throw new TrueAction_Eb2cCore_Exception_Feed_Configuration(__CLASS__ . ' no configuration specifed.');
 		}
-		// @codeCoverageIgnoreEnd
-
-		// Where is the remote path?
-		if( !$this->hasFeedRemotePath() ) {
-			Mage::throwException($this->_missingConfigMessage('FeedRemotePath'));
-			// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
-
-		// What is the file pattern for remote retrieval?
-		if( !$this->hasFeedFilePattern() ) {
-			Mage::throwException($this->_missingConfigMessage('FeedFilePattern'));
-			// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
-
-		// Where is the local path?
-		if( !$this->hasFeedLocalPath() ) {
-			Mage::throwException($this->_missingConfigMessage('FeedLocalPath'));
-			// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
-
-		// Where is the event type we're processing?
-		if( !$this->hasFeedEventType() ) {
-			Mage::throwException($this->_missingConfigMessage('FeedEventType'));
-			// @codeCoverageIgnoreStart
-		}
-		// @codeCoverageIgnoreEnd
 
 		// Set up local folders for receiving, processing
 		$coreFeedConstructorArgs = array(
-			'base_dir' => Mage::getBaseDir('var') . DS . $this->getFeedLocalPath()
+			'feed_config' => $this->getFeedConfig()
 		);
 
 		// FileSystem tool can be supplied, esp. for testing
@@ -74,8 +39,22 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 
 		// Ready to set up the core feed helper, which manages files and directories:
 		$this->_coreFeed = Mage::getModel('eb2ccore/feed', $coreFeedConstructorArgs);
+		return $this;
 	}
-
+	/**
+	 * Get an array of file data for each file to process.
+	 * @return array
+	 */
+	protected function _getFilesToProcess()
+	{
+		$coreFeed = $this->_coreFeed;
+		return array_map(
+			function ($file) use ($coreFeed) {
+				return array('local_file' => $file, 'core_feed' => $coreFeed);
+			},
+			$this->_coreFeed->lsLocalDirectory()
+		);
+	}
 	/**
 	 * Fetches feeds from the remote, and then loops through all files found in the Inbound Dir.
 	 *
@@ -84,63 +63,70 @@ abstract class TrueAction_Eb2cCore_Model_Feed_Abstract extends Varien_Object
 	public function processFeeds()
 	{
 		$filesProcessed = 0;
-		$this->_coreFeed->fetchFeedsFromRemote($this->getFeedRemotePath(), $this->getFeedFilePattern());
-		foreach( $this->_coreFeed->lsInboundDir() as $xmlFeedFile ) {
+		foreach ($this->_getFilesToProcess() as $feedFile) {
 			try {
-				$this->processFile(array('local' => $xmlFeedFile));
+				$this->processFile($feedFile);
 				$filesProcessed++;
 				// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
 				// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
 				// one should just log the error and move on. Leaving out the TrueAction_Core_Feed_Failure
 				// for now as none of the feeds expect to use it.
 			} catch (Mage_Core_Exception $e) {
-				Mage::log(sprintf('[ %s ] Failed to process file, %s.', __CLASS__, $xmlFeedFile), Zend_Log::WARN);
+				Mage::helper('trueaction_magelog')->logWarn(
+					'[%s] Failed to process file, %s. %s',
+					array(__CLASS__, basename($feedFile['local_file']), $e->getMessage())
+				);
 			}
-			$this->archiveFeed($xmlFeedFile);
 		}
 		return $filesProcessed;
 	}
-
 	/**
-	 * Archive the file after processing - move the local copy to the archive dir for the feed
-	 * and delete the file off of the remote sftp server.
-	 * @param  string $xmlFeedFile Local path of the file
-	 * @param  string $remoteDir   Override the remote file path
-	 * @return $this object
+	 * Load the file into a new DOM Document and validate the file. If successful,
+	 * return the DOM document. Otherwise, return null.
+	 * @param  array $fileDetail
+	 * @return TrueAction_Dom_Document|null
 	 */
-	public function archiveFeed($xmlFeedFile, $remoteDir=null)
+	protected function _loadDom($fileDetail)
 	{
-		$config = Mage::getModel('eb2ccore/config_registry')->addConfigModel(Mage::getSingleton('eb2ccore/config'));
-		if ($config->deleteRemoteFeedFiles) {
-			$this->_coreFeed->removeFromRemote(
-				!is_null($remoteDir) ? $remoteDir : $this->getFeedRemotePath(),
-				basename($xmlFeedFile)
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
+		if (!$dom->load($fileDetail['local_file'])) {
+			Mage::log(
+				sprintf('[%s] File %s: Failed to load as a DOM Document', __CLASS__, basename($fileDetail['local_file'])),
+				Zend_Log::ERR
 			);
+			return null;
 		}
-		$this->_coreFeed->mvToArchiveDir($xmlFeedFile);
-		return $this;
+		// Validate Eb2c Header Information
+		if (!Mage::helper('eb2ccore/feed')->validateHeader($dom, $fileDetail['core_feed']->getEventType())) {
+			Mage::log(
+				sprintf('[%s] File %s: Invalid header', __CLASS__, basename($fileDetail['local_file'])),
+				Zend_Log::ERR
+			);
+			return null;
+		}
+		return $dom;
 	}
-
 	/**
-	 * Processes a single xml file.
-	 *
+	 * Processes a single file using the data in the file detail. The given file
+	 * detail can be expected to have, at the least:
+	 * 'local_file': path to the file to be processed
+	 * 'core_feed': reference to a TrueAction_Eb2cCore_Model_Feed instance
+	 *   configured for the type of feed file being processed
+	 * @param array $fileDetail
 	 */
 	public function processFile(array $fileDetail)
 	{
-		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
-		try {
-			$dom->load($fileDetail['local']);
-		} catch (Exception $e) {
-			Mage::logException($e);
-			return;
+		// after ack'ing the file, move it to the processing directory and reset
+		// the 'local_file' path to the new location of the file in the
+		// processing directory
+		Mage::log(sprintf('[%s] Processing file %s', __CLASS__, $fileDetail['local_file']), Zend_Log::DEBUG);
+		$fileDetail['local_file'] = $fileDetail['core_feed']
+			->acknowledgeReceipt($fileDetail['local_file'])
+			->mvToProcessingDirectory($fileDetail['local_file']);
+		if ($dom = $this->_loadDom($fileDetail)) {
+			$this->processDom($dom, $fileDetail);
 		}
-
-		// Validate Eb2c Header Information
-		if ( !Mage::helper('eb2ccore/feed')->validateHeader($dom, $this->getFeedEventType() )) {
-			Mage::log(sprintf('[%s] File %s: Invalid header', __CLASS__, $fileDetail['local']), Zend_Log::ERR);
-			return;
-		}
-
-		$this->processDom($dom, $fileDetail);
+		$fileDetail['core_feed']->mvToImportArchive($fileDetail['local_file']);
+		return $this;
 	}
 }

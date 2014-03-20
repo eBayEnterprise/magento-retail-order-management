@@ -1,32 +1,49 @@
 <?php
 /**
- * The error confirmations class was implemented in such a way to adapt to the way the super product feed is currently functioning
+ * The error confirmations class was implemented in such a way to adapt to the
+ * way the super product feed is currently functioning
  * How to use the error confirmation class is as follow:
- * Step 1: load the error confirmation file, which can be generated using external helper methods
- *            Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::loadFile('ItemMaster_20140107224605_12345_ABCD.xml');
- * Step 2: initialize primary data such as the xml directive, root node and message header
- *            Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::initFeed('ItemMaster');
- * Step 3: this step mean that within the integration where you have an error and you need add this error to an error confirmation feed file you
- *         should do as the example below demonstrate:
- *            Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::addMessage(self::DOM_LOAD_ERR, 'Dom exception throw while processing feed file');
- *                     TrueAction_Eb2cProduct_Model_Error_Confirmations::addError('ItemMaster', 'ItemMaster_TestSubset.xml');
- *                     TrueAction_Eb2cProduct_Model_Error_Confirmations::addErrorConfirmation('SK-ABC-1334');
- *                     TrueAction_Eb2cProduct_Model_Error_Confirmations::flush();
- *            Result: <ErrorConfirmation unique_id="SK-ABC-1334">
- *                        <Error event_type="ItemMaster" file_name="ItemMaster_TestSubset.xml" reported_from="WMS">
- *                              <Message xml:lang="en-US" code="">Error exception occurred: Dom exception throw while processing feed file</Message>
- *                        </Error>
- *                    </ErrorConfirmation>
- * Step 4: closing the file after successfully capturing all possible error
- *            Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::close();
  *
- * FYI: because of the way the super feed is setup, we have to dispatch an event and pass it all the product error_confirmation feed files that were created
- *      in this case the following step will need to happen to close all error confirmation file, send them to eb2c server and then move the files from
- *      outbound to archive
+ * Step 1: load the error confirmation file, which can be generated using
+ *   external helper methods
+ *   Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::loadFile('ItemMaster_20140107224605_12345_ABCD.xml');
+ * Step 2: initialize primary data such as the xml directive, root node
+ *   and message header
+ *   Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::initFeed('ItemMaster');
+ * Step 3: this step mean that within the integration where you have an
+ *   error and you need add this error to an error confirmation feed file you
+ *   should do as the example below demonstrate:
+ *   Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::addMessage(
+ *     self::DOM_LOAD_ERR,
+ *     'Dom exception throw while processing feed file'
+ *   );
+ *   TrueAction_Eb2cProduct_Model_Error_Confirmations::addError(
+ *     'ItemMaster',
+ *     'ItemMaster_TestSubset.xml'
+ *   );
+ *   TrueAction_Eb2cProduct_Model_Error_Confirmations::addErrorConfirmation(
+ *     'SK-ABC-1334'
+ *   );
+ *   TrueAction_Eb2cProduct_Model_Error_Confirmations::flush();
+ *   Result:
+ *   <ErrorConfirmation unique_id="SK-ABC-1334">
+ *     <Error event_type="ItemMaster" file_name="ItemMaster_TestSubset.xml" reported_from="WMS">
+ *       <Message xml:lang="en-US" code="">Error exception occurred: Dom exception throw while processing feed file</Message>
+ *     </Error>
+ *   </ErrorConfirmation>
+ * Step 4: closing the file after successfully capturing all possible error
+ *   Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::close();
+ *
+ * FYI: because of the way the super feed is setup, we have to dispatch an
+ *   event and pass it all the product error_confirmation feed files that
+ *   were created in this case the following step will need to happen to
+ *   close all error confirmation file, send them to eb2c server and then move
+ *   the files from outbound to archive
  * Step 5: dispatch 'product_feed_complete_error_confirmation' event
- *            Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::process();
- *            Summary: for each of the error confirmation feed files that has been process, close it with the root node, send the file to eb2c,
- *            and then move it to archive folder.
+ *   Example: TrueAction_Eb2cProduct_Model_Error_Confirmations::process();
+ * Summary: for each of the error confirmation feed files that has been process,
+ *   close it with the root node, send the file to eb2c, and then move it to
+ *   archive folder.
  */
 class TrueAction_Eb2cProduct_Model_Error_Confirmations
 {
@@ -279,43 +296,16 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 	public function process(Varien_Event_Observer $observer)
 	{
 		$feedDetails = $observer->getEvent()->getFeedDetails();
+		$coreFeed = Mage::getModel(
+			'eb2ccore/feed',
+			array('feed_config' => Mage::helper('eb2ccore/feed')->getConfig()->errorFeed)
+		);
 		foreach ($feedDetails as $detail) {
 			$fileName = $detail['error_file'];
 			$this->loadFile($fileName)
-				->close()
-				->transferFile($fileName)
-				->archive($fileName);
+				->close();
+			$coreFeed->mvToLocalDirectory($fileName);
 		}
-		return $this;
-	}
-
-	/**
-	 * take a file and transfer it to eb2c server
-	 * @param string $fileName
-	 * @return self
-	 */
-	public function transferFile($fileName)
-	{
-		$remotePath = Mage::helper('eb2cproduct')
-			->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)
-			->errorFeedRemoteMailbox;
-		try {
-			Mage::helper('eb2ccore/feed')->sendFile($fileName, $remotePath);
-		} catch(TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure $e) {
-			Mage::log(sprintf('Error Confirmation (%s)', $e->getMessage()), Zend_Log::ERR);
-		}
-		return $this;
-	}
-
-	/**
-	 * move error file to the archive folder
-	 * @param string $source
-	 * @return self
-	 */
-	public function archive($source)
-	{
-		$destination = str_replace('outbound', 'archive', $source);
-		Mage::helper('eb2ccore')->moveFile($source, $destination);
 		return $this;
 	}
 

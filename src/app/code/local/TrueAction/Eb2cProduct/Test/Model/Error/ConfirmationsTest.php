@@ -523,6 +523,9 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 	 */
 	public function testProcess()
 	{
+		$exportFile = '/Mage/var/outbox/error.xml';
+		$localFile = '/Mage/var/processing/error.xml';
+
 		$event = $this->getMockBuilder('Varien_Event')
 			->disableOriginalConstructor()
 			->setMethods(array('getFeedDetails'))
@@ -531,11 +534,10 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 			->method('getFeedDetails')
 			->will($this->returnValue(array(
 				array(
-					'local' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/inbound/ItemMaster_TestSubset.xml',
-					'remote' => '/Inbox/Product',
+					'local_file' => 'path/to/imported/product/file.xml',
 					'timestamp' => '1364823587',
-					'type' => 'ItemMaster',
-					'error_file' => 'TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140115063947_MAGTNA_MAGT1.xml'
+					'core_feed' => 'core feed model used for the feed',
+					'error_file' => $localFile,
 				)
 			)));
 
@@ -547,143 +549,41 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 			->method('getEvent')
 			->will($this->returnValue($event));
 
+		$cfg = $this->buildCoreConfigRegistry(array(
+			'errorFeed' => array('local_directory' => 'local/error'),
+		));
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('mvToLocalDirectory'))
+			->getMock();
+		$feedHelper = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfig'))
+			->getMock();
 		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
 			->disableOriginalConstructor()
-			->setMethods(array('loadFile', 'close', 'transferFile', 'archive'))
+			->setMethods(array('loadFile', 'close'))
 			->getMock();
+
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
+
+		$feedHelper->expects($this->once())
+			->method('getConfig')
+			->will($this->returnValue($cfg));
 		$confirmationsModelMock->expects($this->once())
 			->method('loadFile')
-			->with($this->equalTo('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140115063947_MAGTNA_MAGT1.xml'))
+			->with($this->equalTo($localFile))
 			->will($this->returnSelf());
 		$confirmationsModelMock->expects($this->once())
 			->method('close')
 			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('transferFile')
-			->with($this->equalTo('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140115063947_MAGTNA_MAGT1.xml'))
-			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('archive')
-			->with($this->equalTo('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140115063947_MAGTNA_MAGT1.xml'))
-			->will($this->returnSelf());
+		$coreFeed->expects($this->once())
+			->method('mvToLocalDirectory')
+			->with($this->identicalTo($localFile))
+			->will($this->returnValue($exportFile));
 
 		$this->assertSame($confirmationsModelMock, $confirmationsModelMock->process($observer));
-	}
-
-	/**
-	 * Test transferFile method with the following assumptions when call with given filename as a parameter
-	 * Expectation 1: mocked the method of TrueAction_Eb2cProduct_Helper_Data::getConfigModel to return a mocked of
-	 *                TrueAction_Eb2cCore_Model_Config_Registry class that return public magic class property (errorFeedRemoteMailbox)
-	 * Expectation 2: mocked the method of TrueAction_Eb2cCore_Helper_Feed::sendFile with fileName as the first parameter
-	 *                and the remotePath as the second parameter and then return itself, this will run only once
-	 * Expectation 3: when the test run TrueAction_Eb2cProduct_Model_Error_Confirmations::transferFile it will return itself
-	 * @mock TrueAction_Eb2cProduct_Helper_Data::getConfigModel
-	 * @mock TrueAction_Eb2cCore_Model_Config_Registry
-	 * @mock TrueAction_Eb2cCore_Helper_Feed::sendFile
-	 * @param string $fileName the file to be sent
-	 * @dataProvider dataProvider
-	 */
-	public function testTransferFile($fileName)
-	{
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnValue($this->buildCoreConfigRegistry(array('errorFeedRemoteMailbox' => '/'))));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
-		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('sendFile'))
-			->getMock();
-		$feedHelperMock->expects($this->once())
-			->method('sendFile')
-			->with(
-				$this->equalTo($fileName),
-				$this->equalTo('/')
-			)
-			->will($this->returnSelf());
-		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
-
-		$confirmations = Mage::getModel('eb2cproduct/error_confirmations');
-
-		$this->assertSame($confirmations, $confirmations->transferFile($fileName));
-	}
-
-	/**
-	 * @see testTransferFile expectations except this test will mock the TrueAction_Eb2cCore_Helper_Feed::sendFile
-	 *      method to throw an TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure exception
-	 * @mock TrueAction_Eb2cProduct_Helper_Data::getConfigModel
-	 * @mock TrueAction_Eb2cCore_Model_Config_Registry
-	 * @mock TrueAction_Eb2cCore_Helper_Feed::sendFile
-	 * @param string $fileName the file to be sent
-	 * @dataProvider dataProvider
-	 */
-	public function testTransferFileWithExeption($fileName)
-	{
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnValue((object) array(
-				'errorFeedRemoteMailbox' => '/'
-			)));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
-		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('sendFile'))
-			->getMock();
-		$feedHelperMock->expects($this->once())
-			->method('sendFile')
-			->with(
-				$this->equalTo($fileName),
-				$this->equalTo('/')
-			)
-			->will($this->throwException(
-				new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure('UnitTest Simulate Throw Exception on sendFile method')
-			));
-		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
-
-		$confirmations = Mage::getModel('eb2cproduct/error_confirmations');
-
-		$this->assertSame($confirmations, $confirmations->transferFile($fileName));
-	}
-
-	/**
-	 * Test archive method with the following assumptions when call with given source as a parameter
-	 * Expectation 1: mocked the TrueAction_Eb2cCore_Helper_Data::moveFile method with the following parameter
-	 *               given source and the destination to move the file to, this method should run once.
-	 * Expectation 2: when test run the TrueAction_Eb2cProduct_Model_Error_Confirmations::archive it will return it self
-	 * @mock TrueAction_Eb2cCore_Helper_Data::moveFile
-	 * @param string $source the file in the inbound folder
-	 * @param string $destination the file to be moved to the archive folder
-	 * @dataProvider dataProvider
-	 */
-	public function testArchive($source, $destination)
-	{
-		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('moveFile'))
-			->getMock();
-		$coreHelperMock->expects($this->once())
-			->method('moveFile')
-			->with(
-				$this->equalTo($source),
-				$this->equalTo($destination)
-			)
-			->will($this->returnSelf());
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
-
-		$confirmations = Mage::getModel('eb2cproduct/error_confirmations');
-
-		$this->assertSame($confirmations, $confirmations->archive($source));
 	}
 
 	/**

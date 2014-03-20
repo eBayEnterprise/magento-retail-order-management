@@ -6,12 +6,9 @@ class TrueAction_Eb2cOrder_Model_Status_Feed extends TrueAction_Eb2cCore_Model_F
 {
 	protected function _construct()
 	{
-		$this->setFeedConfig(Mage::helper('eb2corder')->getConfig());
-		$this->setFeedRemotePath($this->getFeedConfig()->statusFeedRemotePath);
-		$this->setFeedFilePattern($this->getFeedConfig()->statusFeedFilePattern);
-		$this->setFeedLocalPath($this->getFeedConfig()->statusFeedLocalPath);
-		$this->setFeedRootNodeName($this->getFeedConfig()->statusFeedRootNodeName);
-		$this->setFeedEventType($this->getFeedConfig()->statusFeedEventType);
+		$cfg = Mage::helper('eb2corder')->getConfig();
+		$this->setFeedConfig($cfg->statusFeedDirectoryConfig);
+		$this->setFeedRootNodeName($cfg->statusFeedRootNodeName);
 		parent::_construct();
 	}
 	/**

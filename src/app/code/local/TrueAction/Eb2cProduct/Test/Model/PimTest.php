@@ -79,14 +79,15 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$pathToFile = 'path/to/export/file.xml';
 		$feedData = $this->getModelMock('eb2cproduct/pim_product_collection', array('getItems'));
 		$productIds = array(1, 2, 3, 4, 54);
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->getMock();
 
 		$feedDoc = $this->getMock('TrueAction_Dom_Document', array('save'));
-		$pim = $this->getModelMock(
-			'eb2cproduct/pim',
-			array('_createFeedDataSet', '_createDomFromFeedData', '_getFeedFilePath'),
-			array('doc' => $feedDoc, 'core_feed' => $coreFeed)
-		);
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->setMethods(array('_createFeedDataSet', '_createDomFromFeedData', '_getFeedFilePath'))
+			->setConstructorArgs(array(array('doc' => $feedDoc, 'core_feed' => $coreFeed)))
+			->getMock();
 
 		$pim->expects($this->once())
 			->method('_createFeedDataSet')
@@ -242,12 +243,12 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$this->replaceByMock('helper', 'eb2cproduct', $helper);
 		$mediaUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
 
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
 		$helper->expects($this->once())
 			->method('generateMessageHeader')
 			->with($this->identicalTo('PIMExport'))
 			->will($this->returnValue('<MessageHeader/>'));
-
-		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc));
+		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc, 'core_feed' => $coreFeed));
 		$this->assertSame($pim, EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_startDocument', array()));
 		$this->assertSame(
 			'<MageMaster imageDomain="' . $mediaUrl . '"><MessageHeader></MessageHeader></MageMaster>',
@@ -268,12 +269,13 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$itemFragment = $feedDoc->createDocumentFragment();
 		$itemFragment->appendChild($feedDoc->createElement('Item'));
 
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
 		$pimProductCollection = $this->getModelMock('eb2cproduct/pim_product_collection', array('getItems'));
 		$pim = $this->getModelMock(
 			'eb2cproduct/pim',
 			array('_buildItemNode', '_startDocument', '_validateDocument'),
 			false,
-			array(array('doc' => $feedDoc))
+			array(array('doc' => $feedDoc, 'core_feed' => $coreFeed))
 		);
 
 		$pimProductCollection->expects($this->once())
@@ -326,11 +328,12 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->setMethods(array('addAttributes'))
 			->disableOriginalConstructor()
 			->getMock();
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
 		$pim = $this->getModelMock(
 			'eb2cproduct/pim',
 			array('_appendAttributeValue'),
 			false,
-			array(array('doc' => $feedDoc))
+			array(array('doc' => $feedDoc, 'core_feed' => $coreFeed))
 		);
 
 		$feedDoc->expects($this->once())
@@ -506,7 +509,8 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->disableOriginalConstructor()
 			->getMock();
 		$api = $this->getModelMock('eb2ccore/api', array('schemaValidate'));
-		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc));
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
+		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc, 'core_feed' => $coreFeed));
 
 		$helper->expects($this->once())
 			->method('getConfigModel')
@@ -526,13 +530,13 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	}
 	/**
 	 * Set up a eb2ccore/feed model to handle setting up the dirs for the outbound
-	 * file - all of which is done via constructing the model with a 'base_path'
+	 * file - all of which is done via constructing the model with a 'dir_config'
 	 * in the constructor args.
 	 * @test
 	 */
 	public function testSetUpCoreFeed()
 	{
-		$configRegistry = $this->buildCoreConfigRegistry(array('pimExportFeedLocalPath' => 'Local/Path/'));
+		$configRegistry = $this->buildCoreConfigRegistry(array('pimExportFeed' => array('local_directory' => 'local/path')));
 		$helper = $this->getHelperMock('eb2cproduct/data', array('getConfigModel'));
 		$helper->expects($this->once())
 			->method('getConfigModel')
@@ -565,7 +569,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('getOutboundPath'))
+			->setMethods(array('getLocalDirectory'))
 			->getMock();
 		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('generateFileName'));
 		$config = $this->buildCoreConfigRegistry(array('pim_export_feed_event_type' => 'PIMExport'));
@@ -575,7 +579,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->with($this->identicalTo('MageMaster'))
 			->will($this->returnValue($tmpFileName));
 		$coreFeed->expects($this->once())
-			->method('getOutboundPath')
+			->method('getLocalDirectory')
 			->will($this->returnValue($outboundPath));
 
 		$this->replaceByMock('model', 'eb2ccore/config_registry', $config);

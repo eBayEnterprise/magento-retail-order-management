@@ -78,7 +78,7 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 
 			if ($this->_buildItemImages($itemImages) > 0) {
 				Mage::getModel('eb2ccore/api')->schemaValidate($dom, $this->_getConfig()->xsdFileImageExport);
-				$this->_sendXml($dom, $storeId);
+				$this->_createFileFromDom($dom, $storeId);
 			}
 
 			$dom = null;
@@ -98,30 +98,12 @@ class TrueAction_Eb2cProduct_Model_Image_Export extends Varien_Object
 	{
 		$coreFeed = Mage::getModel('eb2ccore/feed',
 			array(
-				'base_dir' => Mage::getBaseDir('var') . $this->_getConfig()->localPath
+				'dir_config' => $this->_getConfig()->imageFeedDirectoryConfig
 			)
 		);
-		$filename = $coreFeed->getOutboundPath() . DS . date($this->_getConfig()->filenameFormat) . "_$storeId.xml";
+		$filename = $coreFeed->getLocalDirectory() . DS . date($this->_getConfig()->filenameFormat) . "_$storeId.xml";
 		$dom->save($filename);
 		return $filename;
-	}
-
-	/**
-	 * Send the file
-	 * @param TrueAction_Dom_Document dom
-	 * @param storeId
-	 * @return self
-	 */
-	protected function _sendXml(TrueAction_Dom_Document $dom, $storeId)
-	{
-		$filename = $this->_createFileFromDom($dom, $storeId);
-		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
-		try {
-			$sftp->sendFile($filename, $this->remotePath);
-		} catch(Exception $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure('Error sending file: ' . $e->getMessage());
-		}
-		return $this;
 	}
 
 	/**

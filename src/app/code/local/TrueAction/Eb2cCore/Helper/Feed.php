@@ -15,13 +15,13 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	 * @var array map of feed type and message header configuration path
 	 */
 	protected $_feedTypeHeaderConf = array(
-		'ItemMaster' => 'eb2cproduct/item_master_feed/outbound/message_header',
-		'ContentMaster' => 'eb2cproduct/content_master_feed/outbound/message_header',
-		'iShip' => 'eb2cproduct/i_ship_feed/outbound/message_header',
-		'Pricing' => 'eb2cproduct/item_pricing_feed/outbound/message_header',
-		'ImageMaster' => 'eb2cproduct/image_master_feed/outbound/message_header',
-		'ItemInventories' => 'eb2cinventory/feed/outbound/message_header',
-		'PIMExport' => 'eb2cproduct/pim_export_feed/outbound/message_header',
+		'ItemMaster' => 'eb2ccore/feed/filetransfer_imports/item_master/outbound/message_header',
+		'ContentMaster' => 'eb2ccore/feed/filetransfer_imports/content_master/outbound/message_header',
+		'iShip' => 'eb2ccore/feed/filetransfer_imports/i_ship/outbound/message_header',
+		'Pricing' => 'eb2ccore/feed/filetransfer_imports/item_pricing/outbound/message_header',
+		'ImageMaster' => 'eb2ccore/feed/filetransfer_imports/image_master/outbound/message_header',
+		'ItemInventories' => 'eb2ccore/feed/filetransfer_imports/inventory/outbound/message_header',
+		'PIMExport' => 'eb2ccore/feed/filetransfer_imports/pim_export/outbound/message_header',
 	);
 
 	/**
@@ -169,7 +169,6 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		if (!isset($this->_feedTypeHeaderConf[$feedType])) {
 			return array();
 		}
-
 		return $this->_doConfigTranslation(array_merge(
 			$this->getConfigData(self::DEFAULT_HEADER_CONF),
 			$this->getConfigData($this->_feedTypeHeaderConf[$feedType])
@@ -270,20 +269,4 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 		return Mage::getModel('core/date')->gmtDate('YmdHis', time());
 	}
 
-	/**
-	 * Send the file
-	 * @param string $fileName
-	 * @param string $remotePath
-	 * @return self
-	 */
-	public function sendFile($fileName, $remotePath)
-	{
-		$sftp = Mage::getModel('filetransfer/protocol_types_sftp');
-		try {
-			$sftp->sendFile($fileName, $remotePath);
-		} catch(Exception $e) {
-			throw new TrueAction_Eb2cCore_Exception_Feed_Transmissionfailure(sprintf('Error sending file: %s', $e->getMessage()));
-		}
-		return $this;
-	}
 }

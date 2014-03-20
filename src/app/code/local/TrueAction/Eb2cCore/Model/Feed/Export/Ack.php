@@ -46,7 +46,7 @@ class TrueAction_Eb2cCore_Model_Feed_Export_Ack
 				self::CFG_IMPORT_ARCHIVE => $cfg->feedImportArchive,
 				self::CFG_EXPORT_OUTBOX => $cfg->feedOutboxDirectory,
 				self::CFG_IMPORTED_ACK_DIR => $cfg->feedAckInbox,
-				self::CFG_EXPORTED_FEED_DIR => $cfg->feedSendDirectory,
+				self::CFG_EXPORTED_FEED_DIR => $cfg->feedSentDirectory,
 				self::CFG_WAIT_TIME_LIMIT => $cfg->exportResendTimeLimit,
 			);
 		}

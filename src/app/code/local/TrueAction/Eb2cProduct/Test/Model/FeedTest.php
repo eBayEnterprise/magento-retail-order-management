@@ -2,105 +2,66 @@
 class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
+	public function setUp()
+	{
+		parent::setUp();
+		Mage::app()->disableEvents();
+	}
+	public function tearDown()
+	{
+		parent::tearDown();
+		Mage::app()->enableEvents();
+	}
 	/**
-	 * Test _construct method with the following assumptions when this test run
-	 * Expectation 1: the TrueAction_Eb2cProduct_Model_Feed::_construct to intialized the
-	 *                class property TrueAction_Eb2cProduct_Model_Feed::_eventTypes an array of eventType and event type specific model string
-	 * Expectation 2: this test set the class property TrueAction_Eb2cProduct_Model_Feed::_eventTypes to a known state of an empty array
-	 *                when the TrueAction_Eb2cProduct_Model_Feed::_construct method get invoke the _eventTypes property is expected to have
-	 *                an array of key value
+	 * The protected construct method should set up an array of core feed models,
+	 * each loaded with the config data for one of the feed types handled by this
+	 * model. Using those core feed models, it should then also create an array
+	 * of event types used when sorting the feed files.
+	 * @test
 	 */
 	public function testConstruct()
 	{
-		$configMap = array(
-			'itemFeedEventType' => 'ItemMaster',
-			'contentFeedEventType' => 'ContentMaster',
-			'pricingFeedEventType' => 'Pricing',
-			'iShipFeedEventType' => 'iShip',
-		);
+		$eventType = 'SomeEvent';
+		$configKeys = array('itemFeed');
+		$config = $this->buildCoreConfigRegistry(array(
+			'itemFeed' => array('event_type' => $eventType, 'local_directory' => 'local'),
+		));
+		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('getConfigModel'));
+		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
 
-		$eventTypeMap = array(
-			$configMap['itemFeedEventType'] => 'feed_item',
-			$configMap['contentFeedEventType'] => 'feed_content',
-			$configMap['pricingFeedEventType'] => 'feed_pricing',
-			$configMap['iShipFeedEventType'] => 'feed_iship',
-		);
-
-		$helperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+		$prodFeed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('getConfigModel'))
 			->getMock();
-		$helperMock->expects($this->once())
+
+		// setup the feed config keys used by the product feed model so only some
+		// expected subset of the feed types are worked with
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue(
+			$prodFeed,
+			'_feedConfigKeys',
+			$configKeys
+		);
+
+		$prodHelper->expects($this->once())
 			->method('getConfigModel')
-			->will($this->returnValue($this->buildCoreConfigRegistry($configMap)));
-		$this->replaceByMock('helper', 'eb2cproduct', $helperMock);
-
-		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
+			->will($this->returnValue($config));
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array())
+			->setMethods(array('getEventType'))
 			->getMock();
+		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
 
-		// class property _eventTypes to a known state
-		$this->_reflectProperty($feed, '_eventTypes')->setValue($feed, array());
-		$this->_reflectMethod($feed, '_construct')->invoke($feed);
+		$coreFeed->expects($this->once())
+			->method('getEventType')
+			->will($this->returnValue($eventType));
+
+		EcomDev_Utils_Reflection::invokeRestrictedMethod($prodFeed, '_construct');
 		$this->assertSame(
-			$eventTypeMap,
-			$this->_reflectProperty($feed, '_eventTypes')->getValue($feed)
+			array($eventType),
+			EcomDev_Utils_Reflection::getRestrictedPropertyValue($prodFeed, '_eventTypes')
 		);
-	}
-
-	/**
-	 * Test _fetchFiles method with the following assumptions when call with given eb2cproduct/feed_item object as a parameter
-	 * Expectation 1: the TrueAction_Eb2cProduct_Model_Feed::_fetchFiles method is expected to be called with the a given
-	 *                mocked TrueAction_Eb2cProduct_Model_Feed_Item object and is expected to return an array of files
-	 * Expectation 2: mocking the class TrueAction_Eb2cProduct_Model_Feed_Item methods getFeedLocalPath, getFeedRemotePath, getFeedFilePattern
-	 *                to return known value which can be futher test in the mocking of TrueAction_Eb2cCore_Model_Feed class
-	 *                where the fetchFeedsFromRemote method will be invoked once and the value from the TrueAction_Eb2cProduct_Model_Feed_Item class
-	 *                are then tested as expected
-	 * Expectation 3: the TrueAction_Eb2cCore_Model_Feed::lsInboundDir method is expected to return the array of files
-	 * @mock TrueAction_Eb2cProduct_Model_Feed_Item::getFeedLocalPath
-	 * @mock TrueAction_Eb2cProduct_Model_Feed_Item::getFeedRemotePath
-	 * @mock TrueAction_Eb2cProduct_Model_Feed_Item::getFeedFilePattern
-	 * @mock TrueAction_Eb2cCore_Model_Feed::fetchFeedsFromRemote
-	 * @mock TrueAction_Eb2cCore_Model_Feed::lsInboundDir
-	 */
-	public function testFetchFiles()
-	{
-		$eventTypeModel = $this->getModelMockBuilder('eb2cproduct/feed_item')
-			->disableOriginalConstructor()
-			->setMethods(array('getFeedLocalPath', 'getFeedRemotePath', 'getFeedFilePattern'))
-			->getMock();
-		$eventTypeModel->expects($this->once())
-			->method('getFeedLocalPath')
-			->will($this->returnValue('TrueAction/Product/ItemMaster/Inbound/'));
-		$eventTypeModel->expects($this->once())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('/ItemMaster/'));
-		$eventTypeModel->expects($this->once())
-			->method('getFeedFilePattern')
-			->will($this->returnValue('ItemMaster*_*.xml'));
-
-		$coreModelMock = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir'))
-			->getMock();
-		$coreModelMock->expects($this->once())
-			->method('fetchFeedsFromRemote')
-			->with($this->equalTo('/ItemMaster/'), $this->equalTo('ItemMaster*_*.xml'))
-			->will($this->returnValue(null));
-		$coreModelMock->expects($this->once())
-			->method('lsInboundDir')
-			->will($this->returnValue(array('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml')));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreModelMock);
-
-		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-
 		$this->assertSame(
-			array('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml'),
-			$this->_reflectMethod($feed, '_fetchFiles')->invoke($feed, $eventTypeModel)
+			array($coreFeed),
+			EcomDev_Utils_Reflection::getRestrictedPropertyValue($prodFeed, '_coreFeedTypes')
 		);
 	}
 
@@ -115,156 +76,151 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 * @mock TrueAction_Eb2cProduct_Model_Feed_Item::getFeedRemotePath
 	 * @mock DateTime::getTimeStamp
 	 * @mock TrueAction_Eb2cCore_Helper_Feed::getMessageDate
+	 * @test
 	 */
 	public function testUnifiedAllFiles()
 	{
-		$eventTypeModel = $this->getModelMockBuilder('eb2cproduct/feed_item')
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('getFeedRemotePath'))
 			->getMock();
-		$eventTypeModel->expects($this->once())
-			->method('getFeedRemotePath')
-			->will($this->returnValue('/ItemMaster/'));
-
-		$dateTimeMock = $this->getMockBuilder('DateTime')
-			->setMethods(array('getTimeStamp'))
-			->getMock();
-		$dateTimeMock->expects($this->once())
-			->method('getTimeStamp')
-			->will($this->returnValue('2012-07-06 10:09:05'));
-
 		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('getMessageDate'))
 			->getMock();
-		$coreHelperMock->expects($this->once())
-			->method('getMessageDate')
-			->with($this->equalTo('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml'))
-			->will($this->returnValue($dateTimeMock));
-		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperMock);
+		$dateTimeMock = $this->getMockBuilder('DateTime')
+			->setMethods(array('getTimeStamp'))
+			->getMock();
 
-		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
+		$prodFeed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
 			->setMethods(array())
 			->getMock();
 
+		$this->replaceByMock('helper', 'eb2ccore/feed', $coreHelperMock);
+
+		// details about the file(s) being added to the current list
+		$localFile = '/Mage/var/local/file_two.xml';
+		$fileTime = '2012-07-06 10:07:05';
+		$errorFile = 'error_file_two.xml';
+
+		$coreHelperMock->expects($this->once())
+			->method('getMessageDate')
+			->with($this->equalTo($localFile))
+			->will($this->returnValue($dateTimeMock));
+		$dateTimeMock->expects($this->once())
+			->method('getTimeStamp')
+			->will($this->returnValue($fileTime));
+
+		// list of files already retrieved
+		$currentFiles = array(array(
+			'local_file' => '/Mage/var/local/file_one.xml',
+			'timestamp' => '2012-03-02 10:07:03',
+			'core_feed' => $coreFeed,
+			'error_file' => 'error_file.xml'
+		));
+		$mergedFileList = array(
+			$currentFiles[0],
+			array(
+				'local_file' => $localFile, 'timestamp' => $fileTime,
+				'core_feed' => $coreFeed, 'error_file' => $errorFile,
+			)
+		);
 		$this->assertSame(
-			array(array(
-				'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-				'remote' => '/ItemMaster/',
-				'timestamp' => '2012-07-06 10:09:05',
-				'type' => 'ItemMaster',
-				'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
-			)),
-			$this->_reflectMethod($feed, '_unifiedAllFiles')->invoke(
-				$feed, $eventTypeModel,
-				array(),
-				array('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml'),
-				'ItemMaster',
-				'/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
+			$mergedFileList,
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$prodFeed,
+				'_unifiedAllFiles',
+				array(
+					$currentFiles,
+					array($localFile),
+					$coreFeed,
+					$errorFile,
+				)
 			)
 		);
 	}
 
 	/**
-	 * Test _getAllFeedFiles method with the following assumptions when invoked by this test
-	 * Expectation 1: the TrueAction_Eb2cProduct_Model_Feed::_getAllFeedFiles method is expected to loop through
-	 *                the class property TrueAction_Eb2cProduct_Model_Feed::_eventTypes, which is set to a known states
-	 *                with the key eventtype (ItemMaster) which is then mapped to the feed_item model
-	 * Expectation 2: a mock of class TrueAction_Eb2cProduct_Model_Feed_Item is returned when TrueAction_Eb2cProduct_Model_Feed::_getEventTypeModel
-	 *                is called once, then calling the TrueAction_Eb2cProduct_Model_Feed::_fetchFiles method with the mock
-	 *                TrueAction_Eb2cProduct_Model_Feed_Item object pass as parameter will return an array of files
-	 * Expectation 3: the TrueAction_Eb2cProduct_Helper_Data::buildFileName method is expected to return error file name
-	 * Expectation 4: the method TrueAction_Eb2cProduct_Model_Error_Confirmations::loadFile is expected to be given the error file name
-	 *                and the method TrueAction_Eb2cProduct_Model_Error_Confirmations::initFeed is expected to be given the event type
-	 * Expectation 5: the method TrueAction_Eb2cProduct_Model_Feed::_unifiedAllFiles is expected to be given the mocked TrueAction_Eb2cProduct_Model_Feed_Item object
-	 *                as it first parameter, then array of files as its second, then array of file list as its third, then event type as its fourth and then the error file name
-	 * Expectation 6: the method TrueAction_Eb2cProduct_Model_Feed::_compareFeedFiles is never expected to be called because this test is expected to have a feed files array
-	 *                with only has one element
-	 * @mock TrueAction_Eb2cProduct_Model_Feed_Item
-	 * @mock TrueAction_Eb2cProduct_Model_Feed::_getEventTypeModel
-	 * @mock TrueAction_Eb2cProduct_Model_Feed::_fetchFiles
+	 * Get files to process should return an array of file details for all files
+	 * that should be processed by the product feed model. A list of files for
+	 * each type of feed (item, content, etc.) should be retrieved using each
+	 * of the core feed models loaded during construction. The maps of file
+	 * details should all be created using the _unifiedAllFiles method to create
+	 * the maps and merge them with any previously created file details.
+	 * The list of file details should finally be sorted, using the
+	 * _compareFeedFiles method.
 	 * @mock TrueAction_Eb2cProduct_Model_Feed::_unifiedAllFiles
 	 * @mock TrueAction_Eb2cProduct_Model_Feed::_compareFeedFiles
 	 * @mock TrueAction_Eb2cProduct_Helper_Data::buildFileName
 	 * @mock TrueAction_Eb2cProduct_Model_Error_Confirmations::loadFile
 	 * @mock TrueAction_Eb2cProduct_Model_Error_Confirmations::initFeed
+	 * @test
 	 */
-	public function testGetAllFeedFiles()
+	public function testGetFilesToProcess()
 	{
-		$eventTypeModel = $this->getModelMockBuilder('eb2cproduct/feed_item')
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
-			->setMethods(array())
+			->setMethods(array('lsLocalDirectory', 'getEventType'))
 			->getMock();
-
-		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
-			->disableOriginalConstructor()
-			->setMethods(array('buildFileName'))
-			->getMock();
-		$productHelperMock->expects($this->once())
-			->method('buildFileName')
-			->with($this->equalTo('ItemMaster'))
-			->will($this->returnValue('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'));
-		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
-
-		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
+		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('buildFileName'));
+		$errorConfirmations = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
 			->disableOriginalConstructor()
 			->setMethods(array('loadFile', 'initFeed'))
 			->getMock();
-		$confirmationsModelMock->expects($this->once())
-			->method('loadFile')
-			->with($this->equalTo('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'))
-			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('initFeed')
-			->with($this->equalTo('ItemMaster'))
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
-
-		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
+		$prodFeed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('_getEventTypeModel', '_fetchFiles', '_unifiedAllFiles', '_compareFeedFiles'))
+			->setMethods(array('_unifiedAllFiles', '_compareFeedFiles'))
 			->getMock();
-		$feed->expects($this->once())
-			->method('_getEventTypeModel')
-			->with($this->equalTo('ItemMaster'))
-			->will($this->returnValue($eventTypeModel));
-		$feed->expects($this->once())
-			->method('_fetchFiles')
-			->with($this->equalTo($eventTypeModel))
-			->will($this->returnValue(array('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml')));
-		$feed->expects($this->once())
+
+		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $errorConfirmations);
+		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
+
+		$localFile = '/Mage/var/local/file.xml';
+		$eventType = 'SomeEvent';
+		$errorFile = 'error_file.xml';
+		$fileDetails = array(
+			'local_file' => $localFile, 'timestamp' => '2014-03-02 11:11:11',
+			'core_feed' => $coreFeed, 'error_file' => $errorFile,
+		);
+
+		$coreFeed->expects($this->once())
+			->method('lsLocalDirectory')
+			->will($this->returnValue(array($localFile)));
+		$coreFeed->expects($this->once())
+			->method('getEventType')
+			->will($this->returnValue($eventType));
+		$prodHelper->expects($this->once())
+			->method('buildFileName')
+			->with($this->identicalTo($eventType))
+			->will($this->returnValue($errorFile));
+		$errorConfirmations->expects($this->once())
+			->method('loadFile')
+			->with($this->identicalTo($errorFile))
+			->will($this->returnSelf());
+		$errorConfirmations->expects($this->once())
+			->method('initFeed')
+			->with($this->identicalTo($eventType))
+			->will($this->returnSelf());
+		$prodFeed->expects($this->once())
 			->method('_unifiedAllFiles')
 			->with(
-				$this->equalTo($eventTypeModel),
-				$this->equalTo(array()),
-				$this->equalTo(array('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml')),
-				$this->equalTo('ItemMaster'),
-				$this->equalTo('TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml')
+				$this->identicalTo(array()),
+				$this->identicalTo(array($localFile)),
+				$this->identicalTo($coreFeed),
+				$this->identicalTo($errorFile)
 			)
-			->will($this->returnValue(array(array(
-				'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-				'remote' => '/ItemMaster/',
-				'timestamp' => '2012-07-06 10:09:05',
-				'type' => 'ItemMaster',
-				'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
-			))));
-		$feed->expects($this->never())
+			->will($this->returnValue(array($fileDetails)));
+		$prodFeed->expects($this->any())
 			->method('_compareFeedFiles')
 			->will($this->returnValue(0));
 
-		// class property _eventTypes to a known state
-		$this->_reflectProperty($feed, '_eventTypes')->setValue($feed, array('ItemMaster' => 'feed_item',));
-
+		// set the core feed models to a single known core feed
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($prodFeed, '_coreFeedTypes', array($coreFeed));
 		$this->assertSame(
-			array(array(
-				'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-				'remote' => '/ItemMaster/',
-				'timestamp' => '2012-07-06 10:09:05',
-				'type' => 'ItemMaster',
-				'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
-			)),
-			$this->_reflectMethod($feed, '_getAllFeedFiles')->invoke($feed)
+			array($fileDetails),
+			EcomDev_Utils_Reflection::invokeRestrictedMethod(
+				$prodFeed, '_getFilesToProcess'
+			)
 		);
 	}
 
@@ -295,25 +251,6 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessFeeds()
 	{
-		$confirmationsModelMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
-			->disableOriginalConstructor()
-			->setMethods(array('loadFile', 'close', 'transferFile', 'archive'))
-			->getMock();
-		$confirmationsModelMock->expects($this->once())
-			->method('loadFile')
-			->with($this->equalTo('/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'))
-			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('close')
-			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('transferFile')
-			->will($this->returnSelf());
-		$confirmationsModelMock->expects($this->once())
-			->method('archive')
-			->will($this->returnSelf());
-		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $confirmationsModelMock);
-
 		$cleanerModelMock = $this->getModelMockBuilder('eb2cproduct/feed_cleaner')
 			->disableOriginalConstructor()
 			->setMethods(array('cleanAllProducts'))
@@ -323,51 +260,70 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->will($this->returnSelf());
 		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $cleanerModelMock);
 
-		$coreIndexerModelMock = $this->getModelMockBuilder('eb2ccore/indexer')
+		$prodFeed = $this->getModelMockBuilder('eb2cproduct/feed')
 			->disableOriginalConstructor()
-			->setMethods(array('reindexAll'))
+			->setMethods(array('_getFilesToProcess', 'processFile'))
 			->getMock();
-		$coreIndexerModelMock->expects($this->once())
-			->method('reindexAll')
-			->will($this->returnValue(null));
-		$this->replaceByMock('model', 'eb2ccore/indexer', $coreIndexerModelMock);
 
-		$fileDetail = array(
-			'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-			'remote' => '/ItemMaster/',
-			'timestamp' => '2012-07-06 10:09:05',
-			'type' => 'ItemMaster',
-			'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
+		$filesToProcess = array(
+			array('local_file' => '/Mage/var/local/file.xml'),
 		);
-		$feed = $this->getModelMockBuilder('eb2cproduct/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('_getAllFeedFiles', 'setFeedEventType', 'processFile', 'archiveFeed'))
-			->getMock();
-		$feed->expects($this->once())
-			->method('_getAllFeedFiles')
-			->will($this->returnValue(array($fileDetail)));
-		$feed->expects($this->once())
-			->method('setFeedEventType')
-			->with($this->equalTo('ItemMaster'))
-			->will($this->returnSelf());
-		$feed->expects($this->once())
+
+		$prodFeed->expects($this->once())
+			->method('_getFilesToProcess')
+			->will($this->returnValue($filesToProcess));
+		$prodFeed->expects($this->once())
 			->method('processFile')
-			->with($this->equalTo($fileDetail))
-			->will($this->returnValue(null));
-		$feed->expects($this->once())
-			->method('archiveFeed')
-			->with(
-				$this->equalTo('TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml'),
-				$this->equalTo('/ItemMaster/')
-			)
+			->with($this->identicalTo($filesToProcess[0]))
 			->will($this->returnSelf());
 
-		$this->assertSame(1, $feed->processFeeds());
-
-		$this->assertEventDispatched('product_feed_processing_complete');
-		$this->assertEventDispatched('product_feed_complete_error_confirmation');
+		$this->assertSame(1, $prodFeed->processFeeds());
 	}
+	/**
+	 * When feeds fail to process, the cleaner should not be triggered, the error
+	 * message should be logged as a warning and the method should report back
+	 * that 0 files were processed.
+	 * @test
+	 */
+	public function testProcessFeedsFailure()
+	{
+		$cleanerModelMock = $this->getModelMockBuilder('eb2cproduct/feed_cleaner')
+			->disableOriginalConstructor()
+			->setMethods(array('cleanAllProducts'))
+			->getMock();
+		// When no feeds are processed, cleaner shouldn't be triggered
+		$cleanerModelMock->expects($this->never())
+			->method('cleanAllProducts');
+		$this->replaceByMock('model', 'eb2cproduct/feed_cleaner', $cleanerModelMock);
 
+		$prodFeed = $this->getModelMockBuilder('eb2cproduct/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFilesToProcess', 'processFile'))
+			->getMock();
+		$logger = $this->getHelperMockBuilder('trueaction_magelog/data')
+			->disableOriginalConstructor()
+			->setMethods(array('logWarn'))
+			->getMock();
+
+		$this->replaceByMock('helper', 'trueaction_magelog', $logger);
+
+		$filesToProcess = array(
+			array('local_file' => '/Mage/var/local/file.xml'),
+		);
+
+		$prodFeed->expects($this->once())
+			->method('_getFilesToProcess')
+			->will($this->returnValue($filesToProcess));
+		$prodFeed->expects($this->once())
+			->method('processFile')
+			->with($this->identicalTo($filesToProcess[0]))
+			->will($this->throwException(new Mage_Core_Exception()));
+		$logger->expects($this->once())
+			->method('logWarn')
+			->will($this->returnSelf());
+
+		$this->assertSame(0, $prodFeed->processFeeds());
+	}
 	/**
 	 * Test processDom method with the following assumptions when invoked by this test
 	 * Expectation 1: the TrueAction_Eb2cProduct_Model_Feed::processFeeds method when invoked by this test
@@ -422,44 +378,10 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('_construct')
 			->will($this->returnvalue(null));
 		$this->assertSame($feed, $feed->processDom($doc, array(
-			'local' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
-			'remote' => '/ItemMaster/',
+			'local_file' => 'TrueAction/Product/ItemMaster/Inbound/ItemMaster_TestSubset.xml',
+			'core_feed' => 'core feed mock',
 			'timestamp' => '2012-07-06 10:09:05',
-			'type' => 'ItemMaster',
 			'error_file' => '/TrueAction/Eb2c/Feed/Product/ItemMaster/outbound/ItemMaster_20140107224605_12345_ABCD.xml'
 		)));
 	}
-	/**
-	 * Test _getEventTypeModel method with the following assumptions when invoked by this test
-	 * Expectation 1: this set first set the class property TrueAction_Eb2cProduct_Model_Feed::_eventTypes
-	 *                to a known state of key value map and then loop through the key of this arrays
-	 *                to replace by mock the different feed event specific classes and then asserted
-	 *                that they will be the same as the return value when the test method
-	 *                TrueAction_Eb2cProduct_Model_Feed::_getEventTypeModel is invoked for each eventType
-	 *                key
-	 */
-	public function testGetEventTypeModel()
-	{
-		$eventTypes = array(
-			'ItemMaster' => 'feed_item',
-			'ContentMaster' => 'feed_content',
-			'Pricing' => 'feed_pricing',
-			'iShip' => 'feed_iship',
-		);
-		$feedModelMock = $this->getModelMockBuilder('eb2cproduct/feed')
-			->disableOriginalConstructor()
-			->setMethods(array())
-			->getMock();
-
-		$this->_reflectProperty($feedModelMock, '_eventTypes')->setValue($feedModelMock, $eventTypes);
-		foreach (array_keys($eventTypes) as $et) {
-			$mock = $this->getModelMockBuilder(sprintf('eb2cproduct/%s', $eventTypes[$et]))
-				->disableOriginalConstructor()
-				->setMethods(array())
-				->getMock();
-			$this->replaceByMock('model', sprintf('eb2cproduct/%s', $eventTypes[$et]), $mock);
-			$this->assertSame($mock, $this->_reflectMethod($feedModelMock, '_getEventTypeModel')->invoke($feedModelMock, $et));
-		}
-	}
-
 }

@@ -145,24 +145,6 @@
 					<show_in_website>1</show_in_website>
 					<show_in_store>0</show_in_store>
 					<fields>
-						<filetransfer_remote_connect_attempts>
-							<label>Connection Attempt Limit</label>
-							<comment><![CDATA[How many connection attempts are made to fetch feeds, <em>per session</em>]]></comment>
-							<frontend_type>text</frontend_type>
-							<sort_order>20</sort_order>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</filetransfer_remote_connect_attempts>
-						<filetransfer_remote_retry_timer>
-							<label>Connection Retry Timer</label>
-							<comment><![CDATA[Time, in seconds, between a failed connection attempt and retry.]]></comment>
-							<frontend_type>text</frontend_type>
-							<sort_order>25</sort_order>
-							<show_in_default>1</show_in_default>
-							<show_in_website>0</show_in_website>
-							<show_in_store>0</show_in_store>
-						</filetransfer_remote_retry_timer>
 						<activeconfig_import>
 							<filetransfer>
 								<sort_order>40</sort_order>

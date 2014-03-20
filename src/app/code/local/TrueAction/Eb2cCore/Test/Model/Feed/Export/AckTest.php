@@ -17,7 +17,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_Export_AckTest
 			'feedImportArchive' => 'path/to/import/archive',
 			'feedOutboxDirectory' => 'path/to/outbox/directory',
 			'feedAckInbox' => 'path/to/ack/inbox',
-			'feedSendDirectory' => 'path/to/send/directory',
+			'feedSentDirectory' => 'path/to/send/directory',
 			'exportResendTimeLimit' => 5,
 		);
 
@@ -26,7 +26,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_Export_AckTest
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_IMPORT_ARCHIVE => $configMap['feedImportArchive'],
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_EXPORT_OUTBOX => $configMap['feedOutboxDirectory'],
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_IMPORTED_ACK_DIR => $configMap['feedAckInbox'],
-			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_EXPORTED_FEED_DIR => $configMap['feedSendDirectory'],
+			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_EXPORTED_FEED_DIR => $configMap['feedSentDirectory'],
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_WAIT_TIME_LIMIT => $configMap['exportResendTimeLimit'],
 		);
 

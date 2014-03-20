@@ -1,241 +1,121 @@
 <?php
-class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest extends TrueAction_Eb2cCore_Test_Base
+class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest
+	extends TrueAction_Eb2cCore_Test_Base
 {
-	const VFS_ROOT = 'testBase';
-	/**
-	 * Replace the FileTransfer Helper with a mock object.
-	 */
-	private function _replaceFileTransferHelper()
-	{
-		$fileTransferHelperMock = $this->getMock(
-			'TrueAction_FileTransfer_Helper_Data',
-			array('getAllFiles')
-		);
-		$fileTransferHelperMock->expects($this->any())
-			->method('getAllFiles')
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'filetransfer', $fileTransferHelperMock);
-	}
-	/**
-	 * Stub dom documents created by the core helper
-	 * @param array $loadResults Results of load calls, assoc array of filename => returnValue|Exception
-	 * @return TrueAction_Dom_Document Stubbed DOM document
-	 */
-	protected function _domStub($loadResults)
-	{
-		$dom = $this->getMock('TrueAction_Dom_Document', array('load'));
-		$dom->expects($this->any())
-			->method('load')
-			->will($this->returnCallback(function ($arg) use ($loadResults) {
-				if (isset($loadResults[$arg])) {
-					if ($loadResults[$arg] instanceof Exception) {
-						throw $loadResults[$arg];
-					} else {
-						return $loadResults[$arg];
-					}
-				}
-				return null;
-			}));
-		return $dom;
-	}
-	/**
-	 * Mock the Varien_Io_File object,
-	 * this is our FsTool for testing purposes
-	 */
-	private function _getMockFsTool($vfs)
-	{
-		// Set up a Varien_Io_File style array for dummy file listing.
-		$vfsDump = $vfs->dump();
-		$sampleFiles = array();
-		foreach(array_keys($vfsDump['root'][self::VFS_ROOT]['inbound']) as $filename) {
-			$sampleFiles[] = array('text' => $filename, 'filetype' => 'xml');
-		}
-		$mockFsTool = $this->getMock('Varien_Io_File', array(
-			'cd',
-			'checkAndCreateFolder',
-			'ls',
-			'mv',
-			'pwd',
-			'setAllowCreateFolders',
-			'open',
-		));
-		$mockFsTool
-			->expects($this->any())
-			->method('cd')
-			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
-			->will($this->returnValue(true));
-		$mockFsTool
-			->expects($this->any())
-			->method('checkAndCreateFolder')
-			->with($this->stringContains($vfs->url(self::VFS_ROOT)))
-			->will($this->returnValue(true));
-		$mockFsTool
-			->expects($this->any())
-			->method('mv')
-			->with( $this->stringContains($vfs->url(self::VFS_ROOT)), $this->stringContains($vfs->url(self::VFS_ROOT)))
-			->will($this->returnValue(true));
-		$mockFsTool
-			->expects($this->any())
-			->method('ls')
-			->will($this->returnValue($sampleFiles));
-		$mockFsTool
-			->expects($this->any())
-			->method('pwd')
-			->will($this->returnValue($vfs->url(self::VFS_ROOT . '/inbound')));
-		$mockFsTool
-			->expects($this->any())
-			->method('setAllowCreateFolders')
-			->with($this->logicalOr($this->identicalTo(true), $this->identicalTo(false)))
-			->will($this->returnSelf());
-		$mockFsTool
-			->expects($this->any())
-			->method('open')
-			->will($this->returnValue(true));
-		// vfs setup ends
-		return $mockFsTool;
-	}
 	/**
 	 * Test fs tool is set in the constructor when no parameter passed.
 	 * @test
-	 * @loadFixture sample-data.yaml
 	 */
 	public function testConstructor()
 	{
-		// Setup a simple, but fairly useless stub of Varien_Io_File. I'm leaving testing of the interactions
-		// between Varien_Io_File and the Eb2cCore_Model_Feed up to Eb2cCore_Model_Feed so just looking to ensure
-		// no filesystem interactions take place.
-		$fsToolMock = $this->getMock('Varien_Io_File', array(
-			'cd', 'checkAndCreateFOlder', 'ls', 'mv', 'pwd', 'setAllowCreateFolders', 'open',
-		));
-		$fsToolMock->expects($this->any())
-			->method('cd')
-			->will($this->returnValue(true));
-		$fsToolMock->expects($this->any())
-			->method('checkAndCreateFOlder')
-			->will($this->returnValue(true));
-		$fsToolMock->expects($this->any())
-			->method('ls')
-			->will($this->returnValue(array()));
-		$fsToolMock->expects($this->any())
-			->method('mv')
-			->will($this->returnValue(true));
-		$fsToolMock->expects($this->any())
-			->method('pwd')
-			->will($this->returnValue(''));
-		$fsToolMock->expects($this->any())
-			->method('setAllowCreateFolders')
-			->will($this->returnSelf());
-		$fsToolMock->expects($this->any())
-			->method('open')
-			->will($this->returnValue(true));
+		// mock out some directory config for the inventory feed
+		$dirConfig = array('local_directory' => 'some/local', 'event_type' => 'Inventory');
+		$cfg = $this->buildCoreConfigRegistry(array('feedDirectoryConfig' => $dirConfig));
+		$invHelper = $this->getHelperMockBuilder('eb2cinventory/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$invHelper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($cfg));
+		$this->replaceByMock('helper', 'eb2cinventory', $invHelper);
+
+		// set up mock fs tool which should do nothing
+		$fsToolMock = $this->getMock('Varien_Io_File');
+		// set mock behavior for only the methods needed to get through the core
+		// feed model's constructor (which can't be disabled and still allow for
+		// meaningful test assertions)
+		$fsToolMock->expects($this->any())->method('setAllowCreateFolders')->will($this->returnSelf());
+		$fsToolMock->expects($this->any())->method('open')->will($this->returnValue(true));
+
 		$feed = Mage::getModel('eb2cinventory/feed_item_inventories', array('fs_tool' => $fsToolMock));
+
 		// test the setup
-		// when pulled from config, the base dir should be Mage::getBaseDir('var') followed by the configured
-		// local dir, in this case, set in the fixture
-		$this->assertSame(Mage::getBaseDir('var') . DS . 'TrueAction/Eb2c/Feed/Item/Inventories/', $feed->getBaseDir());
 		$this->assertInstanceOf('TrueAction_Eb2cInventory_Model_Feed_Item_Extractor', $feed->getExtractor());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Item', $feed->getStockItem());
 		$this->assertInstanceOf('Mage_CatalogInventory_Model_Stock_Status', $feed->getStockStatus());
-		$this->assertInstanceOf('TrueAction_Eb2cCore_Model_Feed', $feed->getFeedModel());
 		// make sure the core feed model was instantiated with the proper magic data
-		$this->assertSame($feed->getBaseDir(), $feed->getFeedModel()->getBaseDir());
-		$this->assertSame($fsToolMock, $feed->getFeedModel()->getFsTool());
-	}
-	/**
-	 * testing processFeeds method - with invalid ftp settings
-	 * @test
-	 * @medium
-	 * @loadFixture sample-data.yaml
-	 */
-	public function testProcessFeedsNoProduct()
-	{
-		// Begin vfs Setup:
-		$vfs = $this->getFixture()->getVfs();
-		$inventoryFeedModel = Mage::getModel(
-			'eb2cinventory/feed_item_inventories',
-			array(
-				'base_dir' => $vfs->url(self::VFS_ROOT),
-				'fs_tool'  => $this->_getMockFsTool($vfs)
-			)
-		);
-		$this->_replaceFileTransferHelper();
-		// test with mock product and stock item
-		$productMock = $this->getMock(
-			'Mage_Catalog_Model_Product',
-			array('loadByAttribute', 'getId')
-		);
-		$productMock->expects($this->any())
-			->method('loadByAttribute')
-			->will($this->returnValue(true));
-		$productMock->expects($this->any())
-			->method('getId');
-		$inventoryFeedModel->setProduct($productMock);
-		$this->assertNull($inventoryFeedModel->processFeeds());
-		$vfs->discard();
+		$this->assertSame($dirConfig, $feed->getFeedConfig());
 	}
 	/**
 	 * Test processing of the feeds, success and failure
 	 * @test
-	 * @loadFixture testFeedProcessing.yaml
 	 */
 	public function testFeedProcessing()
 	{
-		$fileName = 'dummy_file_name.xml';
-		$remotePath = 'fake_remote_path';
-		$filePattern = 'Oh*My*Glob';
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
-			->disableOriginalConstructor()
-			->setMethods(array('fetchFeedsFromRemote', 'lsInboundDir', 'mvToArchiveDir', 'removeFromRemote',))
-			->getMock();
-		$coreFeed->expects($this->once())
-			->method('fetchFeedsFromRemote')
-			->with($this->identicalTo($remotePath), $this->identicalTo($filePattern));
-		$coreFeed->expects($this->once())
-			->method('lsInboundDir')
-			->will($this->returnValue(array($fileName)));
-		$coreFeed->expects($this->once())
-			->method('mvToArchiveDir')
-			->with($this->identicalTo($fileName));
-		$coreFeed->expects($this->once())
-			->method('removeFromRemote')
-			->with($this->identicalTo($remotePath, $fileName));
-		$this->replaceByMock('model', 'eb2ccore/feed', $coreFeed);
-		$domStub = $this->_domStub(array($fileName => true,));
-		$coreHelper = $this->getHelperMock('eb2ccore/data', array('getNewDomDocument'));
-		$coreHelper->expects($this->any())
-			->method('getNewDomDocument')
-			->will($this->returnValue($domStub));
-		$this->replaceByMock('helper', 'eb2ccore', $coreHelper);
-		$mockFs = $this->getMock('Varien_Io_File', array('setAllowCreateFolders', 'open'));
-		$mockFs->expects($this->any())
-			->method('setAllowCreateFolders')
-			->will($this->returnSelf());
-		$mockFs->expects($this->any())
-			->method('open')
-			->will($this->returnSelf());
-		$model = Mage::getModel('eb2cinventory/feed_item_inventories', array(
-			'feed_config'       => 'dummy_config',
-			'feed_event_type'   => 'ItemInventories',
-			'feed_file_pattern' => $filePattern,
-			'feed_local_path'   => 'inbound',
-			'feed_remote_path'  => $remotePath,
-			'fs_tool'           => $mockFs,
-		));
-		// if dom document was loaded successfully, the message should be validated and processed
-		$feedHelper = $this->getHelperMock('eb2ccore/feed', array('validateHeader'));
-		$feedHelper->expects($this->once())
-			->method('validateHeader')
-			->with($this->identicalTo($domStub), $this->identicalTo('ItemInventories'))
-			->will($this->returnValue(true));
-		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelper);
-		// ensure we trigger the reindexer.
-		$indexer = $this->getModelMock('eb2ccore/indexer', array('reindexAll'));
-		$indexer->expects($this->once())
-			->method('reindexAll');
+		$indexer = $this->getModelMockBuilder('eb2ccore/indexer')->disableOriginalConstructor()->getMock();
 		$this->replaceByMock('model', 'eb2ccore/indexer', $indexer);
-		$model->processFeeds();
-		// Make sure the event got fired.
+
+		$fileDetails = array('local_file' => '/Mage/var/local/file.xml');
+		$invFeed = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFilesToProcess', 'processFile'))
+			->getMock();
+		$invFeed->expects($this->once())
+			->method('_getFilesToProcess')
+			->will($this->returnValue(array($fileDetails)));
+		$invFeed->expects($this->once())
+			->method('processFile')
+			->with($this->identicalTo($fileDetails))
+			->will($this->returnSelf());
+
+		$this->assertSame(1, $invFeed->processFeeds());
+		// when no files processed, event should not be triggered
 		$this->assertEventDispatched('inventory_feed_processing_complete');
+	}
+	/**
+	 * Test processing of the feeds, success and failure
+	 * @test
+	 */
+	public function testFeedProcessingNoFilesToProcess()
+	{
+		$invFeed = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFilesToProcess', 'processFile'))
+			->getMock();
+		$invFeed->expects($this->once())
+			->method('_getFilesToProcess')
+			->will($this->returnValue(array()));
+		$invFeed->expects($this->never())
+			->method('processFile');
+
+		$this->assertSame(0, $invFeed->processFeeds());
+		// when no files processed, event should not be triggered
+		$this->assertEventNotDispatched('inventory_feed_processing_complete');
+	}
+	/**
+	 * Test processing the DOM for a feed file - should used the instances
+	 * extractor to extract feed data and pass it on to updateInventories
+	 * @test
+	 */
+	public function testProcessDom()
+	{
+		$fileDetails = array('local' => '/Mage/var/processing/file.xml');
+		$dom = new TrueAction_Dom_Document();
+		$extractedData = array(new Varien_Object(array('some' => 'data')));
+
+		$fii = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')
+			->disableOriginalConstructor()
+			->setMethods(array('updateInventories', 'getExtractor'))
+			->getMock();
+		$extractor = $this->getModelMockBuilder('eb2cinventory/feed_item_extractor')
+			->disableOriginalConstructor()
+			->setMethods(array('extractInventoryFeed'))
+			->getMock();
+
+		$extractor->expects($this->once())
+			->method('extractInventoryFeed')
+			->with($this->identicalTo($dom))
+			->will($this->returnValue($extractedData));
+		$fii->expects($this->once())
+			->method('getExtractor')
+			->will($this->returnValue($extractor));
+		$fii->expects($this->once())
+			->method('updateInventories')
+			->with($this->identicalTo($extractedData))
+			->will($this->returnSelf());
+
+		$this->assertSame($fii, $fii->processDom($dom, $fileDetails));
 	}
 	/**
 	 * @test

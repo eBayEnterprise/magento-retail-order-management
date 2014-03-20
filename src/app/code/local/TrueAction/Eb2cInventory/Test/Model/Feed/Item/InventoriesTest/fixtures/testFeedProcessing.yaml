@@ -1,6 +1,0 @@
-config:
-  default/eb2ccore/feed/delete_remote_feed_files: 1
-  default/eb2cinventory/feed/local_path: 'TrueAction/Eb2c/Feed/Item/Inventories/'
-  default/eb2cinventory/feed/remote_path: 'fake_remote_path'
-  default/eb2cinventory/feed/file_pattern: 'Oh*My*Glob'
-  default/eb2cinventory/feed/event_type: 'ItemInventories'

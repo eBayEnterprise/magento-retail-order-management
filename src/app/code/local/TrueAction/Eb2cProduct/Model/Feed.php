@@ -3,79 +3,71 @@ class TrueAction_Eb2cProduct_Model_Feed
 	extends TrueAction_Eb2cCore_Model_Feed_Abstract
 	implements TrueAction_Eb2cCore_Model_Feed_Interface
 {
-	const INVALID_EVENT_TYPE = 'the document is missing a valid event type node [%s]';
-	const DOCUMENT_START = 'processing file %s';
-
 	/**
-	 * xpath string to the eventtype node
+	 * Config registry keys for the configuration used for each feed processed
+	 * by this model. If additional feeds are to be handled by this model, the
+	 * config registry key for the feeds configuration needs to be added here.
+	 * @var array
 	 */
-	const EVENT_TYPE_XPATH = 'MessageHeader/EventType/text()';
-
-	protected $_eventTypeModel = null;
-
+	protected $_feedConfigKeys = array('itemFeed', 'contentFeed', 'pricingFeed', 'iShipFeed');
 	/**
-	 * feed event types.
-	 * WARNING: the order here determines the order the feeds will run.
-	 * TODO: this should be moved out to the xml config.
+	 * Feed event types, populated using the config registry keys set in
+	 * self::$_feedConfigKeys. When sorting files for processing order, this
+	 * array will be used to break ties between two files with the same creation
+	 * time in the file name. The order of this array determines the weightings
+	 * and will match the order of the config registry keys used to populate
+	 * this list.
 	 * @var array
 	 */
 	protected $_eventTypes = array();
+	/**
+	 * Array of core feed models, loaded with the config for each type of feed
+	 * handled by this model - item, content, etc.
+	 * @var array
+	 */
+	protected $_coreFeedTypes = array();
 
 	/**
 	 * suppress the core feed's initialization
 	 * create necessary internal models.
-	 * @return [type] [description]
 	 */
 	protected function _construct()
 	{
 		$cfg = Mage::helper('eb2cproduct')->getConfigModel();
-		$this->_eventTypes = array(
-			$cfg->itemFeedEventType => 'feed_item',
-			$cfg->contentFeedEventType => 'feed_content',
-			$cfg->pricingFeedEventType => 'feed_pricing',
-			$cfg->iShipFeedEventType => 'feed_iship',
-		);
+		foreach ($this->_feedConfigKeys as $feedConfig) {
+			$coreFeed = Mage::getModel('eb2ccore/feed', array('feed_config' => $cfg->$feedConfig));
+			$this->_coreFeedTypes[] = $coreFeed;
+			$this->_eventTypes[] = $coreFeed->getEventType();
+		}
 	}
 
 	/**
-	 * pull down the feed files from remote server defined in the event type object
-	 * to this method and then return array of files
-	 * @param TrueAction_Eb2cProduct_Model_Feed_Abstract $eventTypeModel
+	 * Create the map of feed data for all local files in the file list. Then,
+	 * merge that array of file data with the current set of file data in feed
+	 * files.
+	 * @param array $feedFiles Existing set of file data
+	 * @param array $fileList List of local files to create feed data for and merge with $feedFiles
+	 * @param string $coreFeed The core feed model containing configuration for the feed type
+	 * @param string $errorFile Error file the feed file should use
 	 * @return array
 	 */
-	protected function _fetchFiles(TrueAction_Eb2cProduct_Model_Feed_Abstract $eventTypeModel)
+	protected function _unifiedAllFiles(array $feedFiles, array $fileList, $coreFeed, $errorFile)
 	{
-		$baseDir = Mage::getBaseDir('var') . DS . $eventTypeModel->getFeedLocalPath();
-		$this->_coreFeed = Mage::getModel('eb2ccore/feed', array('base_dir' => $baseDir));
-		$this->_coreFeed->fetchFeedsFromRemote($eventTypeModel->getFeedRemotePath(), $eventTypeModel->getFeedFilePattern());
-		return $this->_coreFeed->lsInboundDir();
-	}
-
-	/**
-	 * merged all the feed files into a single list of feed file objects
-	 * @param TrueAction_Eb2cProduct_Model_Feed_Abstract $eventTypeModel
-	 * @param array $feedFiles
-	 * @param array $fileList
-	 * @param string $eventType
-	 * @param string $errorFile
-	 * @return array
-	 */
-	protected function _unifiedAllFiles(TrueAction_Eb2cProduct_Model_Feed_Abstract $eventTypeModel, array $feedFiles, array $fileList, $eventType, $errorFile)
-	{
-		$remote = $eventTypeModel->getFeedRemotePath();
 		$coreFeedHelper = Mage::helper('eb2ccore/feed');
-		return array_merge($feedFiles, array_map(
-			function ($local) use ($remote, $eventType, $coreFeedHelper, $errorFile) {
-				$timeStamp = $coreFeedHelper->getMessageDate($local)->getTimeStamp();
-				return array(
-					'local' => $local,
-					'remote' => $remote,
-					'timestamp' => $timeStamp,
-					'type' => $eventType,
-					'error_file' => $errorFile
-				); },
-			$fileList
-		));
+		return array_merge(
+			$feedFiles,
+			array_map(
+				function ($local) use ($coreFeed, $coreFeedHelper, $errorFile) {
+					return array(
+						'local_file' => $local,
+						'timestamp' => $coreFeedHelper->getMessageDate($local)->getTimeStamp(),
+						'core_feed' => $coreFeed,
+						'error_file' => $errorFile
+					);
+				},
+				$fileList
+			)
+		);
 	}
 
 	/**
@@ -83,27 +75,24 @@ class TrueAction_Eb2cProduct_Model_Feed
 	 * sorted so that all I want to do is simply loop through it and process and archive them
 	 * @return array
 	 */
-	protected function _getAllFeedFiles()
+	protected function _getFilesToProcess()
 	{
 		$feedFiles = array();
-
 		// fetch all files for all feeds.
-		foreach (array_keys($this->_eventTypes) as $eventType) {
-			$eventTypeModel = $this->_getEventTypeModel($eventType);
-			$fileList = $this->_fetchFiles($eventTypeModel);
-
+		foreach ($this->_coreFeedTypes as $coreFeed) {
+			$fileList = $coreFeed->lsLocalDirectory();
 			// only merge files when there are actual files
 			if ($fileList) {
+				$eventType = $coreFeed->getEventType();
 				// generate error confirmation file by event type
 				$errorFile = Mage::helper('eb2cproduct')->buildFileName($eventType);
 				// load the file and add the initial data such as xml directive, open node and message header
 				Mage::getModel('eb2cproduct/error_confirmations')->loadFile($errorFile)
 					->initFeed($eventType);
 				// need to track the local file as well as the remote path so it can be removed after processing
-				$feedFiles = $this->_unifiedAllFiles($eventTypeModel, $feedFiles, $fileList, $eventType, $errorFile);
+				$feedFiles = $this->_unifiedAllFiles($feedFiles, $fileList, $coreFeed, $errorFile);
 			}
 		}
-
 		// sort the feed files
 		// hidding error from built-in usort php function because of the known bug
 		// Warning: usort(): Array was modified by the user comparison function
@@ -111,30 +100,41 @@ class TrueAction_Eb2cProduct_Model_Feed
 
 		return $feedFiles;
 	}
-
 	/**
-	 * get all feed files process each one, then archived them, then clean all products
-	 * after completing processing and archiving, then dispatch product_feed_processing_complete event
-	 * then dispatch product_feed_complete_error_confirmation event and then return the number
-	 * of feed files that were processed
+	 * Get all product files to be processed and process them. After completing
+	 * the processing, kick off the cleaner and dispatch events to signal product
+	 * importing is complete.
 	 * @return int, the number of process feed xml file
 	 */
 	public function processFeeds()
 	{
-		Varien_Profiler::start(__METHOD__);
-		$feedFiles = $this->_getAllFeedFiles();
 		$filesProcessed = 0;
+		$feedFiles = $this->_getFilesToProcess();
+		// This needs to be duplicated from the parent class as the error
+		// confirmation event dispatched at the end of this method needs to have
+		// the list of files processed, which wouldn't be accessible if just using
+		// a call to the parent method.
 		foreach ($feedFiles as $feedFile) {
-			// setting the feed event type via magic for the order for
-			// header validation to run properly in TrueAction_Eb2cCore_Model_Feed_Abstract::processFile
-			$this->setFeedEventType($feedFile['type']);
-			$this->processFile($feedFile);
-			$this->archiveFeed($feedFile['local'], $feedFile['remote']);
-			$filesProcessed++;
+			try {
+				$this->processFile($feedFile);
+				$filesProcessed++;
+			// @todo - there should be two types of exceptions handled here, Mage_Core_Exception and
+			// TrueAction_Core_Feed_Failure. One should halt any further feed processing and
+			// one should just log the error and move on. Leaving out the TrueAction_Core_Feed_Failure
+			// for now as none of the feeds expect to use it.
+			} catch (Mage_Core_Exception $e) {
+				Mage::helper('trueaction_magelog')->logWarn(
+					'[%s] Failed to process file, %s. %s',
+					array(__CLASS__, basename($feedFile['local_file']), $e->getMessage())
+				);
+			}
 		}
-		Varien_Profiler::stop(__METHOD__);
-		Mage::getModel('eb2cproduct/feed_cleaner')->cleanAllProducts();
-		Mage::dispatchEvent('product_feed_processing_complete', array());
+		// Only trigger the cleaner and reindexing event if at least one feed
+		// was processed.
+		if ($filesProcessed) {
+			Mage::getModel('eb2cproduct/feed_cleaner')->cleanAllProducts();
+			Mage::dispatchEvent('product_feed_processing_complete', array());
+		}
 		Mage::dispatchEvent('product_feed_complete_error_confirmation', array('feed_details' => $feedFiles));
 		return $filesProcessed;
 	}
@@ -149,7 +149,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 	public function processDom(TrueAction_Dom_Document $doc, array $fileDetail)
 	{
 		Varien_Profiler::start(__METHOD__);
-		Mage::log(sprintf('[%s] processing %s', __CLASS__, $fileDetail['local']), Zend_Log::DEBUG);
+		Mage::log(sprintf('[%s] processing %s', __CLASS__, $fileDetail['local_file']), Zend_Log::DEBUG);
 		$fileDetail['doc'] = $doc;
 		Mage::getModel('eb2cproduct/feed_file', $fileDetail)->process();
 		Varien_Profiler::stop(__METHOD__);
@@ -169,17 +169,9 @@ class TrueAction_Eb2cProduct_Model_Feed
 		if ($timeDiff !== 0) {
 			return $timeDiff;
 		}
-		$types = array_keys($this->_eventTypes);
-		return (int) (array_search($a['type'], $types) - array_search($b['type'], $types));
-	}
-
-	/**
-	 * get the model for a specified event type.
-	 * @param  string $eventType [description]
-	 * @return [type]            [description]
-	 */
-	protected function _getEventTypeModel($eventType)
-	{
-		return Mage::getSingleton(sprintf('eb2cproduct/%s', $this->_eventTypes[$eventType]));
+		return (int) (
+			array_search($a['core_feed']->getEventType(), $this->_eventTypes) -
+			array_search($b['core_feed']->getEventType(), $this->_eventTypes)
+		);
 	}
 }

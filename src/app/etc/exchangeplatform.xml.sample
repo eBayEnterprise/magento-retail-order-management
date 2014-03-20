@@ -27,18 +27,6 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 				<!-- This example maps the Magento flatrate_flatrate shipping method to Exchange's ANY_STD shipping. -->
 				<flatrate_flatrate>ANY_STD</flatrate_flatrate>
 			</shipmap>
-			<feed>
-				<!--
-				Incoming giftCardTenderCodes must be matched to a known Magento giftcard type.
-				-->
-				<gift_card_tender_code>
-					<SD>virtual</SD>
-					<SP>physical</SP>
-					<ST>combined</ST>
-					<SV>virtual</SV>
-					<SX>combined</SX>
-				</gift_card_tender_code>
-			</feed>
 			<payment>
 				<!--
 				Stored Value Card ranges:
@@ -58,10 +46,15 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 			</payment>
 			<feed>
 				<!--
-				This setting will enable (1) or disable (0) the deletion of files from the remote
-				SFTP server after processing the feed files.
+				Incoming giftCardTenderCodes must be matched to a known Magento giftcard type.
 				-->
-				<delete_remote_feed_files>1</delete_remote_feed_files>
+				<gift_card_tender_code>
+					<SD>virtual</SD>
+					<SP>physical</SP>
+					<ST>combined</ST>
+					<SV>virtual</SV>
+					<SX>combined</SX>
+				</gift_card_tender_code>
 			</feed>
 		</eb2ccore>
 	</default>

@@ -116,6 +116,15 @@
 					</inventory>
 				</observers>
 			</sales_quote_item_qty_set_after>
+			<filetransfer_import_complete>
+				<observers>
+					<eb2c_inventory_process_feeds>
+						<class>eb2cinventory/feed_item_inventories</class>
+						<method>processFeeds</method>
+						<type>model</type>
+					</eb2c_inventory_process_feeds>
+				</observers>
+			</filetransfer_import_complete>
 		</events>
 	</global>
 	<frontend>
@@ -166,6 +175,22 @@
 		</events>
 	</frontend>
 	<default>
+		<eb2ccore>
+			<feed>
+				<filetransfer_imports>
+					<inventory>
+						<local_directory>ExchangePlatform/Feed/inbox/inventory</local_directory>
+						<event_type>ItemInventories</event_type>
+						<header_version>2.3.0</header_version>
+						<outbound>
+							<message_header>
+								<event_type>ItemInventories</event_type>
+							</message_header>
+						</outbound>
+					</inventory>
+				</filetransfer_imports>
+			</feed>
+		</eb2ccore>
 		<eb2cinventory>
 			<allocation_expired>60</allocation_expired>
 			<api_service>inventory</api_service>
@@ -180,18 +205,6 @@
 				<quantity_file>Inventory-Service-Quantity-1.0.xsd</quantity_file>
 				<rollback_file>Inventory-Service-RollbackAllocation-1.0.xsd</rollback_file>
 			</xsd>
-			<feed>
-				<local_path>TrueAction/Eb2c/Feed/Item/Inventories/</local_path>
-				<remote_path>/Inbox/Product</remote_path>
-				<file_pattern>*_inventatp*_*.xml</file_pattern>
-				<event_type>ItemInventories</event_type>
-				<header_version>2.3.0</header_version>
-				<outbound>
-					<message_header>
-						<event_type>ItemInventories</event_type>
-					</message_header>
-				</outbound>
-			</feed>
 		</eb2cinventory>
 	</default>
 	<phpunit>
