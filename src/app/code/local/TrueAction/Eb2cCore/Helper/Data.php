@@ -14,7 +14,7 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * - format - extension of the requested response format. Currently only xml is supported
 	 */
 	const URI_FORMAT = 'https://%s/v%s.%s/stores/%s/%s/%s%s.%s';
-	const PERMISSION = 027;
+	const PERMISSION = 0750;
 	/**
 	 * Get the API URI for the given service/request.
 	 * @param string $service
@@ -235,8 +235,9 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function createDir($dir)
 	{
-		umask(0);
+		$oldMask = umask(0);
 		@mkdir($dir, self::PERMISSION, true);
+		umask($oldMask);
 	}
 
 	/**

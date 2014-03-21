@@ -13,6 +13,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	const GLOBAL_PROCESSING_DIR = 'feedProcessingDirectory';
 	const GLOBAL_IMPORT_ARCHIVE_DIR = 'feedImportArchive';
 	const GLOBAL_EXPORT_ARCHIVE_DIR = 'feedExportArchive';
+	// umask used when creating the ack files
+	const ACK_FILE_PERMISSIONS_MASK = 0027;
+	const CREATE_DIRECTORY_MODE = 0750;
 
 	protected $_requiredConfigFields = array('local_directory');
 	/**
@@ -78,7 +81,7 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 	protected function _setCheckAndCreateDir($path, $dirName=null)
 	{
 		try {
-			$this->getFsTool()->checkAndCreateFolder($path);
+			$this->getFsTool()->checkAndCreateFolder($path, self::CREATE_DIRECTORY_MODE);
 		} catch (Exception $e) {
 			throw new TrueAction_Eb2cCore_Exception_Feed_File($e->getMessage());
 		}
@@ -300,7 +303,9 @@ class TrueAction_Eb2cCore_Model_Feed extends Varien_Object
 			Mage::getBaseDir('var'), $cfg->feedAckOutbox, $basename
 		);
 		$this->_setCheckAndCreateDir(dirname($localPath));
+		$oldMask = umask(self::ACK_FILE_PERMISSIONS_MASK);
 		$ackDom->save($localPath);
+		umask($oldMask);
 		return $this;
 	}
 }

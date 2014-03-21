@@ -147,7 +147,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$fileMock = $this->getMock('Varien_Io_File', array('checkAndCreateFolder'));
 		$fileMock->expects($this->once())
 			->method('checkAndCreateFolder')
-			->with($this->equalTo('TrueAction/Feed/ItemMaster/'))
+			->with($this->equalTo('TrueAction/Feed/ItemMaster/'), $this->equalTo(0750))
 			->will($this->returnValue(true));
 
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')
@@ -176,7 +176,7 @@ class TrueAction_Eb2cCore_Test_Model_FeedTest extends TrueAction_Eb2cCore_Test_B
 		$fileMock = $this->getMock('Varien_Io_File', array('checkAndCreateFolder'));
 		$fileMock->expects($this->once())
 			->method('checkAndCreateFolder')
-			->with($this->equalTo('TrueAction/Feed/ItemMaster/'))
+			->with($this->equalTo('TrueAction/Feed/ItemMaster/'), $this->equalTo(0750))
 			->will($this->throwException(new Exception("Unable to create directory '{$dir}'. Access forbidden.")));
 
 		$feedModelMock = $this->getModelMockBuilder('eb2ccore/feed')

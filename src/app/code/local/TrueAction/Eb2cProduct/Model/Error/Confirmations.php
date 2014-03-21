@@ -61,6 +61,8 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 
 	const SKU_NOT_REMOVE = 'The feed process failed to remove this product of operation type "delete"';
 	const SKU_NOT_IMPORTED = 'The feed process failed to import this product of operation type "add" or "change"';
+	// umask used when creating the error file
+	const ERROR_FILE_PERMISSIONS_MASK = 0027;
 
 	/**
 	 * @var array hold message string xml node
@@ -154,7 +156,9 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 				'[ %s ] Error Confirmations file stream is not instantiated', __CLASS__
 			));
 		}
+		$oldMask = umask(self::ERROR_FILE_PERMISSIONS_MASK);
 		$this->_fileStream->openFile('a')->fwrite("$content\n");
+		umask($oldMask);
 		return $this;
 	}
 
