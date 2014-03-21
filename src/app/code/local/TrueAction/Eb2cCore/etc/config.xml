@@ -129,9 +129,9 @@
 				<!--
 				Archive directories for all acknowledged imported and exported files
 				-->
-				<import_archive>TrueAction/Eb2c/Feed/archive/import</import_archive>
-				<export_archive>TrueAction/Eb2c/Feed/archive/export</export_archive>
-				<processing_directory>TrueAction/Eb2c/Feed/processing</processing_directory>
+				<import_archive>ExchangePlatform/Feed/archive/import</import_archive>
+				<export_archive>ExchangePlatform/Feed/archive/export</export_archive>
+				<processing_directory>ExchangePlatform/Feed/processing</processing_directory>
 				<available_models>
 					<eb2cinventory>
 						<feed_item_inventories>1</feed_item_inventories>
