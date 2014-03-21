@@ -200,9 +200,11 @@ class TrueAction_Eb2cOrder_Model_Create
 		$order->createChild('Currency', $this->_o->getOrderCurrencyCode());
 		$order->createChild('TaxHeader')->createChild('Error', 'false');
 		$order->createChild('Locale', 'en_US');
-		$adminUser = Mage::getSingleton('admin/session')->getUser();
-		if ($adminUser->getId()) {
-			$order->createChild('DashboardRepId', $adminUser->getUsername());
+		if (Mage::app()->getStore()->isAdmin()) {
+			$adminUser = Mage::getSingleton('admin/session')->getUser();
+			if ($adminUser->getId()) {
+				$order->createChild('DashboardRepId', $adminUser->getUsername());
+			}
 		}
 		$orderSource = $this->_getSourceData();
 		if (!empty($orderSource)) {

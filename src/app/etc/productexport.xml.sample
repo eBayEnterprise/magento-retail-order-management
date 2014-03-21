@@ -11,11 +11,11 @@ Copy this file to productexport.xml and configure the appropriate values below.
 			<!--
 			Configuration for setting the Product Export Cron runtimes
 			 -->
-			<pim_export_build_feed>
+			<eb2cproduct_pim_export_feed>
 				<schedule>
 					<cron_expr>0,15,30,45 * * * *</cron_expr>
 				</schedule>
-			</pim_export_build_feed>
+			</eb2cproduct_pim_export_feed>
 		</jobs>
 	</crontab>
 	<default>
