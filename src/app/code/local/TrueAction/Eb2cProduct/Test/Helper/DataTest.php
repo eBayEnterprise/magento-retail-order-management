@@ -577,6 +577,15 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 */
 	public function testGenerateFileName()
 	{
+		$filenameFormat = '{feed_type}_{time_stamp}_{channel}_{store_id}.xml';
+		$filenameConfig = array(
+			'feed_type' => 'ItemMaster',
+			'time_stamp' => '2014-01-09T13:47:32-00:00',
+			'channel' => '1234',
+			'store_id' => 'ABCD'
+		);
+		$filename = 'SomeFile_Name.xml';
+
 		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('getFileNameConfig'))
@@ -584,12 +593,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 		$feedHelperMock->expects($this->once())
 			->method('getFileNameConfig')
 			->with($this->equalTo('ItemMaster'))
-			->will($this->returnValue(array(
-				'feed_type' => 'ItemMaster',
-				'time_stamp' => '2014-01-09T13:47:32-00:00',
-				'channel' => '1234',
-				'store_id' => 'ABCD'
-			)));
+			->will($this->returnValue($filenameConfig));
 		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
 
 		$dataHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
@@ -598,27 +602,12 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 			->getMock();
 		$dataHelperMock->expects($this->once())
 			->method('mapPattern')
-			->with($this->isType('array'), $this->equalTo('{feed_type}_{time_stamp}_{channel}_{store_id}.xml'))
-			->will($this->returnValue('ItemMaster_20140107224605_12345_ABCD.xml'));
-		$dataHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->with($this->equalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
-			->will($this->returnValue((object) array(
-				'errorFeedFilenameFormat' => '{feed_type}_{time_stamp}_{channel}_{store_id}.xml',
-				'clientId' => '12345',
-				'storeId' => 'ABCD',
-			)));
-
-		$testData = array(
-			array(
-				'expect' => 'ItemMaster_20140107224605_12345_ABCD.xml',
-				'feedType' => 'ItemMaster'
-			),
+			->with($this->equalTo($filenameConfig), $this->equalTo($filenameFormat))
+			->will($this->returnValue($filename));
+		$this->assertSame(
+			$filename,
+			$dataHelperMock->generateFileName('ItemMaster', $filenameFormat)
 		);
-
-		foreach ($testData as $data) {
-			$this->assertSame($data['expect'], $dataHelperMock->generateFileName($data['feedType']));
-		}
 	}
 
 	/**
@@ -705,26 +694,34 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 
 
 	/**
-	 * Test buildFileName method
+	 * Test buildErrorFeedFilename method
 	 * @test
 	 */
-	public function testBuildFileName()
+	public function testBuildErrorFeedFilename()
 	{
 		$feedType = 'SomeEvent';
+		$filenameFormat = 'file_{name}_format.xml';
+
 		$helper = $this->getHelperMock(
 			'eb2cproduct/data',
-			array('getProcessingDirectory', 'generateFileName')
+			array('getProcessingDirectory', 'generateFileName', 'getConfigModel')
 		);
+		$config = $this->buildCoreConfigRegistry(array('errorFeedFilenameFormat' => $filenameFormat));
+
+		$helper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($config));
 		$helper->expects($this->once())
 			->method('getProcessingDirectory')
 			->will($this->returnValue('/Mage/var/processing'));
 		$helper->expects($this->once())
 			->method('generateFileName')
-			->with($this->identicalTo($feedType))
+			->with($this->identicalTo($feedType), $this->identicalTo($filenameFormat))
 			->will($this->returnValue('error_file.xml'));
+
 		$this->assertSame(
 			'/Mage/var/processing/error_file.xml',
-			$helper->buildFileName($feedType)
+			$helper->buildErrorFeedFilename($feedType)
 		);
 	}
 

@@ -193,6 +193,7 @@
 				</outbound>
 			</image_master_feed>
 			<pim_export_feed>
+				<filename_format>{client_id}_{store_id}_{feed_type}_{time_stamp}.xml</filename_format>
 				<xsd>CombinedProduct.xsd</xsd>
 				<outbound>
 					<message_header>

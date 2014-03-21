@@ -85,7 +85,7 @@ class TrueAction_Eb2cProduct_Model_Feed
 			if ($fileList) {
 				$eventType = $coreFeed->getEventType();
 				// generate error confirmation file by event type
-				$errorFile = Mage::helper('eb2cproduct')->buildFileName($eventType);
+				$errorFile = Mage::helper('eb2cproduct')->buildErrorFeedFileName($eventType);
 				// load the file and add the initial data such as xml directive, open node and message header
 				Mage::getModel('eb2cproduct/error_confirmations')->loadFile($errorFile)
 					->initFeed($eventType);

@@ -151,7 +151,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 * _compareFeedFiles method.
 	 * @mock TrueAction_Eb2cProduct_Model_Feed::_unifiedAllFiles
 	 * @mock TrueAction_Eb2cProduct_Model_Feed::_compareFeedFiles
-	 * @mock TrueAction_Eb2cProduct_Helper_Data::buildFileName
+	 * @mock TrueAction_Eb2cProduct_Helper_Data::buildErrorFeedFilename
 	 * @mock TrueAction_Eb2cProduct_Model_Error_Confirmations::loadFile
 	 * @mock TrueAction_Eb2cProduct_Model_Error_Confirmations::initFeed
 	 * @test
@@ -162,7 +162,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->disableOriginalConstructor()
 			->setMethods(array('lsLocalDirectory', 'getEventType'))
 			->getMock();
-		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('buildFileName'));
+		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('buildErrorFeedFilename'));
 		$errorConfirmations = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
 			->disableOriginalConstructor()
 			->setMethods(array('loadFile', 'initFeed'))
@@ -190,7 +190,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 			->method('getEventType')
 			->will($this->returnValue($eventType));
 		$prodHelper->expects($this->once())
-			->method('buildFileName')
+			->method('buildErrorFeedFilename')
 			->with($this->identicalTo($eventType))
 			->will($this->returnValue($errorFile));
 		$errorConfirmations->expects($this->once())

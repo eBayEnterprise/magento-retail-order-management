@@ -566,23 +566,32 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	{
 		$outboundPath = 'Path/To/Outbound/Dir';
 		$tmpFileName = 'MageMaster_File_Name.xml';
+		$filenameFormat = 'filename_{format}_string.xml';
 
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->setMethods(array('getLocalDirectory'))
 			->getMock();
-		$prodHelper = $this->getHelperMock('eb2cproduct/data', array('generateFileName'));
-		$config = $this->buildCoreConfigRegistry(array('pim_export_feed_event_type' => 'PIMExport'));
+		$prodHelper = $this->getHelperMock(
+			'eb2cproduct/data',
+			array('generateFileName', 'getConfigModel')
+		);
+
+		$config = $this->buildCoreConfigRegistry(array(
+			'pimExportFilenameFormat' => $filenameFormat
+		));
 
 		$prodHelper->expects($this->once())
 			->method('generateFileName')
-			->with($this->identicalTo('MageMaster'))
+			->with($this->identicalTo('MageMaster'), $this->identicalTo($filenameFormat))
 			->will($this->returnValue($tmpFileName));
+		$prodHelper->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($config));
 		$coreFeed->expects($this->once())
 			->method('getLocalDirectory')
 			->will($this->returnValue($outboundPath));
 
-		$this->replaceByMock('model', 'eb2ccore/config_registry', $config);
 		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
 
 		$pim = Mage::getModel(

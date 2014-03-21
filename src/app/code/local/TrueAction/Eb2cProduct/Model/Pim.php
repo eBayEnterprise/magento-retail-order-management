@@ -191,8 +191,12 @@ class TrueAction_Eb2cProduct_Model_Pim
 	 */
 	protected function _getFeedFilePath()
 	{
+		$helper = Mage::helper('eb2cproduct');
 		return $this->_coreFeed->getLocalDirectory() . DS .
-			Mage::helper('eb2cproduct')->generateFileName(self::DOCUMENT_NODE_NAME);
+			$helper->generateFileName(
+				self::DOCUMENT_NODE_NAME,
+				$helper->getConfigModel()->pimExportFilenameFormat
+			);
 	}
 	/**
 	 * setup the document with the root node and the message header.

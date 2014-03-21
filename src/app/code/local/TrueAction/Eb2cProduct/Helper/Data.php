@@ -303,15 +303,15 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 
 	/**
 	 * generate file name by feed type
-	 * @param string $feedType
+	 * @param string $feedType Type of feed to be processed
+	 * @param string $format Filename format string to use to build the filename
 	 * @return string the errorconfirmations file name
 	 */
-	public function generateFileName($feedType)
+	public function generateFileName($feedType, $format)
 	{
 		return $this->mapPattern(
 			Mage::helper('eb2ccore/feed')->getFileNameConfig($feedType),
-			$this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)
-				->errorFeedFilenameFormat
+			$format
 		);
 	}
 
@@ -347,9 +347,14 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param string $feedType
 	 * @return string
 	 */
-	public function buildFileName($feedType)
+	public function buildErrorFeedFilename($feedType)
 	{
-		return $this->getProcessingDirectory() . DS . $this->generateFileName($feedType);
+		return $this->getProcessingDirectory() . DS .
+			$this->generateFileName(
+				$feedType,
+				$this->getConfigModel(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID)
+					->errorFeedFilenameFormat
+			);
 	}
 
 	/**
