@@ -1,18 +1,18 @@
 <?xml version='1.0' encoding="utf-8" ?>
 <!--
-Magento to Exchange platform mappings:
-The below configurations translate from Magento to Exchange.
-Copy this file to eb2c.xml and configure the appropriate values below.
+Magento to Exchange Platform mappings:
+The below configurations translate from Magento to the Exchange Platform.
+Copy this file to exchangeplatform.xml and configure the appropriate values below.
 -->
 <config>
 	<!--
-	Configuration for setting the time product feed and inventory feed runs
+	Configuration for setting Exchange Platform cron jobs
 	-->
 	<crontab>
 		<jobs>
 			<eb2corder_order_create_retry>
 				<schedule>
-					<cron_expr>0 3 * * *</cron_expr>
+					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2corder_order_create_retry>
 		</jobs>
@@ -21,7 +21,7 @@ Copy this file to eb2c.xml and configure the appropriate values below.
 		<eb2ccore>
 			<!--
 			Shipping method mappings:
-			Map Magento shipping methods to the desired Exchange platform shipping method name. Add one node for each configured Magento shipping method.
+			Map Magento shipping methods to the desired Exchange Platform shipping method name. Add one node for each configured Magento shipping method.
 			-->
 			<shipmap>
 				<!-- This example maps the Magento flatrate_flatrate shipping method to Exchange's ANY_STD shipping. -->

@@ -2,7 +2,7 @@
 <!--
 Magento to Exchange Platform Product Export Mappings
 
-This configuration file controls exporting data from Magento to Exchange.
+This configuration file controls exporting data from Magento to the Exchange Platform Product Hub.
 Copy this file to productexport.xml and configure the appropriate values below.
 -->
 <config>
@@ -13,7 +13,7 @@ Copy this file to productexport.xml and configure the appropriate values below.
 			 -->
 			<eb2cproduct_pim_export_feed>
 				<schedule>
-					<cron_expr>0,15,30,45 * * * *</cron_expr>
+					<cron_expr>*/15 * * * *</cron_expr>
 				</schedule>
 			</eb2cproduct_pim_export_feed>
 		</jobs>
