@@ -645,7 +645,7 @@ class TrueAction_Eb2cOrder_Model_Create
 			->addChild('IPAddress', Mage::helper('core/http')->getServerAddr())
 			->addChild('SessionId', Mage::getSingleton('core/session')->getSessionId())
 			->addChild('UserAgent', Mage::helper('core/http')->getHttpUserAgent(true))
-			->addChild('JavascriptData', $this->_o->getEb2cJavascriptData())
+			->addChild('JavascriptData', $this->_o->getEb2cFraudJavascriptData())
 			->addChild('Referrer', Mage::helper('core/http')->getHttpReferer(true));
 		$httpAcceptData = $browserData->createChild('HTTPAcceptData');
 		$httpAcceptData->addChild('ContentTypes', $_SERVER['HTTP_ACCEPT'])

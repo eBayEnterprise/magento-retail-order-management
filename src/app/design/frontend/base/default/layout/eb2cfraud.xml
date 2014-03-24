@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<layout>
+	<checkout_onepage_index>
+		<reference name="before_body_end">
+			<block type="eb2cfraud/jsc" name="eb2cfraud_javascript_collector" />
+		</reference>
+	</checkout_onepage_index>
+</layout>

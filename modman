@@ -15,6 +15,8 @@ src/shell/* shell/
 
 # Fraud
 src/js/trueaction_eb2cfraud		js/trueaction_eb2cfraud
+src/app/design/frontend/base/default/layout/eb2cfraud.xml app/design/frontend/base/default/layout/eb2cfraud.xml
+src/app/design/frontend/base/default/template/eb2cfraud app/design/frontend/base/default/template/eb2cfraud
 
 # Address
 src/app/design/frontend/base/default/layout/eb2caddress_frontend.xml app/design/frontend/base/default/layout/eb2caddress_frontend.xml

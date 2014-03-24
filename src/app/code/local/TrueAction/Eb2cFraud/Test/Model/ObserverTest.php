@@ -52,6 +52,13 @@ class TrueAction_Eb2cFraud_Test_Model_ObserverTest extends EcomDev_PHPUnit_Test_
 			->method('getPost')
 			->will($this->returnValue('sample_js_data'));
 
+		$fraudHelper = $this->getHelperMock('eb2cfraud/data', array('getJavaScriptFraudData'));
+		$fraudHelper->expects($this->once())
+			->method('getJavaScriptFraudData')
+			->with($this->identicalTo($mockRequest))
+			->will($this->returnValue('javascript data'));
+		$this->replaceByMock('helper', 'eb2cfraud', $fraudHelper);
+
 		$this->replaceSingleton(
 			'customer/session',
 			array(

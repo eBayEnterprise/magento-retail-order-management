@@ -1,0 +1,30 @@
+<script type="text/javascript" src="<?php echo $this->getCollectorUrl() ?>"></script>
+<script type="text/javascript">
+//<![CDATA[
+document.observe("dom:loaded", function() {
+	$('co-payment-form').insert('<?php echo $this->getField() ?>');
+	$('co-payment-form').insert('<?php echo $this->getMappingField() ?>');
+	Review.prototype.save = function() {
+		<?php echo $this->getCall() ?>
+		if (checkout.loadWaiting!=false) return;
+		checkout.setLoadWaiting('review');
+		Form.enable(payment.form);
+		var params = Form.serialize(payment.form);
+		if (this.agreementsForm) {
+			params += '&'+Form.serialize(this.agreementsForm);
+		}
+		params.save = true;
+		var request = new Ajax.Request(
+		this.saveUrl,
+		{
+			method:'post',
+			parameters:params,
+			onComplete: this.onComplete,
+			onSuccess: this.onSave,
+			onFailure: checkout.ajaxFailure.bind(checkout)
+		}
+		);
+	}
+});
+//]]
+</script>

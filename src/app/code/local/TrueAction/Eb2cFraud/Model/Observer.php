@@ -20,7 +20,7 @@ class TrueAction_Eb2cFraud_Model_Observer
 			'eb2c_fraud_language'        => $http->getHttpAcceptLanguage(),
 			'eb2c_fraud_ip_address'      => $http->getRemoteAddr(),
 			'eb2c_fraud_session_id'      => $sess->getEncryptedSessionId(),
-			'eb2c_fraud_javascript_data' => $rqst->getPost(TrueAction_Eb2cFraud_Helper_Data::JSC_FIELD_NAME, ''),
+			'eb2c_fraud_javascript_data' => Mage::helper('eb2cfraud')->getJavaScriptFraudData($rqst),
 		))->save();
 	}
 }

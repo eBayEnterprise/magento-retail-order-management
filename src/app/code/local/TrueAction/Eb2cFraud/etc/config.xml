@@ -76,6 +76,13 @@
 				</observers>
 			</eb2c_onepage_save_order_before>
 		</events>
+		<layout>
+			<updates>
+				<eb2cfraud>
+					<file>eb2cfraud.xml</file>
+				</eb2cfraud>
+			</updates>
+		</layout>
 	</frontend>
 	<test>
 		<events>

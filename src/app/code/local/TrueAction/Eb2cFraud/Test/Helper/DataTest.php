@@ -34,5 +34,21 @@ class TrueAction_Eb2cFraud_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test
 		$url = $this->_helper->getJscUrl();
 		$this->assertStringEndsWith($this->_jsModuleName, $url);
 	}
-
+	public function testGetJavaScriptFraudData()
+	{
+		$request = $this->getMockBuilder('Mage_Core_Controller_Request_Http')
+			->disableOriginalConstructor()
+			->setMethods(array('getPost'))
+			->getMock();
+		$request->expects($this->exactly(2))
+			->method('getPost')
+			->will($this->returnValueMap(array(
+				array('eb2cszyvl', '', 'random_field_name'),
+				array('random_field_name', '', 'javascript_data'),
+			)));
+		$this->assertSame(
+			'javascript_data',
+			Mage::helper('eb2cfraud')->getJavaScriptFraudData($request)
+		);
+	}
 }
