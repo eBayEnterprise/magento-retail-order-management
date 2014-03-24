@@ -9,70 +9,48 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_ProductTest
 	 */
 	public function testLoadPimAttributesByProduct()
 	{
+		$key = 'item_map';
+		$attributes = array('_gsi_client_id','sku');
+
+		$result = array();
+		for ($i=0; $i < 3; $i++) {
+			$result[] = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
+				->disableOriginalConstructor()
+				->getMock();
+		}
+
 		$doc = new TrueAction_Dom_Document();
-		$product = $this->getModelMock('catalog/product', array('getSku', 'getStoreId', 'getAttributes'));
-		$attribute = $this->getModelMockBuilder('catalog/entity_attribute')
+
+		$product = $this->getModelMockBuilder('catalog/product')
 			->disableOriginalConstructor()
+			->setMethods(null)
 			->getMock();
+
 		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
 			->disableOriginalConstructor()
 			->setMethods(array('getPimAttribute'))
 			->getMock();
+		$factory->expects($this->exactly(2))
+			->method('getPimAttribute')
+			->will($this->returnValueMap(array(
+				array($attributes[0], $product, $doc, $key, $result[1]),
+				array($attributes[1], $product, $doc, $key, $result[2])
+			)));
 		$this->replaceByMock('singleton', 'eb2cproduct/pim_attribute_factory', $factory);
 
-		$pimAttribute = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
+		$pimProduct = $this->getModelMockBuilder('eb2cproduct/pim_product')
 			->disableOriginalConstructor()
+			->setMethods(array('setPimAttributes', 'getPimAttributes'))
 			->getMock();
+		$pimProduct->expects($this->once())
+			->method('setPimAttributes')
+			->with($this->identicalTo($result))
+			->will($this->returnSelf());
+		$pimProduct->expects($this->once())
+			->method('getPimAttributes')
+			->will($this->returnValue(array($result[0])));
 
-		$product->expects($this->once())
-			->method('getAttributes')
-			->will($this->returnValue(array('attribute_code' => $attribute)));
-		$factory->expects($this->once())
-			->method('getPimAttribute')
-			->with($this->identicalTo($attribute), $this->identicalTo($product), $doc)
-			->will($this->returnValue($pimAttribute));
-
-		$pimProduct = Mage::getModel(
-			'eb2cproduct/pim_product',
-			array('client_id' => 'CID', 'catalog_id' => '45', 'sku' => '45-12345')
-		);
-		$pimProduct->loadPimAttributesByProduct($product, $doc);
-		$this->assertSame(array($pimAttribute), $pimProduct->getPimAttributes(), $doc);
-	}
-	/**
-	 * Any null values returned by the factory should be filtered out of the list
-	 * of PIM attribute models
-	 * @test
-	 */
-	public function testLoadPimAttributesByProductFilterNullValues()
-	{
-		$doc = new TrueAction_Dom_Document();
-		$product = $this->getModelMock('catalog/product', array('getSku', 'getStoreId', 'getAttributes'));
-		$attribute = $this->getModelMockBuilder('catalog/entity_attribute')
-			->disableOriginalConstructor()
-			->getMock();
-		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
-			->disableOriginalConstructor()
-			->setMethods(array('getPimAttribute'))
-			->getMock();
-		$this->replaceByMock('singleton', 'eb2cproduct/pim_attribute_factory', $factory);
-
-		$pimAttribute = null;
-
-		$product->expects($this->once())
-			->method('getAttributes')
-			->will($this->returnValue(array('attribute_code' => $attribute)));
-		$factory->expects($this->once())
-			->method('getPimAttribute')
-			->with($this->identicalTo($attribute), $this->identicalTo($product), $doc)
-			->will($this->returnValue($pimAttribute));
-
-		$pimProduct = Mage::getModel(
-			'eb2cproduct/pim_product',
-			array('client_id' => 'CID', 'catalog_id' => '45', 'sku' => '45-12345')
-		);
-		$pimProduct->loadPimAttributesByProduct($product, $doc);
-		$this->assertSame(array(), $pimProduct->getPimAttributes());
+		$this->assertSame($pimProduct, $pimProduct->loadPimAttributesByProduct($product, $doc, $key, $attributes));
 	}
 	/**
 	 * verify an exception is thrown when missing arguments
@@ -80,12 +58,30 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_ProductTest
 	 */
 	public function testConstructInvalidArguments()
 	{
-		$initArray = array();
-		$this->setExpectedException(
-			'Exception',
-			'User Error: TrueAction_Eb2cProduct_Model_Pim_Product::_construct missing arguments: client_id, catalog_id, sku'
+		$expectedException = sprintf(
+			TrueAction_Eb2cProduct_Model_Pim_Product::ERROR_INVALID_ARGS,
+			'TrueAction_Eb2cProduct_Model_Pim_Product::_construct',
+			'client_id, catalog_id, sku'
 		);
-		Mage::getModel('eb2cproduct/pim_product', $initArray);
+		$initParams = array();
+		$this->setExpectedException('Exception', $expectedException);
+
+		$helper = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('triggerError'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('triggerError')
+			->with($this->identicalTo($expectedException))
+			->will($this->throwException(new Exception($expectedException)));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+
+		$product = $this->getModelMockBuilder('eb2cproduct/pim_product')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		EcomDev_Utils_Reflection::invokeRestrictedMethod($product, '_construct', array($initParams));
 	}
 	public function testConstructor()
 	{

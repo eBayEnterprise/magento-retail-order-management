@@ -1,6 +1,6 @@
 <?php
 
-class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
+class TrueAction_Eb2cProduct_Test_Model_Pim_Attribute_FactoryTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
@@ -38,6 +38,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 	 */
 	public function testGetPimAttribute()
 	{
+		$key = 'item_map';
 		$doc = new TrueAction_Dom_Document();
 		$attributeMapping = array('xml_dest' => 'Some/XPath', 'class' => 'eb2cproduct/pim', 'type' => 'helper');
 		$pimAttrConstructorArgs = array(
@@ -51,23 +52,27 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 		$pimAttribute = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
 			->disableOriginalConstructor()
 			->getMock();
+
 		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
 			->disableOriginalConstructor()
 			->setMethods(array('_getAttributeMapping', '_resolveMappedCallback'))
 			->getMock();
-
-		$this->replaceByMock('model', 'eb2cproduct/pim_attribute', $pimAttribute);
-
 		$factory->expects($this->once())
 			->method('_getAttributeMapping')
 			->with($this->identicalTo($attribute))
-			->will($this->returnValue($attributeMapping));
+			->will($this->returnValue($attributeMapping), $this->identicalTo($key));
 		$factory->expects($this->once())
 			->method('_resolveMappedCallback')
-			->with($this->identicalTo($attributeMapping), $this->identicalTo($attribute), $this->identicalTo($product), $this->identicalTo($doc))
+			->with(
+				$this->identicalTo($attributeMapping),
+				$this->identicalTo($attribute),
+				$this->identicalTo($product),
+				$this->identicalTo($doc)
+			)
 			->will($this->returnValue($pimAttrConstructorArgs));
+		$this->replaceByMock('model', 'eb2cproduct/pim_attribute', $pimAttribute);
 
-		$this->assertSame($pimAttribute, $factory->getPimAttribute($attribute, $product, $doc));
+		$this->assertSame($pimAttribute, $factory->getPimAttribute($attribute, $product, $doc, $key));
 	}
 	/**
 	 * When a resolved mapping callback returns null due to a mapping being
@@ -76,6 +81,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 	 */
 	public function testGetPimAttributeDisabledMapping()
 	{
+		$key = 'item_map';
 		$doc = new TrueAction_Dom_Document();
 		$attributeMapping = array('xml_dest' => 'Some/XPath');
 		$product = $this->getModelMock('catalog/product');
@@ -93,13 +99,18 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 		$factory->expects($this->once())
 			->method('_getAttributeMapping')
 			->with($this->identicalTo($attribute))
-			->will($this->returnValue($attributeMapping));
+			->will($this->returnValue($attributeMapping), $this->identicalTo($key));
 		$factory->expects($this->once())
 			->method('_resolveMappedCallback')
-			->with($this->identicalTo($attributeMapping), $this->identicalTo($attribute), $this->identicalTo($product), $this->identicalTo($doc))
+			->with(
+				$this->identicalTo($attributeMapping),
+				$this->identicalTo($attribute),
+				$this->identicalTo($product),
+				$this->identicalTo($doc)
+			)
 			->will($this->returnValue(null));
 
-		$this->assertSame(null, $factory->getPimAttribute($attribute, $product, $doc));
+		$this->assertSame(null, $factory->getPimAttribute($attribute, $product, $doc, $key));
 	}
 	/**
 	 * Test getting an attribute mapping
@@ -107,86 +118,21 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 	 */
 	public function testGetAttributeMapping()
 	{
+		$attribute = 'sku';
+		$key = 'item_map';
 		$skuMapping = array('xml_dest' => 'Some/XPath');
-		$attributeMappings = array('mapped_attribute_code' => $skuMapping);
-		$attribute = $this->getModelMockBuilder('catalog/entity_attribute')
-			->disableOriginalConstructor()
-			->setMethods(array('getAttributeCode'))
-			->getMock();
+		$attributeMappings = array($key => array('mappings' => array($attribute => $skuMapping)));
+
 		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
 			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 
 		EcomDev_Utils_Reflection::setRestrictedPropertyValue($factory, '_attributeMappings', $attributeMappings);
-
-		$attribute->expects($this->once())
-			->method('getAttributeCode')
-			->will($this->returnValue('mapped_attribute_code'));
 
 		$this->assertSame(
 			$skuMapping,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($factory, '_getAttributeMapping', array($attribute))
-		);
-	}
-	/**
-	 * When the attribute code does not match a mapped attribute, use a default
-	 * mapping.
-	 * @test
-	 */
-	public function testGetAttributeMappingUsingDefault()
-	{
-		$defaultMapping = array('xml_dest' => 'Some/XPath');
-		$attributeMappings = array('mapped_attribute_code' => array());
-		$attribute = $this->getModelMockBuilder('catalog/entity_attribute')
-			->disableOriginalConstructor()
-			->setMethods(array('getAttributeCode'))
-			->getMock();
-		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
-			->disableOriginalConstructor()
-			->setMethods(array('_getDefaultMapping'))
-			->getMock();
-
-		EcomDev_Utils_Reflection::setRestrictedPropertyValue($factory, '_attributeMappings', $attributeMappings);
-
-		$factory->expects($this->once())
-			->method('_getDefaultMapping')
-			->with($this->identicalTo('unmapped_attribute_code'))
-			->will($this->returnValue($defaultMapping));
-		$attribute->expects($this->once())
-			->method('getAttributeCode')
-			->will($this->returnValue('unmapped_attribute_code'));
-
-		$this->assertSame(
-			$defaultMapping,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($factory, '_getAttributeMapping', array($attribute))
-		);
-	}
-	/**
-	 * Return the generated default mapping - should use the default config value
-	 * with the xml_dest evaluated to use the attribute code for the
-	 * @name attribute value.
-	 * @test
-	 */
-	public function testGetDefaultMapping()
-	{
-		$attributeCode = 'attribute_code';
-		$defaultMapping = array('xml_dest' => 'CustomAttributes/Attribute[@name="%s"]');
-
-		$factory = $this->getModelMockBuilder('eb2cproduct/pim_attribute_factory')
-			->disableOriginalConstructor()
-			->setMethods(null)
-			->getMock();
-		EcomDev_Utils_Reflection::setRestrictedPropertyValue($factory, '_defaultMapping', $defaultMapping);
-
-		$this->assertSame(
-			array('xml_dest' => 'CustomAttributes/Attribute[@name="attribute_code"]'),
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($factory, '_getDefaultMapping', array($attributeCode))
-		);
-		// ensure the property has not been modified
-		$this->assertSame(
-			$defaultMapping,
-			EcomDev_Utils_Reflection::getRestrictedPropertyValue($factory, '_defaultMapping')
+			EcomDev_Utils_Reflection::invokeRestrictedMethod($factory, '_getAttributeMapping', array($attribute, $key))
 		);
 	}
 	/**
@@ -200,7 +146,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 	public function testResolveMappedCallback()
 	{
 		$doc = new TrueAction_Dom_Document();
-		$attribute = $this->getModelMock('catalog/entity_attribute', array('getAttributeCode'));
+		$attribute = 'some_attribute_code';
 		$product = $this->getModelMock('catalog/product', array('getDataUsingMethod'));
 		$callbackValue = $this->getMockBuilder('DOMDocumentFragment')
 			->disableOriginalConstructor()
@@ -222,7 +168,6 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 		);
 		$languageCode = 'en-us';
 		$sku = '45-12345';
-		$attributeCode = 'some_attribute_code';
 		$attributeValue = 'some attribute value';
 		$callbackConfig = array_merge(
 			$attributeMapping,
@@ -235,12 +180,9 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attriubte_FactoryTest
 			'language' => $languageCode,
 		);
 
-		$attribute->expects($this->once())
-			->method('getAttributeCode')
-			->will($this->returnValue($attributeCode));
 		$product->expects($this->once())
 			->method('getDataUsingMethod')
-			->with($this->identicalTo($attributeCode))
+			->with($this->identicalTo($attribute))
 			->will($this->returnValue($attributeValue));
 		$coreHelper->expects($this->once())
 			->method('invokeCallback')

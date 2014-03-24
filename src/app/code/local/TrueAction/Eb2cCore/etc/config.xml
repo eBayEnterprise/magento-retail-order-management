@@ -257,6 +257,7 @@
 							<method>getStoreId</method>
 						</store_id>
 					</file_name>
+					<file_pattern>Export_{feed_type}_{client_id}_{catalog_id}_{store_id}_{time_stamp}.xml</file_pattern>
 				</outbound>
 				<header_template><![CDATA[<MessageHeader>
 		<Standard>{standard}</Standard>

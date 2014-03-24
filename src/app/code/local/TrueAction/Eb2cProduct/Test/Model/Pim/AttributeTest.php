@@ -80,7 +80,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 				'value' => $dom->createElement('Foo', 'Value')
 			)
 		);
-		$this->assertSame('5CustomAttributes/Attributeen-US<Foo>Value</Foo>', (string) $a);
+		$this->assertSame('0CustomAttributes/Attributeen-US<Foo>Value</Foo>', (string) $a);
 		$a = Mage::getModel(
 			'eb2cproduct/pim_attribute',
 			array(
@@ -90,7 +90,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 				'value' => $dom->createCDATASection('Foo')
 			)
 		);
-		$this->assertSame('5CustomAttributes/Attributeen-USFoo', (string) $a);
+		$this->assertSame('0CustomAttributes/Attributeen-USFoo', (string) $a);
 		$fragment = $dom->createDocumentFragment();
 		$fragment->appendChild($dom->createElement('Foo', 'Bar'));
 		$fragment->appendChild($dom->createElement('Baz'));
@@ -103,7 +103,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 				'value' => $fragment
 			)
 		);
-		$this->assertSame('5CustomAttributes/Attributeen-US<Foo>Bar</Foo><Baz></Baz>', (string) $a);
+		$this->assertSame('0CustomAttributes/Attributeen-US<Foo>Bar</Foo><Baz></Baz>', (string) $a);
 	}
 	/**
 	 * Provide constructor args to the PIM Attribute model that should be expected
