@@ -404,4 +404,25 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	{
 		return Mage::app()->getWebsite(true);
 	}
+
+	/**
+	 * abstracting getting store configuration flag
+	 * @see Mage::getBaseUrl
+	 * @codeCoverageIgnore
+	 */
+	public function getBaseUrl($type = Mage_Core_Model_Store::URL_TYPE_LINK, $secure = null)
+	{
+		return Mage::getBaseUrl($type, $secure);
+	}
+
+	/**
+	 * abstracting triggering errors
+	 * @param string $message
+	 * @return void
+	 * @codeCoverageIgnore
+	 */
+	public function triggerError($message)
+	{
+		trigger_error($message, E_USER_ERROR);
+	}
 }

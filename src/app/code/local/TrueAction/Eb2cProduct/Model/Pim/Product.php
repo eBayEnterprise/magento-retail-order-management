@@ -19,6 +19,7 @@
 class TrueAction_Eb2cProduct_Model_Pim_Product
 	extends Varien_Object
 {
+	const ERROR_INVALID_ARGS = '%s missing arguments: %s';
 	/**
 	 * Validate initialization data
 	 * Trigger an error if catalog_id, client_id, sku are not in the
@@ -26,12 +27,14 @@ class TrueAction_Eb2cProduct_Model_Pim_Product
 	 */
 	protected function _construct()
 	{
-		if ($missingData = array_diff(array('client_id', 'catalog_id', 'sku'), array_keys($this->getData()))) {
-			trigger_error(
-				sprintf('%s missing arguments: %s', __METHOD__, implode(', ', $missingData)),
-				E_USER_ERROR
-			);
+		$missingData = array_diff(array('client_id', 'catalog_id', 'sku'), array_keys($this->getData()));
+		if ($missingData) {
+			Mage::helper('eb2ccore')->triggerError(sprintf(
+				self::ERROR_INVALID_ARGS, __METHOD__, implode(', ', $missingData)
+			));
+			// @codeCoverageIgnoreStart
 		}
+		// @codeCoverageIgnoreEnd
 		$this->setPimAttributes(array());
 	}
 	/**
@@ -42,9 +45,15 @@ class TrueAction_Eb2cProduct_Model_Pim_Product
 	 * existing set of PIM attribute models.
 	 * @param  Mage_Catalog_Model_Product $product
 	 * @param  TrueAction_Dom_Document    $doc
+	 * @param  string $key
+	 * @param  array $attributes list of attributes from the configuration per feed type
 	 * @return self
 	 */
-	public function loadPimAttributesByProduct(Mage_Catalog_Model_Product $product, TrueAction_Dom_Document $doc)
+	public function loadPimAttributesByProduct(
+		Mage_Catalog_Model_Product $product,
+		TrueAction_Dom_Document $doc,
+		$key,
+		array $attributes)
 	{
 		$attributeFactory = Mage::getSingleton('eb2cproduct/pim_attribute_factory');
 
@@ -53,10 +62,10 @@ class TrueAction_Eb2cProduct_Model_Pim_Product
 				$this->getPimAttributes(),
 				array_filter(
 					array_map(
-						function ($attr) use ($product, $attributeFactory, $doc) {
-							return $attributeFactory->getPimAttribute($attr, $product, $doc);
+						function ($attr) use ($product, $attributeFactory, $doc, $key) {
+							return $attributeFactory->getPimAttribute($attr, $product, $doc, $key);
 						},
-						array_values($product->getAttributes())
+						$attributes
 					)
 				)
 			)

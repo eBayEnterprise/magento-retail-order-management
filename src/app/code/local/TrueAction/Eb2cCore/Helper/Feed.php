@@ -166,12 +166,13 @@ class TrueAction_Eb2cCore_Helper_Feed extends Mage_Core_Helper_Abstract
 	 */
 	public function getHeaderConfig($feedType)
 	{
-		if (!isset($this->_feedTypeHeaderConf[$feedType])) {
+		$type = $this->_feedTypeHeaderConf;
+		if (!isset($type[$feedType])) {
 			return array();
 		}
 		return $this->_doConfigTranslation(array_merge(
 			$this->getConfigData(self::DEFAULT_HEADER_CONF),
-			$this->getConfigData($this->_feedTypeHeaderConf[$feedType])
+			$this->getConfigData($type[$feedType])
 		));
 	}
 

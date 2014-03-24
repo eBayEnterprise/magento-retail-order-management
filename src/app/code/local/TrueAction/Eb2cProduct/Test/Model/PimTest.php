@@ -11,25 +11,24 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testConstructor()
 	{
+		$docs = array();
+
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
 			->getMock();
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
 			->disableOriginalConstructor()
-			->setMethods(array('_setUpCoreFeed'))
+			->setMethods(array('_setUpCoreFeed', '_getFeedDoms'))
 			->getMock();
 		$pim->expects($this->once())
 			->method('_setUpCoreFeed')
 			->will($this->returnValue($coreFeed));
+		$pim->expects($this->once())
+			->method('_getFeedDoms')
+			->will($this->returnValue($docs));
 		$pim->__construct();
-		$this->assertInstanceOf(
-			'TrueAction_Dom_Document',
-			EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_doc')
-		);
-		$this->assertSame(
-			$coreFeed,
-			EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_coreFeed')
-		);
+		$this->assertSame($docs, EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_docs'));
+		$this->assertSame($coreFeed, EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_coreFeed'));
 	}
 	/**
 	 * Test constructing the PIM Model passing it dependencies. Should expect the
@@ -39,33 +38,83 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	public function testConstructorWithArgs()
 	{
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
-		$doc = new TrueAction_Dom_Document();
+		$docs = array('item_map' => new TrueAction_Dom_Document(),);
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
 			->disableOriginalConstructor()
-			->setMethods(array('_setUpCoreFeed'))
+			->setMethods(null)
 			->getMock();
-		$pim->expects($this->never())->method('_setUpCoreFeed');
 
-		$pim->__construct(array('doc' => $doc, 'core_feed' => $coreFeed));
-		$this->assertInstanceOf(
-			'TrueAction_Dom_Document',
-			EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_doc')
-		);
-		$this->assertSame(
-			$coreFeed,
-			EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_coreFeed')
-		);
+		$pim->__construct(array('docs' => $docs, 'core_feed' => $coreFeed));
+		$this->assertSame($docs, EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_docs'));
+		$this->assertSame($coreFeed, EcomDev_Utils_Reflection::getRestrictedPropertyValue($pim, '_coreFeed'));
 	}
 	/**
-	 * If the constructor is called with a params argument containing s 'doc' key
-	 * value pair, the value must be a TrueAction_Dom_Document, else an error
+	 * If the constructor is called with a params argument containing 'docs' key
+	 * value pair, the value must be an array of key mapped to TrueAction_Dom_Document, else an error
 	 * (converted to an Exception in the test) will be triggered.
 	 * @test
 	 */
 	public function testConstructorBadDomError()
 	{
-		$this->setExpectedException('Exception', 'User Error: TrueAction_Eb2cProduct_Model_Pim::__construct called with invalid doc. Must be instance of TrueAction_Dom_Document');
-		Mage::getModel('eb2cproduct/pim', array('doc' => 'Fish'));
+		$expectedException = sprintf(
+			TrueAction_Eb2cProduct_Model_Pim::ERROR_INVALID_DOC,
+			'TrueAction_Eb2cProduct_Model_Pim::__construct'
+		);
+		$initParams = array(TrueAction_Eb2cProduct_Model_Pim::KEY_DOCS => array());
+		$this->setExpectedException('Exception', $expectedException);
+
+		$helper = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('triggerError'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('triggerError')
+			->with($this->identicalTo($expectedException))
+			->will($this->throwException(new Exception($expectedException)));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '__construct', array($initParams));
+	}
+	/**
+	 * If the constructor is called with a params argument containing s 'core_feed' key
+	 * value pair, the value must be a TrueAction_Eb2cCore_Model_Feed, else an error
+	 * (converted to an Exception in the test) will be triggered.
+	 * @test
+	 */
+	public function testConstructorBadCoreFeed()
+	{
+		$docs = array();
+		$expectedException = sprintf(
+			TrueAction_Eb2cProduct_Model_Pim::ERROR_INVALID_CORE_FEED,
+			'TrueAction_Eb2cProduct_Model_Pim::__construct'
+		);
+		$initParams = array(TrueAction_Eb2cProduct_Model_Pim::KEY_CORE_FEED => array());
+		$this->setExpectedException('Exception', $expectedException);
+
+		$helper = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('triggerError'))
+			->getMock();
+		$helper->expects($this->once())
+			->method('triggerError')
+			->with($this->identicalTo($expectedException))
+			->will($this->throwException(new Exception($expectedException)));
+		$this->replaceByMock('helper', 'eb2ccore', $helper);
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedDoms'))
+			->getMock();
+		$pim->expects($this->once())
+			->method('_getFeedDoms')
+			->will($this->returnValue($docs));
+
+		EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '__construct', array($initParams));
 	}
 	/**
 	 * Create feed data set from product collection.
@@ -76,34 +125,44 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testBuildFeed()
 	{
-		$pathToFile = 'path/to/export/file.xml';
-		$feedData = $this->getModelMock('eb2cproduct/pim_product_collection', array('getItems'));
+		$key = 'item_map';
+		$map = array($key => array());
+		$pathToFile = array($key => 'path/to/export/file.xml');
 		$productIds = array(1, 2, 3, 4, 54);
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+
+		$feedData = $this->getModelMockBuilder('eb2cproduct/pim_product_collection')
 			->disableOriginalConstructor()
+			->setMethods(null)
 			->getMock();
 
-		$feedDoc = $this->getMock('TrueAction_Dom_Document', array('save'));
+		$feedDoc = $this->getMockBuilder('TrueAction_Dom_Document')
+			->disableOriginalConstructor()
+			->setMethods(array('save'))
+			->getMock();
+		$feedDoc->expects($this->once())
+			->method('save')
+			->with($this->identicalTo($pathToFile[$key]))
+			->will($this->returnValue(12));
+
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
-			->setMethods(array('_createFeedDataSet', '_createDomFromFeedData', '_getFeedFilePath'))
-			->setConstructorArgs(array(array('doc' => $feedDoc, 'core_feed' => $coreFeed)))
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedsMap', '_createFeedDataSet', '_createDomFromFeedData', '_getFeedFilePath'))
 			->getMock();
-
+		$pim->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
 		$pim->expects($this->once())
 			->method('_createFeedDataSet')
-			->with($this->identicalTo($productIds))
+			->with($this->identicalTo($productIds), $this->identicalTo($key))
 			->will($this->returnValue($feedData));
 		$pim->expects($this->once())
 			->method('_createDomFromFeedData')
-			->with($this->identicalTo($feedData))
+			->with($this->identicalTo($feedData), $this->identicalTo($key))
 			->will($this->returnValue($feedDoc));
 		$pim->expects($this->once())
 			->method('_getFeedFilePath')
-			->will($this->returnValue($pathToFile));
-		$feedDoc->expects($this->once())
-			->method('save')
-			->with($this->identicalTo($pathToFile))
-			->will($this->returnValue(12));
+			->with($this->identicalTo($key))
+			->will($this->returnValue($pathToFile[$key]));
 
 		$this->assertSame($pathToFile, $pim->buildFeed($productIds));
 	}
@@ -120,6 +179,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	public function testCreateFeedDataSet()
 	{
 		$productIds = array(1);
+		$key = 'item_map';
 
 		$store = $this->getModelMockBuilder('core/store')->disableOriginalConstructor()->getMock();
 		$stores = array($store);
@@ -147,12 +207,13 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->method('_processProductCollection')
 			->with(
 				$this->identicalTo($productCollection),
-				$this->identicalTo($pimProductCollection)
+				$this->identicalTo($pimProductCollection),
+				$this->identicalTo($key)
 			)
 			->will($this->returnValue($pimProductCollection));
 		$this->assertSame(
 			$pimProductCollection,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_createFeedDataSet', array($productIds))
+			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_createFeedDataSet', array($productIds, $key))
 		);
 	}
 	/**
@@ -163,12 +224,20 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	public function testProcessProductCollection($isInCollection)
 	{
 		$storeId = 1;
-		$doc = new TrueAction_Dom_Document();
+		$key = 'item_map';
+		$docs = array($key => new TrueAction_Dom_Document());
+		$attributeList = array('_gsi_client_id', 'sku');
+
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
 			->disableOriginalConstructor()
-			->setMethods(array('none'))
+			->setMethods(array('_getFeedAttributes'))
 			->getMock();
-		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_doc', $doc);
+		$pim->expects($this->once())
+			->method('_getFeedAttributes')
+			->with($this->identicalTo($key))
+			->will($this->returnValue($attributeList));
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
+
 		$pimProductCollection = $this->getModelMock(
 			'eb2cproduct/pim_product_collection',
 			array('getItemForProduct', 'addItem')
@@ -191,7 +260,12 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->will($this->returnValue($storeId));
 		$pimProduct->expects($this->once())
 			->method('loadPimAttributesByProduct')
-			->with($this->identicalTo($product), $this->identicalTo($doc))
+			->with(
+				$this->identicalTo($product),
+				$this->identicalTo($docs[$key]),
+				$this->identicalTo($key),
+				$this->identicalTo($attributeList)
+			)
 			->will($this->returnSelf());
 
 		$config = $this->buildCoreConfigRegistry(array(
@@ -228,7 +302,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			EcomDev_Utils_Reflection::invokeRestrictedMethod(
 				$pim,
 				'_processProductCollection',
-				array($productCollection, $pimProductCollection)
+				array($productCollection, $pimProductCollection, $key)
 			)
 		);
 	}
@@ -238,22 +312,70 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testStartDocument()
 	{
-		$doc = new TrueAction_Dom_Document();
-		$helper = $this->getHelperMock('eb2cproduct/data', array('generateMessageHeader'));
-		$this->replaceByMock('helper', 'eb2cproduct', $helper);
-		$mediaUrl = Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_MEDIA);
+		$key = 'item_map';
+		$rootNode = TrueAction_Eb2cProduct_Model_Pim::KEY_ROOT_NODE;
+		$schemeLocation = TrueAction_Eb2cProduct_Model_Pim::KEY_SCHEMA_LOCATION;
+		$eventType = TrueAction_Eb2cProduct_Model_Pim::KEY_EVENT_TYPE;
+		$headerTemplate = '<MessageHeader></MessageHeader>';
+		$mediaUrl = '';
 
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
+		$map = array($key => array(
+			$rootNode => 'ItemMaster',
+			$schemeLocation => 'ItemMasterV11.xml',
+			$eventType => 'ItemMaster',
+		));
+
+		$feedXml = sprintf(
+			TrueAction_Eb2cProduct_Model_Pim::XML_TEMPlATE,
+			$map[$key][$rootNode],
+			TrueAction_Eb2cProduct_Model_Pim::XMLNS,
+			$map[$key][$schemeLocation],
+			$headerTemplate,
+			$mediaUrl
+		);
+
+		$docMock = $this->getMockBuilder('TrueAction_Dom_Document')
+			->disableOriginalConstructor()
+			->setMethods(array('loadXml'))
+			->getMock();
+		$docMock->expects($this->once())
+			->method('loadXml')
+			->with($this->identicalTo($feedXml))
+			->will($this->returnSelf());
+
+		$docs = array($key => $docMock);
+
+		$helper = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('generateMessageHeader'))
+			->getMock();
 		$helper->expects($this->once())
 			->method('generateMessageHeader')
-			->with($this->identicalTo('PIMExport'))
-			->will($this->returnValue('<MessageHeader/>'));
-		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc, 'core_feed' => $coreFeed));
+			->with($this->identicalTo($map[$key][$eventType]))
+			->will($this->returnValue($headerTemplate));
+		$this->replaceByMock('helper', 'eb2cproduct', $helper);
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getBaseUrl'))
+			->getMock();
+		$coreHelperMock->expects($this->once())
+			->method('getBaseUrl')
+			->with($this->identicalTo(Mage_Core_Model_Store::URL_TYPE_MEDIA))
+			->will($this->returnValue($mediaUrl));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedsMap'))
+			->getMock();
+		$pim->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
+
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
+
 		$this->assertSame($pim, EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_startDocument', array()));
-		$this->assertSame(
-			'<MageMaster imageDomain="' . $mediaUrl . '"><MessageHeader></MessageHeader></MageMaster>',
-			$doc->C14N()
-		);
 	}
 	/**
 	 * Create the DOMDocument representing the feed. Should initialize (add root
@@ -263,43 +385,67 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testCreateDomFromFeedData()
 	{
-		$pimProduct = $this->getModelMockBuilder('eb2cproduct/pim_product')->disableOriginalConstructor()->getMock();
+		$key = 'item_map';
+		$itemNode = 'Item';
+		$isValidate = 'true';
+		$map = array($key => array(
+			TrueAction_Eb2cProduct_Model_Pim::KEY_ITEM_NODE => $itemNode,
+			TrueAction_Eb2cProduct_Model_Pim::KEY_IS_VALIDATE => $isValidate,
+		));
 		$feedDoc = new TrueAction_Dom_Document();
 		$feedDoc->loadXML('<root></root>');
 		$itemFragment = $feedDoc->createDocumentFragment();
 		$itemFragment->appendChild($feedDoc->createElement('Item'));
 
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
-		$pimProductCollection = $this->getModelMock('eb2cproduct/pim_product_collection', array('getItems'));
-		$pim = $this->getModelMock(
-			'eb2cproduct/pim',
-			array('_buildItemNode', '_startDocument', '_validateDocument'),
-			false,
-			array(array('doc' => $feedDoc, 'core_feed' => $coreFeed))
-		);
+		$docs = array($key => $feedDoc);
 
+		$pimProduct = $this->getModelMockBuilder('eb2cproduct/pim_product')
+			->disableOriginalConstructor()
+			->getMock();
+
+		$helperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('parseBool'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('parseBool')
+			->with($this->identicalTo($isValidate))
+			->will($this->returnValue(true));
+		$this->replaceByMock('helper', 'eb2cproduct', $helperMock);
+
+		$pimProductCollection = $this->getModelMockBuilder('eb2cproduct/pim_product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getItems'))
+			->getMock();
 		$pimProductCollection->expects($this->once())
 			->method('getItems')
 			->will($this->returnValue(array($pimProduct)));
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_buildItemNode', '_startDocument', '_validateDocument', '_getFeedsMap'))
+			->getMock();
 		$pim->expects($this->once())
 			->method('_startDocument')
-			->will($this->returnValue($feedDoc->documentElement));
+			->will($this->returnSelf());
 		$pim->expects($this->once())
 			->method('_buildItemNode')
-			->with($this->identicalTo($pimProduct))
+			->with($this->identicalTo($pimProduct), $this->identicalTo($itemNode), $this->identicalTo($key))
 			->will($this->returnValue($itemFragment));
 		$pim->expects($this->once())
 			->method('_validateDocument')
+			->with($this->identicalTo($key))
 			->will($this->returnSelf());
+		$pim->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
 
-		$this->assertSame(
-			$feedDoc,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_createDomFromFeedData', array($pimProductCollection))
-		);
-		$this->assertSame(
-			'<root><Item></Item></root>',
-			$feedDoc->C14N()
-		);
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
+
+		$this->assertSame($feedDoc, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pim, '_createDomFromFeedData', array($pimProductCollection, $key)
+		));
+		$this->assertSame('<root><Item></Item></root>', $feedDoc->C14N());
 	}
 	/**
 	 * Create DOMDocumentFragment with the <Item> node.
@@ -308,67 +454,65 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testBuildItemNode()
 	{
+		$key = 'item_map';
+		$childNode = 'Item';
+
 		$pimAttribute = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
 			->disableOriginalConstructor()
 			->getMock();
 		$pimAttributes = array($pimAttribute,);
-		$pimProduct = $this->getModelMockBuilder('eb2cproduct/pim_product')
+
+		$itemNode = $this->getMockBuilder('TrueAction_Dom_Element')
 			->disableOriginalConstructor()
-			->setMethods(array('getCatalogId', 'getClientId', 'getPimAttributes'))
+			->setMethods(null)
 			->getMock();
-		$feedDoc = $this->getMockBuilder('TrueAction_Dom_Document')
-			->disableOriginalConstructor()
-			->setMethods(array('createDocumentFragment', 'createElement'))
-			->getMock();
+
 		$itemFragment = $this->getMockBuilder('DOMDocumentFragment')
 			->disableOriginalConstructor()
 			->setMethods(array('appendChild'))
 			->getMock();
-		$itemNode = $this->getMockBuilder('TrueAction_Dom_Element')
-			->setMethods(array('addAttributes'))
+		$itemFragment->expects($this->once())
+			->method('appendChild')
+			->with($this->identicalTo($itemNode))
+			->will($this->returnValue($itemNode));
+
+		$feedDoc = $this->getMockBuilder('TrueAction_Dom_Document')
 			->disableOriginalConstructor()
+			->setMethods(array('createDocumentFragment', 'createElement'))
 			->getMock();
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
-		$pim = $this->getModelMock(
-			'eb2cproduct/pim',
-			array('_appendAttributeValue'),
-			false,
-			array(array('doc' => $feedDoc, 'core_feed' => $coreFeed))
-		);
 
 		$feedDoc->expects($this->once())
 			->method('createDocumentFragment')
 			->will($this->returnValue($itemFragment));
 		$feedDoc->expects($this->once())
 			->method('createElement')
-			->with($this->identicalTo('Item'))
+			->with($this->identicalTo($childNode))
 			->will($this->returnValue($itemNode));
-		$itemFragment->expects($this->once())
-			->method('appendChild')
-			->with($this->identicalTo($itemNode))
-			->will($this->returnValue($itemNode));
-		$itemNode->expects($this->once())
-			->method('addAttributes')
-			->with($this->identicalTo(array('gsi_client_id' => 'clientId', 'catalog_id' => 'catId')))
-			->will($this->returnSelf());
-		$pimProduct->expects($this->once())
-			->method('getCatalogId')
-			->will($this->returnValue('catId'));
-		$pimProduct->expects($this->once())
-			->method('getClientId')
-			->will($this->returnValue('clientId'));
+
+		$docs = array($key => $feedDoc);
+
+		$pimProduct = $this->getModelMockBuilder('eb2cproduct/pim_product')
+			->disableOriginalConstructor()
+			->setMethods(array('getPimAttributes'))
+			->getMock();
 		$pimProduct->expects($this->once())
 			->method('getPimAttributes')
 			->will($this->returnValue($pimAttributes));
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_appendAttributeValue'))
+			->getMock();
 		$pim->expects($this->once())
 			->method('_appendAttributeValue')
-			->with($this->identicalTo($itemNode), $this->identicalTo($pimAttribute))
+			->with($this->identicalTo($itemNode), $this->identicalTo($pimAttribute), $this->identicalTo($key))
 			->will($this->returnSelf());
 
-		$this->assertSame(
-			$itemFragment,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_buildItemNode', array($pimProduct))
-		);
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
+
+		$this->assertSame($itemFragment, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pim, '_buildItemNode', array($pimProduct, $childNode, $key)
+		));
 	}
 	/**
 	 * Append the nodes necessary DOMNodes to represent the pim attribute to the
@@ -377,6 +521,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testAppendAttributeValue()
 	{
+		$key = 'item_map';
 		$xmlDest = 'BaseAttrubtes/Something';
 		$valueFragment = $this->getMockBuilder('DOMDocumentFragment')
 			->disableOriginalConstructor()
@@ -398,6 +543,12 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->disableOriginalConstructor()
 			->setMethods(array('importNode'))
 			->getMock();
+		$doc->expects($this->once())
+			->method('importNode')
+			->with($this->identicalTo($valueFragment), $this->isTrue())
+			->will($this->returnValue($importedValueFragment));
+
+		$docs = array($key => $doc);
 
 		$attributeNode = $this->getMockBuilder('TrueACtion_Dom_Element')
 			->disableOriginalConstructor()
@@ -408,10 +559,6 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->setMethods(array('setNode'))
 			->getMock();
 
-		$doc->expects($this->once())
-			->method('importNode')
-			->with($this->identicalTo($valueFragment), $this->isTrue())
-			->will($this->returnValue($importedValueFragment));
 		$itemNode->expects($this->once())
 			->method('setNode')
 			->with($this->identicalTo($xmlDest))
@@ -425,13 +572,13 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->with($this->identicalTo(array('xml:lang' => $languageCode)));
 
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')->disableOriginalConstructor()->setMethods(null)->getMock();
-		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_doc', $doc);
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
 		$this->assertSame(
 			$pim,
 			EcomDev_Utils_Reflection::invokeRestrictedMethod(
 				$pim,
 				'_appendAttributeValue',
-				array($itemNode, $pimAttribute)
+				array($itemNode, $pimAttribute, $key)
 			)
 		);
 	}
@@ -442,6 +589,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testAppendAttributeValueNoTranslations()
 	{
+		$key = 'item_map';
 		$xmlDest = 'BaseAttrubtes/Something';
 		$valueFragment = $this->getMockBuilder('DOMDocumentFragment')
 			->disableOriginalConstructor()
@@ -485,16 +633,54 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$attributeNode->expects($this->never())
 			->method('addAttributes');
 
+		$docs = array($key => $doc);
+
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')->disableOriginalConstructor()->setMethods(null)->getMock();
-		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_doc', $doc);
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
 		$this->assertSame(
 			$pim,
 			EcomDev_Utils_Reflection::invokeRestrictedMethod(
 				$pim,
 				'_appendAttributeValue',
-				array($itemNode, $pimAttribute)
+				array($itemNode, $pimAttribute, $key)
 			)
 		);
+	}
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Pim::_appendAttributeValue method for the following expectations
+	 * Expectation 1: this test will invoked the method TrueAction_Eb2cProduct_Model_Pim::_appendAttributeValue
+	 *                given a mocked TrueAction_Dom_Element object, a mocked TrueAction_Eb2cProduct_Model_Pim_Attribute
+	 *                object and a key
+	 */
+	public function testAppendAttributeValueWhenPimAttributeValueIsADomAttr()
+	{
+		$key = 'item_map';
+		$data = array('name' => 'catalog_id', 'value' => '83');
+		$domAttribute = new DOMAttr($data['name'], $data['value']);
+
+		$elementMock = $this->getMockBuilder('TrueAction_Dom_Element')
+			->disableOriginalConstructor()
+			->setMethods(array('setAttribute'))
+			->getMock();
+		$elementMock->expects($this->once())
+			->method('setAttribute')
+			->with($this->identicalTo($data['name']), $this->identicalTo($data['value']))
+			->will($this->returnValue($domAttribute));
+
+		$attributeMock = $this->getModelMockBuilder('eb2cproduct/pim_attribute')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		$attributeMock->value = $domAttribute;
+
+		$pimModelMock = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($pimModelMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pimModelMock, '_appendAttributeValue', array($elementMock, $attributeMock, $key)
+		));
 	}
 	/**
 	 * Use the Eb2cCore API model to validate the DOM against the schema. When
@@ -503,14 +689,21 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testValidateDocument()
 	{
+		$key = 'item_map';
 		$configRegistry = $this->buildCoreConfigRegistry(array('pimExportXsd' => 'CommonProduct.xsd'));
 		$helper = $this->getHelperMock('eb2cproduct/data', array('getConfigModel'));
 		$doc = $this->getMockBuilder('TrueAction_Dom_Document')
 			->disableOriginalConstructor()
 			->getMock();
 		$api = $this->getModelMock('eb2ccore/api', array('schemaValidate'));
-		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
-		$pim = Mage::getModel('eb2cproduct/pim', array('doc' => $doc, 'core_feed' => $coreFeed));
+
+		$docs = array($key => $doc);
+
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_docs', $docs);
 
 		$helper->expects($this->once())
 			->method('getConfigModel')
@@ -525,7 +718,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 
 		$this->assertSame(
 			$pim,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_validateDocument')
+			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_validateDocument', array($key))
 		);
 	}
 	/**
@@ -564,6 +757,14 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	 */
 	public function testGetFeedFilePath()
 	{
+		$key = 'item_map';
+		$eventType = TrueAction_Eb2cProduct_Model_Pim::KEY_EVENT_TYPE;
+		$filePattern = TrueAction_Eb2cProduct_Model_Pim::KEY_FILE_PATTERN;
+		$map = array($key => array(
+			$eventType => 'ItemMaster',
+			$filePattern => '{event_type}_{store_id}.xml'
+		));
+
 		$outboundPath = 'Path/To/Outbound/Dir';
 		$tmpFileName = 'MageMaster_File_Name.xml';
 		$filenameFormat = 'filename_{format}_string.xml';
@@ -572,36 +773,33 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			->disableOriginalConstructor()
 			->setMethods(array('getLocalDirectory'))
 			->getMock();
-		$prodHelper = $this->getHelperMock(
-			'eb2cproduct/data',
-			array('generateFileName', 'getConfigModel')
-		);
-
-		$config = $this->buildCoreConfigRegistry(array(
-			'pimExportFilenameFormat' => $filenameFormat
-		));
-
-		$prodHelper->expects($this->once())
-			->method('generateFileName')
-			->with($this->identicalTo('MageMaster'), $this->identicalTo($filenameFormat))
-			->will($this->returnValue($tmpFileName));
-		$prodHelper->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue($config));
 		$coreFeed->expects($this->once())
 			->method('getLocalDirectory')
 			->will($this->returnValue($outboundPath));
 
+		$prodHelper = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('generateFileName'))
+			->getMock();
+		$prodHelper->expects($this->once())
+			->method('generateFileName')
+			->with($this->identicalTo($map[$key][$eventType]), $this->identicalTo($map[$key][$filePattern]))
+			->will($this->returnValue($tmpFileName));
 		$this->replaceByMock('helper', 'eb2cproduct', $prodHelper);
 
-		$pim = Mage::getModel(
-			'eb2cproduct/pim',
-			array('doc' => new TrueAction_Dom_Document(), 'core_feed' => $coreFeed)
-		);
+		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedsMap'))
+			->getMock();
+		$pim->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
+
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pim, '_coreFeed', $coreFeed);
 
 		$this->assertSame(
 			$outboundPath . DS . $tmpFileName,
-			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_getFeedFilePath')
+			EcomDev_Utils_Reflection::invokeRestrictedMethod($pim, '_getFeedFilePath', array($key))
 		);
 	}
 	/**
@@ -657,5 +855,113 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 				$pim, '_createProductCollectionForStore', array($productIds, $store)
 			)
 		);
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Pim::_getFeedDoms method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cProduct_Model_Pim::_getFeedDoms will be invoked by this test
+	 *                and is expected called the method TrueAction_Eb2cProduct_Model_Pim::_getFeedsMap which will
+	 *                return an array of feed configurations, looping through each feed configurations key and building
+	 *                an array of DOMDocument by feed configuration keys
+	 */
+	public function testGetFeedDoms()
+	{
+		$keyA = 'item_map';
+		$keyB = 'content_map';
+		$map = array($keyA => array(), $keyB => array());
+
+		$docs = array(
+			$keyA => new TrueAction_Dom_Document('1.0', 'UTF-8'),
+			$keyB => new TrueAction_Dom_Document('1.0', 'UTF-8')
+		);
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getNewDomDocument'))
+			->getMock();
+		$coreHelperMock->expects($this->at(0))
+			->method('getNewDomDocument')
+			->will($this->returnValue($docs[$keyA]));
+		$coreHelperMock->expects($this->at(1))
+			->method('getNewDomDocument')
+			->will($this->returnValue($docs[$keyB]));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
+
+		$pimModelMock = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedsMap'))
+			->getMock();
+		$pimModelMock->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
+
+		$this->assertSame($docs, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pimModelMock, '_getFeedDoms', array()
+		));
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Pim::_getFeedsMap method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cProduct_Model_Pim::_getFeedsMap will be invoked by this test
+	 *                and is expected to cache and return the pim exported configuration in a the class property
+	 *                TrueAction_Eb2cProduct_Model_Pim::_feedsMap, the test will proved this by first setting
+	 *                the class property TrueAction_Eb2cProduct_Model_Pim::_feedsMap to a know value of an empty
+	 *                array and then invoked the method TrueAction_Eb2cProduct_Model_Pim::_getFeedsMap and then
+	 *                assert that it is equal to the return value of the mocked TrueAction_Eb2cCore_Model_Feed::getConfigData
+	 *                method when invoked once
+	 */
+	public function testGetFeedsMap()
+	{
+		$map = array('item_map' => array(), 'content_map' => array());
+
+		$feedHelperMock = $this->getHelperMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigData'))
+			->getMock();
+		$feedHelperMock->expects($this->once())
+			->method('getConfigData')
+			->with($this->identicalTo(TrueAction_Eb2cProduct_Model_Pim::PIM_CONFIG_PATH))
+			->will($this->returnValue($map));
+		$this->replaceByMock('helper', 'eb2ccore/feed', $feedHelperMock);
+
+		$pimModelMock = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($pimModelMock, '_feedsMap', array());
+
+		$this->assertSame($map, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pimModelMock, '_getFeedsMap', array()
+		));
+
+		$this->assertSame($map, EcomDev_Utils_Reflection::getRestrictedPropertyValue($pimModelMock, '_feedsMap'));
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Pim::_getFeedAttributes method for the following expectation
+	 * Expectation 1: this test will invoked the method TrueAction_Eb2cProduct_Model_Pim::_getFeedAttributes given
+	 *                a known array key to return the attribute map configured for the feed
+	 */
+	public function testGetFeedAttributes()
+	{
+		$key = 'item_map';
+		$attributes = array('_gsi_client_id', 'sku');
+		$map = array($key => array(TrueAction_Eb2cProduct_Model_Pim::KEY_MAPPINGS => array(
+			$attributes[0] => array(),
+			$attributes[1] => array()
+		)));
+
+		$pimModelMock = $this->getModelMockBuilder('eb2cproduct/pim')
+			->disableOriginalConstructor()
+			->setMethods(array('_getFeedsMap'))
+			->getMock();
+		$pimModelMock->expects($this->once())
+			->method('_getFeedsMap')
+			->will($this->returnValue($map));
+
+		$this->assertSame($attributes, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$pimModelMock, '_getFeedAttributes', array($key)
+		));
 	}
 }

@@ -30,54 +30,44 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute_Factory
 	}
 	/**
 	 * Get a new PIM Attribute model for the given product attribute and product
-	 * @param  Mage_Eav_Model_Entity_Attribute $attribute
+	 * @param  string $attribute
 	 * @param  Mage_Catalog_Model_Product          $product
 	 * @param  TrueAction_Dom_Document             $doc
+	 * @param  string $key
 	 * @return TrueAction_Eb2cProduct_Model_Pim_Attribute
 	 */
 	public function getPimAttribute(
-		Mage_Eav_Model_Entity_Attribute $attribute,
+		$attribute,
 		Mage_Catalog_Model_Product $product,
-		TrueAction_Dom_Document $doc)
+		TrueAction_Dom_Document $doc, $key)
 	{
+
 		$resolvedArgs = $this->_resolveMappedCallback(
-			$this->_getAttributeMapping($attribute),
+			$this->_getAttributeMapping($attribute, $key),
 			$attribute,
 			$product,
 			$doc
 		);
+
 		return $resolvedArgs ? Mage::getModel('eb2cproduct/pim_attribute', $resolvedArgs) : null;
 	}
 	/**
 	 * Get the attribute mapping, either from the configured mappings or using
 	 * a generated default mapping for the attribute.
-	 * @param  Mage_Eav_Model_Entity_Attribute $attribute
+	 * @param  string $attribute
+	 * @param  string $key
 	 * @return array
 	 */
-	protected function _getAttributeMapping(Mage_Eav_Model_Entity_Attribute $attribute)
+	protected function _getAttributeMapping($attribute, $key)
 	{
-		$attributeCode = $attribute->getAttributeCode();
-		return isset($this->_attributeMappings[$attributeCode]) ?
-			$this->_attributeMappings[$attributeCode] :
-			$this->_getDefaultMapping($attributeCode);
-	}
-	/**
-	 * Get a default mapping based on the configured defualt mapping. This method
-	 * assumes the default configured 'xml_dest' is a format string expecting
-	 * a single parameter of the attribute code.
-	 * @param  string $attributeCode
-	 * @return array
-	 */
-	protected function _getDefaultMapping($attributeCode)
-	{
-		$mapping = $this->_defaultMapping;
-		$mapping['xml_dest'] = sprintf($mapping['xml_dest'], $attributeCode);
-		return $mapping;
+		return isset($this->_attributeMappings[$key]['mappings'][$attribute]) ?
+			$this->_attributeMappings[$key]['mappings'][$attribute] :
+			array();
 	}
 
 	protected function _resolveMappedCallback(
 		array $callbackMapping=array(),
-		Mage_Eav_Model_Entity_Attribute $attribute,
+		$attribute,
 		Mage_Catalog_Model_Product $product,
 		TrueAction_Dom_Document $doc)
 	{
@@ -86,7 +76,7 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute_Factory
 			return null;
 		}
 		$callbackMapping['parameters'] = array(
-			$product->getDataUsingMethod($attribute->getAttributeCode()),
+			$product->getDataUsingMethod($attribute),
 			$attribute,
 			$product,
 			$doc

@@ -1,6 +1,6 @@
 <?php
 
-class TrueAction_Eb2cProduct_Test_Model_Pim_Product_Collection
+class TrueAction_Eb2cProduct_Test_Model_Pim_Product_CollectionTest
 	extends TrueAction_Eb2cCore_Test_Base
 {
 	/**
