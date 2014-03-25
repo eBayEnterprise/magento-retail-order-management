@@ -7,7 +7,10 @@
 # Core
 connect/ebay_enterprise_exchange.xml var/connect/ebay_enterprise_exchange.xml
 src/app/code/local/TrueAction/* app/code/local/TrueAction/
-src/app/etc/eb2c.xml.sample app/etc/eb2c.xml.sample
+src/app/etc/exchangeplatform.xml.sample app/etc/exchangeplatform.xml.sample
+src/app/etc/productexport.xml.sample app/etc/productexport.xml.sample
+src/app/etc/productimport.xml.sample app/etc/productimport.xml.sample
+
 src/app/etc/modules/*.xml app/etc/modules/
 src/app/locale/en_US/* app/locale/en_US/
 src/shell/* shell/
