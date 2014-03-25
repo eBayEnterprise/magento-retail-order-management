@@ -1,9 +1,8 @@
 # Import these extensions via their own modman files.
-@import extensions/dom
-@import extensions/filetransfer
-@import extensions/mage_log
+@import extensions/magento-file-transfer
+@import extensions/magento-log
 @import extensions/pbridge
-@import extensions/aoe_scheduler
+@import extensions/php-dom
 
 # Core
 connect/ebay_enterprise_exchange.xml var/connect/ebay_enterprise_exchange.xml

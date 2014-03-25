@@ -1,10 +1,10 @@
-[submodule "extensions/dom"]
+[submodule "extensions/php-dom"]
 	path = extensions/php-dom
 	url = https://github.scm.corp.ebay.com/Cheetah/php-dom
-[submodule "extensions/filetransfer"]
+[submodule "extensions/magento-file-transfer"]
 	path = extensions/magento-file-transfer
 	url = https://github.scm.corp.ebay.com/Cheetah/magento-file-transfer
-[submodule "extensions/mage_log"]
+[submodule "extensions/magento-log"]
 	path = extensions/magento-log
 	url = https://github.scm.corp.ebay.com/Cheetah/magento-log
 [submodule "extensions/pbridge"]

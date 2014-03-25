@@ -32,7 +32,12 @@ $oldVersion = trim(shell_exec(sprintf('git describe --abbrev=0 %s~', $newVersion
 echo "Setup config for upgrade from {$oldVersion} to {$newVersion}\n";
 $tempDir = _createTempDir();
 $archiveName = 'ebay_enterprise_exchange.tar';
-$extensions = array('dom', 'filetransfer', 'mage_log', 'pbridge');
+$extensions = array(
+	'magento-file-transfer',
+	'magento-log',
+	'pbridge',
+	'php-dom',
+);
 _createArchive($tempDir, $archiveName, $extensions);
 $releaseNotes = trim(shell_exec(sprintf("git log --pretty=format:'%%s' \"%s\"..", $oldVersion)));
 
