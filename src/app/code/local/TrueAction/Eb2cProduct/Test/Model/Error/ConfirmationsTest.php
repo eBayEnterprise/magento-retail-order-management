@@ -595,13 +595,20 @@ class TrueAction_Eb2cProduct_Test_Model_Error_ConfirmationsTest
 	 */
 	public function testProcessByOperationType()
 	{
+		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
+			->disableOriginalConstructor()
+			->setMethods(array('getEventType'))
+			->getMock();
 		$skus = array('58-HTC038', '58-JKT8844');
 		$type = 'ItemMaster';
 		$file = 'local/Feed/ItemMaster/inbox/ItemMaster_Subset-Sample.xml';
 		$errorFile = 'local/Feed/ItemMaster/outbound/ItemMaster_20140115063947_ABCD_1234.xml';
 		$operationType = 'delete';
-		$fileDetail = array('local' => $file, 'type' => $type, 'error_file' => $errorFile, 'operation_type' => $operationType);
+		$fileDetail = array('local_file' => $file, 'core_feed' => $coreFeed, 'error_file' => $errorFile, 'operation_type' => $operationType);
 
+		$coreFeed->expects($this->once())
+			->method('getEventType')
+			->will($this->returnValue($type));
 		$eventMock = $this->getMockBuilder('Varien_Event')
 			->disableOriginalConstructor()
 			->setMethods(array('getFeedDetail', 'getSkus', 'getOperationType'))

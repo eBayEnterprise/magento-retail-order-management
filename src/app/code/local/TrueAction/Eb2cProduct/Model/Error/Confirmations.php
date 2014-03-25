@@ -328,9 +328,9 @@ class TrueAction_Eb2cProduct_Model_Error_Confirmations
 		$operationType = $event->getOperationType();
 		$collection = $this->_getProductCollectionBySkus($skus);
 
-		$fileName = basename($detail['local']);
+		$fileName = basename($detail['local_file']);
 		$errorFile = $detail['error_file'];
-		$type = $detail['type'];
+		$type = $detail['core_feed']->getEventType();
 
 		$this->loadFile($errorFile);
 
