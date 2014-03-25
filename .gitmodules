@@ -1,15 +1,12 @@
 [submodule "extensions/dom"]
-	path = extensions/dom
-	url = https://github.scm.corp.ebay.com/Cheetah/dom
+	path = extensions/php-dom
+	url = https://github.scm.corp.ebay.com/Cheetah/php-dom
 [submodule "extensions/filetransfer"]
-	path = extensions/filetransfer
-	url = https://github.scm.corp.ebay.com/Cheetah/filetransfer
+	path = extensions/magento-file-transfer
+	url = https://github.scm.corp.ebay.com/Cheetah/magento-file-transfer
 [submodule "extensions/mage_log"]
-	path = extensions/mage_log
-	url = https://github.scm.corp.ebay.com/Cheetah/mage_log
+	path = extensions/magento-log
+	url = https://github.scm.corp.ebay.com/Cheetah/magento-log
 [submodule "extensions/pbridge"]
 	path = extensions/pbridge
 	url = https://github.scm.corp.ebay.com/Cheetah/trueaction_pbridge
-[submodule "extensions/aoe_scheduler"]
-	path = extensions/aoe_scheduler
-	url = https://github.scm.corp.ebay.com/Cheetah/aoe_scheduler
