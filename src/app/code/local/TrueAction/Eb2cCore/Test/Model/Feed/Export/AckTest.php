@@ -18,7 +18,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_Export_AckTest
 			'feedOutboxDirectory' => 'path/to/outbox/directory',
 			'feedAckInbox' => 'path/to/ack/inbox',
 			'feedSentDirectory' => 'path/to/send/directory',
-			'exportResendTimeLimit' => 5,
+			'ackResendTimeLimit' => 5,
 		);
 
 		$map = array(
@@ -27,7 +27,7 @@ class TrueAction_Eb2cCore_Test_Model_Feed_Export_AckTest
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_EXPORT_OUTBOX => $configMap['feedOutboxDirectory'],
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_IMPORTED_ACK_DIR => $configMap['feedAckInbox'],
 			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_EXPORTED_FEED_DIR => $configMap['feedSentDirectory'],
-			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_WAIT_TIME_LIMIT => $configMap['exportResendTimeLimit'],
+			TrueAction_Eb2cCore_Model_Feed_Export_Ack::CFG_WAIT_TIME_LIMIT => $configMap['ackResendTimeLimit'],
 		);
 
 		$this->replaceCoreConfigRegistry($configMap);

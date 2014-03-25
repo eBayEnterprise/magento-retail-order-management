@@ -47,7 +47,7 @@ class TrueAction_Eb2cCore_Model_Feed_Export_Ack
 				self::CFG_EXPORT_OUTBOX => $cfg->feedOutboxDirectory,
 				self::CFG_IMPORTED_ACK_DIR => $cfg->feedAckInbox,
 				self::CFG_EXPORTED_FEED_DIR => $cfg->feedSentDirectory,
-				self::CFG_WAIT_TIME_LIMIT => $cfg->exportResendTimeLimit,
+				self::CFG_WAIT_TIME_LIMIT => $cfg->ackResendTimeLimit,
 			);
 		}
 		return isset($this->_configMap[$cfgKey])? $this->_configMap[$cfgKey] : null;
@@ -214,6 +214,11 @@ class TrueAction_Eb2cCore_Model_Feed_Export_Ack
 	 */
 	public function process()
 	{
+		Mage::log(
+			sprintf('[%s] Begin acknowledging exported files were acknowledge by eb2c.',
+				__METHOD__),
+			Zend_Log::INFO
+		);
 		$exportedList = $this->_listFilesByCfgKey(self::CFG_EXPORTED_FEED_DIR);
 		if (!empty($exportedList)) {
 			$importedList = $this->_getImportedAckFiles();
@@ -227,7 +232,11 @@ class TrueAction_Eb2cCore_Model_Feed_Export_Ack
 				}
 			}
 		}
-
+		Mage::log(
+			sprintf('[%s] Acknowledging exported files were acknowledge by eb2c has successful ran',
+				__METHOD__),
+			Zend_Log::INFO
+		);
 		return $this;
 	}
 }

@@ -65,6 +65,15 @@ Copy this file to productimport.xml and configure the appropriate values below.
 						<file_pattern>*Price_*.xml</file_pattern>
 					</item_pricing>
 				</filetransfer_imports>
+				<export>
+					<ack>
+						<!--
+						Limit the waiting time on resending an exported file
+						that has no imported acknowledgment file yet
+						-->
+						<resend_time_limit>5</resend_time_limit>
+					</ack>
+				</export>
 			</feed>
 		</eb2ccore>
 		<eb2cproduct>

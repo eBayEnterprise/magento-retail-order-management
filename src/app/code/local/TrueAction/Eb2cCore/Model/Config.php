@@ -44,5 +44,6 @@ class TrueAction_Eb2cCore_Model_Config extends TrueAction_Eb2cCore_Model_Config_
 		'sftp_private_key'            => 'eb2ccore/feed/filetransfer_sftp_ssh_prv_key',
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',
 		'store_id'                    => 'eb2ccore/general/store_id',
+		'ack_resend_time_limit'       => 'eb2ccore/feed/export/ack/resend_time_limit',
 	);
 }

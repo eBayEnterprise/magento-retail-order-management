@@ -26,6 +26,15 @@
 					</eb2ccore_update_quote_session>
 				</observers>
 			</sales_quote_collect_totals_before>
+			<filetransfer_import_complete>
+				<observers>
+					<eb2c_export_run_acks>
+						<class>eb2ccore/feed_export_ack</class>
+						<method>process</method>
+						<type>model</type>
+					</eb2c_export_run_acks>
+				</observers>
+			</filetransfer_import_complete>
 		</events>
 	</global>
 	<crontab>
