@@ -148,11 +148,14 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 */
 	protected function _getSkusToDelete()
 	{
+		$productHelper = Mage::helper('eb2cproduct');
+		$coreHelper = Mage::helper('eb2ccore');
 		$result = array();
-		$dlDoc = Mage::helper('eb2cproduct')->splitDomByXslt($this->getDoc(), $this->_getXsltPath(self::XSLT_DELETED_SKU));
-		$xpath = Mage::helper('eb2ccore')->getNewDomXPath($dlDoc);
+		$dlDoc = $productHelper->splitDomByXslt($this->getDoc(), $this->_getXsltPath(self::XSLT_DELETED_SKU));
+		$xpath = $coreHelper->getNewDomXPath($dlDoc);
+		$cfg = $productHelper->getConfigModel();
 		foreach ($xpath->query(self::DELETED_BASE_XPATH, $dlDoc->documentElement) as $sku) {
-			$result[] = $sku->nodeValue;
+			$result[] = $coreHelper->normalizeSku($sku->nodeValue, $cfg->catalogId);
 		}
 		return $result;
 	}
@@ -165,8 +168,10 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	{
 		if (empty($this->_importedSkus)) {
 			$updateSkuNodes = $xpath->query(self::ALL_SKUS_XPATH);
+			$cfg = Mage::helper('eb2cproduct')->getConfigModel();
+			$helper = Mage::helper('eb2ccore');
 			foreach ($updateSkuNodes as $skuNode) {
-				$this->_importedSkus[] = $skuNode->nodeValue;
+				$this->_importedSkus[] = $helper->normalizeSku($skuNode->nodeValue, $cfg->catalogId);
 			}
 		}
 		return $this->_importedSkus;
@@ -200,7 +205,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	/**
 	 * Get a new DOMDocument including only the data that should be set for a given
 	 * language using the specified XSLT.
-	 * @param array $websiteFilter 
+	 * @param array $websiteFilter
 	 * @param string $template
 	 * @return TrueAction_Dom_Document
 	 */
@@ -256,7 +261,10 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	{
 		$extractor = Mage::getSingleton('eb2cproduct/feed_extractor');
 		$helper = Mage::helper('eb2cproduct');
-		$sku = $extractor->extractSku($feedXPath, $itemNode);
+		$sku = Mage::helper('eb2ccore')->normalizeSku(
+			$extractor->extractSku($feedXPath, $itemNode),
+			$helper->getConfigModel()->catalogId
+		);
 		$websiteId = Mage::getModel('core/store')->load($productCollection->getStoreId())->getWebsiteId();
 		$product = $productCollection->getItemById($sku);
 		if (is_null($product)) {

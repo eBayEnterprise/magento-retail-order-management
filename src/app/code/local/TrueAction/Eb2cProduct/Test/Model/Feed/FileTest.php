@@ -189,6 +189,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 */
 	public function testGetSkusToDelete()
 	{
+		$skus = array('45-4321', '45-9432');
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->loadXML(
 			'<ItemMaster>
@@ -218,28 +219,41 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			</product_to_be_deleted>'
 		);
 
+		$catalogId = 45;
+
 		$xpath = new DOMXPath($dlDoc);
 
 		$xslt = 'path/to/delete/xslt.xsl';
 
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
-			->setMethods(array('splitDomByXslt'))
+			->setMethods(array('splitDomByXslt', 'getConfigModel'))
 			->getMock();
 		$productHelperMock->expects($this->once())
 			->method('splitDomByXslt')
 			->with($this->equalTo($doc), $this->equalTo($xslt))
 			->will($this->returnValue($dlDoc));
+		$productHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'catalogId' => $catalogId
+			))));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
 		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getNewDomXPath'))
+			->setMethods(array('getNewDomXPath', 'normalizeSku'))
 			->getMock();
 		$coreHelperMock->expects($this->once())
 			->method('getNewDomXPath')
 			->with($this->equalTo($dlDoc))
 			->will($this->returnValue($xpath));
+		$coreHelperMock->expects($this->exactly(2))
+			->method('normalizeSku')
+			->will($this->returnValueMap(array(
+				array($skus[0], $catalogId, $skus[0]),
+				array($skus[1], $catalogId, $skus[1])
+			)));
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
@@ -264,7 +278,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		));
 
 		$this->assertSame(
-			array('45-4321', '45-9432'),
+			$skus,
 			$this->_reflectMethod($file, '_getSkusToDelete')->invoke($file)
 		);
 	}
@@ -275,27 +289,50 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 */
 	public function testGetSkusToUpdate()
 	{
+		$skus = array('45-12345', '45-23456', '45-34567');
 		$doc = '<Items>
-	<Item><ItemId><ClientItemId>45-12345</ClientItemId></ItemId></Item>
-	<Item><ClientItemId>45-23456</ClientItemId></Item>
-	<Item><UniqueID>45-34567</UniqueID></Item>
-</Items>';
+					<Item><ItemId><ClientItemId>45-12345</ClientItemId></ItemId></Item>
+					<Item><ClientItemId>45-23456</ClientItemId></Item>
+					<Item><UniqueID>45-34567</UniqueID></Item>
+				</Items>';
+
 		$dom = new DOMDocument();
 		$dom->loadXML($doc);
 		$xpath = new DOMXPath($dom);
+
+		$catalogId = 45;
+
+		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('getConfigModel'))
+			->getMock();
+		$productHelperMock->expects($this->once())
+			->method('getConfigModel')
+			->will($this->returnValue($this->buildCoreConfigRegistry(array(
+				'catalogId' => $catalogId
+			))));
+		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
+
+		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
+			->disableOriginalConstructor()
+			->setMethods(array('normalizeSku'))
+			->getMock();
+		$coreHelperMock->expects($this->exactly(3))
+			->method('normalizeSku')
+			->will($this->returnValueMap(array(
+				array($skus[0], $catalogId, $skus[0]),
+				array($skus[1], $catalogId, $skus[1]),
+				array($skus[2], $catalogId, $skus[2])
+			)));
+		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
-		$this->assertSame(
-			array('45-12345', '45-23456', '45-34567'),
-			EcomDev_Utils_Reflection::invokeRestrictedMethod(
-				$file,
-				'_getSkusToUpdate',
-				array($xpath)
-			)
-		);
+		$this->assertSame($skus, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$file, '_getSkusToUpdate', array($xpath)
+		));
 	}
 	/**
 	 * To extract data from the feed, the feed file needs to be loaded into a new
