@@ -58,4 +58,4 @@ cp ../../tests/local.xml.phpunit app/etc # Magento configuration
 cp ../../tests/phpunit.xml.dist . # PHPUnit configuration
 
 # Run phpunit
-phpunit
+phpunit "$@" # This argument list should usually be empty, but can be switched to --debug or other flags for quick checks. Such as when phpunit suddenly starts segfaulting on Jenkins.
