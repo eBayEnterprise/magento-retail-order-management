@@ -56,10 +56,10 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	{
 		$file = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
-			->setMethods(array('deleteProducts', 'processWebsite', 'processTranslations'))
+			->setMethods(array('removeProductsFromWebsites', 'processWebsite', 'processTranslations'))
 			->getMock();
 		$file->expects($this->once())
-			->method('deleteProducts')
+			->method('removeProductsFromWebsites')
 			->will($this->returnSelf());
 		$file->expects($this->once())
 			->method('processWebsite')
@@ -120,7 +120,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 * for deletion in the feed and then call the delete method on the collection.
 	 * @test
 	 */
-	public function testDeleteProducts()
+	public function testRemoveProductsFromWebsites()
 	{
 		$errorConfirmationMock = $this->getModelMockBuilder('eb2cproduct/error_confirmations')
 			->disableOriginalConstructor()
@@ -133,48 +133,48 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$this->replaceByMock('model', 'eb2cproduct/error_confirmations', $errorConfirmationMock);
 
 		$skus = array('45-4321', '45-9432');
+		$dData = array(
+			$skus[0] => array('gsi_client_id' => 'CLIENT1', 'catalog_id' => '45'),
+			$skus[1] => array('gsi_client_id' => 'CLIENT1', 'catalog_id' => '45')
+		);
 
-		$catalogResourceModelProductMock = $this->getResourceModelMockBuilder('catalog/product_collection')
+		$collectionMock = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('addFieldToFilter', 'addAttributeToSelect', 'load', 'delete'))
+			->setMethods(array('count'))
 			->getMock();
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('addFieldToFilter')
-			->with($this->equalTo('sku'), $this->equalTo($skus))
-			->will($this->returnSelf());
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('addAttributeToSelect')
-			->with($this->equalTo(array('*')))
-			->will($this->returnSelf());
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('load')
-			->will($this->returnSelf());
-		$catalogResourceModelProductMock->expects($this->once())
-			->method('delete')
-			->will($this->returnSelf());
-		$this->replaceByMock('resource_model', 'catalog/product_collection', $catalogResourceModelProductMock);
+		$collectionMock->expects($this->once())
+			->method('count')
+			->will($this->returnValue(2));
 
 		$fileModelMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
 			->disableOriginalConstructor()
-			->setMethods(array('_getSkusToDelete'))
+			->setMethods(array('_getSkusToRemoveFromWebsites', '_buildProductCollection', '_removeFromWebsites'))
 			->getMock();
 		$fileModelMock->expects($this->once())
-			->method('_getSkusToDelete')
-			->will($this->returnValue($skus));
+			->method('_getSkusToRemoveFromWebsites')
+			->will($this->returnValue($dData));
+		$fileModelMock->expects($this->once())
+			->method('_buildProductCollection')
+			->with($this->identicalTo($skus))
+			->will($this->returnValue($collectionMock));
+		$fileModelMock->expects($this->once())
+			->method('_removeFromWebsites')
+			->with($this->identicalTo($collectionMock), $this->identicalTo($dData))
+			->will($this->returnSelf());
 
 		$this->assertSame(
 			$fileModelMock,
-			$this->_reflectMethod($fileModelMock, 'deleteProducts')->invoke($fileModelMock)
+			$this->_reflectMethod($fileModelMock, 'removeProductsFromWebsites')->invoke($fileModelMock)
 		);
 
 		$this->assertEventDispatched('product_feed_process_operation_type_error_confirmation');
 	}
 
 	/**
-	 * Test _getSkusToDelete method with the following assumptions when invoked by this test
+	 * Test _getSkusToRemoveFromWebsites method with the following assumptions when invoked by this test
 	 * Expectation 1: this set first set the class property TrueAction_Eb2cProduct_Model_Feed_File::_feedDetails
 	 *                to a known state of key value array
-	 * Expectation 2: when the method TrueAction_Eb2cProduct_Model_Feed_File::_getSkusToDelete get invoked by this
+	 * Expectation 2: when the method TrueAction_Eb2cProduct_Model_Feed_File::_getSkusToRemoveFromWebsites get invoked by this
 	 *                test the method TrueAction_Eb2cProduct_Model_Feed_File::getDoc will be called once and it
 	 *                will return the DOMDocument object, then the method TrueAction_Eb2cProduct_Helper_Data::splitDomByXslt
 	 *                will be called with the DOMDocument object and the xslt full path to the delete template file, this method
@@ -187,9 +187,13 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 * @mock TrueAction_Eb2cProduct_Helper_Data::splitDomByXslt
 	 * @mock TrueAction_Eb2cCore_Helper_Data::getNewDomXPath
 	 */
-	public function testGetSkusToDelete()
+	public function testGetSkusToRemoveFromWebsites()
 	{
-		$skus = array('45-4321', '45-9432');
+		$skus = array('45-4321' , '45-9432');
+		$dData = array(
+			$skus[0] => array('gsi_client_id' => 'MAGTNA', 'catalog_id' => '45'),
+			$skus[1] => array('gsi_client_id' => 'MAGTNA', 'catalog_id' => '45')
+		);
 		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$doc->loadXML(
 			'<ItemMaster>
@@ -214,12 +218,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		$dlDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
 		$dlDoc->loadXML(
 			'<product_to_be_deleted>
-				<sku>45-4321</sku>
-				<sku>45-9432</sku>
+				<sku operation_type="Delete" gsi_client_id="MAGTNA" catalog_id="45">45-4321</sku>
+				<sku operation_type="Delete" gsi_client_id="MAGTNA" catalog_id="45">45-9432</sku>
 			</product_to_be_deleted>'
 		);
 
-		$catalogId = 45;
+		$catalogId = '45';
 
 		$xpath = new DOMXPath($dlDoc);
 
@@ -227,17 +231,12 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 
 		$productHelperMock = $this->getHelperMockBuilder('eb2cproduct/data')
 			->disableOriginalConstructor()
-			->setMethods(array('splitDomByXslt', 'getConfigModel'))
+			->setMethods(array('splitDomByXslt'))
 			->getMock();
 		$productHelperMock->expects($this->once())
 			->method('splitDomByXslt')
 			->with($this->equalTo($doc), $this->equalTo($xslt))
 			->will($this->returnValue($dlDoc));
-		$productHelperMock->expects($this->once())
-			->method('getConfigModel')
-			->will($this->returnValue($this->buildCoreConfigRegistry(array(
-				'catalogId' => $catalogId
-			))));
 		$this->replaceByMock('helper', 'eb2cproduct', $productHelperMock);
 
 		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')
@@ -278,8 +277,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 		));
 
 		$this->assertSame(
-			$skus,
-			$this->_reflectMethod($file, '_getSkusToDelete')->invoke($file)
+			$dData,
+			$this->_reflectMethod($file, '_getSkusToRemoveFromWebsites')->invoke($file)
 		);
 	}
 	/**
@@ -459,6 +458,143 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			->setMethods(null)
 			->getMock();
 		$this->assertSame($productCollectionMock, $this->_reflectMethod($file, '_buildProductCollection')->invoke($file, $skus));
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Feed_File::_removeFromWebsites method for the following expectations
+	 * Expectation 1: this test will invoked the method TrueAction_Eb2cProduct_Model_Feed_File::_removeFromWebsites given
+	 *                a mocked Mage_Catalog_Model_Resource_Product_Collection object and an array of extracted data to be
+	 *                remove per for any given website.
+	 * Expectation 2: the method TrueAction_Eb2cProduct_Helper_Data::loadWebsiteFilter will be called which will return
+	 *                an array of websites with client id, catalog id and mage website id keys per webssites
+	 * Expectation 3: the method TrueAction_Eb2cProduct_Model_Feed_File::_getSkusInWebsite will be invoked given the array
+	 *                of skus data and an array of specific website data
+	 * Expectation 4: the method Mage_Catalog_Model_Resource_Product_Collection::getItemById will then be invoked given
+	 *                a sku if the return value is an Mage_Catalog_Model_Product object it will call the method
+	 *                Mage_Catalog_Model_Product::getWebsites which will return an array of all website ids in this product
+	 *                this array will be pass as the first parameter to the method TrueAction_Eb2cProduct_Model_Feed_File::_removeWebsiteId
+	 *                and a second parameter of the website data mage website id which will return an array excluding the website id
+	 *                that was pass it and this return array will be pass to the method Mage_Catalog_Model_Product::setWebsites method
+	 * Expectation 5: last thing is the method Mage_Catalog_Model_Resource_Product_Collection::save will be inovked
+	 */
+	public function testRemoveFromWebsite()
+	{
+		$sku = '45-1334';
+		$dData = array($sku => array());
+		$websiteFilters = array(
+			array('mage_website_id' => '1'),
+			array('mage_website_id' => '2')
+		);
+		$wIds = array('1', '2', '3');
+		$removedIds = array('2', '3');
+
+		$productMock = $this->getModelMockBuilder('catalog/product')
+			->disableOriginalConstructor()
+			->setMethods(array('getWebsiteIds', 'setWebsiteIds'))
+			->getMock();
+		$productMock->expects($this->once())
+			->method('getWebsiteIds')
+			->will($this->returnValue($wIds));
+		$productMock->expects($this->once())
+			->method('setWebsiteIds')
+			->with($this->identicalTo($removedIds))
+			->will($this->returnSelf());
+
+		$collectionMock = $this->getResourceModelMockBuilder('eb2cproduct/feed_product_collection')
+			->disableOriginalConstructor()
+			->setMethods(array('getItemById', 'save'))
+			->getMock();
+		$collectionMock->expects($this->once())
+			->method('getItemById')
+			->with($this->identicalTo($sku))
+			->will($this->returnValue($productMock));
+		$collectionMock->expects($this->once())
+			->method('save')
+			->will($this->returnSelf());
+
+		$helperMock = $this->getHelperMockBuilder('eb2cproduct/data')
+			->disableOriginalConstructor()
+			->setMethods(array('loadWebsiteFilters'))
+			->getMock();
+		$helperMock->expects($this->once())
+			->method('loadWebsiteFilters')
+			->will($this->returnValue($websiteFilters));
+		$this->replaceByMock('helper', 'eb2cproduct', $helperMock);
+
+		$fileMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
+			->disableOriginalConstructor()
+			->setMethods(array('_getSkusInWebsite', '_removeWebsiteId'))
+			->getMock();
+		$fileMock->expects($this->exactly(2))
+			->method('_getSkusInWebsite')
+			->will($this->returnValueMap(array(
+				array($dData, $websiteFilters[0], array($sku)),
+				array($dData, $websiteFilters[1], array())
+			)));
+		$fileMock->expects($this->once())
+			->method('_removeWebsiteId')
+			->with($this->identicalTo($wIds), $this->identicalTo($websiteFilters[0]['mage_website_id']))
+			->will($this->returnValue($removedIds));
+
+		$this->assertSame($fileMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$fileMock, '_removeFromWebsites', array($collectionMock, $dData)
+		));
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Feed_File::_getSkusInWebsite method for the following expectations
+	 * Expectation 1: this test will invoked the method TrueAction_Eb2cProduct_Model_Feed_File::_getSkusInWebsite given
+	 *                an array of skus map to gsi_client_id/catalog_id and the second parameter pass is an array of
+	 *                website containing config for client_id, and catalog_id
+	 */
+	public function testGetSkusInWebsite()
+	{
+		$skus = array('52-8842', '53-9448');
+		$result = array($skus[0]);
+		$dData = array(
+			$skus[0] => array(
+				'gsi_client_id' => 'MWS',
+				'catalog_id' => '52'
+			),
+			$skus[1] => array(
+				'gsi_client_id' => 'SWM',
+				'catalog_id' => '53'
+			),
+		);
+		$wData = array(
+			'client_id' => 'MWS',
+			'catalog_id' => '52'
+		);
+
+		$fileMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($result, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$fileMock, '_getSkusInWebsite', array($dData, $wData)
+		));
+	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Model_Feed_File::_removeWebsiteId method for the following expectations
+	 * Expectation 1: the method TrueAction_Eb2cProduct_Model_Feed_File::_removeWebsiteId will be invoked by this test
+	 *                given an array of website ids and string of website id to exclude from the website ids
+	 */
+	public function testRemoveWebsiteId()
+	{
+		$websiteIds = array('1', '2', '3');
+		$result = array('1' => '2', '2' => '3');
+		$websiteId = '1';
+
+		$fileMock = $this->getModelMockBuilder('eb2cproduct/feed_file')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($result, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$fileMock, '_removeWebsiteId', array($websiteIds, $websiteId)
+		));
 	}
 
 }

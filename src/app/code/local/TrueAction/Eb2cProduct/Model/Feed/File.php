@@ -98,7 +98,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	public function process()
 	{
 		$skusToReport = array();
-		$this->deleteProducts();
+		$this->removeProductsFromWebsites();
 		$skusToReport = array_merge($skusToReport, $this->_importedSkus);
 
 		$siteFilters = Mage::helper('eb2cproduct')->loadWebsiteFilters();
@@ -125,39 +125,98 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 	 * delete into a single collection and delete the collection.
 	 * @return self
 	 */
-	public function deleteProducts()
+	public function removeProductsFromWebsites()
 	{
-		$skus = $this->_getSkusToDelete();
-		Mage::log(sprintf('[%s] deleting %d skus', __CLASS__, count($skus)), Zend_Log::DEBUG);
-		if (!empty($skus)) {
-			Mage::getResourceModel('catalog/product_collection')->addFieldToFilter('sku', $skus)
-				->addAttributeToSelect(array('*'))
-				->load()
-				->delete();
+		$dData = $this->_getSkusToRemoveFromWebsites();
+		Mage::log(sprintf('[%s] deleting %d skus', __CLASS__, count($dData)), Zend_Log::DEBUG);
+		if (!empty($dData)) {
+			$skus = array_keys($dData);
+			$collection = $this->_buildProductCollection($skus);
 
-			Mage::dispatchEvent(
-				'product_feed_process_operation_type_error_confirmation',
-				array('feed_detail' => $this->_feedDetails, 'skus' => $skus, 'operation_type' => 'delete')
-			);
+			if ($collection->count()) {
+				$this->_removeFromWebsites($collection, $dData);
+
+				Mage::dispatchEvent(
+					'product_feed_process_operation_type_error_confirmation',
+					array('feed_detail' => $this->_feedDetails, 'skus' => $skus, 'operation_type' => 'delete')
+				);
+			}
 		}
+		return $this;
+	}
+	/**
+	 * given a collection of products and a collection deleted sku data remove
+	 * each product that matches in catalog id and client id in a specific website
+	 * @param Mage_Catalog_Model_Resource_Product_Collection $collection
+	 * @param array $dData
+	 * @return self
+	 */
+	protected function _removeFromWebsites(Mage_Catalog_Model_Resource_Product_Collection $collection, array $dData)
+	{
+		foreach (Mage::helper('eb2cproduct')->loadWebsiteFilters() as $siteFilter) {
+			foreach ($this->_getSkusInWebsite($dData, $siteFilter) as $dSku) {
+				$product = $collection->getItemById($dSku);
+				if ($product) {
+					$product->setWebsiteIds($this->_removeWebsiteId(
+						$product->getWebsiteIds(),
+						$siteFilter['mage_website_id']
+					));
+				}
+			}
+		}
+		$collection->save();
+
 		return $this;
 	}
 	/**
 	 * Get an array of SKUs to be deleted from the feed file being processed.
 	 * @return array Array of SKUs to delete
 	 */
-	protected function _getSkusToDelete()
+	protected function _getSkusToRemoveFromWebsites()
 	{
 		$productHelper = Mage::helper('eb2cproduct');
 		$coreHelper = Mage::helper('eb2ccore');
 		$result = array();
 		$dlDoc = $productHelper->splitDomByXslt($this->getDoc(), $this->_getXsltPath(self::XSLT_DELETED_SKU));
 		$xpath = $coreHelper->getNewDomXPath($dlDoc);
-		$cfg = $productHelper->getConfigModel();
-		foreach ($xpath->query(self::DELETED_BASE_XPATH, $dlDoc->documentElement) as $sku) {
-			$result[] = $coreHelper->normalizeSku($sku->nodeValue, $cfg->catalogId);
+		foreach ($xpath->query(self::DELETED_BASE_XPATH, $dlDoc->documentElement) as $item) {
+			$catalogId = $item->getAttribute('catalog_id');
+			$sku = $coreHelper->normalizeSku($item->nodeValue, $catalogId);
+
+			$result[$sku] = array(
+				'gsi_client_id' => $item->getAttribute('gsi_client_id'),
+				'catalog_id' => $catalogId,
+			);
 		}
 		return $result;
+	}
+	/**
+	 * given extracted deleted sku map to key gsi_client_id/catalog_id and the website config data get
+	 * all the sku to be removed from the website
+	 * @param array $dData the extracted data with operation type delete
+	 * @param array $wData a specific website configuration data
+	 * @return array
+	 */
+	protected function _getSkusInWebsite(array $dData, array $wData)
+	{
+		return array_filter(array_keys($dData), function ($sku) use ($dData, $wData) {
+			return (
+				$dData[$sku]['gsi_client_id'] === $wData['client_id'] &&
+				$dData[$sku]['catalog_id'] === $wData['catalog_id']
+			);
+		});
+	}
+	/**
+	 * given an array of website id, and and website id to remove from it
+	 * @param array $websiteIds
+	 * @param string $websiteId the id remove from the list of website ids
+	 * @param array
+	 */
+	protected function _removeWebsiteId(array $websiteIds, $websiteId)
+	{
+		return array_filter($websiteIds, function ($id) use ($websiteId) {
+			return ($websiteId !== $id);
+		});
 	}
 	/**
 	 * Get an array of SKUs included in the given DOMXPath.
