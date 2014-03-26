@@ -62,6 +62,71 @@
 			</controller_action_postdispatch_checkout_onepage_saveShipping>
 		</events>
 	</frontend>
+	<adminhtml>
+		<translate>
+			<modules>
+				<TrueAction_Eb2cAddress>
+					<files>
+						<default>TrueAction_Eb2cAddress.csv</default>
+					</files>
+				</TrueAction_Eb2cAddress>
+			</modules>
+		</translate>
+		<layout>
+			<updates>
+				<eb2caddress>
+					<file>eb2caddress.xml</file>
+				</eb2caddress>
+			</updates>
+		</layout>
+		<events>
+			<adminhtml_sales_order_create_process_data>
+				<observers>
+					<eb2caddress_validate_address_ajax>
+						<type>disabled</type>
+						<class></class>
+						<method></method>
+					</eb2caddress_validate_address_ajax>
+				</observers>
+			</adminhtml_sales_order_create_process_data>
+			<adminhtml_sales_order_create_process_data_before>
+				<observers>
+					<eb2caddress_validate_address_ajax>
+						<type>disabled</type>
+						<class></class>
+						<method></method>
+					</eb2caddress_validate_address_ajax>
+				</observers>
+			</adminhtml_sales_order_create_process_data_before>
+			<customer_address_validation_after>
+				<observers>
+					<eb2caddress_validate_address>
+						<type>singleton</type>
+						<class>eb2caddress/observer</class>
+						<method>validateAddressAdminhtml</method>
+					</eb2caddress_validate_address>
+				</observers>
+			</customer_address_validation_after>
+			<controller_action_postdispatch_checkout_onepage_saveBilling>
+				<observers>
+					<eb2caddress_add_suggestions_to_billing_response>
+						<type>singleton</type>
+						<class>eb2caddress/observer</class>
+						<method>addSuggestionsToResponse</method>
+					</eb2caddress_add_suggestions_to_billing_response>
+				</observers>
+			</controller_action_postdispatch_checkout_onepage_saveBilling>
+			<controller_action_postdispatch_checkout_onepage_saveShipping>
+				<observers>
+					<eb2caddress_add_suggestions_to_shipping_response>
+						<type>singleton</type>
+						<class>eb2caddress/observer</class>
+						<method>addSuggestionsToResponse</method>
+					</eb2caddress_add_suggestions_to_shipping_response>
+				</observers>
+			</controller_action_postdispatch_checkout_onepage_saveShipping>
+		</events>
+	</adminhtml>
 	<default>
 		<eb2ccore>
 			<address>

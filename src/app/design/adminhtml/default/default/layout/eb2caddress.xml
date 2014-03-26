@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout version="0.1.0">
+	<address_validation_suggestions_assets>
+		<reference name="head">
+			<action method="addCss">
+				<stylesheet>css/admin-validation-suggestions.css</stylesheet>
+			</action>
+			<action method="addItem">
+				<type>skin_js</type>
+				<name>js/admin-validation-suggestions.js</name>
+			</action>
+		</reference>
+	</address_validation_suggestions_assets>
+    <adminhtml_sales_order_create_index>
+		<update handle="address_validation_suggestions_assets"/>
+		<reference name="head">
+			<action method="addItem">
+				<type>skin_js</type>
+				<name>js/admin-checkout-validation-suggestions.js</name>
+			</action>
+		</reference>
+		<reference name="shipping_address">
+			<action method="setTemplate">
+				<template>eb2caddress/sales/order/create/form/address.phtml</template>
+			</action>
+			<block type="eb2caddress/suggestions" name="address_validation_suggestions">
+				<action method="setArea">
+					<params>frontend</params>
+				</action>
+				<action method="setAddressFormat">
+					<formatConfig>address_format_full</formatConfig>
+				</action>
+			</block>
+		</reference>
+    </adminhtml_sales_order_create_index>
+</layout>

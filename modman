@@ -17,8 +17,6 @@ src/shell/* shell/
 
 # Fraud
 src/js/trueaction_eb2cfraud		js/trueaction_eb2cfraud
-src/app/design/frontend/base/default/layout/eb2cfraud.xml app/design/frontend/base/default/layout/eb2cfraud.xml
-src/app/design/frontend/base/default/template/eb2cfraud app/design/frontend/base/default/template/eb2cfraud
 
 # Address
 src/app/design/frontend/base/default/layout/eb2caddress_frontend.xml app/design/frontend/base/default/layout/eb2caddress_frontend.xml
@@ -26,6 +24,16 @@ src/app/design/frontend/base/default/template/eb2caddress_frontend app/design/fr
 src/app/design/frontend/enterprise/default/template/eb2caddress_frontend app/design/frontend/enterprise/default/template/eb2caddress_frontend
 src/skin/frontend/base/default/css/* skin/frontend/base/default/css/
 src/skin/frontend/base/default/js/* skin/frontend/base/default/js/
+
+# Adminhtml CSS files
+src/skin/adminhtml/default/default/css/* skin/adminhtml/default/default/css/
+
+# Adminhtml JS files
+src/skin/adminhtml/default/default/js/* skin/adminhtml/default/default/js/
+
+# Address Validation for admin
+src/app/design/adminhtml/default/default/layout/eb2caddress.xml app/design/adminhtml/default/default/layout/eb2caddress.xml
+src/app/design/adminhtml/default/default/template/eb2caddress app/design/adminhtml/default/default/template/eb2caddress
 
 # Order
 src/app/design/frontend/base/default/layout/eb2corder_frontend.xml app/design/frontend/base/default/layout/eb2corder_frontend.xml
