@@ -767,7 +767,6 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 
 		$outboundPath = 'Path/To/Outbound/Dir';
 		$tmpFileName = 'MageMaster_File_Name.xml';
-		$filenameFormat = 'filename_{format}_string.xml';
 
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')
 			->disableOriginalConstructor()
