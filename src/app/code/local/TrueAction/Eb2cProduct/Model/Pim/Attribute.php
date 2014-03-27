@@ -70,7 +70,7 @@ class TrueAction_Eb2cProduct_Model_Pim_Attribute
 	 */
 	protected function _stringifyValue()
 	{
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		if (!$this->value instanceof DOMAttr && $this->value instanceof DOMNode) {
 			$importValue = $doc->importNode($this->value, true);
 			$doc->appendChild($importValue);

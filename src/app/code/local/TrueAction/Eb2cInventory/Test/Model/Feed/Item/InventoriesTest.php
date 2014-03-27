@@ -91,7 +91,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_InventoriesTest
 	public function testProcessDom()
 	{
 		$fileDetails = array('local' => '/Mage/var/processing/file.xml');
-		$dom = new TrueAction_Dom_Document();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$extractedData = array(new Varien_Object(array('some' => 'data')));
 
 		$fii = $this->getModelMockBuilder('eb2cinventory/feed_item_inventories')

@@ -8,7 +8,7 @@ class TrueAction_Eb2cProduct_Test_Helper_Map_CategoryTest extends TrueAction_Eb2
 	 */
 	public function provideCategoryNameNodes()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('
 			<CategoryLinks>
 				<CategoryLink import_mode="Update">

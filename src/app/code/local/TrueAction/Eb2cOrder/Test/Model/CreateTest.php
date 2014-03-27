@@ -186,7 +186,7 @@ INVALID_XML;
 			->will($this->returnValue('1234533'));
 
 		$request = $this->_reflectProperty($create, '_domRequest');
-		$request->setValue($create, new TrueAction_Dom_Document());
+		$request->setValue($create, Mage::helper('eb2ccore')->getNewDomDocument());
 		$taxFragment = $this->_reflectMethod($create, '_buildTaxDataNodes')->invoke($create, $taxQuotesCollection, Mage::getModel('sales/order_item')->addData(array(
 			'product_id' => 9,
 		)));
@@ -266,7 +266,7 @@ INVALID_XML;
 
 		$create = Mage::getModel('eb2corder/create');
 		$request = $this->_reflectProperty($create, '_domRequest');
-		$request->setValue($create, new TrueAction_Dom_Document());
+		$request->setValue($create, Mage::helper('eb2ccore')->getNewDomDocument());
 		$taxFragment = $this
 			->_reflectMethod($create, '_buildTaxDataNodes')
 			->invoke($create, $taxQuotesCollection, Mage::getModel('sales/order_item'), TrueAction_Eb2cTax_Model_Response_Quote::SHIPPING);
@@ -303,7 +303,7 @@ INVALID_XML;
 	 */
 	public function testSendRequest()
 	{
-		$requestDoc = new TrueAction_Dom_Document();
+		$requestDoc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->replaceCoreConfigRegistry(array(
 			'serviceOrderTimeout' => 100,
 			'xsdFileCreate' => 'example.xsd',
@@ -606,7 +606,7 @@ INVALID_XML;
 		$createModelMock->expects($this->once())
 			->method('_getRequestId')
 			->will($this->returnValue('12838-383848-944'));
-		$this->_reflectProperty($createModelMock, '_domRequest')->setValue($createModelMock, new TrueAction_Dom_Document('1.0', 'UTF-8'));
+		$this->_reflectProperty($createModelMock, '_domRequest')->setValue($createModelMock, Mage::helper('eb2ccore')->getNewDomDocument());
 		$this->_reflectProperty($createModelMock, '_config')->setValue($createModelMock, (object) array(
 			'apiCreateDomRootNodeName' => 'OrderCreateRequest',
 			'apiXmlNs' => 'http://api.gsicommerce.com/schema/checkout/1.0',
@@ -698,7 +698,7 @@ INVALID_XML;
 	 */
 	public function testBuildItems()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<root/>');
 		$itemModelMock = $this->getModelMockBuilder('sales/order_item')
 			->disableOriginalConstructor()
@@ -731,7 +731,7 @@ INVALID_XML;
 	 */
 	public function testBuildShip()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<foo></foo>
@@ -760,7 +760,7 @@ INVALID_XML;
 	 */
 	public function testBuildRequest()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<foo></foo>
@@ -841,7 +841,7 @@ INVALID_XML;
 	 */
 	public function testBuildPaymentsPaypal($response)
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML($response);
 
 		$mockConfig = $this->getModelMockBuilder('eb2ccore/config_registry')

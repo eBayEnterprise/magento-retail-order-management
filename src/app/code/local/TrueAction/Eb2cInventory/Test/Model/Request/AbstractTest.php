@@ -38,7 +38,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 		$this->replaceByMock('helper', 'eb2cinventory', $inventoryHelper);
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
 
-		$requestMessage = new DOMDocument();
+		$requestMessage = Mage::helper('eb2ccore')->getNewDomDocument();
 		$responseMessage = $requestSuccess ? '<TestResponseMessage></TestResponseMessage>' : '';
 		$uri = 'http://example.com/operation/uri';
 		$xsd = 'MockInventoryDetails.xsd';
@@ -137,8 +137,7 @@ class TrueAction_Eb2cInventory_Test_Model_Request_AbstractTest extends TrueActio
 		);
 		$api = $this->getModelMock('eb2ccore/api', array('request'));
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$requestDoc = new TrueAction_Dom_Document();
-
+		$requestDoc = Mage::helper('eb2ccore')->getNewDomDocument();
 		// boilerplate-ish setup - config for the API model
 		$configModel = $this->getModelMock('eb2ccore/config_registry', array('getConfig'));
 		$inventoryHelper = $this->getHelperMockBuilder('eb2cinventory/data')

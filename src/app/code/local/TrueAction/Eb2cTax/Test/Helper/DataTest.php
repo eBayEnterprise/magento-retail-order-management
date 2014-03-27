@@ -67,7 +67,7 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	public function testSendRequest()
 	{
 		$responseMessage = '<foo>something</foo>';
-		$requestDocument = new TrueAction_Dom_Document();
+		$requestDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$request = $this->getModelMock('eb2ctax/request', array('getDocument'));
 		$request->expects($this->any())
 			->method('getDocument')
@@ -99,7 +99,7 @@ class TrueAction_Eb2cTax_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_B
 	 */
 	public function testSendRequestWithExceptionThrown()
 	{
-		$requestDocument = new TrueAction_Dom_Document();
+		$requestDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$request = $this->getModelMock('eb2ctax/request', array('getDocument'));
 		$request->expects($this->any())
 			->method('getDocument')

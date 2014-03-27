@@ -44,7 +44,7 @@ class TrueAction_Eb2cTax_Test_Model_ResponseTest extends TrueAction_Eb2cCore_Tes
 </fault>
 XML;
 		$message = "Eb2cTax: Fault Message received: Code: (someCode) Description: 'stuff happened' Trace: 'lots of details'";
-		$document = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$document = Mage::helper('eb2ccore')->getNewDomDocument();
 		$document->loadXML($faultMessageXml);
 		$response = $this->getModelMockBuilder('eb2ctax/response')
 			->disableOriginalConstructor()

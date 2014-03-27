@@ -5,7 +5,7 @@ class TrueAction_Eb2cCore_Test_Helper_FeedTest
 	const FEED_PATH = '/FeedTest/fixtures/';
 	private function _getDoc($feed)
 	{
-		$d = new TrueAction_Dom_Document();
+		$d = Mage::helper('eb2ccore')->getNewDomDocument();
 		$d->load(__DIR__ . self::FEED_PATH . $feed . '.xml');
 		return $d;
 	}

@@ -351,7 +351,7 @@ class TrueAction_Eb2cProduct_Test_Model_FeedTest
 	 */
 	public function testProcessDom()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">

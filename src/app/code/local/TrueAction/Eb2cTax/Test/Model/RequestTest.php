@@ -1754,7 +1754,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testBuildAdminOriginNode()
 	{
-		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		$adminOrigin = array(
 			'Lines'        => array('1075 First Avenue', 'STE 123', 'BLDG 2', ''),
@@ -1780,7 +1780,7 @@ class TrueAction_Eb2cTax_Test_Model_RequestTest extends TrueAction_Eb2cCore_Test
 	 */
 	public function testBuildShippingOriginNode()
 	{
-		$domDocument = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$domDocument = Mage::helper('eb2ccore')->getNewDomDocument();
 		$parent = $domDocument->addElement('TaxDutyQuoteRequest', null, 'http://api.gsicommerce.com/schema/checkout/1.0')->firstChild;
 		$shippingOrigin = array(
 			'Lines'        => array('1075 First Avenue', 'Line2', 'Line3', 'Line4'),

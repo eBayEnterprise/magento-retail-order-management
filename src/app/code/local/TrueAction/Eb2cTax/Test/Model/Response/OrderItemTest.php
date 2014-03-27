@@ -66,7 +66,7 @@ class TrueAction_Eb2cTax_Test_Model_Response_OrderItemTest
 	 */
 	public function testExtractData($response)
 	{
-		$doc = new DOMDocument('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML($response);
 
 		$xpath = new DOMXPath($doc);
@@ -167,7 +167,7 @@ class TrueAction_Eb2cTax_Test_Model_Response_OrderItemTest
 	 */
 	public function testExtractDataSetNullValueFormNoneExistedNodeInReponseXml($response)
 	{
-		$doc = new DOMDocument('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML($response);
 
 		$xpath = new DOMXPath($doc);
@@ -271,7 +271,7 @@ class TrueAction_Eb2cTax_Test_Model_Response_OrderItemTest
 	 */
 	public function testExtractByType($response)
 	{
-		$doc = new DOMDocument('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML($response);
 
 		$xpath = new DOMXPath($doc);

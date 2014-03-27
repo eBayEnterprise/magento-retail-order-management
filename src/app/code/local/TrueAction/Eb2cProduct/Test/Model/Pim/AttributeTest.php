@@ -8,7 +8,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 	 */
 	public function testConstructor()
 	{
-		$dom = new TrueAction_Dom_Document();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$xpath = 'foo';
 		$sku = 'somesku';
 		$language = 'en-US';
@@ -33,7 +33,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
-		$dom = new DOMDocument();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 
 		$method = new ReflectionMethod($attrModel, '_stringifyValue');
 		$method->setAccessible(true);
@@ -61,7 +61,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_AttributeTest
 	}
 	public function testToString()
 	{
-		$dom = new DOMDocument();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$a = Mage::getModel(
 			'eb2cproduct/pim_attribute',
 			array(

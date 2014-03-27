@@ -152,7 +152,7 @@ class TrueAction_Eb2cProduct_Test_Helper_Map_AttributeTest
 	public function testExtractColorValue()
 	{
 		$colorCode = '700';
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<Color>
@@ -376,7 +376,7 @@ class TrueAction_Eb2cProduct_Test_Helper_Map_AttributeTest
 			'frontend_label' => 'size',
 		));
 
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<CustomAttributes>
@@ -578,7 +578,7 @@ class TrueAction_Eb2cProduct_Test_Helper_Map_AttributeTest
 	{
 		$result = true;
 		$value = 'color';
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<foo>

@@ -8,7 +8,7 @@ class TrueAction_Eb2cInventory_Test_Model_Feed_Item_ExtractorTest
 	 */
 	public function testExtractInventoryFeed()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<ItemInventories><Inventory operation_type="Change" gsi_client_id="66-000906034352" catalog_id="66" measurement="Level">
 		<ItemId>
 			<ClientItemId>000906034352</ClientItemId>
