@@ -286,6 +286,7 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 	 */
 	public function testGetFileTimeElapse()
 	{
+		$timeZone = new DateTimeZone('America/New_York');
 		$createdTime = '2014-03-08 01:25:13';
 		$format = 'Y-m-d H:i:s';
 		$fTime = strtotime($createdTime);
@@ -337,14 +338,17 @@ class TrueAction_Eb2cCore_Test_Helper_DataTest extends TrueAction_Eb2cCore_Test_
 
 		$helperMock = $this->getHelperMockBuilder('eb2ccore/data')
 			->disableOriginalConstructor()
-			->setMethods(array('getNewDateTime', 'loadFile', 'getTime'))
+			->setMethods(array('getNewDateTime', 'loadFile', 'getTime', 'getNewDateTimeZone'))
 			->getMock();
 		$helperMock->expects($this->exactly(2))
 			->method('getNewDateTime')
 			->will($this->returnValueMap(array(
-				array($createdTime, null, $startTimeMock),
-				array($currentTime, null, $currentTimeMock),
+				array($createdTime, $timeZone, $startTimeMock),
+				array($currentTime, $timeZone, $currentTimeMock),
 			)));
+		$helperMock->expects($this->once())
+			->method('getNewDateTimeZone')
+			->will($this->returnValue($timeZone));
 		$helperMock->expects($this->once())
 			->method('loadFile')
 			->with($this->identicalTo($sourceFile))

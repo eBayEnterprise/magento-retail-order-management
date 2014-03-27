@@ -326,8 +326,15 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getFileTimeElapse($sourceFile)
 	{
 		$date = Mage::getModel('core/date');
-		$startDate = $this->getNewDateTime($date->gmtDate('Y-m-d H:i:s', $this->loadFile($sourceFile)->getCTime()));
-		$interVal = $startDate->diff($this->getNewDateTime($date->gmtDate('Y-m-d H:i:s', $this->getTime())));
+		$timeZone = $this->getNewDateTimeZone();
+		$startDate = $this->getNewDateTime(
+			$date->gmtDate('Y-m-d H:i:s', $this->loadFile($sourceFile)->getCTime()),
+			$timeZone
+		);
+		$interVal = $startDate->diff($this->getNewDateTime(
+			$date->gmtDate('Y-m-d H:i:s', $this->getTime()),
+			$timeZone
+		));
 		return (
 			($interVal->y * 365 * 24 * 60) +
 			($interVal->m * 30 * 24 * 60) +
@@ -346,6 +353,16 @@ class TrueAction_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	public function getNewDateTime($time='now', DateTimeZone $timezone=null)
 	{
 		return new DateTime($time, $timezone);
+	}
+	/**
+	 * abstracting instantiating a new DateTimeZone in the default
+	 * magento config time zone
+	 * @return DateTimeZone
+	 * @codeCoverageIgnore
+	 */
+	public function getNewDateTimeZone()
+	{
+		return new DateTimeZone($this->getStoreConfig(Mage_Core_Model_Locale::XML_PATH_DEFAULT_TIMEZONE));
 	}
 	/**
 	 * abstracting getting the current time
