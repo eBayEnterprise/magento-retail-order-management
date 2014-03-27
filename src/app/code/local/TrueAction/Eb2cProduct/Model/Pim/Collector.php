@@ -21,7 +21,7 @@ class TrueAction_Eb2cProduct_Model_Pim_Collector
 	 */
 	public function runExport()
 	{
-		$date = new Zend_Date();
+		$date = $this->_getNewZendDate();
 		$this->_startDate = $date->toString('c');
 		Mage::helper('trueaction_magelog')->logInfo(
 			'[%s] Starting PIM Export with cutoff date "%s"',
@@ -35,15 +35,17 @@ class TrueAction_Eb2cProduct_Model_Pim_Collector
 			"[%s] Exportable Entity Ids:\n%s",
 			array(__class__, json_encode($entityIds))
 		);
-		try {
-			$pim->buildFeed($entityIds);
-			$this->_updateCutoffDate();
-		} catch (TrueAction_Eb2cCore_Exception_InvalidXml $e) {
-			Mage::helper('trueaction_magelog')->logCrit(
-				"[%s] Error building PIM Export:\n%s",
-				array(__CLASS__, $e)
-			);
+		if (count($entityIds)) {
+			try {
+				$pim->buildFeed($entityIds);
+			} catch (TrueAction_Eb2cCore_Exception_InvalidXml $e) {
+				Mage::helper('trueaction_magelog')->logCrit(
+					"[%s] Error building PIM Export:\n%s",
+					array(__CLASS__, $e)
+				);
+			}
 		}
+		$this->_updateCutoffDate();
 		Mage::helper('trueaction_magelog')->logInfo(
 			'[%s] Finished PIM Export',
 			array(__class__)
@@ -92,5 +94,15 @@ class TrueAction_Eb2cProduct_Model_Pim_Collector
 		));
 		$config->save();
 		return $this;
+	}
+
+	/**
+	 * abstracting getting an instance of Zend_Date
+	 * @return Zend_Date
+	 * @codeCoverageIgnore
+	 */
+	protected function _getNewZendDate()
+	{
+		return new Zend_Date();
 	}
 }
