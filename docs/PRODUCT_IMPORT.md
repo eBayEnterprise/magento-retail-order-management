@@ -69,7 +69,7 @@ XPath has a lot of power for finding nodes and even transforming them itself, so
 
 ## Dependency and Non-Dependency Attributes
 
-Mappings for attributes that Magento and/or EB2C depend on must be defined in the config.xml for eb2cproduct itself, so they cannot be overridden. Mappings for other attributes should be unspecified or specified in app/etc/productimport.xml.sample so that they can be customized by SIs. If the feed processor encounters an attribute in a feed that has no Magento config mapping, it should attempt to insert the value of that attribute as a string in the Magento attribute with a code matching the name of the eb2c feed attribute. If no such Magento attribute exists, it should silently proceed without error. The following are dependency attributes:
+Mappings for attributes that Magento and/or EB2C depend on must be defined in the config.xml for eb2cproduct itself, so they cannot be overridden. Mappings for other attributes should be unspecified or specified in app/etc/productimport.xml.sample so that they can be customized by SIs. If the feed processor encounters an attribute in a feed that has no Magento config mapping, it should silently proceed without error. The following are dependency attributes:
 
 ### Directly Affecting the Behavior of EB2C
 

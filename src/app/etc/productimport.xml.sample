@@ -78,13 +78,10 @@ Copy this file to productimport.xml and configure the appropriate values below.
 		</eb2ccore>
 		<eb2cproduct>
 			<!--
-			Here you can customize the mapping of incoming values to Magento Attributes. If an
-			incoming node does not match a node listed here, the import process will attempt to
-			find a Magento Attribute Code that matches the name of the Exchange Platform
-			Code. In that case, the value is stored as a string value.
+			Here you can customize the mapping of incoming values to Magento Attributes.
 
-			WARNING: If an Exchange Platform Code is not mapped, and the Exchange Platform Code does
-			not match any existing Magento Attribute, it will be silently ignored by the import process.
+			WARNING: If an Exchange Platform Code is not mapped it will be silently ignored 
+			by the import process.
 			 -->
 			<feed_attribute_mappings>
 				<is_drop_shipped>
