@@ -248,8 +248,8 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 */
 	public function validateAddress(Mage_Customer_Model_Address_Abstract $address, $area=null)
 	{
-		$errorMessage    = null;
 		$response        = null;
+		$errorMessage    = null;
 		$address         = $this->_updateAddressWithSelection($address);
 		$adminValidation = false;
 
@@ -263,27 +263,36 @@ class TrueAction_Eb2cAddress_Model_Validator
 
 		if ($adminValidation || $this->shouldValidateAddress($address)) {
 			$this->clearSessionAddresses();
-
-			if ($response = $this->_makeRequestForAddress($address)) {
-				// copy over validated address data
-				if ($response->isAddressValid()) {
-					$address->addData($response->getValidAddress()->getData());
-				} else {
-					$address->addData($response->getOriginalAddress()->getData());
-					if ($address->getSameAsBilling()) {
-						$address->setSameAsBilling(false);
-					}
-					$errorMessage = '';
-					if ($response->hasAddressSuggestions()) {
-						$errorMessage = Mage::helper('eb2caddress')->__(self::SUGGESTIONS_ERROR_MESSAGE);
-					} else {
-						$errorMessage = Mage::helper('eb2caddress')->__(self::NO_SUGGESTIONS_ERROR_MESSAGE);
-					}
-				}
-			}
+			$response = $this->_processRequest($address, $errorMessage);
 		}
 		$this->_updateSession($address, $response);
 		return $errorMessage;
+	}
+
+	/**
+	 * To reduce Cyclomatic Complexity error, this was broken out:
+	 */
+	protected function _processRequest($address, &$errorMessage)
+	{
+		$response = null;
+		if ($response = $this->_makeRequestForAddress($address)) {
+			// copy over validated address data
+			if ($response->isAddressValid()) {
+				$address->addData($response->getValidAddress()->getData());
+			} else {
+				$address->addData($response->getOriginalAddress()->getData());
+				if ($address->getSameAsBilling()) {
+					$address->setSameAsBilling(false);
+				}
+				$errorMessage = '';
+				if ($response->hasAddressSuggestions()) {
+					$errorMessage = Mage::helper('eb2caddress')->__(self::SUGGESTIONS_ERROR_MESSAGE);
+				} else {
+					$errorMessage = Mage::helper('eb2caddress')->__(self::NO_SUGGESTIONS_ERROR_MESSAGE);
+				}
+			}
+		}
+		return $response;
 	}
 
 	/**
