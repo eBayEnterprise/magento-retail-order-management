@@ -248,18 +248,19 @@ class TrueAction_Eb2cAddress_Model_Validator
 	 */
 	public function validateAddress(Mage_Customer_Model_Address_Abstract $address, $area=null)
 	{
-		$adminValidation = null;
 		$errorMessage    = null;
 		$response        = null;
 		$address         = $this->_updateAddressWithSelection($address);
+		$adminValidation = false;
 
-		if ($area && $area === Mage_Core_Model_App_Area::AREA_ADMINHTML) {
-			$adminValidation = true;
+		if ($area === Mage_Core_Model_App_Area::AREA_ADMINHTML
+				&& !$this->_isBillingAddress($address)
+				&& !$this->_hasAddressBeenValidated($address))
+		{
 			Mage::helper('trueaction_magelog')->logDebug('[%s] Admin Area Address Validation', array(__CLASS__));
-			if ($this->_hasAddressBeenValidated($address)) {
-				$adminValidation = false;
-			}
+			$adminValidation = true;
 		}
+
 		if ($adminValidation || $this->shouldValidateAddress($address)) {
 			$this->clearSessionAddresses();
 
