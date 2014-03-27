@@ -76,7 +76,7 @@ class TrueAction_Eb2cProduct_Test_Mock_Helper_Data extends EcomDev_PHPUnit_Test_
 
 		$coreHelperMock->expects($this->any())
 			->method('getNewDomDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+			->will($this->returnValue(Mage::helper('eb2ccore')->getNewDomDocument()));
 
 		$this->replaceByMock('helper', 'eb2ccore', $coreHelperMock);
 	}

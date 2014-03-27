@@ -364,7 +364,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 */
 	public function testExtractNodeVal()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<root><Description xml:lang="en_US">desc1</Description></root>');
 		$xpath = new DOMXPath($doc);
 		$this->assertSame('desc1', Mage::helper('eb2cproduct')->extractNodeVal($xpath->query('Description', $doc->documentElement)));
@@ -375,7 +375,7 @@ class TrueAction_Eb2cProduct_Test_Helper_DataTest
 	 */
 	public function testExtractNodeAttributeVal()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<root><Description xml:lang="en_US">desc1</Description></root>');
 		$xpath = new DOMXPath($doc);
 		$this->assertSame('en_US', Mage::helper('eb2cproduct')->extractNodeAttributeVal($xpath->query('Description', $doc->documentElement), 'xml:lang'));

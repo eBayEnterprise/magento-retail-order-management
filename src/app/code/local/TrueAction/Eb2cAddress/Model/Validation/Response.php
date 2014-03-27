@@ -22,7 +22,7 @@ class TrueAction_Eb2cAddress_Model_Validation_Response extends Varien_Object
 	protected $_doc;
 	protected function _construct()
 	{
-		$this->_doc = new TrueAction_Dom_Document();
+		$this->_doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		// Apply the side-effects of setMessage
 		if ($this->hasMessage()) {
 			$this->setMessage($this->getMessage());

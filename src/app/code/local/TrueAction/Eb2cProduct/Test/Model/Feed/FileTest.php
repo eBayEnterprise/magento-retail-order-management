@@ -12,7 +12,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	public function provideConstructorDetailsAndErrors()
 	{
 		return array(
-			array(array('doc' => new TrueAction_Dom_Document(), 'error_file' => 'error_file.xml'), null),
+			array(array('doc' => Mage::helper('eb2ccore')->getNewDomDocument(), 'error_file' => 'error_file.xml'), null),
 			array(array('doc' => "this isn't a DOMDocument", 'error_file' => 'error_file.xml'), 'User Error: TrueAction_Eb2cProduct_Model_Feed_File::__construct called with invalid doc. Must be instance of TrueAction_Dom_Document'),
 			array(array('wat' => "There's aren't the arguments you're looking for"), 'User Error: TrueAction_Eb2cProduct_Model_Feed_File::__construct called without required feed details: doc, error_file missing.'),
 		);
@@ -82,8 +82,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 
 		$languageCode = 'en-us';
 		$template = TrueAction_Eb2cProduct_Model_Feed_File::XSLT_DEFAULT_TEMPLATE_PATH;
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
-		$splitDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
+		$splitDoc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 		$xsltFilePath = 'mock/path/to/language-splitting-xslt.xsl';
 
@@ -178,8 +178,8 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 	 *                test the method TrueAction_Eb2cProduct_Model_Feed_File::getDoc will be called once and it
 	 *                will return the DOMDocument object, then the method TrueAction_Eb2cProduct_Helper_Data::splitDomByXslt
 	 *                will be called with the DOMDocument object and the xslt full path to the delete template file, this method
-	 *                will return new DOMDocument object with skus to be deleted
-	 * Expectation 3: the new DOMDocument object will be passed as parameter to the TrueAction_Eb2cCore_Helper_Data::getNewDomXPath
+	 *                will return DOMDocument object with skus to be deleted
+	 * Expectation 3: the DOMDocument object will be passed as parameter to the TrueAction_Eb2cCore_Helper_Data::getNewDomXPath
 	 *                method which will return the DOMXPath object, with this xpath object the method query the each sku node and
 	 *                extract each sku to be deleted into an array of skus
 	 * Expectation 4: this array of skus then get return
@@ -194,7 +194,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			$skus[0] => array('gsi_client_id' => 'MAGTNA', 'catalog_id' => '45'),
 			$skus[1] => array('gsi_client_id' => 'MAGTNA', 'catalog_id' => '45')
 		);
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -215,7 +215,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 			</ItemMaster>'
 		);
 
-		$dlDoc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$dlDoc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$dlDoc->loadXML(
 			'<product_to_be_deleted>
 				<sku operation_type="Delete" gsi_client_id="MAGTNA" catalog_id="45">45-4321</sku>
@@ -295,7 +295,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_FileTest
 					<Item><UniqueID>45-34567</UniqueID></Item>
 				</Items>';
 
-		$dom = new DOMDocument();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$dom->loadXML($doc);
 		$xpath = new DOMXPath($dom);
 

@@ -113,7 +113,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 	 */
 	public function testValidateResultWhenPassDomNodeListWithItemReturnTrue()
 	{
-		$doc = new DOMDocument();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<root><sku>1234</sku></root>');
 		$xpath = new DOMXPath($doc);
 		$result = $xpath->evaluate('/root/sku', $doc->documentElement);
@@ -148,7 +148,7 @@ class TrueAction_Eb2cProduct_Test_Model_Feed_ExtractorTest
 	 */
 	public function testExtractSku($xml)
 	{
-		$dom = new DOMDocument();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$dom->loadXML($xml);
 		$xpath = new DOMXPath($dom);
 		$node = $xpath->query('/root/Item')->item(0);

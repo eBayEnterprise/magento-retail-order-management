@@ -19,7 +19,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_ProductTest
 				->getMock();
 		}
 
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 		$product = $this->getModelMockBuilder('catalog/product')
 			->disableOriginalConstructor()

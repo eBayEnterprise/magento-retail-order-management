@@ -11,7 +11,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractStringValue()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -43,7 +43,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractBoolValue()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -84,7 +84,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractIntValue()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -115,7 +115,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractFloatValue()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<ItemMaster>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -145,7 +145,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractStatusValueWhenActive()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<Items>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -171,7 +171,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractStatusValueWhenNotActive()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<Items>
 				<Item operation_type="Add" gsi_client_id="MAGTNA" catalog_id="45">
@@ -253,7 +253,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractProductLinks()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<root>
 				<ProductLink link_type="ES_Accessory" operation_type="Add">
@@ -291,7 +291,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 	 */
 	public function testExtractProductLinksUnknownLink()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML('<root><ProductLink link_type="NO_CLUE_WHAT_THIS_IS" operation_type="Add"><LinkToUniqueId>45-23456</LinkToUniqueId></ProductLink></root>');
 		$nodes = $doc->getElementsByTagName('ProductLink');
 
@@ -476,7 +476,7 @@ class TrueAction_Eb2cProduct_Test_Helper_MapTest
 			array('mfn_duty_rate' => '12', 'destination_country' => 'AT', 'restricted' => 'N', 'hts_code' => '6114.20')
 		));
 
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
 		$doc->loadXML(
 			'<root>

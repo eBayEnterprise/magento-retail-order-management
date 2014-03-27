@@ -8,7 +8,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_BalanceTest
 	 */
 	public function testGetBalance()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<StoredValueBalanceRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0">
 				<PaymentAccountUniqueId isToken="false">80000000000000</PaymentAccountUniqueId>
@@ -87,7 +87,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_BalanceTest
 	{
 		$pan = '00000000000000';
 		$pin = '1234';
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			"<StoredValueBalanceRequest xmlns='http://api.gsicommerce.com/schema/checkout/1.0'>
 				<PaymentAccountUniqueId isToken='false'>$pan</PaymentAccountUniqueId>

@@ -247,7 +247,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		return Mage::getModuleDir('', 'TrueAction_Eb2cProduct') . DS . 'xslt' . DS . $templateName;
 	}
 	/**
-	 * Get a new DOMDocument including only the data that should be set for a given
+	 * Get a DOMDocument including only the data that should be set for a given
 	 * language using the specified XSLT.
 	 * @param string $languageCode
 	 * @param string $template
@@ -262,7 +262,7 @@ class TrueAction_Eb2cProduct_Model_Feed_File
 		);
 	}
 	/**
-	 * Get a new DOMDocument including only the data that should be set for a given
+	 * Get a DOMDocument including only the data that should be set for a given
 	 * language using the specified XSLT.
 	 * @param array $websiteFilter
 	 * @param string $template

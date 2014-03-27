@@ -8,7 +8,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest
 	 */
 	public function testGetRedeem()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			'<StoredValueRedeemRequest xmlns="http://api.gsicommerce.com/schema/checkout/1.0" requestId="1">
 				<PaymentContext>
@@ -100,7 +100,7 @@ class TrueAction_Eb2cPayment_Test_Model_Storedvalue_RedeemTest
 		$pin = '1234';
 		$entityId = 1;
 		$amount = 1.0;
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXML(
 			"<StoredValueRedeemRequest xmlns='http://api.gsicommerce.com/schema/checkout/1.0' requestId='1'>
 				<PaymentContext>

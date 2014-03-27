@@ -38,14 +38,14 @@ class TrueAction_Eb2cInventory_Test_Helper_QuoteTest extends TrueAction_Eb2cCore
 	{
 		$helper = $this->getHelperMock('eb2cinventory/quote', null);
 		$method = $this->_reflectMethod($helper, '_getNewDomXPath');
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->assertInstanceOf('DOMXPath', $method->invoke($helper, $doc));
 	}
 	/**
-	 * Test creating a new DOMXPath object for use in querying a response message.
-	 * To do so, the method should create a new TrueAction_Dom_Document with the
+	 * Test creating a DOMXPath object for use in querying a response message.
+	 * To do so, the method should create a TrueAction_Dom_Document with the
 	 * given response message loaded. This DOM document should then be used to
-	 * create a new DOMXpath object, via the _getNewDomXpath method, which should
+	 * create a DOMXpath object, via the _getNewDomXpath method, which should
 	 * then have the namespace used by inventory responses registered.
 	 * @test
 	 */

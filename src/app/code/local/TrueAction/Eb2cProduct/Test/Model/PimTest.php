@@ -38,7 +38,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	public function testConstructorWithArgs()
 	{
 		$coreFeed = $this->getModelMockBuilder('eb2ccore/feed')->disableOriginalConstructor()->getMock();
-		$docs = array('item_map' => new TrueAction_Dom_Document(),);
+		$docs = array('item_map' => Mage::helper('eb2ccore')->getNewDomDocument());
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
 			->disableOriginalConstructor()
 			->setMethods(null)
@@ -225,7 +225,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 	{
 		$storeId = 1;
 		$key = 'item_map';
-		$docs = array($key => new TrueAction_Dom_Document());
+		$docs = array($key => Mage::helper('eb2ccore')->getNewDomDocument());
 		$attributeList = array('_gsi_client_id', 'sku');
 
 		$pim = $this->getModelMockBuilder('eb2cproduct/pim')
@@ -392,7 +392,7 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 			TrueAction_Eb2cProduct_Model_Pim::KEY_ITEM_NODE => $itemNode,
 			TrueAction_Eb2cProduct_Model_Pim::KEY_IS_VALIDATE => $isValidate,
 		));
-		$feedDoc = new TrueAction_Dom_Document();
+		$feedDoc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$feedDoc->loadXML('<root></root>');
 		$itemFragment = $feedDoc->createDocumentFragment();
 		$itemFragment->appendChild($feedDoc->createElement('Item'));
@@ -870,8 +870,8 @@ class TrueAction_Eb2cProduct_Test_Model_PimTest
 		$map = array($keyA => array(), $keyB => array());
 
 		$docs = array(
-			$keyA => new TrueAction_Dom_Document('1.0', 'UTF-8'),
-			$keyB => new TrueAction_Dom_Document('1.0', 'UTF-8')
+			$keyA => Mage::helper('eb2ccore')->getNewDomDocument(),
+			$keyB => Mage::helper('eb2ccore')->getNewDomDocument(),
 		);
 
 		$coreHelperMock = $this->getHelperMockBuilder('eb2ccore/data')

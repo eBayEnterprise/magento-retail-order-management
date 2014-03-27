@@ -39,7 +39,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attribute_FactoryTest
 	public function testGetPimAttribute()
 	{
 		$key = 'item_map';
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$attributeMapping = array('xml_dest' => 'Some/XPath', 'class' => 'eb2cproduct/pim', 'type' => 'helper');
 		$pimAttrConstructorArgs = array(
 			'destination_xpath' => 'Some/XPath',
@@ -82,7 +82,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attribute_FactoryTest
 	public function testGetPimAttributeDisabledMapping()
 	{
 		$key = 'item_map';
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$attributeMapping = array('xml_dest' => 'Some/XPath');
 		$product = $this->getModelMock('catalog/product');
 		$attribute = $this->getModelMock('catalog/entity_attribute');
@@ -145,7 +145,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attribute_FactoryTest
 	 */
 	public function testResolveMappedCallback()
 	{
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$attribute = 'some_attribute_code';
 		$product = $this->getModelMock('catalog/product', array('getDataUsingMethod'));
 		$callbackValue = $this->getMockBuilder('DOMDocumentFragment')
@@ -212,7 +212,7 @@ class TrueAction_Eb2cProduct_Test_Model_Pim_Attribute_FactoryTest
 	 */
 	public function testResolveMappedCallbackDisabledMapping()
 	{
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$attribute = $this->getModelMock('catalog/entity_attribute', array('getAttributeCode'));
 		$product = $this->getModelMock('catalog/product', array('getDataUsingMethod'));
 		$coreHelper = $this->getHelperMock('eb2ccore/feed', array('invokeCallback'));
