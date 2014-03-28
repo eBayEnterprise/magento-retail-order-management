@@ -448,7 +448,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	function appendXslTemplateMatchNode($xslDoc, $xpathExpression)
 	{
-		$templateNode          = $xslDoc->createElement('xsl:template');
+		$templateNode          = $xslDoc->createElement('xsl:template', '', 'http://www.w3.org/1999/XSL/Transform');
 		$matchAttribute        = $xslDoc->createAttribute('match');
 		$matchAttribute->value = $xpathExpression;
 		$templateNode->appendChild($matchAttribute);
