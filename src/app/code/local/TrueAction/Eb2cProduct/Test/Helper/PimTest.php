@@ -11,7 +11,7 @@ class TrueAction_Eb2cProduct_Test_Helper_PimTest
 		$attrValue = 'simple string value';
 		$product = $this->getModelMock('catalog/product');
 		$attribute = $this->getModelMock('catalog/entity_attribute');
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$result = Mage::helper('eb2cproduct/pim')
 			->getTextAsNode($attrValue, $attribute, $product, $doc);
 		$this->assertInstanceOf('DOMCDataSection', $result);
@@ -32,7 +32,7 @@ class TrueAction_Eb2cProduct_Test_Helper_PimTest
 	{
 		$product = $this->getModelMock('catalog/product');
 		$attribute = $this->getModelMock('catalog/entity_attribute');
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$result = Mage::helper('eb2cproduct/pim')
 			->getValueAsDefault($attrValue, $attribute, $product, $doc);
 		$this->assertInstanceOf('DOMNode', $result);
@@ -47,7 +47,7 @@ class TrueAction_Eb2cProduct_Test_Helper_PimTest
 	{
 		$product = $this->getModelMock('catalog/product');
 		$attribute = $this->getModelMock('catalog/entity_attribute');
-		$doc = new TrueAction_Dom_Document();
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$this->assertNull(
 			Mage::helper('eb2cproduct/pim')->getTextAsNode(null, $attribute, $product, $doc)
 		);

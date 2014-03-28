@@ -420,8 +420,8 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	public function splitDomByXslt(TrueAction_Dom_Document $doc, $xsltFilePath, array $params=array(), $postXsltLoadCall=null, $websiteFilter=array())
 	{
 		$helper = Mage::helper('eb2ccore');
-		// create a new DOMDocument for the xsl
-		$xslDom =  new DOMDocument();
+		// create a DOMDocument for the xsl
+		$xslDom = $helper->getNewDomDocument();
 		$xslDom->load($xsltFilePath);
 		if (is_callable($postXsltLoadCall)) {
 			call_user_func($postXsltLoadCall, $xslDom, $websiteFilter);
@@ -430,7 +430,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 		$xslProcessor = $helper->getNewXsltProcessor();
 		$xslProcessor->importStyleSheet($xslDom);
 		$xslProcessor->setParameter('', $params);
-		// create a new DOMDocument from the transformed XML
+		// create a DOMDocument from the transformed XML
 		$transformed = $helper->getNewDomDocument();
 		$transformed->loadXML($xslProcessor->transformToXML($doc));
 		preg_match_all('/<ClientItemId ?.*>(.*)<\/ClientItemId>/', $transformed->saveXML(), $matches);
@@ -448,7 +448,7 @@ class TrueAction_Eb2cProduct_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	function appendXslTemplateMatchNode($xslDoc, $xpathExpression)
 	{
-		$templateNode          = $xslDoc->createElement('xsl:template');
+		$templateNode          = $xslDoc->createElement('xsl:template', '', 'http://www.w3.org/1999/XSL/Transform');
 		$matchAttribute        = $xslDoc->createAttribute('match');
 		$matchAttribute->value = $xpathExpression;
 		$templateNode->appendChild($matchAttribute);

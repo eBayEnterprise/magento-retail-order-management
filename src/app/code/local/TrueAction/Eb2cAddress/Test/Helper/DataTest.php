@@ -42,7 +42,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	 */
 	protected function _generatePhysicalAddressElement($streetLines=4)
 	{
-		$dom = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$rootNs = Mage::getModel('eb2ccore/config_registry')
 			->addConfigModel(Mage::getSingleton('eb2caddress/config'))->apiNamespace;
 		$root = $dom->appendChild($dom->createElement('address', null, $rootNs));
@@ -63,7 +63,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	 */
 	public function testTextValueFromXmlPathOnElement()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->addElement('root');
 		$root = $doc->documentElement;
 		$root->createChild('foo')->addChild('bar', 'one')->addChild('baz', 'two');
@@ -84,7 +84,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	 */
 	public function testTextValueFromXmlPathOnDocument()
 	{
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->addElement('root');
 		$root = $doc->documentElement;
 		$root->createChild('foo')->addChild('bar', 'one')->addChild('baz', 'two');
@@ -169,7 +169,7 @@ class TrueAction_Eb2cAddress_Test_Helper_DataTest extends EcomDev_PHPUnit_Test_C
 	 */
 	public function testAddressToXml()
 	{
-		$dom = new TrueAction_Dom_Document();
+		$dom = Mage::helper('eb2ccore')->getNewDomDocument();
 		$address = $this->_generateAddressObject();
 		$addressFragment = Mage::helper('eb2caddress')
 			->addressToPhysicalAddressXml($address, $dom, 'test-ns');

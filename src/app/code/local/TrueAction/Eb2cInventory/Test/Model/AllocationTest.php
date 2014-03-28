@@ -203,7 +203,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 			->setMethods(array('request'))
 			->getMock();
 		$this->replaceByMock('model', 'eb2ccore/api', $api);
-		$doc = new TrueAction_Dom_Document('1.0', 'UTF-8');
+		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 		$doc->loadXml('<inventoryallocation />');
 
 		$quote = $this->getModelMockBuilder('sales/quote')
@@ -472,7 +472,7 @@ class TrueAction_Eb2cInventory_Test_Model_AllocationTest
 		// from the allocateQuoteItems method when successful.
 		$response = '<What>Ever</What>';
 
-		$request = new DOMDocument();
+		$request = Mage::helper('eb2ccore')->getNewDomDocument();
 		$request->loadXML(
 			'<RollbackAllocationRequestMessage requestId="' .
 			self::REQUEST_ID . '" reservationId="' .

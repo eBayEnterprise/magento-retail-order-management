@@ -45,7 +45,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->getMock();
 		$coreHelperMock->expects($this->once())
 			->method('getNewDomDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+			->will($this->returnValue(Mage::helper('eb2ccore')->getNewDomDocument()));
 		$coreHelperMock->expects($this->once())
 			->method('getApiUri')
 			->with($this->equalTo('customers'), $this->equalTo('orders/get'))
@@ -87,7 +87,7 @@ class TrueAction_Eb2cOrder_Test_Model_Customer_Order_SearchTest
 			->getMock();
 		$coreHelperMock->expects($this->once())
 			->method('getNewDomDocument')
-			->will($this->returnValue(new TrueAction_Dom_Document('1.0', 'UTF-8')));
+			->will($this->returnValue(Mage::helper('eb2ccore')->getNewDomDocument()));
 		$coreHelperMock->expects($this->exactly(7))
 			->method('extractNodeVal')
 			->with($this->isInstanceOf('DOMNodeList'))
