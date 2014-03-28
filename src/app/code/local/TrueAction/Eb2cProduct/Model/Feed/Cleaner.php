@@ -247,22 +247,22 @@ class TrueAction_Eb2cProduct_Model_Feed_Cleaner
 
 	/**
 	 * Determine if the product has been sufficiently cleaned.
+	 * A product with no unresolved product links can be marked clean.
+	 *
 	 * @param  Mage_Catalog_Model_Product $product Product to check
-	 * @return $this object
+	 * @return self
 	 */
 	public function markProductClean(Mage_Catalog_Model_Product $product)
 	{
-		$isClean = false;
 		// lingering unresolved links will need to be checked again in a later pass, considered dirty
 		$unresolvedLinks = unserialize($product->getUnresolvedProductLinks());
 		$isClean = empty($unresolvedLinks);
-
 		// update flag on product
 		$product->setIsClean($isClean);
-
-		if (!$isClean) {
-			Mage::log(sprintf('[ %s ]: Product, %s, has not be fully cleaned.', __CLASS__, $product->getSku()), Zend_Log::DEBUG);
-		}
+		Mage::helper('trueaction_magelog')->logDebug(
+			'[%s] Product "%s" marked%s clean.',
+			array(__CLASS__, $product->getSku(), $isClean ? '' : ' not')
+		);
 		return $this;
 	}
 }
