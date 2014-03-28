@@ -217,6 +217,14 @@
 					<es_crossselling>crosssell</es_crossselling>
 					<es_upselling>upsell</es_upselling>
 				</related_link_types>
+				<!--
+				Mapping SalesClass possible values to a known value for Magento product stock item manage_stock attribute
+				-->
+				<stock_map>
+					<stock>Yes</stock>
+					<AdvanceOrderOpen>No</AdvanceOrderOpen>
+					<AdvanceOrderLimited>Yes</AdvanceOrderLimited>
+				</stock_map>
 			</feed>
 			<feed_attribute_mappings>
 				<category_ids>
@@ -321,6 +329,12 @@
 					<method></method>
 					<xpath></xpath>
 				</allow_open_amount>
+				<stock_data>
+					<class>eb2cproduct/map_stock</class>
+					<type>helper</type>
+					<method>extractStockData</method>
+					<xpath>ExtendedAttributes/SalesClass</xpath>
+				</stock_data>
 			</feed_attribute_mappings>
 			<feed_pim_mapping>
 				<item_map>
