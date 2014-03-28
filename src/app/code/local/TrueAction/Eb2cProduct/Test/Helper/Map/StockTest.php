@@ -121,4 +121,24 @@ class TrueAction_Eb2cProduct_Test_Helper_Map_StockTest
 
 		$this->assertSame(null, $stockHelperMock->extractStockData($nodes, $productMock));
 	}
+
+	/**
+	 * Test TrueAction_Eb2cProduct_Helper_Map_Stock::_boolToInt method with the following expectations
+	 * Expectation 1: This test will invoked the method TrueAction_Eb2cProduct_Helper_Map_Stock::_boolToInt given
+	 *                a bool value and expect the return value is an integer value
+	 */
+	public function testBoolToInt()
+	{
+		$value = true;
+		$rValue = 1;
+		$stockHelperMock = $this->getHelperMockBuilder('eb2cproduct/map_Stock')
+			->disableOriginalConstructor()
+			->setMethods(null)
+			->getMock();
+
+		$this->assertSame($rValue, EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$stockHelperMock, '_boolToInt', array($value)
+		));
+	}
+
 }
