@@ -104,61 +104,7 @@ class EbayEnterprise_Eb2cInventory_Test_Helper_QuoteTest extends EbayEnterprise_
 
 		$this->assertSame($xpath, $quoteHelper->getXPathForMessage($responseMessage));
 	}
-	/**
-	 * Test adding notices to the cart/checkout session. Message are assumed to
-	 * alreay have been translated via the eb2cinventory/quote helper's `_getCartMessage`
-	 * method. Messages should simply be added to the checkout session.
-	 */
-	public function testAddNotice()
-	{
-		$message = 'message';
-		$code = 1;
-		$errorType = EbayEnterprise_Eb2cInventory_Helper_Quote::ERROR_TYPE;
-		$errorOrigin = EbayEnterprise_Eb2cInventory_Helper_Quote::ERROR_ORIGIN;
 
-		$isAdmin = false;
-		$storeMock = $this->getModelMockBuilder('core/store')
-			->disableOriginalConstructor()
-			->setMethods(array('isAdmin'))
-			->getMock();
-		$storeMock->expects($this->once())
-			->method('isAdmin')
-			->will($this->returnValue($isAdmin));
-
-		$helperMock = $this->getHelperMockBuilder('eb2ccore/data')
-			->disableOriginalConstructor()
-			->setMethods(array('getCurrentStore'))
-			->getMock();
-		$helperMock->expects($this->once())
-			->method('getCurrentStore')
-			->will($this->returnValue($storeMock));
-		$this->replaceByMock('helper', 'eb2ccore', $helperMock);
-
-		$quote = $this->getModelMock('sales/quote', array('addErrorInfo'));
-		$session = $this->getModelMockBuilder('checkout/session')
-			->disableOriginalConstructor()
-			->setMethods(array('addNotice'))
-			->getMock();
-		$this->replaceByMock('singleton', 'checkout/session', $session);
-
-		$quote
-			->expects($this->once())
-			->method('addErrorInfo')
-			->with(
-				$this->identicalTo($errorType),
-				$this->identicalTo($errorOrigin),
-				$this->identicalTo($code),
-				$this->identicalTo($message)
-			)
-			->will($this->returnSelf());
-		$session
-			->expects($this->once())
-			->method('addNotice')
-			->with($this->identicalTo($message))
-			->will($this->returnSelf());
-		$quoteHelper = Mage::helper('eb2cinventory/quote');
-		$this->assertSame($quoteHelper, $quoteHelper->addCartNotice($quote, $message, $code));
-	}
 	/**
 	 * @see self::testAddNotice test. This test will be testing the scenario where the current store is admin
 	 */

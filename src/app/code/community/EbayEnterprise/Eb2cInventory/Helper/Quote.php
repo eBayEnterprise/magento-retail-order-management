@@ -68,9 +68,7 @@ class EbayEnterprise_Eb2cInventory_Helper_Quote
 	public function addCartNotice(Mage_Sales_Model_Quote $quote, $message, $errorCode)
 	{
 		$quote->addErrorInfo(self::ERROR_TYPE, self::ERROR_ORIGIN, $errorCode, $message);
-		if (!Mage::helper('eb2ccore')->getCurrentStore()->isAdmin()) {
-			Mage::getSingleton('checkout/session')->addNotice($message);
-		} else {
+		if (Mage::helper('eb2ccore')->getCurrentStore()->isAdmin()) {
 			Mage::getSingleton('adminhtml/session_quote')->addNotice($message);
 		}
 		return $this;
