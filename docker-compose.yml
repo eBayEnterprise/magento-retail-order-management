@@ -41,7 +41,7 @@ setup:
         - .:/srv/magento
     links:
         - db
-    entrypoint: /srv/magento/fig-setup
+    entrypoint: /srv/magento/docker-setup
     command: 1.14.1.0
 composer:
     image: kojiromike/magento_tools
