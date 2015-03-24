@@ -128,7 +128,10 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('set express', $reply->serialize(), 'response');
-		return array('token' => $reply->getToken());
+		return array(
+			'method' => EbayEnterprise_PayPal_Model_Method_Express::CODE,
+			'token'  => $reply->getToken()
+		);
 	}
 
 	/**
@@ -173,6 +176,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 		}
 		$this->_logApiCall('get express', $reply->serialize(), 'response');
 		return array(
+			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'         => $reply->getOrderId(),
 			'country_id'       => $reply->getPayerCountry(),
 			'email'            => $reply->getPayerEmail(),
@@ -190,6 +194,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 				'region_code' => $reply->getBillingMainDivision(),
 				'postcode'    => $reply->getBillingPostalCode(),
 				'country_id'  => $reply->getBillingCountryCode(),
+				'status'      => $reply->getBillingAddressStatus(),
 			),
 			'shipping_address' => array(
 				'street'      => $reply->getShipToLines(),
@@ -197,6 +202,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 				'region_code' => $reply->getShipToMainDivision(),
 				'postcode'    => $reply->getShipToPostalCode(),
 				'country_id'  => $reply->getShipToCountryCode(),
+				'status'      => $reply->getShippingAddressStatus(),
 			)
 		);
 	}
@@ -285,6 +291,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 		}
 		$this->_logApiCall('do authorization', $reply->serialize(), 'response');
 		return array(
+			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'       => $reply->getOrderId(),
 			'payment_status' => $reply->getPaymentStatus(),
 			'pending_reason' => $reply->getPendingReason(),
@@ -322,6 +329,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 		}
 		$this->_logApiCall('do void', $reply->serialize(), 'response');
 		return array(
+			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'  => $reply->getOrderId(),
 			'is_voided' => $isVoided
 		);

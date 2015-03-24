@@ -282,6 +282,12 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			array('setOrderId', 'setToken', 'setCurrencyCode'),
 			$request
 		);
+		$request->expects($this->any())
+			->method('getBillingAddressStatus')
+			->will($this->returnValue(null));
+		$request->expects($this->any())
+			->method('getShipToAddressStatus')
+			->will($this->returnValue(null));
 
 		// mock the reply
 		$reply = $this->getMock(self::GETEXPRESS_REPLY_PAYLOAD);

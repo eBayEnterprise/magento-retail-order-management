@@ -45,13 +45,9 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 	const PAYMENT_INFO_BILLING_AGREEMENT = 'paypal_ec_create_ba';
 	const PAYMENT_INFO_IS_AUTHORIZED_FLAG = 'is_authorized';
 	const PAYMENT_INFO_IS_VOIDED_FLAG = 'is_voided';
+	const PAYMENT_INFO_ADDRESS_STATUS  = 'address_status';
 
-	/**
-	 * Flag which says that was used PayPal Express Checkout button for checkout
-	 * Stored in additional_information
-	 *
-	 * @var string
-	 */
+	/** @var string Flag from the request that indicates checkout was initiated outside normal checkout flow */
 	const PAYMENT_INFO_BUTTON = 'button';
 
 	/** @var Mage_Sales_Model_Quote */
@@ -152,23 +148,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 		$setExpressCheckoutReply = $this->_api->setExpressCheckout(
 			$returnUrl, $cancelUrl, $this->_quote
 		);
-		$setExpressCheckoutReply['method'] = 'ebayenterprise_paypal_express';
 		$this->_quote->getPayment()->importData($setExpressCheckoutReply);
-		$this->_quote->getPayment()->unsAdditionalInformation(
-			self::PAYMENT_INFO_BILLING_AGREEMENT
-		);
-		if (!empty($button)) { // Indicates whether we came from Express Checkout button
-			$this->_quote->getPayment()->setAdditionalInformation(
-				self::PAYMENT_INFO_BUTTON, 1
-			);
-		} elseif ($this->_quote->getPayment()->hasAdditionalInformation(
-			self::PAYMENT_INFO_BUTTON
-		)
-		) {
-			$this->_quote->getPayment()->unsAdditionalInformation(
-				self::PAYMENT_INFO_BUTTON
-			);
-		}
 		$this->_quote->getPayment()->save();
 		return $setExpressCheckoutReply;
 	}
@@ -276,9 +256,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 		$quote->setBillingAddress($billingAddress);
 
 		// import payment info
-		$payment = $quote->getPayment();
-		$payment->setMethod('ebayenterprise_paypal_express');
-		$payment
+		$quote->getPayment()
 			->setAdditionalInformation(
 				self::PAYMENT_INFO_PAYER_ID,
 				$getExpressCheckoutReply['payer_id']
@@ -311,11 +289,6 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 		$this->_quote->setMayEditShippingAddress(
 			1 != $this->_quote->getPayment()->getAdditionalInformation(
 				self::PAYMENT_INFO_SHIPPING_OVERRIDDEN
-			)
-		);
-		$this->_quote->setMayEditShippingMethod(
-			'' == $this->_quote->getPayment()->getAdditionalInformation(
-				self::PAYMENT_INFO_SHIPPING_METHOD
 			)
 		);
 		$this->_ignoreAddressValidation();
@@ -390,13 +363,8 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 			$this->_quote, $token, $payerId
 		);
 		$doAuthorizationReply = $this->_api->doAuthorization($this->_quote);
-		$this->_quote->getPayment()->importData(
-			array_merge(
-				$doExpressReply,
-				$doAuthorizationReply,
-				array('method' => 'ebayenterprise_paypal_express')
-			)
-		);
+		$this->_quote->getPayment()
+			->importData(array_merge($doExpressReply, $doAuthorizationReply));
 		$service = Mage::getModel('sales/service_quote', $this->_quote);
 		$service->submitAll();
 		$this->_quote->save();

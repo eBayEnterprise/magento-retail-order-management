@@ -207,11 +207,17 @@ class EbayEnterprise_PayPal_Model_Method_Express
 		}
 		if (is_array($data)) {
 			// array keys for the fields to store into the payment info object.
-			$data = array_intersect_key($data, array_flip($this->_selectorKeys));
+			$filteredData = array_intersect_key($data, array_flip($this->_selectorKeys));
 			$info = $this->getInfoInstance();
-			foreach ($data as $key => $value) {
+			foreach ($filteredData as $key => $value) {
 				$info->setAdditionalInformation(
 					$key, $value
+				);
+			}
+			if (isset($data['shipping_address']['status'])) {
+				$this->getInfoInstance()->setAdditionalInformation(
+					EbayEnterprise_PayPal_Model_Express_Checkout::PAYMENT_INFO_ADDRESS_STATUS,
+					$data['shipping_address']['status']
 				);
 			}
 		}

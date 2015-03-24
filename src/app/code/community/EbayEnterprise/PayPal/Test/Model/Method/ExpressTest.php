@@ -56,6 +56,8 @@ class EbayEnterprise_PayPal_Test_Model_Method_ExpressTest
 		$data = array(
 			'token' => 'thetokenstring',
 			'ignored_field' => 'ignored_value',
+			'shipping_address' => ['status' => 'right one'],
+			'billing_address' => ['status' => 'wrong one'],
 		);
 		if ($isDataObject) {
 			$data = new Varien_Object($data);
@@ -65,6 +67,10 @@ class EbayEnterprise_PayPal_Test_Model_Method_ExpressTest
 		EcomDev_Utils_Reflection::setRestrictedPropertyValue($express, '_selectorKeys', array('token'));
 		$express->setData('info_instance', $info);
 		$express->assignData($data);
-		$this->assertSame(array('token' => 'thetokenstring'), $info->getAdditionalInformation());
+		$this->assertSame('thetokenstring', $info->getAdditionalInformation('token'));
+		$this->assertSame(
+			'right one',
+			$info->getAdditionalInformation(EbayEnterprise_PayPal_Model_Express_Checkout::PAYMENT_INFO_ADDRESS_STATUS)
+		);
 	}
 }

@@ -106,12 +106,11 @@ class EbayEnterprise_PayPal_CheckoutController
 			}
 
 			try {
-				$button = (bool) $this->getRequest()->getParam(
-					EbayEnterprise_Paypal_Model_Express_Checkout::PAYMENT_INFO_BUTTON
-				);
+				$buttonKey = EbayEnterprise_Paypal_Model_Express_Checkout::PAYMENT_INFO_BUTTON;
 				$startReply = $this->_checkout->start(
-					Mage::getUrl('*/*/return'), Mage::getUrl('*/*/cancel'),
-					$button
+					Mage::getUrl('*/*/return'),
+					Mage::getUrl('*/*/cancel'),
+					$this->getRequest()->getParam($buttonKey)
 				);
 				$this->_initToken($startReply['token']);
 				$this->_redirectToPayPalSite($startReply);

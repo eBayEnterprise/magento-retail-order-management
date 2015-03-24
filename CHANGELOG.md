@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## UNRELEASED
+### Fixed
+- The PayPal address status field from the get express reply was being ignored.
+
+
 ## [1.4.0-rc-4] -  2015-02-26
 ### Fixed
 - Guest order lookup gives "Order not found" error even when an order is found
