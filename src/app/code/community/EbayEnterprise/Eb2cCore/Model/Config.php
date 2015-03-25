@@ -32,6 +32,7 @@ class EbayEnterprise_Eb2cCore_Model_Config extends EbayEnterprise_Eb2cCore_Model
 		'error_feed_filename_format'  => 'eb2ccore/feed/filetransfer_exports/error_confirmations/filename_format',
 		// ack filetransfer imports for acks from eb2c for feeds we've sent
 		'feed_ack_inbox'              => 'eb2ccore/feed/filetransfer_imports/acknowledgements/local_directory',
+		'feed_ack_error_directory'    => 'eb2ccore/feed/filetransfer_imports/acknowledgements/local_error_directory',
 		// ack filetransfer exports for acks we send for files eb2c sent us
 		'feed_ack_export'             => 'eb2ccore/feed/filetransfer_exports/acknowledgements',
 		'feed_ack_filename_format'    => 'eb2ccore/feed/filetransfer_exports/acknowledgements/filename_format',

@@ -24,6 +24,7 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	const CFG_EXPORT_ARCHIVE = 'export_archive';
 	const CFG_IMPORT_ARCHIVE = 'import_archive';
 	const CFG_EXPORT_OUTBOX = 'export_outbox';
+	const CFG_ERROR_DIRECTORY = 'error_archive';
 
 	const CFG_IMPORTED_ACK_DIR = 'imported_ack_dir';
 	const CFG_EXPORTED_FEED_DIR = 'exported_feed_dir';
@@ -38,18 +39,41 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	const ACK_KEY = 'ack';
 	const RELATED_KEY = 'related';
 
-	/** @var EbayEnterprise_MageLog_Helper_Data $_logger */
+	/** @var EbayEnterprise_MageLog_Helper_Data */
 	protected $_logger;
+	/** @var EbayEnterprise_Eb2cCore_Helper_Data */
+	protected $_coreHelper;
+	/** @var array hold key config value map */
+	protected $_configMap = [];
 
-	public function __construct()
+	public function __construct($args = [])
 	{
-		$this->_logger = Mage::helper('ebayenterprise_magelog');
+		list(
+			$this->_logger,
+			$this->_coreHelper
+		) = $this->_checkTypes(
+			$this->_nullCoalesce('logger', $args, Mage::helper('ebayenterprise_magelog')),
+			$this->_nullCoalesce('core_helper', $args, Mage::helper('eb2ccore'))
+		);
 	}
 
 	/**
-	 * @var array hold key config value map
+	 * enforce injected types
+	 * @param  EbayEnterprise_MageLog_Helper_Data
+	 * @param  EbayEnterprise_Eb2cCore_Helper_Data
+	 * @return array
 	 */
-	protected $_configMap = array();
+	protected function _checkTypes(
+		EbayEnterprise_MageLog_Helper_Data $logger,
+		EbayEnterprise_Eb2cCore_Helper_Data $coreHelper
+	) {
+		return [$logger, $coreHelper];
+	}
+
+	protected function _nullCoalesce($key, array $arr, $default=null)
+	{
+		return isset($arr[$key]) ? $arr[$key] : $default;
+	}
 
 	/**
 	 * cache the self::_configMap known class constant and map them
@@ -60,16 +84,17 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	protected function _getConfigMapValue($cfgKey)
 	{
 		if (empty($this->_configMap)) {
-			$cfg = Mage::helper('eb2ccore')->getConfigModel();
+			$cfg = $this->_coreHelper->getConfigModel();
 
-			$this->_configMap = array(
+			$this->_configMap = [
 				self::CFG_EXPORT_ARCHIVE => $cfg->feedExportArchive,
 				self::CFG_IMPORT_ARCHIVE => $cfg->feedImportArchive,
 				self::CFG_EXPORT_OUTBOX => $cfg->feedOutboxDirectory,
 				self::CFG_IMPORTED_ACK_DIR => $cfg->feedAckInbox,
 				self::CFG_EXPORTED_FEED_DIR => $cfg->feedSentDirectory,
 				self::CFG_WAIT_TIME_LIMIT => $cfg->ackResendTimeLimit,
-			);
+				self::CFG_ERROR_DIRECTORY => $cfg->feedAckErrorDirectory,
+			];
 		}
 		return isset($this->_configMap[$cfgKey])? $this->_configMap[$cfgKey] : null;
 	}
@@ -106,7 +131,7 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	protected function _getImportedAckFiles()
 	{
 		$imports = $this->_listFilesByCfgKey(self::CFG_IMPORTED_ACK_DIR);
-		return !empty($imports)? array_map(array($this, '_extractExportedFile'), $imports): array();
+		return !empty($imports)? array_map([$this, '_extractExportedFile'], $imports): [];
 	}
 
 	/**
@@ -121,16 +146,15 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	 */
 	protected function _extractAckExportedFile($ackFile, $exportedDir)
 	{
-		$helper = Mage::helper('eb2ccore');
-		$doc = $helper->getNewDomDocument();
+		$doc = $this->_coreHelper->getNewDomDocument();
 		$doc->load($ackFile);
-		$xpath = $helper->getNewDOMXPath($doc);
-		return array(
+		$xpath = $this->_coreHelper->getNewDOMXPath($doc);
+		return [
 			self::ACK_KEY => $ackFile,
-			self::RELATED_KEY => $exportedDir . DS . $helper->extractNodeVal($xpath->query(
-				self::XPATH_ACK_EXPORTED_FILE, $helper->getDomElement($doc)
+			self::RELATED_KEY => $exportedDir . DS . $this->_coreHelper->extractNodeVal($xpath->query(
+				self::XPATH_ACK_EXPORTED_FILE, $this->_coreHelper->getDomElement($doc)
 			))
-		);
+		];
 	}
 
 	/**
@@ -141,7 +165,7 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	 * @param array $importedAck a list of imported acknowledgment files
 	 * @return string | null the acknowledgment file when match otherwise null
 	 */
-	protected function _getAck($exportedFile, array $importedAck=array())
+	protected function _getAck($exportedFile, array $importedAck=[])
 	{
 		foreach ($importedAck as $ack) {
 			if (basename($exportedFile) === basename($ack[self::RELATED_KEY])) {
@@ -155,18 +179,17 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	 * given a sourceFile and a self::_configMap give move the file
 	 * to any destination the key is map to after successful file move
 	 * try removing the source file
-	 * @param string $sourceFile
-	 * @param string $cfgKey
+	 * @param string
+	 * @param string
 	 * @return self
 	 */
 	protected function _mvTo($sourceFile, $cfgKey)
 	{
-		$helper = Mage::helper('eb2ccore');
 		$destination = $this->_buildPath($cfgKey) . DS . basename($sourceFile);
 		$isDeletable = true;
 
 		try{
-			$helper->moveFile($sourceFile, $destination);
+			$this->_coreHelper->moveFile($sourceFile, $destination);
 		} catch (EbayEnterprise_Catalog_Exception_Feed_File $e) {
 			$isDeletable = false;
 			$this->_logger->logException($e);
@@ -174,7 +197,7 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 
 		if ($isDeletable) {
 			try{
-				$helper->removeFile($sourceFile);
+				$this->_coreHelper->removeFile($sourceFile);
 			} catch (EbayEnterprise_Catalog_Exception_Feed_File $e) {
 				$this->_logger->logException($e);
 			}
@@ -190,7 +213,7 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	 */
 	protected function _buildPath($cfgKey)
 	{
-		return Mage::helper('eb2ccore')->getAbsolutePath(
+		return $this->_coreHelper->getAbsolutePath(
 			$this->_getConfigMapValue($cfgKey),
 			self::SCOPE_VAR
 		);
@@ -203,10 +226,10 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 	 * @param string $exportedFile the exported file that don't currently have an imported acknowledgment file
 	 * @return bool true exported file exceed the configured waiting time otherwise false
 	 */
-	protected function _isResendable($exportedFile)
+	protected function _isTimedOut($exportedFile)
 	{
 		return (
-			Mage::helper('eb2ccore')->getFileTimeElapse($exportedFile) >
+			$this->_coreHelper->getFileTimeElapse($exportedFile) >
 			(int) $this->_getConfigMapValue(self::CFG_WAIT_TIME_LIMIT)
 		);
 	}
@@ -244,8 +267,12 @@ class EbayEnterprise_Catalog_Model_Feed_Ack
 				if (!is_null($ack)) {
 					$this->_mvTo($exported, self::CFG_EXPORT_ARCHIVE)
 						->_mvTo($ack, self::CFG_IMPORT_ARCHIVE);
-				} elseif ($this->_isResendable($exported)) {
-					$this->_mvTo($exported, self::CFG_EXPORT_OUTBOX);
+				} elseif ($this->_isTimedOut($exported)) {
+					// create the error directory since it's not automatically created
+					// when processing the feeds
+					$this->_coreHelper->createDir($this->_buildPath(self::CFG_ERROR_DIRECTORY));
+					$this->_mvTo($exported, self::CFG_ERROR_DIRECTORY);
+					$this->_logger->logCrit('%s: %s was not acknowledged by Product Hub', [__CLASS__, $exported]);
 				}
 			}
 		}

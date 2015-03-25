@@ -217,6 +217,7 @@
 						<!-- Local directory is relative to Magento's 'var' directory -->
 						<local_directory>ExchangePlatform/Feed/inbox/ack</local_directory>
 						<remote_directory>/Inbox</remote_directory>
+						<local_error_directory>ExchangePlatform/Feed/error</local_error_directory>
 						<file_pattern>*Ack*.xml</file_pattern>
 					</acknowledgements>
 				</filetransfer_imports>
