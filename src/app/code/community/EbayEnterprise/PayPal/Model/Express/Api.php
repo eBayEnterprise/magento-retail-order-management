@@ -13,8 +13,12 @@
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
 
-use eBayEnterprise\RetailOrderManagement\Api;
-use eBayEnterprise\RetailOrderManagement\Payload;
+use eBayEnterprise\RetailOrderManagement\Api\Exception\NetworkError;
+use eBayEnterprise\RetailOrderManagement\Api\IBidirectionalApi;
+use eBayEnterprise\RetailOrderManagement\Payload\Exception\InvalidPayload;
+use eBayEnterprise\RetailOrderManagement\Payload\Payment\IShippingAddress;
+use eBayEnterprise\RetailOrderManagement\Payload\Payment\ILineItemIterable;
+use eBayEnterprise\RetailOrderManagement\Payload\Payment\ILineItemContainer;
 
 /**
  * Payment Method for PayPal payments through Retail Order Management.
@@ -61,10 +65,9 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Type hinting for self::__construct $initParams
 	 *
-	 * @param EbayEnterprise_PayPal_Helper_Data   $helper
-	 * @param EbayEnterprise_Eb2cCore_Helper_Data $coreHelper
-	 * @param EbayEnterprise_MageLog_Helper_Data  $logger
-	 *
+	 * @param EbayEnterprise_PayPal_Helper_Data
+	 * @param EbayEnterprise_Eb2cCore_Helper_Data
+	 * @param EbayEnterprise_MageLog_Helper_Data
 	 * @return array
 	 */
 	protected function _checkTypes(
@@ -72,17 +75,16 @@ class EbayEnterprise_Paypal_Model_Express_Api
 		EbayEnterprise_Eb2cCore_Helper_Data $coreHelper,
 		EbayEnterprise_MageLog_Helper_Data $logger
 	) {
-		return array($helper, $coreHelper, $logger);
+		return [$helper, $coreHelper, $logger];
 	}
 
 	/**
 	 * Return the value at field in array if it exists. Otherwise, use the
 	 * default value.
 	 *
-	 * @param  array      $arr
-	 * @param  string|int $field Valid array key
-	 * @param  mixed      $default
-	 *
+	 * @param  array
+	 * @param  string $field Valid array key
+	 * @param  mixed
 	 * @return mixed
 	 */
 	protected function _nullCoalesce(array $arr, $field, $default)
@@ -93,14 +95,15 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Set Express Checkout Request/ Response
 	 *
-	 * @param Mage_Sales_Model_Quote $quote
+	 * @param  string
+	 * @param  string
+	 * @param  Mage_Sales_Model_Quote
+	 * @return array
 	 *
-	 * @return array of 'assignData' values
 	 * @throws EbayEnterprise_PayPal_Exception when the operation cannot be completed or fails.
 	 */
-	public function setExpressCheckout(
-		$returnUrl, $cancelUrl, Mage_Sales_Model_Quote $quote
-	) {
+	public function setExpressCheckout($returnUrl, $cancelUrl, Mage_Sales_Model_Quote $quote)
+	{
 		$sdk = $this->_getSdk(
 			$this->_helper->getConfigModel()->apiOperationSetExpressCheckout
 		);
@@ -128,10 +131,10 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('set express', $reply->serialize(), 'response');
-		return array(
+		return [
 			'method' => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'token'  => $reply->getToken()
-		);
+		];
 	}
 
 	/**
@@ -150,10 +153,11 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Get Express Checkout Request/ Response
 	 *
-	 * @param Mage_Sales_Model_Quote $quote
-	 * @param string                 $token as from setExpressCheckout
+	 * @param  Mage_Sales_Model_Quote
+	 * @param  string                 $token as from setExpressCheckout
+	 * @param  string
+	 * @return array
 	 *
-	 * @return PayPalGetExpressCheckoutReply $reply
 	 * @throws EbayEnterprise_PayPal_Exception when the operation cannot be completed or fails.
 	 */
 	public function getExpressCheckout($orderId, $token, $currencyCode)
@@ -175,7 +179,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('get express', $reply->serialize(), 'response');
-		return array(
+		return [
 			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'         => $reply->getOrderId(),
 			'country_id'       => $reply->getPayerCountry(),
@@ -188,39 +192,38 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			'phone'            => $reply->getPayerPhone(),
 			'status'           => $reply->getPayerStatus(),
 			'response_code'    => $reply->getResponseCode(),
-			'billing_address'  => array(
+			'billing_address'  => [
 				'street'      => $reply->getBillingLines(),
 				'city'        => $reply->getBillingCity(),
 				'region_code' => $reply->getBillingMainDivision(),
 				'postcode'    => $reply->getBillingPostalCode(),
 				'country_id'  => $reply->getBillingCountryCode(),
 				'status'      => $reply->getBillingAddressStatus(),
-			),
-			'shipping_address' => array(
+			],
+			'shipping_address' => [
 				'street'      => $reply->getShipToLines(),
 				'city'        => $reply->getShipToCity(),
 				'region_code' => $reply->getShipToMainDivision(),
 				'postcode'    => $reply->getShipToPostalCode(),
 				'country_id'  => $reply->getShipToCountryCode(),
 				'status'      => $reply->getShippingAddressStatus(),
-			)
-		);
+			],
+		];
 	}
 
 	/**
 	 * Do Express Checkout Request/ Response
 	 *
-	 * @param Mage_Sales_Model_Quote $quote
-	 * @param string                 $token         as from setExpressCheckout
-	 * @param string                 $payerId       as from getExpressCheckout or from a PayPal redirected URL
-	 * @param string                 $pickUpStoreId as from getExpressCheckout or from a PayPal redirected URL
+	 * @param  Mage_Sales_Model_Quote
+	 * @param  string                 $token         as from setExpressCheckout
+	 * @param  string                 $payerId       as from getExpressCheckout or from a PayPal redirected URL
+	 * @param  string                 $pickUpStoreId as from getExpressCheckout or from a PayPal redirected URL (optional)
+	 * @return array
 	 *
-	 * @return PayPalGetExpressCheckoutReply $reply
 	 * @throws EbayEnterprise_PayPal_Exception when the operation cannot be completed or fails.
 	 */
-	public function doExpressCheckout(
-		Mage_Sales_Model_Quote $quote, $token, $payerId, $pickUpStoreId = null
-	) {
+	public function doExpressCheckout(Mage_Sales_Model_Quote $quote, $token, $payerId, $pickUpStoreId=null)
+	{
 		$sdk = $this->_getSdk(
 			$this->_helper->getConfigModel()->apiOperationDoExpressCheckout
 		);
@@ -250,19 +253,20 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('do express', $reply->serialize(), 'response');
-		return array(
+		return [
+			'method'         => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'       => $reply->getOrderId(),
 			'transaction_id' => $reply->getTransactionId(),
 			'response_code'  => $reply->getResponseCode(),
-		);
+		];
 	}
 
 	/**
 	 * Do Authorization Request/ Response
 	 *
-	 * @param Mage_Sales_Model_Quote $quote
+	 * @param  Mage_Sales_Model_Quote
+	 * @return array
 	 *
-	 * @return PayPalAuthorizationReply $reply
 	 * @throws EbayEnterprise_PayPal_Exception when the operation cannot be completed or fails.
 	 */
 	public function doAuthorization(Mage_Sales_Model_Quote $quote)
@@ -290,22 +294,22 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('do authorization', $reply->serialize(), 'response');
-		return array(
-			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
+		return [
+			'method'         => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'       => $reply->getOrderId(),
 			'payment_status' => $reply->getPaymentStatus(),
 			'pending_reason' => $reply->getPendingReason(),
 			'reason_code'    => $reply->getReasonCode(),
 			'is_authorized'  => $isSuccess,
-		);
+		];
 	}
 
 	/**
 	 * Do Void Request/Response
 	 *
-	 * @param  Mage_Sales_Model_Order $order
+	 * @param  Mage_Sales_Model_Order
+	 * @return array
 	 *
-	 * @return PayPalAuthorizationReply $reply
 	 * @throws EbayEnterprise_PayPal_Exception when the operation cannot be completed or fails.
 	 */
 	public function doVoid(Mage_Sales_Model_Order $order)
@@ -328,25 +332,22 @@ class EbayEnterprise_Paypal_Model_Express_Api
 			throw $e;
 		}
 		$this->_logApiCall('do void', $reply->serialize(), 'response');
-		return array(
-			'method'           => EbayEnterprise_PayPal_Model_Method_Express::CODE,
+		return [
+			'method'    => EbayEnterprise_PayPal_Model_Method_Express::CODE,
 			'order_id'  => $reply->getOrderId(),
 			'is_voided' => $isVoided
-		);
+		];
 	}
 
 	/**
 	 * Add an address to a payload
 	 *
-	 * @param Mage_Sales_Model_Address_Abstract $shippingAddress
-	 * @param Payload\Payment\IShippingAddress  $payload
-	 *
+	 * @param  Mage_Sales_Model_Address_Abstract
+	 * @param  IShippingAddress
 	 * @return self
 	 */
-	protected function _addShippingAddress(
-		Mage_Sales_Model_Quote_Address $shippingAddress,
-		Payload\Payment\IShippingAddress $payload
-	) {
+	protected function _addShippingAddress(Mage_Sales_Model_Quote_Address $shippingAddress, IShippingAddress $payload)
+	{
 		$payload->setShipToLines(implode('\n', $shippingAddress->getStreet()));
 		$payload->setShipToCity($shippingAddress->getCity());
 		$payload->setShipToMainDivision($shippingAddress->getRegionCode());
@@ -358,22 +359,22 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Send the request via the sdk
 	 *
-	 * @param  Api\IBidirectionalApi $sdk
+	 * @param  IBidirectionalApi
+	 * @return Payload
 	 *
 	 * @throws EbayEnterprise_PayPal_Exception
 	 * @throws EbayEnterprise_PayPal_Exception_Network
-	 * @return Payload
 	 */
-	protected function _sendRequest(Api\IBidirectionalApi $sdk)
+	protected function _sendRequest(IBidirectionalApi $sdk)
 	{
 		try {
 			$sdk->send();
 			$reply = $sdk->getResponseBody();
 			return $reply;
-		} catch (Payload\Exception\InvalidPayload $e) {
+		} catch (InvalidPayload $e) {
 			$this->_logger->logWarn('[%s] PayPal payload invalid. See exception log for details.', array(__CLASS__));
 			$this->_logger->logException($e);
-		} catch (Api\Exception\NetworkError $e) {
+		} catch (NetworkError $e) {
 			$this->_logger->logWarn('[%s] PayPal request encountered a network error. See exception log for details.', array(__CLASS__));
 			$this->_logger->logException($e);
 		}
@@ -385,9 +386,8 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Get the API SDK for the operation.
 	 *
-	 * @param  Varien_Object $payment
-	 *
-	 * @return Api\IBidirectionalApi
+	 * @param  Varien_Object
+	 * @return IBidirectionalApi
 	 */
 	protected function _getSdk($operation)
 	{
@@ -398,13 +398,11 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Generate ILineItem objects for each item and add to the container payload.
 	 *
-	 * @param array                     $items
-	 * @param PaymentILineItemContainer $container
+	 * @param Mage_Sales_Model_Quote
+	 * @param ILineItemContainer
 	 */
-	protected function _addLineItems(
-		Mage_Sales_Model_Quote $quote,
-		Payload\Payment\ILineItemContainer $container
-	) {
+	protected function _addLineItems(Mage_Sales_Model_Quote $quote, ILineItemContainer $container)
+	{
 		if ($this->_canIncludeLineItems($quote)) {
 			$this->_processLineItems($quote, $container->getLineItems())
 				->_processNegativeLineItems($quote, $container->getLineItems());
@@ -417,11 +415,11 @@ class EbayEnterprise_Paypal_Model_Express_Api
 
 	/**
 	 * recursively process line items into payloads
-	 * @param  Mage_Sales_Model_Quote            $quote
-	 * @param  Payload\Payment\ILineItemIterable $lineItems
+	 * @param  Mage_Sales_Model_Quote
+	 * @param  ILineItemIterable
 	 * @return self
 	 */
-	protected function _processLineItems(Mage_Sales_Model_Quote $quote, Payload\Payment\ILineItemIterable $lineItems)
+	protected function _processLineItems(Mage_Sales_Model_Quote $quote, ILineItemIterable $lineItems)
 	{
 		$items = $quote->getAllItems();
 		$currencyCode = $quote->getQuoteCurrencyCode();
@@ -434,11 +432,11 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * process specific amount types into negative-value line item
 	 * payloads
-	 * @param  Mage_Sales_Model_Quote            $quote
-	 * @param  Payload\Payment\ILineItemIterable $lineItems
+	 * @param  Mage_Sales_Model_Quote
+	 * @param  ILineItemIterable
 	 * @return self
 	 */
-	protected function _processNegativeLineItems(Mage_Sales_Model_Quote $quote, Payload\Payment\ILineItemIterable $lineItems)
+	protected function _processNegativeLineItems(Mage_Sales_Model_Quote $quote, ILineItemIterable $lineItems)
 	{
 		$negativeAmountTypes = array('discount', 'giftcardaccount', 'ebayenterprise_giftcard');
 		$currencyCode = $quote->getQuoteCurrencyCode();
@@ -461,7 +459,7 @@ class EbayEnterprise_Paypal_Model_Express_Api
 
 	/**
 	 * return true if the line items can be included in the message
-	 * @param  Mage_Sales_Model_Quote $quote
+	 * @param  Mage_Sales_Model_Quote
 	 * @return bool
 	 */
 	protected function _canIncludeLineItems($quote)
@@ -483,15 +481,15 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	 * payload to be added to the ILineItemIterable. The total for each line is
 	 * recursively summed and returned.
 	 *
-	 * @param  Mage_Sales_Model_Quote_Item_Abstract $item
-	 * @param  PaymentILineItemIterable             $lineItems
-	 * @param  string                               $currencyCode
-	 *
+	 * @param  Mage_Sales_Model_Quote_Item_Abstract
+	 * @param  ILineItemIterable
+	 * @param  string
 	 * @return self
 	 */
 	protected function _processItem(
 		Mage_Sales_Model_Quote_Item_Abstract $item,
-		Payload\Payment\ILineItemIterable $lineItems, $currencyCode
+		ILineItemIterable $lineItems,
+		$currencyCode
 	) {
 		// handle the possibility of getting a Mage_Sales_Model_Quote_Address_Item
 		$item = $item->getQuoteItem() ?: $item;
@@ -514,9 +512,8 @@ class EbayEnterprise_Paypal_Model_Express_Api
 	/**
 	 * Get the specified total amount for the quote.
 	 *
-	 * @param  string                 $type
-	 * @param  Mage_Sales_Model_Quote $quote
-	 *
+	 * @param  string
+	 * @param  Mage_Sales_Model_Quote
 	 * @return float
 	 */
 	protected function _getTotal($type, Mage_Sales_Model_Quote $quote)

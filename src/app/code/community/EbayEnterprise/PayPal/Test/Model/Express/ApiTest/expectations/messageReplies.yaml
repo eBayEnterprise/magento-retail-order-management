@@ -1,6 +1,8 @@
 setExpress:
+  method: ebayenterprise_paypal_express
   token: token
 getExpress:
+  method: ebayenterprise_paypal_express
   order_id: ~
   country_id:
   email:
@@ -18,24 +20,29 @@ getExpress:
     region_code: ~
     postcode: ~
     country_id: ~
+    status: ~
   shipping_address:
     street: ~
     city: ~
     region_code: ~
     postcode: ~
     country_id: ~
+    status: ~
 doExpress:
+  method: ebayenterprise_paypal_express
   order_id: ~
   transaction_id: ~
   response_code: ~
 doAuth:
   success:
+    method: ebayenterprise_paypal_express
     order_id: ~
     payment_status: ~
     pending_reason: ~
     reason_code: ~
     is_authorized: true
   failure:
+    method: ebayenterprise_paypal_express
     order_id: ~
     payment_status: ~
     pending_reason: ~
@@ -43,8 +50,10 @@ doAuth:
     is_authorized: false
 void:
   success:
+    method: ebayenterprise_paypal_express
     order_id: ~
     is_voided: true
   failure:
+    method: ebayenterprise_paypal_express
     order_id: ~
     is_voided: false

@@ -45,7 +45,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 	const PAYMENT_INFO_BILLING_AGREEMENT = 'paypal_ec_create_ba';
 	const PAYMENT_INFO_IS_AUTHORIZED_FLAG = 'is_authorized';
 	const PAYMENT_INFO_IS_VOIDED_FLAG = 'is_voided';
-	const PAYMENT_INFO_ADDRESS_STATUS  = 'paypal_express_checkout_address_status';
+	const PAYMENT_INFO_ADDRESS_STATUS = 'paypal_express_checkout_address_status';
 
 	/** @var string Flag from the request that indicates checkout was initiated outside normal checkout flow */
 	const PAYMENT_INFO_BUTTON = 'button';

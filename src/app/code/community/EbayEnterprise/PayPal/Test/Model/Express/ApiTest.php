@@ -98,8 +98,12 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->will($this->returnSelf());
 
 		$this->_lineItemIterableStub = $this->getMockBuilder(self::LINE_ITEM_ITERABLE)
+			->setConstructorArgs([
+				$this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\IValidatorIterator'),
+				$this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\ISchemaValidator'),
+				$this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\IPayloadMap'),
+			])
 			->setMethods(array('getEmptyLineItem'))
-			->disableOriginalConstructor()
 			->getMock();
 		$this->_lineItemIterableStub->expects($this->any())
 			->method('getEmptyLineItem')
