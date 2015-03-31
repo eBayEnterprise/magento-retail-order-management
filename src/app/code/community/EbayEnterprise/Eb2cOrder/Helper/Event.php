@@ -44,7 +44,7 @@ class EbayEnterprise_Eb2cOrder_Helper_Event
 	}
 	/**
 	 * Get a new EbayEnterprise_Dom_Document with the given message loaded.
-	 * @param  string $message
+	 * @param  string
 	 * @return EbayEnterprise_Dom_Document
 	 */
 	protected function _getDomDocumentForMessage($message)
@@ -76,11 +76,10 @@ class EbayEnterprise_Eb2cOrder_Helper_Event
 	}
 	/**
 	 * Attempt to cancel an order.
-	 * @param  Mage_Sales_Model_Order $order
-	 * @param  string                 $eventName
+	 * @param  Mage_Sales_Model_Order
 	 * @return self
 	 */
-	public function attemptCancelOrder(Mage_Sales_Model_Order $order, $eventName)
+	public function attemptCancelOrder(Mage_Sales_Model_Order $order)
 	{
 		try {
 			$order->cancel()->save();
@@ -94,11 +93,10 @@ class EbayEnterprise_Eb2cOrder_Helper_Event
 	}
 	/**
 	 * Attempt to hold an order.
-	 * @param  Mage_Sales_Model_Order $order
-	 * @param  string                 $eventName
+	 * @param  Mage_Sales_Model_Order
 	 * @return self
 	 */
-	public function attemptHoldOrder(Mage_Sales_Model_Order $order, $eventName)
+	public function attemptHoldOrder(Mage_Sales_Model_Order $order)
 	{
 		try {
 			$order->hold()->save();
