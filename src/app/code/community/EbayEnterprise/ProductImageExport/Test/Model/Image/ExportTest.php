@@ -27,6 +27,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 	public function testProccess()
 	{
 		$storeId = 5;
+		$startDateTime = '2015-04-07T20:22:13+00:00';
 		$stores = array($storeId => Mage::getModel('core/store'));
 
 		$helperMock = $this->getHelperMockBuilder('ebayenterprise_catalog/data')
@@ -39,12 +40,13 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('helper', 'ebayenterprise_catalog', $helperMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
-			->setMethods(array('_buildExport'))
+			->setMethods(array('_buildExport', '_updateExportLastRunDatetime'))
 			->getMock();
 		$exportMock->expects($this->once())
 			->method('_buildExport')
-			->with($this->identicalTo($storeId))
+			->will($this->returnSelf());
+		$exportMock->expects($this->once())
+			->method('_updateExportLastRunDatetime')
 			->will($this->returnSelf());
 
 		$exportMock->process();
@@ -67,6 +69,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 	public function testBuildExport()
 	{
 		$storeId = 5;
+		$startDateTime = '2015-04-07T20:22:13+00:00';
 		$imageData = array(array());
 		$doc = Mage::helper('eb2ccore')->getNewDomDocument();
 
@@ -83,7 +86,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('helper', 'ebayenterprise_catalog', $helperMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_loadDom', '_getImageData', '_buildItemImages'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -92,7 +94,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue($doc));
 		$exportMock->expects($this->once())
 			->method('_getImageData')
-			->with($this->identicalTo($storeId))
+			->with($this->identicalTo($storeId), $this->identicalTo($startDateTime))
 			->will($this->returnValue($imageData));
 		$exportMock->expects($this->once())
 			->method('_buildItemImages')
@@ -100,7 +102,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue(count($imageData)));
 
 		$this->assertSame($exportMock, EcomDev_Utils_Reflection::invokeRestrictedMethod(
-			$exportMock, '_buildExport', array($storeId)
+			$exportMock, '_buildExport', array($storeId, $startDateTime)
 		));
 	}
 
@@ -190,7 +192,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('model', 'core/date', $dateMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_getCurrentHostName'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -228,7 +229,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('helper', 'ebayenterprise_catalog', $helperMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 
@@ -261,7 +261,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue($nBytes)); // the number of bytes written the save xml file
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_generateFilePath'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -346,7 +345,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('helper', 'ebayenterprise_catalog', $helperMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 
@@ -396,7 +394,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$this->replaceByMock('helper', 'eb2ccore', $helperMock);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_buildImagesNodes'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -474,7 +471,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 	public function testGetImageData()
 	{
 		$storeId = 5;
-
+		$startDateTime = '2015-04-07T20:22:13+00:00';
 		$data = array(array('id' => '54-HSTS83223', 'image_data' => array(array(),)),);
 		$product = Mage::getModel('catalog/product')->addData(array('sku' => $data[0]['id']));
 
@@ -482,7 +479,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$collection->addItem($product);
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_getProductCollection', '_extractImageData'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -495,7 +491,7 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue($data[0]));
 
 		$this->assertSame($data, EcomDev_Utils_Reflection::invokeRestrictedMethod(
-			$exportMock, '_getImageData', array($storeId)
+			$exportMock, '_getImageData', array($storeId, $startDateTime)
 		));
 	}
 
@@ -529,7 +525,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue($data['id']));
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_getMediaData'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -581,7 +576,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$product = Mage::getModel('catalog/product');
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(array('_getMageImageViewMap', '_filterImageViews', '_getImageDimension'))
 			->getMock();
 		$exportMock->expects($this->once())
@@ -611,9 +605,11 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 	public function testGetProductCollection()
 	{
 		$storeId = 5;
+		$startDateTime = '2015-04-08T20:22:13+00:00';
+		$lastRunDateTime = '2015-04-07T20:22:13+00:00';
 		$collection = $this->getResourceModelMockBuilder('catalog/product_collection')
 			->disableOriginalConstructor()
-			->setMethods(array('addAttributeToSelect', 'addStoreFilter', 'load'))
+			->setMethods(array('addAttributeToSelect', 'addStoreFilter', 'addFieldToFilter', 'load'))
 			->getMock();
 		$collection->expects($this->once())
 			->method('addAttributeToSelect')
@@ -623,18 +619,20 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->method('addStoreFilter')
 			->with($this->identicalTo($storeId))
 			->will($this->returnSelf());
+		$collection->expects($this->exactly(2))
+			->method('addFieldToFilter')
+			->will($this->returnSelf());
 		$collection->expects($this->once())
 			->method('load')
 			->will($this->returnSelf());
 		$this->replaceByMock('resource_model', 'catalog/product_collection', $collection);
 
-		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
-			->setMethods(null)
-			->getMock();
+		$export = Mage::getModel('ebayenterprise_productimageexport/image_export', [
+			'config' => $this->buildCoreConfigRegistry(['imageExportLastRunDatetime' => $lastRunDateTime])
+		]);
 
 		$this->assertSame($collection, EcomDev_Utils_Reflection::invokeRestrictedMethod(
-			$exportMock, '_getProductCollection', array($storeId)
+			$export, '_getProductCollection', array($storeId, $startDateTime)
 		));
 	}
 
@@ -673,7 +671,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 			->will($this->returnValue($value));
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 
@@ -696,7 +693,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		));
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 
@@ -721,7 +717,6 @@ class EbayEnterprise_ProductImageExport_Test_Model_Image_ExportTest
 		$result = array('2' => 'thumbnail');
 
 		$exportMock = $this->getModelMockBuilder('ebayenterprise_productimageexport/image_export')
-			->disableOriginalConstructor()
 			->setMethods(null)
 			->getMock();
 

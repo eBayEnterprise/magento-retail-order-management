@@ -5,7 +5,7 @@
 	</xsd:annotation>
 	<xsd:include schemaLocation="ContentFeedV11.xsd"/>
 	<xsd:include schemaLocation="Image_Feed.xsd"/>
-	<xsd:include schemaLocation="ItemMasterV11.xsd"/>
+	<xsd:include schemaLocation="ItemMaster-1.2.0.xsd"/>
 	<xsd:include schemaLocation="PriceEventV11.xsd"/>
 	<xsd:element name="MageMaster">
 		<xsd:annotation>

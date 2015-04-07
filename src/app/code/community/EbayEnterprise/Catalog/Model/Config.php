@@ -39,6 +39,7 @@ class EbayEnterprise_Catalog_Model_Config extends EbayEnterprise_Eb2cCore_Model_
 		'image_feed_event_type'               => 'eb2ccore/feed/filetransfer_exports/image_master/outbound/message_header/event_type',
 		'image_export_filename_format'        => 'eb2ccore/feed/filetransfer_exports/image_master/filename_format',
 		'image_export_xsd'                    => 'eb2ccore/feed/filetransfer_exports/image_master/xsd',
+		'image_export_last_run_datetime'      => 'eb2ccore/feed/filetransfer_exports/image_master/last_run_datetime',
 
 		'item_feed'                           => 'eb2ccore/feed/filetransfer_imports/item_master',
 		'item_feed_event_type'                => 'eb2ccore/feed/filetransfer_imports/item_master/event_type',
