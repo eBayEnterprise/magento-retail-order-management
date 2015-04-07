@@ -45,7 +45,7 @@
 		"ebayenterprise/magento-file-transfer": "~1.0",
 		"ebayenterprise/magento-log": "~1.0",
 		"ebayenterprise/php-dom": "~1.0",
-		"ebayenterprise/retail-order-management": "~1.0",
+		"ebayenterprise/retail-order-management": "~1.0.2",
 		"firegento/psr0autoloader": "*"
 	},
 	"require-dev": {
