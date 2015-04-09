@@ -1,10 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## UNRELEASED
+## [1.4.0] -  2015-04-09
 ### Fixed
-- The PayPal address status field from the get express reply was being ignored.
+- PayPal module is not receiving the address status from the api
+- ProductImageExport generates new files even when no images/products have changed
 
+### Changed
+- Handle unacknowledged feeds with a CRIT log instead of resending the feed file
 
 ## [1.4.0-rc-4] -  2015-02-26
 ### Fixed
@@ -200,6 +203,7 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
+[1.4.0]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.4.0-rc-4...1.4.0
 [1.4.0-rc-4]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.4.0-rc-3...1.4.0-rc-4
 [1.4.0-rc-3]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.4.0-rc-2...1.4.0-rc-3
 [1.4.0-rc-2]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.4.0-rc-1...1.4.0-rc-2
