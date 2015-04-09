@@ -327,9 +327,11 @@ class EbayEnterprise_ProductImageExport_Model_Image_Export extends Varien_Object
 		$collection = Mage::getResourceModel('catalog/product_collection')
 			->addAttributeToSelect(['*'])
 			->addStoreFilter($storeId);
-		if ($lastRunDatetime && $startDateTime) {
-			$collection->addFieldToFilter('updated_at', ['lte' => $startDateTime])
-				->addFieldToFilter('updated_at', ['gte' => $lastRunDatetime]);
+		if ($startDateTime) {
+			$collection->addFieldToFilter('updated_at', ['lt' => $startDateTime]);
+		}
+		if ($lastRunDatetime) {
+			$collection->addFieldToFilter('updated_at', ['gt' => $lastRunDatetime]);
 		}
 		$collection->load();
 		return $collection;
