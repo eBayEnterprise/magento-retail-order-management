@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Fixed
+- Invalid tax response does not cause Order Create Request tax header to be set properly
+
 ## [1.5.0-beta-1] -  2015-04-09
 ### Fixed
 - PayPal module is not receiving the address status from the api

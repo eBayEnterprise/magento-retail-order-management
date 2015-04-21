@@ -24,10 +24,8 @@ class EbayEnterprise_Eb2cTax_Model_Order_Create_Order
 	protected $_logger;
 	/** @var EbayEnterprise_Eb2cTax_Overrides_Model_Calculation */
 	protected $_calculator;
-	/** @var boolean */
-	protected $_hasErrors;
 
-	public function __construct(array $args=array())
+	public function __construct(array $args=[])
 	{
 		list($this->_logger, $this->_calculator) =
 			$this->_checkTypes(
@@ -50,12 +48,11 @@ class EbayEnterprise_Eb2cTax_Model_Order_Create_Order
 	 * @return self
 	 */
 	public function setTaxHeaderErrorFlag(
-		IOrderCreateRequest            $orderPayload,
-		Mage_Sales_Model_Order         $order
+		IOrderCreateRequest $orderPayload,
+		Mage_Sales_Model_Order $order
 	) {
 		foreach ($order->getAddressesCollection() as $address) {
-			$this->_checkForErrors($address);
-			if ($this->_hasErrors ) {
+			if ($this->_responseIsError() || $this->_itemsHaveErrors($address)) {
 				$orderPayload->setTaxHasErrors(true);
 				break;
 			}
@@ -64,31 +61,44 @@ class EbayEnterprise_Eb2cTax_Model_Order_Create_Order
 	}
 
 	/**
-	 * check if there are any errors in the taxes.
-	 * @param  Mage_Sales_Model_Order_Address
+	 * Check if the tax response is valid.
+	 *
+	 * @return bool
 	 */
-	protected function _checkForErrors(Mage_Sales_Model_Order_Address $address)
+	protected function _responseIsError()
 	{
-		$responseItems = $this->_calculator->getTaxResponse()->getResponseItems();
-		$responseItems = isset($responseItems[$address->getQuoteAddressId()]) ?
-			$responseItems[$address->getQuoteAddressId()] : [];
-		foreach ($responseItems as $responseItem) {
-			$this->_checkItemTaxes($responseItem);
-		}
+		return !$this->_calculator->getTaxResponse()->isValid();
 	}
 
 	/**
-	 * scan through the an item's taxes, if errors are detected, set a flag.
+	 * Check if there are any errors in the taxes.
+	 * @param  Mage_Sales_Model_Order_Address
+	 */
+	protected function _itemsHaveErrors(Mage_Sales_Model_Order_Address $address)
+	{
+		$responseItems = $this->_calculator->getTaxResponse()
+			->getResponseItemsByQuoteAddressId($address->getQuoteAddressId());
+		foreach ($responseItems as $responseItem) {
+			if ($this->_itemHasError($responseItem)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Scan through the an item's taxes and indicate if any errors are found.
+	 *
 	 * @param  EbayEnterprise_Eb2cTax_Model_Response_Orderitem
 	 */
-	protected function _checkItemTaxes(EbayEnterprise_Eb2cTax_Model_Response_Orderitem $responseItem)
+	protected function _itemHasError(EbayEnterprise_Eb2cTax_Model_Response_Orderitem $responseItem)
 	{
 		foreach ($responseItem->getTaxQuotes() as $taxQuote) {
 			if ($taxQuote->getCode() === 'CalculationError') {
-				$this->_hasErrors = true;
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 
 	protected function _nullCoalesce($key, array $ar, $default)

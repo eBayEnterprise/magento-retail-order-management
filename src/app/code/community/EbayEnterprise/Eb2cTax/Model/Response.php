@@ -164,6 +164,19 @@ class EbayEnterprise_Eb2cTax_Model_Response extends Varien_Object
 	}
 
 	/**
+	 * Get tax response items by quote address id.
+	 *
+	 * @param int
+	 * @return EbayEnterprise_Eb2cTax_Model_Response_OrderItem[]
+	 */
+	public function getResponseItemsByQuoteAddressId($quoteAddressId)
+	{
+		return isset($this->_responseItems[$quoteAddressId])
+			? $this->_responseItems[$quoteAddressId]
+			: [];
+	}
+
+	/**
 	 * @return bool true if response has valid data; false otherwise.
 	 */
 	public function isValid()
