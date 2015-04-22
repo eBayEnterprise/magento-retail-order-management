@@ -11,3 +11,4 @@
 "EbayEnterprise_Eb2cCore_Sftp_Invalid_Authentication_Configuration", "SFTP connection failed. Invalid username/key."
 "EbayEnterprise_Eb2cCore_Sftp_Conection_Success", "SFTP connection successful."
 "EbayEnterprise_Eb2cCore_Sftp_Connection_Failed", "SFTP connection could not be validated."
+"EbayEnterprise_Eb2cCore_System_Config_Language_Code_Invalid", "Provided store language code is not a valid language code."

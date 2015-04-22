@@ -78,4 +78,24 @@ class EbayEnterprise_Eb2cCore_Test_Helper_LanguagesTest
 		$store = $defaultLangStores[key($defaultLangStores)];
 		$this->assertEquals(3, $store->getStoreId());
 	}
+
+	/**
+	 * Valid language codes should pass validation.
+	 *
+	 * @param string
+	 */
+	public function testValidateValidLanguageCode()
+	{
+		$this->assertTrue(Mage::helper('eb2ccore/languages')->validateLanguageCode('en-us'));
+	}
+
+	/**
+	 * Invalid language codes should fail validation.
+	 *
+	 * @param string
+	 */
+	public function testValidateInvalidLanguageCode()
+	{
+		$this->assertFalse(Mage::helper('eb2ccore/languages')->validateLanguageCode('3nadbadfaefa04'));
+	}
 }

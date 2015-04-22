@@ -68,10 +68,11 @@
 						</store_id>
 						<language_code translate="label">
 							<label>Store Language Code</label>
+							<comment><![CDATA[Must be a <a href="http://tools.ietf.org/html/bcp47">BCP47</a> valid language code, e.g. "en-us".]]></comment>
 							<sort_order>40</sort_order>
 							<frontend_type>text</frontend_type>
 							<backend_model>eb2ccore/system_config_backend_language_code</backend_model>
-							<validate>validate-xml-identifier</validate>
+							<validate>validate-language-code</validate>
 							<show_in_default>1</show_in_default>
 							<show_in_website>1</show_in_website>
 							<show_in_store>1</show_in_store>

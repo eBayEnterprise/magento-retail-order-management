@@ -94,6 +94,13 @@
 		</routers>
 	</admin>
 	<adminhtml>
+		<layout>
+			<updates>
+				<eb2ccore>
+					<file>eb2ccore.xml</file>
+				</eb2ccore>
+			</updates>
+		</layout>
 		<translate>
 			<modules>
 				<EbayEnterprise_Eb2cCore>

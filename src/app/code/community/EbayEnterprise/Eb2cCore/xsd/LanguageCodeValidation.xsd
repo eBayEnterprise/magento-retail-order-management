@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DOCTYPE xs:schema PUBLIC "-//W3C//DTD XMLSCHEMA 200102//EN" "XMLSchema.dtd" -->
+<xsd:schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:cm="http://www.tm-xml.org/XMLSchema/common">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" schemaLocation="common.xsd"/>
+    <xsd:annotation>
+        <xsd:documentation>Simple schema for checking lang</xsd:documentation>
+    </xsd:annotation>
+    <xsd:element name="root" type="ElementWithLang" />
+
+    <xsd:complexType name="ElementWithLang">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute ref="xml:lang" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:schema>
