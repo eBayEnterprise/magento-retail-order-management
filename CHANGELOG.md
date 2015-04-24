@@ -1,9 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.5.0-beta-2] -  2015-04-24
 ### Fixed
 - Invalid tax response does not cause Order Create Request tax header to be set properly
+- Error when `ItemDesc` value includes quotation marks
 
 ## [1.5.0-beta-1] -  2015-04-09
 ### Fixed
@@ -235,6 +236,7 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
+[1.5.0-beta-2]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-1...1.5.0-beta-2
 [1.5.0-beta-1]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-alpha-6...1.5.0-beta-1
 [1.5.0-alpha-6]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-alpha-5...1.5.0-alpha-6
 [1.5.0-alpha-6]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-alpha-5...1.5.0-alpha-6
