@@ -65,17 +65,6 @@
 				</setup>
 			</eb2corder_setup>
 		</resources>
-		<events>
-			<sales_order_place_after>
-				<observers>
-					<createrequest_observer>
-						<type>singleton</type>
-						<class>EbayEnterprise_Eb2cOrder_Model_Create</class>
-						<method>observerCreate</method>
-					</createrequest_observer>
-				</observers>
-			</sales_order_place_after>
-		</events>
 	</global>
 	<frontend>
 		<routers>
