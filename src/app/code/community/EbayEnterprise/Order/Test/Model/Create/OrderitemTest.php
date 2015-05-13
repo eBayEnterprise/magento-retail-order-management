@@ -122,31 +122,16 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 	}
 
 	/**
-	 * provide data to verify the remainder calculations
-	 * @return array
+	 * Remainder amounts should not be added to merchandise
+	 * pricing payloads.
 	 */
-	public function provideItemRemainderData()
-	{
-		return [
-			[1, 10, 10, 0, 0.00],
-			[3, 10, 10, -20, 0.00],
-			[3, 3.33, 10, 0, 0.01],
-		];
-	}
-	/**
-	 * verify the remainder is calculated correctly
-	 * @param  float $qty
-	 * @param  float $rowTotal
-	 * @param  float $remainder
-	 * @dataProvider provideItemRemainderData
-	 */
-	public function testBuildOrderItemsRemainder($qty, $unitPrice, $rowTotal, $discountAmount, $remainder)
+	public function testBuildOrderItemsRemainder()
 	{
 		$this->_itemStub->addData([
-			'qty_ordered' => $qty,
-			'row_total' => $rowTotal,
-			'price' => $unitPrice,
-			'discount_amount' => $discountAmount,
+			'qty_ordered' => 2,
+			'row_total' => 14,
+			'price' => 7,
+			'discount_amount' => 4,
 		]);
 		$handler = $this->getModelMock(
 			'ebayenterprise_order/create_orderitem',
@@ -161,7 +146,7 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 		$handler->buildOrderItem($this->_payload, $this->_itemStub, $this->_orderStub, $this->_addressStub, 1, $this->_chargeType);
 
 		$this->assertSame('thesku', $this->_payload->getItemId());
-		$this->assertSame($remainder, $this->_payload->getMerchandisePricing()->getRemainder());
+		$this->assertSame(null, $this->_payload->getMerchandisePricing()->getRemainder());
 	}
 
 	/**

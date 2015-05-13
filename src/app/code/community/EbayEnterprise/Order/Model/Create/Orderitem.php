@@ -121,8 +121,7 @@ class EbayEnterprise_Order_Model_Create_Orderitem
 	{
 		$merch
 			->setAmount($item->getRowTotal())
-			->setUnitPrice($item->getPrice())
-			->setRemainder($this->_calcRemainder($item));
+			->setUnitPrice($item->getPrice());
 		$this->_discountHelper->transferDiscounts($item, $merch);
 		return $this;
 	}
@@ -140,21 +139,6 @@ class EbayEnterprise_Order_Model_Create_Orderitem
 		$this->_discountHelper->transferDiscounts($address, $shippingPriceGroup);
 		$payload->setShippingPricing($shippingPriceGroup);
 		return $this;
-	}
-
-	/**
-	 * calculate the remainder for the line item
-	 * @param  Mage_Sales_Model_Order_Item
-	 * @return float|null
-	 */
-	protected function _calcRemainder($item)
-	{
-		$discountAmount = $item->getDiscountAmount();
-		return is_numeric($discountAmount) ?
-			$item->getRowTotal() -
-			($item->getPrice() * $item->getQtyOrdered()) -
-			$discountAmount :
-			null;
 	}
 
 	/**
