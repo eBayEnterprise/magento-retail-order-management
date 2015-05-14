@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Fixed
+- Order create merchandise amount remainder calculation wrong and unnecessary.
+
 ## [1.5.0-beta-3] -  2015-05-07
 ### Fixed
 - Store language codes are not being properly validated in the admin
