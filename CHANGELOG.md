@@ -1,9 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.5.0-beta-4] -  2015-05-21
+### Removed
+- Vestigial event observer from eb2cOrder
+
 ### Fixed
-- Order create merchandise amount remainder calculation wrong and unnecessary.
+- Order create merchandise amount remainder calculation wrong and unnecessary
 
 ## [1.5.0-beta-3] -  2015-05-07
 ### Fixed
