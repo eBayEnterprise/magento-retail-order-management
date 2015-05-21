@@ -41,12 +41,12 @@ class EbayEnterprise_Order_Model_Create
 {
 	const MAGE_CUSTOMER_GENDER_MALE = 1;
 	const LEVEL_OF_SERVICE_REGULAR = 'REGULAR';
-	const SHIPPING_CHARGE_TYPE_FLATRATE = 'FLAT';
+	const SHIPPING_CHARGE_TYPE_FLATRATE = 'FLATRATE';
 
 	const ORDER_TYPE_SALES = 'SALES';
 	const ORDER_TYPE_PURCHASE = 'PURCHASE';
 
-	// Copy the const over for interface consistency.
+	// Copy the constant over for interface consistency.
 	const STATE_NEW = Mage_Sales_Model_Order::STATE_NEW;
 	const STATUS_NEW = 'unsubmitted';
 
@@ -60,7 +60,7 @@ class EbayEnterprise_Order_Model_Create
 	protected $_beforeOrderSendEvent = 'ebayenterprise_order_create_before_send';
 	/** @var string event dispatched to add payments to the request */
 	protected $_paymentDataEvent = 'ebayenterprise_order_create_payment';
-	/** @var string event dispatched to add context infrmation to the request */
+	/** @var string event dispatched to add context information to the request */
 	protected $_contextDataEvent = 'ebayenterprise_order_create_context';
 	/** @var string event dispatched to handle populating ship groups for addresses in the order */
 	protected $_shipGroupEvent = 'ebayenterprise_order_create_ship_group';
@@ -620,7 +620,7 @@ class EbayEnterprise_Order_Model_Create
 	}
 
 	/**
-	 * Build a default destiantion for an address. For billing addresses, this
+	 * Build a default destination for an address. For billing addresses, this
 	 * should result in an email address destination - destination for virtual
 	 * items. For shipping addresses, a mailing address destination.
 	 *
