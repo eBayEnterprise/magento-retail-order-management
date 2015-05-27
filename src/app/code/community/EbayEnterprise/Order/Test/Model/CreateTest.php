@@ -39,6 +39,8 @@ class EbayEnterprise_Order_Test_Model_CreateTest extends EbayEnterprise_Eb2cCore
 	protected $_config;
 	/** @var IBidirectionalApi */
 	protected $_httpApi;
+	/** @var EbayEnterprise_Order_Helper_Item_Selection */
+	protected $_itemSelection;
 
 	/** @var string */
 	protected $_expectedLevelOfService =
@@ -61,6 +63,7 @@ class EbayEnterprise_Order_Test_Model_CreateTest extends EbayEnterprise_Eb2cCore
 			->disableOriginalConstructor() // prevent need to mock IHttpConfig
 			->getMock();
 		$this->_observerStub = $this->getModelMock('ebayenterprise_order/observer');
+		$this->_itemSelection = $this->getHelperMock('ebayenterprise_order/item_selection', ['selectFrom']);
 		$this->_payloadFactory = new PayloadFactory;
 		$this->_request = $this->_payloadFactory->buildPayload('\eBayEnterprise\RetailOrderManagement\Payload\Order\OrderCreateRequest');
 		$this->_requestStub = $this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\Order\IOrderCreateRequest');
@@ -142,11 +145,15 @@ class EbayEnterprise_Order_Test_Model_CreateTest extends EbayEnterprise_Eb2cCore
 		$api = $this->_httpApi;
 		$config = $this->getModelMock('eb2ccore/config_registry');
 		$payload = $this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\Order\IOrderCreateRequest');
+		$this->_itemSelection->expects($this->any())
+			->method('selectFrom')
+			->will($this->returnArgument(0));
 		$constructorArgs = [
 			'api' => $api,
 			'config' => $config,
 			'order' => $this->_order,
 			'payload' => $payload,
+			'item_selection' => $this->_itemSelection,
 		];
 		$create = Mage::getModel('ebayenterprise_order/create', $constructorArgs);
 
@@ -161,6 +168,46 @@ class EbayEnterprise_Order_Test_Model_CreateTest extends EbayEnterprise_Eb2cCore
 		} else {
 			$this->assertSame($simpleItem, $itemsForAddress[0]);
 		}
+	}
+
+	/**
+	 * When getting items for an address, only items that should be included
+	 * in the order create request should be returned.
+	 */
+	public function testGetItemsForAddressFiltering()
+	{
+		// Create an item that is exptected to be excluded from the OCR and
+		// an items that should be included.
+		$excludedItem = Mage::getModel('sales/order_item', ['is_virtual' => '0']);
+		$includedItem = Mage::getModel('sales/order_item', ['is_virtual' => '0']);
+		$this->_order->addItem($excludedItem)->addItem($includedItem);
+		// Stubs
+		$api = $this->_httpApi;
+		$config = $this->getModelMock('eb2ccore/config_registry');
+		$payload = $this->getMock('\eBayEnterprise\RetailOrderManagement\Payload\Order\IOrderCreateRequest');
+		$constructorArgs = [
+			'api' => $api,
+			'config' => $config,
+			'order' => $this->_order,
+			'payload' => $payload,
+			'item_selection' => $this->_itemSelection,
+		];
+		$create = Mage::getModel('ebayenterprise_order/create', $constructorArgs);
+
+		// Mock the item selection helper such that if given the array of items
+		// that belong to the address - excluded and included items - that only
+		// the items that should be included are returned.
+		$this->_itemSelection->expects($this->any())
+			->method('selectFrom')
+			->with($this->identicalTo([$excludedItem, $includedItem]))
+			->will($this->returnValue([$includedItem]));
+		$itemsForAddress = EcomDev_Utils_Reflection::invokeRestrictedMethod(
+			$create,
+			'_getItemsForAddress',
+			[$this->_shipAddress, $this->_order->getItemsCollection()]
+		);
+		$this->assertCount(1, $itemsForAddress);
+		$this->assertSame($includedItem, $itemsForAddress[0]);
 	}
 
 	public function provideAddressData()

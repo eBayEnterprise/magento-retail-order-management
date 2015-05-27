@@ -92,6 +92,8 @@ class EbayEnterprise_Order_Model_Create
 	protected $_validGenderStrings = ['M', 'F'];
 	/** @var Mage_Core_Model_App */
 	protected $_app;
+	/** @var EbayEnterprise_Order_Helper_Item_Selection */
+	protected $_itemSelection;
 
 	public function __construct(array $args=[])
 	{
@@ -105,7 +107,8 @@ class EbayEnterprise_Order_Model_Create
 			$this->_config,
 			$this->_api,
 			$this->_payload,
-			$this->_logContext
+			$this->_logContext,
+			$this->_itemSelection
 		) = $this->_enforceTypes(
 			$this->_nullCoalesce('logger', $args, Mage::helper('ebayenterprise_magelog')),
 			$this->_nullCoalesce('helper', $args, Mage::helper('ebayenterprise_order')),
@@ -116,7 +119,8 @@ class EbayEnterprise_Order_Model_Create
 			$args['config'],
 			$args['api'],
 			$args['payload'],
-			$this->_nullCoalesce('log_context', $args, Mage::helper('ebayenterprise_magelog/context'))
+			$this->_nullCoalesce('log_context', $args, Mage::helper('ebayenterprise_magelog/context')),
+			$this->_nullCoalesce('item_selection', $args, Mage::helper('ebayenterprise_order/item_selection'))
 		);
 		// Possibly one valid exception to the DI rule; we're so beholden to the Mage class anyway...
 		$this->_app = Mage::app();
@@ -134,6 +138,7 @@ class EbayEnterprise_Order_Model_Create
 	 * @param  EbayEnterprise_Eb2cCore_Model_Config_Registry
 	 * @param  IBidirectionalApi
 	 * @param  IOrderCreateRequest
+	 * @param  EbayEnterprise_Order_Helper_Item_Selection
 	 * @return array
 	 */
 	protected function _enforceTypes(
@@ -146,9 +151,10 @@ class EbayEnterprise_Order_Model_Create
 		EbayEnterprise_Eb2cCore_Model_Config_Registry $config,
 		IBidirectionalApi $api,
 		IOrderCreateRequest $payload,
-		EbayEnterprise_MageLog_Helper_Context $logContext
+		EbayEnterprise_MageLog_Helper_Context $logContext,
+		EbayEnterprise_Order_Helper_Item_Selection $itemSelection
 	) {
-		return [$logger, $helper, $coreHelper, $defaultPaymentHandler, $defaultItemHandler, $order, $config, $api, $payload, $logContext];
+		return func_get_args();
 	}
 
 	/**
@@ -603,7 +609,8 @@ class EbayEnterprise_Order_Model_Create
 	/**
 	 * Get all items shipping to a given address. For billing addresses, this
 	 * will be all virtual items in the order. For shipping addresses, any
-	 * non-virtual items.
+	 * non-virtual items. Only items that are to be included in the order create
+	 * request should be returned.
 	 *
 	 * @param Mage_Customer_Model_Address_Abstract
 	 * @param Mage_Sales_Model_Resource_Order_Item_Collection
@@ -613,9 +620,11 @@ class EbayEnterprise_Order_Model_Create
 		Mage_Customer_Model_Address_Abstract $address,
 		Mage_Sales_Model_Resource_Order_Item_Collection $orderItems
 	) {
-		return $orderItems->getItemsByColumnValue(
-			'is_virtual',
-			$this->_isAddressBilling($address)
+		return $this->_itemSelection->selectFrom(
+			$orderItems->getItemsByColumnValue(
+				'is_virtual',
+				$this->_isAddressBilling($address)
+			)
 		);
 	}
 
