@@ -1,9 +1,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [1.5.0-beta-5] -  2015-06-04
+### Changed
+- Installation and Configuration Guide
+
 ### Fixed
 - Order create request sends duplicate skus for configurable products
+- Order create request includes a shipping amount for all items
 
 ## [1.5.0-beta-4] -  2015-05-21
 ### Removed
@@ -251,6 +255,7 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
+[1.5.0-beta-5]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-4...1.5.0-beta-5
 [1.5.0-beta-4]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-3...1.5.0-beta-4
 [1.5.0-beta-3]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-2...1.5.0-beta-3
 [1.5.0-beta-2]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-1...1.5.0-beta-2
