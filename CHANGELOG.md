@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Fixed
+- Order create request sends duplicate skus for configurable products
+
 ## [1.5.0-beta-4] -  2015-05-21
 ### Removed
 - Vestigial event observer from eb2cOrder
