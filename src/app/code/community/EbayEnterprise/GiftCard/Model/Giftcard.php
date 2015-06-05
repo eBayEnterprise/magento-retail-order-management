@@ -15,6 +15,8 @@
 
 use eBayEnterprise\RetailOrderManagement\Api;
 use eBayEnterprise\RetailOrderManagement\Payload;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_Model_IGiftcard
 {
@@ -61,6 +63,8 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	protected $_coreHelper;
 	/** @var EbayEnterprise_MageLog_Helper_Data **/
 	protected $_logger;
+	/** @var LoggerInterface **/
+	protected $_apiLogger;
 	/** @var EbayEnterprise_MageLog_Helper_Context */
 	protected $_context;
 	/**
@@ -69,14 +73,22 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	 *                          - 'core_helper' => EbayEnterprise_Eb2cCore_Helper_Data
 	 *                          - 'logger' => EbayEnterprise_MageLog_Helper_Data
 	 *                          - 'context' => EbayEnterprise_MageLog_Helper_Context
+	 *                          - 'api_logger' => LoggerInterface
 	 */
-	public function __construct(array $initParams=array())
+	public function __construct(array $initParams = [])
 	{
-		list($this->_helper, $this->_coreHelper, $this->_logger, $this->_context) = $this->_checkTypes(
+		list(
+			$this->_helper,
+			$this->_coreHelper,
+			$this->_logger,
+			$this->_context,
+			$this->_apiLogger
+		) = $this->_checkTypes(
 			$this->_nullCoalesce($initParams, 'helper', Mage::helper('ebayenterprise_giftcard')),
 			$this->_nullCoalesce($initParams, 'core_helper', Mage::helper('eb2ccore')),
 			$this->_nullCoalesce($initParams, 'logger', Mage::helper('ebayenterprise_magelog')),
-			$this->_nullCoalesce($initParams, 'context', Mage::helper('ebayenterprise_magelog/context'))
+			$this->_nullCoalesce($initParams, 'context', Mage::helper('ebayenterprise_magelog/context')),
+			$this->_nullCoalesce($initParams, 'api_logger', new NullLogger)
 		);
 	}
 	/**
@@ -85,15 +97,17 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	 * @param  EbayEnterprise_Eb2cCore_Helper_Data $coreHelper
 	 * @param  EbayEnterprise_MageLog_Helper_Data $logger
 	 * @param  EbayEnterprise_MageLog_Helper_Context $context
+	 * @param  LoggerInterface
 	 * @return mixed[]
 	 */
 	protected function _checkTypes(
 		EbayEnterprise_Giftcard_Helper_Data $helper,
 		EbayEnterprise_Eb2cCore_Helper_Data $coreHelper,
 		EbayEnterprise_MageLog_Helper_Data $logger,
-		EbayEnterprise_MageLog_Helper_Context $context
+		EbayEnterprise_MageLog_Helper_Context $context,
+		LoggerInterface $apiLogger
 	) {
-		return array($helper, $coreHelper, $logger, $context);
+		return func_get_args();
 	}
 	/**
 	 * Return the value at field in array if it exists. Otherwise, use the
@@ -273,24 +287,20 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	 * @param string $body the serialized xml body
 	 * @param string $direction 'request' or 'response'
 	 */
-	protected function _logApiCall($type, $body, $direction)
+	protected function _logApiCall($type, $direction)
 	{
 		$logData = ['type' => $type, 'direction' => $direction];
 		$logMessage = 'Processing gift card {type} {direction}.';
 		$this->_logger->info($logMessage, $this->_context->getMetaData(__CLASS__, $logData));
-
-		$logData = ['rom_request_body' => $body];
-		$logMessage = 'Request Data';
-		$this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__, $logData));
 	}
 
 	public function checkBalance()
 	{
 		$api = $this->_getApi($this->_helper->getConfigModel()->apiOperationBalance);
 		$this->_prepareApiForBalanceCheck($api);
-		$this->_logApiCall('balance', 'request', $api->getRequestBody()->serialize());
+		$this->_logApiCall('balance', 'request');
 		$this->_sendRequest($api);
-		$this->_logApiCall('balance', 'response', $api->getResponseBody()->serialize());
+		$this->_logApiCall('balance', 'response');
 		$this->_handleBalanceResponse($api);
 		return $this;
 	}
@@ -298,9 +308,9 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	{
 		$api = $this->_getApi($this->_helper->getConfigModel()->apiOperationRedeem);
 		$this->_prepareApiForRedeem($api);
-		$this->_logApiCall('redeem', 'request', $api->getRequestBody()->serialize());
+		$this->_logApiCall('redeem', 'request');
 		$this->_sendRequest($api);
-		$this->_logApiCall('redeem', 'response', $api->getResponseBody()->serialize());
+		$this->_logApiCall('redeem', 'response');
 		$this->_handleRedeemResponse($api);
 		return $this;
 	}
@@ -308,9 +318,9 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 	{
 		$api = $this->_getApi($this->_helper->getConfigModel()->apiOperationVoid);
 		$this->_prepareApiForVoid($api);
-		$this->_logApiCall('void', 'request', $api->getRequestBody()->serialize());
+		$this->_logApiCall('void', 'request');
 		$this->_sendRequest($api);
-		$this->_logApiCall('void', 'response', $api->getResponseBody()->serialize());
+		$this->_logApiCall('void', 'response');
 		$this->_handleVoidResponse($api);
 		return $this;
 	}
@@ -324,7 +334,10 @@ class EbayEnterprise_GiftCard_Model_Giftcard implements EbayEnterprise_GiftCard_
 		return $this->_coreHelper->getSdkApi(
 			$this->_helper->getConfigModel()->apiService,
 			$operation,
-			array($this->getTenderType())
+			[$this->getTenderType()],
+			// Use a special logger just for the SDK logging, prevents
+			// the SDK from logging any PII.
+			$this->_apiLogger
 		);
 	}
 	/**

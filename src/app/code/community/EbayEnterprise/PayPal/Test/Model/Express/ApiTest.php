@@ -62,16 +62,15 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 
 		// disable _construct to prevent excessive stubs
 		$this->_coreUrl = $this->getModelMock(
-			'core/url', array('_construct', 'getUrl')
+			'core/url',
+			array('_construct', 'getUrl')
 		);
 		$this->_coreUrl->expects($this->any())
 			->method('getUrl')->will(
 				$this->returnValueMap(
 					array(
-						array('ebayenterprise_paypal_express/checkout/return',
-						      array(), 'the.return.url'),
-						array('ebayenterprise_paypal_express/checkout/cancel',
-						      array(), 'the.cancel.url'),
+						array('ebayenterprise_paypal_express/checkout/return', array(), 'the.return.url'),
+						array('ebayenterprise_paypal_express/checkout/cancel', array(), 'the.cancel.url'),
 					)
 				)
 			);
@@ -83,11 +82,11 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 		$this->_sdk->expects($this->any())
 			->method('send')->will($this->returnSelf());
 		$this->_getSdkApiMap = array(
-			array('payments', 'paypal/setExpress', array(), $this->_sdk),
-			array('payments', 'paypal/getExpress', array(), $this->_sdk),
-			array('payments', 'paypal/doExpress', array(), $this->_sdk),
-			array('payments', 'paypal/doAuth', array(), $this->_sdk),
-			array('payments', 'paypal/void', array(), $this->_sdk),
+			array('payments', 'paypal/setExpress', array(), null, $this->_sdk),
+			array('payments', 'paypal/getExpress', array(), null, $this->_sdk),
+			array('payments', 'paypal/doExpress', array(), null, $this->_sdk),
+			array('payments', 'paypal/doAuth', array(), null, $this->_sdk),
+			array('payments', 'paypal/void', array(), null, $this->_sdk),
 		);
 		$this->_lineItemStub = $this->getMock(self::LINE_ITEM);
 		$this->_stubAcceptStrReturnSelf(
@@ -122,14 +121,16 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->will($this->returnValue($this->_lineItemStub));
 		// stub helpers
 		$this->_coreHelper = $this->getHelperMock(
-			'eb2ccore/data', array('getSdkApi')
+			'eb2ccore/data',
+			array('getSdkApi')
 		);
 		$this->_coreHelper->expects($this->any())
 			->method('getSdkApi')->will(
 				$this->returnValueMap($this->_getSdkApiMap)
 			);
 		$this->_helper = $this->getHelperMock(
-			'ebayenterprise_paypal/data', array('getConfigModel', '__')
+			'ebayenterprise_paypal/data',
+			array('getConfigModel', '__')
 		);
 		$this->_helper->expects($this->any())->method('__')->will(
 			$this->returnArgument(0)
@@ -152,8 +153,9 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->method('getId')
 			->will($this->returnValue(1));
 		$this->_quote = $this->getModelMock(
-			'sales/quote', array('reserveOrderId', 'getReservedOrderId',
-			                     'getAllItems', 'getTotals', 'getShippingAddress')
+			'sales/quote',
+			array('reserveOrderId', 'getReservedOrderId',
+								 'getAllItems', 'getTotals', 'getShippingAddress')
 		);
 		$this->_quote->expects($this->any())
 			->method('reserveOrderId')->will($this->returnSelf());
@@ -267,13 +269,15 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->will($this->returnValue($request));
 		// test setExpressCheckout
 		$api = $this->getModelMock(
-			'ebayenterprise_paypal/express_api', array('_sendRequest')
+			'ebayenterprise_paypal/express_api',
+			array('_sendRequest')
 		);
 		$api->expects($this->any())
 			->method('_sendRequest')
 			->will($this->returnValue($reply));
 		EcomDev_Utils_Reflection::setRestrictedPropertyValues(
-			$api, array(
+			$api,
+			array(
 				'_helper' => $this->_helper, '_coreHelper' => $this->_coreHelper
 			)
 		);
@@ -339,7 +343,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->method('_sendRequest')
 			->will($this->returnValue($reply));
 		EcomDev_Utils_Reflection::setRestrictedPropertyValues(
-			$api, array(
+			$api,
+			array(
 				'_helper' => $this->_helper, '_coreHelper' => $this->_coreHelper
 			)
 		);
@@ -377,7 +382,9 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 		$this->assertSame(
 			$replyPayload,
 			EcomDev_Utils_Reflection::invokeRestrictedMethod(
-				$api, '_sendRequest', array($this->_sdk)
+				$api,
+				'_sendRequest',
+				array($this->_sdk)
 			)
 		);
 	}
@@ -402,7 +409,9 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->will($this->throwException(new $sdkException));
 		$api = Mage::getModel('ebayenterprise_paypal/express_api');
 		EcomDev_Utils_Reflection::invokeRestrictedMethod(
-			$api, '_sendRequest', array($this->_sdk)
+			$api,
+			'_sendRequest',
+			array($this->_sdk)
 		);
 	}
 
@@ -482,7 +491,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->method('_sendRequest')
 			->will($this->returnValue($reply));
 		EcomDev_Utils_Reflection::setRestrictedPropertyValues(
-			$api, array(
+			$api,
+			array(
 				'_helper' => $this->_helper, '_coreHelper' => $this->_coreHelper
 			)
 		);
@@ -559,8 +569,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 	protected function _isNumeric()
 	{
 		return $this->callback(
-			function($val)
-			{
+			function ($val) {
+
 				return is_numeric($val);
 			}
 		);
@@ -575,7 +585,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 	{
 		$request = $this->getMock(self::DOAUTH_REQUEST_PAYLOAD);
 		$this->_stubAcceptStrReturnSelf(
-			array('setRequestId', 'setOrderId', 'setCurrencyCode'), $request
+			array('setRequestId', 'setOrderId', 'setCurrencyCode'),
+			$request
 		);
 		$request->expects($this->once())
 			->method('setAmount')
@@ -616,7 +627,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->method('_sendRequest')
 			->will($this->returnValue($reply));
 		EcomDev_Utils_Reflection::setRestrictedPropertyValues(
-			$api, array(
+			$api,
+			array(
 				'_helper' => $this->_helper, '_coreHelper' => $this->_coreHelper
 			)
 		);
@@ -686,7 +698,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 			->method('_sendRequest')
 			->will($this->returnValue($reply));
 		EcomDev_Utils_Reflection::setRestrictedPropertyValues(
-			$api, array(
+			$api,
+			array(
 				'_helper' => $this->_helper, '_coreHelper' => $this->_coreHelper
 			)
 		);
@@ -707,8 +720,8 @@ class EbayEnterprise_PayPal_Test_Model_Express_ApiTest
 	protected function _isScalar()
 	{
 		return $this->callback(
-			function($val)
-			{
+			function ($val) {
+
 				return is_scalar($val);
 			}
 		);

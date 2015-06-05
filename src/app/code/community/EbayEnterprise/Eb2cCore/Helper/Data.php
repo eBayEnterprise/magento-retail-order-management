@@ -14,6 +14,7 @@
  */
 
 use eBayEnterprise\RetailOrderManagement\Api;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class EbayEnterprise_Eb2cCore_Helper_Data
@@ -59,7 +60,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param string $format
 	 * @return string
 	 */
-	public function getApiUri($service, $operation, $params=array(), $format='xml')
+	public function getApiUri($service, $operation, $params = [], $format = 'xml')
 	{
 		$config = Mage::helper('eb2ccore')->getConfigModel();
 
@@ -81,7 +82,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param mixed $store
 	 * @return EbayEnterprise_Eb2cCore_Model_Config_Registry
 	 */
-	public function getConfigModel($store=null)
+	public function getConfigModel($store = null)
 	{
 		return Mage::getModel('eb2ccore/config_registry')
 			->setStore($store)
@@ -331,7 +332,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return mixed
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfig($path, $store=null)
+	public function getStoreConfig($path, $store = null)
 	{
 		return Mage::getStoreConfig($path, $store);
 	}
@@ -345,7 +346,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return bool
 	 * @codeCoverageIgnore
 	 */
-	public function getStoreConfigFlag($path, $store=null)
+	public function getStoreConfigFlag($path, $store = null)
 	{
 		return Mage::getStoreConfigFlag($path, $store);
 	}
@@ -360,7 +361,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return string
 	 * @codeCoverageIgnore
 	 */
-	public function getAbsolutePath($relative, $scope='base')
+	public function getAbsolutePath($relative, $scope = 'base')
 	{
 		return Mage::getBaseDir($scope) . DS . $relative;
 	}
@@ -400,7 +401,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @return DateTime
 	 * @codeCoverageIgnore
 	 */
-	public function getNewDateTime($time='now', DateTimeZone $timezone=null)
+	public function getNewDateTime($time = 'now', DateTimeZone $timezone = null)
 	{
 		return new DateTime($time, $timezone);
 	}
@@ -455,7 +456,7 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @see Mage::getBaseUrl
 	 * @codeCoverageIgnore
 	 */
-	public function getBaseUrl($type=Mage_Core_Model_Store::URL_TYPE_LINK, $secure=null)
+	public function getBaseUrl($type = Mage_Core_Model_Store::URL_TYPE_LINK, $secure = null)
 	{
 		return Mage::getBaseUrl($type, $secure);
 	}
@@ -530,13 +531,13 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 */
 	public function extractXmlToArray(DOMNode $contextNode, array $mapping, DOMXPath $xpath)
 	{
-		$data = array();
+		$data = [];
 		$coreHelper = Mage::helper('eb2ccore');
 		foreach ($mapping as $key => $callback) {
 			if ($callback['type'] !== 'disabled') {
 				$result = $xpath->query($callback['xpath'], $contextNode);
 				if ($result->length) {
-					$callback['parameters'] = array($result);
+					$callback['parameters'] = [$result];
 					$data[$key] = $coreHelper->invokeCallback($callback);
 				}
 			}
@@ -557,21 +558,27 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	 * @param string $prefix
 	 * @return string
 	 */
-	public function generateRequestId($prefix='')
+	public function generateRequestId($prefix = '')
 	{
 		return uniqid($prefix);
 	}
 	/**
 	 * Create a new ROM SDK API object. API will be configured with core configuration
 	 * and the service and operation provided.
-	 * @param  string $service   SDK API service
-	 * @param  string $operation SDK API operation
-	 * @param  array  $endpointParams Additional params added to end of endpoint URI
+	 * @param string $service SDK API service
+	 * @param string $operation SDK API operation
+	 * @param array $endpointParams Additional params added to end of endpoint URI
+	 * @param LoggerInterface|null $logger Provide alternate logger for the SDK. If none give, will provide a default logger.
 	 * @return Api\IBidirectionalApi
 	 */
-	public function getSdkApi($service, $operation, array $endpointParams=array())
-	{
+	public function getSdkApi(
+		$service,
+		$operation,
+		array $endpointParams = [],
+		LoggerInterface $logger = null
+	) {
 		$config = $this->getConfigModel();
+		$apiLogger = $logger ?: $this->_logger;
 		$apiConfig = new Api\HttpConfig(
 			$config->apiKey,
 			$config->apiHostname,
@@ -581,12 +588,13 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 			$service,
 			$operation,
 			$endpointParams,
-			$this->_logger
+			$apiLogger
 		);
-		return new Api\HttpApi($apiConfig, $this->_logger);
+		return new Api\HttpApi($apiConfig, $apiLogger);
 	}
-	/*
-	 * call a class static method base on the meta data in the given array
+	/**
+	 * Call a class static method based on the meta data in the given array.
+	 *
 	 * @param array $meta a composite array with class name and method to be executed
 	 * @return string|null
 	 */
@@ -595,14 +603,14 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 		if (empty($meta)) {
 			return null;
 		}
-		$parameters = isset($meta['parameters'])? $meta['parameters'] : array();
+		$parameters = isset($meta['parameters'])? $meta['parameters'] : [];
 		switch ($meta['type']) {
 			case 'model':
-				return call_user_func_array(array(Mage::getModel($meta['class']), $meta['method']), $parameters);
+				return call_user_func_array([Mage::getModel($meta['class']), $meta['method']], $parameters);
 			case 'helper':
-				return call_user_func_array(array(Mage::helper($meta['class']), $meta['method']), $parameters);
+				return call_user_func_array([Mage::helper($meta['class']), $meta['method']], $parameters);
 			case 'singleton':
-				return call_user_func_array(array(Mage::getSingleton($meta['class']), $meta['method']), $parameters);
+				return call_user_func_array([Mage::getSingleton($meta['class']), $meta['method']], $parameters);
 			default:
 				return null;
 		}

@@ -16,7 +16,8 @@
 		"ebayenterprise/magento-log": ">=2.0.2,<3.0",
 		"ebayenterprise/php-dom": "~1.0",
 		"ebayenterprise/retail-order-management": ">1.1.0-alpha-3,<2.0",
-		"firegento/psr0autoloader": "*"
+		"firegento/psr0autoloader": "*",
+		"psr/log" : "~1.0"
 	},
 	"require-dev": {
 		"ecomdev/ecomdev_phpunit": ">=0.3",

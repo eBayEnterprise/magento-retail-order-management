@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+### Fixed
+- Log messages may contain sensitive data
+
 ## [1.5.0-beta-5] -  2015-06-04
 ### Changed
 - Installation and Configuration Guide
