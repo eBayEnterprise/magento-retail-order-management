@@ -61,30 +61,61 @@ class EbayEnterprise_Eb2cOrder_GuestController extends Mage_Sales_GuestControlle
 		}
 		return;
 	}
+
 	/**
 	 * Check whether we have a valid order result.
-	 * @param  EbayEnterprise_Eb2cOrder_Model_Detail_Order_Interface $romOrderObject
-	 * @param  string $orderEmail
-	 * @param  string $orderZip
-	 * @param  string $orderLastname
+	 *
+	 * @param  EbayEnterprise_Eb2cOrder_Model_Detail_Order_Interface
+	 * @param  string
+	 * @param  string
+	 * @param  string
 	 * @return bool
 	 */
-	protected function _hasValidOrderResult(EbayEnterprise_Eb2cOrder_Model_Detail_Order_Interface $romOrderObject, $orderEmail, $orderZip, $orderLastname)
+	protected function _hasValidOrderResult(EbayEnterprise_Eb2cOrder_Model_Detail_Order_Interface $romOrder, $email, $zipCode, $lastname)
 	{
-		$billingAddress = $romOrderObject->getBillingAddress();
-		return (
-			$billingAddress
-			&& $orderLastname === $billingAddress->getLastname()
-			&& (
-				(
-					$orderZip
-					&& $orderZip === $billingAddress->getPostalCode()
-				)
-				|| (
-					$orderEmail
-					&& $orderEmail === $romOrderObject->getCustomerEmail()
-				)
-			)
-		);
+		/** @var Mage_Sales_Model_Order_Address */
+		$address = $romOrder->getBillingAddress();
+		return $address
+			&& $this->_isMatchLastname($address, $lastname)
+			&& ($this->_isMatchEmail($romOrder, $email) || $this->_isMatchZipCode($address, $zipCode));
+	}
+
+	/**
+	 * Check whether a given zip code search key term match a known billing address zip code.
+	 *
+	 * @param  Mage_Sales_Model_Order_Address
+	 * @param  string
+	 * @return bool
+	 */
+	protected function _isMatchZipCode(Mage_Sales_Model_Order_Address $address, $searchZipCode)
+	{
+		$romZipCode = strtolower($address->getPostcode());
+		$searchZipCode = strtolower($searchZipCode);
+		return ($romZipCode === $searchZipCode)
+			|| (substr($romZipCode, 0, 5) === $searchZipCode);
+	}
+
+	/**
+	 * Check whether a given lastname search key term match a known ROM customer billing lastname.
+	 *
+	 * @param  Mage_Sales_Model_Order_Address
+	 * @param  string
+	 * @return bool
+	 */
+	protected function _isMatchLastname(Mage_Sales_Model_Order_Address $address, $lastname)
+	{
+		return $lastname && ($lastname === $address->getLastname());
+	}
+
+	/**
+	 * Check whether a given email address search key term match a known ROM customer order email.
+	 *
+	 * @param  EbayEnterprise_Order_Model_Detail_Process_IResponse
+	 * @param  string
+	 * @return bool
+	 */
+	protected function _isMatchEmail(EbayEnterprise_Eb2cOrder_Model_Detail_Order_Interface $romOrder, $email)
+	{
+		return $email && ($email === $romOrder->getCustomerEmail());
 	}
 }
