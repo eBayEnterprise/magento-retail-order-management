@@ -1,68 +1,31 @@
 {
-	"name": "ebayenterprise/magento-with-retail-order-management",
-	"description": "eBay Enterprise Retail Order Management Magento Extension",
-	"license": "proprietary",
-	"type": "project",
-	"require": {
-		"magento-hackathon/magento-composer-installer": "*",
-		"magento-hackathon/composer-command-integrator": "*",
-		"ebayenterprise/magento-retail-order-management": "dev-master",
-		"ebayenterprise/retail-order-management": "dev-master as 1.1.x-dev"
-	},
-	"require-dev": {
-		"ecomdev/ecomdev_phpunit": "dev-master as 0.3.x-dev",
-		"pdepend/pdepend": "~1.1",
-		"phpdocumentor/phpdocumentor":"~2.4",
-		"phploc/phploc": "~2.0",
-		"phpmd/phpmd": "~1.5",
-		"phpunit/dbunit": "~1",
-		"phpunit/php-invoker": "~1.1",
-		"phpunit/phpunit-selenium": "~1",
-		"phpunit/phpunit-story": "~1",
-		"sebastian/phpcpd": "~2.0",
-		"squizlabs/php_codesniffer": "~1.5",
-		"mikey179/vfsStream": "~1.4"
-	},
-	"minimum-stability": "dev",
-	"prefer-stable": true,
 	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/ebayenterprise/magento-active-config"
-		},
-		{
-			"type": "vcs",
-			"url": "https://github.com/ebayenterprise/RetailOrderManagement-SDK"
-		},
-		{
-			"type": "vcs",
-			"url": "https://github.com/ebayenterprise/magento-file-transfer"
-		},
-		{
-			"type": "vcs",
-			"url": "https://github.com/ebayenterprise/magento-log"
-		},
-		{
-			"type": "vcs",
-			"url": "https://github.com/ebayenterprise/php-dom"
-		},
-		{
-			"type": "vcs",
-			"url": "https://github.com/kojiromike/EcomDev_PHPUnit"
-		},
-		{
-			"type": "vcs",
-			"url": "/git/magento-retail-order-management"
-		},
-		{
-			"type": "composer",
-			"url": "http://packages.firegento.com"
-		}
+		{ "type": "vcs", "url": "/git/magento-retail-order-management" },
+		{ "type": "vcs", "url": "https://github.com/kojiromike/EcomDev_PHPUnit" },
+		{ "type": "composer", "url": "http://lvsciapp22.us.gspt.net" },
+		{ "type": "composer", "url": "http://packages.firegento.com" }
 	],
 	"extra": {
 		"composer-command-registry": [
 			"MagentoHackathon\\Composer\\Magento\\Command\\DeployCommand"
 		],
 		"magento-root-dir": "."
+	},
+	"require": {
+        "composer/composer": "~1.0@dev",
+		"magento-hackathon/composer-command-integrator": "~1.2",
+		"magento-hackathon/magento-composer-installer": "~2.1",
+        "n98/magerun": "~1.95",
+		"ebayenterprise/magento-retail-order-management": "1.5.x-dev",
+		"ebayenterprise/retail-order-management": "@dev"
+	},
+	"require-dev": {
+		"ecomdev/ecomdev_phpunit": "dev-master as 0.3.x-dev",
+		"mikey179/vfsStream": "~1.5",
+		"phpdocumentor/phpdocumentor":"~2.8",
+		"phploc/phploc": "~2.1",
+		"phpmd/phpmd": "~2.2",
+		"sebastian/phpcpd": "~2.0",
+		"squizlabs/php_codesniffer": "~2.3"
 	}
 }
