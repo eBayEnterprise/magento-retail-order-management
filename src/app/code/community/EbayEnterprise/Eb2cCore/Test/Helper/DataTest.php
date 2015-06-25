@@ -214,18 +214,6 @@ class EbayEnterprise_Eb2cCore_Test_Helper_DataTest extends EbayEnterprise_Eb2cCo
 	}
 
 	/**
-	 * Test that we can transform a Magento shipping method into an eb2c shipping method.
-	 * @loadFixture
-	 * @dataProvider dataProvider
-	 */
-	public function testConvertShipMethod($mageShipMethod)
-	{
-		$this->assertSame(
-			$this->expected($mageShipMethod)->getEb2cShipMethod(),
-			Mage::helper('eb2ccore')->lookupShipMethod($mageShipMethod)
-		);
-	}
-	/**
 	 * Testing the extractQueryNodeValue method
 	 * @loadExpectation
 	 */

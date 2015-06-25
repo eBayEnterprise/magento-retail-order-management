@@ -748,15 +748,15 @@ class EbayEnterprise_Eb2cInventory_Test_Model_AllocationTest
 			->method('getShippingAddress')
 			->will($this->returnValue($address));
 
-		$helper = $this->getHelperMockBuilder('eb2ccore/data')
+		$helper = $this->getHelperMockBuilder('eb2ccore/shipping')
 			->disableOriginalConstructor()
-			->setMethods(array('lookupShipMethod'))
+			->setMethods(array('getMethodSdkId'))
 			->getMock();
 		$helper->expects($this->once())
-			->method('lookupShipMethod')
+			->method('getMethodSdkId')
 			->with($this->identicalTo('mage_ship_method'))
 			->will($this->returnValue('ANY_STD'));
-		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$this->replaceByMock('helper', 'eb2ccore/shipping', $helper);
 
 		$invHelper = $this->getHelperMock('eb2cinventory/data', array('getInventoriedItems'));
 		$invHelper->expects($this->once())

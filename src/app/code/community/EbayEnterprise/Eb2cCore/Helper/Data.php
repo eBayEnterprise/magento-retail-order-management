@@ -227,18 +227,6 @@ class EbayEnterprise_Eb2cCore_Helper_Data extends Mage_Core_Helper_Abstract
 	}
 
 	/**
-	 * Return the eb2c ship method configured to correspond to a known Magento ship method.
-	 *
-	 * @param string $mageShipMethod
-	 * @return string EB2C ship method
-	 */
-	public function lookupShipMethod($mageShipMethod)
-	{
-		// Deliberately bypass configurator so we can dynamically lookup.
-		return Mage::getStoreConfig("eb2ccore/shipmap/$mageShipMethod");
-	}
-
-	/**
 	 * loading a file into a new SplFileInfo instantiated object
 	 *
 	 * @param string $fileName

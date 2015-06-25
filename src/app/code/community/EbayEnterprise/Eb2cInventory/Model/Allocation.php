@@ -79,12 +79,13 @@ class EbayEnterprise_Eb2cInventory_Model_Allocation
 	{
 		$coreHelper = Mage::helper('eb2ccore');
 		$inventoryHelper = Mage::helper('eb2cinventory');
+		$shippingHelper = Mage::helper('eb2ccore/shipping');
 		$domDocument = $coreHelper->getNewDomDocument();
 		$allocationRequestMessage = $domDocument->addElement('AllocationRequestMessage', null, $inventoryHelper->getXmlNs())->firstChild;
 		$allocationRequestMessage->setAttribute('requestId', $coreHelper->generateRequestId(self::ALLOCATION_REQUEST_ID_PREFIX));
 		$allocationRequestMessage->setAttribute('reservationId', $inventoryHelper->getReservationId());
 		$shippingAddress = $quote->getShippingAddress();
-		$shippingMethod = $coreHelper->lookupShipMethod($shippingAddress->getShippingMethod());
+		$shippingMethod = $shippingHelper->getMethodSdkId($shippingAddress->getShippingMethod());
 		foreach ($inventoryHelper->getInventoriedItems($quote->getAllVisibleItems()) as $item) {
 			// creating quoteItem element
 			$quoteItem = $allocationRequestMessage->createChild('OrderItem', null, array('lineId' => $item->getId(), 'itemId' => $item->getSku()));

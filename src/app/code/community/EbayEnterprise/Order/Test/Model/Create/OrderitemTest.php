@@ -34,6 +34,7 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 	protected $_priceGroupStub;
 	/** @var Mage_Eav_Model_Resource_Entity_Attribute_Option_Collection */
 	protected $_optionValueCollectionStub;
+	protected $_shippingHelper;
 
 	public function setUp()
 	{
@@ -41,9 +42,10 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 		// replace the session for the logger context
 		$this->_replaceSession('core/session');
 		$this->_itemStub = $this->getModelMock('sales/order_item', ['getId', 'getOrder']);
-		$this->_orderStub = $this->getModelMock('sales/order', ['load', 'save']);
-		$this->_orderStub->setData(['shipping_method' => 'someshipping method']);
+		$this->_orderStub = $this->getModelMock('sales/order', ['load', 'save', 'getQuote']);
 		$this->_addressStub = $this->getModelMock('sales/order_address', ['getId']);
+		$this->_addressStub->setData(['quote_address_id' => 1]);
+		$this->_shippingHelper = $this->getHelperMock('eb2ccore/shipping');
 
 		$this->_itemStub->expects($this->any())
 			->method('getOrder')
@@ -133,10 +135,18 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 			'price' => 7,
 			'discount_amount' => 4,
 		]);
-		$handler = $this->getModelMock(
-			'ebayenterprise_order/create_orderitem',
-			['_loadOrderItemOptions', '_isShippingPriceGroupRequired']
-		);
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->setMethods(['_loadOrderItemOptions', '_isShippingPriceGroupRequired', '_getShippingMethodCode'])
+			->setConstructorArgs([['shipping_helper' => $this->_shippingHelper]])
+			->getMock();
+
+		$handler->expects($this->once())
+			->method('_getShippingMethodCode')
+			->with(
+				$this->identicalTo($this->_orderStub),
+				$this->identicalTo($this->_addressStub)
+			)
+			->will($this->returnValue('flatrate_flatrate'));
 		$handler->expects($this->any())
 			->method('_loadOrderItemOptions')
 			->will($this->returnValue($this->_optionValueCollectionStub));
@@ -155,10 +165,17 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 	 */
 	public function testBuildOrderItemsMissingOptionDefault()
 	{
-		$handler = $this->getModelMock(
-			'ebayenterprise_order/create_orderitem',
-			['_loadOrderItemOptions', '_prepareMerchandisePricing']
-		);
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->setMethods(['_loadOrderItemOptions', '_prepareMerchandisePricing', '_getShippingMethodCode'])
+			->setConstructorArgs([['shipping_helper' => $this->_shippingHelper]])
+			->getMock();
+		$handler->expects($this->once())
+			->method('_getShippingMethodCode')
+			->with(
+				$this->identicalTo($this->_orderStub),
+				$this->identicalTo($this->_addressStub)
+			)
+			->will($this->returnValue('flatrate_flatrate'));
 		$handler->expects($this->any())
 			->method('_loadOrderItemOptions')
 			->will($this->returnValue($this->_optionValueCollectionStub));
@@ -195,28 +212,39 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 	 */
 	public function testBuildOrderItemsWithShippingPriceGroup($chargeType, $lineNumber)
 	{
-		$handler = $this->getModelMock(
-			'ebayenterprise_order/create_orderitem',
-			['_loadOrderItemOptions', '_prepareMerchandisePricing', '_prepareShippingPriceGroup']
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->setMethods([
+				'_loadOrderItemOptions',
+				'_prepareMerchandisePricing',
+				'_prepareShippingPriceGroup',
+				'_getShippingMethodCode'
+			])
+			->setConstructorArgs([['shipping_helper' => $this->_shippingHelper]])
+			->getMock();
+		// add fake color option value
+		$this->_optionValueCollectionStub->addItem(
+			Mage::getModel(
+				'eav/entity_attribute_option',
+				[
+					'attribute_code' => 'color',
+					'option_id' => 15,
+					'value' => 'Black',
+					'default_value' => null,
+				]
+			)
 		);
+
 		$handler->expects($this->any())
 			->method('_loadOrderItemOptions')
 			->will($this->returnValue($this->_optionValueCollectionStub));
 		$handler->expects($this->any())
 			->method('_prepareMerchandisePricing')
 			->will($this->returnSelf());
+		// since the shipping pricegroup should be included,
+		// this method must be called
 		$handler->expects($this->once())
 			->method('_prepareShippingPriceGroup')
 			->will($this->returnSelf());
-		// add fake color option value
-		$this->_optionValueCollectionStub->addItem(
-			Mage::getModel('eav/entity_attribute_option', [
-			'attribute_code' => 'color',
-			'option_id' => 15,
-			'value' => 'Black',
-			'default_value' => null,
-			])
-		);
 		$handler->buildOrderItem(
 			$this->_payload,
 			$this->_itemStub,
@@ -236,10 +264,10 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 		$chargeType = 'whatever';
 		$lineNumber = 1;
 		$this->_addressStub->setEbayEnterpriseOrderDiscountData(['1,2,3,4' => ['id' => '1,2,3,4']]);
-		$handler = $this->getModelMock(
-			'ebayenterprise_order/create_orderitem',
-			['_loadOrderItemOptions', '_prepareMerchandisePricing']
-		);
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->setMethods(['_loadOrderItemOptions', '_prepareMerchandisePricing', '_getShippingMethodCode'])
+			->setConstructorArgs([['shipping_helper' => $this->_shippingHelper]])
+			->getMock();
 		$handler->expects($this->any())
 			->method('_loadOrderItemOptions')
 			->will($this->returnValue($this->_optionValueCollectionStub));
@@ -267,10 +295,10 @@ class EbayEnterprise_Order_Test_Model_Create_OrderitemTest
 		$chargeType = 'whatever';
 		$lineNumber = 1;
 		$this->_itemStub->setEbayEnterpriseOrderDiscountData(['1' => ['id' => '1']]);
-		$handler = $this->getModelMock(
-			'ebayenterprise_order/create_orderitem',
-			['_loadOrderItemOptions', '_prepareShippingPriceGroup']
-		);
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->setMethods(['_loadOrderItemOptions', '_prepareShippingPriceGroup', '_getShippingMethodCode'])
+			->setConstructorArgs([['shipping_helper' => $this->_shippingHelper]])
+			->getMock();
 		$handler->expects($this->any())
 			->method('_loadOrderItemOptions')
 			->will($this->returnValue($this->_optionValueCollectionStub));

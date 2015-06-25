@@ -41,11 +41,14 @@ class EbayEnterprise_Eb2cInventory_Model_Details
 	protected $_logger;
 	/** @var EbayEnterprise_MageLog_Helper_Context */
 	protected $_context;
+	/** @var EbayEnterprise_Eb2cCore_Helper_Shipping */
+	protected $_shippingHelper;
 
 	public function __construct()
 	{
 		$this->_logger = Mage::helper('ebayenterprise_magelog');
 		$this->_context = Mage::helper('ebayenterprise_magelog/context');
+		$this->_shippingHelper = Mage::helper('eb2ccore/shipping');
 	}
 
 	/*****************************************************************************
@@ -103,7 +106,7 @@ class EbayEnterprise_Eb2cInventory_Model_Details
 	 */
 	protected function _translateShippingMethod($shippingMethod)
 	{
-		$translatedShipMethod = Mage::helper('eb2ccore')->lookupShipMethod($shippingMethod);
+		$translatedShipMethod = $this->_shippingHelper->getMethodSdkId($shippingMethod);
 		if (empty($translatedShipMethod)) {
 			$logData = ['shipping_method' => $shippingMethod];
 			$logMessage = 'Unable to translate ship method "{shipping_method}".';
@@ -134,7 +137,8 @@ class EbayEnterprise_Eb2cInventory_Model_Details
 	 * Concatenate the results of applying buildOrderItemXml to each.
 	 * @param array $items array of Mage_Sales_Model_Quote_Item
 	 * @param Mage_Sales_Model_Quote_Address $address
-	 * @param int $idx Index/counter for items added Used instead of id as items added to a new item collection will not have one
+	 * @param int $idx Index/counter for items added Used instead of id as items added to
+	 *                 a new item collection will not have one
 	 * @return string
 	 */
 	protected function _buildOrderItemsXml(array $items, $address, $idx=0)

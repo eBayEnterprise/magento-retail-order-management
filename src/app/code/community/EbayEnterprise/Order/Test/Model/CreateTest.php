@@ -336,7 +336,11 @@ class EbayEnterprise_Order_Test_Model_CreateTest extends EbayEnterprise_Eb2cCore
 			'order' => $this->_order,
 			'payload' => $this->_requestStub,
 		];
+		$handler = $this->getModelMockBuilder('ebayenterprise_order/create_orderitem')
+			->disableOriginalConstructor()
+			->getMock();
 		$create = Mage::getModel('ebayenterprise_order/create', $constructorArgs);
+		EcomDev_Utils_Reflection::setRestrictedPropertyValue($create, '_defaultItemHandler', $handler);
 		$references = EcomDev_Utils_Reflection::invokeRestrictedMethod(
 			$create,
 			'_addOrderItemReferences',

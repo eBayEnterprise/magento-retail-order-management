@@ -15,7 +15,7 @@
 
 class EbayEnterprise_Eb2cCore_Model_Config extends EbayEnterprise_Eb2cCore_Model_Config_Abstract
 {
-	protected $_configPaths = array(
+	protected $_configPaths = [
 		'api_hostname'                => 'eb2ccore/api/hostname',
 		'api_key'                     => 'eb2ccore/api/key',
 		'api_major_version'           => 'eb2ccore/api/major_version',
@@ -62,5 +62,6 @@ class EbayEnterprise_Eb2cCore_Model_Config extends EbayEnterprise_Eb2cCore_Model
 		'sftp_username'               => 'eb2ccore/feed/filetransfer_sftp_username',
 		'store_id'                    => 'eb2ccore/general/store_id',
 		'ack_resend_time_limit'       => 'eb2ccore/feed/export/ack/resend_time_limit',
-	);
+		'shipping_method_map'         => 'eb2ccore/shipmap',
+	];
 }

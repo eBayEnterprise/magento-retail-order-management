@@ -210,12 +210,12 @@ class EbayEnterprise_Eb2cInventory_Test_Model_DetailsTest
 		$country = 'country';
 		$zipCode = 'zip';
 
-		$helper = $this->getHelperMock('eb2ccore/data', array('lookupShipMethod'));
+		$helper = $this->getHelperMock('eb2ccore/shipping', array('getMethodSdkId'));
 		$helper->expects($this->once())
-			->method('lookupShipMethod')
+			->method('getMethodSdkId')
 			->with($this->equalTo($shippingMethod))
 			->will($this->returnValue($translateMethod));
-		$this->replaceByMock('helper', 'eb2ccore', $helper);
+		$this->replaceByMock('helper', 'eb2ccore/shipping', $helper);
 
 		$address = Mage::getModel('sales/quote_address', array(
 			'shipping_method' => $shippingMethod,
