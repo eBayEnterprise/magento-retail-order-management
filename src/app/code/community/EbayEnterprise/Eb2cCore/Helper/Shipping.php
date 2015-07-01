@@ -118,13 +118,13 @@ class EbayEnterprise_Eb2cCore_Helper_Shipping
 	 */
 	protected function _fetchAvailableShippingMethods()
 	{
-		if (!$this->methods) {
+		if (!$this->_methods) {
 			$activeCarriers = $this->_getShippingConfig()->getActiveCarriers();
 			foreach ($activeCarriers as $carrierCode => $carrierModel) {
 				$this->_addShippingMethodsFromCarrier($carrierCode, $carrierModel);
 			}
 		}
-		return $this->methods;
+		return $this->_methods;
 	}
 
 	/**

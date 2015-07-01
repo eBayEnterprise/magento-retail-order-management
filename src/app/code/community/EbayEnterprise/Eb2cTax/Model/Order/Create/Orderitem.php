@@ -220,13 +220,14 @@ class EbayEnterprise_Eb2cTax_Model_Order_Create_Orderitem
 	 * tax info; if the payload doesn't exist return null.
 	 * @param EbayEnterprise_Eb2cTax_Model_Response_Quote
 	 * @param IPriceGroup
-	 * @return IDiscount|null
+	 * @return IDiscount
+	 * @throws EbayEnterprise_Eb2cTax_Exception_Order_Create_Orderitem_Discount_Exception
 	 */
 	protected function _fetchDiscountPayload(EbayEnterprise_Eb2cTax_Model_Response_Quote $taxQuote, IOrderItem $itemPayload)
 	{
 		$priceGroup = $this->_fetchPriceGroupPayload($taxQuote, $itemPayload);
 		if (!$priceGroup) {
-			return null;
+			throw $this->_getNoDiscountPayloadException();
 		}
 		$discountId = $taxQuote->getDiscountId();
 		foreach ($priceGroup->getDiscounts() as $discountPayload) {
@@ -234,7 +235,18 @@ class EbayEnterprise_Eb2cTax_Model_Order_Create_Orderitem
 				return $discountPayload;
 			}
 		}
-		return null;
+		throw $this->_getNoDiscountPayloadException();;
+	}
+
+	/**
+	 * @return EbayEnterprise_Eb2cTax_Exception_Order_Create_Orderitem_Discount_Exception
+	 */
+	protected function _getNoDiscountPayloadException()
+	{
+		return Mage::exception(
+			'EbayEnterprise_Eb2cTax_Exception_Order_Create_Orderitem_Discount',
+			'No tax order item discounts was found.'
+		);
 	}
 
 	/**

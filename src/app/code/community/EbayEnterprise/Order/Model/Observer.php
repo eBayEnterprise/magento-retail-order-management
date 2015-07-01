@@ -147,6 +147,8 @@ class EbayEnterprise_Order_Model_Observer
 	 */
 	public function handleSalesRuleValidatorProcess(Varien_Event_Observer $observer)
 	{
+		/** @var string $romStoreId */
+		$romStoreId = $this->_coreHelper->getConfigModel()->storeId;
 		/** @var Varien_Event $event */
 		$event = $observer->getEvent();
 		/** @var Mage_SalesRule_Model_Rule $rule */
@@ -166,7 +168,7 @@ class EbayEnterprise_Order_Model_Observer
 			'code' => $rule->getCouponCode(),
 			'description' => $rule->getStoreLabel($store) ?: $rule->getName(),
 			'effect_type' => $rule->getSimpleAction(),
-			'id' => $ruleId,
+			'id' => sprintf('%s-%s', $romStoreId, $ruleId),
 		];
 		$item->setEbayEnterpriseOrderDiscountData($data);
 	}
