@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2015-07-02
+### Fixed
+- Fatal error during checkout with discount
+- Order Create Request order items are missing ShippingMethod
+- Email and Last Name Fields are case sensitive on Orders and Returns Screen
+
 ## [1.5.0-beta-6] - 2015-06-18
 ### Fixed
 - Log messages may contain sensitive data
@@ -258,6 +264,7 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
+[1.5.0]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-6...1.5.0
 [1.5.0-beta-6]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-5...1.5.0-beta-6
 [1.5.0-beta-5]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-4...1.5.0-beta-5
 [1.5.0-beta-4]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.5.0-beta-3...1.5.0-beta-4
