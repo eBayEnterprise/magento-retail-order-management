@@ -13,7 +13,7 @@ The intended audience for this guide is Magento merchants, business users and sy
 
 ## Introduction
 
-The [Retail Order Management](http://ebayenterprise.com/commerce_technologies/retail_order_management.php) solution is a unique set of integrated omnichannel-enabling capabilities, services and infrastructure. The solution provides tight orchestration across the entire technology value chain, spanning several key areas:
+The [Retail Order Management](http://www.ebayenterprise.com/order-management/retail-order-management-0) solution is a unique set of integrated omnichannel-enabling capabilities, services and infrastructure. The solution provides tight orchestration across the entire technology value chain, spanning several key areas:
 
 - Distributed Order Management
 - Omnichannel Inventory Management 
