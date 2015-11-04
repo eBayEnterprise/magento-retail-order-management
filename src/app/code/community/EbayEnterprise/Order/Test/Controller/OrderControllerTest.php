@@ -248,23 +248,32 @@ class EbayEnterprise_Order_Test_Controller_OrderControllerTest extends EbayEnter
         $request = $this->getMockForAbstractClass('Zend_Controller_Request_Abstract');
         /** @var Mock_Zend_Controller_Response_Abstract */
         $response = $this->getMockForAbstractClass('Zend_Controller_Response_Abstract');
-        /** @var Mock_Mage_Customer_Model_Session */
-        $session = $this->getModelMockBuilder('customer/session')
+        /** @var Mock_Mage_Core_Model_Session */
+        $coreSession = $this->getModelMockBuilder('core/session')
             // Disabling the constructor in order to prevent session_start() function from being
             // called which causes headers already sent exception from being thrown.
             ->disableOriginalConstructor()
             ->setMethods(['addError'])
             ->getMock();
-        $session->expects($this->once())
+        $coreSession->expects($this->once())
             ->method('addError')
             ->with($this->identicalTo($message))
             ->will($this->returnSelf());
 
+        /** @var Mock_Mage_Customer_Model_Session */
+        $customerSession = $this->getModelMockBuilder('customer/session')
+            // Disabling the constructor in order to prevent session_start() function from being
+            // called which causes headers already sent exception from being thrown.
+            ->disableOriginalConstructor()
+            ->getMock();
         /** @var EbayEnterprise_Order_Helper_Factory */
-        $factory = $this->getHelperMock('ebayenterprise_order/factory', ['getCustomerSession']);
+        $factory = $this->getHelperMock('ebayenterprise_order/factory', ['getCustomerSession', 'getCoreSession']);
         $factory->expects($this->once())
             ->method('getCustomerSession')
-            ->will($this->returnValue($session));
+            ->will($this->returnValue($customerSession));
+        $factory->expects($this->once())
+            ->method('getCoreSession')
+            ->will($this->returnValue($coreSession));
 
         /** @var Mock_EbayEnterprise_Order_OrderController */
         $controller = $this->getMockBuilder('EbayEnterprise_Order_OrderController')
@@ -276,7 +285,7 @@ class EbayEnterprise_Order_Test_Controller_OrderControllerTest extends EbayEnter
         ]);
         $controller->expects($this->once())
             ->method('_getRomReturnPath')
-            ->with($this->identicalTo($session))
+            ->with($this->identicalTo($customerSession))
             ->will($this->returnValue($path));
         $controller->expects($this->once())
             ->method('_redirect')

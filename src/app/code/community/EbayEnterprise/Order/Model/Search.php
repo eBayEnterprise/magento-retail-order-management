@@ -12,6 +12,9 @@
  * @copyright   Copyright (c) 2013-2014 eBay Enterprise, Inc. (http://www.ebayenterprise.com/)
  * @license     http://opensource.org/licenses/osl-3.0.php  Open Software License (OSL 3.0)
  */
+use eBayEnterprise\RetailOrderManagement\Payload\Customer\IOrderSummaryRequest;
+use eBayEnterprise\RetailOrderManagement\Payload\Customer\IOrderSummaryResponse;
+use eBayEnterprise\RetailOrderManagement\Api\IBidirectionalApi;
 
 class EbayEnterprise_Order_Model_Search implements EbayEnterprise_Order_Model_ISearch
 {
@@ -134,9 +137,13 @@ class EbayEnterprise_Order_Model_Search implements EbayEnterprise_Order_Model_IS
      * Process order summary payload response.
      *
      * @return EbayEnterprise_Order_Model_Search_Process_Response_ICollection
+     * @throws EbayEnterprise_Order_Exception_Order_Detail_Notfound_Exception
      */
     protected function _processResponse()
     {
+        if (is_null($this->_response)) {
+            throw new EbayEnterprise_Order_Exception_Order_Detail_Notfound_Exception;
+        }
         return $this->_factory
             ->getNewSearchProcessResponse($this->_response)
             ->process();

@@ -110,9 +110,15 @@ class EbayEnterprise_Order_OrderController extends Mage_Sales_Controller_Abstrac
      */
     protected function _handleOrderDetailException(EbayEnterprise_Order_Exception_Order_Detail_Notfound_Exception $e)
     {
-        $session = $this->_orderFactory->getCustomerSession();
-        $session->addError($e->getMessage());
-        $this->_redirect($this->_getRomReturnPath($session));
+        // Set the error message
+        $coreSession = $this->_orderFactory->getCoreSessionModel();
+        $coreSession->addError($e->getMessage());
+
+        //Redirect to the rom return path
+        $customerSession = $this->_orderFactory->getCustomerSession();
+        $returnPath = $this->_getRomReturnPath($customerSession);
+        $this->_redirect($returnPath);
+
         return $this;
     }
 
