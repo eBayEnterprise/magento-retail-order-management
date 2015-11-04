@@ -267,12 +267,12 @@ class EbayEnterprise_Order_Test_Controller_OrderControllerTest extends EbayEnter
             ->disableOriginalConstructor()
             ->getMock();
         /** @var EbayEnterprise_Order_Helper_Factory */
-        $factory = $this->getHelperMock('ebayenterprise_order/factory', ['getCustomerSession', 'getCoreSession']);
+        $factory = $this->getHelperMock('ebayenterprise_order/factory', ['getCustomerSession', 'getCoreSessionModel']);
         $factory->expects($this->once())
             ->method('getCustomerSession')
             ->will($this->returnValue($customerSession));
         $factory->expects($this->once())
-            ->method('getCoreSession')
+            ->method('getCoreSessionModel')
             ->will($this->returnValue($coreSession));
 
         /** @var Mock_EbayEnterprise_Order_OrderController */
