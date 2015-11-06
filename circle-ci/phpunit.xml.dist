@@ -32,6 +32,7 @@ http://opensource.org/licenses/osl-3.0.php
     </testsuite>
     <groups>
         <include>
+            <group>EbayEnterprise_Address</group>
             <group>EbayEnterprise_Amqp</group>
             <group>EbayEnterprise_Catalog</group>
             <group>EbayEnterprise_CreditCard</group>

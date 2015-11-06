@@ -132,15 +132,20 @@ class EbayEnterprise_Paypal_Model_Express_Api
             ->setLocaleCode(Mage::app()->getLocale()->getDefaultLocale())
             ->setAmount($this->getTotal('grand_total', $quote))
             ->setCurrencyCode($quote->getQuoteCurrencyCode());
-        if ($quote->getShippingAddress()->getId()) {
-            $payload->setAddressOverride(true);
+
+        $useAddressOverride = $this->useAddressOverride($quote);
+        $payload->setAddressOverride($useAddressOverride);
+        if ($useAddressOverride) {
             $this->addShippingAddress($quote->getShippingAddress(), $payload);
         }
+
         $this->addLineItems($quote, $payload);
+
         Mage::dispatchEvent('ebayenterprise_paypal_set_express_checkout_before_send', ['payload' => $payload, 'quote' => $quote]);
         $sdk->setRequestBody($payload);
         $reply = $this->sendRequest($sdk);
         Mage::dispatchEvent('ebayenterprise_paypal_set_express_checkout_after_send', ['payload' => $reply, 'quote' => $quote]);
+
         if (!$reply->isSuccess() || is_null($reply->getToken())) {
             // Only set and do express have the error message in the reply.
             $logMessage =
@@ -378,6 +383,22 @@ class EbayEnterprise_Paypal_Model_Express_Api
             'order_id'  => $reply->getOrderId(),
             'is_voided' => $isVoided
         ];
+    }
+
+    /**
+     * Check if a quote should use an address override - already has a shipping
+     * address that is valid for PayPal.
+     *
+     * @param Mage_Sales_Model_Quote
+     * @return bool
+     */
+    protected function useAddressOverride(Mage_Sales_Model_Quote $quote)
+    {
+        $shippingAddress = $quote->getShippingAddress();
+        return !is_null($shippingAddress->getId())
+            && $shippingAddress->getStreet()
+            && $shippingAddress->getCity()
+            && $shippingAddress->getCountryId();
     }
 
     /**
