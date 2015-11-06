@@ -20,7 +20,6 @@ http://opensource.org/licenses/osl-3.0.php
             <depends>
                 <EbayEnterprise_Eb2cCore/>
                 <EbayEnterprise_MageLog/>
-                <Enterprise_GiftRegistry/>
                 <Mage_Checkout/>
                 <Mage_Core/>
                 <Mage_Customer/>

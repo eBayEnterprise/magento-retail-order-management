@@ -37,19 +37,6 @@ http://opensource.org/licenses/osl-3.0.php
             </block>
         </reference>
     </customer_address_form>
-    <enterprise_giftregistry_index_edit>
-        <update handle="address_validation_suggestions_assets"/>
-        <reference name="giftregistry_address_edit">
-            <action method="setTemplate">
-                <template>ebayenterprise_address/giftregistry/address/edit.phtml</template>
-            </action>
-            <block type="ebayenterprise_address/suggestions" name="address_validation_suggestions">
-                <action method="setAddressFormat">
-                    <formatConfig>address_format_full</formatConfig>
-                </action>
-            </block>
-        </reference>
-    </enterprise_giftregistry_index_edit>
     <checkout_multishipping_customer_address>
         <update handle="address_validation_suggestions_assets"/>
         <reference name="customer_address_edit">
