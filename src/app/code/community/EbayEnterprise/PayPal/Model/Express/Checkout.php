@@ -63,6 +63,8 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
     /** @var EbayEnterprise_MageLog_Helper_Context */
     protected $_context;
 
+    /** @var EbayEnterprise_PayPal_Helper_Region */
+    protected $regionHelper;
     /** @var Mage_Customer_Model_Session */
     protected $_customerSession;
     /** @var int */
@@ -73,7 +75,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
 
     public function __construct(array $initParams = array())
     {
-        list($this->_helper, $this->_logger, $this->_config, $this->_quote, $this->_context)
+        list($this->_helper, $this->_logger, $this->_config, $this->_quote, $this->_context, $this->regionHelper)
             = $this->_checkTypes(
                 $this->_nullCoalesce(
                     $initParams,
@@ -95,6 +97,11 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
                     $initParams,
                     'context',
                     Mage::helper('ebayenterprise_magelog/context')
+                ),
+                $this->_nullCoalesce(
+                    $initParams,
+                    'region_helper',
+                    Mage::helper('ebayenterprise_paypal/region')
                 )
             );
         if (!$this->_quote) {
@@ -105,11 +112,12 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
     /**
      * Type hinting for self::__construct $initParams
      *
-     * @param EbayEnterprise_PayPal_Helper_Data             $helper
-     * @param EbayEnterprise_MageLog_Helper_Data            $logger ,
-     * @param EbayEnterprise_Eb2cCore_Model_Config_Registry $config ,
-     * @param Mage_Sales_Model_Quote                        $quote  ,
-     * @param EbayEnterprise_MageLog_Helper_Context        $context
+     * @param EbayEnterprise_PayPal_Helper_Data,
+     * @param EbayEnterprise_MageLog_Helper_Data,
+     * @param EbayEnterprise_Eb2cCore_Model_Config_Registry,
+     * @param Mage_Sales_Model_Quote,
+     * @param EbayEnterprise_MageLog_Helper_Context,
+     * @param EbayEnterprise_PayPal_Helper_Region
      *
      * @return array
      */
@@ -118,9 +126,10 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
         EbayEnterprise_MageLog_Helper_Data $logger,
         EbayEnterprise_Eb2cCore_Model_Config_Registry $config,
         Mage_Sales_Model_Quote $quote,
-        EbayEnterprise_MageLog_Helper_Context $context
+        EbayEnterprise_MageLog_Helper_Context $context,
+        EbayEnterprise_PayPal_Helper_Region $regionHelper
     ) {
-        return array($helper, $logger, $config, $quote, $context);
+        return func_get_args();
     }
 
     /**
@@ -239,7 +248,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
             $shippingAddress->setTelephone($getExpressCheckoutReply['phone']);
             $shippingAddress->setStreet($paypalShippingAddress['street']);
             $shippingAddress->setCity($paypalShippingAddress['city']);
-            $shippingAddress->setRegion($paypalShippingAddress['region_code']);
+            $this->regionHelper->setQuoteAddressRegion($shippingAddress, $paypalShippingAddress['region_code']);
             $shippingAddress->setPostcode($paypalShippingAddress['postcode']);
             $shippingAddress->setCountryId(
                 $paypalShippingAddress['country_id']
@@ -280,7 +289,7 @@ class EbayEnterprise_PayPal_Model_Express_Checkout
         $paypalBillingAddress = $getExpressCheckoutReply['billing_address'];
         $billingAddress->setStreet($paypalBillingAddress['street']);
         $billingAddress->setCity($paypalBillingAddress['city']);
-        $billingAddress->setRegion($paypalBillingAddress['region_code']);
+        $this->regionHelper->setQuoteAddressRegion($billingAddress, $paypalBillingAddress['region_code']);
         $billingAddress->setPostcode($paypalBillingAddress['postcode']);
         $billingAddress->setCountryId($paypalBillingAddress['country_id']);
         $billingAddress->setEmail($getExpressCheckoutReply['email']);

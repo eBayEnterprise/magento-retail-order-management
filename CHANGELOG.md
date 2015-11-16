@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Out of stock product added to the Admin order is causing error
 
+## [Unreleased] - 2015-11-16
+### Fixed
+- ME-1208 Region code used in order create may be full state name
+
 ## [1.6.22] - 2015-11-16
 ### Fixed
 - Subtract backorder demand from available-to-promise inventory on import
@@ -345,7 +349,6 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
-[1.6.23]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.22...1.6.23
 [1.6.22]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.21...1.6.22
 [1.6.21]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.20...1.6.21
 [1.6.20]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.19...1.6.20
