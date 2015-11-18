@@ -25,6 +25,10 @@ class EbayEnterprise_Inventory_Model_Observer
     protected $logger;
     /** @var EbayEnterprise_MageLog_Helper_Context */
     protected $logContext;
+    /** @var Mage_Core_Model_App */
+    protected $app;
+    /** @var Mage_Adminhtml_Model_Session_Quote */
+    protected $adminQuoteSession;
 
     /**
      * @param array $args May contain:
@@ -40,7 +44,8 @@ class EbayEnterprise_Inventory_Model_Observer
             $this->detailsService,
             $this->allocationService,
             $this->logger,
-            $this->logContext
+            $this->logContext,
+            $this->app
         ) = $this->checkTypes(
             $this->nullCoalesce(
                 $args,
@@ -54,7 +59,8 @@ class EbayEnterprise_Inventory_Model_Observer
                 Mage::getModel('ebayenterprise_inventory/allocation_service')
             ),
             $this->nullCoalesce($args, 'logger', Mage::helper('ebayenterprise_magelog')),
-            $this->nullCoalesce($args, 'log_context', Mage::helper('ebayenterprise_magelog/context'))
+            $this->nullCoalesce($args, 'log_context', Mage::helper('ebayenterprise_magelog/context')),
+            Mage::app()
         );
     }
 
@@ -66,6 +72,7 @@ class EbayEnterprise_Inventory_Model_Observer
      * @param EbayEnterprise_Inventory_Model_Allocation_Service
      * @param EbayEnterprise_MageLog_Helper_Data
      * @param EbayEnterprise_MageLog_Helper_Context
+     * @param Mage_Core_Model_App
      * @return array
      */
     protected function checkTypes(
@@ -73,7 +80,8 @@ class EbayEnterprise_Inventory_Model_Observer
         EbayEnterprise_Inventory_Model_Details_Service $detailsService,
         EbayEnterprise_Inventory_Model_Allocation_Service $allocationService,
         EbayEnterprise_MageLog_Helper_Data $logger,
-        EbayEnterprise_MageLog_Helper_Context $logContext
+        EbayEnterprise_MageLog_Helper_Context $logContext,
+        Mage_Core_Model_App $app
     ) {
         return func_get_args();
     }
@@ -105,9 +113,61 @@ class EbayEnterprise_Inventory_Model_Observer
             $this->quantityService
                 ->checkQuoteInventory($quote);
         } catch (EbayEnterprise_Inventory_Exception_Quantity_Collector_Exception $e) {
-            $this->logger->warning($e->getMessage(), $this->logContext->getMetaData(__CLASS__, [], $e));
+            $this->logger->logException($e, $this->logContext->getMetaData(__CLASS__, [], $e));
+            $this->logger->warning(
+                'Caught the following exception: {exception_message}.',
+                $this->logContext->getMetaData(__CLASS__, ['exception_message' => $e->getMessage()])
+            );
+        } catch (EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception $e) {
+            $this->logger->logException($e, $this->logContext->getMetaData(__CLASS__, [], $e));
+            $this->logger->warning(
+                'Caught the following exception: {exception_message}.',
+                $this->logContext->getMetaData(__CLASS__, ['exception_message' => $e->getMessage()])
+            );
+            if ($this->app->getStore()->isAdmin()) {
+                // Handling admin exception here because it is not
+                // being caught in the admin controller causing it
+                // to display exception traces in the page.
+                return $this->handleAdminOrderException($e, $quote);
+            }
+            // Continue to throw the exception in the frontend and let
+            // the frontend controller handle it.
+            throw $e;
         }
         return $this;
+    }
+
+    /**
+     * Handle admin out of stock Exception thrown from ROM Inventory Service.
+     *
+     * @param  EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception
+     * @param  Mage_Sales_Model_Quote
+     * @return self
+     */
+    protected function handleAdminOrderException(
+        EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception $e,
+        Mage_Sales_Model_Quote $quote
+    )
+    {
+        $this->getAdminQuoteSession()->addError($e->getMessage());
+        foreach ($quote->getAllVisibleItems() as $quoteItem) {
+            if (!$this->quantityService->isItemAvailable($quoteItem)) {
+                $quote->deleteItem($quoteItem);
+            }
+        }
+        return $this;
+    }
+
+    /**
+     * Stash the adminhtml quote session to a class property.
+     * @return Mage_Adminhtml_Model_Session_Quote
+     */
+    protected function getAdminQuoteSession()
+    {
+        if (!$this->adminQuoteSession) {
+            $this->adminQuoteSession = Mage::getSingleton('adminhtml/session_quote');
+        }
+        return $this->adminQuoteSession;
     }
 
     /**

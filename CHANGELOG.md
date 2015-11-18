@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.6.23] - 2015-11-17
+### Fixed
+- Out of stock product added to the Admin order is causing error
+
+## [Unreleased] - 2015-11-16
+### Fixed
+- ME-1208 Region code used in order create may be full state name
+
 ## [1.6.22] - 2015-11-16
 ### Fixed
 - Subtract backorder demand from available-to-promise inventory on import
@@ -8,7 +16,7 @@ All notable changes to this project will be documented in this file.
 ## [1.6.21] - 2015-11-09
 ### Added/Removed
 - Test address validation module in circle-ci
-- Remove gift registry from address validation 
+- Remove gift registry from address validation
 
 ## [1.6.20] - 2015-11-09
 ### Fixed
