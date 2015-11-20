@@ -591,6 +591,7 @@ class EbayEnterprise_Catalog_Helper_Data extends Mage_Core_Helper_Abstract imple
             ->getCollection()
             ->setEntityTypeFilter(Mage::getModel('eav/entity')->setType('catalog_product')->getTypeId())
             ->addFieldToFilter('attribute_set_name', $name)
+            ->setPageSize(1)
             ->getFirstItem()
             ->getAttributeSetId();
     }

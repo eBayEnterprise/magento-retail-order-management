@@ -77,7 +77,7 @@ class EbayEnterprise_Order_Test_Model_Detail_Process_Response_RelationshipTest e
             ->will($this->returnValue($bundles));
         $relationship->expects($this->once())
             ->method('groupBundle')
-            ->with($this->identicalTo($items->getFirstItem()), $this->identicalTo([$data[1], $data[2]]))
+            ->with($this->identicalTo($items->setPageSize(1)->getFirstItem()), $this->identicalTo([$data[1], $data[2]]))
             ->will($this->returnSelf());
 
         $this->assertSame($relationship, $relationship->process());

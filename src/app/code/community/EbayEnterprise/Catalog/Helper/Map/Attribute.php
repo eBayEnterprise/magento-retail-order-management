@@ -157,7 +157,7 @@ class EbayEnterprise_Catalog_Helper_Map_Attribute extends Mage_Core_Helper_Abstr
             ->setAttributeFilter($this->_getAttributeIdByName($attributeCode))
             ->addFieldToFilter('tdv.value', $optionValue)
             ->setStoreFilter(Mage_Core_Model_App::ADMIN_STORE_ID)
-            ->load()
+            ->setPageSize(1)
             ->getFirstItem();
     }
 

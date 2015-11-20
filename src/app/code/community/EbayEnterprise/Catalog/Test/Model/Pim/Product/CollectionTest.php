@@ -121,7 +121,7 @@ class EbayEnterprise_Catalog_Test_Model_Pim_Product_CollectionTest extends EbayE
             ->getMock();
         $collection = Mage::getModel('ebayenterprise_catalog/pim_product_collection');
         EcomDev_Utils_Reflection::setRestrictedPropertyValue($collection, '_items', array($pimProduct));
-        $this->assertSame($pimProduct, $collection->getFirstItem());
+        $this->assertSame($pimProduct, $collection->setPageSize(1)->getFirstItem());
     }
     /**
      * When there are no items in the collection, should thrown an exception.
@@ -130,7 +130,7 @@ class EbayEnterprise_Catalog_Test_Model_Pim_Product_CollectionTest extends EbayE
     {
         $collection = Mage::getModel('ebayenterprise_catalog/pim_product_collection');
         $this->setExpectedException('EbayEnterprise_Catalog_Model_Pim_Product_Collection_Exception', 'EbayEnterprise_Catalog_Model_Pim_Product_Collection::getFirstItem cannot get item from an empty collection');
-        $collection->getFirstItem();
+        $collection->setPageSize(1)->getFirstItem();
     }
     /**
      * Will return the last item if there are items in the collection.

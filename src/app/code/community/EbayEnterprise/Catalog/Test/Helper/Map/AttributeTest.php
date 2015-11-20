@@ -234,9 +234,6 @@ class EbayEnterprise_Catalog_Test_Helper_Map_AttributeTest extends EbayEnterpris
             ->with($this->identicalTo(Mage_Catalog_Model_Abstract::DEFAULT_STORE_ID))
             ->will($this->returnSelf());
         $eavOptionCollection->expects($this->once())
-            ->method('load')
-            ->will($this->returnSelf());
-        $eavOptionCollection->expects($this->once())
             ->method('getFirstItem')
             ->will($this->returnValue($eavOptionMock));
         $this->replaceByMock('resource_model', 'eav/entity_attribute_option_collection', $eavOptionCollection);
