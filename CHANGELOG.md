@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.6.??] - ??
+### Fixed
+- Applied gift cards carry over to later admin orders
+
 ## [1.6.35] - 2015-12-21
 ### Added
 - Debug logging to inform when to make/not make inventory details calls

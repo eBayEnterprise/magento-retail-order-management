@@ -13,7 +13,7 @@
 browse() {
     compose ps -q |
         xargs -n1 -I{} docker port {} 80 2>/dev/null |
-        sed "s/0.0.0.0/$(boot2docker ip)/" |
+        sed "s/0.0.0.0/$(docker-machine ip "$DOCKER_MACHINE_NAME")/" |
         xargs -n1 -I{} open "http://{}/$1"
 }
 
