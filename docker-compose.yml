@@ -52,6 +52,7 @@ webapp:
     image: kojiromike/magento_apache
     volumes:
         - ./build/magento:/srv/magento
+        - .:/git/magento-retail-order-management
     links:
         - db
     ports:
@@ -62,7 +63,7 @@ composer:
         - .:/git/magento-retail-order-management
         - ./build/magento:/srv/magento
         - ~/.composer/auth.json:/root/.composer/auth.json
-    entrypoint: composer
+    entrypoint: php -d memory_limit=-1 /srv/magento/vendor/bin/composer
     command: list
 document:
     image: kojiromike/magento_tools
@@ -118,6 +119,7 @@ phpunit:
     image: kojiromike/magento_tools
     volumes:
         - ./build/magento:/srv/magento
+        - .:/git/magento-retail-order-management
     links:
         - db
         - unitdb
@@ -127,6 +129,7 @@ coverage:
     volumes:
         - ./build/magento:/srv/magento
         - ./build/phpunit:/srv/phpunit
+        - .:/git/magento-retail-order-management
     links:
         - db
         - unitdb
@@ -142,6 +145,7 @@ tools:
     image: kojiromike/magento_tools
     volumes:
         - ./build/magento:/srv/magento
+        - .:/git/magento-retail-order-management
     volumes_from:
         - dbdata
     links:
@@ -151,6 +155,7 @@ magerun:
     image: kojiromike/magento_tools
     volumes:
         - ./build/magento:/srv/magento
+        - .:/git/magento-retail-order-management
     links:
         - db
     entrypoint: /srv/magento/vendor/bin/n98-magerun --skip-root-check
@@ -159,5 +164,6 @@ composerCommandIntegrator:
     image: kojiromike/magento_tools
     volumes:
         - ./build/magento:/srv/magento
+        - .:/git/magento-retail-order-management
     entrypoint: php -d date.timezone=UTC /srv/magento/vendor/bin/composerCommandIntegrator.php
     command: list
