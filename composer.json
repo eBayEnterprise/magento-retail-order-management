@@ -8,6 +8,7 @@
         { "name": "Michael Phang", "email": "mphang@ebay.com" },
         { "name": "Mike West", "email": "micwest@ebay.com" },
         { "name": "Reginald Gabriel", "email": "rgabriel@ebay.com" },
+        { "name": "Ryan Tulino", "email": "rtulino@ebay.com" },
         { "name": "Scott van Brug", "email": "svanbrug@ebay.com" }
     ],
     "type": "magento-module",
