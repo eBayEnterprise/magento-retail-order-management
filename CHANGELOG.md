@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [1.6.44] - 2016-02-24
+### Fixed
+- Check available inventory after quantity is set instead of before totals are collected
+
 ## [1.6.43] - 2016-02-12
 ### Fixed
 - SKU missing from used products array when Flat Catalog Product is enabled
@@ -428,6 +432,7 @@ All notable changes to this project will be documented in this file.
 - Gift card PIN is not submitted with the order
 - Product import not importing color descriptions
 
+[1.6.44]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.43...1.6.44
 [1.6.43]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.42...1.6.43
 [1.6.42]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.41...1.6.42
 [1.6.41]: https://github.com/eBayEnterprise/magento-retail-order-management/compare/1.6.40...1.6.41

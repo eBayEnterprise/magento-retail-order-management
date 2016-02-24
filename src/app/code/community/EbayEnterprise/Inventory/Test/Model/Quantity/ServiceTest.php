@@ -61,7 +61,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         // to be checked by the inventory service.
         $this->_inventoryItemSelection = $this->getHelperMock(
             'ebayenterprise_inventory/item_selection',
-            ['selectFrom']
+            ['isExcludedParent','isStockManaged']
         );
 
         // Mock the inventory's data helper to control
@@ -231,18 +231,30 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * array containing the item the the item selector, given that array, should
      * return it (assume the item isn't filtered out).
      *
-     * @param Mage_Sales_Model_Quote_Item[]
+     * @param Mage_Sales_Model_Quote_Item
      * @return self
      */
-    protected function _mockQuoteItemSelection($quoteItems)
+    protected function _mockQuoteItemSelection($quoteItem, $dupeSkuQuoteItem = null)
     {
+        $quoteItems = $dupeSkuQuoteItem ?
+            [$quoteItem, $dupeSkuQuoteItem] :
+            [$quoteItem];
+        $invokeArgument = $dupeSkuQuoteItem ?
+            $this->logicalOr(
+                $this->identicalTo($quoteItem),
+                $this->identicalTo($dupeSkuQuoteItem)
+            ) : $this->identicalTo($quoteItem);
         $this->_quote->expects($this->any())
             ->method('getAllItems')
             ->will($this->returnValue($quoteItems));
         $this->_inventoryItemSelection->expects($this->any())
-            ->method('selectFrom')
-            ->with($this->identicalTo($quoteItems))
-            ->will($this->returnArgument(0));
+            ->method('isExcludedParent')
+            ->with($invokeArgument)
+            ->willReturn(false);
+        $this->_inventoryItemSelection->expects($this->any())
+            ->method('isStockManaged')
+            ->with($invokeArgument)
+            ->willReturn(true);
         return $this;
     }
 
@@ -253,7 +265,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * should return "self" without manipulating the quote or
      * any of the items.
      */
-    public function testCheckQuoteInventory()
+    public function testCheckQuoteItemInventory()
     {
         $itemSku = 'the-item';
         $itemQty = 5;
@@ -264,7 +276,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId);
         $quoteItems = [$quoteItem];
 
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -290,7 +302,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($quoteItem)
         );
     }
 
@@ -299,7 +311,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * is already in the quote, an error info should be added
      * to the quote as well as the quote item.
      */
-    public function testCheckQuoteInventoryInsufficientStock()
+    public function testCheckQuoteItemInventoryInsufficientStock()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -313,7 +325,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
         $quoteItems = [$quoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -353,7 +365,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($quoteItem)
         );
     }
 
@@ -362,7 +374,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * have sufficient stock available, an exception should
      * be thrown to prevent the item from being added to cart.
      */
-    public function testCheckQuoteInventoryPreventItemAddToQuote()
+    public function testCheckQuoteItemInventoryPreventItemAddToQuote()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -375,7 +387,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
         $quoteItems = [$quoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -395,7 +407,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         // Item is expected to not already be in the order, so when unavailable,
         // an exception should be thrown.
         $this->setExpectedException('EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception', $quoteErrorMessage);
-        $this->_quantityService->checkQuoteInventory($this->_quote);
+        $this->_quantityService->checkQuoteItemInventory($quoteItem);
     }
 
     /**
@@ -404,7 +416,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * quote. If the available quantity is greater than the combined quantity
      * no errors should be added to items or the quote.
      */
-    public function testCheckQuoteInventoryMultipleItemsSameSku()
+    public function testCheckQuoteItemInventoryMultipleItemsSameSku()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -418,9 +430,9 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         $availQty = 10;
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
-        $dupeSkuQuoteItem = $this->_mockQuoteItem($itemSku, $dupeSkuItemQty, $itemName, $dupeSkuItemId);
+        $dupeSkuQuoteItem = $this->_mockQuoteItem($itemSku, $dupeSkuItemQty, $dupeSkuItemId, $itemName);
         $quoteItems = [$quoteItem, $dupeSkuQuoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem, $dupeSkuQuoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -443,7 +455,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($dupeSkuQuoteItem)
         );
     }
 
@@ -454,7 +466,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * all items with the same sku, error info should be added to all items with
      * the sku.
      */
-    public function testCheckQuoteInventoryMultipleItemsSameSkuUnavailableQuantity()
+    public function testCheckQuoteItemInventoryMultipleItemsSameSkuUnavailableQuantity()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -471,9 +483,9 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         $itemErrorMessage = EbayEnterprise_Inventory_Model_Quantity_Service::ITEM_INSUFFICIENT_STOCK_MESSAGE;
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
-        $dupeSkuQuoteItem = $this->_mockQuoteItem($itemSku, $dupeSkuItemQty, $itemName, $dupeSkuItemId);
+        $dupeSkuQuoteItem = $this->_mockQuoteItem($itemSku, $dupeSkuItemQty, $dupeSkuItemId, $itemName);
         $quoteItems = [$quoteItem, $dupeSkuQuoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem, $dupeSkuQuoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -525,7 +537,12 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($quoteItem)
+        );
+
+        $this->assertSame(
+            $this->_quantityService,
+            $this->_quantityService->checkQuoteItemInventory($dupeSkuQuoteItem)
         );
     }
 
@@ -534,7 +551,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * out of stock, the out of stock messages should be added to the quote
      * and item error info.
      */
-    public function testCheckQuoteInventoryOutOfStockUpdate()
+    public function testCheckQuoteItemInventoryOutOfStockUpdate()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -548,7 +565,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
         $quoteItems = [$quoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -588,7 +605,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($quoteItem)
         );
     }
 
@@ -597,7 +614,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
      * out of stock, an exception should be thrown with the out of stock
      * exception message.
      */
-    public function testCheckQuoteInventoryOutOfStockPreventItemAddToQuote()
+    public function testCheckQuoteItemInventoryOutOfStockPreventItemAddToQuote()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -610,7 +627,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName);
         $quoteItems = [$quoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -630,14 +647,14 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         // Item is expected to not already be in the order, so when unavailable,
         // an exception should be thrown.
         $this->setExpectedException('EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception', $quoteErrorMessage);
-        $this->_quantityService->checkQuoteInventory($this->_quote);
+        $this->_quantityService->checkQuoteItemInventory($quoteItem);
     }
 
     /**
      * When inventory errors are encountered for a child item, error info should
      * be added to the parent item, child item and quote.
      */
-    public function testCheckQuoteInventoryParentItemMessages()
+    public function testCheckQuoteItemInventoryParentItemMessages()
     {
         $itemSku = 'the-item';
         $itemName = 'Item Name';
@@ -655,7 +672,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
         $parentQuoteItem = $this->_mockQuoteItem($itemSku, 1, 38, $itemName);
         $quoteItem = $this->_mockQuoteItem($itemSku, $itemQty, $itemId, $itemName, $parentQuoteItem);
         $quoteItems = [$quoteItem];
-        $this->_mockQuoteItemSelection($quoteItems);
+        $this->_mockQuoteItemSelection($quoteItem);
 
         // Mock the mechanism used to determine total quantity of an item,
         // can return the expected quantity of the item requested.
@@ -703,32 +720,7 @@ class EbayEnterprise_Inventory_Test_Model_Quantity_ServiceTest extends EcomDev_P
 
         $this->assertSame(
             $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
-        );
-    }
-
-    /**
-     * When the quote no-longer has any items to check the quantity of, the
-     * collector should have any existing results cleared to prevent them from
-     * being re-used when items are added back to the cart.
-     */
-    public function testCheckQuoteWithNoItemsClearsResults()
-    {
-        // Side-effect test: when no items are left to be checked, make sure
-        // any old results are cleared out to prevent re-using cached results
-        // when items are added back to the quote.
-        $this->_quantityCollector->expects($this->once())
-            ->method('clearResults')
-            ->will($this->returnSelf());
-
-        // Mock the quote and item selection to return an empty list of items,
-        // indicating there are no longer any items in the quote to check.
-        $quoteItems = [];
-        $this->_mockQuoteItemSelection($quoteItems);
-
-        $this->assertSame(
-            $this->_quantityService,
-            $this->_quantityService->checkQuoteInventory($this->_quote)
+            $this->_quantityService->checkQuoteItemInventory($quoteItem)
         );
     }
 

@@ -16,16 +16,16 @@
 interface EbayEnterprise_Inventory_Model_Quantity_IService
 {
     /**
-     * Check the inventory status of each item in the quote. Will add errors
+     * Check the inventory status of a quote item. Will add errors
      * to the quote and items if any are not currently available at the
      * requested quantity. Will throw an exception if any item not yet added
      * to the quote should be prevented from being added.
      *
-     * @param Mage_Sales_Model_Quote
+     * @param Mage_Sales_Model_Quote_Item
      * @return self
      * @throws EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception If any items should not be added to the quote.
      */
-    public function checkQuoteInventory(Mage_Sales_Model_Quote $quote);
+    public function checkQuoteItemInventory(Mage_Sales_Model_Quote_Item $item);
 
     /**
      * Check if a given item is currently available to be fulfilled.
