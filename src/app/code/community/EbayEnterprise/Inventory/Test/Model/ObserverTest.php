@@ -47,7 +47,7 @@ class EbayEnterprise_Inventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
         // needing to inject dependencies.
         $this->_quantityService = $this->getModelMockBuilder('ebayenterprise_inventory/quantity_service')
             ->disableOriginalConstructor()
-            ->setMethods(['checkQuoteInventory'])
+            ->setMethods(['checkQuoteItemInventory'])
             ->getMock();
         ;
 
@@ -60,22 +60,22 @@ class EbayEnterprise_Inventory_Test_Model_ObserverTest extends EcomDev_PHPUnit_T
     }
 
     /**
-     * When handling the before collect totals event,
+     * When handling the after set qty event,
      * quote item quantities should be checked by checking
      * quote inventory via the quantity service model.
      */
-    public function testHandleBeforeCollectTotals()
+    public function testHandleAfterSetItemQty()
     {
-        $quote = Mage::getModel('sales/quote');
-        $this->_event->setQuote($quote);
+        $quoteItem = Mage::getModel('sales/quote_item');
+        $this->_event->setItem($quoteItem);
 
         // Side-effect test: just need to make sure quote inventory
         // is checked via the quantity service model.
         $this->_quantityService->expects($this->once())
-            ->method('checkQuoteInventory')
-            ->with($this->identicalTo($quote))
+            ->method('checkQuoteItemInventory')
+            ->with($this->identicalTo($quoteItem))
             ->will($this->returnSelf());
 
-        $this->_inventoryObserver->handleBeforeCollectTotals($this->_eventObserver);
+        $this->_inventoryObserver->handleAfterSetItemQty($this->_eventObserver);
     }
 }

@@ -100,18 +100,17 @@ class EbayEnterprise_Inventory_Model_Observer
     }
 
     /**
-     * Before collecting item totals, check that all items
-     * in the quote are available to be fulfilled.
-     *
      * @param Varien_Event_Observer
-     * @return self
+     * @return EbayEnterprise_Inventory_Model_Observer
+     * @throws EbayEnterprise_Inventory_Exception_Quantity_Unavailable_Exception
+     * @throws Exception
      */
-    public function handleBeforeCollectTotals(Varien_Event_Observer $observer)
+    public function handleAfterSetItemQty(Varien_Event_Observer $observer)
     {
+        /** @var Mage_Sales_Model_Quote_Item $item */
+        $item = $observer->getEvent()->getItem();
         try {
-            $quote = $observer->getEvent()->getQuote();
-            $this->quantityService
-                ->checkQuoteInventory($quote);
+            $this->quantityService->checkQuoteItemInventory($item);
         } catch (EbayEnterprise_Inventory_Exception_Quantity_Collector_Exception $e) {
             $this->logger->logException($e, $this->logContext->getMetaData(__CLASS__, [], $e));
             $this->logger->warning(
@@ -128,7 +127,7 @@ class EbayEnterprise_Inventory_Model_Observer
                 // Handling admin exception here because it is not
                 // being caught in the admin controller causing it
                 // to display exception traces in the page.
-                return $this->handleAdminOrderException($e, $quote);
+                return $this->handleAdminOrderException($e, $item->getQuote());
             }
             // Continue to throw the exception in the frontend and let
             // the frontend controller handle it.
