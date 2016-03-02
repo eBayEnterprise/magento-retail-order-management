@@ -272,11 +272,7 @@ class EbayEnterprise_Inventory_Helper_Data extends Mage_Core_Helper_Abstract imp
         $children = $item->getChildren();
         if ($children) {
             foreach ($children as $childItem) {
-                /** @var Mage_Catalog_Model_Product */
-                $product = $childItem->getProduct();
-                if ($product instanceof Mage_Catalog_Model_Product) {
-                    $skus[] = $product->getSku();
-                }
+                $skus[] = $childItem->getSku();
             }
         }
         return $skus;
@@ -290,17 +286,12 @@ class EbayEnterprise_Inventory_Helper_Data extends Mage_Core_Helper_Abstract imp
      */
     protected function getAllParentSkuFromItem(Mage_Core_Model_Abstract $item)
     {
-        /** @var Mage_Catalog_Model_Product */
-        $currentProduct = $item->getProduct();
-        /** @var Mage_Catalog_Model_Product[] */
-        $skus = [$currentProduct->getSku()];
+        $skus = [$item->getSku()];
         /** @var Mage_Sales_Model_Quote_Item */
         $parentItem = $item->getParentItem();
         if ($parentItem) {
-            /** @var Mage_Catalog_Model_Product */
-            $parentProduct = $parentItem->getProduct();
-            if ($currentProduct->getId() !== $parentProduct->getId()) {
-                $skus[] = $parentProduct->getSku();
+            if ($item->getProductId() !== $parentItem->getProductId()) {
+                $skus[] = $parentItem->getSku();
             }
         }
         return $skus;

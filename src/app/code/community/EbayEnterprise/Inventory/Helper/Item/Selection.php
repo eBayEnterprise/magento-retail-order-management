@@ -27,22 +27,20 @@ class EbayEnterprise_Inventory_Helper_Item_Selection implements EbayEnterprise_I
         return array_filter(
             $items,
             function ($item) {
-                return !$this->isExcludedParent($item) && $this->isStockManaged($item);
+                return !$this->isExcludedItem($item) && $this->isStockManaged($item);
             }
         );
     }
 
     /**
-     * returns true if the item is the parent of configurable/grouped products
+     * returns true if the item is the child of configurable/grouped product
      *
      * @param  Mage_Sales_Model_Quote_Item_Abstract
      * @return bool
      */
-    public function isExcludedParent(Mage_Sales_Model_Quote_Item_Abstract $item)
+    public function isExcludedItem(Mage_Sales_Model_Quote_Item_Abstract $item)
     {
-        $itemProductType = $item->getProduct()->getTypeId();
-        return $itemProductType === Mage_Catalog_Model_Product_Type::TYPE_CONFIGURABLE
-            || $itemProductType === Mage_Catalog_Model_Product_Type::TYPE_GROUPED;
+        return $item->getParentItem() instanceof Mage_Sales_Model_Quote_Item;
     }
 
     /**

@@ -175,7 +175,7 @@ class EbayEnterprise_Inventory_Model_Quantity_Service implements EbayEnterprise_
     public function checkQuoteItemInventory(Mage_Sales_Model_Quote_Item $item)
     {
         // Only checking inventory that is managed and not a hidden parent item
-        if (!$this->_inventoryItemSelection->isExcludedParent($item) &&
+        if (!$this->_inventoryItemSelection->isExcludedItem($item) &&
             $this->_inventoryItemSelection->isStockManaged($item)) {
             // Determine if a stock message needs to be displayed
             if (!$this->isItemAvailable($item)) {

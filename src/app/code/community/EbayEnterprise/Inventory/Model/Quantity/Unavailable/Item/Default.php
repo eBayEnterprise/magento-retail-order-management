@@ -151,13 +151,15 @@ class EbayEnterprise_Inventory_Model_Quantity_Unavailable_Item_Default
             $errorCode,
             $itemMessage
         );
-        $parentItem = $item->getParentItem();
-        if ($parentItem) {
-            $parentItem->addErrorInfo(
-                EbayEnterprise_Inventory_Model_Quantity_Service::ERROR_INFO_SOURCE,
-                $errorCode,
-                $itemMessage
-            );
+        if ($item->getProduct()->isSuper()) {
+            $children = $this->getItemChildren($item);
+            foreach ($children as $child) {
+                $child->addErrorInfo(
+                    EbayEnterprise_Inventory_Model_Quantity_Service::ERROR_INFO_SOURCE,
+                    $errorCode,
+                    $itemMessage
+                );
+            }
         }
         $item->getQuote()->addErrorInfo(
             EbayEnterprise_Inventory_Model_Quantity_Service::ERROR_INFO_TYPE,
@@ -166,5 +168,16 @@ class EbayEnterprise_Inventory_Model_Quantity_Unavailable_Item_Default
             $quoteMessage
         );
         return $this;
+    }
+
+    /**
+     * @param Mage_Sales_Model_Quote_Item $item
+     * @return Mage_Sales_Model_Quote_Item[]
+     */
+    protected function getItemChildren(Mage_Sales_Model_Quote_Item $item)
+    {
+        return Mage::getModel('sales/quote_item')->getCollection()
+            ->setQuote($item->getQuote())
+            ->addFieldToFilter('parent_item_id', $item->getId());
     }
 }
