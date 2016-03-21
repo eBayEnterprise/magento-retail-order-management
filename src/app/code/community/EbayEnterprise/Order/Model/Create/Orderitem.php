@@ -216,7 +216,6 @@ class EbayEnterprise_Order_Model_Create_Orderitem
             ['attribute_code']
         );
         $options->setStoreFilter($item->getStoreId());
-        $options->addFieldToFilter('main_table.attribute_id', ['in' => array_keys($attrs)]);
         $options->addFieldToFilter('main_table.option_id', ['in' => array_values($attrs)]);
         return $options;
     }
