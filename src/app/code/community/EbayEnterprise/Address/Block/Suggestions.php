@@ -14,33 +14,31 @@
  */
 
 /**
- * Class EbayEnterprise_Address_Block_Suggestions
- *
  * Renders a group of corrected addresses for the consumer to choose from
  */
 class EbayEnterprise_Address_Block_Suggestions extends Mage_Core_Block_Template
 {
     // Name of the input field
-    const SUGGESTION_INPUT_NAME         = 'validation_option';
+    const SUGGESTION_INPUT_NAME = 'validation_option';
     /**
      * Where to find the format template in the config registry
      * @see EbayEnterprise_Address_Model_Config::$_configPaths
      */
     const DEFAULT_ADDRESS_FORMAT_CONFIG = 'address_format_full';
     // When selecting from a list of addresses, this value means enter an entirely new address
-    const NEW_ADDRESS_SELECTION_VALUE   = 'new_address';
+    const NEW_ADDRESS_SELECTION_VALUE = 'new_address';
     /**
      * @see parent::$_template
      * @var string Path to the template value in theme
      */
     protected $_template = 'ebayenterprise_address/customer/address/suggestions.phtml';
     /** @var array Mapping of messages used by this block */
-    protected $_messages = array(
+    protected $_messages = [
         'new_label'         => 'EbayEnterprise_Address_New_Address_Label',
         'original_label'    => 'EbayEnterprise_Address_Original_Address_Label',
         'suggested_address' => 'EbayEnterprise_Address_Suggestions_Label',
         'suggestion_label'  => 'EbayEnterprise_Address_Suggested_Address_Label',
-    );
+    ];
     /**
      * An address validation validator model which will be used to look up
      * any necessary addresses/data related to address validation.
@@ -84,7 +82,7 @@ class EbayEnterprise_Address_Block_Suggestions extends Mage_Core_Block_Template
     /**
      * Return an array of suggested addresses.
      *
-     * @return Mage_Customer_Model_Address[]
+     * @return Mage_Customer_Model_Address_Abstract[]
      */
     public function getSuggestedAddresses()
     {
@@ -94,7 +92,7 @@ class EbayEnterprise_Address_Block_Suggestions extends Mage_Core_Block_Template
     /**
      * Get the address object for the original address submitted to the service.
      *
-     * @return Mage_Customer_Model_Address
+     * @return Mage_Customer_Model_Address_Abstract[]
      */
     public function getOriginalAddress()
     {
@@ -126,7 +124,7 @@ class EbayEnterprise_Address_Block_Suggestions extends Mage_Core_Block_Template
     public function getAddressJsonData(Mage_Customer_Model_Address_Abstract $address)
     {
         $address->explodeStreetAddress();
-        return $address->toJson(array(
+        return $address->toJson([
             'street1',
             'street2',
             'street3',
@@ -135,7 +133,7 @@ class EbayEnterprise_Address_Block_Suggestions extends Mage_Core_Block_Template
             'region_id',
             'country_id',
             'postcode',
-        ));
+        ]);
     }
 
     /**

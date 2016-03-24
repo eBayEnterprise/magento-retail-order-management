@@ -142,10 +142,12 @@ class EbayEnterprise_Address_Model_Validator
      * @param Mage_Customer_Model_Address_Abstract
      * @return bool
      */
-    protected function _hasAddressBeenValidated(Mage_Customer_Model_Address_Abstract $address)
+    protected function hasAddressBeenValidated(Mage_Customer_Model_Address_Abstract $address)
     {
+        $logContext = $this->_context->getMetaData(__CLASS__);
         // flag set on addresses that are returned from the Address Validation response
         if ($address->getHasBeenValidated()) {
+            $this->_logger->debug('Address already validated', $logContext);
             return true;
         }
         // when the address is used as a shipping address, must ensure that the validated
@@ -158,7 +160,11 @@ class EbayEnterprise_Address_Model_Validator
         // ensure - a validated address of this type exists
         // it was actually validated/validation wasn't skipped
         // and it matches the current address
-        return $validatedAddress && $this->_compareAddressToValidatedAddress($address, $validatedAddress);
+        $result = $validatedAddress && $this->_compareAddressToValidatedAddress($address, $validatedAddress);
+        if ($result) {
+            $this->_logger->debug('Address already validated', $logContext);
+        }
+        return $result;
     }
 
     /**
@@ -188,10 +194,12 @@ class EbayEnterprise_Address_Model_Validator
     protected function _isVirtualOrder()
     {
         $quote = Mage::getSingleton('checkout/session')->getQuote();
-        if ($quote) {
-            return $quote->isVirtual();
+        $result = $quote && $quote->isVirtual();
+        if ($result) {
+            $logMessage = 'No shipping address (virtual order)';
+            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
         }
-        return false;
+        return $result;
     }
 
     /**
@@ -237,7 +245,12 @@ class EbayEnterprise_Address_Model_Validator
      */
     protected function _isAddressBillingOnly(Mage_Customer_Model_Address_Abstract $address)
     {
-        return $this->_isBillingAddress($address) && !$this->_isAddressUsedForShipping($address);
+        $result = $this->_isBillingAddress($address) && !$this->_isAddressUsedForShipping($address);
+        if ($result) {
+            $logMessage = 'Address is for billing only';
+            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
+        }
+        return $result;
     }
 
     /**
@@ -259,7 +272,12 @@ class EbayEnterprise_Address_Model_Validator
         $checkoutMethod = $this->_getCheckoutMethod();
         $canSaveAddressesInCheckout = $checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_REGISTER ||
             $checkoutMethod === Mage_Checkout_Model_Type_Onepage::METHOD_CUSTOMER;
-        return $postFlag && $canSaveAddressesInCheckout;
+        $result = $postFlag && $canSaveAddressesInCheckout;
+        if ($result) {
+            $logMessage = 'Saving address in address book';
+            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
+        }
+        return $result;
     }
 
     /**
@@ -269,53 +287,33 @@ class EbayEnterprise_Address_Model_Validator
      */
     protected function _isAddressFromAddressBook(Mage_Customer_Model_Address_Abstract $address)
     {
-        return $address->getId() && $address->getCustomerId() && $address->getCustomerAddressId();
+        $result = $address->getId() && $address->getCustomerId() && $address->getCustomerAddressId();
+        if ($result) {
+            $logMessage = 'Address is from address book.';
+            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
+        }
+        return $result;
     }
 
     /**
-     * Determine if an address needs to be validated
+     * Determine if an address needs to be validated.
      * Some conditions, like an address being saved in the address book,
      * always require validation.
-     * Others conditions, like using an address for billing address only
+     * Other conditions, like using an address for billing address only
      * or being from the address book, indicate that validation is not required.
+     *
      * @param Mage_Customer_Model_Address_Abstract
      * @return bool
      */
     public function shouldValidateAddress(Mage_Customer_Model_Address_Abstract $address)
     {
-        if ($this->_hasAddressBeenValidated($address)) {
-            $logMessage = 'No validation - already validated';
-            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-            return false;
-        }
-        if ($this->_isCheckoutAddress($address)) {
-            if ($this->_isAddressFromAddressBook($address)) {
-                $logMessage = 'No validation - from address book';
-                $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-                return false;
-            }
-            if ($this->_isAddressBeingSaved()) {
-                $logMessage = 'Require validation - saving address in address book';
-                $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-                return true;
-            }
-            if ($this->_isVirtualOrder()) {
-                $logMessage = 'No validation - virtual order';
-                $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-                return false;
-            }
-            if ($this->_isAddressBillingOnly($address)) {
-                $logMessage = 'No validation - billing only';
-                $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-                return false;
-            }
-            if ($this->_isMissingRequiredFields($address)) {
-                $logMessage = 'No validation - missing required fields';
-                $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
-                return false;
-            }
-        }
-        return true;
+        return (!$this->hasAddressBeenValidated($address))
+            && (!$this->_isCheckoutAddress($address))
+            && (!$this->_isAddressFromAddressBook($address))
+            || ($this->_isAddressBeingSaved())
+            && (!$this->_isVirtualOrder())
+            && (!$this->_isAddressBillingOnly($address))
+            && (!$this->_isMissingRequiredFields($address));
     }
 
     /**
@@ -394,7 +392,7 @@ class EbayEnterprise_Address_Model_Validator
         $adminValidation = (
             $area === Mage_Core_Model_App_Area::AREA_ADMINHTML
             && !$this->_isBillingAddress($address)
-            && !$this->_hasAddressBeenValidated($address)
+            && !$this->hasAddressBeenValidated($address)
         );
         if ($adminValidation || $this->shouldValidateAddress($address)) {
             $this->clearSessionAddresses();
@@ -663,10 +661,14 @@ class EbayEnterprise_Address_Model_Validator
     protected function _isMissingRequiredFields(Mage_Customer_Model_Address_Abstract $address)
     {
         $methods = ['getStreet1', 'getCity', 'getCountry'];
-        $hasMissingFieds = false;
+        $hasMissingFields = false;
         foreach ($methods as $method) {
-            $hasMissingFieds = $hasMissingFieds || !$address->$method();
+            $hasMissingFields = $hasMissingFieds || !$address->$method();
         }
-        return $hasMissingFieds;
+        if ($hasMissingFields) {
+            $logMessage = 'Address is missing required fields.';
+            $this->_logger->debug($logMessage, $this->_context->getMetaData(__CLASS__));
+        }
+        return $hasMissingFields;
     }
 }
