@@ -7,7 +7,7 @@ cd ../build
 cp "$repo/circle-ci/composer.json" .
 composer --global --no-interaction config repositories.this path "$repo"
 # Firegento has to come last
-composer --global --no-interaction config repositories.firegento composer http://packages.firegento.com
+composer --global --no-interaction config repositories.firegento composer https://packages.firegento.com
 composer --no-interaction --no-update require \
         'ebayenterprise/magento-retail-order-management:*@dev'
 composer --no-interaction --prefer-source update
