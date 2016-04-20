@@ -1,6 +1,0 @@
-config:
-  default/eb2ccore/general/store_id: "ABCD"
-  default/eb2ccore/general/client_id: "TAN-CLI"
-  default/eb2ccore/api/hostname: api.example.com
-  default/eb2ccore/api/major_version: 1
-  default/eb2ccore/api/minor_version: 10

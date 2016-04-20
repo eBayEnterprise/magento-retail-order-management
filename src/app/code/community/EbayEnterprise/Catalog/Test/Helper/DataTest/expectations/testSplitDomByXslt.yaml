@@ -1,2 +1,0 @@
-xslt:
-  results: <?xml version="1.0"?>%s<product_to_be_deleted><sku>45-2BCEC162</sku><sku>45-E491B455-ItemDescription-Test</sku></product_to_be_deleted>

@@ -1,2 +1,0 @@
-config:
-  default/ebayenterprise_catalog/readonly_attributes: 'a,b,c'

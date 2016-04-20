@@ -1,6 +1,0 @@
-simple-product:
-  id: '1'
-config-product:
-  id: '2'
-unknown-product:
-  id: null
