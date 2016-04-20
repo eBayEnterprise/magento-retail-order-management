@@ -321,20 +321,20 @@ class EbayEnterprise_Eb2cCore_Test_Helper_DataTest extends EbayEnterprise_Eb2cCo
         $nodes = $doc->documentElement;
         $mapping = array(
             'sku' => array(
-                'class' => 'ebayenterprise_catalog/map',
+                'class' => 'eb2ccore/map',
                 'type' => 'helper',
                 'method' => 'extractStringValue',
                 'xpath' => 'a:Order/a:OrderItems/a:OrderItem/a:ItemId',
             ),
             'qty_ordered' => array(
-                'class' => 'ebayenterprise_catalog/map',
+                'class' => 'eb2ccore/map',
                 'type' => 'helper',
                 'method' => 'extractIntValue',
                 'xpath' => 'a:Order/a:OrderItems/a:OrderItem/a:Quantity',
             ),
             // Proving that any map field with a 'disabled' type will not be extracted
             'name' => array(
-                'class' => 'ebayenterprise_catalog/map',
+                'class' => 'eb2ccore/map',
                 'type' => 'disabled',
                 'method' => 'extractStringValue',
                 'xpath' => 'a:Order/a:OrderItems/a:OrderItem/a:Name',
