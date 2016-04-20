@@ -7,7 +7,7 @@ cd ../build
 cp "$repo/circle-ci/composer.json" .
 composer --global --no-interaction config repositories.this path "$repo"
 # Firegento has to come last
-composer --global --no-interaction config repositories.firegento composer http://packages.firegento.com
+composer --global --no-interaction config repositories.firegento composer https://packages.firegento.com
 composer --no-interaction --no-update require \
         'ebayenterprise/magento-retail-order-management:*@dev'
 composer --no-interaction --prefer-source update
@@ -18,8 +18,4 @@ mysql --user ubuntu -e 'DELETE FROM core_config_data WHERE path LIKE "web/%secur
 echo 'Configuring Magento for testing'
 cp "$repo"/tests/composer.xml app/etc/
 cp "$repo"/circle-ci/local.xml.phpunit app/etc/
-cp "$repo"/circle-ci/Z_EbayEnterprise_Enabler.xml app/etc/modules/
 cp "$repo"/tests/phpunit.xml.dist .
-
-echo 'Removing dependent modules for a hack'
-rm app/etc/modules/EbayEnterprise_Eb2cGiftwrap.xml

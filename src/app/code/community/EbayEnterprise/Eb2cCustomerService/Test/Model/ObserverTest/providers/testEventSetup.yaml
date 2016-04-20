@@ -1,5 +1,0 @@
--
-    - global
-    - ebayenterprise_order_create_before_attach
-    - eb2ccsr/observer
-    - handleEbayEnterpriseOrderCreateBeforeAttach

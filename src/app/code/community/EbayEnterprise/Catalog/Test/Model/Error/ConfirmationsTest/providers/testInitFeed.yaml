@@ -1,2 +1,0 @@
- -
-   - <MessageHeader><Standard>GSI</Standard><HeaderVersion>2.3.0</HeaderVersion><VersionReleaseNumber>2.3.0</VersionReleaseNumber><SourceData><SourceId>MAGT1</SourceId><SourceType>MAGTNA</SourceType></SourceData><DestinationData><DestinationId>MWS</DestinationId><DestinationType>WS</DestinationType></DestinationData><EventType>ItemMaster</EventType><MessageData><MessageId>MAGT1_MAGTNA_52d004260ebf5</MessageId><CorrelationId>100</CorrelationId></MessageData><CreateDateAndTime>2014-01-10T14:31:02-00:00</CreateDateAndTime></MessageHeader>

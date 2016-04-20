@@ -1,8 +1,0 @@
-billing-1-1:
-  should_validate: true
-billing-1-0:
-  should_validate: false
-billing-0-0:
-  should_validate: false
-shipping-1-1:
-  should_validate: true

@@ -1,6 +1,0 @@
-bad-event-feed:
-  is_valid: false
-good-feed:
-  is_valid: true
-no-event-feed:
-  is_valid: false

@@ -1,9 +1,0 @@
-config:
-  default/sales_email/order/enabled: 1
-  default/sales_email/order_comment/enabled: 1
-  default/sales_email/shipment/enabled: 1
-  default/sales_email/shipment_comment/enabled: 1
-  default/sales_email/invoice/enabled: 1
-  default/sales_email/invoice_comment/enabled: 1
-  default/sales_email/creditmemo/enabled: 1
-  default/sales_email/creditmemo_comment/enabled: 1
