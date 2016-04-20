@@ -18,8 +18,4 @@ mysql --user ubuntu -e 'DELETE FROM core_config_data WHERE path LIKE "web/%secur
 echo 'Configuring Magento for testing'
 cp "$repo"/tests/composer.xml app/etc/
 cp "$repo"/circle-ci/local.xml.phpunit app/etc/
-cp "$repo"/circle-ci/Z_EbayEnterprise_Enabler.xml app/etc/modules/
 cp "$repo"/tests/phpunit.xml.dist .
-
-echo 'Removing dependent modules for a hack'
-rm app/etc/modules/EbayEnterprise_Eb2cGiftwrap.xml
