@@ -63,6 +63,7 @@ http://opensource.org/licenses/osl-3.0.php
             <directory suffix=".php">app/code/community/EbayEnterprise/GiftCard</directory>
             <directory suffix=".php">app/code/community/EbayEnterprise/Multishipping</directory>
             <directory suffix=".php">app/code/community/EbayEnterprise/Order</directory>
+            <directory suffix=".php">app/code/community/EbayEnterprise/PayPal</directory>
             <directory suffix=".php">app/code/community/EbayEnterprise/Tax</directory>
             <exclude>
                 <directory suffix=".php">app/code/community/EbayEnterprise/*/Test</directory>
