@@ -8,7 +8,7 @@ fi
 echo 'Installing Magento 1.9.2.1'
 mkdir -p ../magento
 cd ../magento
-curl -LSs 'https://github.com/OpenMage/magento-mirror/archive/1.9.2.1.tar.gz' | tar --strip-components=1 -xzf-
+curl -LSs 'https://github.com/OpenMage/magento-mirror/archive/1.8.0.0.tar.gz' | tar --strip-components=1 -xzf-
 php install.php \
     --admin_email admin@example.com \
     --admin_firstname ad \
